@@ -47,9 +47,10 @@ interface CreateOrgFormProps {
     name,
     plan,
   }: z.infer<typeof createOrgFormSchema>) => Promise<void>;
+  onCancel: () => void;
 }
 
-function CreateOrgForm({ plans, onSubmit }: CreateOrgFormProps) {
+function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
   const form = useForm<z.infer<typeof createOrgFormSchema>>({
     resolver: zodResolver(createOrgFormSchema),
     defaultValues: {
@@ -127,6 +128,7 @@ function CreateOrgForm({ plans, onSubmit }: CreateOrgFormProps) {
             variant="secondary"
             type="button"
             disabled={form.formState.isSubmitting}
+            onClick={onCancel}
           >
             Cancel
           </Button>
@@ -213,7 +215,11 @@ export default function CreateOrgDialog() {
           </div>
         )}
         {!loading && !stripeClientSecret && (
-          <CreateOrgForm plans={data?.plans} onSubmit={createOrg} />
+          <CreateOrgForm
+            plans={data?.plans}
+            onSubmit={createOrg}
+            onCancel={() => setOpen(false)}
+          />
         )}
         {!loading && stripeClientSecret && (
           <StripeEmbeddedForm clientSecret={stripeClientSecret} />
