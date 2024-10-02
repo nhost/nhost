@@ -34,7 +34,7 @@ import { DefaultSeo } from 'next-seo';
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
-import { PagesTopLoader } from 'nextjs-toploader/pages';
+import TopLoader from 'nextjs-toploader';
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -115,7 +115,7 @@ function MyApp({
                 <RetryableErrorBoundary>
                   <RecoilRoot>
                     <DialogProvider>
-                      <PagesTopLoader />
+                      <TopLoader color="#0052cd" showSpinner={false} />
                       {getLayout(<Component {...pageProps} />)}
                     </DialogProvider>
                   </RecoilRoot>
