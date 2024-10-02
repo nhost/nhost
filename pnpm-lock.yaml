@@ -337,12 +337,12 @@ importers:
       next:
         specifier: ^14.2.10
         version: 14.2.12(@babel/core@7.25.2)(@playwright/test@1.41.0)(react-dom@18.2.0)(react@18.2.0)
+      next-nprogress-bar:
+        specifier: ^2.3.13
+        version: 2.3.13
       next-seo:
         specifier: ^6.5.0
         version: 6.5.0(next@14.2.12)(react-dom@18.2.0)(react@18.2.0)
-      nextjs-toploader:
-        specifier: ^3.6.15
-        version: 3.6.15(next@14.2.12)(react-dom@18.2.0)(react@18.2.0)
       node-pg-format:
         specifier: ^1.3.5
         version: 1.3.5
@@ -26413,6 +26413,12 @@ packages:
       - supports-color
     dev: true
 
+  /next-nprogress-bar@2.3.13:
+    resolution: {integrity: sha512-eJQDvPSUwZ2yRyNKqAH6xTFI4RtIFvs+qtY8essTtfooyaxLGmkanEO7vL83U166bullMtVpixD6FQk5SQkhMw==}
+    dependencies:
+      nprogress: 0.2.0
+    dev: false
+
   /next-seo@6.5.0(next@14.2.12)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-MfzUeWTN/x/rsKp/1n0213eojO97lIl0unxqbeCY+6pAucViHDA8GSLRRcXpgjsSmBxfCFdfpu7LXbt4ANQoNQ==}
     peerDependencies:
@@ -26476,20 +26482,6 @@ packages:
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
-
-  /nextjs-toploader@3.6.15(next@14.2.12)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-DMxO0BiT+NbGU7E9A8U2+0e7rRbG9qozbk19DFXhKRc9wuhgTPR/u8zr2TevsbFtVxDb9mf8YHFz+oBgjMC+HA==}
-    peerDependencies:
-      next: '>=13.4.20-canary.13'
-      react: 18.2.0
-      react-dom: 18.2.0
-    dependencies:
-      next: 14.2.12(@babel/core@7.25.2)(@playwright/test@1.41.0)(react-dom@18.2.0)(react@18.2.0)
-      nprogress: 0.2.0
-      prop-types: 15.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-    dev: false
 
   /nice-try@1.0.5:
     resolution: {integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==}
