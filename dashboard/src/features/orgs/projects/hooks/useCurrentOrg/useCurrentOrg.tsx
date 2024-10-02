@@ -2,12 +2,12 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetOrganizationQuery,
   type Exact,
-  type GetOrganizationsQuery,
+  type GetOrganizationQuery,
 } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 
-export type Org = GetOrganizationsQuery['organizations'][0];
+export type Org = GetOrganizationQuery['organizations'][0];
 
 export interface UseCurrenOrgReturnType {
   org: Org;
