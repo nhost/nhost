@@ -12464,17 +12464,17 @@ export type Mutation_Root = {
   /** delete data from the table: "organizations_free_usage" */
   deleteOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** delete single row from the table: "organization_members" */
-  deleteOrganizationMember?: Maybe<Organization_Members>;
+  deleteOrganizationMember?: Maybe<OrganizationMembers>;
   /** delete single row from the table: "organization_member_invites" */
-  deleteOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  deleteOrganizationMemberInvite?: Maybe<OrganizationMemberInvites>;
   /** delete data from the table: "organization_member_invites" */
-  deleteOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
+  deleteOrganizationMemberInvites?: Maybe<OrganizationMemberInvites_Mutation_Response>;
   /** delete data from the table: "organization_members" */
-  deleteOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
+  deleteOrganizationMembers?: Maybe<OrganizationMembers_Mutation_Response>;
   /** delete single row from the table: "organization_new_request" */
-  deleteOrganizationNewRequest?: Maybe<Organization_New_Request>;
+  deleteOrganizationNewRequest?: Maybe<OrganizationNewRequest>;
   /** delete data from the table: "organization_new_request" */
-  deleteOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
+  deleteOrganizationNewRequests?: Maybe<OrganizationNewRequest_Mutation_Response>;
   /** delete data from the table: "organizations" */
   deleteOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** delete single row from the table: "payment_methods" */
@@ -12544,13 +12544,13 @@ export type Mutation_Root = {
   /** delete single row from the table: "countries" */
   delete_countries_by_pk?: Maybe<Countries>;
   /** delete data from the table: "organization_members_role" */
-  delete_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
+  delete_organizationMembersRole?: Maybe<OrganizationMembersRole_Mutation_Response>;
   /** delete single row from the table: "organization_members_role" */
-  delete_organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  delete_organizationMembersRole_by_pk?: Maybe<OrganizationMembersRole>;
   /** delete data from the table: "organization_status" */
-  delete_organization_status?: Maybe<Organization_Status_Mutation_Response>;
+  delete_organizationStatus?: Maybe<OrganizationStatus_Mutation_Response>;
   /** delete single row from the table: "organization_status" */
-  delete_organization_status_by_pk?: Maybe<Organization_Status>;
+  delete_organizationStatus_by_pk?: Maybe<OrganizationStatus>;
   /** delete data from the table: "region_type" */
   delete_region_type?: Maybe<Region_Type_Mutation_Response>;
   /** delete single row from the table: "region_type" */
@@ -12663,17 +12663,17 @@ export type Mutation_Root = {
   /** insert data into the table: "organizations_free_usage" */
   insertOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** insert a single row into the table: "organization_members" */
-  insertOrganizationMember?: Maybe<Organization_Members>;
+  insertOrganizationMember?: Maybe<OrganizationMembers>;
   /** insert a single row into the table: "organization_member_invites" */
-  insertOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  insertOrganizationMemberInvite?: Maybe<OrganizationMemberInvites>;
   /** insert data into the table: "organization_member_invites" */
-  insertOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
+  insertOrganizationMemberInvites?: Maybe<OrganizationMemberInvites_Mutation_Response>;
   /** insert data into the table: "organization_members" */
-  insertOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
+  insertOrganizationMembers?: Maybe<OrganizationMembers_Mutation_Response>;
   /** insert a single row into the table: "organization_new_request" */
-  insertOrganizationNewRequest?: Maybe<Organization_New_Request>;
+  insertOrganizationNewRequest?: Maybe<OrganizationNewRequest>;
   /** insert data into the table: "organization_new_request" */
-  insertOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
+  insertOrganizationNewRequests?: Maybe<OrganizationNewRequest_Mutation_Response>;
   /** insert data into the table: "organizations" */
   insertOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** insert a single row into the table: "payment_methods" */
@@ -12743,13 +12743,13 @@ export type Mutation_Root = {
   /** insert a single row into the table: "countries" */
   insert_countries_one?: Maybe<Countries>;
   /** insert data into the table: "organization_members_role" */
-  insert_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
+  insert_organizationMembersRole?: Maybe<OrganizationMembersRole_Mutation_Response>;
   /** insert a single row into the table: "organization_members_role" */
-  insert_organization_members_role_one?: Maybe<Organization_Members_Role>;
+  insert_organizationMembersRole_one?: Maybe<OrganizationMembersRole>;
   /** insert data into the table: "organization_status" */
-  insert_organization_status?: Maybe<Organization_Status_Mutation_Response>;
+  insert_organizationStatus?: Maybe<OrganizationStatus_Mutation_Response>;
   /** insert a single row into the table: "organization_status" */
-  insert_organization_status_one?: Maybe<Organization_Status>;
+  insert_organizationStatus_one?: Maybe<OrganizationStatus>;
   /** insert data into the table: "region_type" */
   insert_region_type?: Maybe<Region_Type_Mutation_Response>;
   /** insert a single row into the table: "region_type" */
@@ -12759,7 +12759,7 @@ export type Mutation_Root = {
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
   /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
-  organizationMemberInviteAccept: Array<Organization_Members>;
+  organizationMemberInviteAccept: Array<OrganizationMembers>;
   pauseAppsExceedUsage: Array<Scalars['String']>;
   pauseInactiveApps: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
@@ -12882,23 +12882,23 @@ export type Mutation_Root = {
   /** update data of the table: "organizations_free_usage" */
   updateOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** update single row of the table: "organization_members" */
-  updateOrganizationMember?: Maybe<Organization_Members>;
+  updateOrganizationMember?: Maybe<OrganizationMembers>;
   /** update single row of the table: "organization_member_invites" */
-  updateOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  updateOrganizationMemberInvite?: Maybe<OrganizationMemberInvites>;
   /** update data of the table: "organization_member_invites" */
-  updateOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
+  updateOrganizationMemberInvites?: Maybe<OrganizationMemberInvites_Mutation_Response>;
   /** update multiples rows of table: "organization_member_invites" */
-  updateOrganizationMemberInvitesMany?: Maybe<Array<Maybe<Organization_Member_Invites_Mutation_Response>>>;
+  updateOrganizationMemberInvitesMany?: Maybe<Array<Maybe<OrganizationMemberInvites_Mutation_Response>>>;
   /** update data of the table: "organization_members" */
-  updateOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
+  updateOrganizationMembers?: Maybe<OrganizationMembers_Mutation_Response>;
   /** update multiples rows of table: "organization_members" */
-  updateOrganizationMembersMany?: Maybe<Array<Maybe<Organization_Members_Mutation_Response>>>;
+  updateOrganizationMembersMany?: Maybe<Array<Maybe<OrganizationMembers_Mutation_Response>>>;
   /** update single row of the table: "organization_new_request" */
-  updateOrganizationNewRequest?: Maybe<Organization_New_Request>;
+  updateOrganizationNewRequest?: Maybe<OrganizationNewRequest>;
   /** update data of the table: "organization_new_request" */
-  updateOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
+  updateOrganizationNewRequests?: Maybe<OrganizationNewRequest_Mutation_Response>;
   /** update multiples rows of table: "organization_new_request" */
-  updateOrganizationNewRequestsMany?: Maybe<Array<Maybe<Organization_New_Request_Mutation_Response>>>;
+  updateOrganizationNewRequestsMany?: Maybe<Array<Maybe<OrganizationNewRequest_Mutation_Response>>>;
   /** update data of the table: "organizations" */
   updateOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** update multiples rows of table: "organizations" */
@@ -13027,17 +13027,17 @@ export type Mutation_Root = {
   /** update multiples rows of table: "billing.subscriptions" */
   update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
   /** update data of the table: "organization_members_role" */
-  update_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
+  update_organizationMembersRole?: Maybe<OrganizationMembersRole_Mutation_Response>;
   /** update single row of the table: "organization_members_role" */
-  update_organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  update_organizationMembersRole_by_pk?: Maybe<OrganizationMembersRole>;
   /** update multiples rows of table: "organization_members_role" */
-  update_organization_members_role_many?: Maybe<Array<Maybe<Organization_Members_Role_Mutation_Response>>>;
+  update_organizationMembersRole_many?: Maybe<Array<Maybe<OrganizationMembersRole_Mutation_Response>>>;
   /** update data of the table: "organization_status" */
-  update_organization_status?: Maybe<Organization_Status_Mutation_Response>;
+  update_organizationStatus?: Maybe<OrganizationStatus_Mutation_Response>;
   /** update single row of the table: "organization_status" */
-  update_organization_status_by_pk?: Maybe<Organization_Status>;
+  update_organizationStatus_by_pk?: Maybe<OrganizationStatus>;
   /** update multiples rows of table: "organization_status" */
-  update_organization_status_many?: Maybe<Array<Maybe<Organization_Status_Mutation_Response>>>;
+  update_organizationStatus_many?: Maybe<Array<Maybe<OrganizationStatus_Mutation_Response>>>;
   /** update multiples rows of table: "payment_methods" */
   update_paymentMethods_many?: Maybe<Array<Maybe<PaymentMethods_Mutation_Response>>>;
   /** update multiples rows of table: "plans" */
@@ -13501,13 +13501,13 @@ export type Mutation_RootDeleteOrganizationMemberInviteArgs = {
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationMemberInvitesArgs = {
-  where: Organization_Member_Invites_Bool_Exp;
+  where: OrganizationMemberInvites_Bool_Exp;
 };
 
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationMembersArgs = {
-  where: Organization_Members_Bool_Exp;
+  where: OrganizationMembers_Bool_Exp;
 };
 
 
@@ -13519,7 +13519,7 @@ export type Mutation_RootDeleteOrganizationNewRequestArgs = {
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationNewRequestsArgs = {
-  where: Organization_New_Request_Bool_Exp;
+  where: OrganizationNewRequest_Bool_Exp;
 };
 
 
@@ -13736,25 +13736,25 @@ export type Mutation_RootDelete_Countries_By_PkArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDelete_Organization_Members_RoleArgs = {
-  where: Organization_Members_Role_Bool_Exp;
+export type Mutation_RootDelete_OrganizationMembersRoleArgs = {
+  where: OrganizationMembersRole_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootDelete_Organization_Members_Role_By_PkArgs = {
+export type Mutation_RootDelete_OrganizationMembersRole_By_PkArgs = {
   value: Scalars['String'];
 };
 
 
 /** mutation root */
-export type Mutation_RootDelete_Organization_StatusArgs = {
-  where: Organization_Status_Bool_Exp;
+export type Mutation_RootDelete_OrganizationStatusArgs = {
+  where: OrganizationStatus_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootDelete_Organization_Status_By_PkArgs = {
+export type Mutation_RootDelete_OrganizationStatus_By_PkArgs = {
   value: Scalars['String'];
 };
 
@@ -14151,43 +14151,43 @@ export type Mutation_RootInsertOrganizationFreeUsagesArgs = {
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberArgs = {
-  object: Organization_Members_Insert_Input;
-  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
+  object: OrganizationMembers_Insert_Input;
+  on_conflict?: InputMaybe<OrganizationMembers_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberInviteArgs = {
-  object: Organization_Member_Invites_Insert_Input;
-  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
+  object: OrganizationMemberInvites_Insert_Input;
+  on_conflict?: InputMaybe<OrganizationMemberInvites_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberInvitesArgs = {
-  objects: Array<Organization_Member_Invites_Insert_Input>;
-  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
+  objects: Array<OrganizationMemberInvites_Insert_Input>;
+  on_conflict?: InputMaybe<OrganizationMemberInvites_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMembersArgs = {
-  objects: Array<Organization_Members_Insert_Input>;
-  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
+  objects: Array<OrganizationMembers_Insert_Input>;
+  on_conflict?: InputMaybe<OrganizationMembers_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationNewRequestArgs = {
-  object: Organization_New_Request_Insert_Input;
-  on_conflict?: InputMaybe<Organization_New_Request_On_Conflict>;
+  object: OrganizationNewRequest_Insert_Input;
+  on_conflict?: InputMaybe<OrganizationNewRequest_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationNewRequestsArgs = {
-  objects: Array<Organization_New_Request_Insert_Input>;
-  on_conflict?: InputMaybe<Organization_New_Request_On_Conflict>;
+  objects: Array<OrganizationNewRequest_Insert_Input>;
+  on_conflict?: InputMaybe<OrganizationNewRequest_On_Conflict>;
 };
 
 
@@ -14438,30 +14438,30 @@ export type Mutation_RootInsert_Countries_OneArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsert_Organization_Members_RoleArgs = {
-  objects: Array<Organization_Members_Role_Insert_Input>;
-  on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
+export type Mutation_RootInsert_OrganizationMembersRoleArgs = {
+  objects: Array<OrganizationMembersRole_Insert_Input>;
+  on_conflict?: InputMaybe<OrganizationMembersRole_On_Conflict>;
 };
 
 
 /** mutation root */
-export type Mutation_RootInsert_Organization_Members_Role_OneArgs = {
-  object: Organization_Members_Role_Insert_Input;
-  on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
+export type Mutation_RootInsert_OrganizationMembersRole_OneArgs = {
+  object: OrganizationMembersRole_Insert_Input;
+  on_conflict?: InputMaybe<OrganizationMembersRole_On_Conflict>;
 };
 
 
 /** mutation root */
-export type Mutation_RootInsert_Organization_StatusArgs = {
-  objects: Array<Organization_Status_Insert_Input>;
-  on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
+export type Mutation_RootInsert_OrganizationStatusArgs = {
+  objects: Array<OrganizationStatus_Insert_Input>;
+  on_conflict?: InputMaybe<OrganizationStatus_On_Conflict>;
 };
 
 
 /** mutation root */
-export type Mutation_RootInsert_Organization_Status_OneArgs = {
-  object: Organization_Status_Insert_Input;
-  on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
+export type Mutation_RootInsert_OrganizationStatus_OneArgs = {
+  object: OrganizationStatus_Insert_Input;
+  on_conflict?: InputMaybe<OrganizationStatus_On_Conflict>;
 };
 
 
@@ -14496,11 +14496,11 @@ export type Mutation_RootInsert_Regions_OneArgs = {
 /** mutation root */
 export type Mutation_RootOrganizationMemberInviteAcceptArgs = {
   args: OrganizationMemberInviteAccept_Args;
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 
@@ -15007,61 +15007,61 @@ export type Mutation_RootUpdateOrganizationFreeUsagesArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberArgs = {
-  _set?: InputMaybe<Organization_Members_Set_Input>;
-  pk_columns: Organization_Members_Pk_Columns_Input;
+  _set?: InputMaybe<OrganizationMembers_Set_Input>;
+  pk_columns: OrganizationMembers_Pk_Columns_Input;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInviteArgs = {
-  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
-  pk_columns: Organization_Member_Invites_Pk_Columns_Input;
+  _set?: InputMaybe<OrganizationMemberInvites_Set_Input>;
+  pk_columns: OrganizationMemberInvites_Pk_Columns_Input;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInvitesArgs = {
-  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
-  where: Organization_Member_Invites_Bool_Exp;
+  _set?: InputMaybe<OrganizationMemberInvites_Set_Input>;
+  where: OrganizationMemberInvites_Bool_Exp;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInvitesManyArgs = {
-  updates: Array<Organization_Member_Invites_Updates>;
+  updates: Array<OrganizationMemberInvites_Updates>;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMembersArgs = {
-  _set?: InputMaybe<Organization_Members_Set_Input>;
-  where: Organization_Members_Bool_Exp;
+  _set?: InputMaybe<OrganizationMembers_Set_Input>;
+  where: OrganizationMembers_Bool_Exp;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMembersManyArgs = {
-  updates: Array<Organization_Members_Updates>;
+  updates: Array<OrganizationMembers_Updates>;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestArgs = {
-  _set?: InputMaybe<Organization_New_Request_Set_Input>;
-  pk_columns: Organization_New_Request_Pk_Columns_Input;
+  _set?: InputMaybe<OrganizationNewRequest_Set_Input>;
+  pk_columns: OrganizationNewRequest_Pk_Columns_Input;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestsArgs = {
-  _set?: InputMaybe<Organization_New_Request_Set_Input>;
-  where: Organization_New_Request_Bool_Exp;
+  _set?: InputMaybe<OrganizationNewRequest_Set_Input>;
+  where: OrganizationNewRequest_Bool_Exp;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestsManyArgs = {
-  updates: Array<Organization_New_Request_Updates>;
+  updates: Array<OrganizationNewRequest_Updates>;
 };
 
 
@@ -15511,42 +15511,42 @@ export type Mutation_RootUpdate_Many_Billing_SubscriptionsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Organization_Members_RoleArgs = {
-  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
-  where: Organization_Members_Role_Bool_Exp;
+export type Mutation_RootUpdate_OrganizationMembersRoleArgs = {
+  _set?: InputMaybe<OrganizationMembersRole_Set_Input>;
+  where: OrganizationMembersRole_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Organization_Members_Role_By_PkArgs = {
-  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
-  pk_columns: Organization_Members_Role_Pk_Columns_Input;
+export type Mutation_RootUpdate_OrganizationMembersRole_By_PkArgs = {
+  _set?: InputMaybe<OrganizationMembersRole_Set_Input>;
+  pk_columns: OrganizationMembersRole_Pk_Columns_Input;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Organization_Members_Role_ManyArgs = {
-  updates: Array<Organization_Members_Role_Updates>;
+export type Mutation_RootUpdate_OrganizationMembersRole_ManyArgs = {
+  updates: Array<OrganizationMembersRole_Updates>;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Organization_StatusArgs = {
-  _set?: InputMaybe<Organization_Status_Set_Input>;
-  where: Organization_Status_Bool_Exp;
+export type Mutation_RootUpdate_OrganizationStatusArgs = {
+  _set?: InputMaybe<OrganizationStatus_Set_Input>;
+  where: OrganizationStatus_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Organization_Status_By_PkArgs = {
-  _set?: InputMaybe<Organization_Status_Set_Input>;
-  pk_columns: Organization_Status_Pk_Columns_Input;
+export type Mutation_RootUpdate_OrganizationStatus_By_PkArgs = {
+  _set?: InputMaybe<OrganizationStatus_Set_Input>;
+  pk_columns: OrganizationStatus_Pk_Columns_Input;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Organization_Status_ManyArgs = {
-  updates: Array<Organization_Status_Updates>;
+export type Mutation_RootUpdate_OrganizationStatus_ManyArgs = {
+  updates: Array<OrganizationStatus_Updates>;
 };
 
 
@@ -15706,84 +15706,84 @@ export type OrganizationMemberInviteAccept_Args = {
 };
 
 /** columns and relationships of "organization_member_invites" */
-export type Organization_Member_Invites = {
-  __typename?: 'organization_member_invites';
+export type OrganizationMemberInvites = {
+  __typename?: 'organizationMemberInvites';
   createdAt: Scalars['timestamptz'];
   email: Scalars['citext'];
   id: Scalars['uuid'];
   /** An object relationship */
   organization: Organizations;
   organizationID: Scalars['uuid'];
-  role: Organization_Members_Role_Enum;
+  role: OrganizationMembersRole_Enum;
   updateAt: Scalars['timestamptz'];
   /** An object relationship */
   user: Users;
 };
 
 /** aggregated selection of "organization_member_invites" */
-export type Organization_Member_Invites_Aggregate = {
-  __typename?: 'organization_member_invites_aggregate';
-  aggregate?: Maybe<Organization_Member_Invites_Aggregate_Fields>;
-  nodes: Array<Organization_Member_Invites>;
+export type OrganizationMemberInvites_Aggregate = {
+  __typename?: 'organizationMemberInvites_aggregate';
+  aggregate?: Maybe<OrganizationMemberInvites_Aggregate_Fields>;
+  nodes: Array<OrganizationMemberInvites>;
 };
 
-export type Organization_Member_Invites_Aggregate_Bool_Exp = {
-  count?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp_Count>;
+export type OrganizationMemberInvites_Aggregate_Bool_Exp = {
+  count?: InputMaybe<OrganizationMemberInvites_Aggregate_Bool_Exp_Count>;
 };
 
-export type Organization_Member_Invites_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+export type OrganizationMemberInvites_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  filter?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
   predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "organization_member_invites" */
-export type Organization_Member_Invites_Aggregate_Fields = {
-  __typename?: 'organization_member_invites_aggregate_fields';
+export type OrganizationMemberInvites_Aggregate_Fields = {
+  __typename?: 'organizationMemberInvites_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<Organization_Member_Invites_Max_Fields>;
-  min?: Maybe<Organization_Member_Invites_Min_Fields>;
+  max?: Maybe<OrganizationMemberInvites_Max_Fields>;
+  min?: Maybe<OrganizationMemberInvites_Min_Fields>;
 };
 
 
 /** aggregate fields of "organization_member_invites" */
-export type Organization_Member_Invites_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+export type OrganizationMemberInvites_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** order by aggregate values of table "organization_member_invites" */
-export type Organization_Member_Invites_Aggregate_Order_By = {
+export type OrganizationMemberInvites_Aggregate_Order_By = {
   count?: InputMaybe<Order_By>;
-  max?: InputMaybe<Organization_Member_Invites_Max_Order_By>;
-  min?: InputMaybe<Organization_Member_Invites_Min_Order_By>;
+  max?: InputMaybe<OrganizationMemberInvites_Max_Order_By>;
+  min?: InputMaybe<OrganizationMemberInvites_Min_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "organization_member_invites" */
-export type Organization_Member_Invites_Arr_Rel_Insert_Input = {
-  data: Array<Organization_Member_Invites_Insert_Input>;
+export type OrganizationMemberInvites_Arr_Rel_Insert_Input = {
+  data: Array<OrganizationMemberInvites_Insert_Input>;
   /** upsert condition */
-  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
+  on_conflict?: InputMaybe<OrganizationMemberInvites_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "organization_member_invites". All fields are combined with a logical 'AND'. */
-export type Organization_Member_Invites_Bool_Exp = {
-  _and?: InputMaybe<Array<Organization_Member_Invites_Bool_Exp>>;
-  _not?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
-  _or?: InputMaybe<Array<Organization_Member_Invites_Bool_Exp>>;
+export type OrganizationMemberInvites_Bool_Exp = {
+  _and?: InputMaybe<Array<OrganizationMemberInvites_Bool_Exp>>;
+  _not?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  _or?: InputMaybe<Array<OrganizationMemberInvites_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   email?: InputMaybe<Citext_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   organization?: InputMaybe<Organizations_Bool_Exp>;
   organizationID?: InputMaybe<Uuid_Comparison_Exp>;
-  role?: InputMaybe<Organization_Members_Role_Enum_Comparison_Exp>;
+  role?: InputMaybe<OrganizationMembersRole_Enum_Comparison_Exp>;
   updateAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "organization_member_invites" */
-export enum Organization_Member_Invites_Constraint {
+export enum OrganizationMemberInvites_Constraint {
   /** unique or primary key constraint on columns "email", "organization_id" */
   OrganizationMemberInvitesOrganizationIdEmailKey = 'organization_member_invites_organization_id_email_key',
   /** unique or primary key constraint on columns "id" */
@@ -15791,20 +15791,20 @@ export enum Organization_Member_Invites_Constraint {
 }
 
 /** input type for inserting data into table "organization_member_invites" */
-export type Organization_Member_Invites_Insert_Input = {
+export type OrganizationMemberInvites_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['citext']>;
   id?: InputMaybe<Scalars['uuid']>;
   organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
   organizationID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<Organization_Members_Role_Enum>;
+  role?: InputMaybe<OrganizationMembersRole_Enum>;
   updateAt?: InputMaybe<Scalars['timestamptz']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
-export type Organization_Member_Invites_Max_Fields = {
-  __typename?: 'organization_member_invites_max_fields';
+export type OrganizationMemberInvites_Max_Fields = {
+  __typename?: 'organizationMemberInvites_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
@@ -15813,7 +15813,7 @@ export type Organization_Member_Invites_Max_Fields = {
 };
 
 /** order by max() on columns of table "organization_member_invites" */
-export type Organization_Member_Invites_Max_Order_By = {
+export type OrganizationMemberInvites_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -15822,8 +15822,8 @@ export type Organization_Member_Invites_Max_Order_By = {
 };
 
 /** aggregate min on columns */
-export type Organization_Member_Invites_Min_Fields = {
-  __typename?: 'organization_member_invites_min_fields';
+export type OrganizationMemberInvites_Min_Fields = {
+  __typename?: 'organizationMemberInvites_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
@@ -15832,7 +15832,7 @@ export type Organization_Member_Invites_Min_Fields = {
 };
 
 /** order by min() on columns of table "organization_member_invites" */
-export type Organization_Member_Invites_Min_Order_By = {
+export type OrganizationMemberInvites_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -15841,23 +15841,23 @@ export type Organization_Member_Invites_Min_Order_By = {
 };
 
 /** response of any mutation on the table "organization_member_invites" */
-export type Organization_Member_Invites_Mutation_Response = {
-  __typename?: 'organization_member_invites_mutation_response';
+export type OrganizationMemberInvites_Mutation_Response = {
+  __typename?: 'organizationMemberInvites_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<Organization_Member_Invites>;
+  returning: Array<OrganizationMemberInvites>;
 };
 
 /** on_conflict condition type for table "organization_member_invites" */
-export type Organization_Member_Invites_On_Conflict = {
-  constraint: Organization_Member_Invites_Constraint;
-  update_columns?: Array<Organization_Member_Invites_Update_Column>;
-  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+export type OrganizationMemberInvites_On_Conflict = {
+  constraint: OrganizationMemberInvites_Constraint;
+  update_columns?: Array<OrganizationMemberInvites_Update_Column>;
+  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "organization_member_invites". */
-export type Organization_Member_Invites_Order_By = {
+export type OrganizationMemberInvites_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -15869,12 +15869,12 @@ export type Organization_Member_Invites_Order_By = {
 };
 
 /** primary key columns input for table: organization_member_invites */
-export type Organization_Member_Invites_Pk_Columns_Input = {
+export type OrganizationMemberInvites_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
 /** select columns of table "organization_member_invites" */
-export enum Organization_Member_Invites_Select_Column {
+export enum OrganizationMemberInvites_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -15890,35 +15890,35 @@ export enum Organization_Member_Invites_Select_Column {
 }
 
 /** input type for updating data in table "organization_member_invites" */
-export type Organization_Member_Invites_Set_Input = {
+export type OrganizationMemberInvites_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['citext']>;
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<Organization_Members_Role_Enum>;
+  role?: InputMaybe<OrganizationMembersRole_Enum>;
   updateAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
-/** Streaming cursor of the table "organization_member_invites" */
-export type Organization_Member_Invites_Stream_Cursor_Input = {
+/** Streaming cursor of the table "organizationMemberInvites" */
+export type OrganizationMemberInvites_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: Organization_Member_Invites_Stream_Cursor_Value_Input;
+  initial_value: OrganizationMemberInvites_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type Organization_Member_Invites_Stream_Cursor_Value_Input = {
+export type OrganizationMemberInvites_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['citext']>;
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<Organization_Members_Role_Enum>;
+  role?: InputMaybe<OrganizationMembersRole_Enum>;
   updateAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** update columns of table "organization_member_invites" */
-export enum Organization_Member_Invites_Update_Column {
+export enum OrganizationMemberInvites_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -15933,92 +15933,242 @@ export enum Organization_Member_Invites_Update_Column {
   UpdateAt = 'updateAt'
 }
 
-export type Organization_Member_Invites_Updates = {
+export type OrganizationMemberInvites_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
+  _set?: InputMaybe<OrganizationMemberInvites_Set_Input>;
   /** filter the rows which have to be updated */
-  where: Organization_Member_Invites_Bool_Exp;
+  where: OrganizationMemberInvites_Bool_Exp;
 };
 
 /** columns and relationships of "organization_members" */
-export type Organization_Members = {
-  __typename?: 'organization_members';
+export type OrganizationMembers = {
+  __typename?: 'organizationMembers';
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   /** An object relationship */
   organization: Organizations;
   organizatonID: Scalars['uuid'];
-  role: Organization_Members_Role_Enum;
+  role: OrganizationMembersRole_Enum;
   updatedAt: Scalars['timestamptz'];
   /** An object relationship */
   user: Users;
   userID: Scalars['uuid'];
 };
 
-/** aggregated selection of "organization_members" */
-export type Organization_Members_Aggregate = {
-  __typename?: 'organization_members_aggregate';
-  aggregate?: Maybe<Organization_Members_Aggregate_Fields>;
-  nodes: Array<Organization_Members>;
+/** columns and relationships of "organization_members_role" */
+export type OrganizationMembersRole = {
+  __typename?: 'organizationMembersRole';
+  comment: Scalars['String'];
+  value: Scalars['String'];
 };
 
-export type Organization_Members_Aggregate_Bool_Exp = {
-  count?: InputMaybe<Organization_Members_Aggregate_Bool_Exp_Count>;
+/** aggregated selection of "organization_members_role" */
+export type OrganizationMembersRole_Aggregate = {
+  __typename?: 'organizationMembersRole_aggregate';
+  aggregate?: Maybe<OrganizationMembersRole_Aggregate_Fields>;
+  nodes: Array<OrganizationMembersRole>;
 };
 
-export type Organization_Members_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<Organization_Members_Select_Column>>;
+/** aggregate fields of "organization_members_role" */
+export type OrganizationMembersRole_Aggregate_Fields = {
+  __typename?: 'organizationMembersRole_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<OrganizationMembersRole_Max_Fields>;
+  min?: Maybe<OrganizationMembersRole_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_members_role" */
+export type OrganizationMembersRole_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+/** Boolean expression to filter rows from the table "organization_members_role". All fields are combined with a logical 'AND'. */
+export type OrganizationMembersRole_Bool_Exp = {
+  _and?: InputMaybe<Array<OrganizationMembersRole_Bool_Exp>>;
+  _not?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
+  _or?: InputMaybe<Array<OrganizationMembersRole_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_members_role" */
+export enum OrganizationMembersRole_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  OrganizationMembersRolePkey = 'organization_members_role_pkey'
+}
+
+export enum OrganizationMembersRole_Enum {
+  /** Administrator */
+  Admin = 'ADMIN',
+  /** User */
+  User = 'USER'
+}
+
+/** Boolean expression to compare columns of type "organizationMembersRole_enum". All fields are combined with logical 'AND'. */
+export type OrganizationMembersRole_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<OrganizationMembersRole_Enum>;
+  _in?: InputMaybe<Array<OrganizationMembersRole_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<OrganizationMembersRole_Enum>;
+  _nin?: InputMaybe<Array<OrganizationMembersRole_Enum>>;
+};
+
+/** input type for inserting data into table "organization_members_role" */
+export type OrganizationMembersRole_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type OrganizationMembersRole_Max_Fields = {
+  __typename?: 'organizationMembersRole_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type OrganizationMembersRole_Min_Fields = {
+  __typename?: 'organizationMembersRole_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "organization_members_role" */
+export type OrganizationMembersRole_Mutation_Response = {
+  __typename?: 'organizationMembersRole_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<OrganizationMembersRole>;
+};
+
+/** on_conflict condition type for table "organization_members_role" */
+export type OrganizationMembersRole_On_Conflict = {
+  constraint: OrganizationMembersRole_Constraint;
+  update_columns?: Array<OrganizationMembersRole_Update_Column>;
+  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_members_role". */
+export type OrganizationMembersRole_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organization_members_role */
+export type OrganizationMembersRole_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "organization_members_role" */
+export enum OrganizationMembersRole_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "organization_members_role" */
+export type OrganizationMembersRole_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "organizationMembersRole" */
+export type OrganizationMembersRole_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: OrganizationMembersRole_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type OrganizationMembersRole_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "organization_members_role" */
+export enum OrganizationMembersRole_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type OrganizationMembersRole_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<OrganizationMembersRole_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: OrganizationMembersRole_Bool_Exp;
+};
+
+/** aggregated selection of "organization_members" */
+export type OrganizationMembers_Aggregate = {
+  __typename?: 'organizationMembers_aggregate';
+  aggregate?: Maybe<OrganizationMembers_Aggregate_Fields>;
+  nodes: Array<OrganizationMembers>;
+};
+
+export type OrganizationMembers_Aggregate_Bool_Exp = {
+  count?: InputMaybe<OrganizationMembers_Aggregate_Bool_Exp_Count>;
+};
+
+export type OrganizationMembers_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<OrganizationMembers_Bool_Exp>;
   predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "organization_members" */
-export type Organization_Members_Aggregate_Fields = {
-  __typename?: 'organization_members_aggregate_fields';
+export type OrganizationMembers_Aggregate_Fields = {
+  __typename?: 'organizationMembers_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<Organization_Members_Max_Fields>;
-  min?: Maybe<Organization_Members_Min_Fields>;
+  max?: Maybe<OrganizationMembers_Max_Fields>;
+  min?: Maybe<OrganizationMembers_Min_Fields>;
 };
 
 
 /** aggregate fields of "organization_members" */
-export type Organization_Members_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Organization_Members_Select_Column>>;
+export type OrganizationMembers_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** order by aggregate values of table "organization_members" */
-export type Organization_Members_Aggregate_Order_By = {
+export type OrganizationMembers_Aggregate_Order_By = {
   count?: InputMaybe<Order_By>;
-  max?: InputMaybe<Organization_Members_Max_Order_By>;
-  min?: InputMaybe<Organization_Members_Min_Order_By>;
+  max?: InputMaybe<OrganizationMembers_Max_Order_By>;
+  min?: InputMaybe<OrganizationMembers_Min_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "organization_members" */
-export type Organization_Members_Arr_Rel_Insert_Input = {
-  data: Array<Organization_Members_Insert_Input>;
+export type OrganizationMembers_Arr_Rel_Insert_Input = {
+  data: Array<OrganizationMembers_Insert_Input>;
   /** upsert condition */
-  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
+  on_conflict?: InputMaybe<OrganizationMembers_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "organization_members". All fields are combined with a logical 'AND'. */
-export type Organization_Members_Bool_Exp = {
-  _and?: InputMaybe<Array<Organization_Members_Bool_Exp>>;
-  _not?: InputMaybe<Organization_Members_Bool_Exp>;
-  _or?: InputMaybe<Array<Organization_Members_Bool_Exp>>;
+export type OrganizationMembers_Bool_Exp = {
+  _and?: InputMaybe<Array<OrganizationMembers_Bool_Exp>>;
+  _not?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  _or?: InputMaybe<Array<OrganizationMembers_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   organization?: InputMaybe<Organizations_Bool_Exp>;
   organizatonID?: InputMaybe<Uuid_Comparison_Exp>;
-  role?: InputMaybe<Organization_Members_Role_Enum_Comparison_Exp>;
+  role?: InputMaybe<OrganizationMembersRole_Enum_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userID?: InputMaybe<Uuid_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "organization_members" */
-export enum Organization_Members_Constraint {
+export enum OrganizationMembers_Constraint {
   /** unique or primary key constraint on columns "user_id", "organization_id" */
   OrganizationMembersOrganizationIdUserIdKey = 'organization_members_organization_id_user_id_key',
   /** unique or primary key constraint on columns "id" */
@@ -16026,20 +16176,20 @@ export enum Organization_Members_Constraint {
 }
 
 /** input type for inserting data into table "organization_members" */
-export type Organization_Members_Insert_Input = {
+export type OrganizationMembers_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
   organizatonID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<Organization_Members_Role_Enum>;
+  role?: InputMaybe<OrganizationMembersRole_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
 /** aggregate max on columns */
-export type Organization_Members_Max_Fields = {
-  __typename?: 'organization_members_max_fields';
+export type OrganizationMembers_Max_Fields = {
+  __typename?: 'organizationMembers_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organizatonID?: Maybe<Scalars['uuid']>;
@@ -16048,7 +16198,7 @@ export type Organization_Members_Max_Fields = {
 };
 
 /** order by max() on columns of table "organization_members" */
-export type Organization_Members_Max_Order_By = {
+export type OrganizationMembers_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   organizatonID?: InputMaybe<Order_By>;
@@ -16057,8 +16207,8 @@ export type Organization_Members_Max_Order_By = {
 };
 
 /** aggregate min on columns */
-export type Organization_Members_Min_Fields = {
-  __typename?: 'organization_members_min_fields';
+export type OrganizationMembers_Min_Fields = {
+  __typename?: 'organizationMembers_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organizatonID?: Maybe<Scalars['uuid']>;
@@ -16067,7 +16217,7 @@ export type Organization_Members_Min_Fields = {
 };
 
 /** order by min() on columns of table "organization_members" */
-export type Organization_Members_Min_Order_By = {
+export type OrganizationMembers_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   organizatonID?: InputMaybe<Order_By>;
@@ -16076,23 +16226,23 @@ export type Organization_Members_Min_Order_By = {
 };
 
 /** response of any mutation on the table "organization_members" */
-export type Organization_Members_Mutation_Response = {
-  __typename?: 'organization_members_mutation_response';
+export type OrganizationMembers_Mutation_Response = {
+  __typename?: 'organizationMembers_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<Organization_Members>;
+  returning: Array<OrganizationMembers>;
 };
 
 /** on_conflict condition type for table "organization_members" */
-export type Organization_Members_On_Conflict = {
-  constraint: Organization_Members_Constraint;
-  update_columns?: Array<Organization_Members_Update_Column>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+export type OrganizationMembers_On_Conflict = {
+  constraint: OrganizationMembers_Constraint;
+  update_columns?: Array<OrganizationMembers_Update_Column>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "organization_members". */
-export type Organization_Members_Order_By = {
+export type OrganizationMembers_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   organization?: InputMaybe<Organizations_Order_By>;
@@ -16104,162 +16254,12 @@ export type Organization_Members_Order_By = {
 };
 
 /** primary key columns input for table: organization_members */
-export type Organization_Members_Pk_Columns_Input = {
+export type OrganizationMembers_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
-/** columns and relationships of "organization_members_role" */
-export type Organization_Members_Role = {
-  __typename?: 'organization_members_role';
-  comment: Scalars['String'];
-  value: Scalars['String'];
-};
-
-/** aggregated selection of "organization_members_role" */
-export type Organization_Members_Role_Aggregate = {
-  __typename?: 'organization_members_role_aggregate';
-  aggregate?: Maybe<Organization_Members_Role_Aggregate_Fields>;
-  nodes: Array<Organization_Members_Role>;
-};
-
-/** aggregate fields of "organization_members_role" */
-export type Organization_Members_Role_Aggregate_Fields = {
-  __typename?: 'organization_members_role_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Organization_Members_Role_Max_Fields>;
-  min?: Maybe<Organization_Members_Role_Min_Fields>;
-};
-
-
-/** aggregate fields of "organization_members_role" */
-export type Organization_Members_Role_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** Boolean expression to filter rows from the table "organization_members_role". All fields are combined with a logical 'AND'. */
-export type Organization_Members_Role_Bool_Exp = {
-  _and?: InputMaybe<Array<Organization_Members_Role_Bool_Exp>>;
-  _not?: InputMaybe<Organization_Members_Role_Bool_Exp>;
-  _or?: InputMaybe<Array<Organization_Members_Role_Bool_Exp>>;
-  comment?: InputMaybe<String_Comparison_Exp>;
-  value?: InputMaybe<String_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "organization_members_role" */
-export enum Organization_Members_Role_Constraint {
-  /** unique or primary key constraint on columns "value" */
-  OrganizationMembersRolePkey = 'organization_members_role_pkey'
-}
-
-export enum Organization_Members_Role_Enum {
-  /** Administrator */
-  Admin = 'ADMIN',
-  /** User */
-  User = 'USER'
-}
-
-/** Boolean expression to compare columns of type "organization_members_role_enum". All fields are combined with logical 'AND'. */
-export type Organization_Members_Role_Enum_Comparison_Exp = {
-  _eq?: InputMaybe<Organization_Members_Role_Enum>;
-  _in?: InputMaybe<Array<Organization_Members_Role_Enum>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _neq?: InputMaybe<Organization_Members_Role_Enum>;
-  _nin?: InputMaybe<Array<Organization_Members_Role_Enum>>;
-};
-
-/** input type for inserting data into table "organization_members_role" */
-export type Organization_Members_Role_Insert_Input = {
-  comment?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
-};
-
-/** aggregate max on columns */
-export type Organization_Members_Role_Max_Fields = {
-  __typename?: 'organization_members_role_max_fields';
-  comment?: Maybe<Scalars['String']>;
-  value?: Maybe<Scalars['String']>;
-};
-
-/** aggregate min on columns */
-export type Organization_Members_Role_Min_Fields = {
-  __typename?: 'organization_members_role_min_fields';
-  comment?: Maybe<Scalars['String']>;
-  value?: Maybe<Scalars['String']>;
-};
-
-/** response of any mutation on the table "organization_members_role" */
-export type Organization_Members_Role_Mutation_Response = {
-  __typename?: 'organization_members_role_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Organization_Members_Role>;
-};
-
-/** on_conflict condition type for table "organization_members_role" */
-export type Organization_Members_Role_On_Conflict = {
-  constraint: Organization_Members_Role_Constraint;
-  update_columns?: Array<Organization_Members_Role_Update_Column>;
-  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "organization_members_role". */
-export type Organization_Members_Role_Order_By = {
-  comment?: InputMaybe<Order_By>;
-  value?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: organization_members_role */
-export type Organization_Members_Role_Pk_Columns_Input = {
-  value: Scalars['String'];
-};
-
-/** select columns of table "organization_members_role" */
-export enum Organization_Members_Role_Select_Column {
-  /** column name */
-  Comment = 'comment',
-  /** column name */
-  Value = 'value'
-}
-
-/** input type for updating data in table "organization_members_role" */
-export type Organization_Members_Role_Set_Input = {
-  comment?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
-};
-
-/** Streaming cursor of the table "organization_members_role" */
-export type Organization_Members_Role_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Organization_Members_Role_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Organization_Members_Role_Stream_Cursor_Value_Input = {
-  comment?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
-};
-
-/** update columns of table "organization_members_role" */
-export enum Organization_Members_Role_Update_Column {
-  /** column name */
-  Comment = 'comment',
-  /** column name */
-  Value = 'value'
-}
-
-export type Organization_Members_Role_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Organization_Members_Role_Bool_Exp;
-};
-
 /** select columns of table "organization_members" */
-export enum Organization_Members_Select_Column {
+export enum OrganizationMembers_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -16275,35 +16275,35 @@ export enum Organization_Members_Select_Column {
 }
 
 /** input type for updating data in table "organization_members" */
-export type Organization_Members_Set_Input = {
+export type OrganizationMembers_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   organizatonID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<Organization_Members_Role_Enum>;
+  role?: InputMaybe<OrganizationMembersRole_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
-/** Streaming cursor of the table "organization_members" */
-export type Organization_Members_Stream_Cursor_Input = {
+/** Streaming cursor of the table "organizationMembers" */
+export type OrganizationMembers_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: Organization_Members_Stream_Cursor_Value_Input;
+  initial_value: OrganizationMembers_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type Organization_Members_Stream_Cursor_Value_Input = {
+export type OrganizationMembers_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   organizatonID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<Organization_Members_Role_Enum>;
+  role?: InputMaybe<OrganizationMembersRole_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
 /** update columns of table "organization_members" */
-export enum Organization_Members_Update_Column {
+export enum OrganizationMembers_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -16318,16 +16318,16 @@ export enum Organization_Members_Update_Column {
   UserId = 'userID'
 }
 
-export type Organization_Members_Updates = {
+export type OrganizationMembers_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Organization_Members_Set_Input>;
+  _set?: InputMaybe<OrganizationMembers_Set_Input>;
   /** filter the rows which have to be updated */
-  where: Organization_Members_Bool_Exp;
+  where: OrganizationMembers_Bool_Exp;
 };
 
 /** columns and relationships of "organization_new_request" */
-export type Organization_New_Request = {
-  __typename?: 'organization_new_request';
+export type OrganizationNewRequest = {
+  __typename?: 'organizationNewRequest';
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   name: Scalars['String'];
@@ -16342,32 +16342,32 @@ export type Organization_New_Request = {
 };
 
 /** aggregated selection of "organization_new_request" */
-export type Organization_New_Request_Aggregate = {
-  __typename?: 'organization_new_request_aggregate';
-  aggregate?: Maybe<Organization_New_Request_Aggregate_Fields>;
-  nodes: Array<Organization_New_Request>;
+export type OrganizationNewRequest_Aggregate = {
+  __typename?: 'organizationNewRequest_aggregate';
+  aggregate?: Maybe<OrganizationNewRequest_Aggregate_Fields>;
+  nodes: Array<OrganizationNewRequest>;
 };
 
 /** aggregate fields of "organization_new_request" */
-export type Organization_New_Request_Aggregate_Fields = {
-  __typename?: 'organization_new_request_aggregate_fields';
+export type OrganizationNewRequest_Aggregate_Fields = {
+  __typename?: 'organizationNewRequest_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<Organization_New_Request_Max_Fields>;
-  min?: Maybe<Organization_New_Request_Min_Fields>;
+  max?: Maybe<OrganizationNewRequest_Max_Fields>;
+  min?: Maybe<OrganizationNewRequest_Min_Fields>;
 };
 
 
 /** aggregate fields of "organization_new_request" */
-export type Organization_New_Request_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+export type OrganizationNewRequest_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** Boolean expression to filter rows from the table "organization_new_request". All fields are combined with a logical 'AND'. */
-export type Organization_New_Request_Bool_Exp = {
-  _and?: InputMaybe<Array<Organization_New_Request_Bool_Exp>>;
-  _not?: InputMaybe<Organization_New_Request_Bool_Exp>;
-  _or?: InputMaybe<Array<Organization_New_Request_Bool_Exp>>;
+export type OrganizationNewRequest_Bool_Exp = {
+  _and?: InputMaybe<Array<OrganizationNewRequest_Bool_Exp>>;
+  _not?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
+  _or?: InputMaybe<Array<OrganizationNewRequest_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
@@ -16380,7 +16380,7 @@ export type Organization_New_Request_Bool_Exp = {
 };
 
 /** unique or primary key constraints on table "organization_new_request" */
-export enum Organization_New_Request_Constraint {
+export enum OrganizationNewRequest_Constraint {
   /** unique or primary key constraint on columns "id" */
   OrganizationNewRequestPkey = 'organization_new_request_pkey',
   /** unique or primary key constraint on columns "session_id" */
@@ -16388,7 +16388,7 @@ export enum Organization_New_Request_Constraint {
 }
 
 /** input type for inserting data into table "organization_new_request" */
-export type Organization_New_Request_Insert_Input = {
+export type OrganizationNewRequest_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
@@ -16401,8 +16401,8 @@ export type Organization_New_Request_Insert_Input = {
 };
 
 /** aggregate max on columns */
-export type Organization_New_Request_Max_Fields = {
-  __typename?: 'organization_new_request_max_fields';
+export type OrganizationNewRequest_Max_Fields = {
+  __typename?: 'organizationNewRequest_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
@@ -16413,8 +16413,8 @@ export type Organization_New_Request_Max_Fields = {
 };
 
 /** aggregate min on columns */
-export type Organization_New_Request_Min_Fields = {
-  __typename?: 'organization_new_request_min_fields';
+export type OrganizationNewRequest_Min_Fields = {
+  __typename?: 'organizationNewRequest_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
@@ -16425,23 +16425,23 @@ export type Organization_New_Request_Min_Fields = {
 };
 
 /** response of any mutation on the table "organization_new_request" */
-export type Organization_New_Request_Mutation_Response = {
-  __typename?: 'organization_new_request_mutation_response';
+export type OrganizationNewRequest_Mutation_Response = {
+  __typename?: 'organizationNewRequest_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<Organization_New_Request>;
+  returning: Array<OrganizationNewRequest>;
 };
 
 /** on_conflict condition type for table "organization_new_request" */
-export type Organization_New_Request_On_Conflict = {
-  constraint: Organization_New_Request_Constraint;
-  update_columns?: Array<Organization_New_Request_Update_Column>;
-  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+export type OrganizationNewRequest_On_Conflict = {
+  constraint: OrganizationNewRequest_Constraint;
+  update_columns?: Array<OrganizationNewRequest_Update_Column>;
+  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "organization_new_request". */
-export type Organization_New_Request_Order_By = {
+export type OrganizationNewRequest_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
@@ -16454,12 +16454,12 @@ export type Organization_New_Request_Order_By = {
 };
 
 /** primary key columns input for table: organization_new_request */
-export type Organization_New_Request_Pk_Columns_Input = {
+export type OrganizationNewRequest_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
 /** select columns of table "organization_new_request" */
-export enum Organization_New_Request_Select_Column {
+export enum OrganizationNewRequest_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -16477,7 +16477,7 @@ export enum Organization_New_Request_Select_Column {
 }
 
 /** input type for updating data in table "organization_new_request" */
-export type Organization_New_Request_Set_Input = {
+export type OrganizationNewRequest_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
@@ -16487,16 +16487,16 @@ export type Organization_New_Request_Set_Input = {
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
-/** Streaming cursor of the table "organization_new_request" */
-export type Organization_New_Request_Stream_Cursor_Input = {
+/** Streaming cursor of the table "organizationNewRequest" */
+export type OrganizationNewRequest_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: Organization_New_Request_Stream_Cursor_Value_Input;
+  initial_value: OrganizationNewRequest_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type Organization_New_Request_Stream_Cursor_Value_Input = {
+export type OrganizationNewRequest_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
@@ -16507,7 +16507,7 @@ export type Organization_New_Request_Stream_Cursor_Value_Input = {
 };
 
 /** update columns of table "organization_new_request" */
-export enum Organization_New_Request_Update_Column {
+export enum OrganizationNewRequest_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -16524,124 +16524,126 @@ export enum Organization_New_Request_Update_Column {
   UserId = 'userID'
 }
 
-export type Organization_New_Request_Updates = {
+export type OrganizationNewRequest_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Organization_New_Request_Set_Input>;
+  _set?: InputMaybe<OrganizationNewRequest_Set_Input>;
   /** filter the rows which have to be updated */
-  where: Organization_New_Request_Bool_Exp;
+  where: OrganizationNewRequest_Bool_Exp;
 };
 
 /** columns and relationships of "organization_status" */
-export type Organization_Status = {
-  __typename?: 'organization_status';
+export type OrganizationStatus = {
+  __typename?: 'organizationStatus';
   comment: Scalars['String'];
   value: Scalars['String'];
 };
 
 /** aggregated selection of "organization_status" */
-export type Organization_Status_Aggregate = {
-  __typename?: 'organization_status_aggregate';
-  aggregate?: Maybe<Organization_Status_Aggregate_Fields>;
-  nodes: Array<Organization_Status>;
+export type OrganizationStatus_Aggregate = {
+  __typename?: 'organizationStatus_aggregate';
+  aggregate?: Maybe<OrganizationStatus_Aggregate_Fields>;
+  nodes: Array<OrganizationStatus>;
 };
 
 /** aggregate fields of "organization_status" */
-export type Organization_Status_Aggregate_Fields = {
-  __typename?: 'organization_status_aggregate_fields';
+export type OrganizationStatus_Aggregate_Fields = {
+  __typename?: 'organizationStatus_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<Organization_Status_Max_Fields>;
-  min?: Maybe<Organization_Status_Min_Fields>;
+  max?: Maybe<OrganizationStatus_Max_Fields>;
+  min?: Maybe<OrganizationStatus_Min_Fields>;
 };
 
 
 /** aggregate fields of "organization_status" */
-export type Organization_Status_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Organization_Status_Select_Column>>;
+export type OrganizationStatus_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** Boolean expression to filter rows from the table "organization_status". All fields are combined with a logical 'AND'. */
-export type Organization_Status_Bool_Exp = {
-  _and?: InputMaybe<Array<Organization_Status_Bool_Exp>>;
-  _not?: InputMaybe<Organization_Status_Bool_Exp>;
-  _or?: InputMaybe<Array<Organization_Status_Bool_Exp>>;
+export type OrganizationStatus_Bool_Exp = {
+  _and?: InputMaybe<Array<OrganizationStatus_Bool_Exp>>;
+  _not?: InputMaybe<OrganizationStatus_Bool_Exp>;
+  _or?: InputMaybe<Array<OrganizationStatus_Bool_Exp>>;
   comment?: InputMaybe<String_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "organization_status" */
-export enum Organization_Status_Constraint {
+export enum OrganizationStatus_Constraint {
   /** unique or primary key constraint on columns "value" */
   OrganizationStatusPkey = 'organization_status_pkey'
 }
 
-export enum Organization_Status_Enum {
-  /** Organization has been disabled and all resources have been suspended */
+export enum OrganizationStatus_Enum {
+  /** Organization is cancelled. Contact support. */
+  Cancelled = 'CANCELLED',
+  /** Organization is disabled and all resources have been suspended */
   Disabled = 'DISABLED',
+  /** Organization is locked and changes to resources are not allowed */
+  Locked = 'LOCKED',
   /** Organization is healthy */
-  Ok = 'OK',
-  /** Organization has warnings and is not allowed to make changes */
-  Warning = 'WARNING'
+  Ok = 'OK'
 }
 
-/** Boolean expression to compare columns of type "organization_status_enum". All fields are combined with logical 'AND'. */
-export type Organization_Status_Enum_Comparison_Exp = {
-  _eq?: InputMaybe<Organization_Status_Enum>;
-  _in?: InputMaybe<Array<Organization_Status_Enum>>;
+/** Boolean expression to compare columns of type "organizationStatus_enum". All fields are combined with logical 'AND'. */
+export type OrganizationStatus_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<OrganizationStatus_Enum>;
+  _in?: InputMaybe<Array<OrganizationStatus_Enum>>;
   _is_null?: InputMaybe<Scalars['Boolean']>;
-  _neq?: InputMaybe<Organization_Status_Enum>;
-  _nin?: InputMaybe<Array<Organization_Status_Enum>>;
+  _neq?: InputMaybe<OrganizationStatus_Enum>;
+  _nin?: InputMaybe<Array<OrganizationStatus_Enum>>;
 };
 
 /** input type for inserting data into table "organization_status" */
-export type Organization_Status_Insert_Input = {
+export type OrganizationStatus_Insert_Input = {
   comment?: InputMaybe<Scalars['String']>;
   value?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregate max on columns */
-export type Organization_Status_Max_Fields = {
-  __typename?: 'organization_status_max_fields';
+export type OrganizationStatus_Max_Fields = {
+  __typename?: 'organizationStatus_max_fields';
   comment?: Maybe<Scalars['String']>;
   value?: Maybe<Scalars['String']>;
 };
 
 /** aggregate min on columns */
-export type Organization_Status_Min_Fields = {
-  __typename?: 'organization_status_min_fields';
+export type OrganizationStatus_Min_Fields = {
+  __typename?: 'organizationStatus_min_fields';
   comment?: Maybe<Scalars['String']>;
   value?: Maybe<Scalars['String']>;
 };
 
 /** response of any mutation on the table "organization_status" */
-export type Organization_Status_Mutation_Response = {
-  __typename?: 'organization_status_mutation_response';
+export type OrganizationStatus_Mutation_Response = {
+  __typename?: 'organizationStatus_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<Organization_Status>;
+  returning: Array<OrganizationStatus>;
 };
 
 /** on_conflict condition type for table "organization_status" */
-export type Organization_Status_On_Conflict = {
-  constraint: Organization_Status_Constraint;
-  update_columns?: Array<Organization_Status_Update_Column>;
-  where?: InputMaybe<Organization_Status_Bool_Exp>;
+export type OrganizationStatus_On_Conflict = {
+  constraint: OrganizationStatus_Constraint;
+  update_columns?: Array<OrganizationStatus_Update_Column>;
+  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "organization_status". */
-export type Organization_Status_Order_By = {
+export type OrganizationStatus_Order_By = {
   comment?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: organization_status */
-export type Organization_Status_Pk_Columns_Input = {
+export type OrganizationStatus_Pk_Columns_Input = {
   value: Scalars['String'];
 };
 
 /** select columns of table "organization_status" */
-export enum Organization_Status_Select_Column {
+export enum OrganizationStatus_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
@@ -16649,38 +16651,38 @@ export enum Organization_Status_Select_Column {
 }
 
 /** input type for updating data in table "organization_status" */
-export type Organization_Status_Set_Input = {
+export type OrganizationStatus_Set_Input = {
   comment?: InputMaybe<Scalars['String']>;
   value?: InputMaybe<Scalars['String']>;
 };
 
-/** Streaming cursor of the table "organization_status" */
-export type Organization_Status_Stream_Cursor_Input = {
+/** Streaming cursor of the table "organizationStatus" */
+export type OrganizationStatus_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: Organization_Status_Stream_Cursor_Value_Input;
+  initial_value: OrganizationStatus_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type Organization_Status_Stream_Cursor_Value_Input = {
+export type OrganizationStatus_Stream_Cursor_Value_Input = {
   comment?: InputMaybe<Scalars['String']>;
   value?: InputMaybe<Scalars['String']>;
 };
 
 /** update columns of table "organization_status" */
-export enum Organization_Status_Update_Column {
+export enum OrganizationStatus_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
   Value = 'value'
 }
 
-export type Organization_Status_Updates = {
+export type OrganizationStatus_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Organization_Status_Set_Input>;
+  _set?: InputMaybe<OrganizationStatus_Set_Input>;
   /** filter the rows which have to be updated */
-  where: Organization_Status_Bool_Exp;
+  where: OrganizationStatus_Bool_Exp;
 };
 
 /** columns and relationships of "organizations" */
@@ -16697,19 +16699,19 @@ export type Organizations = {
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   /** An array relationship */
-  invites: Array<Organization_Member_Invites>;
+  invites: Array<OrganizationMemberInvites>;
   /** An aggregate relationship */
-  invites_aggregate: Organization_Member_Invites_Aggregate;
+  invites_aggregate: OrganizationMemberInvites_Aggregate;
   /** An array relationship */
-  members: Array<Organization_Members>;
+  members: Array<OrganizationMembers>;
   /** An aggregate relationship */
-  members_aggregate: Organization_Members_Aggregate;
+  members_aggregate: OrganizationMembers_Aggregate;
   name: Scalars['String'];
   /** An object relationship */
   plan: Plans;
   planID: Scalars['uuid'];
   slug: Scalars['String'];
-  status: Organization_Status_Enum;
+  status: OrganizationStatus_Enum;
   status_comment?: Maybe<Scalars['String']>;
   stripeCustomerID?: Maybe<Scalars['String']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -16759,41 +16761,41 @@ export type OrganizationsApps_AggregateArgs = {
 
 /** columns and relationships of "organizations" */
 export type OrganizationsInvitesArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
-  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
+  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
 };
 
 
 /** columns and relationships of "organizations" */
 export type OrganizationsInvites_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
-  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
+  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
 };
 
 
 /** columns and relationships of "organizations" */
 export type OrganizationsMembersArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 
 /** columns and relationships of "organizations" */
 export type OrganizationsMembers_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 /** aggregated selection of "organizations" */
@@ -16854,15 +16856,15 @@ export type Organizations_Bool_Exp = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  invites?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
-  invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp>;
-  members?: InputMaybe<Organization_Members_Bool_Exp>;
-  members_aggregate?: InputMaybe<Organization_Members_Aggregate_Bool_Exp>;
+  invites?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  invites_aggregate?: InputMaybe<OrganizationMemberInvites_Aggregate_Bool_Exp>;
+  members?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  members_aggregate?: InputMaybe<OrganizationMembers_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   plan?: InputMaybe<Plans_Bool_Exp>;
   planID?: InputMaybe<Uuid_Comparison_Exp>;
   slug?: InputMaybe<String_Comparison_Exp>;
-  status?: InputMaybe<Organization_Status_Enum_Comparison_Exp>;
+  status?: InputMaybe<OrganizationStatus_Enum_Comparison_Exp>;
   status_comment?: InputMaybe<String_Comparison_Exp>;
   stripeCustomerID?: InputMaybe<String_Comparison_Exp>;
   stripeSubscriptionID?: InputMaybe<String_Comparison_Exp>;
@@ -17053,13 +17055,13 @@ export type Organizations_Insert_Input = {
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
-  invites?: InputMaybe<Organization_Member_Invites_Arr_Rel_Insert_Input>;
-  members?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
+  invites?: InputMaybe<OrganizationMemberInvites_Arr_Rel_Insert_Input>;
+  members?: InputMaybe<OrganizationMembers_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars['String']>;
   plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
   planID?: InputMaybe<Scalars['uuid']>;
   slug?: InputMaybe<Scalars['String']>;
-  status?: InputMaybe<Organization_Status_Enum>;
+  status?: InputMaybe<OrganizationStatus_Enum>;
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
@@ -17149,8 +17151,8 @@ export type Organizations_Order_By = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Order_By>;
-  members_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
+  invites_aggregate?: InputMaybe<OrganizationMemberInvites_Aggregate_Order_By>;
+  members_aggregate?: InputMaybe<OrganizationMembers_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
   plan?: InputMaybe<Plans_Order_By>;
   planID?: InputMaybe<Order_By>;
@@ -17198,7 +17200,7 @@ export type Organizations_Set_Input = {
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
   slug?: InputMaybe<Scalars['String']>;
-  status?: InputMaybe<Organization_Status_Enum>;
+  status?: InputMaybe<OrganizationStatus_Enum>;
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
@@ -17220,7 +17222,7 @@ export type Organizations_Stream_Cursor_Value_Input = {
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
   slug?: InputMaybe<Scalars['String']>;
-  status?: InputMaybe<Organization_Status_Enum>;
+  status?: InputMaybe<OrganizationStatus_Enum>;
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
@@ -18585,35 +18587,35 @@ export type Query_Root = {
   /** fetch aggregated fields from the table: "organizations_free_usage" */
   organizationFreeUsagesAggregate: Organizations_Free_Usage_Aggregate;
   /** fetch data from the table: "organization_members" using primary key columns */
-  organizationMember?: Maybe<Organization_Members>;
+  organizationMember?: Maybe<OrganizationMembers>;
   /** fetch data from the table: "organization_member_invites" using primary key columns */
-  organizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  organizationMemberInvite?: Maybe<OrganizationMemberInvites>;
   /** fetch data from the table: "organization_member_invites" */
-  organizationMemberInvites: Array<Organization_Member_Invites>;
+  organizationMemberInvites: Array<OrganizationMemberInvites>;
   /** fetch aggregated fields from the table: "organization_member_invites" */
-  organizationMemberInvitesAggregate: Organization_Member_Invites_Aggregate;
+  organizationMemberInvitesAggregate: OrganizationMemberInvites_Aggregate;
   /** fetch data from the table: "organization_members" */
-  organizationMembers: Array<Organization_Members>;
+  organizationMembers: Array<OrganizationMembers>;
   /** fetch aggregated fields from the table: "organization_members" */
-  organizationMembersAggregate: Organization_Members_Aggregate;
-  /** fetch data from the table: "organization_new_request" using primary key columns */
-  organizationNewRequest?: Maybe<Organization_New_Request>;
-  /** fetch data from the table: "organization_new_request" */
-  organizationNewRequests: Array<Organization_New_Request>;
-  /** fetch aggregated fields from the table: "organization_new_request" */
-  organizationNewRequestsAggregate: Organization_New_Request_Aggregate;
+  organizationMembersAggregate: OrganizationMembers_Aggregate;
   /** fetch data from the table: "organization_members_role" */
-  organization_members_role: Array<Organization_Members_Role>;
+  organizationMembersRole: Array<OrganizationMembersRole>;
   /** fetch aggregated fields from the table: "organization_members_role" */
-  organization_members_role_aggregate: Organization_Members_Role_Aggregate;
+  organizationMembersRole_aggregate: OrganizationMembersRole_Aggregate;
   /** fetch data from the table: "organization_members_role" using primary key columns */
-  organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  organizationMembersRole_by_pk?: Maybe<OrganizationMembersRole>;
+  /** fetch data from the table: "organization_new_request" using primary key columns */
+  organizationNewRequest?: Maybe<OrganizationNewRequest>;
+  /** fetch data from the table: "organization_new_request" */
+  organizationNewRequests: Array<OrganizationNewRequest>;
+  /** fetch aggregated fields from the table: "organization_new_request" */
+  organizationNewRequestsAggregate: OrganizationNewRequest_Aggregate;
   /** fetch data from the table: "organization_status" */
-  organization_status: Array<Organization_Status>;
+  organizationStatus: Array<OrganizationStatus>;
   /** fetch aggregated fields from the table: "organization_status" */
-  organization_status_aggregate: Organization_Status_Aggregate;
+  organizationStatus_aggregate: OrganizationStatus_Aggregate;
   /** fetch data from the table: "organization_status" using primary key columns */
-  organization_status_by_pk?: Maybe<Organization_Status>;
+  organizationStatus_by_pk?: Maybe<OrganizationStatus>;
   /** An array relationship */
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
@@ -19568,38 +19570,61 @@ export type Query_RootOrganizationMemberInviteArgs = {
 
 
 export type Query_RootOrganizationMemberInvitesArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
-  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
+  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
 };
 
 
 export type Query_RootOrganizationMemberInvitesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
-  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
+  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
 };
 
 
 export type Query_RootOrganizationMembersArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 
 export type Query_RootOrganizationMembersAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationMembersRoleArgs = {
+  distinct_on?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<OrganizationMembersRole_Order_By>>;
+  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationMembersRole_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<OrganizationMembersRole_Order_By>>;
+  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationMembersRole_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
@@ -19609,65 +19634,42 @@ export type Query_RootOrganizationNewRequestArgs = {
 
 
 export type Query_RootOrganizationNewRequestsArgs = {
-  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
-  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationNewRequest_Order_By>>;
+  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
 };
 
 
 export type Query_RootOrganizationNewRequestsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
-  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationNewRequest_Order_By>>;
+  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
 };
 
 
-export type Query_RootOrganization_Members_RoleArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+export type Query_RootOrganizationStatusArgs = {
+  distinct_on?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
-  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationStatus_Order_By>>;
+  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
 };
 
 
-export type Query_RootOrganization_Members_Role_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+export type Query_RootOrganizationStatus_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
-  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationStatus_Order_By>>;
+  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
 };
 
 
-export type Query_RootOrganization_Members_Role_By_PkArgs = {
-  value: Scalars['String'];
-};
-
-
-export type Query_RootOrganization_StatusArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
-  where?: InputMaybe<Organization_Status_Bool_Exp>;
-};
-
-
-export type Query_RootOrganization_Status_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
-  where?: InputMaybe<Organization_Status_Bool_Exp>;
-};
-
-
-export type Query_RootOrganization_Status_By_PkArgs = {
+export type Query_RootOrganizationStatus_By_PkArgs = {
   value: Scalars['String'];
 };
 
@@ -22053,45 +22055,45 @@ export type Subscription_Root = {
   /** fetch data from the table in a streaming manner: "organizations_free_usage" */
   organizationFreeUsagesStream: Array<Organizations_Free_Usage>;
   /** fetch data from the table: "organization_members" using primary key columns */
-  organizationMember?: Maybe<Organization_Members>;
+  organizationMember?: Maybe<OrganizationMembers>;
   /** fetch data from the table: "organization_member_invites" using primary key columns */
-  organizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  organizationMemberInvite?: Maybe<OrganizationMemberInvites>;
   /** fetch data from the table: "organization_member_invites" */
-  organizationMemberInvites: Array<Organization_Member_Invites>;
+  organizationMemberInvites: Array<OrganizationMemberInvites>;
   /** fetch aggregated fields from the table: "organization_member_invites" */
-  organizationMemberInvitesAggregate: Organization_Member_Invites_Aggregate;
+  organizationMemberInvitesAggregate: OrganizationMemberInvites_Aggregate;
   /** fetch data from the table in a streaming manner: "organization_member_invites" */
-  organizationMemberInvitesStream: Array<Organization_Member_Invites>;
+  organizationMemberInvitesStream: Array<OrganizationMemberInvites>;
   /** fetch data from the table: "organization_members" */
-  organizationMembers: Array<Organization_Members>;
+  organizationMembers: Array<OrganizationMembers>;
   /** fetch aggregated fields from the table: "organization_members" */
-  organizationMembersAggregate: Organization_Members_Aggregate;
-  /** fetch data from the table in a streaming manner: "organization_members" */
-  organizationMembersStream: Array<Organization_Members>;
-  /** fetch data from the table: "organization_new_request" using primary key columns */
-  organizationNewRequest?: Maybe<Organization_New_Request>;
-  /** fetch data from the table: "organization_new_request" */
-  organizationNewRequests: Array<Organization_New_Request>;
-  /** fetch aggregated fields from the table: "organization_new_request" */
-  organizationNewRequestsAggregate: Organization_New_Request_Aggregate;
-  /** fetch data from the table in a streaming manner: "organization_new_request" */
-  organizationNewRequestsStream: Array<Organization_New_Request>;
+  organizationMembersAggregate: OrganizationMembers_Aggregate;
   /** fetch data from the table: "organization_members_role" */
-  organization_members_role: Array<Organization_Members_Role>;
+  organizationMembersRole: Array<OrganizationMembersRole>;
   /** fetch aggregated fields from the table: "organization_members_role" */
-  organization_members_role_aggregate: Organization_Members_Role_Aggregate;
+  organizationMembersRole_aggregate: OrganizationMembersRole_Aggregate;
   /** fetch data from the table: "organization_members_role" using primary key columns */
-  organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  organizationMembersRole_by_pk?: Maybe<OrganizationMembersRole>;
   /** fetch data from the table in a streaming manner: "organization_members_role" */
-  organization_members_role_stream: Array<Organization_Members_Role>;
+  organizationMembersRole_stream: Array<OrganizationMembersRole>;
+  /** fetch data from the table in a streaming manner: "organization_members" */
+  organizationMembersStream: Array<OrganizationMembers>;
+  /** fetch data from the table: "organization_new_request" using primary key columns */
+  organizationNewRequest?: Maybe<OrganizationNewRequest>;
+  /** fetch data from the table: "organization_new_request" */
+  organizationNewRequests: Array<OrganizationNewRequest>;
+  /** fetch aggregated fields from the table: "organization_new_request" */
+  organizationNewRequestsAggregate: OrganizationNewRequest_Aggregate;
+  /** fetch data from the table in a streaming manner: "organization_new_request" */
+  organizationNewRequestsStream: Array<OrganizationNewRequest>;
   /** fetch data from the table: "organization_status" */
-  organization_status: Array<Organization_Status>;
+  organizationStatus: Array<OrganizationStatus>;
   /** fetch aggregated fields from the table: "organization_status" */
-  organization_status_aggregate: Organization_Status_Aggregate;
+  organizationStatus_aggregate: OrganizationStatus_Aggregate;
   /** fetch data from the table: "organization_status" using primary key columns */
-  organization_status_by_pk?: Maybe<Organization_Status>;
+  organizationStatus_by_pk?: Maybe<OrganizationStatus>;
   /** fetch data from the table in a streaming manner: "organization_status" */
-  organization_status_stream: Array<Organization_Status>;
+  organizationStatus_stream: Array<OrganizationStatus>;
   /** An array relationship */
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
@@ -23159,52 +23161,82 @@ export type Subscription_RootOrganizationMemberInviteArgs = {
 
 
 export type Subscription_RootOrganizationMemberInvitesArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
-  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
+  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMemberInvitesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
-  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
+  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMemberInvitesStreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Organization_Member_Invites_Stream_Cursor_Input>>;
-  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  cursor: Array<InputMaybe<OrganizationMemberInvites_Stream_Cursor_Input>>;
+  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMembersArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMembersAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationMembersRoleArgs = {
+  distinct_on?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<OrganizationMembersRole_Order_By>>;
+  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationMembersRole_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<OrganizationMembersRole_Order_By>>;
+  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationMembersRole_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootOrganizationMembersRole_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<OrganizationMembersRole_Stream_Cursor_Input>>;
+  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMembersStreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Organization_Members_Stream_Cursor_Input>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  cursor: Array<InputMaybe<OrganizationMembers_Stream_Cursor_Input>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 
@@ -23214,87 +23246,57 @@ export type Subscription_RootOrganizationNewRequestArgs = {
 
 
 export type Subscription_RootOrganizationNewRequestsArgs = {
-  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
-  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationNewRequest_Order_By>>;
+  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationNewRequestsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
-  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationNewRequest_Order_By>>;
+  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationNewRequestsStreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Organization_New_Request_Stream_Cursor_Input>>;
-  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+  cursor: Array<InputMaybe<OrganizationNewRequest_Stream_Cursor_Input>>;
+  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
 };
 
 
-export type Subscription_RootOrganization_Members_RoleArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+export type Subscription_RootOrganizationStatusArgs = {
+  distinct_on?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
-  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationStatus_Order_By>>;
+  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
 };
 
 
-export type Subscription_RootOrganization_Members_Role_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+export type Subscription_RootOrganizationStatus_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
-  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationStatus_Order_By>>;
+  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
 };
 
 
-export type Subscription_RootOrganization_Members_Role_By_PkArgs = {
+export type Subscription_RootOrganizationStatus_By_PkArgs = {
   value: Scalars['String'];
 };
 
 
-export type Subscription_RootOrganization_Members_Role_StreamArgs = {
+export type Subscription_RootOrganizationStatus_StreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Organization_Members_Role_Stream_Cursor_Input>>;
-  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganization_StatusArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
-  where?: InputMaybe<Organization_Status_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganization_Status_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
-  where?: InputMaybe<Organization_Status_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganization_Status_By_PkArgs = {
-  value: Scalars['String'];
-};
-
-
-export type Subscription_RootOrganization_Status_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Organization_Status_Stream_Cursor_Input>>;
-  where?: InputMaybe<Organization_Status_Bool_Exp>;
+  cursor: Array<InputMaybe<OrganizationStatus_Stream_Cursor_Input>>;
+  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
 };
 
 
@@ -23775,9 +23777,9 @@ export type Users = {
   metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
   /** An array relationship */
-  organizationMembership: Array<Organization_Members>;
+  organizationMembership: Array<OrganizationMembers>;
   /** An aggregate relationship */
-  organizationMembership_aggregate: Organization_Members_Aggregate;
+  organizationMembership_aggregate: OrganizationMembers_Aggregate;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt: Scalars['timestamptz'];
   otpMethodLastUsed?: Maybe<Scalars['String']>;
@@ -23917,21 +23919,21 @@ export type UsersMetadataArgs = {
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersOrganizationMembershipArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersOrganizationMembership_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
-  where?: InputMaybe<Organization_Members_Bool_Exp>;
+  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
+  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
 };
 
 
@@ -24211,8 +24213,8 @@ export type Users_Bool_Exp = {
   locale?: InputMaybe<String_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   newEmail?: InputMaybe<Citext_Comparison_Exp>;
-  organizationMembership?: InputMaybe<Organization_Members_Bool_Exp>;
-  organizationMembership_aggregate?: InputMaybe<Organization_Members_Aggregate_Bool_Exp>;
+  organizationMembership?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  organizationMembership_aggregate?: InputMaybe<OrganizationMembers_Aggregate_Bool_Exp>;
   otpHash?: InputMaybe<String_Comparison_Exp>;
   otpHashExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   otpMethodLastUsed?: InputMaybe<String_Comparison_Exp>;
@@ -24291,7 +24293,7 @@ export type Users_Insert_Input = {
   locale?: InputMaybe<Scalars['String']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   newEmail?: InputMaybe<Scalars['citext']>;
-  organizationMembership?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
+  organizationMembership?: InputMaybe<OrganizationMembers_Arr_Rel_Insert_Input>;
   otpHash?: InputMaybe<Scalars['String']>;
   otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
   otpMethodLastUsed?: InputMaybe<Scalars['String']>;
@@ -24457,7 +24459,7 @@ export type Users_Order_By = {
   locale?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
-  organizationMembership_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
+  organizationMembership_aggregate?: InputMaybe<OrganizationMembers_Aggregate_Order_By>;
   otpHash?: InputMaybe<Order_By>;
   otpHashExpiresAt?: InputMaybe<Order_By>;
   otpMethodLastUsed?: InputMaybe<Order_By>;
@@ -26358,7 +26360,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, members: Array<{ __typename?: 'organizationMembers', id: any, role: OrganizationMembersRole_Enum, user: { __typename?: 'users', id: any } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -29953,6 +29955,13 @@ export const GetOrganizationDocument = gql`
       deprecated
       individual
       isFree
+    }
+    members {
+      id
+      role
+      user {
+        id
+      }
     }
     apps(order_by: {name: asc}) {
       id
