@@ -114,7 +114,11 @@ function MyApp({
                 <RetryableErrorBoundary>
                   <RecoilRoot>
                     <DialogProvider>
-                      <TopLoader color="#0052cd" showSpinner={false} />
+                      <TopLoader
+                        color="#0052cd"
+                        showSpinner={false}
+                        height={2}
+                      />
                       {getLayout(<Component {...pageProps} />)}
                     </DialogProvider>
                   </RecoilRoot>
