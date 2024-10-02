@@ -7,8 +7,8 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { type AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
-import { ArgumentsFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/ArgumentsFormSection';
+import { type AssistantFormValues } from '@/features/ai/AssistantForm/AssistantForm';
+import { ArgumentsFormSection } from '@/features/ai/AssistantForm/components/ArgumentsFormSection';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function WebhooksDataSourcesFormSection() {
@@ -31,7 +31,7 @@ export default function WebhooksDataSourcesFormSection() {
             Webhooks
           </Text>
           <Tooltip title="Webhook data sources and tools">
-            <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
         <Button
@@ -45,14 +45,14 @@ export default function WebhooksDataSourcesFormSection() {
             })
           }
         >
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
 
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
           <Box key={field.id} className="flex flex-col space-y-4">
-            <Box className="flex flex-col w-full p-4 pt-0 space-y-4">
+            <Box className="flex w-full flex-col space-y-4 p-4 pt-0">
               <Input
                 {...register(`webhooks.${index}.name`)}
                 id={`${field.id}-name`}
@@ -104,11 +104,11 @@ export default function WebhooksDataSourcesFormSection() {
 
               <Button
                 variant="borderless"
-                className="self-end h-10"
+                className="h-10 self-end"
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="w-4 h-4" />
+                <TrashIcon className="h-4 w-4" />
               </Button>
             </Box>
 

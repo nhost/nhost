@@ -3,10 +3,10 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useDeleteAssistantMutation } from '@/utils/__generated__/graphite.graphql';
-import { type Assistant } from 'pages/orgs/[orgSlug]/projects/[appSlug]/ai/assistants';
+import { type Assistant } from 'pages/[workspaceSlug]/[appSlug]/ai/assistants';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
