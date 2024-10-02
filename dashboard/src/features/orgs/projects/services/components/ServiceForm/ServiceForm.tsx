@@ -208,6 +208,10 @@ export default function ServiceForm({
                 values.image.length > 0
                   ? values.image
                   : `registry.${project.region.name}.${project.region.domain}/${newServiceID}`,
+              pullCredentials:
+                values.pullCredentials.length > 0
+                  ? values.pullCredentials
+                  : null,
             },
           },
         },
