@@ -118,7 +118,6 @@ const projectSettingsPages = [
   'Storage',
   'Roles and Permissions',
   'SMTP',
-  'Serverless Functions',
   'Git',
   'Environment Variables',
   'Secrets',
