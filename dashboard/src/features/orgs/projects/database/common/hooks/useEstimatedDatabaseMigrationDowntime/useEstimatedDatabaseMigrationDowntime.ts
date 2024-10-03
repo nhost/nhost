@@ -1,4 +1,5 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetApplicationBackupsQuery,
   type GetApplicationBackupsQuery,
@@ -61,13 +62,14 @@ function getEstimatedTime(diff: number): TimePeriod {
 export default function useEstimatedDatabaseMigrationDowntime(
   options: UseEstimatedDatabaseMigrationDowntimeOptions = {},
 ): TimePeriod {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
+  const { org } = useCurrentOrg();
 
-  const isPlanFree = currentProject?.legacyPlan?.isFree;
+  const isPlanFree = org?.plan?.isFree;
 
   const { data, loading, error } = useGetApplicationBackupsQuery({
     ...options,
-    variables: { ...options.variables, appId: currentProject?.id },
+    variables: { ...options.variables, appId: project?.id },
     skip: isPlanFree,
   });
 

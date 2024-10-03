@@ -3,11 +3,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import { useEstimatedDatabaseMigrationDowntime } from '@/features/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useEstimatedDatabaseMigrationDowntime } from '@/features/orgs/projects/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetPostgresSettingsDocument,
   GetWorkspaceAndProjectDocument,
@@ -40,7 +40,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
   const { openDialog, closeDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
   const [loading, setLoading] = useState(false);
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const [updatePostgresMajor] = useUpdateDatabaseVersionMutation({
     refetchQueries: [
       GetPostgresSettingsDocument,
@@ -60,7 +60,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
       async () => {
         await updatePostgresMajor({
           variables: {
-            appId: currentProject.id,
+            appId: project.id,
             version: postgresVersion,
           },
         });

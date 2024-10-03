@@ -1,6 +1,6 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
 
 /**
@@ -8,7 +8,7 @@ import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
  * @returns Major, minor and full version of the postgres database. Loading and error states.
  */
 export default function useGetPostgresVersion() {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const localMimirClient = useLocalMimirClient();
   const isPlatform = useIsPlatform();
 
@@ -17,7 +17,7 @@ export default function useGetPostgresVersion() {
     loading,
     error,
   } = useGetPostgresSettingsQuery({
-    variables: { appId: currentProject?.id },
+    variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
