@@ -3,9 +3,9 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Button } from '@/components/ui/v2/Button';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { EditRepositoryAndBranchSettings } from '@/features/orgs/projects/git/common/components/EditRepositoryAndBranchSettings';
-import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { EditRepositoryAndBranchSettings } from '@/features/projects/git/common/components/EditRepositoryAndBranchSettings';
+import type { EditRepositorySettingsFormData } from '@/features/projects/git/common/components/EditRepositorySettings';
 import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
@@ -30,7 +30,8 @@ export default function EditRepositorySettingsModal({
   const isNotCompleted = !watch('productionBranch') || !watch('repoBaseFolder');
   const { closeAlertDialog } = useDialog();
 
-  const { project, refetch: refetchProject } = useProject();
+  const { currentProject, refetch: refetchProject } =
+    useCurrentWorkspaceAndProject();
 
   const [updateApp, { loading }] = useUpdateApplicationMutation();
 
@@ -38,10 +39,10 @@ export default function EditRepositorySettingsModal({
     data: EditRepositorySettingsFormData,
   ) => {
     try {
-      if (!project.githubRepository || selectedRepoId) {
+      if (!currentProject.githubRepository || selectedRepoId) {
         await updateApp({
           variables: {
-            appId: project.id,
+            appId: currentProject.id,
             app: {
               githubRepositoryId: selectedRepoId,
               repositoryProductionBranch: data.productionBranch,
@@ -52,7 +53,7 @@ export default function EditRepositorySettingsModal({
       } else {
         await updateApp({
           variables: {
-            appId: project.id,
+            appId: currentProject.id,
             app: {
               repositoryProductionBranch: data.productionBranch,
               nhostBaseFolder: data.repoBaseFolder,
@@ -71,7 +72,7 @@ export default function EditRepositorySettingsModal({
       triggerToast('GitHub repository settings successfully updated.');
     } catch (error) {
       await discordAnnounce(
-        `Error while trying to edit repository GitHub integration: ${project.slug}.`,
+        `Error while trying to edit repository GitHub integration: ${currentProject.slug}.`,
       );
       throw error;
     }
