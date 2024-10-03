@@ -12,27 +12,29 @@ import { Input } from '@/components/ui/v2/Input';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import {
   Software_Type_Enum,
   useGetAiSettingsQuery,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
-import { DisableAIServiceConfirmationDialog } from './DisableAIServiceConfirmationDialog';
-import { isPostgresVersionValidForAI } from '@/features/ai/settings/utils/isPostgresVersionValidForAI';
+
+import { DisableAIServiceConfirmationDialog } from '@/features/orgs/projects/ai/settings/components/DisableAIServiceConfirmationDialog';
+import { isPostgresVersionValidForAI } from '@/features/orgs/projects/ai/settings/utils/isPostgresVersionValidForAI';
+import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { ComputeFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ComputeFormSection';
+
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 const validationSchema = Yup.object({
   version: Yup.object({
@@ -59,7 +61,7 @@ export default function AISettings() {
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
 
   const [aiServiceEnabled, setAIServiceEnabled] = useState(true);
 
@@ -71,7 +73,7 @@ export default function AISettings() {
     error: errorGettingAiSettings,
   } = useGetAiSettingsQuery({
     variables: {
-      appId: currentProject.id,
+      appId: project.id,
     },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -209,7 +211,7 @@ export default function AISettings() {
       async () => {
         await updateConfig({
           variables: {
-            appId: currentProject.id,
+            appId: project.id,
             config: {
               ai: {
                 version: formValues.version.value,
@@ -494,4 +496,3 @@ export default function AISettings() {
     </Box>
   );
 }
-
