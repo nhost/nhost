@@ -1,25 +1,28 @@
 /* eslint-disable import/extensions */
 import { useDialog } from '@/components/common/DialogProvider';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import AILayout from '@/components/layout/AILayout/AILayout';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { AssistantForm } from '@/features/ai/AssistantForm';
-import { AssistantsList } from '@/features/ai/AssistantsList';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+
 import {
   useGetAssistantsQuery,
   type GetAssistantsQuery,
 } from '@/utils/__generated__/graphite.graphql';
 import { useMemo, type ReactElement } from 'react';
+
+import AILayout from '@/features/orgs/layout/AILayout/AILayout';
+import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
+import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
+import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
+import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export type Assistant = Omit<
   GetAssistantsQuery['graphite']['assistants'][0],
@@ -30,13 +33,18 @@ export default function AssistantsPage() {
   const { openDrawer } = useDialog();
   const isPlatform = useIsPlatform();
 
-  const { org } = useCurrentOrg();
-  const { project } = useProject();
+  const { org, loading: loadingOrg } = useCurrentOrg();
+  const { project, loading: loadingProject } = useProject();
 
   const { adminClient } = useAdminApolloClient();
-  const { isGraphiteEnabled } = useIsGraphiteEnabled();
+  const { isGraphiteEnabled, loading: loadingGraphite } =
+    useIsGraphiteEnabled();
 
-  const { data, loading, refetch } = useGetAssistantsQuery({
+  const {
+    data,
+    loading: loadingAssistants,
+    refetch,
+  } = useGetAssistantsQuery({
     client: adminClient,
   });
 
@@ -49,17 +57,24 @@ export default function AssistantsPage() {
     });
   };
 
+  if (loadingOrg || loadingProject || loadingGraphite || loadingAssistants) {
+    return (
+      <Box className="flex items-center justify-center w-full h-full">
+        <ActivityIndicator
+          delay={1000}
+          label="Loading Assistants..."
+          className="justify-center"
+        />
+      </Box>
+    );
+  }
+
   if (isPlatform && org?.plan?.isFree) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
-        <UpgradeToProBanner
+        <UpgradeNotification
           title="Upgrade to Nhost Pro."
-          description={
-            <Text>
-              Graphite is an addon to the Pro plan. To unlock it, please upgrade
-              to Pro first.
-            </Text>
-          }
+          message="Graphite is an addon to the Pro plan. To unlock it, please upgrade to Pro first."
         />
       </Box>
     );
@@ -91,7 +106,7 @@ export default function AssistantsPage() {
     );
   }
 
-  if (data?.graphite?.assistants.length === 0 && !loading) {
+  if (data?.graphite?.assistants.length === 0 && !loadingAssistants) {
     return (
       <Box className="p-6" sx={{ backgroundColor: 'background.default' }}>
         <Box className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm">

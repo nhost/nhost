@@ -5,11 +5,12 @@ import { useGetGraphiteSessionsQuery } from '@/utils/__generated__/graphite.grap
 export default function useIsGraphiteEnabled() {
   const { adminClient } = useAdminApolloClient();
 
-  const { error } = useGetGraphiteSessionsQuery({
+  const { error, loading } = useGetGraphiteSessionsQuery({
     client: adminClient,
   });
 
   return {
     isGraphiteEnabled: !error,
+    loading,
   };
 }

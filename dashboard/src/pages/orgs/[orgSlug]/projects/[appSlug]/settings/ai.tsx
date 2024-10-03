@@ -1,13 +1,13 @@
-import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { AISettings } from '@/features/orgs/projects/ai/settings/components';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { AISettings } from '@/features/orgs/projects/ai/settings/components';
+import { Container } from '@/components/layout/Container';
+import type { ReactElement } from 'react';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import type { ReactElement } from 'react';
 
-export default function StorageSettingsPage() {
+export default function AISettingsPage() {
   const { org, loading, error } = useCurrentOrg();
 
   if (loading) {
@@ -45,6 +45,6 @@ export default function StorageSettingsPage() {
   );
 }
 
-StorageSettingsPage.getLayout = function getLayout(page: ReactElement) {
+AISettingsPage.getLayout = function getLayout(page: ReactElement) {
   return <SettingsLayout>{page}</SettingsLayout>;
 };

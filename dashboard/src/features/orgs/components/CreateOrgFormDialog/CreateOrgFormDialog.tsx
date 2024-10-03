@@ -20,7 +20,7 @@ import {
 
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import { StripeEmbeddedForm } from '@/features/orgs/StripeEmbeddedForm';
+import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
