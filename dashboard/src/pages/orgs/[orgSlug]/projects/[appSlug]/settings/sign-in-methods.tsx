@@ -1,15 +1,81 @@
-import { OrgProjectLayout } from '@/components/layout/OrgProjectLayout';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { Container } from '@/components/layout/Container';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { AnonymousSignInSettings } from '@/features/orgs/projects/authentication/settings/components/AnonymousSignInSettings';
+import { AppleProviderSettings } from '@/features/orgs/projects/authentication/settings/components/AppleProviderSettings';
+import { AzureADProviderSettings } from '@/features/orgs/projects/authentication/settings/components/AzureADProviderSettings';
+import { DiscordProviderSettings } from '@/features/orgs/projects/authentication/settings/components/DiscordProviderSettings';
+import { EmailAndPasswordSettings } from '@/features/orgs/projects/authentication/settings/components/EmailAndPasswordSettings';
+import { FacebookProviderSettings } from '@/features/orgs/projects/authentication/settings/components/FacebookProviderSettings';
+import { GitHubProviderSettings } from '@/features/orgs/projects/authentication/settings/components/GitHubProviderSettings';
+import { GoogleProviderSettings } from '@/features/orgs/projects/authentication/settings/components/GoogleProviderSettings';
+import { LinkedInProviderSettings } from '@/features/orgs/projects/authentication/settings/components/LinkedInProviderSettings';
+import { MagicLinkSettings } from '@/features/orgs/projects/authentication/settings/components/MagicLinkSettings';
+import { SMSSettings } from '@/features/orgs/projects/authentication/settings/components/SMSSettings';
+import { SpotifyProviderSettings } from '@/features/orgs/projects/authentication/settings/components/SpotifyProviderSettings';
+import { TwitchProviderSettings } from '@/features/orgs/projects/authentication/settings/components/TwitchProviderSettings';
+import { TwitterProviderSettings } from '@/features/orgs/projects/authentication/settings/components/TwitterProviderSettings';
+import { WebAuthnSettings } from '@/features/orgs/projects/authentication/settings/components/WebAuthnSettings';
+import { WindowsLiveProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WindowsLiveProviderSettings';
+import { WorkOsProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WorkOsProviderSettings';
+import { useGetSignInMethodsQuery } from '@/generated/graphql';
 import type { ReactElement } from 'react';
 
-export default function SettingsSignInMethods() {
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+
+export default function SettingsSignInMethodsPage() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+  const { project } = useProject();
+
+  const { loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: project?.id },
+    fetchPolicy: 'network-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  if (loading) {
+    return (
+      <ActivityIndicator
+        delay={1000}
+        label="Loading sign-in method settings..."
+        className="justify-center"
+      />
+    );
+  }
+
+  if (error) {
+    throw error;
+  }
+
   return (
-    <RetryableErrorBoundary>
-      <span>SignIn Methods</span>
-    </RetryableErrorBoundary>
+    <Container
+      className="max-w-5xl space-y-8 bg-transparent"
+      rootClassName="bg-transparent"
+    >
+      <EmailAndPasswordSettings />
+      <MagicLinkSettings />
+      <WebAuthnSettings />
+      <AnonymousSignInSettings />
+      <SMSSettings />
+      <AppleProviderSettings />
+      <AzureADProviderSettings />
+      <DiscordProviderSettings />
+      <FacebookProviderSettings />
+      <GitHubProviderSettings />
+      <GoogleProviderSettings />
+      <LinkedInProviderSettings />
+      <SpotifyProviderSettings />
+      <TwitchProviderSettings />
+      <TwitterProviderSettings />
+      <WindowsLiveProviderSettings />
+      <WorkOsProviderSettings />
+    </Container>
   );
 }
 
-SettingsSignInMethods.getLayout = function getLayout(page: ReactElement) {
-  return <OrgProjectLayout>{page}</OrgProjectLayout>;
+SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
+  return <SettingsLayout>{page}</SettingsLayout>;
 };
