@@ -115,6 +115,7 @@ const projectSettingsPages = [
   'Hasura',
   'Authentication',
   'Sign-In methods',
+  'Storage',
   'Roles and Permissions',
   'SMTP',
   'Serverless Functions',
