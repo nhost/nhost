@@ -23,7 +23,14 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 const smtpValidationSchema = yup
   .object({
     secure: yup.bool().label('SMTP Secure'),
-    host: yup.string().label('SMTP Host').required(),
+    host: yup
+      .string()
+      .label('SMTP Host')
+      .matches(
+        /((https?):\/\/)?(www\.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#[a-zA-Z0-9#]+?)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        'SMTP Host must be a valid URL',
+      )
+      .required(),
     port: yup
       .number()
       .typeError('The SMTP port should contain only numbers.')
