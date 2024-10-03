@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetApplicationStateQuery,
   type GetApplicationStateQuery,
@@ -31,7 +31,7 @@ export default function useIsDatabaseMigrating(
   isMigrating: boolean;
   shouldShowUpgradeLogs: boolean;
 } {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
 
   const isVisible = useVisibilityChange();
 
@@ -41,8 +41,8 @@ export default function useIsDatabaseMigrating(
     stopPolling,
   } = useGetApplicationStateQuery({
     ...options,
-    variables: { ...options.variables, appId: currentProject?.id },
-    skip: !currentProject,
+    variables: { ...options.variables, appId: project?.id },
+    skip: !project,
     skipPollAttempt: () => !isVisible,
   });
 

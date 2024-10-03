@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/v2/Button';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
-import type { ResetDatabasePasswordFormValues } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
-import { resetDatabasePasswordValidationSchema } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+
+import { generateRandomDatabasePassword } from '@/features/orgs/projects/database/common/utils/generateRandomDatabasePassword';
+import type { ResetDatabasePasswordFormValues } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
+import { resetDatabasePasswordValidationSchema } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+
 import { useResetDatabasePasswordMutation } from '@/generated/graphql';
 import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
 import { copy } from '@/utils/copy';
@@ -26,7 +28,7 @@ export default function ResetDatabasePasswordSettings() {
     useResetDatabasePasswordMutation();
   const { maintenanceActive } = useUI();
   const user = useUserData();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const { openAlertDialog } = useDialog();
 
   const form = useForm<ResetDatabasePasswordFormValues>({
@@ -68,7 +70,7 @@ export default function ResetDatabasePasswordSettings() {
     try {
       await resetPassword({
         variables: {
-          appId: currentProject.id,
+          appId: project.id,
           newPassword: formValues.databasePassword,
         },
       });
@@ -76,14 +78,14 @@ export default function ResetDatabasePasswordSettings() {
       form.reset(formValues);
 
       triggerToast(
-        `The database password for ${currentProject.name} has been updated successfully.`,
+        `The database password for ${project.name} has been updated successfully.`,
       );
     } catch (e) {
       triggerToast(
-        `An error occured while trying to update the database password for ${currentProject.name}`,
+        `An error occured while trying to update the database password for ${project.name}`,
       );
       await discordAnnounce(
-        `An error occurred while trying to update the database password: ${currentProject.name} (${user.email}): ${e.message}`,
+        `An error occurred while trying to update the database password: ${project.name} (${user.email}): ${e.message}`,
       );
     }
   }
@@ -144,9 +146,9 @@ export default function ResetDatabasePasswordSettings() {
               helperText: { component: 'div' },
             }}
             helperText={
-              <div className="grid grid-flow-row items-center justify-start gap-1 pt-1">
+              <div className="grid items-center justify-start grid-flow-row gap-1 pt-1">
                 {errors?.databasePassword?.message}
-                <div className="grid grid-flow-col items-center justify-start gap-1">
+                <div className="grid items-center justify-start grid-flow-col gap-1">
                   The root Postgres password for your database - it must be
                   strong and hard to guess.
                   <Button
@@ -177,7 +179,7 @@ export default function ResetDatabasePasswordSettings() {
                   variant="borderless"
                   aria-label="Copy password"
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <CopyIcon className="w-4 h-4" />
                 </Button>
               </InputAdornment>
             }

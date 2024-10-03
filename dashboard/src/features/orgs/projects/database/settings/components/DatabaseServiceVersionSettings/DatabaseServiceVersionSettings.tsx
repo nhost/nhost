@@ -8,16 +8,18 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
-import { useGetPostgresVersion } from '@/features/database/common/hooks/useGetPostgresVersion';
-import { useIsDatabaseMigrating } from '@/features/database/common/hooks/useIsDatabaseMigrating';
-import { DatabaseMigrateDisabledError } from '@/features/database/settings/components/DatabaseMigrateDisabledError';
-import { DatabaseMigrateDowntimeWarning } from '@/features/database/settings/components/DatabaseMigrateDowntimeWarning';
-import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
-import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
-import { DatabaseUpdateInProgressWarning } from '@/features/database/settings/components/DatabaseUpdateInProgressWarning';
-import { useAppState } from '@/features/projects/common/hooks/useAppState';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+
+import { useGetPostgresVersion } from '@/features/orgs/projects/database/common/hooks/useGetPostgresVersion';
+import { useIsDatabaseMigrating } from '@/features/orgs/projects/database/common/hooks/useIsDatabaseMigrating';
+import { DatabaseMigrateDisabledError } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateDisabledError';
+import { DatabaseMigrateDowntimeWarning } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateDowntimeWarning';
+import { DatabaseMigrateLogsModal } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateLogsModal';
+import { DatabaseMigrateVersionConfirmationDialog } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
+import { DatabaseUpdateInProgressWarning } from '@/features/orgs/projects/database/settings/components/DatabaseUpdateInProgressWarning';
+
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+
 import {
   GetPostgresSettingsDocument,
   GetWorkspaceAndProjectDocument,
@@ -25,9 +27,11 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { ApplicationStatus } from '@/types/application';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -61,7 +65,7 @@ export default function DatabaseServiceVersionSettings() {
   const { openDialog, closeDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [
       GetPostgresSettingsDocument,
@@ -227,7 +231,7 @@ export default function DatabaseServiceVersionSettings() {
     // Minor version change
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentProject.id,
+        appId: project.id,
         config: {
           postgres: {
             version: newVersion,
@@ -312,7 +316,7 @@ export default function DatabaseServiceVersionSettings() {
                 size="medium"
                 className="self-center"
                 onClick={openLatestUpgradeLogsModal}
-                startIcon={<RepeatIcon className="h-4 w-4" />}
+                startIcon={<RepeatIcon className="w-4 h-4" />}
               >
                 View latest upgrade logs
               </Button>

@@ -1,13 +1,13 @@
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import { useEstimatedDatabaseMigrationDowntime } from '@/features/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
+import { useEstimatedDatabaseMigrationDowntime } from '@/features/orgs/projects/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
 
 export default function DatabaseMigrateDowntimeWarning() {
   const { downtimeShort } = useEstimatedDatabaseMigrationDowntime();
 
   return (
-    <Alert severity="warning" className="flex flex-col gap-3  text-left">
+    <Alert severity="warning" className="flex flex-col gap-3 text-left">
       <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
         <Text className="flex items-start gap-1 font-semibold">
           <span>⚠</span> Warning: upgrading Postgres major version
@@ -17,7 +17,7 @@ export default function DatabaseMigrateDowntimeWarning() {
             sx={{
               backgroundColor: 'beige.main',
             }}
-            className="py-1/2 flex items-center justify-center text-nowrap rounded-full px-2 font-semibold"
+            className="flex items-center justify-center px-2 font-semibold rounded-full py-1/2 text-nowrap"
           >
             Estimated downtime ~{downtimeShort}
           </Box>
