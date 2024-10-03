@@ -1,8 +1,6 @@
 /* eslint-disable import/extensions */
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import AILayout from '@/components/layout/AILayout/AILayout';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -10,8 +8,10 @@ import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import AILayout from '@/features/orgs/layout/AILayout/AILayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
+import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
@@ -82,17 +82,12 @@ export default function AutoEmbeddingsPage() {
     });
   };
 
-  if (isPlatform && project?.legacyPlan?.isFree) {
+  if (isPlatform && org?.plan?.isFree) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
-        <UpgradeToProBanner
+        <UpgradeNotification
           title="Upgrade to Nhost Pro."
-          description={
-            <Text>
-              Graphite is an addon to the Pro plan. To unlock it, please upgrade
-              to Pro first.
-            </Text>
-          }
+          message="Graphite is an addon to the Pro plan. To unlock it, please upgrade to Pro first."
         />
       </Box>
     );

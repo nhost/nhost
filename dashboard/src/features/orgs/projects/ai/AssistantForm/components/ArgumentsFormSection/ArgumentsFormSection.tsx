@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { type AssistantFormValues } from '@/features/ai/AssistantForm/AssistantForm';
+import { type AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 interface ArgumentsFormSectionProps {
@@ -34,17 +34,17 @@ export default function ArgumentsFormSection({
 
   return (
     <Box className="space-y-4">
-      <div className="flex flex-row items-center justify-between ">
+      <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
             Arguments
           </Text>
           <Tooltip title={<span>Arguments</span>}>
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
           </Tooltip>
         </div>
         <Button variant="borderless" onClick={() => append({})}>
-          <PlusIcon className="h-5 w-5" />
+          <PlusIcon className="w-5 h-5" />
         </Button>
       </div>
 
@@ -52,10 +52,10 @@ export default function ArgumentsFormSection({
         {fields.map((field, index) => (
           <Box
             key={field.id}
-            className="flex flex-col space-y-20 rounded border-1 p-4"
+            className="flex flex-col p-4 space-y-20 rounded border-1"
             sx={{ backgroundColor: 'grey.200' }}
           >
-            <div className="flex w-full flex-col space-y-4">
+            <div className="flex flex-col w-full space-y-4">
               <Input
                 // We're putting ts-ignore here so we could use the same components for both graphql and webhooks
                 // by passing the nestedField = 'graphql' or nestedField = 'webhooks'
@@ -150,11 +150,11 @@ export default function ArgumentsFormSection({
               </div>
               <Button
                 variant="borderless"
-                className="h-10 self-end"
+                className="self-end h-10"
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <TrashIcon className="w-4 h-4" />
               </Button>
             </div>
           </Box>
