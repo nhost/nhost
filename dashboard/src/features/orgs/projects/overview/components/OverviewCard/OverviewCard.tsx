@@ -3,7 +3,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import type { CardProps } from '@/features/projects/overview/types/cards';
+import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import { twMerge } from 'tailwind-merge';
@@ -31,7 +31,7 @@ export default function OverviewCard({
   return (
     <Box
       className={twMerge(
-        'flex h-full flex-col place-content-between gap-12 rounded-lg py-3 px-4 shadow-sm',
+        'flex h-full flex-col place-content-between gap-12 rounded-lg px-4 py-3 shadow-sm',
         className,
       )}
       sx={{ backgroundColor: 'grey.200' }}

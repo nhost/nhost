@@ -6,12 +6,13 @@ import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import { useServiceStatus } from '@/features/projects/common/hooks/useServiceStatus';
-import { ServiceAccordion } from '@/features/projects/overview/components/ServiceAccordion';
+
+import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServiceStatus';
+import { ServiceAccordion } from '@/features/orgs/projects/overview/components/ServiceAccordion';
 import {
   findHighestImportanceState,
   type baseServices,
-} from '@/features/projects/overview/health';
+} from '@/features/orgs/projects/overview/health';
 import { removeTypename } from '@/utils/helpers';
 import { twMerge } from 'tailwind-merge';
 
