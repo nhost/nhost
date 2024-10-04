@@ -9,14 +9,16 @@ import { Text } from '@/components/ui/v2/Text';
 import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServiceStatus';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { OverviewProjectHealthModal } from '@/features/projects/overview/components/OverviewProjectHealthModal';
-import { ProjectHealthCard } from '@/features/projects/overview/components/ProjectHealthCard';
-import { RunStatusTooltip } from '@/features/projects/overview/components/RunStatusTooltip';
-import { ServiceVersionTooltip } from '@/features/projects/overview/components/ServiceVersionTooltip';
+
+import { OverviewProjectHealthModal } from '@/features/orgs/projects/overview/components/OverviewProjectHealthModal';
+import { ProjectHealthCard } from '@/features/orgs/projects/overview/components/ProjectHealthCard';
+import { RunStatusTooltip } from '@/features/orgs/projects/overview/components/RunStatusTooltip';
+import { ServiceVersionTooltip } from '@/features/orgs/projects/overview/components/ServiceVersionTooltip';
+
 import {
   baseServices,
   findHighestImportanceState,
-} from '@/features/projects/overview/health';
+} from '@/features/orgs/projects/overview/health';
 
 export default function OverviewProjectHealth() {
   const { project } = useProject();
@@ -47,24 +49,24 @@ export default function OverviewProjectHealth() {
 
   if (loadingVersions || loadingProjectServicesHealth) {
     return (
-      <div className="grid content-start grid-flow-row gap-6">
+      <div className="grid grid-flow-row content-start gap-6">
         <Text variant="h3">Project Health</Text>
         <div className="flex flex-row flex-wrap items-center justify-start gap-2 lg:gap-2">
           <ProjectHealthCard
             isLoading
-            icon={<UserIcon className="w-6 h-6 m-1" />}
+            icon={<UserIcon className="m-1 h-6 w-6" />}
           />
           <ProjectHealthCard
             isLoading
-            icon={<DatabaseIcon className="w-6 h-6 m-1" />}
+            icon={<DatabaseIcon className="m-1 h-6 w-6" />}
           />
           <ProjectHealthCard
             isLoading
-            icon={<StorageIcon className="w-6 h-6 m-1" />}
+            icon={<StorageIcon className="m-1 h-6 w-6" />}
           />
           <ProjectHealthCard
             isLoading
-            icon={<HasuraIcon className="w-6 h-6 m-1" />}
+            icon={<HasuraIcon className="m-1 h-6 w-6" />}
           />
         </div>
       </div>
@@ -157,38 +159,38 @@ export default function OverviewProjectHealth() {
   const runServicesState = findHighestImportanceState(runServicesStates);
 
   return (
-    <div className="grid content-start grid-flow-row gap-6">
+    <div className="grid grid-flow-row content-start gap-6">
       <Text variant="h3">Project Health</Text>
 
       {project && (
         <div className="flex flex-row flex-wrap items-center justify-start gap-2 lg:gap-2">
           <ProjectHealthCard
-            icon={<UserIcon className="w-6 h-6 m-1" />}
+            icon={<UserIcon className="m-1 h-6 w-6" />}
             tooltip={authTooltipElem}
             isVersionMismatch={authVersionInfo?.isVersionMismatch}
             state={authStatus?.state}
           />
           <ProjectHealthCard
-            icon={<DatabaseIcon className="w-6 h-6 m-1" />}
+            icon={<DatabaseIcon className="m-1 h-6 w-6" />}
             tooltip={postgresTooltipElem}
             isVersionMismatch={postgresVersionInfo?.isVersionMismatch}
             state={postgresStatus?.state}
           />
           <ProjectHealthCard
-            icon={<StorageIcon className="w-6 h-6 m-1" />}
+            icon={<StorageIcon className="m-1 h-6 w-6" />}
             tooltip={storageTooltipElem}
             isVersionMismatch={storageVersionInfo?.isVersionMismatch}
             state={storageStatus?.state}
           />
           <ProjectHealthCard
-            icon={<HasuraIcon className="w-6 h-6 m-1" />}
+            icon={<HasuraIcon className="m-1 h-6 w-6" />}
             tooltip={hasuraTooltipElem}
             isVersionMismatch={hasuraVersionInfo?.isVersionMismatch}
             state={hasuraStatus?.state}
           />
           {isAIEnabled && (
             <ProjectHealthCard
-              icon={<AIIcon className="w-6 h-6 m-1" />}
+              icon={<AIIcon className="m-1 h-6 w-6" />}
               tooltip={aiTooltipElem}
               isVersionMismatch={aiVersionInfo?.isVersionMismatch}
               state={aiStatus?.state}
@@ -196,7 +198,7 @@ export default function OverviewProjectHealth() {
           )}
           {Object.values(runServices).length > 0 && (
             <ProjectHealthCard
-              icon={<ServicesOutlinedIcon className="w-6 h-6 m-1" />}
+              icon={<ServicesOutlinedIcon className="m-1 h-6 w-6" />}
               tooltip={
                 <RunStatusTooltip
                   servicesStatusInfo={Object.values(runServices)}

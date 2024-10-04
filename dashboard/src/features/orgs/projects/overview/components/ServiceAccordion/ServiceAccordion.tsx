@@ -2,7 +2,7 @@ import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { Accordion } from '@/components/ui/v2/Accordion';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { AccordionHealthBadge } from '@/features/projects/overview/components/AccordionHealthBadge';
+import { AccordionHealthBadge } from '@/features/orgs/projects/overview/components/AccordionHealthBadge';
 import { ServiceState } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { type ReactElement } from 'react';

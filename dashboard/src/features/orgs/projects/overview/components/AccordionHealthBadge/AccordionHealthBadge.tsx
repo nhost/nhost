@@ -1,7 +1,7 @@
 import { Box } from '@/components/ui/v2/Box';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
-import { serviceStateToThemeColor } from '@/features/projects/overview/health';
+import { serviceStateToThemeColor } from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/utils/__generated__/graphql';
 
 interface AccordionHealthBadgeProps {
