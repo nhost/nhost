@@ -27,7 +27,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ inputs.GIT_REF }}
 
-    - uses: cachix/install-nix-action@v29
+    - uses: cachix/install-nix-action@v30
       with:
         install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
         install_options: "--no-daemon"
