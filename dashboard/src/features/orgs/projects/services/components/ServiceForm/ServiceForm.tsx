@@ -18,7 +18,6 @@ import { ReplicasFormSection } from '@/features/orgs/projects/services/component
 import { StorageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/StorageFormSection';
 import { useHostName } from '@/features/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 
 import {
@@ -27,8 +26,6 @@ import {
   type ServiceFormValues,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
@@ -46,6 +43,7 @@ import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { parse } from 'shell-quote';
 import { HealthCheckFormSection } from './components/HealthCheckFormSection';
+import { ImageFormSection } from './components/ImageFormSection';
 import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
 import { ServiceDetailsDialog } from './components/ServiceDetailsDialog';
 
@@ -90,13 +88,40 @@ export default function ServiceForm({
     watch,
     register,
     formState: { errors, isSubmitting, dirtyFields },
+    setValue,
   } = form;
 
   const formValues = watch();
 
-  const serviceImage = watch('image');
-
   const isDirty = Object.keys(dirtyFields).length > 0;
+
+  const privateRegistryImage = `registry.${project.region.name}.${project.region.domain}/${serviceID}`;
+
+  let initialImageType: 'public' | 'private' | 'nhost' = 'public';
+
+  if (initialData?.image?.startsWith(privateRegistryImage)) {
+    initialImageType = 'nhost';
+  }
+
+  if (initialData?.pullCredentials?.length > 0) {
+    initialImageType = 'private';
+  }
+
+  const [imageType, setImageType] = useState<'public' | 'private' | 'nhost'>(
+    initialImageType,
+  );
+
+  const handleImageTypeChange = (value: 'public' | 'private' | 'nhost') => {
+    if (value === 'nhost') {
+      setValue('image', privateRegistryImage);
+      setValue('pullCredentials', null);
+    } else {
+      setValue('image', undefined);
+      setValue('pullCredentials', undefined);
+    }
+
+    setImageType(value);
+  };
 
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
@@ -262,7 +287,7 @@ export default function ServiceForm({
       return;
     }
 
-    if (detailsServiceId) {
+    if (detailsServiceId && imageType === 'nhost') {
       openDialog({
         title: 'Service Details',
         component: (
@@ -340,97 +365,6 @@ export default function ServiceForm({
         />
 
         <Input
-          {...register('image')}
-          id="image"
-          label={
-            <Box className="flex flex-row items-center space-x-2">
-              <Text>Image</Text>
-              <Tooltip
-                title={
-                  <span>
-                    Image to use, it can be hosted on any public registry or it
-                    can use the{' '}
-                    <a
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href="https://docs.nhost.io/run/registry"
-                      className="underline"
-                    >
-                      Nhost registry
-                    </a>
-                    . Image needs to support arm.
-                  </span>
-                }
-              >
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
-              </Tooltip>
-            </Box>
-          }
-          placeholder="To automatically fill the private registry, leave it blank."
-          hideEmptyHelperText
-          error={!!errors.image}
-          helperText={errors?.image?.message}
-          fullWidth
-          autoComplete="off"
-        />
-        <Input
-          {...register('pullCredentials')}
-          id="pullCredentials"
-          label={
-            <Box className="flex flex-row items-center space-x-2">
-              <Text>Pull credentials</Text>
-              <Tooltip
-                title={
-                  <span>
-                    If you are publishing your images in your own private
-                    registry you can add pull credentials to your Run
-                    configuration so the image can be pulled successfully.
-                  </span>
-                }
-              >
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
-              </Tooltip>
-            </Box>
-          }
-          placeholder="If you are using a private registry, add the secret variable for pull credentials here."
-          hideEmptyHelperText
-          error={!!errors.image}
-          helperText={errors?.image?.message}
-          fullWidth
-          autoComplete="off"
-        />
-        <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
-          <Text>
-            Learn more about{' '}
-            <Link
-              href="https://docs.nhost.io/guides/run/registry#using-your-own-private-registry"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              className="font-medium"
-            >
-              Using your own private registry for images
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-            </Link>
-          </Text>
-        </div>
-        {/* This shows only when trying to edit a service and when running against the nhost platform */}
-        {isPlatform && serviceID && serviceImage && (
-          <InfoCard
-            title="Private registry"
-            value={`registry.${project.region.name}.${project.region.domain}/${serviceID}`}
-          />
-        )}
-
-        <Input
           {...register('command')}
           id="command"
           label={
@@ -471,6 +405,13 @@ export default function ServiceForm({
             </b>
           </Alert>
         ) : null}
+
+        <ImageFormSection
+          serviceID={serviceID}
+          onImageTypeChange={handleImageTypeChange}
+          imageType={imageType}
+          privateRegistryImage={privateRegistryImage}
+        />
 
         <ComputeFormSection showTooltip />
 

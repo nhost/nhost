@@ -13,6 +13,7 @@ import {
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
   image: Yup.string().label('Image to run'),
+  pullCredentials: Yup.string().label('Pull credentials'),
   command: Yup.string(),
   environment: Yup.array().of(
     Yup.object().shape({

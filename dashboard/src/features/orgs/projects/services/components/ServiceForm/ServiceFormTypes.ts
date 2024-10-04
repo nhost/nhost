@@ -12,8 +12,8 @@ import {
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
-  image: Yup.string().label('Image to run'),
-  pullCredentials: Yup.string().label('Pull credentials'),
+  image: Yup.string().label('Image to run').required('The image is required.'),
+  pullCredentials: Yup.string().label('Pull credentials').nullable(),
   command: Yup.string(),
   environment: Yup.array().of(
     Yup.object().shape({
