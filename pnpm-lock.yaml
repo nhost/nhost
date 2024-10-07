@@ -6964,7 +6964,7 @@ packages:
   /@graphql-tools/utils@8.13.1(graphql@16.8.1):
     resolution: {integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
     dependencies:
       graphql: 16.8.1
       tslib: 2.7.0
