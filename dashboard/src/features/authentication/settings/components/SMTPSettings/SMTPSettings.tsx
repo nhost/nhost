@@ -26,8 +26,8 @@ const smtpValidationSchema = yup
       .string()
       .label('SMTP Host')
       .matches(
-        /((https?):\/\/)?(www\.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#[a-zA-Z0-9#]+?)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
-        'SMTP Host must be a valid URL',
+        /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/,
+        'SMTP Host must be a valid hostname, domain, or IP address',
       )
       .required(),
     port: yup
