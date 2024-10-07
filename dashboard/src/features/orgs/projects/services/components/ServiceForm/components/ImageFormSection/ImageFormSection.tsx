@@ -115,7 +115,7 @@ export default function ImageFormSection({
         />
       )}
 
-      {imageType === 'private' && (
+      {imageType === 'nhost' && (
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <Text>
             Learn more about{' '}
@@ -132,7 +132,7 @@ export default function ImageFormSection({
           </Text>
         </div>
       )}
-      {imageType === 'nhost' && (
+      {imageType === 'private' && (
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <Text>
             Learn more about{' '}
