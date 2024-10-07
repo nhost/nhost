@@ -41,28 +41,10 @@ export default function ImageFormSection({
         <Text variant="h4" className="font-semibold">
           Image
         </Text>
-        <Tooltip
-          title={
-            <span>
-              Image to use, it can be hosted on any public registry or it can
-              use the{' '}
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://docs.nhost.io/guides/run/registry#registry"
-                className="underline"
-              >
-                Nhost registry
-              </a>
-            </span>
-          }
-        >
-          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
-        </Tooltip>
       </Box>
       <RadioGroup
         className="flex flex-row space-x-2"
-        defaultValue="option-one"
+        defaultValue="public"
         value={imageType}
         onValueChange={onImageTypeChange}
       >
@@ -86,25 +68,6 @@ export default function ImageFormSection({
         label={
           <Box className="flex flex-row items-center space-x-2">
             <Text>Image</Text>
-            <Tooltip
-              title={
-                <span>
-                  Image to use, it can be hosted on any public registry or it
-                  can use the{' '}
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href="https://docs.nhost.io/run/registry"
-                    className="underline"
-                  >
-                    Nhost registry
-                  </a>
-                  . Image needs to support arm.
-                </span>
-              }
-            >
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
-            </Tooltip>
           </Box>
         }
         placeholder={
@@ -143,7 +106,7 @@ export default function ImageFormSection({
               </Tooltip>
             </Box>
           }
-          placeholder="Add the secret variable for pull credentials here. e.g. {{ secrets.CONTAINER_REGISTRY_CREDENTIALS }}"
+          placeholder="Enter your pull credentials here"
           hideEmptyHelperText
           error={!!errors.pullCredentials}
           helperText={errors?.pullCredentials?.message}
@@ -152,7 +115,24 @@ export default function ImageFormSection({
         />
       )}
 
-      {imageType === 'nhost' || imageType === 'private' ? (
+      {imageType === 'private' && (
+        <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
+          <Text>
+            Learn more about{' '}
+            <Link
+              href="https://docs.nhost.io/guides/run/registry#creating-a-private-repository-for-your-image"
+              target="_blank"
+              rel="noopener noreferrer"
+              underline="hover"
+              className="font-medium"
+            >
+              using Nhost registry for images
+              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+            </Link>
+          </Text>
+        </div>
+      )}
+      {imageType === 'nhost' && (
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <Text>
             Learn more about{' '}
@@ -163,12 +143,12 @@ export default function ImageFormSection({
               underline="hover"
               className="font-medium"
             >
-              Using your own private registry for images
+              using your own private registry for images
               <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
             </Link>
           </Text>
         </div>
-      ) : null}
+      )}
 
       {/* This shows only when trying to edit a service and when running against the nhost platform */}
       {imageType === 'nhost' && isPlatform && serviceID && image && (

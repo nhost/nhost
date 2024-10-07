@@ -112,9 +112,15 @@ export default function ServiceForm({
   );
 
   const handleImageTypeChange = (value: 'public' | 'private' | 'nhost') => {
-    if (value === 'nhost') {
+    if (value === initialImageType) {
+      setValue('image', initialData?.image);
+      setValue('pullCredentials', initialData?.pullCredentials);
+    } else if (value === 'nhost') {
       setValue('image', privateRegistryImage);
       setValue('pullCredentials', null);
+    } else if (initialImageType !== 'nhost') {
+      setValue('image', initialData?.image);
+      setValue('pullCredentials', undefined);
     } else {
       setValue('image', undefined);
       setValue('pullCredentials', undefined);
@@ -310,6 +316,7 @@ export default function ServiceForm({
     formValues,
     openDialog,
     isPlatform,
+    imageType,
   ]);
 
   const pricingExplanation = () => {
