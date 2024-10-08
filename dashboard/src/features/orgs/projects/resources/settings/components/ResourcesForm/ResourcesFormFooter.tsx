@@ -72,10 +72,12 @@ export default function ResourcesFormFooter() {
     }
 
     if (enabled) {
-      return Math.max(
-        priceForTotalAvailableVCPU,
-        (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
-          RESOURCE_VCPU_PRICE,
+      return (
+        Math.max(
+          priceForTotalAvailableVCPU,
+          (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
+            RESOURCE_VCPU_PRICE,
+        ) + proPlan.price
       );
     }
 

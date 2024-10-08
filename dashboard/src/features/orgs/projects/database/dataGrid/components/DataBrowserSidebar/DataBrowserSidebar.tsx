@@ -88,7 +88,7 @@ function DataBrowserSidebarContent({
 
   const {
     asPath,
-    query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
+    query: { orgSlug, appSlug, dataSourceSlug, schemaSlug, tableSlug },
   } = router;
 
   const { data, status, error, refetch } = useDatabaseQuery([
@@ -111,7 +111,7 @@ function DataBrowserSidebarContent({
    */
   const [sidebarMenuTable, setSidebarMenuTable] = useState<string>();
 
-  const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/editor`;
+  const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSlug}/database/browser/default/editor`;
 
   useEffect(() => {
     if (selectedSchema) {
@@ -198,7 +198,7 @@ function DataBrowserSidebarContent({
       // browser's main screen
       if (!nextTable) {
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
+          `/orgs/${orgSlug}/projects/${appSlug}/database/browser/${dataSourceSlug}`,
         );
 
         return;
@@ -206,7 +206,7 @@ function DataBrowserSidebarContent({
 
       if (schema === schemaSlug && table === tableSlug) {
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextTable.table_schema}/${nextTable.table_name}`,
+          `/orgs/${orgSlug}/projects/${appSlug}/database/browser/${dataSourceSlug}/${nextTable.table_schema}/${nextTable.table_name}`,
         );
       }
     } catch {
@@ -241,7 +241,7 @@ function DataBrowserSidebarContent({
   ) {
     openDrawer({
       title: (
-        <span className="inline-grid grid-flow-col items-center gap-2">
+        <span className="inline-grid items-center grid-flow-col gap-2">
           Permissions
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           <Chip label="Preview" size="small" color="info" component="span" />
@@ -263,12 +263,12 @@ function DataBrowserSidebarContent({
   }
 
   return (
-    <Box className="flex h-full flex-col justify-between">
+    <Box className="flex flex-col justify-between h-full">
       <Box className="flex flex-col px-2">
         {schemas && schemas.length > 0 && (
           <Select
             renderValue={(option) => (
-              <span className="grid grid-flow-col items-center gap-1">
+              <span className="grid items-center grid-flow-col gap-1">
                 {option?.label}
               </span>
             )}
@@ -281,7 +281,7 @@ function DataBrowserSidebarContent({
           >
             {schemas.map((schema) => (
               <Option
-                className="grid grid-flow-col items-center gap-1"
+                className="grid items-center grid-flow-col gap-1"
                 value={schema.schema_name}
                 key={schema.schema_name}
               >
@@ -295,7 +295,7 @@ function DataBrowserSidebarContent({
                 </Text>
                 {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
                   <LockIcon
-                    className="h-3 w-3"
+                    className="w-3 h-3"
                     sx={{ color: 'text.secondary' }}
                   />
                 )}
@@ -318,7 +318,7 @@ function DataBrowserSidebarContent({
           <Button
             variant="borderless"
             endIcon={<PlusIcon />}
-            className="mt-1 w-full justify-between px-2"
+            className="justify-between w-full px-2 mt-1"
             onClick={() => {
               openDrawer({
                 title: 'Create a New Table',
@@ -389,7 +389,7 @@ function DataBrowserSidebarContent({
                               }
                             >
                               <UsersIcon
-                                className="h-4 w-4"
+                                className="w-4 h-4"
                                 sx={{ color: 'text.secondary' }}
                               />
                               <span>View Permissions</span>
@@ -419,7 +419,7 @@ function DataBrowserSidebarContent({
                                   }
                                 >
                                   <PencilIcon
-                                    className="h-4 w-4"
+                                    className="w-4 h-4"
                                     sx={{ color: 'text.secondary' }}
                                   />
                                   <span>Edit Table</span>
@@ -442,7 +442,7 @@ function DataBrowserSidebarContent({
                                 }
                               >
                                 <UsersIcon
-                                  className="h-4 w-4"
+                                  className="w-4 h-4"
                                   sx={{ color: 'text.secondary' }}
                                 />
                                 <span>Edit Permissions</span>
@@ -466,7 +466,7 @@ function DataBrowserSidebarContent({
                                   }
                                 >
                                   <TrashIcon
-                                    className="h-4 w-4"
+                                    className="w-4 h-4"
                                     sx={{ color: 'error.main' }}
                                   />
                                   <span>Delete Table</span>
@@ -489,7 +489,7 @@ function DataBrowserSidebarContent({
                           '2.25rem !important',
                       }}
                       component={NavLink}
-                      href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
+                      href={`/orgs/${orgSlug}/projects/${appSlug}/database/browser/default/${table.table_schema}/${table.table_name}`}
                       onClick={() => {
                         if (onSidebarItemClick) {
                           onSidebarItemClick(`default.${tablePath}`);
@@ -514,7 +514,7 @@ function DataBrowserSidebarContent({
           component={NavLink}
           href={sqlEditorHref}
         >
-          <div className="flex w-full flex-row items-center justify-center space-x-4">
+          <div className="flex flex-row items-center justify-center w-full space-x-4">
             <TerminalIcon />
             <span className="flex">SQL Editor</span>
           </div>

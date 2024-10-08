@@ -36,7 +36,7 @@ function OverviewDeploymentsTopBar() {
       </Text>
 
       <NavLink
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
+        href={`/orgs/${org?.slug}/projects/${project?.slug}/deployments`}
         passHref
         legacyBehavior
       >
@@ -113,7 +113,7 @@ function OverviewDeploymentList() {
           </Box>
 
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org.slug}/projects/${project.slug}/settings/git`}
             passHref
             legacyBehavior
           >

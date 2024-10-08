@@ -1,5 +1,6 @@
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
+import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Slider, sliderClasses } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -65,8 +66,7 @@ export default function TotalResourcesFormFragment({
     RESOURCE_VCPU_PRICE;
 
   const updatedPrice = isPlatform
-    // ? priceForTotalAvailableVCPU + proPlan.price
-    ? priceForTotalAvailableVCPU
+    ? priceForTotalAvailableVCPU + proPlan.price
     : 0;
 
   const { vcpu: allocatedVCPU, memory: allocatedMemory } =
@@ -116,10 +116,10 @@ export default function TotalResourcesFormFragment({
 
             {initialPrice !== updatedPrice && (
               <Text className="flex flex-row items-center justify-end gap-2">
-                {/* <Text component="span" color="secondary">
+                <Text component="span" color="secondary">
                   ${initialPrice.toFixed(2)}/mo
                 </Text>
-                <ArrowRightIcon /> */}
+                <ArrowRightIcon />
                 <Text component="span" className="font-medium">
                   ${updatedPrice.toFixed(2)}/mo
                 </Text>

@@ -1,21 +1,15 @@
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { DesktopNav } from '@/components/layout/DesktopNav';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { ApplicationErrored } from '@/features/orgs/projects/common/components/ApplicationErrored';
-import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
-import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
-import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
-import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
-import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
-import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { ApplicationStatus } from '@/types/application';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
+import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
@@ -27,69 +21,98 @@ export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
 
 function ProjectLayoutContent({
   children,
-  mainContainerProps = {},
+  mainContainerProps: {
+    className: mainContainerClassName,
+    ...mainContainerProps
+  } = {},
 }: ProjectLayoutProps) {
-  const {
-    query: { appSubdomain },
-  } = useRouter();
+  const { currentProject, loading, error } = useCurrentWorkspaceAndProject();
 
+  const router = useRouter();
+  const shouldDisplayNav = useNavigationVisible();
   const isPlatform = useIsPlatform();
-  const { state } = useAppState();
-  const { project, loading, error } = useProject({ poll: true });
+  const { nhostRoutes } = useProjectRoutes();
+  const pathWithoutWorkspaceAndProject = router.asPath.replace(
+    /^\/[\w\-_[\]]+\/[\w\-_[\]]+/i,
+    '',
+  );
+  const isRestrictedPath =
+    !isPlatform &&
+    nhostRoutes.some((route) =>
+      pathWithoutWorkspaceAndProject.startsWith(
+        route.relativeMainPath || route.relativePath,
+      ),
+    );
 
-  // Render application state based on the current state
-  const projectPageContent = useMemo(() => {
-    if (!appSubdomain || state === undefined) {
-      return children;
-    }
+  // useNotFoundRedirect();
 
-    switch (state) {
-      case ApplicationStatus.Empty:
-      case ApplicationStatus.Provisioning:
-        return <ApplicationProvisioning />;
-      case ApplicationStatus.Errored:
-        return <ApplicationErrored />;
-      case ApplicationStatus.Pausing:
-      case ApplicationStatus.Paused:
-        return <ApplicationPaused />;
-      case ApplicationStatus.Unpausing:
-        return <ApplicationUnpausing />;
-      case ApplicationStatus.Restoring:
-        return <ApplicationRestoring />;
-      case ApplicationStatus.Updating:
-      case ApplicationStatus.Live:
-      case ApplicationStatus.Migrating:
-        return children;
-      default:
-        return <ApplicationUnknown />;
-    }
-  }, [state, children, appSubdomain]);
+  // useEffect(() => {
+  //   if (isPlatform || !router.isReady) {
+  //     return;
+  //   }
 
-  // Handle loading state
-  if (loading) {
+  //   TODO // Double check what restricted path means here
+  //   if (isRestrictedPath) {
+  //     router.push('/local/local');
+  //   }
+  // }, [isPlatform, isRestrictedPath, router]);
+
+  if (isRestrictedPath || loading) {
     return <LoadingScreen />;
   }
 
-  // Handle error state
   if (error) {
     throw error;
   }
 
+  if (!isPlatform) {
+    return (
+      <>
+        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
+
+        <Box
+          component="main"
+          className={twMerge(
+            'relative flex-auto overflow-y-auto',
+            mainContainerClassName,
+          )}
+          {...mainContainerProps}
+        >
+          {children}
+
+          <NextSeo title="Local App" />
+        </Box>
+      </>
+    );
+  }
+
   return (
-    <Box
-      component="main"
-      className={twMerge(
-        'relative h-full flex-auto overflow-y-auto',
-        mainContainerProps.className,
+    <>
+      {shouldDisplayNav && (
+        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
       )}
-      {...mainContainerProps}
-    >
-      {projectPageContent}
-      <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
-    </Box>
+
+      <Box
+        component="main"
+        className={twMerge(
+          'relative flex-auto overflow-y-auto',
+          mainContainerClassName,
+        )}
+        {...mainContainerProps}
+      >
+        {children}
+
+        <NextSeo title={currentProject?.name} />
+      </Box>
+    </>
   );
 }
 
+/**
+ * This components wraps the content in an `AuthenticatedLayout` and fetches
+ * project and workspace data from the API. Use this layout for pages where
+ * project related data is necessary (e.g: Overview, Data Browser, etc.).
+ */
 export default function ProjectLayout({
   children,
   mainContainerProps,

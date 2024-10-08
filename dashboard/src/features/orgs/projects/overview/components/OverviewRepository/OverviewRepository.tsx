@@ -23,7 +23,7 @@ export default function OverviewRepository() {
       {!project.githubRepository ? (
         <div className="mt-6 flex flex-row place-content-between rounded-lg">
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org.slug}/projects/${project.slug}/settings/git`}
             passHref
             legacyBehavior
           >
@@ -54,7 +54,7 @@ export default function OverviewRepository() {
           </Box>
 
           <NavLink
-            href={`/orgs/${org?.slug}/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org.slug}/${project.slug}/settings/git`}
             passHref
             legacyBehavior
           >

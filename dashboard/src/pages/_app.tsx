@@ -115,18 +115,14 @@ function MyApp({
               >
                 <RetryableErrorBoundary>
                   <RecoilRoot>
-                    <TooltipProvider>
-                      <DialogProvider>
-                        <ProgressBar
-                          height="2px"
-                          color="#0052cd"
-                          options={{ showSpinner: false }}
-                        />
-                        <TreeNavStateProvider>
-                          {getLayout(<Component {...pageProps} />)}
-                        </TreeNavStateProvider>
-                      </DialogProvider>
-                    </TooltipProvider>
+                    <DialogProvider>
+                      <ProgressBar
+                        height="2px"
+                        color="#0052cd"
+                        options={{ showSpinner: false }}
+                      />
+                      {getLayout(<Component {...pageProps} />)}
+                    </DialogProvider>
                   </RecoilRoot>
                 </RetryableErrorBoundary>
               </ThemeProvider>

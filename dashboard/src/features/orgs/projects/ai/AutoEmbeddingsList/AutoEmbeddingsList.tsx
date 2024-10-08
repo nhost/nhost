@@ -12,8 +12,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { DeleteAutoEmbeddingsModal } from '@/features/orgs/projects/ai/DeleteAutoEmbeddingsModal';
-import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 import { formatDistanceToNow } from 'date-fns';
+import type { AutoEmbeddingsConfiguration } from 'pages/orgs/[orgSlug]/projects/[appSlug]/ai/auto-embeddings';
 
 interface AutoEmbeddingsConfigurationsListProps {
   /**
@@ -48,7 +48,7 @@ export default function AutoEmbeddingsList({
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="h-5 w-5" />
+          <CubeIcon className="w-5 h-5" />
           <Text>Edit {autoEmbeddingsConfiguration?.name ?? 'unset'}</Text>
         </Box>
       ),
@@ -94,13 +94,13 @@ export default function AutoEmbeddingsList({
             onClick={() =>
               viewAutoEmbeddingsConfiguration(autoEmbeddingsConfiguration)
             }
-            className="flex w-full flex-row justify-between"
+            className="flex flex-row justify-between w-full"
             sx={{
               backgroundColor: 'transparent',
             }}
           >
-            <div className="flex flex-1 flex-row items-center space-x-4">
-              <EmbeddingsIcon className="h-5 w-5" />
+            <div className="flex flex-row items-center flex-1 space-x-4">
+              <EmbeddingsIcon className="w-5 h-5" />
               <div className="flex flex-col">
                 <Text variant="h4" className="font-semibold">
                   {autoEmbeddingsConfiguration?.name ?? 'unset'}
@@ -145,7 +145,7 @@ export default function AutoEmbeddingsList({
                 }
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
               >
-                <UserIcon className="h-4 w-4" />
+                <UserIcon className="w-4 h-4" />
                 <Text className="font-medium">
                   View {autoEmbeddingsConfiguration?.name}
                 </Text>
@@ -158,7 +158,7 @@ export default function AutoEmbeddingsList({
                   deleteAutoEmbeddingsConfiguration(autoEmbeddingsConfiguration)
                 }
               >
-                <TrashIcon className="h-4 w-4" />
+                <TrashIcon className="w-4 h-4" />
                 <Text className="font-medium" color="error">
                   Delete {autoEmbeddingsConfiguration?.name}
                 </Text>

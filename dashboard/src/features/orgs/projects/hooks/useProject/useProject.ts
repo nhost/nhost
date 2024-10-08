@@ -1,4 +1,3 @@
-import { localApplication } from '@/features/orgs/utils/local-dashboard';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetProjectDocument,
@@ -29,7 +28,7 @@ export default function useProject({
   target = 'console-next',
 }: UseProjectOptions = {}): UseProjectReturnType {
   const {
-    query: { appSubdomain },
+    query: { appSlug },
     isReady: isRouterReady,
   } = useRouter();
   const client = useNhostClient();
@@ -41,7 +40,7 @@ export default function useProject({
     isPlatform &&
     isAuthenticated &&
     !isAuthLoading &&
-    !!appSubdomain &&
+    !!appSlug &&
     isRouterReady;
 
   // Fetch project data for 'console-next' target
@@ -51,10 +50,10 @@ export default function useProject({
     error: consoleError,
     refetch: refetchConsole,
   } = useGetProjectQuery({
-    variables: { subdomain: appSubdomain as string },
+    variables: { slug: appSlug as string },
     skip: !shouldFetchProject && target === 'console-next',
     fetchPolicy: 'cache-and-network',
-    pollInterval: poll ? 5000 * 2 : 0, // every 10s
+    pollInterval: poll ? 5000 : 0,
   });
 
   // Fetch project data for 'user-project' target using client.graphql
@@ -63,10 +62,10 @@ export default function useProject({
     isFetching: userProjectFetching,
     refetch: refetchUserProject,
   } = useQuery(
-    ['currentProject', appSubdomain],
+    ['currentProject', appSlug],
     () =>
       client.graphql.request<{ apps: ProjectFragment[] }>(GetProjectDocument, {
-        subdomain: (appSubdomain as string) || '',
+        slug: (appSlug as string) || '',
       }),
     {
       keepPreviousData: true,
@@ -91,19 +90,10 @@ export default function useProject({
   const refetch =
     target === 'console-next' ? refetchConsole : refetchUserProject;
 
-  if (isPlatform) {
-    return {
-      project,
-      loading,
-      error,
-      refetch,
-    };
-  }
-
   return {
-    project: localApplication,
-    loading: false,
-    error: null,
+    project,
+    loading,
+    error,
     refetch,
   };
 }

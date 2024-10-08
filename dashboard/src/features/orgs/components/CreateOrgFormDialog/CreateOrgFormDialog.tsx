@@ -18,13 +18,10 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 
-import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
-import { cn } from '@/lib/utils';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useCreateOrganizationRequestMutation,
@@ -149,9 +146,7 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
 }
 
 export default function CreateOrgDialog() {
-  const { maintenanceActive } = useUI();
   const user = useUserData();
-  const isPlatform = useIsPlatform();
   const [open, setOpen] = useState(false);
   const { data, loading, error } = usePrefetchNewAppQuery({
     skip: !user,
@@ -192,33 +187,19 @@ export default function CreateOrgDialog() {
     throw error;
   }
 
-  if (!isPlatform) {
-    return null;
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          disabled={maintenanceActive}
-          className={cn(
-            'flex h-8 w-full flex-row justify-start gap-3 px-2',
-            'bg-background text-foreground hover:bg-accent dark:hover:bg-muted',
-          )}
+          variant="ghost"
+          className="flex flex-row justify-start w-full h-8 gap-3 px-2"
           onClick={() => setStripeClientSecret('')}
         >
           <Plus className="w-4 h-4 font-bold" strokeWidth={3} />
           New Organization
         </Button>
       </DialogTrigger>
-      <DialogContent
-        className={cn(
-          'text-foreground sm:max-w-xl',
-          !loading && stripeClientSecret ? 'bg-white text-black' : '',
-        )}
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>New Organization</DialogTitle>
           <DialogDescription />

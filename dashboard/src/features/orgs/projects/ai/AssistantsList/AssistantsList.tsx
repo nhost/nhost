@@ -10,8 +10,8 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/orgs/projects/ai/DeleteAssistantModal';
-import { type Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
 import { copy } from '@/utils/copy';
+import { type Assistant } from 'pages/orgs/[orgSlug]/projects/[appSlug]/ai/assistants';
 
 interface AssistantsListProps {
   /**
@@ -81,16 +81,16 @@ export default function AssistantsList({
         >
           <Box
             onClick={() => viewAssistant(assistant)}
-            className="flex w-full flex-row justify-between"
+            className="flex flex-row justify-between w-full"
             sx={{ backgroundColor: 'transparent' }}
           >
-            <div className="flex flex-1 flex-row items-center space-x-4">
+            <div className="flex flex-row items-center flex-1 space-x-4">
               <span className="text-3xl">🤖</span>
               <div className="flex flex-col">
                 <Text variant="h4" className="font-semibold">
                   {assistant?.name ?? 'unset'}
                 </Text>
-                <div className="hidden flex-row items-center space-x-2 md:flex">
+                <div className="flex-row items-center hidden space-x-2 md:flex">
                   <Text variant="subtitle1" className="font-mono text-xs">
                     {assistant.assistantID}
                   </Text>
@@ -103,7 +103,7 @@ export default function AssistantsList({
                     }}
                     aria-label="Service Id"
                   >
-                    <CopyIcon className="h-4 w-4" />
+                    <CopyIcon className="w-4 h-4" />
                   </IconButton>
                 </div>
               </div>
@@ -135,7 +135,7 @@ export default function AssistantsList({
                 onClick={() => viewAssistant(assistant)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
               >
-                <UserIcon className="h-4 w-4" />
+                <UserIcon className="w-4 h-4" />
                 <Text className="font-medium">View {assistant?.name}</Text>
               </Dropdown.Item>
               <Divider component="li" />
@@ -144,7 +144,7 @@ export default function AssistantsList({
                 sx={{ color: 'error.main' }}
                 onClick={() => deleteAssistant(assistant)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <TrashIcon className="w-4 h-4" />
                 <Text className="font-medium" color="error">
                   Delete {assistant?.name}
                 </Text>

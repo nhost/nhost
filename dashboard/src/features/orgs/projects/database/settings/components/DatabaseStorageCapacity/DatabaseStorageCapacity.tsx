@@ -7,7 +7,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -28,7 +27,6 @@ export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AuthDomain() {
   const isPlatform = useIsPlatform();
-  const { org } = useCurrentOrg();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
@@ -45,7 +43,7 @@ export default function AuthDomain() {
 
   const capacity =
     (data?.config?.postgres?.resources?.storage?.capacity ??
-      org?.plan?.featureMaxDbSize) ||
+      project?.legacyPlan?.featureMaxDbSize) ||
     0;
 
   const [updateConfig] = useUpdateConfigMutation({

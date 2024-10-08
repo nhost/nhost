@@ -18,7 +18,6 @@ import { getReadableProviderName } from '@/features/orgs/projects/authentication
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
-import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
 import {
   useDeleteRemoteAppUserRolesMutation,
   useGetRolesPermissionsQuery,
@@ -31,6 +30,7 @@ import { formatDistance } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import type { RemoteAppUser } from 'pages/orgs/[orgSlug]/projects/[appSlug]/users';
 import { Fragment, useMemo } from 'react';
 
 const EditUserForm = dynamic(

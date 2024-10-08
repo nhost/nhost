@@ -38,20 +38,5 @@ export default function DataBrowserDatabaseDetailsPage() {
 DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   page: ReactElement,
 ) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <DataBrowserSidebar className="w-full max-w-sidebar" />
-
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
-        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-      </Box>
-    </ProjectLayout>
-  );
+  return <DataBrowserLayout>{page}</DataBrowserLayout>;
 };
