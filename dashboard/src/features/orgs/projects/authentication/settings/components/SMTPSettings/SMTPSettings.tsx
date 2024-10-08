@@ -5,10 +5,6 @@ import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
@@ -18,6 +14,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { type Optional } from 'utility-types';
 import * as yup from 'yup';
+
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 const smtpValidationSchema = yup
   .object({
@@ -41,10 +42,10 @@ export default function SMTPSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
 
   const { data } = useGetSmtpSettingsQuery({
-    variables: { appId: currentProject?.id },
+    variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -91,7 +92,7 @@ export default function SMTPSettings() {
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentProject.id,
+        appId: project.id,
         config: {
           provider: {
             smtp: newPassword ? values : valuesWithoutPassword,
