@@ -46,7 +46,6 @@ import { parse } from 'shell-quote';
 import { HealthCheckFormSection } from './components/HealthCheckFormSection';
 import { ImageFormSection } from './components/ImageFormSection';
 import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
-import { ServiceDetailsDialog } from './components/ServiceDetailsDialog';
 
 export default function ServiceForm({
   serviceID,
@@ -65,10 +64,6 @@ export default function ServiceForm({
   const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-  const [detailsServiceId, setDetailsServiceId] = useState('');
-  const [detailsServiceSubdomain, setDetailsServiceSubdomain] = useState(
-    initialData?.subdomain,
-  );
 
   const [createServiceFormError, setCreateServiceFormError] =
     useState<Error | null>(null);
@@ -206,8 +201,6 @@ export default function ServiceForm({
         },
       });
 
-      setDetailsServiceId(serviceID);
-
       if (!isPlatform) {
         openDialog({
           title: 'Apply your changes',
@@ -223,7 +216,7 @@ export default function ServiceForm({
       // Insert service config
       const {
         data: {
-          insertRunService: { id, subdomain },
+          insertRunService: { id },
         },
       } = await insertRunService({
         variables: {
@@ -255,9 +248,6 @@ export default function ServiceForm({
           },
         },
       });
-
-      setDetailsServiceId(newServiceID);
-      setDetailsServiceSubdomain(subdomain);
     }
   };
 
@@ -295,37 +285,6 @@ export default function ServiceForm({
       ),
     });
   };
-
-  useEffect(() => {
-    if (!isPlatform) {
-      return;
-    }
-
-    if (detailsServiceId && imageType === 'nhost') {
-      openDialog({
-        title: 'Service Details',
-        component: (
-          <ServiceDetailsDialog
-            serviceID={detailsServiceId}
-            subdomain={detailsServiceSubdomain}
-            ports={formValues.ports}
-          />
-        ),
-        props: {
-          PaperProps: {
-            className: 'max-w-2xl',
-          },
-        },
-      });
-    }
-  }, [
-    detailsServiceId,
-    detailsServiceSubdomain,
-    formValues,
-    openDialog,
-    isPlatform,
-    imageType,
-  ]);
 
   const pricingExplanation = () => {
     const vCPUs = `${formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER} vCPUs`;
