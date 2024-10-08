@@ -57,6 +57,8 @@ export default function ImageField({
                 color: theme.palette.grey[600],
                 borderColor: theme.palette.grey[400],
                 backgroundColor: theme.palette.grey[200],
+                borderTopLeftRadius: theme.shape.borderRadius,
+                borderBottomLeftRadius: theme.shape.borderRadius,
               }}
             >
               {privateRegistryImage}:
