@@ -26,7 +26,7 @@ import {
 import { twMerge } from 'tailwind-merge';
 
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
-import { useCurrentOrg } from '@/features/projects/common/hooks/useCurrentOrg';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { cn } from '@/lib/utils';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
@@ -144,12 +144,12 @@ export default function AuthenticatedLayout({
       <Header className="flex py-1" />
 
       <div
-        className="relative flex flex-row flex-auto overflow-x-hidden"
+        className="relative flex flex-row h-full overflow-x-hidden"
         ref={setMainNavContainer}
       >
         {mainNavPinned && <PinnedMainNav />}
 
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full h-full overflow-auto">
           <div className="relative flex flex-row items-center w-full h-12 px-2 space-x-2 border-b bg-background">
             {!mainNavPinned && <MainNav container={mainNavContainer} />}
 

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
-import { useOrgs } from '@/features/orgs/hooks/useOrgs';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';

@@ -12,8 +12,8 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useNavTreeStateFromURL } from '@/features/orgs/hooks/useNavTreeStateFromURL';
-import { useOrgs, type Org } from '@/features/orgs/hooks/useOrgs';
+import { useNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useNavTreeStateFromURL';
+import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -174,8 +174,8 @@ const createOrganization = (org: Org) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="h-4 w-4" />,
-        targetUrl: `/orgs/${org.slug}/projects/${app.slug}/overview`,
+        icon: <Box className="w-4 h-4" />,
+        targetUrl: `/orgs/${org.slug}/projects/${app.slug}`,
       },
       children: projectPages.map(
         (page) => `${org.slug}-${app.slug}-${page.name}`,
