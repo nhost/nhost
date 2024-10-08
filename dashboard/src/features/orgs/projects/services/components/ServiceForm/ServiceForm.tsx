@@ -90,7 +90,6 @@ export default function ServiceForm({
     register,
     formState: { errors, isSubmitting, dirtyFields },
     setValue,
-    trigger: triggerValidation,
   } = form;
 
   const formValues = watch();
@@ -133,8 +132,6 @@ export default function ServiceForm({
       setValue('image', '');
       setValue('pullCredentials', undefined);
     }
-
-    triggerValidation('image');
 
     setImageType(value);
   };
