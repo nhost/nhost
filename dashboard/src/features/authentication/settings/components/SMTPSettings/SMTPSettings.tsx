@@ -22,14 +22,7 @@ import * as yup from 'yup';
 const smtpValidationSchema = yup
   .object({
     secure: yup.bool().label('SMTP Secure'),
-    host: yup
-      .string()
-      .label('SMTP Host')
-      .matches(
-        /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/,
-        'SMTP Host must be a valid hostname, domain, or IP address',
-      )
-      .required(),
+    host: yup.string().label('SMTP Host').required(),
     port: yup
       .number()
       .typeError('The SMTP port should contain only numbers.')
