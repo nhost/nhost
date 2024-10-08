@@ -8,7 +8,7 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { inputBaseClasses } from '@mui/material';
 import { useTheme } from '@mui/system';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 interface ImageFieldProps {
@@ -27,16 +27,6 @@ export default function ImageField({
     formState: { errors },
     setValue,
   } = useFormContext<ServiceFormValues>();
-
-  const imagePlaceholder = useMemo(() => {
-    if (imageType === 'private') {
-      return 'myprivaterepo/myservice:1.0.1';
-    }
-    if (imageType === 'nhost') {
-      return privateRegistryImage;
-    }
-    return 'myimage:1.0.1';
-  }, [imageType, privateRegistryImage]);
 
   const theme = useTheme();
 
@@ -121,7 +111,7 @@ export default function ImageField({
               <Text>Image</Text>
             </Box>
           }
-          placeholder={imagePlaceholder}
+          placeholder="myprivaterepo/myservice:1.0.1"
           hideEmptyHelperText
           error={!!errors.image}
           helperText={errors?.image?.message}
@@ -189,7 +179,7 @@ export default function ImageField({
             <Text>Image</Text>
           </Box>
         }
-        placeholder={imagePlaceholder}
+        placeholder="myimage:1.0.1"
         hideEmptyHelperText
         error={!!errors.image}
         helperText={errors?.image?.message}
@@ -198,4 +188,5 @@ export default function ImageField({
       />
     );
   }
+  return null;
 }
