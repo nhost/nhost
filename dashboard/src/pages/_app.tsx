@@ -29,6 +29,7 @@ import { NhostApolloProvider } from '@nhost/react-apollo';
 import * as snippet from '@segment/snippet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { NextPage } from 'next';
+import { PagesProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { DefaultSeo } from 'next-seo';
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
@@ -113,6 +114,11 @@ function MyApp({
                 <RetryableErrorBoundary>
                   <RecoilRoot>
                     <DialogProvider>
+                      <ProgressBar
+                        height="2px"
+                        color="#0052cd"
+                        options={{ showSpinner: false }}
+                      />
                       {getLayout(<Component {...pageProps} />)}
                     </DialogProvider>
                   </RecoilRoot>

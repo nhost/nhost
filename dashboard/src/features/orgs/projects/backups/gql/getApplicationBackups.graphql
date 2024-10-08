@@ -1,0 +1,7 @@
+query getApplicationBackups($appId: uuid!) {
+  app(id: $appId) {
+    backups(order_by: { createdAt: desc }) {
+      ...Backup
+    }
+  }
+}

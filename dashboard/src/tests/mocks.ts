@@ -1,4 +1,4 @@
-import type { Project, Workspace } from '@/types/application';
+import type { Organization, Project, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { faker } from '@faker-js/faker';
 import type { NhostSession } from '@nhost/nextjs';
@@ -111,4 +111,29 @@ export const mockSession: NhostSession = {
     phoneNumberVerified: true,
     activeMfaType: 'totp',
   },
+};
+
+export const mockOrganization: Organization = {
+  id: '93297df9-125e-49df-9db3-94067fa065bd',
+  name: 'Test organization',
+  slug: 'xyz',
+  plan: {
+    id: 'abc',
+    name: 'Pro',
+    deprecated: false,
+    individual: false,
+    isFree: false,
+    __typename: 'plans',
+  },
+  members: [],
+  apps: [
+    {
+      id: '1',
+      name: 'Test Application',
+      subdomain: '',
+      slug: 'test-application',
+      __typename: 'apps',
+    },
+  ],
+  __typename: 'organizations',
 };
