@@ -1,15 +1,14 @@
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
-import { DesktopNav } from '@/components/layout/DesktopNav';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
 import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
@@ -26,10 +25,8 @@ function ProjectLayoutContent({
     ...mainContainerProps
   } = {},
 }: ProjectLayoutProps) {
-  const { currentProject, loading, error } = useCurrentWorkspaceAndProject();
-
+  const { project, loading, error } = useProject();
   const router = useRouter();
-  const shouldDisplayNav = useNavigationVisible();
   const isPlatform = useIsPlatform();
   const { nhostRoutes } = useProjectRoutes();
   const pathWithoutWorkspaceAndProject = router.asPath.replace(
@@ -44,18 +41,18 @@ function ProjectLayoutContent({
       ),
     );
 
+  // TODO(orgs) 1
   // useNotFoundRedirect();
 
-  // useEffect(() => {
-  //   if (isPlatform || !router.isReady) {
-  //     return;
-  //   }
+  useEffect(() => {
+    if (isPlatform || !router.isReady) {
+      return;
+    }
 
-  //   TODO // Double check what restricted path means here
-  //   if (isRestrictedPath) {
-  //     router.push('/local/local');
-  //   }
-  // }, [isPlatform, isRestrictedPath, router]);
+    if (isRestrictedPath) {
+      router.push('/local/local');
+    }
+  }, [isPlatform, isRestrictedPath, router]);
 
   if (isRestrictedPath || loading) {
     return <LoadingScreen />;
@@ -67,31 +64,6 @@ function ProjectLayoutContent({
 
   if (!isPlatform) {
     return (
-      <>
-        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
-
-        <Box
-          component="main"
-          className={twMerge(
-            'relative flex-auto overflow-y-auto',
-            mainContainerClassName,
-          )}
-          {...mainContainerProps}
-        >
-          {children}
-
-          <NextSeo title="Local App" />
-        </Box>
-      </>
-    );
-  }
-
-  return (
-    <>
-      {shouldDisplayNav && (
-        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
-      )}
-
       <Box
         component="main"
         className={twMerge(
@@ -101,10 +73,24 @@ function ProjectLayoutContent({
         {...mainContainerProps}
       >
         {children}
-
-        <NextSeo title={currentProject?.name} />
+        <NextSeo title="Local App" />
       </Box>
-    </>
+    );
+  }
+
+  return (
+    <Box
+      component="main"
+      className={twMerge(
+        'relative flex-auto overflow-y-auto',
+        mainContainerClassName,
+      )}
+      {...mainContainerProps}
+    >
+      {children}
+
+      <NextSeo title={project?.name} />
+    </Box>
   );
 }
 

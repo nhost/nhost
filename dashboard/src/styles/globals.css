@@ -99,7 +99,8 @@ body {
   position: fixed;
   z-index: 10;
   background: #f4f7f9;
-  box-shadow: 0px 1px 3px rgba(33, 50, 75, 0.15),
+  box-shadow:
+    0px 1px 3px rgba(33, 50, 75, 0.15),
     0px 4px 16px rgba(33, 50, 75, 0.05);
   border-radius: 4px;
 }
@@ -167,7 +168,8 @@ body {
     #0052cd;
   /* Raised/Raised 2 */
 
-  box-shadow: 0px 1px 4px rgba(14, 24, 39, 0.1),
+  box-shadow:
+    0px 1px 4px rgba(14, 24, 39, 0.1),
     0px 8px 24px rgba(14, 24, 39, 0.1);
   border-radius: 8px;
 }
@@ -177,7 +179,8 @@ body {
 }
 
 .box-drop {
-  box-shadow: 0px 1px 4px rgba(14, 24, 39, 0.1),
+  box-shadow:
+    0px 1px 4px rgba(14, 24, 39, 0.1),
     0px 8px 24px rgba(14, 24, 39, 0.1);
 }
 
@@ -203,7 +206,9 @@ body {
       #f4f7f9 75%,
       #f4f7f9
     );
-  background-position: 0 0, 28px 28px;
+  background-position:
+    0 0,
+    28px 28px;
   background-size: 56px 56px;
 }
 
@@ -227,7 +232,7 @@ body {
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 216 100% 40%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -239,7 +244,7 @@ body {
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 216 100% 40%;
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;

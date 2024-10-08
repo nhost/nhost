@@ -1,6 +1,6 @@
 import NavTree from '@/components/layout/MainNav/NavTree';
 import { Button } from '@/components/ui/v3/button';
-import CreateOrgDialog from '@/features/orgs/CreateOrgFormDialog/CreateOrgFormDialog';
+import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { Pin, PinOff } from 'lucide-react';
 

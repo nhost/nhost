@@ -15,6 +15,7 @@ module.exports = {
   ],
   rules: {
     'react/react-in-jsx-scope': 'off',
+    'react/prop-types': [2, { ignore: ['className'] }],
     'react/jsx-props-no-spreading': 'off',
     'react/require-default-props': 'off',
     'react-hooks/exhaustive-deps': 'warn',
@@ -76,4 +77,19 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ['**/components/ui/v3/*.tsx'],
+      rules: {
+        'react/prop-types': [
+          2,
+          { ignore: ['className', 'align', 'sideOffset'] },
+        ],
+        'react-refresh/only-export-components': 'off',
+        'react/function-component-definition': 'off',
+        'arrow-body-style': 'off',
+        'react/no-unknown-property': 'off',
+      },
+    },
+  ],
 };
