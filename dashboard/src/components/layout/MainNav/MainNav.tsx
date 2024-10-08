@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
 import {
   Sheet,
   SheetContent,
@@ -12,6 +13,7 @@ import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { PanelLeft, Pin, PinOff } from 'lucide-react';
 import NavTree from './NavTree';
+import WorkspacesNavTree from './WorkspacesNavTree';
 
 interface MainNavProps {
   container: HTMLElement;
@@ -60,9 +62,17 @@ export default function MainNav({ container }: MainNavProps) {
           </Button>
         </div>
 
-        <div className="h-[calc(100vh-6rem)] overflow-auto px-4 pb-12 pt-2">
-          <NavTree />
-          <CreateOrgDialog />
+        <Separator />
+
+        <div className="h-[calc(100vh-6rem)] space-y-4 overflow-auto px-4 pb-12 pt-2">
+          <div className="px-4">
+            <NavTree />
+            <CreateOrgDialog />
+          </div>
+          <Separator className="mx-auto my-2" />
+          <div className="px-4">
+            <WorkspacesNavTree />
+          </div>
         </div>
       </SheetContent>
     </Sheet>

@@ -1,7 +1,6 @@
 import type { ProjectLayoutProps } from '@/components/layout/ProjectLayout';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import type { SettingsSidebarProps } from '@/components/layout/SettingsSidebar';
-import { SettingsSidebar } from '@/components/layout/SettingsSidebar';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -23,7 +22,6 @@ export default function SettingsLayout({
     className: mainContainerClassName,
     ...mainContainerProps
   } = {},
-  sidebarProps: { className: sidebarClassName, ...sidebarProps } = {},
   ...props
 }: SettingsLayoutProps) {
   const theme = useTheme();
@@ -38,11 +36,6 @@ export default function SettingsLayout({
       }}
       {...props}
     >
-      <SettingsSidebar
-        className={twMerge('w-full max-w-sidebar', sidebarClassName)}
-        {...sidebarProps}
-      />
-
       <Box
         sx={{ backgroundColor: 'background.default' }}
         className="flex w-full flex-auto flex-col overflow-y-auto overflow-x-hidden"
@@ -58,7 +51,7 @@ export default function SettingsLayout({
                   severity="warning"
                   className="grid grid-flow-row place-content-center gap-2"
                 >
-                  <Text color="warning" className="text-sm ">
+                  <Text color="warning" className="text-sm">
                     As you have a connected repository, make sure to synchronize
                     your changes with{' '}
                     <code

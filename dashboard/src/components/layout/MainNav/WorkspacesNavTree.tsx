@@ -10,10 +10,15 @@ import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useNavTreeStateFromURL';
-import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/v3/hover-card';
+import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
+import { type Workspace } from '@/features/orgs/projects/hooks/useWorkspaces/useWorkspaces';
+import { useWorkspacesNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useWorkspacesNavTreeStateFromURL';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -103,7 +108,7 @@ const projectPages = [
   },
   {
     name: 'Settings',
-    route: 'settings',
+    route: 'settings/general',
     slug: 'settings',
   },
 ];
@@ -155,45 +160,49 @@ const projectSettingsPages = [
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ];
 
-const createOrganization = (org: Org) => {
+const createWorkspace = (workspace: Workspace) => {
   const result = {};
 
-  result[org.slug] = {
-    index: org.slug,
+  result[workspace.slug] = {
+    index: workspace.slug,
     canMove: false,
     isFolder: true,
-    children: [
-      `${org.slug}-projects`,
-      `${org.slug}-settings`,
-      `${org.slug}-members`,
-      `${org.slug}-billing`,
-    ],
+    children: [`${workspace.slug}-overview`, `${workspace.slug}-projects`],
     data: {
-      name: org.name,
-      slug: org.slug,
-      type: 'org',
-      isFree: org.plan.isFree,
-      plan: org.plan.name,
-      targetUrl: `/orgs/${org.slug}/projects`, // default to projects
+      name: workspace.name,
+      slug: workspace.slug,
+      type: 'workspace',
+      targetUrl: `/${workspace.slug}`,
     },
     canRename: false,
   };
 
-  result[`${org.slug}-projects`] = {
-    index: `${org.slug}-projects`,
+  result[`${workspace.slug}-overview`] = {
+    index: `${workspace.slug}-overview`,
+    canMove: false,
+    isFolder: false,
+    children: null,
+    data: {
+      name: 'Overview',
+      targetUrl: `/${workspace.slug}`,
+    },
+    canRename: false,
+  };
+
+  result[`${workspace.slug}-projects`] = {
+    index: `${workspace.slug}-projects`,
     canMove: false,
     isFolder: true,
-    children: org.apps.map((app) => `${org.slug}-${app.slug}`),
+    children: workspace.projects.map((app) => `${workspace.slug}-${app.slug}`),
     data: {
       name: 'Projects',
-      targetUrl: `/orgs/${org.slug}/projects`,
     },
     canRename: false,
   };
 
-  org.apps.forEach((app) => {
-    result[`${org.slug}-${app.slug}`] = {
-      index: `${org.slug}-${app.slug}`,
+  workspace.projects.forEach((app) => {
+    result[`${workspace.slug}-${app.slug}`] = {
+      index: `${workspace.slug}-${app.slug}`,
       isFolder: true,
       canMove: false,
       canRename: false,
@@ -201,31 +210,31 @@ const createOrganization = (org: Org) => {
         name: app.name,
         slug: app.slug,
         icon: <Box className="h-4 w-4" />,
-        targetUrl: `/orgs/${org.slug}/projects/${app.slug}`,
+        targetUrl: `/${workspace.slug}/${app.slug}`,
       },
       children: projectPages.map(
-        (page) => `${org.slug}-${app.slug}-${page.slug}`,
+        (page) => `${workspace.slug}-${app.slug}-${page.slug}`,
       ),
     };
   });
 
-  org.apps.forEach((_app) => {
+  workspace.projects.forEach((_app) => {
     projectPages.forEach((_page) => {
-      result[`${org.slug}-${_app.slug}-${_page.slug}`] = {
-        index: `${org.slug}-${_app.slug}-${_page.slug}`,
+      result[`${workspace.slug}-${_app.slug}-${_page.slug}`] = {
+        index: `${workspace.slug}-${_app.slug}-${_page.slug}`,
         canMove: false,
         isFolder: _page.name === 'Settings',
         children:
           _page.name === 'Settings'
             ? projectSettingsPages.map(
-                (p) => `${org.slug}-${_app.slug}-settings-${p.slug}`,
+                (p) => `${workspace.slug}-${_app.slug}-settings-${p.slug}`,
               )
             : undefined,
         data: {
           name: _page.name,
           icon: _page.icon,
           isProjectPage: true,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/${_page.route}`,
+          targetUrl: `/${workspace.slug}/${_app.slug}/${_page.route}`,
         },
         canRename: false,
       };
@@ -233,58 +242,19 @@ const createOrganization = (org: Org) => {
 
     // add the settings pages
     projectSettingsPages.forEach((p) => {
-      result[`${org.slug}-${_app.slug}-settings-${p.slug}`] = {
-        index: `${org.slug}-${_app.slug}-settings-${p.slug}`,
+      result[`${workspace.slug}-${_app.slug}-settings-${p.slug}`] = {
+        index: `${workspace.slug}-${_app.slug}-settings-${p.slug}`,
         canMove: false,
         isFolder: false,
         children: undefined,
         data: {
           name: p.name,
-          targetUrl:
-            p.slug === 'general'
-              ? `/orgs/${org.slug}/projects/${_app.slug}/settings`
-              : `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.route}`,
+          targetUrl: `/${workspace.slug}/${_app.slug}/settings/${p.route}`,
         },
         canRename: false,
       };
     });
   });
-
-  result[`${org.slug}-settings`] = {
-    index: `${org.slug}-settings`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Settings',
-      targetUrl: `/orgs/${org.slug}/settings`,
-    },
-    canRename: false,
-  };
-
-  result[`${org.slug}-members`] = {
-    index: `${org.slug}-members`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Members',
-      targetUrl: `/orgs/${org.slug}/members`,
-    },
-    canRename: false,
-  };
-
-  result[`${org.slug}-billing`] = {
-    index: `${org.slug}-billing`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Billing',
-      targetUrl: `/orgs/${org.slug}/billing`,
-    },
-    canRename: false,
-  };
 
   return result;
 };
@@ -293,14 +263,12 @@ type NavItem = {
   name: string;
   slug?: string;
   type?: string;
-  isFree?: boolean;
-  plan?: string;
   icon?: ReactElement;
   targetUrl?: string;
 };
 
 const buildNavTreeData = (
-  orgs: Org[],
+  workspaces: Workspace[],
 ): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
   const navTree = {
     items: {
@@ -308,20 +276,20 @@ const buildNavTreeData = (
         index: 'root',
         canMove: false,
         isFolder: true,
-        children: ['organizations'],
+        children: ['workspaces'],
         data: { name: 'root' },
         canRename: false,
       },
-      organizations: {
-        index: 'organizations',
+      workspaces: {
+        index: 'workspaces',
         canMove: false,
         isFolder: true,
-        children: orgs.map((org) => org.slug),
-        data: { name: 'Organizations' },
+        children: workspaces.map((workspace) => workspace.slug),
+        data: { name: 'Workspaces', type: 'workspaces-root' },
         canRename: false,
       },
-      ...orgs.reduce(
-        (acc, org) => ({ ...acc, ...createOrganization(org) }),
+      ...workspaces.reduce(
+        (acc, workspace) => ({ ...acc, ...createWorkspace(workspace) }),
         {},
       ),
     },
@@ -330,12 +298,12 @@ const buildNavTreeData = (
   return navTree;
 };
 
-export default function NavTree() {
+export default function WorkspacesNavTree() {
   const { asPath } = useRouter();
-  const { orgs } = useOrgs();
+  const { workspaces } = useWorkspaces();
 
-  const navTree = buildNavTreeData(orgs);
-  const { expandedItems, focusedItem } = useNavTreeStateFromURL();
+  const navTree = buildNavTreeData(workspaces);
+  const { expandedItems, focusedItem } = useWorkspacesNavTreeStateFromURL();
 
   const dataProvider = useMemo(
     () =>
@@ -351,13 +319,83 @@ export default function NavTree() {
       Boolean(navTree.items[item]),
     );
 
-    // TODO figure out if this is still necessary
-    // dataProvider.onDidChangeTreeDataEmitter.emit(
-    //   Object.values(navTree.items).map((item) => item.index),
-    // );
-
     dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
   }, [dataProvider, expandedItems, focusedItem, navTree.items]);
+
+  const renderItem = ({ arrow, context, item, children }) => {
+    const navItemContent = () => (
+      <>
+        {item.data.icon && (
+          <span
+            className={cn(
+              'flex items-start',
+              context.isFocused ? 'text-primary-main' : '',
+            )}
+          >
+            {item.data.icon}
+          </span>
+        )}
+        <span
+          className={cn(
+            item?.index === 'workspaces' && 'font-bold',
+            context.isFocused ? 'font-bold text-primary-main' : '',
+            'max-w-52 truncate',
+          )}
+        >
+          {item.data.name}
+        </span>
+        {item.data.type === 'workspaces-root' && (
+          <HoverCard openDelay={0}>
+            <HoverCardTrigger asChild>
+              <div
+                className={cn(
+                  // buttonVariants({ variant: 'secondary' }),
+                  'h-5 rounded-full bg-muted bg-orange-200 px-[6px] text-[10px] dark:bg-orange-500',
+                )}
+              >
+                Legacy
+              </div>
+            </HoverCardTrigger>
+            <HoverCardContent className="w-64" side="top">
+              <div className="whitespace-normal">
+                <p>These are your legacy workspaces. Read the announcement.</p>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
+        )}
+      </>
+    );
+
+    return (
+      <li
+        {...context.itemContainerWithChildrenProps}
+        className="flex flex-col gap-1"
+      >
+        <div className="flex flex-row items-center gap-1">
+          {arrow}
+          <Button
+            asChild
+            variant={context.isFocused ? 'secondary' : 'ghost'}
+            onClick={() => {
+              if (item.data.type === 'workspace' || !item.data.targetUrl) {
+                context.toggleExpandedState();
+              } else {
+                context.focusItem();
+              }
+            }}
+            className="flex h-8 w-full flex-row justify-start gap-2 px-1"
+          >
+            {item.data.targetUrl ? (
+              <Link href={item.data.targetUrl || '/'}>{navItemContent()}</Link>
+            ) : (
+              <div className="cursor-pointer">{navItemContent()}</div>
+            )}
+          </Button>
+        </div>
+        <div>{children}</div>
+      </li>
+    );
+  };
 
   return (
     <UncontrolledTreeEnvironment
@@ -365,7 +403,7 @@ export default function NavTree() {
       dataProvider={dataProvider}
       getItemTitle={(item) => item.data.name}
       viewState={{
-        'nav-tree': {
+        'workspaces-nav-tree': {
           focusedItem,
           expandedItems,
           selectedItems: null,
@@ -392,62 +430,7 @@ export default function NavTree() {
           </Button>
         );
       }}
-      renderItem={({ arrow, context, item, children }) => (
-        <li
-          {...context.itemContainerWithChildrenProps}
-          className="flex flex-col gap-1"
-        >
-          <div className="flex flex-row items-center gap-1">
-            {arrow}
-            <Button
-              asChild
-              variant={context.isFocused ? 'secondary' : 'ghost'}
-              onClick={() => {
-                if (item.data.type === 'org') {
-                  context.toggleExpandedState();
-                } else {
-                  context.focusItem();
-                }
-              }}
-              className="flex h-8 w-full flex-row justify-start gap-2 px-1"
-            >
-              <Link href={item.data.targetUrl || '/'}>
-                {item.data.icon && (
-                  <span
-                    className={cn(
-                      'flex items-start',
-                      context.isFocused ? 'text-primary-main' : '',
-                    )}
-                  >
-                    {item.data.icon}
-                  </span>
-                )}
-                <span
-                  className={cn(
-                    item?.index === 'organizations' && 'font-bold',
-                    context.isFocused ? 'font-bold text-primary-main' : '',
-                    'max-w-52 truncate',
-                  )}
-                >
-                  {item.data.name}
-                </span>
-                {item.data?.plan && (
-                  <Badge
-                    variant={item.data.isFree ? 'outline' : 'default'}
-                    className={cn(
-                      'h-5 px-[6px] text-[10px]',
-                      item.data.isFree ? 'bg-muted' : '',
-                    )}
-                  >
-                    {item.data.plan}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
-          </div>
-          <div>{children}</div>
-        </li>
-      )}
+      renderItem={renderItem}
       renderTreeContainer={({ children, containerProps }) => (
         <div {...containerProps} className="w-full">
           {children}
@@ -475,7 +458,11 @@ export default function NavTree() {
       }}
       canSearch={false}
     >
-      <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
+      <Tree
+        rootItem="root"
+        treeId="workspaces-nav-tree"
+        treeLabel="Workspaces Navigation Tree"
+      />
     </UncontrolledTreeEnvironment>
   );
 }
