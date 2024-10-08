@@ -19,6 +19,7 @@ import { StorageFormSection } from '@/features/orgs/projects/services/components
 import { useHostName } from '@/features/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   validationSchema,
@@ -39,7 +40,7 @@ import {
   type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { parse } from 'shell-quote';
 import { HealthCheckFormSection } from './components/HealthCheckFormSection';
@@ -95,7 +96,14 @@ export default function ServiceForm({
 
   const isDirty = Object.keys(dirtyFields).length > 0;
 
-  const privateRegistryImage = `registry.${project.region.name}.${project.region.domain}/${serviceID}`;
+  const newServiceID = useMemo(() => {
+    if (serviceID) {
+      return serviceID;
+    }
+    return uuidv4();
+  }, [serviceID]);
+
+  const privateRegistryImage = `registry.${project.region.name}.${project.region.domain}/${newServiceID}`;
 
   let initialImageType: 'public' | 'private' | 'nhost' = 'public';
 
@@ -113,17 +121,19 @@ export default function ServiceForm({
 
   const handleImageTypeChange = (value: 'public' | 'private' | 'nhost') => {
     if (value === initialImageType) {
-      setValue('image', initialData?.image);
-      setValue('pullCredentials', initialData?.pullCredentials);
-    } else if (value === 'nhost') {
-      setValue('image', privateRegistryImage);
-      setValue('pullCredentials', null);
-    } else if (initialImageType !== 'nhost') {
-      setValue('image', initialData?.image);
-      setValue('pullCredentials', undefined);
-    } else {
-      setValue('image', undefined);
-      setValue('pullCredentials', undefined);
+      if (initialImageType === 'nhost') {
+        const tag = initialData?.image?.split(':')[1];
+
+        if (tag) {
+          setValue('image', tag);
+        } else {
+          setValue('image', undefined);
+        }
+        setValue('pullCredentials', undefined);
+      } else {
+        setValue('image', initialData?.image);
+        setValue('pullCredentials', initialData?.pullCredentials);
+      }
     }
 
     setImageType(value);
@@ -216,12 +226,13 @@ export default function ServiceForm({
       // Insert service config
       const {
         data: {
-          insertRunService: { id: newServiceID, subdomain },
+          insertRunService: { id, subdomain },
         },
       } = await insertRunService({
         variables: {
           object: {
             appID: project.id,
+            id: newServiceID,
           },
         },
       });
@@ -229,7 +240,7 @@ export default function ServiceForm({
       await insertRunServiceConfig({
         variables: {
           appID: project.id,
-          serviceID: newServiceID,
+          serviceID: id,
           config: {
             ...config,
             image: {

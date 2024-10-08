@@ -7,9 +7,10 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
+import { inputBaseClasses } from '@mui/material/InputBase';
+import { useTheme } from '@mui/system';
+import { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 interface ImageFormSectionProps {
@@ -29,11 +30,35 @@ export default function ImageFormSection({
     register,
     formState: { errors },
     watch,
+    setValue,
   } = useFormContext<ServiceFormValues>();
 
   const image = watch('image');
 
-  const isPlatform = useIsPlatform();
+  const imagePlaceholder = useMemo(() => {
+    if (imageType === 'private') {
+      return 'myprivaterepo/myservice:1.0.1';
+    }
+    if (imageType === 'nhost') {
+      return privateRegistryImage;
+    }
+    return 'myimage:1.0.1';
+  }, [imageType, privateRegistryImage]);
+
+  const theme = useTheme();
+
+  const [imageTag, setImageTag] = useState('');
+
+  useEffect(() => {
+    if (imageType === 'nhost' && privateRegistryImage) {
+      const newImage = imageTag
+        ? `${privateRegistryImage}:${imageTag}`
+        : privateRegistryImage;
+      setValue('image', newImage);
+    }
+  }, [imageTag, privateRegistryImage, imageType, setValue]);
+
+  console.log(imageType);
 
   return (
     <Box className="space-y-4 rounded border-1 p-4">
@@ -62,25 +87,60 @@ export default function ImageFormSection({
         </div>
       </RadioGroup>
 
-      <Input
-        {...register('image')}
-        id="image"
-        label={
-          <Box className="flex flex-row items-center space-x-2">
-            <Text>Image</Text>
-          </Box>
-        }
-        placeholder={
-          imageType === 'private'
-            ? 'myprivaterepo/myservice:1.0.1'
-            : 'myimage:1.0.1'
-        }
-        hideEmptyHelperText
-        error={!!errors.image}
-        helperText={errors?.image?.message}
-        fullWidth
-        autoComplete="off"
-      />
+      {imageType === 'nhost' ? (
+        <Input
+          value={imageTag}
+          onChange={(e) => setImageTag(e.target.value)}
+          id="imageTagField"
+          sx={{
+            [`& .${inputBaseClasses.input}`]: {
+              paddingLeft: '0px',
+            },
+          }}
+          startAdornment={
+            imageType === 'nhost' ? (
+              <Text
+                className="whitespace-nowrap py-2 pl-[10px] pr-1"
+                sx={{
+                  color: theme.palette.grey[600],
+                  borderColor: theme.palette.grey[400],
+                  backgroundColor: theme.palette.grey[200],
+                }}
+              >
+                {privateRegistryImage}:
+              </Text>
+            ) : null
+          }
+          label={
+            <Box className="flex flex-row items-center space-x-2">
+              <Text>Image</Text>
+            </Box>
+          }
+          placeholder="tag"
+          hideEmptyHelperText
+          error={!!errors.image}
+          helperText={errors?.image?.message}
+          fullWidth
+          autoComplete="off"
+        />
+      ) : (
+        <Input
+          {...register('image')}
+          id="image"
+          className="pl-0"
+          label={
+            <Box className="flex flex-row items-center space-x-2">
+              <Text>Image</Text>
+            </Box>
+          }
+          placeholder={imagePlaceholder}
+          hideEmptyHelperText
+          error={!!errors.image}
+          helperText={errors?.image?.message}
+          fullWidth
+          autoComplete="off"
+        />
+      )}
 
       {imageType === 'private' && (
         <Input
@@ -148,11 +208,6 @@ export default function ImageFormSection({
             </Link>
           </Text>
         </div>
-      )}
-
-      {/* This shows only when trying to edit a service and when running against the nhost platform */}
-      {imageType === 'nhost' && isPlatform && serviceID && image && (
-        <InfoCard title="Private registry" value={privateRegistryImage} />
       )}
     </Box>
   );
