@@ -84,7 +84,6 @@ export default function ImageField({
               placeholder="tag"
               hideEmptyHelperText
               error={!!errors.image}
-              helperText={errors?.image?.message}
               fullWidth
               autoComplete="off"
             />

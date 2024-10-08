@@ -90,6 +90,7 @@ export default function ServiceForm({
     register,
     formState: { errors, isSubmitting, dirtyFields },
     setValue,
+    trigger: triggerValidation,
   } = form;
 
   const formValues = watch();
@@ -132,6 +133,8 @@ export default function ServiceForm({
       setValue('image', '');
       setValue('pullCredentials', undefined);
     }
+
+    triggerValidation('image');
 
     setImageType(value);
   };
@@ -248,7 +251,7 @@ export default function ServiceForm({
                   ? values.image
                   : `registry.${project.region.name}.${project.region.domain}/${newServiceID}`,
               pullCredentials:
-                values.pullCredentials.length > 0
+                values.pullCredentials?.length > 0
                   ? values.pullCredentials
                   : null,
             },
