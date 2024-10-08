@@ -4046,8 +4046,6 @@ export type Apps = {
   /** An object relationship */
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** An object relationship */
-  billingDedicatedComputeReports?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** An object relationship */
   billingSubscriptions?: Maybe<Billing_Subscriptions>;
   config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
@@ -4322,7 +4320,6 @@ export type Apps_Bool_Exp = {
   backups?: InputMaybe<Backups_Bool_Exp>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Bool_Exp>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
-  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
   billingSubscriptions?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creator?: InputMaybe<Users_Bool_Exp>;
@@ -4399,7 +4396,6 @@ export type Apps_Insert_Input = {
   appStates?: InputMaybe<AppStateHistory_Arr_Rel_Insert_Input>;
   backups?: InputMaybe<Backups_Arr_Rel_Insert_Input>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Obj_Rel_Insert_Input>;
-  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Obj_Rel_Insert_Input>;
   billingSubscriptions?: InputMaybe<Billing_Subscriptions_Obj_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
@@ -4566,7 +4562,6 @@ export type Apps_Order_By = {
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Order_By>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Order_By>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Order_By>;
-  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Order_By>;
   billingSubscriptions?: InputMaybe<Billing_Subscriptions_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   creator?: InputMaybe<Users_Order_By>;
@@ -7313,6 +7308,8 @@ export type Billing_Dedicated_Compute = {
   appID: Scalars['uuid'];
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
+  /** An object relationship */
+  organization?: Maybe<Organizations>;
   totalMillicores: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
@@ -7362,6 +7359,7 @@ export type Billing_Dedicated_Compute_Bool_Exp = {
   appID?: InputMaybe<Uuid_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  organization?: InputMaybe<Organizations_Bool_Exp>;
   totalMillicores?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -7385,6 +7383,7 @@ export type Billing_Dedicated_Compute_Insert_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -7438,6 +7437,7 @@ export type Billing_Dedicated_Compute_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organization?: InputMaybe<Organizations_Order_By>;
   totalMillicores?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -7445,285 +7445,6 @@ export type Billing_Dedicated_Compute_Order_By = {
 /** primary key columns input for table: billing.dedicated_compute */
 export type Billing_Dedicated_Compute_Pk_Columns_Input = {
   id: Scalars['uuid'];
-};
-
-/** columns and relationships of "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports = {
-  __typename?: 'billing_dedicated_compute_reports';
-  /** An object relationship */
-  app?: Maybe<Apps>;
-  app_id: Scalars['uuid'];
-  created_at: Scalars['timestamptz'];
-  id: Scalars['uuid'];
-  pending: Scalars['Boolean'];
-  report_ends: Scalars['timestamptz'];
-  report_starts: Scalars['timestamptz'];
-  total_millicores: Scalars['Int'];
-  updated_at: Scalars['timestamptz'];
-};
-
-/** aggregated selection of "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Aggregate = {
-  __typename?: 'billing_dedicated_compute_reports_aggregate';
-  aggregate?: Maybe<Billing_Dedicated_Compute_Reports_Aggregate_Fields>;
-  nodes: Array<Billing_Dedicated_Compute_Reports>;
-};
-
-/** aggregate fields of "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Aggregate_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_aggregate_fields';
-  avg?: Maybe<Billing_Dedicated_Compute_Reports_Avg_Fields>;
-  count: Scalars['Int'];
-  max?: Maybe<Billing_Dedicated_Compute_Reports_Max_Fields>;
-  min?: Maybe<Billing_Dedicated_Compute_Reports_Min_Fields>;
-  stddev?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Fields>;
-  stddev_pop?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Samp_Fields>;
-  sum?: Maybe<Billing_Dedicated_Compute_Reports_Sum_Fields>;
-  var_pop?: Maybe<Billing_Dedicated_Compute_Reports_Var_Pop_Fields>;
-  var_samp?: Maybe<Billing_Dedicated_Compute_Reports_Var_Samp_Fields>;
-  variance?: Maybe<Billing_Dedicated_Compute_Reports_Variance_Fields>;
-};
-
-
-/** aggregate fields of "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** aggregate avg on columns */
-export type Billing_Dedicated_Compute_Reports_Avg_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_avg_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** Boolean expression to filter rows from the table "billing.dedicated_compute_reports". All fields are combined with a logical 'AND'. */
-export type Billing_Dedicated_Compute_Reports_Bool_Exp = {
-  _and?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Bool_Exp>>;
-  _not?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-  _or?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Bool_Exp>>;
-  app?: InputMaybe<Apps_Bool_Exp>;
-  app_id?: InputMaybe<Uuid_Comparison_Exp>;
-  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  pending?: InputMaybe<Boolean_Comparison_Exp>;
-  report_ends?: InputMaybe<Timestamptz_Comparison_Exp>;
-  report_starts?: InputMaybe<Timestamptz_Comparison_Exp>;
-  total_millicores?: InputMaybe<Int_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "billing.dedicated_compute_reports" */
-export enum Billing_Dedicated_Compute_Reports_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  DedicatedComputeReportsPkey = 'dedicated_compute_reports_pkey'
-}
-
-/** input type for incrementing numeric columns in table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Inc_Input = {
-  total_millicores?: InputMaybe<Scalars['Int']>;
-};
-
-/** input type for inserting data into table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Insert_Input = {
-  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  pending?: InputMaybe<Scalars['Boolean']>;
-  report_ends?: InputMaybe<Scalars['timestamptz']>;
-  report_starts?: InputMaybe<Scalars['timestamptz']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate max on columns */
-export type Billing_Dedicated_Compute_Reports_Max_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_max_fields';
-  app_id?: Maybe<Scalars['uuid']>;
-  created_at?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  report_ends?: Maybe<Scalars['timestamptz']>;
-  report_starts?: Maybe<Scalars['timestamptz']>;
-  total_millicores?: Maybe<Scalars['Int']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-};
-
-/** aggregate min on columns */
-export type Billing_Dedicated_Compute_Reports_Min_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_min_fields';
-  app_id?: Maybe<Scalars['uuid']>;
-  created_at?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  report_ends?: Maybe<Scalars['timestamptz']>;
-  report_starts?: Maybe<Scalars['timestamptz']>;
-  total_millicores?: Maybe<Scalars['Int']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-};
-
-/** response of any mutation on the table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Mutation_Response = {
-  __typename?: 'billing_dedicated_compute_reports_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Billing_Dedicated_Compute_Reports>;
-};
-
-/** input type for inserting object relation for remote table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Obj_Rel_Insert_Input = {
-  data: Billing_Dedicated_Compute_Reports_Insert_Input;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
-};
-
-/** on_conflict condition type for table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_On_Conflict = {
-  constraint: Billing_Dedicated_Compute_Reports_Constraint;
-  update_columns?: Array<Billing_Dedicated_Compute_Reports_Update_Column>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "billing.dedicated_compute_reports". */
-export type Billing_Dedicated_Compute_Reports_Order_By = {
-  app?: InputMaybe<Apps_Order_By>;
-  app_id?: InputMaybe<Order_By>;
-  created_at?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  pending?: InputMaybe<Order_By>;
-  report_ends?: InputMaybe<Order_By>;
-  report_starts?: InputMaybe<Order_By>;
-  total_millicores?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: billing.dedicated_compute_reports */
-export type Billing_Dedicated_Compute_Reports_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "billing.dedicated_compute_reports" */
-export enum Billing_Dedicated_Compute_Reports_Select_Column {
-  /** column name */
-  AppId = 'app_id',
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Pending = 'pending',
-  /** column name */
-  ReportEnds = 'report_ends',
-  /** column name */
-  ReportStarts = 'report_starts',
-  /** column name */
-  TotalMillicores = 'total_millicores',
-  /** column name */
-  UpdatedAt = 'updated_at'
-}
-
-/** input type for updating data in table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Set_Input = {
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  pending?: InputMaybe<Scalars['Boolean']>;
-  report_ends?: InputMaybe<Scalars['timestamptz']>;
-  report_starts?: InputMaybe<Scalars['timestamptz']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate stddev on columns */
-export type Billing_Dedicated_Compute_Reports_Stddev_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_stddev_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_pop on columns */
-export type Billing_Dedicated_Compute_Reports_Stddev_Pop_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_stddev_pop_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_samp on columns */
-export type Billing_Dedicated_Compute_Reports_Stddev_Samp_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_stddev_samp_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** Streaming cursor of the table "billing_dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Billing_Dedicated_Compute_Reports_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Billing_Dedicated_Compute_Reports_Stream_Cursor_Value_Input = {
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  pending?: InputMaybe<Scalars['Boolean']>;
-  report_ends?: InputMaybe<Scalars['timestamptz']>;
-  report_starts?: InputMaybe<Scalars['timestamptz']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate sum on columns */
-export type Billing_Dedicated_Compute_Reports_Sum_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_sum_fields';
-  total_millicores?: Maybe<Scalars['Int']>;
-};
-
-/** update columns of table "billing.dedicated_compute_reports" */
-export enum Billing_Dedicated_Compute_Reports_Update_Column {
-  /** column name */
-  AppId = 'app_id',
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Pending = 'pending',
-  /** column name */
-  ReportEnds = 'report_ends',
-  /** column name */
-  ReportStarts = 'report_starts',
-  /** column name */
-  TotalMillicores = 'total_millicores',
-  /** column name */
-  UpdatedAt = 'updated_at'
-}
-
-export type Billing_Dedicated_Compute_Reports_Updates = {
-  /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
-};
-
-/** aggregate var_pop on columns */
-export type Billing_Dedicated_Compute_Reports_Var_Pop_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_var_pop_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate var_samp on columns */
-export type Billing_Dedicated_Compute_Reports_Var_Samp_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_var_samp_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate variance on columns */
-export type Billing_Dedicated_Compute_Reports_Variance_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_variance_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
 };
 
 /** select columns of table "billing.dedicated_compute" */
@@ -8665,6 +8386,236 @@ export type Billing_Resources_Variance_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+};
+
+/** columns and relationships of "billing.subscription_items" */
+export type Billing_Subscription_Items = {
+  __typename?: 'billing_subscription_items';
+  created_at: Scalars['timestamptz'];
+  custom_domains: Scalars['String'];
+  dedicated_compute: Scalars['String'];
+  egress: Scalars['String'];
+  functions_amount: Scalars['String'];
+  functions_usage_seconds: Scalars['String'];
+  id: Scalars['uuid'];
+  persistent_volume: Scalars['String'];
+  subscription: Scalars['String'];
+  updated_at: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "billing.subscription_items" */
+export type Billing_Subscription_Items_Aggregate = {
+  __typename?: 'billing_subscription_items_aggregate';
+  aggregate?: Maybe<Billing_Subscription_Items_Aggregate_Fields>;
+  nodes: Array<Billing_Subscription_Items>;
+};
+
+/** aggregate fields of "billing.subscription_items" */
+export type Billing_Subscription_Items_Aggregate_Fields = {
+  __typename?: 'billing_subscription_items_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Billing_Subscription_Items_Max_Fields>;
+  min?: Maybe<Billing_Subscription_Items_Min_Fields>;
+};
+
+
+/** aggregate fields of "billing.subscription_items" */
+export type Billing_Subscription_Items_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "billing.subscription_items". All fields are combined with a logical 'AND'. */
+export type Billing_Subscription_Items_Bool_Exp = {
+  _and?: InputMaybe<Array<Billing_Subscription_Items_Bool_Exp>>;
+  _not?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+  _or?: InputMaybe<Array<Billing_Subscription_Items_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  custom_domains?: InputMaybe<String_Comparison_Exp>;
+  dedicated_compute?: InputMaybe<String_Comparison_Exp>;
+  egress?: InputMaybe<String_Comparison_Exp>;
+  functions_amount?: InputMaybe<String_Comparison_Exp>;
+  functions_usage_seconds?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  persistent_volume?: InputMaybe<String_Comparison_Exp>;
+  subscription?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "billing.subscription_items" */
+export enum Billing_Subscription_Items_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SubscriptionItemsPkey = 'subscription_items_pkey'
+}
+
+/** input type for inserting data into table "billing.subscription_items" */
+export type Billing_Subscription_Items_Insert_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  custom_domains?: InputMaybe<Scalars['String']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions_amount?: InputMaybe<Scalars['String']>;
+  functions_usage_seconds?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistent_volume?: InputMaybe<Scalars['String']>;
+  subscription?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Billing_Subscription_Items_Max_Fields = {
+  __typename?: 'billing_subscription_items_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  custom_domains?: Maybe<Scalars['String']>;
+  dedicated_compute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions_amount?: Maybe<Scalars['String']>;
+  functions_usage_seconds?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  persistent_volume?: Maybe<Scalars['String']>;
+  subscription?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Billing_Subscription_Items_Min_Fields = {
+  __typename?: 'billing_subscription_items_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  custom_domains?: Maybe<Scalars['String']>;
+  dedicated_compute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions_amount?: Maybe<Scalars['String']>;
+  functions_usage_seconds?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  persistent_volume?: Maybe<Scalars['String']>;
+  subscription?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "billing.subscription_items" */
+export type Billing_Subscription_Items_Mutation_Response = {
+  __typename?: 'billing_subscription_items_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Billing_Subscription_Items>;
+};
+
+/** on_conflict condition type for table "billing.subscription_items" */
+export type Billing_Subscription_Items_On_Conflict = {
+  constraint: Billing_Subscription_Items_Constraint;
+  update_columns?: Array<Billing_Subscription_Items_Update_Column>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "billing.subscription_items". */
+export type Billing_Subscription_Items_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  custom_domains?: InputMaybe<Order_By>;
+  dedicated_compute?: InputMaybe<Order_By>;
+  egress?: InputMaybe<Order_By>;
+  functions_amount?: InputMaybe<Order_By>;
+  functions_usage_seconds?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  persistent_volume?: InputMaybe<Order_By>;
+  subscription?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: billing.subscription_items */
+export type Billing_Subscription_Items_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "billing.subscription_items" */
+export enum Billing_Subscription_Items_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  CustomDomains = 'custom_domains',
+  /** column name */
+  DedicatedCompute = 'dedicated_compute',
+  /** column name */
+  Egress = 'egress',
+  /** column name */
+  FunctionsAmount = 'functions_amount',
+  /** column name */
+  FunctionsUsageSeconds = 'functions_usage_seconds',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  PersistentVolume = 'persistent_volume',
+  /** column name */
+  Subscription = 'subscription',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+/** input type for updating data in table "billing.subscription_items" */
+export type Billing_Subscription_Items_Set_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  custom_domains?: InputMaybe<Scalars['String']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions_amount?: InputMaybe<Scalars['String']>;
+  functions_usage_seconds?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistent_volume?: InputMaybe<Scalars['String']>;
+  subscription?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "billing_subscription_items" */
+export type Billing_Subscription_Items_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Billing_Subscription_Items_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Billing_Subscription_Items_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  custom_domains?: InputMaybe<Scalars['String']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions_amount?: InputMaybe<Scalars['String']>;
+  functions_usage_seconds?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistent_volume?: InputMaybe<Scalars['String']>;
+  subscription?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "billing.subscription_items" */
+export enum Billing_Subscription_Items_Update_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  CustomDomains = 'custom_domains',
+  /** column name */
+  DedicatedCompute = 'dedicated_compute',
+  /** column name */
+  Egress = 'egress',
+  /** column name */
+  FunctionsAmount = 'functions_amount',
+  /** column name */
+  FunctionsUsageSeconds = 'functions_usage_seconds',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  PersistentVolume = 'persistent_volume',
+  /** column name */
+  Subscription = 'subscription',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+export type Billing_Subscription_Items_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Billing_Subscription_Items_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Billing_Subscription_Items_Bool_Exp;
 };
 
 /** columns and relationships of "billing.subscriptions" */
@@ -12349,6 +12300,7 @@ export type Mutation_Root = {
   billingCreateOrganizationRequest: Scalars['String'];
   billingDeleteOrganization: Scalars['Boolean'];
   billingFinishSubscription: Scalars['Boolean'];
+  billingFixSubscriptionItems: Scalars['Boolean'];
   billingFixSubscriptions: Scalars['Boolean'];
   billingFullReportWorkflow: Scalars['Boolean'];
   billingMigrateProjectToOrganization: Scalars['Boolean'];
@@ -12464,17 +12416,17 @@ export type Mutation_Root = {
   /** delete data from the table: "organizations_free_usage" */
   deleteOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** delete single row from the table: "organization_members" */
-  deleteOrganizationMember?: Maybe<OrganizationMembers>;
+  deleteOrganizationMember?: Maybe<Organization_Members>;
   /** delete single row from the table: "organization_member_invites" */
-  deleteOrganizationMemberInvite?: Maybe<OrganizationMemberInvites>;
+  deleteOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
   /** delete data from the table: "organization_member_invites" */
-  deleteOrganizationMemberInvites?: Maybe<OrganizationMemberInvites_Mutation_Response>;
+  deleteOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
   /** delete data from the table: "organization_members" */
-  deleteOrganizationMembers?: Maybe<OrganizationMembers_Mutation_Response>;
+  deleteOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
   /** delete single row from the table: "organization_new_request" */
-  deleteOrganizationNewRequest?: Maybe<OrganizationNewRequest>;
+  deleteOrganizationNewRequest?: Maybe<Organization_New_Request>;
   /** delete data from the table: "organization_new_request" */
-  deleteOrganizationNewRequests?: Maybe<OrganizationNewRequest_Mutation_Response>;
+  deleteOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
   /** delete data from the table: "organizations" */
   deleteOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** delete single row from the table: "payment_methods" */
@@ -12535,6 +12487,10 @@ export type Mutation_Root = {
   delete_billing_report_type?: Maybe<Billing_Report_Type_Mutation_Response>;
   /** delete single row from the table: "billing.report_type" */
   delete_billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
+  /** delete data from the table: "billing.subscription_items" */
+  delete_billing_subscription_items?: Maybe<Billing_Subscription_Items_Mutation_Response>;
+  /** delete single row from the table: "billing.subscription_items" */
+  delete_billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
   /** delete data from the table: "continents" */
   delete_continents?: Maybe<Continents_Mutation_Response>;
   /** delete single row from the table: "continents" */
@@ -12544,13 +12500,13 @@ export type Mutation_Root = {
   /** delete single row from the table: "countries" */
   delete_countries_by_pk?: Maybe<Countries>;
   /** delete data from the table: "organization_members_role" */
-  delete_organizationMembersRole?: Maybe<OrganizationMembersRole_Mutation_Response>;
+  delete_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
   /** delete single row from the table: "organization_members_role" */
-  delete_organizationMembersRole_by_pk?: Maybe<OrganizationMembersRole>;
+  delete_organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
   /** delete data from the table: "organization_status" */
-  delete_organizationStatus?: Maybe<OrganizationStatus_Mutation_Response>;
+  delete_organization_status?: Maybe<Organization_Status_Mutation_Response>;
   /** delete single row from the table: "organization_status" */
-  delete_organizationStatus_by_pk?: Maybe<OrganizationStatus>;
+  delete_organization_status_by_pk?: Maybe<Organization_Status>;
   /** delete data from the table: "region_type" */
   delete_region_type?: Maybe<Region_Type_Mutation_Response>;
   /** delete single row from the table: "region_type" */
@@ -12663,17 +12619,17 @@ export type Mutation_Root = {
   /** insert data into the table: "organizations_free_usage" */
   insertOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** insert a single row into the table: "organization_members" */
-  insertOrganizationMember?: Maybe<OrganizationMembers>;
+  insertOrganizationMember?: Maybe<Organization_Members>;
   /** insert a single row into the table: "organization_member_invites" */
-  insertOrganizationMemberInvite?: Maybe<OrganizationMemberInvites>;
+  insertOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
   /** insert data into the table: "organization_member_invites" */
-  insertOrganizationMemberInvites?: Maybe<OrganizationMemberInvites_Mutation_Response>;
+  insertOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
   /** insert data into the table: "organization_members" */
-  insertOrganizationMembers?: Maybe<OrganizationMembers_Mutation_Response>;
+  insertOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
   /** insert a single row into the table: "organization_new_request" */
-  insertOrganizationNewRequest?: Maybe<OrganizationNewRequest>;
+  insertOrganizationNewRequest?: Maybe<Organization_New_Request>;
   /** insert data into the table: "organization_new_request" */
-  insertOrganizationNewRequests?: Maybe<OrganizationNewRequest_Mutation_Response>;
+  insertOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
   /** insert data into the table: "organizations" */
   insertOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** insert a single row into the table: "payment_methods" */
@@ -12734,6 +12690,10 @@ export type Mutation_Root = {
   insert_billing_report_type?: Maybe<Billing_Report_Type_Mutation_Response>;
   /** insert a single row into the table: "billing.report_type" */
   insert_billing_report_type_one?: Maybe<Billing_Report_Type>;
+  /** insert data into the table: "billing.subscription_items" */
+  insert_billing_subscription_items?: Maybe<Billing_Subscription_Items_Mutation_Response>;
+  /** insert a single row into the table: "billing.subscription_items" */
+  insert_billing_subscription_items_one?: Maybe<Billing_Subscription_Items>;
   /** insert data into the table: "continents" */
   insert_continents?: Maybe<Continents_Mutation_Response>;
   /** insert a single row into the table: "continents" */
@@ -12743,13 +12703,13 @@ export type Mutation_Root = {
   /** insert a single row into the table: "countries" */
   insert_countries_one?: Maybe<Countries>;
   /** insert data into the table: "organization_members_role" */
-  insert_organizationMembersRole?: Maybe<OrganizationMembersRole_Mutation_Response>;
+  insert_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
   /** insert a single row into the table: "organization_members_role" */
-  insert_organizationMembersRole_one?: Maybe<OrganizationMembersRole>;
+  insert_organization_members_role_one?: Maybe<Organization_Members_Role>;
   /** insert data into the table: "organization_status" */
-  insert_organizationStatus?: Maybe<OrganizationStatus_Mutation_Response>;
+  insert_organization_status?: Maybe<Organization_Status_Mutation_Response>;
   /** insert a single row into the table: "organization_status" */
-  insert_organizationStatus_one?: Maybe<OrganizationStatus>;
+  insert_organization_status_one?: Maybe<Organization_Status>;
   /** insert data into the table: "region_type" */
   insert_region_type?: Maybe<Region_Type_Mutation_Response>;
   /** insert a single row into the table: "region_type" */
@@ -12759,7 +12719,7 @@ export type Mutation_Root = {
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
   /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
-  organizationMemberInviteAccept: Array<OrganizationMembers>;
+  organizationMemberInviteAccept: Array<Organization_Members>;
   pauseAppsExceedUsage: Array<Scalars['String']>;
   pauseInactiveApps: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
@@ -12882,23 +12842,23 @@ export type Mutation_Root = {
   /** update data of the table: "organizations_free_usage" */
   updateOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** update single row of the table: "organization_members" */
-  updateOrganizationMember?: Maybe<OrganizationMembers>;
+  updateOrganizationMember?: Maybe<Organization_Members>;
   /** update single row of the table: "organization_member_invites" */
-  updateOrganizationMemberInvite?: Maybe<OrganizationMemberInvites>;
+  updateOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
   /** update data of the table: "organization_member_invites" */
-  updateOrganizationMemberInvites?: Maybe<OrganizationMemberInvites_Mutation_Response>;
+  updateOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
   /** update multiples rows of table: "organization_member_invites" */
-  updateOrganizationMemberInvitesMany?: Maybe<Array<Maybe<OrganizationMemberInvites_Mutation_Response>>>;
+  updateOrganizationMemberInvitesMany?: Maybe<Array<Maybe<Organization_Member_Invites_Mutation_Response>>>;
   /** update data of the table: "organization_members" */
-  updateOrganizationMembers?: Maybe<OrganizationMembers_Mutation_Response>;
+  updateOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
   /** update multiples rows of table: "organization_members" */
-  updateOrganizationMembersMany?: Maybe<Array<Maybe<OrganizationMembers_Mutation_Response>>>;
+  updateOrganizationMembersMany?: Maybe<Array<Maybe<Organization_Members_Mutation_Response>>>;
   /** update single row of the table: "organization_new_request" */
-  updateOrganizationNewRequest?: Maybe<OrganizationNewRequest>;
+  updateOrganizationNewRequest?: Maybe<Organization_New_Request>;
   /** update data of the table: "organization_new_request" */
-  updateOrganizationNewRequests?: Maybe<OrganizationNewRequest_Mutation_Response>;
+  updateOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
   /** update multiples rows of table: "organization_new_request" */
-  updateOrganizationNewRequestsMany?: Maybe<Array<Maybe<OrganizationNewRequest_Mutation_Response>>>;
+  updateOrganizationNewRequestsMany?: Maybe<Array<Maybe<Organization_New_Request_Mutation_Response>>>;
   /** update data of the table: "organizations" */
   updateOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** update multiples rows of table: "organizations" */
@@ -12996,6 +12956,12 @@ export type Mutation_Root = {
   update_billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
   /** update multiples rows of table: "billing.report_type" */
   update_billing_report_type_many?: Maybe<Array<Maybe<Billing_Report_Type_Mutation_Response>>>;
+  /** update data of the table: "billing.subscription_items" */
+  update_billing_subscription_items?: Maybe<Billing_Subscription_Items_Mutation_Response>;
+  /** update single row of the table: "billing.subscription_items" */
+  update_billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
+  /** update multiples rows of table: "billing.subscription_items" */
+  update_billing_subscription_items_many?: Maybe<Array<Maybe<Billing_Subscription_Items_Mutation_Response>>>;
   /** update multiples rows of table: "storage.buckets" */
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "cli_tokens" */
@@ -13027,17 +12993,17 @@ export type Mutation_Root = {
   /** update multiples rows of table: "billing.subscriptions" */
   update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
   /** update data of the table: "organization_members_role" */
-  update_organizationMembersRole?: Maybe<OrganizationMembersRole_Mutation_Response>;
+  update_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
   /** update single row of the table: "organization_members_role" */
-  update_organizationMembersRole_by_pk?: Maybe<OrganizationMembersRole>;
+  update_organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
   /** update multiples rows of table: "organization_members_role" */
-  update_organizationMembersRole_many?: Maybe<Array<Maybe<OrganizationMembersRole_Mutation_Response>>>;
+  update_organization_members_role_many?: Maybe<Array<Maybe<Organization_Members_Role_Mutation_Response>>>;
   /** update data of the table: "organization_status" */
-  update_organizationStatus?: Maybe<OrganizationStatus_Mutation_Response>;
+  update_organization_status?: Maybe<Organization_Status_Mutation_Response>;
   /** update single row of the table: "organization_status" */
-  update_organizationStatus_by_pk?: Maybe<OrganizationStatus>;
+  update_organization_status_by_pk?: Maybe<Organization_Status>;
   /** update multiples rows of table: "organization_status" */
-  update_organizationStatus_many?: Maybe<Array<Maybe<OrganizationStatus_Mutation_Response>>>;
+  update_organization_status_many?: Maybe<Array<Maybe<Organization_Status_Mutation_Response>>>;
   /** update multiples rows of table: "payment_methods" */
   update_paymentMethods_many?: Maybe<Array<Maybe<PaymentMethods_Mutation_Response>>>;
   /** update multiples rows of table: "plans" */
@@ -13066,20 +13032,6 @@ export type Mutation_Root = {
   update_workspaceMembers_many?: Maybe<Array<Maybe<WorkspaceMembers_Mutation_Response>>>;
   /** update multiples rows of table: "workspaces" */
   update_workspaces_many?: Maybe<Array<Maybe<Workspaces_Mutation_Response>>>;
-  /** delete single row from the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_delete_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** delete data from the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_delete_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** insert a single row into the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_insert_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** insert data into the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_insert_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** update single row of the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_update_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** update data of the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_update_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** update multiples rows of table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_update_many_billing_dedicated_compute_reports?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>>>;
 };
 
 
@@ -13108,6 +13060,7 @@ export type Mutation_RootBillingDeleteOrganizationArgs = {
 export type Mutation_RootBillingFinishSubscriptionArgs = {
   appID: Scalars['uuid'];
   appName: Scalars['String'];
+  organizationID?: InputMaybe<Scalars['uuid']>;
   planID: Scalars['uuid'];
   subdomain: Scalars['String'];
   subscriptionID: Scalars['String'];
@@ -13501,13 +13454,13 @@ export type Mutation_RootDeleteOrganizationMemberInviteArgs = {
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationMemberInvitesArgs = {
-  where: OrganizationMemberInvites_Bool_Exp;
+  where: Organization_Member_Invites_Bool_Exp;
 };
 
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationMembersArgs = {
-  where: OrganizationMembers_Bool_Exp;
+  where: Organization_Members_Bool_Exp;
 };
 
 
@@ -13519,7 +13472,7 @@ export type Mutation_RootDeleteOrganizationNewRequestArgs = {
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationNewRequestsArgs = {
-  where: OrganizationNewRequest_Bool_Exp;
+  where: Organization_New_Request_Bool_Exp;
 };
 
 
@@ -13712,6 +13665,18 @@ export type Mutation_RootDelete_Billing_Report_Type_By_PkArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_Billing_Subscription_ItemsArgs = {
+  where: Billing_Subscription_Items_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Billing_Subscription_Items_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDelete_ContinentsArgs = {
   where: Continents_Bool_Exp;
 };
@@ -13736,25 +13701,25 @@ export type Mutation_RootDelete_Countries_By_PkArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDelete_OrganizationMembersRoleArgs = {
-  where: OrganizationMembersRole_Bool_Exp;
+export type Mutation_RootDelete_Organization_Members_RoleArgs = {
+  where: Organization_Members_Role_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootDelete_OrganizationMembersRole_By_PkArgs = {
+export type Mutation_RootDelete_Organization_Members_Role_By_PkArgs = {
   value: Scalars['String'];
 };
 
 
 /** mutation root */
-export type Mutation_RootDelete_OrganizationStatusArgs = {
-  where: OrganizationStatus_Bool_Exp;
+export type Mutation_RootDelete_Organization_StatusArgs = {
+  where: Organization_Status_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootDelete_OrganizationStatus_By_PkArgs = {
+export type Mutation_RootDelete_Organization_Status_By_PkArgs = {
   value: Scalars['String'];
 };
 
@@ -14151,43 +14116,43 @@ export type Mutation_RootInsertOrganizationFreeUsagesArgs = {
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberArgs = {
-  object: OrganizationMembers_Insert_Input;
-  on_conflict?: InputMaybe<OrganizationMembers_On_Conflict>;
+  object: Organization_Members_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberInviteArgs = {
-  object: OrganizationMemberInvites_Insert_Input;
-  on_conflict?: InputMaybe<OrganizationMemberInvites_On_Conflict>;
+  object: Organization_Member_Invites_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberInvitesArgs = {
-  objects: Array<OrganizationMemberInvites_Insert_Input>;
-  on_conflict?: InputMaybe<OrganizationMemberInvites_On_Conflict>;
+  objects: Array<Organization_Member_Invites_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMembersArgs = {
-  objects: Array<OrganizationMembers_Insert_Input>;
-  on_conflict?: InputMaybe<OrganizationMembers_On_Conflict>;
+  objects: Array<Organization_Members_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationNewRequestArgs = {
-  object: OrganizationNewRequest_Insert_Input;
-  on_conflict?: InputMaybe<OrganizationNewRequest_On_Conflict>;
+  object: Organization_New_Request_Insert_Input;
+  on_conflict?: InputMaybe<Organization_New_Request_On_Conflict>;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationNewRequestsArgs = {
-  objects: Array<OrganizationNewRequest_Insert_Input>;
-  on_conflict?: InputMaybe<OrganizationNewRequest_On_Conflict>;
+  objects: Array<Organization_New_Request_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_New_Request_On_Conflict>;
 };
 
 
@@ -14410,6 +14375,20 @@ export type Mutation_RootInsert_Billing_Report_Type_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsert_Billing_Subscription_ItemsArgs = {
+  objects: Array<Billing_Subscription_Items_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Subscription_Items_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Billing_Subscription_Items_OneArgs = {
+  object: Billing_Subscription_Items_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Subscription_Items_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsert_ContinentsArgs = {
   objects: Array<Continents_Insert_Input>;
   on_conflict?: InputMaybe<Continents_On_Conflict>;
@@ -14438,30 +14417,30 @@ export type Mutation_RootInsert_Countries_OneArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsert_OrganizationMembersRoleArgs = {
-  objects: Array<OrganizationMembersRole_Insert_Input>;
-  on_conflict?: InputMaybe<OrganizationMembersRole_On_Conflict>;
+export type Mutation_RootInsert_Organization_Members_RoleArgs = {
+  objects: Array<Organization_Members_Role_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
 };
 
 
 /** mutation root */
-export type Mutation_RootInsert_OrganizationMembersRole_OneArgs = {
-  object: OrganizationMembersRole_Insert_Input;
-  on_conflict?: InputMaybe<OrganizationMembersRole_On_Conflict>;
+export type Mutation_RootInsert_Organization_Members_Role_OneArgs = {
+  object: Organization_Members_Role_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
 };
 
 
 /** mutation root */
-export type Mutation_RootInsert_OrganizationStatusArgs = {
-  objects: Array<OrganizationStatus_Insert_Input>;
-  on_conflict?: InputMaybe<OrganizationStatus_On_Conflict>;
+export type Mutation_RootInsert_Organization_StatusArgs = {
+  objects: Array<Organization_Status_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
 };
 
 
 /** mutation root */
-export type Mutation_RootInsert_OrganizationStatus_OneArgs = {
-  object: OrganizationStatus_Insert_Input;
-  on_conflict?: InputMaybe<OrganizationStatus_On_Conflict>;
+export type Mutation_RootInsert_Organization_Status_OneArgs = {
+  object: Organization_Status_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
 };
 
 
@@ -14496,11 +14475,11 @@ export type Mutation_RootInsert_Regions_OneArgs = {
 /** mutation root */
 export type Mutation_RootOrganizationMemberInviteAcceptArgs = {
   args: OrganizationMemberInviteAccept_Args;
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
@@ -15007,61 +14986,61 @@ export type Mutation_RootUpdateOrganizationFreeUsagesArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberArgs = {
-  _set?: InputMaybe<OrganizationMembers_Set_Input>;
-  pk_columns: OrganizationMembers_Pk_Columns_Input;
+  _set?: InputMaybe<Organization_Members_Set_Input>;
+  pk_columns: Organization_Members_Pk_Columns_Input;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInviteArgs = {
-  _set?: InputMaybe<OrganizationMemberInvites_Set_Input>;
-  pk_columns: OrganizationMemberInvites_Pk_Columns_Input;
+  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
+  pk_columns: Organization_Member_Invites_Pk_Columns_Input;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInvitesArgs = {
-  _set?: InputMaybe<OrganizationMemberInvites_Set_Input>;
-  where: OrganizationMemberInvites_Bool_Exp;
+  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
+  where: Organization_Member_Invites_Bool_Exp;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInvitesManyArgs = {
-  updates: Array<OrganizationMemberInvites_Updates>;
+  updates: Array<Organization_Member_Invites_Updates>;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMembersArgs = {
-  _set?: InputMaybe<OrganizationMembers_Set_Input>;
-  where: OrganizationMembers_Bool_Exp;
+  _set?: InputMaybe<Organization_Members_Set_Input>;
+  where: Organization_Members_Bool_Exp;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMembersManyArgs = {
-  updates: Array<OrganizationMembers_Updates>;
+  updates: Array<Organization_Members_Updates>;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestArgs = {
-  _set?: InputMaybe<OrganizationNewRequest_Set_Input>;
-  pk_columns: OrganizationNewRequest_Pk_Columns_Input;
+  _set?: InputMaybe<Organization_New_Request_Set_Input>;
+  pk_columns: Organization_New_Request_Pk_Columns_Input;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestsArgs = {
-  _set?: InputMaybe<OrganizationNewRequest_Set_Input>;
-  where: OrganizationNewRequest_Bool_Exp;
+  _set?: InputMaybe<Organization_New_Request_Set_Input>;
+  where: Organization_New_Request_Bool_Exp;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestsManyArgs = {
-  updates: Array<OrganizationNewRequest_Updates>;
+  updates: Array<Organization_New_Request_Updates>;
 };
 
 
@@ -15415,6 +15394,26 @@ export type Mutation_RootUpdate_Billing_Report_Type_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_Billing_Subscription_ItemsArgs = {
+  _set?: InputMaybe<Billing_Subscription_Items_Set_Input>;
+  where: Billing_Subscription_Items_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Billing_Subscription_Items_By_PkArgs = {
+  _set?: InputMaybe<Billing_Subscription_Items_Set_Input>;
+  pk_columns: Billing_Subscription_Items_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Billing_Subscription_Items_ManyArgs = {
+  updates: Array<Billing_Subscription_Items_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_Buckets_ManyArgs = {
   updates: Array<Buckets_Updates>;
 };
@@ -15511,42 +15510,42 @@ export type Mutation_RootUpdate_Many_Billing_SubscriptionsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_OrganizationMembersRoleArgs = {
-  _set?: InputMaybe<OrganizationMembersRole_Set_Input>;
-  where: OrganizationMembersRole_Bool_Exp;
+export type Mutation_RootUpdate_Organization_Members_RoleArgs = {
+  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
+  where: Organization_Members_Role_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_OrganizationMembersRole_By_PkArgs = {
-  _set?: InputMaybe<OrganizationMembersRole_Set_Input>;
-  pk_columns: OrganizationMembersRole_Pk_Columns_Input;
+export type Mutation_RootUpdate_Organization_Members_Role_By_PkArgs = {
+  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
+  pk_columns: Organization_Members_Role_Pk_Columns_Input;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_OrganizationMembersRole_ManyArgs = {
-  updates: Array<OrganizationMembersRole_Updates>;
+export type Mutation_RootUpdate_Organization_Members_Role_ManyArgs = {
+  updates: Array<Organization_Members_Role_Updates>;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_OrganizationStatusArgs = {
-  _set?: InputMaybe<OrganizationStatus_Set_Input>;
-  where: OrganizationStatus_Bool_Exp;
+export type Mutation_RootUpdate_Organization_StatusArgs = {
+  _set?: InputMaybe<Organization_Status_Set_Input>;
+  where: Organization_Status_Bool_Exp;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_OrganizationStatus_By_PkArgs = {
-  _set?: InputMaybe<OrganizationStatus_Set_Input>;
-  pk_columns: OrganizationStatus_Pk_Columns_Input;
+export type Mutation_RootUpdate_Organization_Status_By_PkArgs = {
+  _set?: InputMaybe<Organization_Status_Set_Input>;
+  pk_columns: Organization_Status_Pk_Columns_Input;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdate_OrganizationStatus_ManyArgs = {
-  updates: Array<OrganizationStatus_Updates>;
+export type Mutation_RootUpdate_Organization_Status_ManyArgs = {
+  updates: Array<Organization_Status_Updates>;
 };
 
 
@@ -15637,54 +15636,6 @@ export type Mutation_RootUpdate_Workspaces_ManyArgs = {
   updates: Array<Workspaces_Updates>;
 };
 
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportsArgs = {
-  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_Compute_ReportArgs = {
-  object: Billing_Dedicated_Compute_Reports_Insert_Input;
-  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_Compute_ReportsArgs = {
-  objects: Array<Billing_Dedicated_Compute_Reports_Insert_Input>;
-  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_Compute_ReportArgs = {
-  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
-  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
-  pk_columns: Billing_Dedicated_Compute_Reports_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_Compute_ReportsArgs = {
-  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
-  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
-  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Many_Billing_Dedicated_Compute_ReportsArgs = {
-  updates: Array<Billing_Dedicated_Compute_Reports_Updates>;
-};
-
 /** column ordering options */
 export enum Order_By {
   /** in ascending order, nulls last */
@@ -15706,84 +15657,84 @@ export type OrganizationMemberInviteAccept_Args = {
 };
 
 /** columns and relationships of "organization_member_invites" */
-export type OrganizationMemberInvites = {
-  __typename?: 'organizationMemberInvites';
+export type Organization_Member_Invites = {
+  __typename?: 'organization_member_invites';
   createdAt: Scalars['timestamptz'];
   email: Scalars['citext'];
   id: Scalars['uuid'];
   /** An object relationship */
   organization: Organizations;
   organizationID: Scalars['uuid'];
-  role: OrganizationMembersRole_Enum;
+  role: Organization_Members_Role_Enum;
   updateAt: Scalars['timestamptz'];
   /** An object relationship */
   user: Users;
 };
 
 /** aggregated selection of "organization_member_invites" */
-export type OrganizationMemberInvites_Aggregate = {
-  __typename?: 'organizationMemberInvites_aggregate';
-  aggregate?: Maybe<OrganizationMemberInvites_Aggregate_Fields>;
-  nodes: Array<OrganizationMemberInvites>;
+export type Organization_Member_Invites_Aggregate = {
+  __typename?: 'organization_member_invites_aggregate';
+  aggregate?: Maybe<Organization_Member_Invites_Aggregate_Fields>;
+  nodes: Array<Organization_Member_Invites>;
 };
 
-export type OrganizationMemberInvites_Aggregate_Bool_Exp = {
-  count?: InputMaybe<OrganizationMemberInvites_Aggregate_Bool_Exp_Count>;
+export type Organization_Member_Invites_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp_Count>;
 };
 
-export type OrganizationMemberInvites_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
+export type Organization_Member_Invites_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  filter?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
   predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "organization_member_invites" */
-export type OrganizationMemberInvites_Aggregate_Fields = {
-  __typename?: 'organizationMemberInvites_aggregate_fields';
+export type Organization_Member_Invites_Aggregate_Fields = {
+  __typename?: 'organization_member_invites_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<OrganizationMemberInvites_Max_Fields>;
-  min?: Maybe<OrganizationMemberInvites_Min_Fields>;
+  max?: Maybe<Organization_Member_Invites_Max_Fields>;
+  min?: Maybe<Organization_Member_Invites_Min_Fields>;
 };
 
 
 /** aggregate fields of "organization_member_invites" */
-export type OrganizationMemberInvites_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
+export type Organization_Member_Invites_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** order by aggregate values of table "organization_member_invites" */
-export type OrganizationMemberInvites_Aggregate_Order_By = {
+export type Organization_Member_Invites_Aggregate_Order_By = {
   count?: InputMaybe<Order_By>;
-  max?: InputMaybe<OrganizationMemberInvites_Max_Order_By>;
-  min?: InputMaybe<OrganizationMemberInvites_Min_Order_By>;
+  max?: InputMaybe<Organization_Member_Invites_Max_Order_By>;
+  min?: InputMaybe<Organization_Member_Invites_Min_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "organization_member_invites" */
-export type OrganizationMemberInvites_Arr_Rel_Insert_Input = {
-  data: Array<OrganizationMemberInvites_Insert_Input>;
+export type Organization_Member_Invites_Arr_Rel_Insert_Input = {
+  data: Array<Organization_Member_Invites_Insert_Input>;
   /** upsert condition */
-  on_conflict?: InputMaybe<OrganizationMemberInvites_On_Conflict>;
+  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "organization_member_invites". All fields are combined with a logical 'AND'. */
-export type OrganizationMemberInvites_Bool_Exp = {
-  _and?: InputMaybe<Array<OrganizationMemberInvites_Bool_Exp>>;
-  _not?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
-  _or?: InputMaybe<Array<OrganizationMemberInvites_Bool_Exp>>;
+export type Organization_Member_Invites_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Member_Invites_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Member_Invites_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   email?: InputMaybe<Citext_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   organization?: InputMaybe<Organizations_Bool_Exp>;
   organizationID?: InputMaybe<Uuid_Comparison_Exp>;
-  role?: InputMaybe<OrganizationMembersRole_Enum_Comparison_Exp>;
+  role?: InputMaybe<Organization_Members_Role_Enum_Comparison_Exp>;
   updateAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "organization_member_invites" */
-export enum OrganizationMemberInvites_Constraint {
+export enum Organization_Member_Invites_Constraint {
   /** unique or primary key constraint on columns "email", "organization_id" */
   OrganizationMemberInvitesOrganizationIdEmailKey = 'organization_member_invites_organization_id_email_key',
   /** unique or primary key constraint on columns "id" */
@@ -15791,20 +15742,20 @@ export enum OrganizationMemberInvites_Constraint {
 }
 
 /** input type for inserting data into table "organization_member_invites" */
-export type OrganizationMemberInvites_Insert_Input = {
+export type Organization_Member_Invites_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['citext']>;
   id?: InputMaybe<Scalars['uuid']>;
   organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
   organizationID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<OrganizationMembersRole_Enum>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
   updateAt?: InputMaybe<Scalars['timestamptz']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
-export type OrganizationMemberInvites_Max_Fields = {
-  __typename?: 'organizationMemberInvites_max_fields';
+export type Organization_Member_Invites_Max_Fields = {
+  __typename?: 'organization_member_invites_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
@@ -15813,7 +15764,7 @@ export type OrganizationMemberInvites_Max_Fields = {
 };
 
 /** order by max() on columns of table "organization_member_invites" */
-export type OrganizationMemberInvites_Max_Order_By = {
+export type Organization_Member_Invites_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -15822,8 +15773,8 @@ export type OrganizationMemberInvites_Max_Order_By = {
 };
 
 /** aggregate min on columns */
-export type OrganizationMemberInvites_Min_Fields = {
-  __typename?: 'organizationMemberInvites_min_fields';
+export type Organization_Member_Invites_Min_Fields = {
+  __typename?: 'organization_member_invites_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
@@ -15832,7 +15783,7 @@ export type OrganizationMemberInvites_Min_Fields = {
 };
 
 /** order by min() on columns of table "organization_member_invites" */
-export type OrganizationMemberInvites_Min_Order_By = {
+export type Organization_Member_Invites_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -15841,23 +15792,23 @@ export type OrganizationMemberInvites_Min_Order_By = {
 };
 
 /** response of any mutation on the table "organization_member_invites" */
-export type OrganizationMemberInvites_Mutation_Response = {
-  __typename?: 'organizationMemberInvites_mutation_response';
+export type Organization_Member_Invites_Mutation_Response = {
+  __typename?: 'organization_member_invites_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<OrganizationMemberInvites>;
+  returning: Array<Organization_Member_Invites>;
 };
 
 /** on_conflict condition type for table "organization_member_invites" */
-export type OrganizationMemberInvites_On_Conflict = {
-  constraint: OrganizationMemberInvites_Constraint;
-  update_columns?: Array<OrganizationMemberInvites_Update_Column>;
-  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+export type Organization_Member_Invites_On_Conflict = {
+  constraint: Organization_Member_Invites_Constraint;
+  update_columns?: Array<Organization_Member_Invites_Update_Column>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "organization_member_invites". */
-export type OrganizationMemberInvites_Order_By = {
+export type Organization_Member_Invites_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -15869,12 +15820,12 @@ export type OrganizationMemberInvites_Order_By = {
 };
 
 /** primary key columns input for table: organization_member_invites */
-export type OrganizationMemberInvites_Pk_Columns_Input = {
+export type Organization_Member_Invites_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
 /** select columns of table "organization_member_invites" */
-export enum OrganizationMemberInvites_Select_Column {
+export enum Organization_Member_Invites_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -15890,35 +15841,35 @@ export enum OrganizationMemberInvites_Select_Column {
 }
 
 /** input type for updating data in table "organization_member_invites" */
-export type OrganizationMemberInvites_Set_Input = {
+export type Organization_Member_Invites_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['citext']>;
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<OrganizationMembersRole_Enum>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
   updateAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
-/** Streaming cursor of the table "organizationMemberInvites" */
-export type OrganizationMemberInvites_Stream_Cursor_Input = {
+/** Streaming cursor of the table "organization_member_invites" */
+export type Organization_Member_Invites_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: OrganizationMemberInvites_Stream_Cursor_Value_Input;
+  initial_value: Organization_Member_Invites_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type OrganizationMemberInvites_Stream_Cursor_Value_Input = {
+export type Organization_Member_Invites_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   email?: InputMaybe<Scalars['citext']>;
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<OrganizationMembersRole_Enum>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
   updateAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** update columns of table "organization_member_invites" */
-export enum OrganizationMemberInvites_Update_Column {
+export enum Organization_Member_Invites_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -15933,242 +15884,92 @@ export enum OrganizationMemberInvites_Update_Column {
   UpdateAt = 'updateAt'
 }
 
-export type OrganizationMemberInvites_Updates = {
+export type Organization_Member_Invites_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<OrganizationMemberInvites_Set_Input>;
+  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
   /** filter the rows which have to be updated */
-  where: OrganizationMemberInvites_Bool_Exp;
+  where: Organization_Member_Invites_Bool_Exp;
 };
 
 /** columns and relationships of "organization_members" */
-export type OrganizationMembers = {
-  __typename?: 'organizationMembers';
+export type Organization_Members = {
+  __typename?: 'organization_members';
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   /** An object relationship */
   organization: Organizations;
   organizatonID: Scalars['uuid'];
-  role: OrganizationMembersRole_Enum;
+  role: Organization_Members_Role_Enum;
   updatedAt: Scalars['timestamptz'];
   /** An object relationship */
   user: Users;
   userID: Scalars['uuid'];
 };
 
-/** columns and relationships of "organization_members_role" */
-export type OrganizationMembersRole = {
-  __typename?: 'organizationMembersRole';
-  comment: Scalars['String'];
-  value: Scalars['String'];
-};
-
-/** aggregated selection of "organization_members_role" */
-export type OrganizationMembersRole_Aggregate = {
-  __typename?: 'organizationMembersRole_aggregate';
-  aggregate?: Maybe<OrganizationMembersRole_Aggregate_Fields>;
-  nodes: Array<OrganizationMembersRole>;
-};
-
-/** aggregate fields of "organization_members_role" */
-export type OrganizationMembersRole_Aggregate_Fields = {
-  __typename?: 'organizationMembersRole_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<OrganizationMembersRole_Max_Fields>;
-  min?: Maybe<OrganizationMembersRole_Min_Fields>;
-};
-
-
-/** aggregate fields of "organization_members_role" */
-export type OrganizationMembersRole_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** Boolean expression to filter rows from the table "organization_members_role". All fields are combined with a logical 'AND'. */
-export type OrganizationMembersRole_Bool_Exp = {
-  _and?: InputMaybe<Array<OrganizationMembersRole_Bool_Exp>>;
-  _not?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
-  _or?: InputMaybe<Array<OrganizationMembersRole_Bool_Exp>>;
-  comment?: InputMaybe<String_Comparison_Exp>;
-  value?: InputMaybe<String_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "organization_members_role" */
-export enum OrganizationMembersRole_Constraint {
-  /** unique or primary key constraint on columns "value" */
-  OrganizationMembersRolePkey = 'organization_members_role_pkey'
-}
-
-export enum OrganizationMembersRole_Enum {
-  /** Administrator */
-  Admin = 'ADMIN',
-  /** User */
-  User = 'USER'
-}
-
-/** Boolean expression to compare columns of type "organizationMembersRole_enum". All fields are combined with logical 'AND'. */
-export type OrganizationMembersRole_Enum_Comparison_Exp = {
-  _eq?: InputMaybe<OrganizationMembersRole_Enum>;
-  _in?: InputMaybe<Array<OrganizationMembersRole_Enum>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _neq?: InputMaybe<OrganizationMembersRole_Enum>;
-  _nin?: InputMaybe<Array<OrganizationMembersRole_Enum>>;
-};
-
-/** input type for inserting data into table "organization_members_role" */
-export type OrganizationMembersRole_Insert_Input = {
-  comment?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
-};
-
-/** aggregate max on columns */
-export type OrganizationMembersRole_Max_Fields = {
-  __typename?: 'organizationMembersRole_max_fields';
-  comment?: Maybe<Scalars['String']>;
-  value?: Maybe<Scalars['String']>;
-};
-
-/** aggregate min on columns */
-export type OrganizationMembersRole_Min_Fields = {
-  __typename?: 'organizationMembersRole_min_fields';
-  comment?: Maybe<Scalars['String']>;
-  value?: Maybe<Scalars['String']>;
-};
-
-/** response of any mutation on the table "organization_members_role" */
-export type OrganizationMembersRole_Mutation_Response = {
-  __typename?: 'organizationMembersRole_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<OrganizationMembersRole>;
-};
-
-/** on_conflict condition type for table "organization_members_role" */
-export type OrganizationMembersRole_On_Conflict = {
-  constraint: OrganizationMembersRole_Constraint;
-  update_columns?: Array<OrganizationMembersRole_Update_Column>;
-  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "organization_members_role". */
-export type OrganizationMembersRole_Order_By = {
-  comment?: InputMaybe<Order_By>;
-  value?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: organization_members_role */
-export type OrganizationMembersRole_Pk_Columns_Input = {
-  value: Scalars['String'];
-};
-
-/** select columns of table "organization_members_role" */
-export enum OrganizationMembersRole_Select_Column {
-  /** column name */
-  Comment = 'comment',
-  /** column name */
-  Value = 'value'
-}
-
-/** input type for updating data in table "organization_members_role" */
-export type OrganizationMembersRole_Set_Input = {
-  comment?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
-};
-
-/** Streaming cursor of the table "organizationMembersRole" */
-export type OrganizationMembersRole_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: OrganizationMembersRole_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type OrganizationMembersRole_Stream_Cursor_Value_Input = {
-  comment?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
-};
-
-/** update columns of table "organization_members_role" */
-export enum OrganizationMembersRole_Update_Column {
-  /** column name */
-  Comment = 'comment',
-  /** column name */
-  Value = 'value'
-}
-
-export type OrganizationMembersRole_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<OrganizationMembersRole_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: OrganizationMembersRole_Bool_Exp;
-};
-
 /** aggregated selection of "organization_members" */
-export type OrganizationMembers_Aggregate = {
-  __typename?: 'organizationMembers_aggregate';
-  aggregate?: Maybe<OrganizationMembers_Aggregate_Fields>;
-  nodes: Array<OrganizationMembers>;
+export type Organization_Members_Aggregate = {
+  __typename?: 'organization_members_aggregate';
+  aggregate?: Maybe<Organization_Members_Aggregate_Fields>;
+  nodes: Array<Organization_Members>;
 };
 
-export type OrganizationMembers_Aggregate_Bool_Exp = {
-  count?: InputMaybe<OrganizationMembers_Aggregate_Bool_Exp_Count>;
+export type Organization_Members_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Organization_Members_Aggregate_Bool_Exp_Count>;
 };
 
-export type OrganizationMembers_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+export type Organization_Members_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Organization_Members_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  filter?: InputMaybe<Organization_Members_Bool_Exp>;
   predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "organization_members" */
-export type OrganizationMembers_Aggregate_Fields = {
-  __typename?: 'organizationMembers_aggregate_fields';
+export type Organization_Members_Aggregate_Fields = {
+  __typename?: 'organization_members_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<OrganizationMembers_Max_Fields>;
-  min?: Maybe<OrganizationMembers_Min_Fields>;
+  max?: Maybe<Organization_Members_Max_Fields>;
+  min?: Maybe<Organization_Members_Min_Fields>;
 };
 
 
 /** aggregate fields of "organization_members" */
-export type OrganizationMembers_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+export type Organization_Members_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Members_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** order by aggregate values of table "organization_members" */
-export type OrganizationMembers_Aggregate_Order_By = {
+export type Organization_Members_Aggregate_Order_By = {
   count?: InputMaybe<Order_By>;
-  max?: InputMaybe<OrganizationMembers_Max_Order_By>;
-  min?: InputMaybe<OrganizationMembers_Min_Order_By>;
+  max?: InputMaybe<Organization_Members_Max_Order_By>;
+  min?: InputMaybe<Organization_Members_Min_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "organization_members" */
-export type OrganizationMembers_Arr_Rel_Insert_Input = {
-  data: Array<OrganizationMembers_Insert_Input>;
+export type Organization_Members_Arr_Rel_Insert_Input = {
+  data: Array<Organization_Members_Insert_Input>;
   /** upsert condition */
-  on_conflict?: InputMaybe<OrganizationMembers_On_Conflict>;
+  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "organization_members". All fields are combined with a logical 'AND'. */
-export type OrganizationMembers_Bool_Exp = {
-  _and?: InputMaybe<Array<OrganizationMembers_Bool_Exp>>;
-  _not?: InputMaybe<OrganizationMembers_Bool_Exp>;
-  _or?: InputMaybe<Array<OrganizationMembers_Bool_Exp>>;
+export type Organization_Members_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Members_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Members_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Members_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   organization?: InputMaybe<Organizations_Bool_Exp>;
   organizatonID?: InputMaybe<Uuid_Comparison_Exp>;
-  role?: InputMaybe<OrganizationMembersRole_Enum_Comparison_Exp>;
+  role?: InputMaybe<Organization_Members_Role_Enum_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userID?: InputMaybe<Uuid_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "organization_members" */
-export enum OrganizationMembers_Constraint {
+export enum Organization_Members_Constraint {
   /** unique or primary key constraint on columns "user_id", "organization_id" */
   OrganizationMembersOrganizationIdUserIdKey = 'organization_members_organization_id_user_id_key',
   /** unique or primary key constraint on columns "id" */
@@ -16176,20 +15977,20 @@ export enum OrganizationMembers_Constraint {
 }
 
 /** input type for inserting data into table "organization_members" */
-export type OrganizationMembers_Insert_Input = {
+export type Organization_Members_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
   organizatonID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<OrganizationMembersRole_Enum>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
 /** aggregate max on columns */
-export type OrganizationMembers_Max_Fields = {
-  __typename?: 'organizationMembers_max_fields';
+export type Organization_Members_Max_Fields = {
+  __typename?: 'organization_members_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organizatonID?: Maybe<Scalars['uuid']>;
@@ -16198,7 +15999,7 @@ export type OrganizationMembers_Max_Fields = {
 };
 
 /** order by max() on columns of table "organization_members" */
-export type OrganizationMembers_Max_Order_By = {
+export type Organization_Members_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   organizatonID?: InputMaybe<Order_By>;
@@ -16207,8 +16008,8 @@ export type OrganizationMembers_Max_Order_By = {
 };
 
 /** aggregate min on columns */
-export type OrganizationMembers_Min_Fields = {
-  __typename?: 'organizationMembers_min_fields';
+export type Organization_Members_Min_Fields = {
+  __typename?: 'organization_members_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organizatonID?: Maybe<Scalars['uuid']>;
@@ -16217,7 +16018,7 @@ export type OrganizationMembers_Min_Fields = {
 };
 
 /** order by min() on columns of table "organization_members" */
-export type OrganizationMembers_Min_Order_By = {
+export type Organization_Members_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   organizatonID?: InputMaybe<Order_By>;
@@ -16226,23 +16027,23 @@ export type OrganizationMembers_Min_Order_By = {
 };
 
 /** response of any mutation on the table "organization_members" */
-export type OrganizationMembers_Mutation_Response = {
-  __typename?: 'organizationMembers_mutation_response';
+export type Organization_Members_Mutation_Response = {
+  __typename?: 'organization_members_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<OrganizationMembers>;
+  returning: Array<Organization_Members>;
 };
 
 /** on_conflict condition type for table "organization_members" */
-export type OrganizationMembers_On_Conflict = {
-  constraint: OrganizationMembers_Constraint;
-  update_columns?: Array<OrganizationMembers_Update_Column>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+export type Organization_Members_On_Conflict = {
+  constraint: Organization_Members_Constraint;
+  update_columns?: Array<Organization_Members_Update_Column>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "organization_members". */
-export type OrganizationMembers_Order_By = {
+export type Organization_Members_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   organization?: InputMaybe<Organizations_Order_By>;
@@ -16254,12 +16055,162 @@ export type OrganizationMembers_Order_By = {
 };
 
 /** primary key columns input for table: organization_members */
-export type OrganizationMembers_Pk_Columns_Input = {
+export type Organization_Members_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
+/** columns and relationships of "organization_members_role" */
+export type Organization_Members_Role = {
+  __typename?: 'organization_members_role';
+  comment: Scalars['String'];
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "organization_members_role" */
+export type Organization_Members_Role_Aggregate = {
+  __typename?: 'organization_members_role_aggregate';
+  aggregate?: Maybe<Organization_Members_Role_Aggregate_Fields>;
+  nodes: Array<Organization_Members_Role>;
+};
+
+/** aggregate fields of "organization_members_role" */
+export type Organization_Members_Role_Aggregate_Fields = {
+  __typename?: 'organization_members_role_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Organization_Members_Role_Max_Fields>;
+  min?: Maybe<Organization_Members_Role_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_members_role" */
+export type Organization_Members_Role_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "organization_members_role". All fields are combined with a logical 'AND'. */
+export type Organization_Members_Role_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Members_Role_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Members_Role_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_members_role" */
+export enum Organization_Members_Role_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  OrganizationMembersRolePkey = 'organization_members_role_pkey'
+}
+
+export enum Organization_Members_Role_Enum {
+  /** Administrator */
+  Admin = 'ADMIN',
+  /** User */
+  User = 'USER'
+}
+
+/** Boolean expression to compare columns of type "organization_members_role_enum". All fields are combined with logical 'AND'. */
+export type Organization_Members_Role_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Organization_Members_Role_Enum>;
+  _in?: InputMaybe<Array<Organization_Members_Role_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Organization_Members_Role_Enum>;
+  _nin?: InputMaybe<Array<Organization_Members_Role_Enum>>;
+};
+
+/** input type for inserting data into table "organization_members_role" */
+export type Organization_Members_Role_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Organization_Members_Role_Max_Fields = {
+  __typename?: 'organization_members_role_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Organization_Members_Role_Min_Fields = {
+  __typename?: 'organization_members_role_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "organization_members_role" */
+export type Organization_Members_Role_Mutation_Response = {
+  __typename?: 'organization_members_role_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organization_Members_Role>;
+};
+
+/** on_conflict condition type for table "organization_members_role" */
+export type Organization_Members_Role_On_Conflict = {
+  constraint: Organization_Members_Role_Constraint;
+  update_columns?: Array<Organization_Members_Role_Update_Column>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_members_role". */
+export type Organization_Members_Role_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organization_members_role */
+export type Organization_Members_Role_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "organization_members_role" */
+export enum Organization_Members_Role_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "organization_members_role" */
+export type Organization_Members_Role_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "organization_members_role" */
+export type Organization_Members_Role_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organization_Members_Role_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organization_Members_Role_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "organization_members_role" */
+export enum Organization_Members_Role_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type Organization_Members_Role_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organization_Members_Role_Bool_Exp;
+};
+
 /** select columns of table "organization_members" */
-export enum OrganizationMembers_Select_Column {
+export enum Organization_Members_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -16275,35 +16226,35 @@ export enum OrganizationMembers_Select_Column {
 }
 
 /** input type for updating data in table "organization_members" */
-export type OrganizationMembers_Set_Input = {
+export type Organization_Members_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   organizatonID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<OrganizationMembersRole_Enum>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
-/** Streaming cursor of the table "organizationMembers" */
-export type OrganizationMembers_Stream_Cursor_Input = {
+/** Streaming cursor of the table "organization_members" */
+export type Organization_Members_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: OrganizationMembers_Stream_Cursor_Value_Input;
+  initial_value: Organization_Members_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type OrganizationMembers_Stream_Cursor_Value_Input = {
+export type Organization_Members_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   organizatonID?: InputMaybe<Scalars['uuid']>;
-  role?: InputMaybe<OrganizationMembersRole_Enum>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
 /** update columns of table "organization_members" */
-export enum OrganizationMembers_Update_Column {
+export enum Organization_Members_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -16318,16 +16269,16 @@ export enum OrganizationMembers_Update_Column {
   UserId = 'userID'
 }
 
-export type OrganizationMembers_Updates = {
+export type Organization_Members_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<OrganizationMembers_Set_Input>;
+  _set?: InputMaybe<Organization_Members_Set_Input>;
   /** filter the rows which have to be updated */
-  where: OrganizationMembers_Bool_Exp;
+  where: Organization_Members_Bool_Exp;
 };
 
 /** columns and relationships of "organization_new_request" */
-export type OrganizationNewRequest = {
-  __typename?: 'organizationNewRequest';
+export type Organization_New_Request = {
+  __typename?: 'organization_new_request';
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   name: Scalars['String'];
@@ -16342,32 +16293,32 @@ export type OrganizationNewRequest = {
 };
 
 /** aggregated selection of "organization_new_request" */
-export type OrganizationNewRequest_Aggregate = {
-  __typename?: 'organizationNewRequest_aggregate';
-  aggregate?: Maybe<OrganizationNewRequest_Aggregate_Fields>;
-  nodes: Array<OrganizationNewRequest>;
+export type Organization_New_Request_Aggregate = {
+  __typename?: 'organization_new_request_aggregate';
+  aggregate?: Maybe<Organization_New_Request_Aggregate_Fields>;
+  nodes: Array<Organization_New_Request>;
 };
 
 /** aggregate fields of "organization_new_request" */
-export type OrganizationNewRequest_Aggregate_Fields = {
-  __typename?: 'organizationNewRequest_aggregate_fields';
+export type Organization_New_Request_Aggregate_Fields = {
+  __typename?: 'organization_new_request_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<OrganizationNewRequest_Max_Fields>;
-  min?: Maybe<OrganizationNewRequest_Min_Fields>;
+  max?: Maybe<Organization_New_Request_Max_Fields>;
+  min?: Maybe<Organization_New_Request_Min_Fields>;
 };
 
 
 /** aggregate fields of "organization_new_request" */
-export type OrganizationNewRequest_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
+export type Organization_New_Request_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** Boolean expression to filter rows from the table "organization_new_request". All fields are combined with a logical 'AND'. */
-export type OrganizationNewRequest_Bool_Exp = {
-  _and?: InputMaybe<Array<OrganizationNewRequest_Bool_Exp>>;
-  _not?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
-  _or?: InputMaybe<Array<OrganizationNewRequest_Bool_Exp>>;
+export type Organization_New_Request_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_New_Request_Bool_Exp>>;
+  _not?: InputMaybe<Organization_New_Request_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_New_Request_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
@@ -16380,7 +16331,7 @@ export type OrganizationNewRequest_Bool_Exp = {
 };
 
 /** unique or primary key constraints on table "organization_new_request" */
-export enum OrganizationNewRequest_Constraint {
+export enum Organization_New_Request_Constraint {
   /** unique or primary key constraint on columns "id" */
   OrganizationNewRequestPkey = 'organization_new_request_pkey',
   /** unique or primary key constraint on columns "session_id" */
@@ -16388,7 +16339,7 @@ export enum OrganizationNewRequest_Constraint {
 }
 
 /** input type for inserting data into table "organization_new_request" */
-export type OrganizationNewRequest_Insert_Input = {
+export type Organization_New_Request_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
@@ -16401,8 +16352,8 @@ export type OrganizationNewRequest_Insert_Input = {
 };
 
 /** aggregate max on columns */
-export type OrganizationNewRequest_Max_Fields = {
-  __typename?: 'organizationNewRequest_max_fields';
+export type Organization_New_Request_Max_Fields = {
+  __typename?: 'organization_new_request_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
@@ -16413,8 +16364,8 @@ export type OrganizationNewRequest_Max_Fields = {
 };
 
 /** aggregate min on columns */
-export type OrganizationNewRequest_Min_Fields = {
-  __typename?: 'organizationNewRequest_min_fields';
+export type Organization_New_Request_Min_Fields = {
+  __typename?: 'organization_new_request_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
@@ -16425,23 +16376,23 @@ export type OrganizationNewRequest_Min_Fields = {
 };
 
 /** response of any mutation on the table "organization_new_request" */
-export type OrganizationNewRequest_Mutation_Response = {
-  __typename?: 'organizationNewRequest_mutation_response';
+export type Organization_New_Request_Mutation_Response = {
+  __typename?: 'organization_new_request_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<OrganizationNewRequest>;
+  returning: Array<Organization_New_Request>;
 };
 
 /** on_conflict condition type for table "organization_new_request" */
-export type OrganizationNewRequest_On_Conflict = {
-  constraint: OrganizationNewRequest_Constraint;
-  update_columns?: Array<OrganizationNewRequest_Update_Column>;
-  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
+export type Organization_New_Request_On_Conflict = {
+  constraint: Organization_New_Request_Constraint;
+  update_columns?: Array<Organization_New_Request_Update_Column>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "organization_new_request". */
-export type OrganizationNewRequest_Order_By = {
+export type Organization_New_Request_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
@@ -16454,12 +16405,12 @@ export type OrganizationNewRequest_Order_By = {
 };
 
 /** primary key columns input for table: organization_new_request */
-export type OrganizationNewRequest_Pk_Columns_Input = {
+export type Organization_New_Request_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
 /** select columns of table "organization_new_request" */
-export enum OrganizationNewRequest_Select_Column {
+export enum Organization_New_Request_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -16477,7 +16428,7 @@ export enum OrganizationNewRequest_Select_Column {
 }
 
 /** input type for updating data in table "organization_new_request" */
-export type OrganizationNewRequest_Set_Input = {
+export type Organization_New_Request_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
@@ -16487,16 +16438,16 @@ export type OrganizationNewRequest_Set_Input = {
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
-/** Streaming cursor of the table "organizationNewRequest" */
-export type OrganizationNewRequest_Stream_Cursor_Input = {
+/** Streaming cursor of the table "organization_new_request" */
+export type Organization_New_Request_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: OrganizationNewRequest_Stream_Cursor_Value_Input;
+  initial_value: Organization_New_Request_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type OrganizationNewRequest_Stream_Cursor_Value_Input = {
+export type Organization_New_Request_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
@@ -16507,7 +16458,7 @@ export type OrganizationNewRequest_Stream_Cursor_Value_Input = {
 };
 
 /** update columns of table "organization_new_request" */
-export enum OrganizationNewRequest_Update_Column {
+export enum Organization_New_Request_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -16524,58 +16475,58 @@ export enum OrganizationNewRequest_Update_Column {
   UserId = 'userID'
 }
 
-export type OrganizationNewRequest_Updates = {
+export type Organization_New_Request_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<OrganizationNewRequest_Set_Input>;
+  _set?: InputMaybe<Organization_New_Request_Set_Input>;
   /** filter the rows which have to be updated */
-  where: OrganizationNewRequest_Bool_Exp;
+  where: Organization_New_Request_Bool_Exp;
 };
 
 /** columns and relationships of "organization_status" */
-export type OrganizationStatus = {
-  __typename?: 'organizationStatus';
+export type Organization_Status = {
+  __typename?: 'organization_status';
   comment: Scalars['String'];
   value: Scalars['String'];
 };
 
 /** aggregated selection of "organization_status" */
-export type OrganizationStatus_Aggregate = {
-  __typename?: 'organizationStatus_aggregate';
-  aggregate?: Maybe<OrganizationStatus_Aggregate_Fields>;
-  nodes: Array<OrganizationStatus>;
+export type Organization_Status_Aggregate = {
+  __typename?: 'organization_status_aggregate';
+  aggregate?: Maybe<Organization_Status_Aggregate_Fields>;
+  nodes: Array<Organization_Status>;
 };
 
 /** aggregate fields of "organization_status" */
-export type OrganizationStatus_Aggregate_Fields = {
-  __typename?: 'organizationStatus_aggregate_fields';
+export type Organization_Status_Aggregate_Fields = {
+  __typename?: 'organization_status_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<OrganizationStatus_Max_Fields>;
-  min?: Maybe<OrganizationStatus_Min_Fields>;
+  max?: Maybe<Organization_Status_Max_Fields>;
+  min?: Maybe<Organization_Status_Min_Fields>;
 };
 
 
 /** aggregate fields of "organization_status" */
-export type OrganizationStatus_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
+export type Organization_Status_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Status_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** Boolean expression to filter rows from the table "organization_status". All fields are combined with a logical 'AND'. */
-export type OrganizationStatus_Bool_Exp = {
-  _and?: InputMaybe<Array<OrganizationStatus_Bool_Exp>>;
-  _not?: InputMaybe<OrganizationStatus_Bool_Exp>;
-  _or?: InputMaybe<Array<OrganizationStatus_Bool_Exp>>;
+export type Organization_Status_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Status_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Status_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Status_Bool_Exp>>;
   comment?: InputMaybe<String_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "organization_status" */
-export enum OrganizationStatus_Constraint {
+export enum Organization_Status_Constraint {
   /** unique or primary key constraint on columns "value" */
   OrganizationStatusPkey = 'organization_status_pkey'
 }
 
-export enum OrganizationStatus_Enum {
+export enum Organization_Status_Enum {
   /** Organization is cancelled. Contact support. */
   Cancelled = 'CANCELLED',
   /** Organization is disabled and all resources have been suspended */
@@ -16586,64 +16537,64 @@ export enum OrganizationStatus_Enum {
   Ok = 'OK'
 }
 
-/** Boolean expression to compare columns of type "organizationStatus_enum". All fields are combined with logical 'AND'. */
-export type OrganizationStatus_Enum_Comparison_Exp = {
-  _eq?: InputMaybe<OrganizationStatus_Enum>;
-  _in?: InputMaybe<Array<OrganizationStatus_Enum>>;
+/** Boolean expression to compare columns of type "organization_status_enum". All fields are combined with logical 'AND'. */
+export type Organization_Status_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Organization_Status_Enum>;
+  _in?: InputMaybe<Array<Organization_Status_Enum>>;
   _is_null?: InputMaybe<Scalars['Boolean']>;
-  _neq?: InputMaybe<OrganizationStatus_Enum>;
-  _nin?: InputMaybe<Array<OrganizationStatus_Enum>>;
+  _neq?: InputMaybe<Organization_Status_Enum>;
+  _nin?: InputMaybe<Array<Organization_Status_Enum>>;
 };
 
 /** input type for inserting data into table "organization_status" */
-export type OrganizationStatus_Insert_Input = {
+export type Organization_Status_Insert_Input = {
   comment?: InputMaybe<Scalars['String']>;
   value?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregate max on columns */
-export type OrganizationStatus_Max_Fields = {
-  __typename?: 'organizationStatus_max_fields';
+export type Organization_Status_Max_Fields = {
+  __typename?: 'organization_status_max_fields';
   comment?: Maybe<Scalars['String']>;
   value?: Maybe<Scalars['String']>;
 };
 
 /** aggregate min on columns */
-export type OrganizationStatus_Min_Fields = {
-  __typename?: 'organizationStatus_min_fields';
+export type Organization_Status_Min_Fields = {
+  __typename?: 'organization_status_min_fields';
   comment?: Maybe<Scalars['String']>;
   value?: Maybe<Scalars['String']>;
 };
 
 /** response of any mutation on the table "organization_status" */
-export type OrganizationStatus_Mutation_Response = {
-  __typename?: 'organizationStatus_mutation_response';
+export type Organization_Status_Mutation_Response = {
+  __typename?: 'organization_status_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<OrganizationStatus>;
+  returning: Array<Organization_Status>;
 };
 
 /** on_conflict condition type for table "organization_status" */
-export type OrganizationStatus_On_Conflict = {
-  constraint: OrganizationStatus_Constraint;
-  update_columns?: Array<OrganizationStatus_Update_Column>;
-  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
+export type Organization_Status_On_Conflict = {
+  constraint: Organization_Status_Constraint;
+  update_columns?: Array<Organization_Status_Update_Column>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "organization_status". */
-export type OrganizationStatus_Order_By = {
+export type Organization_Status_Order_By = {
   comment?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: organization_status */
-export type OrganizationStatus_Pk_Columns_Input = {
+export type Organization_Status_Pk_Columns_Input = {
   value: Scalars['String'];
 };
 
 /** select columns of table "organization_status" */
-export enum OrganizationStatus_Select_Column {
+export enum Organization_Status_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
@@ -16651,38 +16602,38 @@ export enum OrganizationStatus_Select_Column {
 }
 
 /** input type for updating data in table "organization_status" */
-export type OrganizationStatus_Set_Input = {
+export type Organization_Status_Set_Input = {
   comment?: InputMaybe<Scalars['String']>;
   value?: InputMaybe<Scalars['String']>;
 };
 
-/** Streaming cursor of the table "organizationStatus" */
-export type OrganizationStatus_Stream_Cursor_Input = {
+/** Streaming cursor of the table "organization_status" */
+export type Organization_Status_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: OrganizationStatus_Stream_Cursor_Value_Input;
+  initial_value: Organization_Status_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type OrganizationStatus_Stream_Cursor_Value_Input = {
+export type Organization_Status_Stream_Cursor_Value_Input = {
   comment?: InputMaybe<Scalars['String']>;
   value?: InputMaybe<Scalars['String']>;
 };
 
 /** update columns of table "organization_status" */
-export enum OrganizationStatus_Update_Column {
+export enum Organization_Status_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
   Value = 'value'
 }
 
-export type OrganizationStatus_Updates = {
+export type Organization_Status_Updates = {
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<OrganizationStatus_Set_Input>;
+  _set?: InputMaybe<Organization_Status_Set_Input>;
   /** filter the rows which have to be updated */
-  where: OrganizationStatus_Bool_Exp;
+  where: Organization_Status_Bool_Exp;
 };
 
 /** columns and relationships of "organizations" */
@@ -16699,19 +16650,19 @@ export type Organizations = {
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   /** An array relationship */
-  invites: Array<OrganizationMemberInvites>;
+  invites: Array<Organization_Member_Invites>;
   /** An aggregate relationship */
-  invites_aggregate: OrganizationMemberInvites_Aggregate;
+  invites_aggregate: Organization_Member_Invites_Aggregate;
   /** An array relationship */
-  members: Array<OrganizationMembers>;
+  members: Array<Organization_Members>;
   /** An aggregate relationship */
-  members_aggregate: OrganizationMembers_Aggregate;
+  members_aggregate: Organization_Members_Aggregate;
   name: Scalars['String'];
   /** An object relationship */
   plan: Plans;
   planID: Scalars['uuid'];
   slug: Scalars['String'];
-  status: OrganizationStatus_Enum;
+  status: Organization_Status_Enum;
   status_comment?: Maybe<Scalars['String']>;
   stripeCustomerID?: Maybe<Scalars['String']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -16761,41 +16712,41 @@ export type OrganizationsApps_AggregateArgs = {
 
 /** columns and relationships of "organizations" */
 export type OrganizationsInvitesArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
-  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
 
 /** columns and relationships of "organizations" */
 export type OrganizationsInvites_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
-  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
 
 /** columns and relationships of "organizations" */
 export type OrganizationsMembersArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
 /** columns and relationships of "organizations" */
 export type OrganizationsMembers_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 /** aggregated selection of "organizations" */
@@ -16856,15 +16807,15 @@ export type Organizations_Bool_Exp = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  invites?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
-  invites_aggregate?: InputMaybe<OrganizationMemberInvites_Aggregate_Bool_Exp>;
-  members?: InputMaybe<OrganizationMembers_Bool_Exp>;
-  members_aggregate?: InputMaybe<OrganizationMembers_Aggregate_Bool_Exp>;
+  invites?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp>;
+  members?: InputMaybe<Organization_Members_Bool_Exp>;
+  members_aggregate?: InputMaybe<Organization_Members_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   plan?: InputMaybe<Plans_Bool_Exp>;
   planID?: InputMaybe<Uuid_Comparison_Exp>;
   slug?: InputMaybe<String_Comparison_Exp>;
-  status?: InputMaybe<OrganizationStatus_Enum_Comparison_Exp>;
+  status?: InputMaybe<Organization_Status_Enum_Comparison_Exp>;
   status_comment?: InputMaybe<String_Comparison_Exp>;
   stripeCustomerID?: InputMaybe<String_Comparison_Exp>;
   stripeSubscriptionID?: InputMaybe<String_Comparison_Exp>;
@@ -17055,13 +17006,13 @@ export type Organizations_Insert_Input = {
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
-  invites?: InputMaybe<OrganizationMemberInvites_Arr_Rel_Insert_Input>;
-  members?: InputMaybe<OrganizationMembers_Arr_Rel_Insert_Input>;
+  invites?: InputMaybe<Organization_Member_Invites_Arr_Rel_Insert_Input>;
+  members?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars['String']>;
   plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
   planID?: InputMaybe<Scalars['uuid']>;
   slug?: InputMaybe<Scalars['String']>;
-  status?: InputMaybe<OrganizationStatus_Enum>;
+  status?: InputMaybe<Organization_Status_Enum>;
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
@@ -17151,8 +17102,8 @@ export type Organizations_Order_By = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  invites_aggregate?: InputMaybe<OrganizationMemberInvites_Aggregate_Order_By>;
-  members_aggregate?: InputMaybe<OrganizationMembers_Aggregate_Order_By>;
+  invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Order_By>;
+  members_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
   plan?: InputMaybe<Plans_Order_By>;
   planID?: InputMaybe<Order_By>;
@@ -17200,7 +17151,7 @@ export type Organizations_Set_Input = {
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
   slug?: InputMaybe<Scalars['String']>;
-  status?: InputMaybe<OrganizationStatus_Enum>;
+  status?: InputMaybe<Organization_Status_Enum>;
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
@@ -17222,7 +17173,7 @@ export type Organizations_Stream_Cursor_Value_Input = {
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
   slug?: InputMaybe<Scalars['String']>;
-  status?: InputMaybe<OrganizationStatus_Enum>;
+  status?: InputMaybe<Organization_Status_Enum>;
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
@@ -18454,12 +18405,6 @@ export type Query_Root = {
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** fetch aggregated fields from the table: "billing.dedicated_compute" */
   billingDedicatedComputeAggregate: Billing_Dedicated_Compute_Aggregate;
-  /** fetch data from the table: "billing.dedicated_compute_reports" using primary key columns */
-  billingDedicatedComputeReport?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** fetch data from the table: "billing.dedicated_compute_reports" */
-  billingDedicatedComputeReports: Array<Billing_Dedicated_Compute_Reports>;
-  /** fetch aggregated fields from the table: "billing.dedicated_compute_reports" */
-  billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
   /** fetch data from the table: "billing.dedicated_compute" */
   billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
   billingGetNextInvoice?: Maybe<InvoiceSummary>;
@@ -18488,6 +18433,12 @@ export type Query_Root = {
   billing_report_type_aggregate: Billing_Report_Type_Aggregate;
   /** fetch data from the table: "billing.report_type" using primary key columns */
   billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
+  /** fetch data from the table: "billing.subscription_items" */
+  billing_subscription_items: Array<Billing_Subscription_Items>;
+  /** fetch aggregated fields from the table: "billing.subscription_items" */
+  billing_subscription_items_aggregate: Billing_Subscription_Items_Aggregate;
+  /** fetch data from the table: "billing.subscription_items" using primary key columns */
+  billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
   bucket?: Maybe<Buckets>;
   /** fetch data from the table: "storage.buckets" */
@@ -18587,35 +18538,35 @@ export type Query_Root = {
   /** fetch aggregated fields from the table: "organizations_free_usage" */
   organizationFreeUsagesAggregate: Organizations_Free_Usage_Aggregate;
   /** fetch data from the table: "organization_members" using primary key columns */
-  organizationMember?: Maybe<OrganizationMembers>;
+  organizationMember?: Maybe<Organization_Members>;
   /** fetch data from the table: "organization_member_invites" using primary key columns */
-  organizationMemberInvite?: Maybe<OrganizationMemberInvites>;
+  organizationMemberInvite?: Maybe<Organization_Member_Invites>;
   /** fetch data from the table: "organization_member_invites" */
-  organizationMemberInvites: Array<OrganizationMemberInvites>;
+  organizationMemberInvites: Array<Organization_Member_Invites>;
   /** fetch aggregated fields from the table: "organization_member_invites" */
-  organizationMemberInvitesAggregate: OrganizationMemberInvites_Aggregate;
+  organizationMemberInvitesAggregate: Organization_Member_Invites_Aggregate;
   /** fetch data from the table: "organization_members" */
-  organizationMembers: Array<OrganizationMembers>;
+  organizationMembers: Array<Organization_Members>;
   /** fetch aggregated fields from the table: "organization_members" */
-  organizationMembersAggregate: OrganizationMembers_Aggregate;
-  /** fetch data from the table: "organization_members_role" */
-  organizationMembersRole: Array<OrganizationMembersRole>;
-  /** fetch aggregated fields from the table: "organization_members_role" */
-  organizationMembersRole_aggregate: OrganizationMembersRole_Aggregate;
-  /** fetch data from the table: "organization_members_role" using primary key columns */
-  organizationMembersRole_by_pk?: Maybe<OrganizationMembersRole>;
+  organizationMembersAggregate: Organization_Members_Aggregate;
   /** fetch data from the table: "organization_new_request" using primary key columns */
-  organizationNewRequest?: Maybe<OrganizationNewRequest>;
+  organizationNewRequest?: Maybe<Organization_New_Request>;
   /** fetch data from the table: "organization_new_request" */
-  organizationNewRequests: Array<OrganizationNewRequest>;
+  organizationNewRequests: Array<Organization_New_Request>;
   /** fetch aggregated fields from the table: "organization_new_request" */
-  organizationNewRequestsAggregate: OrganizationNewRequest_Aggregate;
+  organizationNewRequestsAggregate: Organization_New_Request_Aggregate;
+  /** fetch data from the table: "organization_members_role" */
+  organization_members_role: Array<Organization_Members_Role>;
+  /** fetch aggregated fields from the table: "organization_members_role" */
+  organization_members_role_aggregate: Organization_Members_Role_Aggregate;
+  /** fetch data from the table: "organization_members_role" using primary key columns */
+  organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
   /** fetch data from the table: "organization_status" */
-  organizationStatus: Array<OrganizationStatus>;
+  organization_status: Array<Organization_Status>;
   /** fetch aggregated fields from the table: "organization_status" */
-  organizationStatus_aggregate: OrganizationStatus_Aggregate;
+  organization_status_aggregate: Organization_Status_Aggregate;
   /** fetch data from the table: "organization_status" using primary key columns */
-  organizationStatus_by_pk?: Maybe<OrganizationStatus>;
+  organization_status_by_pk?: Maybe<Organization_Status>;
   /** An array relationship */
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
@@ -19057,29 +19008,6 @@ export type Query_RootBillingDedicatedComputeAggregateArgs = {
 };
 
 
-export type Query_RootBillingDedicatedComputeReportArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootBillingDedicatedComputeReportsArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
-export type Query_RootBillingDedicatedComputeReportsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
 export type Query_RootBillingDedicatedComputesArgs = {
   distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19188,6 +19116,29 @@ export type Query_RootBilling_Report_Type_AggregateArgs = {
 
 export type Query_RootBilling_Report_Type_By_PkArgs = {
   value: Scalars['String'];
+};
+
+
+export type Query_RootBilling_Subscription_ItemsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscription_Items_Order_By>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+
+export type Query_RootBilling_Subscription_Items_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscription_Items_Order_By>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+
+export type Query_RootBilling_Subscription_Items_By_PkArgs = {
+  id: Scalars['uuid'];
 };
 
 
@@ -19570,61 +19521,38 @@ export type Query_RootOrganizationMemberInviteArgs = {
 
 
 export type Query_RootOrganizationMemberInvitesArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
-  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
 
 export type Query_RootOrganizationMemberInvitesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
-  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
 
 export type Query_RootOrganizationMembersArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
 export type Query_RootOrganizationMembersAggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
-};
-
-
-export type Query_RootOrganizationMembersRoleArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembersRole_Order_By>>;
-  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
-};
-
-
-export type Query_RootOrganizationMembersRole_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembersRole_Order_By>>;
-  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
-};
-
-
-export type Query_RootOrganizationMembersRole_By_PkArgs = {
-  value: Scalars['String'];
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
@@ -19634,42 +19562,65 @@ export type Query_RootOrganizationNewRequestArgs = {
 
 
 export type Query_RootOrganizationNewRequestsArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationNewRequest_Order_By>>;
-  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
 
 export type Query_RootOrganizationNewRequestsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationNewRequest_Order_By>>;
-  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
 
-export type Query_RootOrganizationStatusArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
+export type Query_RootOrganization_Members_RoleArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationStatus_Order_By>>;
-  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
 
 
-export type Query_RootOrganizationStatus_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
+export type Query_RootOrganization_Members_Role_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationStatus_Order_By>>;
-  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
 
 
-export type Query_RootOrganizationStatus_By_PkArgs = {
+export type Query_RootOrganization_Members_Role_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Query_RootOrganization_StatusArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Status_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Status_By_PkArgs = {
   value: Scalars['String'];
 };
 
@@ -21915,12 +21866,6 @@ export type Subscription_Root = {
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** fetch aggregated fields from the table: "billing.dedicated_compute" */
   billingDedicatedComputeAggregate: Billing_Dedicated_Compute_Aggregate;
-  /** fetch data from the table: "billing.dedicated_compute_reports" using primary key columns */
-  billingDedicatedComputeReport?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** fetch data from the table: "billing.dedicated_compute_reports" */
-  billingDedicatedComputeReports: Array<Billing_Dedicated_Compute_Reports>;
-  /** fetch aggregated fields from the table: "billing.dedicated_compute_reports" */
-  billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
   /** fetch data from the table: "billing.dedicated_compute" */
   billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
   /** fetch data from the table: "billing.reports" using primary key columns */
@@ -21945,8 +21890,6 @@ export type Subscription_Root = {
   billingSubscriptions: Array<Billing_Subscriptions>;
   /** fetch aggregated fields from the table: "billing.subscriptions" */
   billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
-  /** fetch data from the table in a streaming manner: "billing.dedicated_compute_reports" */
-  billing_dedicated_compute_reports_stream: Array<Billing_Dedicated_Compute_Reports>;
   /** fetch data from the table in a streaming manner: "billing.dedicated_compute" */
   billing_dedicated_compute_stream: Array<Billing_Dedicated_Compute>;
   /** fetch data from the table: "billing.report_type" */
@@ -21957,6 +21900,14 @@ export type Subscription_Root = {
   billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
   /** fetch data from the table in a streaming manner: "billing.report_type" */
   billing_report_type_stream: Array<Billing_Report_Type>;
+  /** fetch data from the table: "billing.subscription_items" */
+  billing_subscription_items: Array<Billing_Subscription_Items>;
+  /** fetch aggregated fields from the table: "billing.subscription_items" */
+  billing_subscription_items_aggregate: Billing_Subscription_Items_Aggregate;
+  /** fetch data from the table: "billing.subscription_items" using primary key columns */
+  billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
+  /** fetch data from the table in a streaming manner: "billing.subscription_items" */
+  billing_subscription_items_stream: Array<Billing_Subscription_Items>;
   /** fetch data from the table in a streaming manner: "billing.subscriptions" */
   billing_subscriptions_stream: Array<Billing_Subscriptions>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
@@ -22055,45 +22006,45 @@ export type Subscription_Root = {
   /** fetch data from the table in a streaming manner: "organizations_free_usage" */
   organizationFreeUsagesStream: Array<Organizations_Free_Usage>;
   /** fetch data from the table: "organization_members" using primary key columns */
-  organizationMember?: Maybe<OrganizationMembers>;
+  organizationMember?: Maybe<Organization_Members>;
   /** fetch data from the table: "organization_member_invites" using primary key columns */
-  organizationMemberInvite?: Maybe<OrganizationMemberInvites>;
+  organizationMemberInvite?: Maybe<Organization_Member_Invites>;
   /** fetch data from the table: "organization_member_invites" */
-  organizationMemberInvites: Array<OrganizationMemberInvites>;
+  organizationMemberInvites: Array<Organization_Member_Invites>;
   /** fetch aggregated fields from the table: "organization_member_invites" */
-  organizationMemberInvitesAggregate: OrganizationMemberInvites_Aggregate;
+  organizationMemberInvitesAggregate: Organization_Member_Invites_Aggregate;
   /** fetch data from the table in a streaming manner: "organization_member_invites" */
-  organizationMemberInvitesStream: Array<OrganizationMemberInvites>;
+  organizationMemberInvitesStream: Array<Organization_Member_Invites>;
   /** fetch data from the table: "organization_members" */
-  organizationMembers: Array<OrganizationMembers>;
+  organizationMembers: Array<Organization_Members>;
   /** fetch aggregated fields from the table: "organization_members" */
-  organizationMembersAggregate: OrganizationMembers_Aggregate;
-  /** fetch data from the table: "organization_members_role" */
-  organizationMembersRole: Array<OrganizationMembersRole>;
-  /** fetch aggregated fields from the table: "organization_members_role" */
-  organizationMembersRole_aggregate: OrganizationMembersRole_Aggregate;
-  /** fetch data from the table: "organization_members_role" using primary key columns */
-  organizationMembersRole_by_pk?: Maybe<OrganizationMembersRole>;
-  /** fetch data from the table in a streaming manner: "organization_members_role" */
-  organizationMembersRole_stream: Array<OrganizationMembersRole>;
+  organizationMembersAggregate: Organization_Members_Aggregate;
   /** fetch data from the table in a streaming manner: "organization_members" */
-  organizationMembersStream: Array<OrganizationMembers>;
+  organizationMembersStream: Array<Organization_Members>;
   /** fetch data from the table: "organization_new_request" using primary key columns */
-  organizationNewRequest?: Maybe<OrganizationNewRequest>;
+  organizationNewRequest?: Maybe<Organization_New_Request>;
   /** fetch data from the table: "organization_new_request" */
-  organizationNewRequests: Array<OrganizationNewRequest>;
+  organizationNewRequests: Array<Organization_New_Request>;
   /** fetch aggregated fields from the table: "organization_new_request" */
-  organizationNewRequestsAggregate: OrganizationNewRequest_Aggregate;
+  organizationNewRequestsAggregate: Organization_New_Request_Aggregate;
   /** fetch data from the table in a streaming manner: "organization_new_request" */
-  organizationNewRequestsStream: Array<OrganizationNewRequest>;
+  organizationNewRequestsStream: Array<Organization_New_Request>;
+  /** fetch data from the table: "organization_members_role" */
+  organization_members_role: Array<Organization_Members_Role>;
+  /** fetch aggregated fields from the table: "organization_members_role" */
+  organization_members_role_aggregate: Organization_Members_Role_Aggregate;
+  /** fetch data from the table: "organization_members_role" using primary key columns */
+  organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  /** fetch data from the table in a streaming manner: "organization_members_role" */
+  organization_members_role_stream: Array<Organization_Members_Role>;
   /** fetch data from the table: "organization_status" */
-  organizationStatus: Array<OrganizationStatus>;
+  organization_status: Array<Organization_Status>;
   /** fetch aggregated fields from the table: "organization_status" */
-  organizationStatus_aggregate: OrganizationStatus_Aggregate;
+  organization_status_aggregate: Organization_Status_Aggregate;
   /** fetch data from the table: "organization_status" using primary key columns */
-  organizationStatus_by_pk?: Maybe<OrganizationStatus>;
+  organization_status_by_pk?: Maybe<Organization_Status>;
   /** fetch data from the table in a streaming manner: "organization_status" */
-  organizationStatus_stream: Array<OrganizationStatus>;
+  organization_status_stream: Array<Organization_Status>;
   /** An array relationship */
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
@@ -22641,29 +22592,6 @@ export type Subscription_RootBillingDedicatedComputeAggregateArgs = {
 };
 
 
-export type Subscription_RootBillingDedicatedComputeReportArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootBillingDedicatedComputeReportsArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
-export type Subscription_RootBillingDedicatedComputeReportsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
 export type Subscription_RootBillingDedicatedComputesArgs = {
   distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22756,13 +22684,6 @@ export type Subscription_RootBillingSubscriptionsAggregateArgs = {
 };
 
 
-export type Subscription_RootBilling_Dedicated_Compute_Reports_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Billing_Dedicated_Compute_Reports_Stream_Cursor_Input>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
 export type Subscription_RootBilling_Dedicated_Compute_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Dedicated_Compute_Stream_Cursor_Input>>;
@@ -22797,6 +22718,36 @@ export type Subscription_RootBilling_Report_Type_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Report_Type_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Subscription_ItemsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscription_Items_Order_By>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Subscription_Items_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscription_Items_Order_By>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Subscription_Items_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootBilling_Subscription_Items_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Billing_Subscription_Items_Stream_Cursor_Input>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
 };
 
 
@@ -23161,82 +23112,52 @@ export type Subscription_RootOrganizationMemberInviteArgs = {
 
 
 export type Subscription_RootOrganizationMemberInvitesArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
-  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMemberInvitesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMemberInvites_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMemberInvites_Order_By>>;
-  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMemberInvitesStreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<OrganizationMemberInvites_Stream_Cursor_Input>>;
-  where?: InputMaybe<OrganizationMemberInvites_Bool_Exp>;
+  cursor: Array<InputMaybe<Organization_Member_Invites_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMembersArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMembersAggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganizationMembersRoleArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembersRole_Order_By>>;
-  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganizationMembersRole_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembersRole_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembersRole_Order_By>>;
-  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganizationMembersRole_By_PkArgs = {
-  value: Scalars['String'];
-};
-
-
-export type Subscription_RootOrganizationMembersRole_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<OrganizationMembersRole_Stream_Cursor_Input>>;
-  where?: InputMaybe<OrganizationMembersRole_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationMembersStreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<OrganizationMembers_Stream_Cursor_Input>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  cursor: Array<InputMaybe<Organization_Members_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
@@ -23246,57 +23167,87 @@ export type Subscription_RootOrganizationNewRequestArgs = {
 
 
 export type Subscription_RootOrganizationNewRequestsArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationNewRequest_Order_By>>;
-  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationNewRequestsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationNewRequest_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationNewRequest_Order_By>>;
-  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
 
 export type Subscription_RootOrganizationNewRequestsStreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<OrganizationNewRequest_Stream_Cursor_Input>>;
-  where?: InputMaybe<OrganizationNewRequest_Bool_Exp>;
+  cursor: Array<InputMaybe<Organization_New_Request_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
 
-export type Subscription_RootOrganizationStatusArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
+export type Subscription_RootOrganization_Members_RoleArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationStatus_Order_By>>;
-  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
 
 
-export type Subscription_RootOrganizationStatus_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationStatus_Select_Column>>;
+export type Subscription_RootOrganization_Members_Role_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationStatus_Order_By>>;
-  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
 
 
-export type Subscription_RootOrganizationStatus_By_PkArgs = {
+export type Subscription_RootOrganization_Members_Role_By_PkArgs = {
   value: Scalars['String'];
 };
 
 
-export type Subscription_RootOrganizationStatus_StreamArgs = {
+export type Subscription_RootOrganization_Members_Role_StreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<OrganizationStatus_Stream_Cursor_Input>>;
-  where?: InputMaybe<OrganizationStatus_Bool_Exp>;
+  cursor: Array<InputMaybe<Organization_Members_Role_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_StatusArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Status_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Status_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootOrganization_Status_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organization_Status_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
 };
 
 
@@ -23777,9 +23728,9 @@ export type Users = {
   metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
   /** An array relationship */
-  organizationMembership: Array<OrganizationMembers>;
+  organizationMembership: Array<Organization_Members>;
   /** An aggregate relationship */
-  organizationMembership_aggregate: OrganizationMembers_Aggregate;
+  organizationMembership_aggregate: Organization_Members_Aggregate;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt: Scalars['timestamptz'];
   otpMethodLastUsed?: Maybe<Scalars['String']>;
@@ -23919,21 +23870,21 @@ export type UsersMetadataArgs = {
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersOrganizationMembershipArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersOrganizationMembership_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<OrganizationMembers_Select_Column>>;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<OrganizationMembers_Order_By>>;
-  where?: InputMaybe<OrganizationMembers_Bool_Exp>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
@@ -24213,8 +24164,8 @@ export type Users_Bool_Exp = {
   locale?: InputMaybe<String_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   newEmail?: InputMaybe<Citext_Comparison_Exp>;
-  organizationMembership?: InputMaybe<OrganizationMembers_Bool_Exp>;
-  organizationMembership_aggregate?: InputMaybe<OrganizationMembers_Aggregate_Bool_Exp>;
+  organizationMembership?: InputMaybe<Organization_Members_Bool_Exp>;
+  organizationMembership_aggregate?: InputMaybe<Organization_Members_Aggregate_Bool_Exp>;
   otpHash?: InputMaybe<String_Comparison_Exp>;
   otpHashExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   otpMethodLastUsed?: InputMaybe<String_Comparison_Exp>;
@@ -24293,7 +24244,7 @@ export type Users_Insert_Input = {
   locale?: InputMaybe<Scalars['String']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   newEmail?: InputMaybe<Scalars['citext']>;
-  organizationMembership?: InputMaybe<OrganizationMembers_Arr_Rel_Insert_Input>;
+  organizationMembership?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
   otpHash?: InputMaybe<Scalars['String']>;
   otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
   otpMethodLastUsed?: InputMaybe<Scalars['String']>;
@@ -24459,7 +24410,7 @@ export type Users_Order_By = {
   locale?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
-  organizationMembership_aggregate?: InputMaybe<OrganizationMembers_Aggregate_Order_By>;
+  organizationMembership_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
   otpHash?: InputMaybe<Order_By>;
   otpHashExpiresAt?: InputMaybe<Order_By>;
   otpMethodLastUsed?: InputMaybe<Order_By>;
@@ -25964,19 +25915,19 @@ export type GetResourcesQueryVariables = Exact<{
 
 export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null } | null };
 
-export type GetServerlessFunctionsSettingsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetServerlessFunctionsSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', functions?: { __typename?: 'ConfigFunctions', resources?: { __typename?: 'ConfigFunctionsResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null } | null };
-
 export type GetStorageSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
 export type GetStorageSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', storage?: { __typename?: 'ConfigStorage', version?: string | null, antivirus?: { __typename?: 'ConfigStorageAntivirus', server?: string | null } | null } | null } | null };
+
+export type GetServerlessFunctionsSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetServerlessFunctionsSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', functions?: { __typename?: 'ConfigFunctions', resources?: { __typename?: 'ConfigFunctionsResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null } | null };
 
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -26360,7 +26311,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, members: Array<{ __typename?: 'organizationMembers', id: any, role: OrganizationMembersRole_Enum, user: { __typename?: 'users', id: any } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -27716,6 +27667,51 @@ export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetR
 export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
       return { query: GetResourcesDocument, variables: variables }
     }
+export const GetStorageSettingsDocument = gql`
+    query GetStorageSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    storage {
+      version
+      antivirus {
+        server
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetStorageSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetStorageSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetStorageSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetStorageSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetStorageSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>(GetStorageSettingsDocument, options);
+      }
+export function useGetStorageSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>(GetStorageSettingsDocument, options);
+        }
+export type GetStorageSettingsQueryHookResult = ReturnType<typeof useGetStorageSettingsQuery>;
+export type GetStorageSettingsLazyQueryHookResult = ReturnType<typeof useGetStorageSettingsLazyQuery>;
+export type GetStorageSettingsQueryResult = Apollo.QueryResult<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>;
+export function refetchGetStorageSettingsQuery(variables: GetStorageSettingsQueryVariables) {
+      return { query: GetStorageSettingsDocument, variables: variables }
+    }
 export const GetServerlessFunctionsSettingsDocument = gql`
     query GetServerlessFunctionsSettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
@@ -27761,51 +27757,6 @@ export type GetServerlessFunctionsSettingsLazyQueryHookResult = ReturnType<typeo
 export type GetServerlessFunctionsSettingsQueryResult = Apollo.QueryResult<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>;
 export function refetchGetServerlessFunctionsSettingsQuery(variables: GetServerlessFunctionsSettingsQueryVariables) {
       return { query: GetServerlessFunctionsSettingsDocument, variables: variables }
-    }
-export const GetStorageSettingsDocument = gql`
-    query GetStorageSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    storage {
-      version
-      antivirus {
-        server
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetStorageSettingsQuery__
- *
- * To run a query within a React component, call `useGetStorageSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetStorageSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetStorageSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetStorageSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>(GetStorageSettingsDocument, options);
-      }
-export function useGetStorageSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>(GetStorageSettingsDocument, options);
-        }
-export type GetStorageSettingsQueryHookResult = ReturnType<typeof useGetStorageSettingsQuery>;
-export type GetStorageSettingsLazyQueryHookResult = ReturnType<typeof useGetStorageSettingsLazyQuery>;
-export type GetStorageSettingsQueryResult = Apollo.QueryResult<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>;
-export function refetchGetStorageSettingsQuery(variables: GetStorageSettingsQueryVariables) {
-      return { query: GetStorageSettingsDocument, variables: variables }
     }
 export const DeleteApplicationDocument = gql`
     mutation deleteApplication($appId: uuid!) {
@@ -30136,10 +30087,78 @@ export function refetchGetOrganizationsQuery(variables?: GetOrganizationsQueryVa
 export const GetProjectDocument = gql`
     query getProject($slug: String!) {
   apps(where: {slug: {_eq: $slug}}) {
-    ...Project
+    id
+    slug
+    name
+    repositoryProductionBranch
+    subdomain
+    createdAt
+    desiredState
+    nhostBaseFolder
+    config(resolve: true) {
+      observability {
+        grafana {
+          adminPassword
+        }
+      }
+      hasura {
+        adminSecret
+        settings {
+          enableConsole
+        }
+      }
+      ai {
+        version
+      }
+    }
+    featureFlags {
+      description
+      id
+      name
+      value
+    }
+    appStates(order_by: {createdAt: desc}, limit: 1) {
+      id
+      appId
+      message
+      stateId
+      createdAt
+    }
+    region {
+      id
+      countryCode
+      name
+      domain
+      city
+    }
+    legacyPlan {
+      id
+      name
+      price
+      isFree
+      featureMaxDbSize
+    }
+    githubRepository {
+      fullName
+    }
+    deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
+      id
+      commitSHA
+      commitMessage
+      commitUserName
+      deploymentStartedAt
+      deploymentEndedAt
+      commitUserAvatarUrl
+      deploymentStatus
+    }
+    creator {
+      id
+      email
+      displayName
+    }
   }
 }
-    ${ProjectFragmentDoc}`;
+    `;
 
 /**
  * __useGetProjectQuery__
