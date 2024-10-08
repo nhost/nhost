@@ -32,10 +32,10 @@ function AINavLink({ exact = true, href, children, ...props }: AINavLinkProps) {
   const router = useRouter();
 
   const {
-    query: { orgSlug, appSubdomain },
+    query: { orgSlug, appSlug },
   } = router;
 
-  const baseUrl = `/orgs/${orgSlug}/projects/${appSubdomain}/ai`;
+  const baseUrl = `/orgs/${orgSlug}/projects/${appSlug}/ai`;
   const finalUrl = href && href !== '/' ? `${baseUrl}${href}` : baseUrl;
 
   const active = exact

@@ -10,6 +10,13 @@ query getOrganization($orgSlug: String!) {
       individual
       isFree
     }
+    members {
+      id
+      role
+      user {
+        id
+      }
+    }
     apps(order_by: { name: asc }) {
       id
       name

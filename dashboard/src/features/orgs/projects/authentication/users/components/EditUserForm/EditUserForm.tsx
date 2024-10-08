@@ -19,7 +19,6 @@ import { getReadableProviderName } from '@/features/orgs/projects/authentication
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
-import { type RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
 import type { DialogFormProps } from '@/types/common';
 import { copy } from '@/utils/copy';
 import {
@@ -34,6 +33,7 @@ import { format } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import debounce from 'lodash.debounce';
 import Image from 'next/image';
+import { type RemoteAppUser } from 'pages/orgs/[orgSlug]/projects/[appSlug]/users';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';

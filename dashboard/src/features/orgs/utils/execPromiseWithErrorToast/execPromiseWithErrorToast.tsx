@@ -23,7 +23,7 @@ export default async function execPromiseWithErrorToast(
   try {
     loadingToastId = toast.loading(loadingMessage, {
       style: toastStyle.style,
-      ...toastStyle.loading,
+      ...toastStyle.success,
     });
 
     const result = await call();

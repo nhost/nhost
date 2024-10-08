@@ -1,15 +1,23 @@
-import { OrgProjectLayout } from '@/components/layout/OrgProjectLayout';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { Container } from '@/components/layout/Container';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/components/BaseDirectorySettings';
+import { DeploymentBranchSettings } from '@/features/orgs/projects/git/settings/components/DeploymentBranchSettings';
+import { GitConnectionSettings } from '@/features/orgs/projects/git/settings/components/GitConnectionSettings';
 import type { ReactElement } from 'react';
 
-export default function SettingsGit() {
+export default function GitSettingsPage() {
   return (
-    <RetryableErrorBoundary>
-      <span>Git</span>
-    </RetryableErrorBoundary>
+    <Container
+      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      rootClassName="bg-transparent"
+    >
+      <GitConnectionSettings />
+      <DeploymentBranchSettings />
+      <BaseDirectorySettings />
+    </Container>
   );
 }
 
-SettingsGit.getLayout = function getLayout(page: ReactElement) {
-  return <OrgProjectLayout>{page}</OrgProjectLayout>;
+GitSettingsPage.getLayout = function getLayout(page: ReactElement) {
+  return <SettingsLayout>{page}</SettingsLayout>;
 };

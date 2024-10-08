@@ -89,7 +89,7 @@ export default function OverviewTopBar() {
       </div>
 
       <Link
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
+        href={`/orgs/${org.slug}/projects/${project.slug}/settings`}
         passHref
         legacyBehavior
       >

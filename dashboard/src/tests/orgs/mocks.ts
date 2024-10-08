@@ -1,6 +1,5 @@
 import type { Organization } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 import { faker } from '@faker-js/faker';
 import type { NhostSession } from '@nhost/nextjs';
 import type { NextRouter } from 'next/router';
@@ -20,14 +19,14 @@ export const mockMatchMediaValue = (query: any) => ({
 export const mockRouter: NextRouter = {
   basePath: '',
   pathname: '/orgs/xyz/projects/test-project',
-  route: '/orgs/[orgSlug]/projects/[appSubdomain]',
+  route: '/orgs/[orgSlug]/projects/[appSlug]',
   asPath: '/orgs/xyz/projects/test-project',
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
   query: {
     orgSlug: 'xyz',
-    appSubdomain: 'test-project',
+    appSlug: 'test-project',
   },
   push: vi.fn(),
   replace: vi.fn(),
@@ -109,15 +108,12 @@ export const mockOrganization: Organization = {
   id: '93297df9-125e-49df-9db3-94067fa065bd',
   name: 'Test organization',
   slug: 'xyz',
-  status: Organization_Status_Enum.Ok,
   plan: {
     id: 'abc',
     name: 'Pro',
     deprecated: false,
     individual: false,
     isFree: false,
-    price: 25,
-    featureMaxDbSize: 1,
   },
   members: [],
   apps: [mockApplication],

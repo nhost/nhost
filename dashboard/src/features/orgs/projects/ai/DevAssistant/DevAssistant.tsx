@@ -166,7 +166,9 @@ export default function DevAssistant() {
   }
 
   if (
-    (isPlatform && !currentOrg?.plan?.isFree && !project?.config?.ai) ||
+    (isPlatform &&
+      !currentProject?.legacyPlan?.isFree &&
+      !currentProject.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
@@ -176,7 +178,7 @@ export default function DevAssistant() {
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
-                href={`/orgs/${currentOrg?.slug}/projects/${project?.subdomain}/settings/ai`}
+                href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/ai`}
                 target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"

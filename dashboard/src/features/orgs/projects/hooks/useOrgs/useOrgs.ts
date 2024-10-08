@@ -1,11 +1,10 @@
-import { localOrganization } from '@/features/orgs/utils/local-dashboard';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetOrganizationsQuery,
   type Exact,
   type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
-import { useAuthenticationStatus, useUserData } from '@nhost/nextjs';
+import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 
 export type Org = GetOrganizationsQuery['organizations'][0];
@@ -25,18 +24,14 @@ export interface UseOrgsReturnType {
 }
 
 export default function useOrgs(): UseOrgsReturnType {
-  const router = useRouter();
   const isPlatform = useIsPlatform();
-  const userData = useUserData();
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const { isAuthenticated, isLoading: isAuthLoading } =
+    useAuthenticationStatus();
+  const router = useRouter();
 
-  const shouldFetchOrg =
-    isPlatform && isAuthenticated && !isLoading && userData;
+  const shouldFetchOrg = isPlatform && isAuthenticated && !isAuthLoading;
 
   const { data, loading, error, refetch } = useGetOrganizationsQuery({
-    variables: {
-      userId: userData?.id,
-    },
     fetchPolicy: 'cache-and-network',
     skip: !shouldFetchOrg,
   });
@@ -45,22 +40,10 @@ export default function useOrgs(): UseOrgsReturnType {
   const currentOrgSlug = router.query.orgSlug as string | undefined;
   const currentOrg = orgs.find((org) => org.slug === currentOrgSlug);
 
-  if (isPlatform) {
-    return {
-      orgs,
-      currentOrg,
-      loading: data ? false : loading || isLoading,
-      error: error
-        ? new Error(error?.message || 'Unknown error occurred.')
-        : null,
-      refetch,
-    };
-  }
-
   return {
-    orgs: [localOrganization],
-    currentOrg: localOrganization,
-    loading: data ? false : loading || isLoading,
+    orgs,
+    currentOrg,
+    loading: data ? false : loading || isAuthLoading,
     error: error
       ? new Error(error?.message || 'Unknown error occurred.')
       : null,

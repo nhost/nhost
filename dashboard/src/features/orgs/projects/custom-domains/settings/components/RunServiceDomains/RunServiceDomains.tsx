@@ -37,13 +37,13 @@ export default function RunServiceDomains() {
                   {service.config?.name ?? 'unset'}
                 </Text>
                 <Link
-                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/services`}
+                  href={`/orgs/${org.slug}/projects/${project.slug}/services`}
                   target="_blank"
                   rel="noopener noreferrer"
                   underline="hover"
                   className="font-medium"
                 >
-                  <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
+                  <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
                 </Link>
               </div>
             }
@@ -57,7 +57,7 @@ export default function RunServiceDomains() {
                 className: 'hidden',
               },
             }}
-            className="grid gap-x-4 gap-y-4 px-4"
+            className="grid px-4 gap-x-4 gap-y-4"
           >
             {service.config?.ports?.map((port) => (
               <RunServicePortDomain

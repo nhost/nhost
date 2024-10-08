@@ -2,7 +2,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { type RunService } from '@/hooks/useRunServices';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -25,14 +25,14 @@ export default function DeleteServiceModal({
 }: DeleteServiceModalProps) {
   const [remove, setRemove] = useState(false);
   const [loadingRemove, setLoadingRemove] = useState(false);
-  const { project } = useProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [deleteRunService] = useDeleteRunServiceMutation();
   const [deleteRunServiceConfig] = useDeleteRunServiceConfigMutation();
 
   const deleteServiceAndConfig = async () => {
     await deleteRunService({ variables: { serviceID: service.id } });
     await deleteRunServiceConfig({
-      variables: { appID: project.id, serviceID: service.id },
+      variables: { appID: currentProject.id, serviceID: service.id },
     });
     await onDelete?.();
     close();

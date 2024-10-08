@@ -18,8 +18,8 @@ import { ReplicasFormSection } from '@/features/orgs/projects/services/component
 import { StorageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/StorageFormSection';
 import { useHostName } from '@/features/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { v4 as uuidv4 } from 'uuid';
 
 import {
   validationSchema,
@@ -40,12 +40,12 @@ import {
   type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { parse } from 'shell-quote';
 import { HealthCheckFormSection } from './components/HealthCheckFormSection';
-import { ImageFormSection } from './components/ImageFormSection';
 import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
+import { ServiceDetailsDialog } from './components/ServiceDetailsDialog';
 
 export default function ServiceForm({
   serviceID,
@@ -64,6 +64,10 @@ export default function ServiceForm({
   const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
+  const [detailsServiceId, setDetailsServiceId] = useState('');
+  const [detailsServiceSubdomain, setDetailsServiceSubdomain] = useState(
+    initialData?.subdomain,
+  );
 
   const [createServiceFormError, setCreateServiceFormError] =
     useState<Error | null>(null);
@@ -85,58 +89,13 @@ export default function ServiceForm({
     watch,
     register,
     formState: { errors, isSubmitting, dirtyFields },
-    reset,
   } = form;
 
   const formValues = watch();
 
+  const serviceImage = watch('image');
+
   const isDirty = Object.keys(dirtyFields).length > 0;
-
-  const newServiceID = useMemo(() => {
-    if (serviceID) {
-      return serviceID;
-    }
-    return uuidv4();
-  }, [serviceID]);
-
-  const privateRegistryImage = `registry.${project?.region.name}.${project?.region.domain}/${newServiceID}`;
-
-  let initialImageType: 'public' | 'private' | 'nhost' = 'public';
-
-  if (initialData?.image?.startsWith(privateRegistryImage)) {
-    initialImageType = 'nhost';
-  }
-
-  if (initialData?.pullCredentials?.length > 0) {
-    initialImageType = 'private';
-  }
-
-  const [imageType, setImageType] = useState<'public' | 'private' | 'nhost'>(
-    initialImageType,
-  );
-
-  const initialImageTag = useMemo(
-    () => initialData?.image?.split(':')[1],
-    [initialData?.image],
-  );
-
-  const handleImageTypeChange = (value: 'public' | 'private' | 'nhost') => {
-    if (value === initialImageType) {
-      reset({
-        ...formValues,
-        image: initialData?.image,
-        pullCredentials: initialData?.pullCredentials,
-      });
-    } else {
-      reset({
-        ...formValues,
-        image: '',
-        pullCredentials: undefined,
-      });
-    }
-
-    setImageType(value);
-  };
 
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
@@ -153,13 +112,12 @@ export default function ServiceForm({
       name: sanitizedValues.name,
       image: {
         image: sanitizedValues.image,
-        pullCredentials: sanitizedValues.pullCredentials,
       },
       command: parse(sanitizedValues.command).map((item) => item.toString()),
       resources: {
         compute: {
-          cpu: sanitizedValues.compute?.cpu,
-          memory: sanitizedValues.compute?.memory,
+          cpu: sanitizedValues.compute.cpu,
+          memory: sanitizedValues.compute.memory,
         },
         storage: sanitizedValues.storage.map((item) => ({
           name: item.name,
@@ -213,6 +171,8 @@ export default function ServiceForm({
         },
       });
 
+      setDetailsServiceId(serviceID);
+
       if (!isPlatform) {
         openDialog({
           title: 'Apply your changes',
@@ -228,13 +188,12 @@ export default function ServiceForm({
       // Insert service config
       const {
         data: {
-          insertRunService: { id },
+          insertRunService: { id: newServiceID, subdomain },
         },
       } = await insertRunService({
         variables: {
           object: {
             appID: project.id,
-            id: newServiceID,
           },
         },
       });
@@ -242,7 +201,7 @@ export default function ServiceForm({
       await insertRunServiceConfig({
         variables: {
           appID: project.id,
-          serviceID: id,
+          serviceID: newServiceID,
           config: {
             ...config,
             image: {
@@ -252,14 +211,13 @@ export default function ServiceForm({
                 values.image.length > 0
                   ? values.image
                   : `registry.${project.region.name}.${project.region.domain}/${newServiceID}`,
-              pullCredentials:
-                values.pullCredentials?.length > 0
-                  ? values.pullCredentials
-                  : null,
             },
           },
         },
       });
+
+      setDetailsServiceId(newServiceID);
+      setDetailsServiceSubdomain(subdomain);
     }
   };
 
@@ -297,6 +255,36 @@ export default function ServiceForm({
       ),
     });
   };
+
+  useEffect(() => {
+    if (!isPlatform) {
+      return;
+    }
+
+    if (detailsServiceId) {
+      openDialog({
+        title: 'Service Details',
+        component: (
+          <ServiceDetailsDialog
+            serviceID={detailsServiceId}
+            subdomain={detailsServiceSubdomain}
+            ports={formValues.ports}
+          />
+        ),
+        props: {
+          PaperProps: {
+            className: 'max-w-2xl',
+          },
+        },
+      });
+    }
+  }, [
+    detailsServiceId,
+    detailsServiceSubdomain,
+    formValues,
+    openDialog,
+    isPlatform,
+  ]);
 
   const pricingExplanation = () => {
     const vCPUs = `${formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER} vCPUs`;
@@ -351,6 +339,53 @@ export default function ServiceForm({
         />
 
         <Input
+          {...register('image')}
+          id="image"
+          label={
+            <Box className="flex flex-row items-center space-x-2">
+              <Text>Image</Text>
+              <Tooltip
+                title={
+                  <span>
+                    Image to use, it can be hosted on any public registry or it
+                    can use the{' '}
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://docs.nhost.io/run/registry"
+                      className="underline"
+                    >
+                      Nhost registry
+                    </a>
+                    . Image needs to support arm.
+                  </span>
+                }
+              >
+                <InfoIcon
+                  aria-label="Info"
+                  className="w-4 h-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+          }
+          placeholder="To automatically fill the private registry, leave it blank."
+          hideEmptyHelperText
+          error={!!errors.image}
+          helperText={errors?.image?.message}
+          fullWidth
+          autoComplete="off"
+        />
+
+        {/* This shows only when trying to edit a service and when running against the nhost platform */}
+        {isPlatform && serviceID && serviceImage && (
+          <InfoCard
+            title="Private registry"
+            value={`registry.${project.region.name}.${project.region.domain}/${serviceID}`}
+          />
+        )}
+
+        <Input
           {...register('command')}
           id="command"
           label={
@@ -391,13 +426,6 @@ export default function ServiceForm({
             </b>
           </Alert>
         ) : null}
-
-        <ImageFormSection
-          onImageTypeChange={handleImageTypeChange}
-          imageType={imageType}
-          initialImageTag={initialImageTag}
-          privateRegistryImage={privateRegistryImage}
-        />
 
         <ComputeFormSection showTooltip />
 
