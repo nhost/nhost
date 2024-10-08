@@ -1,4 +1,4 @@
-import type { Organization, Project, Workspace } from '@/types/application';
+import type { Organization } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { faker } from '@faker-js/faker';
 import type { NhostSession } from '@nhost/nextjs';
@@ -18,15 +18,15 @@ export const mockMatchMediaValue = (query: any) => ({
 
 export const mockRouter: NextRouter = {
   basePath: '',
-  pathname: '/test-workspace/test-application',
-  route: '/[workspaceSlug]/[appSlug]',
-  asPath: '/test-workspace/test-application',
+  pathname: '/orgs/xyz/projects/test-project',
+  route: '/orgs/[orgSlug]/projects/[appSlug]',
+  asPath: '/orgs/xyz/projects/test-project',
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
   query: {
-    workspaceSlug: 'test-workspace',
-    appSlug: 'test-application',
+    orgSlug: 'xyz',
+    appSlug: 'test-project',
   },
   push: vi.fn(),
   replace: vi.fn(),
@@ -43,10 +43,10 @@ export const mockRouter: NextRouter = {
   forward: vi.fn(),
 };
 
-export const mockApplication: Project = {
+export const mockApplication = {
   id: '1',
-  name: 'Test Application',
-  slug: 'test-application',
+  name: 'Test Project',
+  slug: 'test-project',
   appStates: [],
   subdomain: '',
   region: {
@@ -82,15 +82,6 @@ export const mockApplication: Project = {
   },
 };
 
-export const mockWorkspace: Workspace = {
-  id: '1',
-  name: 'Test Workspace',
-  slug: 'test-workspace',
-  workspaceMembers: [],
-  projects: [mockApplication],
-  creatorUserId: '1',
-};
-
 export const mockSession: NhostSession = {
   accessToken: faker.random.alphaNumeric(),
   accessTokenExpiresIn: 900,
@@ -123,17 +114,7 @@ export const mockOrganization: Organization = {
     deprecated: false,
     individual: false,
     isFree: false,
-    __typename: 'plans',
   },
   members: [],
-  apps: [
-    {
-      id: '1',
-      name: 'Test Application',
-      subdomain: '',
-      slug: 'test-application',
-      __typename: 'apps',
-    },
-  ],
-  __typename: 'organizations',
+  apps: [mockApplication],
 };

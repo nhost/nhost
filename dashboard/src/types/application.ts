@@ -3,8 +3,9 @@ import type {
   BackupFragment,
   DeploymentRowFragment,
   EnvironmentVariableFragment,
+  GetOrganizationQuery,
+  GetProjectQuery,
   PermissionVariableFragment,
-  ProjectFragment,
   SecretFragment,
   WorkspaceFragment,
 } from '@/utils/__generated__/graphql';
@@ -39,7 +40,9 @@ export type DesiredState =
 export type ApplicationState = AppStateHistoryFragment;
 export type Deployment = DeploymentRowFragment;
 export type Workspace = WorkspaceFragment;
-export type Project = ProjectFragment;
+export type Organization = GetOrganizationQuery['organizations'][0];
+// export type Project = ProjectFragment;
+export type Project = GetProjectQuery['apps'][0];
 export type Backup = BackupFragment;
 
 export interface PermissionVariable extends PermissionVariableFragment {

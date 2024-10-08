@@ -1,6 +1,6 @@
-import { mockApplication, mockWorkspace } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { queryClient, render, screen } from '@/tests/testUtils';
+import { mockApplication, mockOrganization } from '@/tests/orgs/mocks';
+import { queryClient, render, screen } from '@/tests/orgs/testUtils';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';
@@ -9,15 +9,15 @@ import OverviewDeployments from './OverviewDeployments';
 vi.mock('next/router', () => ({
   useRouter: vi.fn().mockReturnValue({
     basePath: '',
-    pathname: '/test-workspace/test-application',
-    route: '/[workspaceSlug]/[appSlug]',
-    asPath: '/test-workspace/test-application',
+    pathname: '/orgs/xyz/projects/test-project',
+    route: '/orgs/[orgSlug]/projects/[appSlug]',
+    asPath: '/orgs/xyz/projects/test-project',
     isLocaleDomain: false,
     isReady: true,
     isPreview: false,
     query: {
-      workspaceSlug: 'test-workspace',
-      appSlug: 'test-application',
+      orgSlug: 'xyz',
+      appSlug: 'test-project',
     },
     push: vi.fn(),
     replace: vi.fn(),
@@ -66,18 +66,18 @@ test('should render an empty state when GitHub is not connected', async () => {
     rest.post('https://local.graphql.nhost.run/v1', async (req, res, ctx) => {
       const { operationName } = await req.json();
 
-      if (operationName === 'GetWorkspaceAndProject') {
+      if (operationName === 'getProject') {
         return res(
           ctx.json({
-            data: {
-              workspaces: [
-                {
-                  ...mockWorkspace,
-                  projects: [{ ...mockApplication, githubRepository: null }],
-                },
-              ],
-              projects: [{ ...mockApplication, githubRepository: null }],
-            },
+            apps: [{ ...mockApplication, githubRepository: null }],
+          }),
+        );
+      }
+
+      if (operationName === 'getOrganization') {
+        return res(
+          ctx.json({
+            organizations: [{ ...mockOrganization }],
           }),
         );
       }
@@ -105,12 +105,21 @@ test('should render an empty state when GitHub is connected, but there are no de
     rest.post('https://local.graphql.nhost.run/v1', async (_req, res, ctx) => {
       const { operationName } = await _req.json();
 
-      if (operationName === 'GetWorkspaceAndProject') {
+      if (operationName === 'getProject') {
         return res(
           ctx.json({
             data: {
-              workspaces: [mockWorkspace],
-              projects: [mockApplication],
+              apps: [{ ...mockApplication }],
+            },
+          }),
+        );
+      }
+
+      if (operationName === 'getOrganization') {
+        return res(
+          ctx.json({
+            data: {
+              organizations: [{ ...mockOrganization }],
             },
           }),
         );
@@ -131,7 +140,7 @@ test('should render an empty state when GitHub is connected, but there are no de
   expect(await screen.findByText(/test\/git-project/i)).toBeInTheDocument();
   expect(await screen.findByRole('link', { name: /edit/i })).toHaveAttribute(
     'href',
-    '/test-workspace/test-application/settings/git',
+    '/orgs/xyz/projects/test-project/settings/git',
   );
 });
 
@@ -145,12 +154,21 @@ test('should render a list of deployments', async () => {
         return res(ctx.json({ data: { deployments: [] } }));
       }
 
-      if (operationName === 'GetWorkspaceAndProject') {
+      if (operationName === 'getProject') {
         return res(
           ctx.json({
             data: {
-              workspaces: [mockWorkspace],
-              projects: [mockApplication],
+              apps: [{ ...mockApplication }],
+            },
+          }),
+        );
+      }
+
+      if (operationName === 'getOrganization') {
+        return res(
+          ctx.json({
+            data: {
+              organizations: [{ ...mockOrganization }],
             },
           }),
         );
@@ -187,7 +205,7 @@ test('should render a list of deployments', async () => {
     await screen.findByRole('link', {
       name: /test commit message/i,
     }),
-  ).toHaveAttribute('href', '/test-workspace/test-application/deployments/1');
+  ).toHaveAttribute('href', '/orgs/xyz/projects/test-project/deployments/1');
   expect(await screen.findByText(/5m 0s/i)).toBeInTheDocument();
   expect(await screen.findByText(/live/i)).toBeInTheDocument();
   expect(
@@ -222,12 +240,21 @@ test('should disable redeployments if a deployment is already in progress', asyn
         );
       }
 
-      if (operationName === 'GetWorkspaceAndProject') {
+      if (operationName === 'getProject') {
         return res(
           ctx.json({
             data: {
-              workspaces: [mockWorkspace],
-              projects: [mockApplication],
+              apps: [{ ...mockApplication }],
+            },
+          }),
+        );
+      }
+
+      if (operationName === 'getOrganization') {
+        return res(
+          ctx.json({
+            data: {
+              organizations: [{ ...mockOrganization }],
             },
           }),
         );
