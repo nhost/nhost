@@ -1,6 +1,6 @@
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { OrganizationMembersRole_Enum } from '@/utils/__generated__/graphql';
+import { Organization_Members_Role_Enum } from '@/utils/__generated__/graphql';
 import { useUserData } from '@nhost/nextjs';
 
 /**
@@ -20,6 +20,6 @@ export default function useIsCurrentUserOwner() {
   return org.members.some(
     (member) =>
       member.user.id === currentUser.id &&
-      member.role === OrganizationMembersRole_Enum.Admin,
+      member.role === Organization_Members_Role_Enum.Admin,
   );
 }
