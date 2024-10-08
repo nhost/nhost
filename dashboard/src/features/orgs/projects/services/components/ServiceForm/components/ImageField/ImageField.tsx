@@ -14,11 +14,13 @@ import { useFormContext } from 'react-hook-form';
 interface ImageFieldProps {
   privateRegistryImage: string;
   imageType: 'private' | 'nhost' | 'public';
+  initialImageTag?: string;
 }
 
 export default function ImageField({
   privateRegistryImage,
   imageType,
+  initialImageTag,
 }: ImageFieldProps) {
   const {
     register,
@@ -38,9 +40,7 @@ export default function ImageField({
 
   const theme = useTheme();
 
-  const [imageTag, setImageTag] = useState('');
-
-  console.log('imageTag:', imageTag);
+  const [imageTag, setImageTag] = useState(initialImageTag || '');
 
   useEffect(() => {
     if (imageType === 'nhost' && privateRegistryImage) {
@@ -54,40 +54,42 @@ export default function ImageField({
   if (imageType === 'nhost') {
     return (
       <>
-        <Box className="flex flex-row items-center space-x-2">
-          <Text>Image</Text>
-        </Box>
+        <div className="flex flex-col gap-1">
+          <Box className="flex flex-row items-center space-x-2">
+            <Text>Image</Text>
+          </Box>
 
-        <Box className="flex flex-row">
-          <Text
-            as="span"
-            className="whitespace-nowrap py-2 pl-[10px] pr-1"
-            sx={{
-              color: theme.palette.grey[600],
-              borderColor: theme.palette.grey[400],
-              backgroundColor: theme.palette.grey[200],
-            }}
-          >
-            {privateRegistryImage}:
-          </Text>
-          <Input
-            value={imageTag}
-            onChange={(e) => setImageTag(e.target.value)}
-            id="imageTagField"
-            className="pl-0"
-            sx={{
-              [`& .${inputBaseClasses.input}`]: {
-                paddingLeft: '4px',
-              },
-            }}
-            placeholder="tag"
-            hideEmptyHelperText
-            error={!!errors.image}
-            helperText={errors?.image?.message}
-            fullWidth
-            autoComplete="off"
-          />
-        </Box>
+          <Box className="flex flex-col gap-1 md:flex-row md:gap-0">
+            <Text
+              as="span"
+              className="mt-0 py-2 pl-[10px] pr-1 md:whitespace-nowrap"
+              sx={{
+                color: theme.palette.grey[600],
+                borderColor: theme.palette.grey[400],
+                backgroundColor: theme.palette.grey[200],
+              }}
+            >
+              {privateRegistryImage}:
+            </Text>
+            <Input
+              value={imageTag}
+              onChange={(e) => setImageTag(e.target.value)}
+              id="imageTagField"
+              className="pl-0"
+              sx={{
+                [`& .${inputBaseClasses.input}`]: {
+                  paddingLeft: '4px',
+                },
+              }}
+              placeholder="tag"
+              hideEmptyHelperText
+              error={!!errors.image}
+              helperText={errors?.image?.message}
+              fullWidth
+              autoComplete="off"
+            />
+          </Box>
+        </div>
 
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <Text>

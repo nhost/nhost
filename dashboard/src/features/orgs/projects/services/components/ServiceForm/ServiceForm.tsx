@@ -119,21 +119,18 @@ export default function ServiceForm({
     initialImageType,
   );
 
+  const initialImageTag = useMemo(
+    () => initialData?.image?.split(':')[1],
+    [initialData?.image],
+  );
+
   const handleImageTypeChange = (value: 'public' | 'private' | 'nhost') => {
     if (value === initialImageType) {
-      if (initialImageType === 'nhost') {
-        const tag = initialData?.image?.split(':')[1];
-
-        if (tag) {
-          setValue('image', tag);
-        } else {
-          setValue('image', undefined);
-        }
-        setValue('pullCredentials', undefined);
-      } else {
-        setValue('image', initialData?.image);
-        setValue('pullCredentials', initialData?.pullCredentials);
-      }
+      setValue('image', initialData?.image);
+      setValue('pullCredentials', initialData?.pullCredentials);
+    } else {
+      setValue('image', '');
+      setValue('pullCredentials', undefined);
     }
 
     setImageType(value);
@@ -425,9 +422,9 @@ export default function ServiceForm({
         ) : null}
 
         <ImageFormSection
-          serviceID={serviceID}
           onImageTypeChange={handleImageTypeChange}
           imageType={imageType}
+          initialImageTag={initialImageTag}
           privateRegistryImage={privateRegistryImage}
         />
 

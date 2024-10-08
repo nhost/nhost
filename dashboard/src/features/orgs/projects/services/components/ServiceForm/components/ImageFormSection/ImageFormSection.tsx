@@ -5,17 +5,17 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { ImageField } from '@/features/orgs/projects/services/components/ServiceForm/components/ImageField';
 
 interface ImageFormSectionProps {
-  serviceID?: string;
   onImageTypeChange?: (value: 'public' | 'private' | 'nhost') => void;
   privateRegistryImage?: string;
   imageType?: 'public' | 'private' | 'nhost';
+  initialImageTag?: string;
 }
 
 export default function ImageFormSection({
   privateRegistryImage,
   imageType,
   onImageTypeChange,
-  serviceID,
+  initialImageTag,
 }: ImageFormSectionProps) {
   return (
     <Box className="space-y-4 rounded border-1 p-4">
@@ -46,6 +46,7 @@ export default function ImageFormSection({
       <ImageField
         privateRegistryImage={privateRegistryImage}
         imageType={imageType}
+        initialImageTag={initialImageTag}
       />
     </Box>
   );
