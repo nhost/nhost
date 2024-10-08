@@ -54,41 +54,40 @@ export default function ImageField({
   if (imageType === 'nhost') {
     return (
       <>
-        <Input
-          value={imageTag}
-          onChange={(e) => setImageTag(e.target.value)}
-          id="imageTagField"
-          sx={{
-            [`& .${inputBaseClasses.input}`]: {
-              paddingLeft: '0px',
-            },
-          }}
-          startAdornment={
-            imageType === 'nhost' ? (
-              <Text
-                className="whitespace-nowrap py-2 pl-[10px] pr-1"
-                sx={{
-                  color: theme.palette.grey[600],
-                  borderColor: theme.palette.grey[400],
-                  backgroundColor: theme.palette.grey[200],
-                }}
-              >
-                {privateRegistryImage}:
-              </Text>
-            ) : null
-          }
-          label={
-            <Box className="flex flex-row items-center space-x-2">
-              <Text>Image</Text>
-            </Box>
-          }
-          placeholder="tag"
-          hideEmptyHelperText
-          error={!!errors.image}
-          helperText={errors?.image?.message}
-          fullWidth
-          autoComplete="off"
-        />
+        <Box className="flex flex-row items-center space-x-2">
+          <Text>Image</Text>
+        </Box>
+
+        <Box className="flex flex-row">
+          <Text
+            as="span"
+            className="whitespace-nowrap py-2 pl-[10px] pr-1"
+            sx={{
+              color: theme.palette.grey[600],
+              borderColor: theme.palette.grey[400],
+              backgroundColor: theme.palette.grey[200],
+            }}
+          >
+            {privateRegistryImage}:
+          </Text>
+          <Input
+            value={imageTag}
+            onChange={(e) => setImageTag(e.target.value)}
+            id="imageTagField"
+            className="pl-0"
+            sx={{
+              [`& .${inputBaseClasses.input}`]: {
+                paddingLeft: '4px',
+              },
+            }}
+            placeholder="tag"
+            hideEmptyHelperText
+            error={!!errors.image}
+            helperText={errors?.image?.message}
+            fullWidth
+            autoComplete="off"
+          />
+        </Box>
 
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <Text>
