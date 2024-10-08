@@ -1,8 +1,8 @@
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetProjectDocument,
-  GetProjectQuery,
   useGetProjectQuery,
+  type GetProjectQuery,
   type ProjectFragment,
 } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus, useNhostClient } from '@nhost/nextjs';
