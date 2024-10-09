@@ -1,16 +1,16 @@
 import NavTree from '@/components/layout/MainNav/NavTree';
 import { Button } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { Pin, PinOff } from 'lucide-react';
+import WorkspacesNavTree from './WorkspacesNavTree';
 
 export default function PinnedMainNav() {
   const [mainNavPinned, setMainNavPinned] = useSSRLocalStorage<boolean>(
     'nav-tree-pin',
     false,
   );
-
-  console.log('re-render');
 
   return (
     <div className="w-full h-full p-0 border-r sm:max-w-96">
@@ -32,10 +32,10 @@ export default function PinnedMainNav() {
           <NavTree />
           <CreateOrgDialog />
         </div>
-        {/* <Separator className="mx-auto my-2" />
+        <Separator className="mx-auto my-2" />
         <div className="px-4">
           <WorkspacesNavTree />
-        </div> */}
+        </div>
       </div>
     </div>
   );
