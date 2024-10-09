@@ -18,15 +18,14 @@ import { cn } from '@/lib/utils';
 import { dequal } from 'dequal';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, type ReactElement } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 
 import {
-  StaticTreeDataProvider,
+  ControlledTreeEnvironment,
   Tree,
-  UncontrolledTreeEnvironment,
   type TreeItem,
   type TreeItemIndex,
+  type TreeViewState,
 } from 'react-complex-tree';
 
 const projectPages = [
@@ -344,8 +343,6 @@ function useDeepMemo<T>(value: T): T {
 export default function NavTree() {
   const { orgs } = useOrgs();
 
-  const { asPath } = useRouter();
-
   // Deeply memoize orgs to avoid unnecessary updates
   const memoizedOrgs = useDeepMemo(orgs);
 
@@ -355,34 +352,27 @@ export default function NavTree() {
   // Extract navigation state from the URL
   const { expandedItems, focusedItem } = useNavTreeStateFromURL();
 
-  // Create the dataProvider only when navTree changes
-  const dataProvider = useMemo(
-    () =>
-      new StaticTreeDataProvider(navTree.items, (item) => ({
-        ...item,
-        data: item.data,
-      })),
-    [navTree],
-  );
+  const [viewState, setViewState] = useState<TreeViewState['nav-tree']>({
+    expandedItems,
+    focusedItem,
+    selectedItems: null,
+  });
 
+  // Sync the focusedItem and expandedItems from the URL whenever they change.
   useEffect(() => {
-    const validItems = [...expandedItems, focusedItem].filter((item) =>
-      Boolean(navTree.items[item]),
-    );
-
-    dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
-  }, [dataProvider, expandedItems, focusedItem, navTree, asPath]);
+    setViewState((prevState) => ({
+      ...prevState,
+      expandedItems,
+      focusedItem,
+    }));
+  }, [expandedItems, focusedItem]);
 
   return (
-    <UncontrolledTreeEnvironment
-      dataProvider={dataProvider}
+    <ControlledTreeEnvironment
+      items={navTree.items}
       getItemTitle={(item) => item.data.name}
       viewState={{
-        'nav-tree': {
-          focusedItem,
-          expandedItems,
-          selectedItems: null,
-        },
+        'nav-tree': viewState,
       }}
       renderItemTitle={({ title }) => <span>{title}</span>}
       renderItemArrow={({ item, context }) => {
@@ -487,8 +477,33 @@ export default function NavTree() {
         );
       }}
       canSearch={false}
+      onExpandItem={(item) => {
+        setViewState(({ expandedItems: prevExpandedItems, ...rest }) => ({
+          ...rest,
+          // Add item index to expandedItems only if it's not already present
+          expandedItems: prevExpandedItems.includes(item.index)
+            ? prevExpandedItems
+            : [...prevExpandedItems, item.index],
+        }));
+      }}
+      onCollapseItem={(item) => {
+        setViewState(({ expandedItems: prevExpandedItems, ...rest }) => ({
+          ...rest,
+          // Remove the item index from expandedItems
+          expandedItems: prevExpandedItems.filter(
+            (index) => index !== item.index,
+          ),
+        }));
+      }}
+      onFocusItem={(item) => {
+        setViewState((prevViewState) => ({
+          ...prevViewState,
+          // Set the focused item
+          focusedItem: item.index,
+        }));
+      }}
     >
       <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
-    </UncontrolledTreeEnvironment>
+    </ControlledTreeEnvironment>
   );
 }
