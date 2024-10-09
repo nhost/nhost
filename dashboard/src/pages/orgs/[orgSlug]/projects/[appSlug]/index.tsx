@@ -14,7 +14,7 @@ import type { ReactElement } from 'react';
 
 export default function AppIndexPage() {
   const isPlatform = useIsPlatform();
-  const { project, error } = useProject();
+  const { project, error } = useProject({ poll: true });
   const { state } = useAppState();
 
   if (error) {
