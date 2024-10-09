@@ -66,6 +66,7 @@
     "clsx": "^1.2.1",
     "cmdk": "1.0.0",
     "date-fns": "^2.30.0",
+    "dequal": "^2.0.3",
     "framer-motion": "^10.18.0",
     "generate-password": "^1.7.1",
     "graphiql": "^3.3.1",
