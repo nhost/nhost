@@ -291,7 +291,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         PaperProps={{
           ...drawerProps?.PaperProps,
           className: twMerge(
-            'max-w-2.5xl w-full',
+            'max-w-4xl w-full',
             drawerProps?.PaperProps?.className,
           ),
         }}

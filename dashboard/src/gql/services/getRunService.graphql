@@ -6,6 +6,7 @@ query getRunService($id: uuid!, $resolve: Boolean!) {
       name
       image {
         image
+        pullCredentials
       }
       command
       resources {
