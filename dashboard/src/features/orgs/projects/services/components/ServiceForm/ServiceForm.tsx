@@ -122,11 +122,13 @@ export default function ServiceForm({
   const handleImageTypeChange = (value: 'public' | 'private' | 'nhost') => {
     if (value === initialImageType) {
       reset({
+        ...formValues,
         image: initialData?.image,
         pullCredentials: initialData?.pullCredentials,
       });
     } else {
       reset({
+        ...formValues,
         image: '',
         pullCredentials: undefined,
       });
@@ -155,8 +157,8 @@ export default function ServiceForm({
       command: parse(sanitizedValues.command).map((item) => item.toString()),
       resources: {
         compute: {
-          cpu: sanitizedValues.compute.cpu,
-          memory: sanitizedValues.compute.memory,
+          cpu: sanitizedValues.compute?.cpu,
+          memory: sanitizedValues.compute?.memory,
         },
         storage: sanitizedValues.storage.map((item) => ({
           name: item.name,
