@@ -84,7 +84,7 @@ export default function ServiceForm({
     watch,
     register,
     formState: { errors, isSubmitting, dirtyFields },
-    setValue,
+    reset,
   } = form;
 
   const formValues = watch();
@@ -121,11 +121,15 @@ export default function ServiceForm({
 
   const handleImageTypeChange = (value: 'public' | 'private' | 'nhost') => {
     if (value === initialImageType) {
-      setValue('image', initialData?.image);
-      setValue('pullCredentials', initialData?.pullCredentials);
+      reset({
+        image: initialData?.image,
+        pullCredentials: initialData?.pullCredentials,
+      });
     } else {
-      setValue('image', '');
-      setValue('pullCredentials', undefined);
+      reset({
+        image: '',
+        pullCredentials: undefined,
+      });
     }
 
     setImageType(value);
