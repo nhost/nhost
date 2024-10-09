@@ -18,7 +18,8 @@ import { cn } from '@/lib/utils';
 import { dequal } from 'dequal';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo, useRef, type ReactElement } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, useRef, type ReactElement } from 'react';
 
 import {
   StaticTreeDataProvider,
@@ -113,7 +114,7 @@ const projectSettingsPages = [
   {
     name: 'Compute Resources',
     slug: 'resources',
-    route: 'resources',
+    route: 'compute-resources',
   },
   { name: 'Database', slug: 'database', route: 'database' },
   { name: 'Hasura', slug: 'hasura', route: 'hasura' },
@@ -330,8 +331,7 @@ const buildNavTreeData = (
   return navTree;
 };
 
-// Custom hook for deep memoization
-function useDeepMemo(value) {
+function useDeepMemo<T>(value: T): T {
   const ref = useRef(value);
 
   if (!dequal(ref.current, value)) {
@@ -343,6 +343,8 @@ function useDeepMemo(value) {
 
 export default function NavTree() {
   const { orgs } = useOrgs();
+
+  const { asPath } = useRouter();
 
   // Deeply memoize orgs to avoid unnecessary updates
   const memoizedOrgs = useDeepMemo(orgs);
@@ -363,17 +365,16 @@ export default function NavTree() {
     [navTree],
   );
 
-  // useEffect(() => {
-  //   const validItems = [...expandedItems, focusedItem].filter((item) =>
-  //     Boolean(navTree.items[item]),
-  //   );
+  useEffect(() => {
+    const validItems = [...expandedItems, focusedItem].filter((item) =>
+      Boolean(navTree.items[item]),
+    );
 
-  //   dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
-  // }, [dataProvider, expandedItems, focusedItem, navTree]);
+    dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
+  }, [dataProvider, expandedItems, focusedItem, navTree, asPath]);
 
   return (
     <UncontrolledTreeEnvironment
-      // key={asPath}
       dataProvider={dataProvider}
       getItemTitle={(item) => item.data.name}
       viewState={{

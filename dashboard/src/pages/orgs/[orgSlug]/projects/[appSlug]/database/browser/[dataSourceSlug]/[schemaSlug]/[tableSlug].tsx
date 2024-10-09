@@ -1,8 +1,9 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserGrid } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
-import { DataBrowserLayout } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserLayout';
+// import { DataBrowserLayout } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type { ReactElement } from 'react';
@@ -36,5 +37,5 @@ export default function DataBrowserTableDetailsPage() {
 }
 
 DataBrowserTableDetailsPage.getLayout = function getLayout(page: ReactElement) {
-  return <DataBrowserLayout>{page}</DataBrowserLayout>;
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

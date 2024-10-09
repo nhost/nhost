@@ -1,11 +1,12 @@
-import { AISettings } from '@/features/orgs/projects/ai/settings/components';
+import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Container } from '@/components/layout/Container';
-import type { ReactElement } from 'react';
-import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { AISettings } from '@/features/orgs/projects/ai/settings/components';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import type { ReactElement } from 'react';
 
 export default function AISettingsPage() {
   const { org, loading, error } = useCurrentOrg();
@@ -46,5 +47,20 @@ export default function AISettingsPage() {
 }
 
 AISettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container
+          sx={{ backgroundColor: 'background.default' }}
+          className="max-w-5xl"
+        >
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

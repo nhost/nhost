@@ -532,6 +532,10 @@ export default function DataBrowserSidebar({
   const isPlatform = useIsPlatform();
   const { project } = useProject();
 
+  const {
+    query: { dataSourceSlug },
+  } = useRouter();
+
   const [expanded, setExpanded] = useState(false);
 
   function toggleExpanded() {
@@ -562,6 +566,10 @@ export default function DataBrowserSidebar({
   }, []);
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
+    return null;
+  }
+
+  if (dataSourceSlug !== 'default') {
     return null;
   }
 
