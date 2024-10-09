@@ -3254,13 +3254,6 @@ export type UsageSummary = {
   TotalRequests: Scalars['float64'];
 };
 
-export type VerifySubscriptionsResponse = {
-  __typename?: 'VerifySubscriptionsResponse';
-  AppsWithInvalidSubscriptions: Array<Scalars['uuid']>;
-  OrganizationsWithInvalidSubscriptions: Array<Scalars['uuid']>;
-  SubscriptionsWithoutCustomer: Array<Scalars['String']>;
-};
-
 /** columns and relationships of "announcements" */
 export type Announcements = {
   __typename?: 'announcements';
@@ -12460,10 +12453,6 @@ export type Mutation_Root = {
   deleteGithubRepository?: Maybe<GithubRepositories>;
   /** delete single row from the table: "organizations" */
   deleteOrganization?: Maybe<Organizations>;
-  /** delete single row from the table: "organizations_free_usage" */
-  deleteOrganizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** delete data from the table: "organizations_free_usage" */
-  deleteOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** delete single row from the table: "organization_members" */
   deleteOrganizationMember?: Maybe<Organization_Members>;
   /** delete single row from the table: "organization_member_invites" */
@@ -12667,10 +12656,6 @@ export type Mutation_Root = {
   insertGithubRepository?: Maybe<GithubRepositories>;
   /** insert a single row into the table: "organizations" */
   insertOrganization?: Maybe<Organizations>;
-  /** insert a single row into the table: "organizations_free_usage" */
-  insertOrganizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** insert data into the table: "organizations_free_usage" */
-  insertOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** insert a single row into the table: "organization_members" */
   insertOrganizationMember?: Maybe<Organization_Members>;
   /** insert a single row into the table: "organization_member_invites" */
@@ -12777,7 +12762,6 @@ export type Mutation_Root = {
   insert_regions_one?: Maybe<Regions>;
   /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
   organizationMemberInviteAccept: Array<Organization_Members>;
-  pauseAppsExceedUsage: Array<Scalars['String']>;
   pauseInactiveApps: Array<Scalars['String']>;
   pauseOrganizationsExceedUsage: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
@@ -12896,12 +12880,6 @@ export type Mutation_Root = {
   updateManySoftwareVersions?: Maybe<Array<Maybe<Software_Versions_Mutation_Response>>>;
   /** update single row of the table: "organizations" */
   updateOrganization?: Maybe<Organizations>;
-  /** update single row of the table: "organizations_free_usage" */
-  updateOrganizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** update multiples rows of table: "organizations_free_usage" */
-  updateOrganizationFreeUsageMany?: Maybe<Array<Maybe<Organizations_Free_Usage_Mutation_Response>>>;
-  /** update data of the table: "organizations_free_usage" */
-  updateOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** update single row of the table: "organization_members" */
   updateOrganizationMember?: Maybe<Organization_Members>;
   /** update single row of the table: "organization_member_invites" */
@@ -13515,18 +13493,6 @@ export type Mutation_RootDeleteGithubRepositoryArgs = {
 /** mutation root */
 export type Mutation_RootDeleteOrganizationArgs = {
   id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteOrganizationFreeUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteOrganizationFreeUsagesArgs = {
-  where: Organizations_Free_Usage_Bool_Exp;
 };
 
 
@@ -14199,20 +14165,6 @@ export type Mutation_RootInsertGithubRepositoryArgs = {
 export type Mutation_RootInsertOrganizationArgs = {
   object: Organizations_Insert_Input;
   on_conflict?: InputMaybe<Organizations_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertOrganizationFreeUsageArgs = {
-  object: Organizations_Free_Usage_Insert_Input;
-  on_conflict?: InputMaybe<Organizations_Free_Usage_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertOrganizationFreeUsagesArgs = {
-  objects: Array<Organizations_Free_Usage_Insert_Input>;
-  on_conflict?: InputMaybe<Organizations_Free_Usage_On_Conflict>;
 };
 
 
@@ -15098,26 +15050,6 @@ export type Mutation_RootUpdateManySoftwareVersionsArgs = {
 export type Mutation_RootUpdateOrganizationArgs = {
   _set?: InputMaybe<Organizations_Set_Input>;
   pk_columns: Organizations_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateOrganizationFreeUsageArgs = {
-  _set?: InputMaybe<Organizations_Free_Usage_Set_Input>;
-  pk_columns: Organizations_Free_Usage_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateOrganizationFreeUsageManyArgs = {
-  updates: Array<Organizations_Free_Usage_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateOrganizationFreeUsagesArgs = {
-  _set?: InputMaybe<Organizations_Free_Usage_Set_Input>;
-  where: Organizations_Free_Usage_Bool_Exp;
 };
 
 
@@ -17141,176 +17073,6 @@ export enum Organizations_Constraint {
   OrganizationsSlugKey = 'organizations_slug_key'
 }
 
-/** columns and relationships of "organizations_free_usage" */
-export type Organizations_Free_Usage = {
-  __typename?: 'organizations_free_usage';
-  createdAt: Scalars['timestamptz'];
-  freeAllowanceExceeded: Scalars['Boolean'];
-  id: Scalars['uuid'];
-  organizationID: Scalars['uuid'];
-  updated_at: Scalars['timestamptz'];
-};
-
-/** aggregated selection of "organizations_free_usage" */
-export type Organizations_Free_Usage_Aggregate = {
-  __typename?: 'organizations_free_usage_aggregate';
-  aggregate?: Maybe<Organizations_Free_Usage_Aggregate_Fields>;
-  nodes: Array<Organizations_Free_Usage>;
-};
-
-/** aggregate fields of "organizations_free_usage" */
-export type Organizations_Free_Usage_Aggregate_Fields = {
-  __typename?: 'organizations_free_usage_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Organizations_Free_Usage_Max_Fields>;
-  min?: Maybe<Organizations_Free_Usage_Min_Fields>;
-};
-
-
-/** aggregate fields of "organizations_free_usage" */
-export type Organizations_Free_Usage_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** Boolean expression to filter rows from the table "organizations_free_usage". All fields are combined with a logical 'AND'. */
-export type Organizations_Free_Usage_Bool_Exp = {
-  _and?: InputMaybe<Array<Organizations_Free_Usage_Bool_Exp>>;
-  _not?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-  _or?: InputMaybe<Array<Organizations_Free_Usage_Bool_Exp>>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  freeAllowanceExceeded?: InputMaybe<Boolean_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "organizations_free_usage" */
-export enum Organizations_Free_Usage_Constraint {
-  /** unique or primary key constraint on columns "organization_id" */
-  OrganizationsFreeUsageOrganizationIdKey = 'organizations_free_usage_organization_id_key',
-  /** unique or primary key constraint on columns "id" */
-  OrganizationsFreeUsagePkey = 'organizations_free_usage_pkey'
-}
-
-/** input type for inserting data into table "organizations_free_usage" */
-export type Organizations_Free_Usage_Insert_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  freeAllowanceExceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  organizationID?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate max on columns */
-export type Organizations_Free_Usage_Max_Fields = {
-  __typename?: 'organizations_free_usage_max_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  organizationID?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-};
-
-/** aggregate min on columns */
-export type Organizations_Free_Usage_Min_Fields = {
-  __typename?: 'organizations_free_usage_min_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  organizationID?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-};
-
-/** response of any mutation on the table "organizations_free_usage" */
-export type Organizations_Free_Usage_Mutation_Response = {
-  __typename?: 'organizations_free_usage_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Organizations_Free_Usage>;
-};
-
-/** on_conflict condition type for table "organizations_free_usage" */
-export type Organizations_Free_Usage_On_Conflict = {
-  constraint: Organizations_Free_Usage_Constraint;
-  update_columns?: Array<Organizations_Free_Usage_Update_Column>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "organizations_free_usage". */
-export type Organizations_Free_Usage_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  freeAllowanceExceeded?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  organizationID?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: organizations_free_usage */
-export type Organizations_Free_Usage_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "organizations_free_usage" */
-export enum Organizations_Free_Usage_Select_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  FreeAllowanceExceeded = 'freeAllowanceExceeded',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  OrganizationId = 'organizationID',
-  /** column name */
-  UpdatedAt = 'updated_at'
-}
-
-/** input type for updating data in table "organizations_free_usage" */
-export type Organizations_Free_Usage_Set_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  freeAllowanceExceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  organizationID?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** Streaming cursor of the table "organizations_free_usage" */
-export type Organizations_Free_Usage_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Organizations_Free_Usage_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Organizations_Free_Usage_Stream_Cursor_Value_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  freeAllowanceExceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  organizationID?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** update columns of table "organizations_free_usage" */
-export enum Organizations_Free_Usage_Update_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  FreeAllowanceExceeded = 'freeAllowanceExceeded',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  OrganizationId = 'organizationID',
-  /** column name */
-  UpdatedAt = 'updated_at'
-}
-
-export type Organizations_Free_Usage_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Organizations_Free_Usage_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Organizations_Free_Usage_Bool_Exp;
-};
-
 /** input type for inserting data into table "organizations" */
 export type Organizations_Insert_Input = {
   allowedPrivateRegions?: InputMaybe<Regions_Allowed_Organization_Arr_Rel_Insert_Input>;
@@ -18844,12 +18606,6 @@ export type Query_Root = {
   logs: Array<Log>;
   /** fetch data from the table: "organizations" using primary key columns */
   organization?: Maybe<Organizations>;
-  /** fetch data from the table: "organizations_free_usage" using primary key columns */
-  organizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** fetch data from the table: "organizations_free_usage" */
-  organizationFreeUsages: Array<Organizations_Free_Usage>;
-  /** fetch aggregated fields from the table: "organizations_free_usage" */
-  organizationFreeUsagesAggregate: Organizations_Free_Usage_Aggregate;
   /** fetch data from the table: "organization_members" using primary key columns */
   organizationMember?: Maybe<Organization_Members>;
   /** fetch data from the table: "organization_member_invites" using primary key columns */
@@ -19816,29 +19572,6 @@ export type Query_RootLogsArgs = {
 
 export type Query_RootOrganizationArgs = {
   id: Scalars['uuid'];
-};
-
-
-export type Query_RootOrganizationFreeUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootOrganizationFreeUsagesArgs = {
-  distinct_on?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organizations_Free_Usage_Order_By>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
-
-export type Query_RootOrganizationFreeUsagesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organizations_Free_Usage_Order_By>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
 };
 
 
@@ -22352,14 +22085,6 @@ export type Subscription_Root = {
   logs: Array<Log>;
   /** fetch data from the table: "organizations" using primary key columns */
   organization?: Maybe<Organizations>;
-  /** fetch data from the table: "organizations_free_usage" using primary key columns */
-  organizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** fetch data from the table: "organizations_free_usage" */
-  organizationFreeUsages: Array<Organizations_Free_Usage>;
-  /** fetch aggregated fields from the table: "organizations_free_usage" */
-  organizationFreeUsagesAggregate: Organizations_Free_Usage_Aggregate;
-  /** fetch data from the table in a streaming manner: "organizations_free_usage" */
-  organizationFreeUsagesStream: Array<Organizations_Free_Usage>;
   /** fetch data from the table: "organization_members" using primary key columns */
   organizationMember?: Maybe<Organization_Members>;
   /** fetch data from the table: "organization_member_invites" using primary key columns */
@@ -23431,36 +23156,6 @@ export type Subscription_RootLogsArgs = {
 
 export type Subscription_RootOrganizationArgs = {
   id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootOrganizationFreeUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootOrganizationFreeUsagesArgs = {
-  distinct_on?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organizations_Free_Usage_Order_By>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganizationFreeUsagesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organizations_Free_Usage_Order_By>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganizationFreeUsagesStreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Organizations_Free_Usage_Stream_Cursor_Input>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
 };
 
 
@@ -26916,9 +26611,9 @@ export type GetRunServiceQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
+export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
 
-export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
+export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
 
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -26928,7 +26623,7 @@ export type GetRunServicesQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
 
 export type GetLocalRunServiceConfigsQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -26936,7 +26631,7 @@ export type GetLocalRunServiceConfigsQueryVariables = Exact<{
 }>;
 
 
-export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
+export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
 
 export type RunServiceRateLimitFragment = { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null };
 
