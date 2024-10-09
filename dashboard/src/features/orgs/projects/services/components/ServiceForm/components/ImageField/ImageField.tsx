@@ -73,7 +73,7 @@ export default function ImageField({
                   paddingLeft: '4px',
                 },
               }}
-              placeholder="tag"
+              placeholder="latest"
               hideEmptyHelperText
               error={!!errors.image}
               fullWidth
