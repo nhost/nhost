@@ -1,10 +1,16 @@
-import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
+import { gql } from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
 const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -75,7 +81,7 @@ export type Boolean_Comparison_Exp = {
 export enum CheckoutStatus {
   Completed = 'COMPLETED',
   Expired = 'EXPIRED',
-  Open = 'OPEN'
+  Open = 'OPEN',
 }
 
 export type ConfigAi = {
@@ -801,12 +807,16 @@ export type ConfigAuthSessionAccessTokenComparisonExp = {
 };
 
 export type ConfigAuthSessionAccessTokenInsertInput = {
-  customClaims?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsInsertInput>>;
+  customClaims?: InputMaybe<
+    Array<ConfigAuthsessionaccessTokenCustomClaimsInsertInput>
+  >;
   expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
 export type ConfigAuthSessionAccessTokenUpdateInput = {
-  customClaims?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsUpdateInput>>;
+  customClaims?: InputMaybe<
+    Array<ConfigAuthsessionaccessTokenCustomClaimsUpdateInput>
+  >;
   expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
@@ -1114,9 +1124,13 @@ export type ConfigAuthsessionaccessTokenCustomClaims = {
 };
 
 export type ConfigAuthsessionaccessTokenCustomClaimsComparisonExp = {
-  _and?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>>;
+  _and?: InputMaybe<
+    Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>
+  >;
   _not?: InputMaybe<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>;
-  _or?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>>;
+  _or?: InputMaybe<
+    Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>
+  >;
   key?: InputMaybe<ConfigStringComparisonExp>;
   value?: InputMaybe<ConfigStringComparisonExp>;
 };
@@ -3017,9 +3031,13 @@ export type ConfigSystemConfigPostgresConnectionString = {
 };
 
 export type ConfigSystemConfigPostgresConnectionStringComparisonExp = {
-  _and?: InputMaybe<Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>>;
+  _and?: InputMaybe<
+    Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>
+  >;
   _not?: InputMaybe<ConfigSystemConfigPostgresConnectionStringComparisonExp>;
-  _or?: InputMaybe<Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>>;
+  _or?: InputMaybe<
+    Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>
+  >;
   auth?: InputMaybe<ConfigStringComparisonExp>;
   backup?: InputMaybe<ConfigStringComparisonExp>;
   hasura?: InputMaybe<ConfigStringComparisonExp>;
@@ -3195,7 +3213,7 @@ export enum ServiceState {
   None = 'None',
   Running = 'Running',
   UpdateError = 'UpdateError',
-  Updating = 'Updating'
+  Updating = 'Updating',
 }
 
 export type ServiceStatus = {
@@ -3246,11 +3264,12 @@ export type String_Comparison_Exp = {
 
 export type UsageSummary = {
   __typename?: 'UsageSummary';
-  EgressBytes: Scalars['float64'];
-  EgressCDNBytes: Scalars['float64'];
-  EgressPgbouncerBytes: Scalars['float64'];
+  Egress: Scalars['float64'];
+  FunctionsInvocations: Scalars['float64'];
+  ID: Scalars['uuid'];
   LambdaUsageSeconds: Scalars['float64'];
-  appID: Scalars['uuid'];
+  PostgresVolumeUsage: Scalars['float64'];
+  TotalRequests: Scalars['float64'];
 };
 
 /** columns and relationships of "announcements" */
@@ -3279,7 +3298,6 @@ export type Announcements_Aggregate_Fields = {
   min?: Maybe<Announcements_Min_Fields>;
 };
 
-
 /** aggregate fields of "announcements" */
 export type Announcements_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Announcements_Select_Column>>;
@@ -3302,7 +3320,7 @@ export type Announcements_Bool_Exp = {
 /** unique or primary key constraints on table "announcements" */
 export enum Announcements_Constraint {
   /** unique or primary key constraint on columns "id" */
-  AnnouncementsPkey = 'announcements_pkey'
+  AnnouncementsPkey = 'announcements_pkey',
 }
 
 /** input type for inserting data into table "announcements" */
@@ -3381,7 +3399,7 @@ export enum Announcements_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "announcements" */
@@ -3425,7 +3443,7 @@ export enum Announcements_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Announcements_Updates = {
@@ -3483,7 +3501,6 @@ export type AppStateHistory_Aggregate_Fields = {
   variance?: Maybe<AppStateHistory_Variance_Fields>;
 };
 
-
 /** aggregate fields of "app_state_history" */
 export type AppStateHistory_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AppStateHistory_Select_Column>>;
@@ -3540,7 +3557,7 @@ export type AppStateHistory_Bool_Exp = {
 /** unique or primary key constraints on table "app_state_history" */
 export enum AppStateHistory_Constraint {
   /** unique or primary key constraint on columns "id" */
-  AppStateHistoryPkey = 'app_state_history_pkey'
+  AppStateHistoryPkey = 'app_state_history_pkey',
 }
 
 /** input type for incrementing numeric columns in table "app_state_history" */
@@ -3640,7 +3657,7 @@ export enum AppStateHistory_Select_Column {
   /** column name */
   Message = 'message',
   /** column name */
-  StateId = 'stateId'
+  StateId = 'stateId',
 }
 
 /** input type for updating data in table "app_state_history" */
@@ -3724,7 +3741,7 @@ export enum AppStateHistory_Update_Column {
   /** column name */
   Message = 'message',
   /** column name */
-  StateId = 'stateId'
+  StateId = 'stateId',
 }
 
 export type AppStateHistory_Updates = {
@@ -3784,7 +3801,6 @@ export type AppStates = {
   name: Scalars['String'];
 };
 
-
 /** columns and relationships of "app_states" */
 export type AppStatesAppStatesArgs = {
   distinct_on?: InputMaybe<Array<AppStateHistory_Select_Column>>;
@@ -3793,7 +3809,6 @@ export type AppStatesAppStatesArgs = {
   order_by?: InputMaybe<Array<AppStateHistory_Order_By>>;
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
-
 
 /** columns and relationships of "app_states" */
 export type AppStatesAppStates_AggregateArgs = {
@@ -3804,7 +3819,6 @@ export type AppStatesAppStates_AggregateArgs = {
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
 
-
 /** columns and relationships of "app_states" */
 export type AppStatesAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -3813,7 +3827,6 @@ export type AppStatesAppsArgs = {
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
-
 
 /** columns and relationships of "app_states" */
 export type AppStatesApps_AggregateArgs = {
@@ -3847,7 +3860,6 @@ export type AppStates_Aggregate_Fields = {
   variance?: Maybe<AppStates_Variance_Fields>;
 };
 
-
 /** aggregate fields of "app_states" */
 export type AppStates_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AppStates_Select_Column>>;
@@ -3878,7 +3890,7 @@ export enum AppStates_Constraint {
   /** unique or primary key constraint on columns "name" */
   AppStatesNameKey = 'app_states_name_key',
   /** unique or primary key constraint on columns "id" */
-  AppStatesPkey = 'app_states_pkey'
+  AppStatesPkey = 'app_states_pkey',
 }
 
 /** input type for incrementing numeric columns in table "app_states" */
@@ -3949,7 +3961,7 @@ export enum AppStates_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Name = 'name'
+  Name = 'name',
 }
 
 /** input type for updating data in table "app_states" */
@@ -4001,7 +4013,7 @@ export enum AppStates_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Name = 'name'
+  Name = 'name',
 }
 
 export type AppStates_Updates = {
@@ -4101,7 +4113,6 @@ export type Apps = {
   workspaceId?: Maybe<Scalars['uuid']>;
 };
 
-
 /** columns and relationships of "apps" */
 export type AppsAppStatesArgs = {
   distinct_on?: InputMaybe<Array<AppStateHistory_Select_Column>>;
@@ -4110,7 +4121,6 @@ export type AppsAppStatesArgs = {
   order_by?: InputMaybe<Array<AppStateHistory_Order_By>>;
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
-
 
 /** columns and relationships of "apps" */
 export type AppsAppStates_AggregateArgs = {
@@ -4121,7 +4131,6 @@ export type AppsAppStates_AggregateArgs = {
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
 
-
 /** columns and relationships of "apps" */
 export type AppsBackupsArgs = {
   distinct_on?: InputMaybe<Array<Backups_Select_Column>>;
@@ -4130,7 +4139,6 @@ export type AppsBackupsArgs = {
   order_by?: InputMaybe<Array<Backups_Order_By>>;
   where?: InputMaybe<Backups_Bool_Exp>;
 };
-
 
 /** columns and relationships of "apps" */
 export type AppsBackups_AggregateArgs = {
@@ -4141,12 +4149,10 @@ export type AppsBackups_AggregateArgs = {
   where?: InputMaybe<Backups_Bool_Exp>;
 };
 
-
 /** columns and relationships of "apps" */
 export type AppsConfigArgs = {
   resolve: Scalars['Boolean'];
 };
-
 
 /** columns and relationships of "apps" */
 export type AppsDeploymentsArgs = {
@@ -4157,7 +4163,6 @@ export type AppsDeploymentsArgs = {
   where?: InputMaybe<Deployments_Bool_Exp>;
 };
 
-
 /** columns and relationships of "apps" */
 export type AppsDeployments_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Deployments_Select_Column>>;
@@ -4166,7 +4171,6 @@ export type AppsDeployments_AggregateArgs = {
   order_by?: InputMaybe<Array<Deployments_Order_By>>;
   where?: InputMaybe<Deployments_Bool_Exp>;
 };
-
 
 /** columns and relationships of "apps" */
 export type AppsFeatureFlagsArgs = {
@@ -4177,7 +4181,6 @@ export type AppsFeatureFlagsArgs = {
   where?: InputMaybe<FeatureFlags_Bool_Exp>;
 };
 
-
 /** columns and relationships of "apps" */
 export type AppsFeatureFlags_AggregateArgs = {
   distinct_on?: InputMaybe<Array<FeatureFlags_Select_Column>>;
@@ -4187,12 +4190,10 @@ export type AppsFeatureFlags_AggregateArgs = {
   where?: InputMaybe<FeatureFlags_Bool_Exp>;
 };
 
-
 /** columns and relationships of "apps" */
 export type AppsMetadataFunctionsArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
-
 
 /** columns and relationships of "apps" */
 export type AppsRunServicesArgs = {
@@ -4202,7 +4203,6 @@ export type AppsRunServicesArgs = {
   order_by?: InputMaybe<Array<Run_Service_Order_By>>;
   where?: InputMaybe<Run_Service_Bool_Exp>;
 };
-
 
 /** columns and relationships of "apps" */
 export type AppsRunServices_AggregateArgs = {
@@ -4262,7 +4262,6 @@ export type Apps_Aggregate_Fields = {
   var_samp?: Maybe<Apps_Var_Samp_Fields>;
   variance?: Maybe<Apps_Variance_Fields>;
 };
-
 
 /** aggregate fields of "apps" */
 export type Apps_Aggregate_FieldsCountArgs = {
@@ -4367,7 +4366,7 @@ export enum Apps_Constraint {
   /** unique or primary key constraint on columns "subdomain" */
   AppsSubdomainKey = 'apps_subdomain_key',
   /** unique or primary key constraint on columns "workspace_id", "slug" */
-  AppsWorkspaceIdSlugKey = 'apps_workspace_id_slug_key'
+  AppsWorkspaceIdSlugKey = 'apps_workspace_id_slug_key',
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -4658,7 +4657,7 @@ export enum Apps_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  WorkspaceId = 'workspaceId'
+  WorkspaceId = 'workspaceId',
 }
 
 /** select "apps_aggregate_bool_exp_bool_and_arguments_columns" columns of table "apps" */
@@ -4666,7 +4665,7 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Column
   /** column name */
   IsLocked = 'isLocked',
   /** column name */
-  StateMatch = 'stateMatch'
+  StateMatch = 'stateMatch',
 }
 
 /** select "apps_aggregate_bool_exp_bool_or_arguments_columns" columns of table "apps" */
@@ -4674,7 +4673,7 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns
   /** column name */
   IsLocked = 'isLocked',
   /** column name */
-  StateMatch = 'stateMatch'
+  StateMatch = 'stateMatch',
 }
 
 /** input type for updating data in table "apps" */
@@ -4839,7 +4838,7 @@ export enum Apps_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  WorkspaceId = 'workspaceId'
+  WorkspaceId = 'workspaceId',
 }
 
 export type Apps_Updates = {
@@ -4907,7 +4906,6 @@ export type AuthProviderRequests = {
   options?: Maybe<Scalars['jsonb']>;
 };
 
-
 /** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProviderRequestsOptionsArgs = {
   path?: InputMaybe<Scalars['String']>;
@@ -4927,7 +4925,6 @@ export type AuthProviderRequests_Aggregate_Fields = {
   max?: Maybe<AuthProviderRequests_Max_Fields>;
   min?: Maybe<AuthProviderRequests_Min_Fields>;
 };
-
 
 /** aggregate fields of "auth.provider_requests" */
 export type AuthProviderRequests_Aggregate_FieldsCountArgs = {
@@ -4952,7 +4949,7 @@ export type AuthProviderRequests_Bool_Exp = {
 /** unique or primary key constraints on table "auth.provider_requests" */
 export enum AuthProviderRequests_Constraint {
   /** unique or primary key constraint on columns "id" */
-  ProviderRequestsPkey = 'provider_requests_pkey'
+  ProviderRequestsPkey = 'provider_requests_pkey',
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -5025,7 +5022,7 @@ export enum AuthProviderRequests_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Options = 'options'
+  Options = 'options',
 }
 
 /** input type for updating data in table "auth.provider_requests" */
@@ -5053,7 +5050,7 @@ export enum AuthProviderRequests_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Options = 'options'
+  Options = 'options',
 }
 
 export type AuthProviderRequests_Updates = {
@@ -5083,7 +5080,6 @@ export type AuthProviders = {
   userProviders_aggregate: AuthUserProviders_Aggregate;
 };
 
-
 /** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProvidersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -5092,7 +5088,6 @@ export type AuthProvidersUserProvidersArgs = {
   order_by?: InputMaybe<Array<AuthUserProviders_Order_By>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
-
 
 /** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProvidersUserProviders_AggregateArgs = {
@@ -5118,7 +5113,6 @@ export type AuthProviders_Aggregate_Fields = {
   min?: Maybe<AuthProviders_Min_Fields>;
 };
 
-
 /** aggregate fields of "auth.providers" */
 export type AuthProviders_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -5138,7 +5132,7 @@ export type AuthProviders_Bool_Exp = {
 /** unique or primary key constraints on table "auth.providers" */
 export enum AuthProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
-  ProvidersPkey = 'providers_pkey'
+  ProvidersPkey = 'providers_pkey',
 }
 
 /** input type for inserting data into table "auth.providers" */
@@ -5196,7 +5190,7 @@ export type AuthProviders_Pk_Columns_Input = {
 /** select columns of table "auth.providers" */
 export enum AuthProviders_Select_Column {
   /** column name */
-  Id = 'id'
+  Id = 'id',
 }
 
 /** input type for updating data in table "auth.providers" */
@@ -5220,7 +5214,7 @@ export type AuthProviders_Stream_Cursor_Value_Input = {
 /** update columns of table "auth.providers" */
 export enum AuthProviders_Update_Column {
   /** column name */
-  Id = 'id'
+  Id = 'id',
 }
 
 export type AuthProviders_Updates = {
@@ -5241,7 +5235,6 @@ export type AuthRefreshTokenTypes = {
   value: Scalars['String'];
 };
 
-
 /** columns and relationships of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypesRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -5250,7 +5243,6 @@ export type AuthRefreshTokenTypesRefreshTokensArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
-
 
 /** columns and relationships of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypesRefreshTokens_AggregateArgs = {
@@ -5276,7 +5268,6 @@ export type AuthRefreshTokenTypes_Aggregate_Fields = {
   min?: Maybe<AuthRefreshTokenTypes_Min_Fields>;
 };
 
-
 /** aggregate fields of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypes_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -5297,14 +5288,14 @@ export type AuthRefreshTokenTypes_Bool_Exp = {
 /** unique or primary key constraints on table "auth.refresh_token_types" */
 export enum AuthRefreshTokenTypes_Constraint {
   /** unique or primary key constraint on columns "value" */
-  RefreshTokenTypesPkey = 'refresh_token_types_pkey'
+  RefreshTokenTypesPkey = 'refresh_token_types_pkey',
 }
 
 export enum AuthRefreshTokenTypes_Enum {
   /** Personal access token */
   Pat = 'pat',
   /** Regular refresh token */
-  Regular = 'regular'
+  Regular = 'regular',
 }
 
 /** Boolean expression to compare columns of type "authRefreshTokenTypes_enum". All fields are combined with logical 'AND'. */
@@ -5370,7 +5361,7 @@ export enum AuthRefreshTokenTypes_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 /** input type for updating data in table "auth.refresh_token_types" */
@@ -5398,7 +5389,7 @@ export enum AuthRefreshTokenTypes_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 export type AuthRefreshTokenTypes_Updates = {
@@ -5422,7 +5413,6 @@ export type AuthRefreshTokens = {
   user: Users;
   userId: Scalars['uuid'];
 };
-
 
 /** User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRefreshTokensMetadataArgs = {
@@ -5454,7 +5444,6 @@ export type AuthRefreshTokens_Aggregate_Fields = {
   max?: Maybe<AuthRefreshTokens_Max_Fields>;
   min?: Maybe<AuthRefreshTokens_Min_Fields>;
 };
-
 
 /** aggregate fields of "auth.refresh_tokens" */
 export type AuthRefreshTokens_Aggregate_FieldsCountArgs = {
@@ -5500,7 +5489,7 @@ export type AuthRefreshTokens_Bool_Exp = {
 /** unique or primary key constraints on table "auth.refresh_tokens" */
 export enum AuthRefreshTokens_Constraint {
   /** unique or primary key constraint on columns "id" */
-  RefreshTokensPkey = 'refresh_tokens_pkey'
+  RefreshTokensPkey = 'refresh_tokens_pkey',
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -5629,7 +5618,7 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   Type = 'type',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 /** input type for updating data in table "auth.refresh_tokens" */
@@ -5681,7 +5670,7 @@ export enum AuthRefreshTokens_Update_Column {
   /** column name */
   Type = 'type',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 export type AuthRefreshTokens_Updates = {
@@ -5715,7 +5704,6 @@ export type AuthRoles = {
   usersByDefaultRole_aggregate: Users_Aggregate;
 };
 
-
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -5724,7 +5712,6 @@ export type AuthRolesUserRolesArgs = {
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
-
 
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUserRoles_AggregateArgs = {
@@ -5735,7 +5722,6 @@ export type AuthRolesUserRoles_AggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
-
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUsersByDefaultRoleArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -5744,7 +5730,6 @@ export type AuthRolesUsersByDefaultRoleArgs = {
   order_by?: InputMaybe<Array<Users_Order_By>>;
   where?: InputMaybe<Users_Bool_Exp>;
 };
-
 
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUsersByDefaultRole_AggregateArgs = {
@@ -5770,7 +5755,6 @@ export type AuthRoles_Aggregate_Fields = {
   min?: Maybe<AuthRoles_Min_Fields>;
 };
 
-
 /** aggregate fields of "auth.roles" */
 export type AuthRoles_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -5792,7 +5776,7 @@ export type AuthRoles_Bool_Exp = {
 /** unique or primary key constraints on table "auth.roles" */
 export enum AuthRoles_Constraint {
   /** unique or primary key constraint on columns "role" */
-  RolesPkey = 'roles_pkey'
+  RolesPkey = 'roles_pkey',
 }
 
 /** input type for inserting data into table "auth.roles" */
@@ -5852,7 +5836,7 @@ export type AuthRoles_Pk_Columns_Input = {
 /** select columns of table "auth.roles" */
 export enum AuthRoles_Select_Column {
   /** column name */
-  Role = 'role'
+  Role = 'role',
 }
 
 /** input type for updating data in table "auth.roles" */
@@ -5876,7 +5860,7 @@ export type AuthRoles_Stream_Cursor_Value_Input = {
 /** update columns of table "auth.roles" */
 export enum AuthRoles_Update_Column {
   /** column name */
-  Role = 'role'
+  Role = 'role',
 }
 
 export type AuthRoles_Updates = {
@@ -5929,7 +5913,6 @@ export type AuthUserProviders_Aggregate_Fields = {
   min?: Maybe<AuthUserProviders_Min_Fields>;
 };
 
-
 /** aggregate fields of "auth.user_providers" */
 export type AuthUserProviders_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -5974,7 +5957,7 @@ export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
   /** unique or primary key constraint on columns "user_id", "provider_id" */
-  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
+  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key',
 }
 
 /** input type for inserting data into table "auth.user_providers" */
@@ -6093,7 +6076,7 @@ export enum AuthUserProviders_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 /** input type for updating data in table "auth.user_providers" */
@@ -6145,7 +6128,7 @@ export enum AuthUserProviders_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 export type AuthUserProviders_Updates = {
@@ -6194,7 +6177,6 @@ export type AuthUserRoles_Aggregate_Fields = {
   min?: Maybe<AuthUserRoles_Min_Fields>;
 };
 
-
 /** aggregate fields of "auth.user_roles" */
 export type AuthUserRoles_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -6233,7 +6215,7 @@ export enum AuthUserRoles_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserRolesPkey = 'user_roles_pkey',
   /** unique or primary key constraint on columns "user_id", "role" */
-  UserRolesUserIdRoleKey = 'user_roles_user_id_role_key'
+  UserRolesUserIdRoleKey = 'user_roles_user_id_role_key',
 }
 
 /** input type for inserting data into table "auth.user_roles" */
@@ -6320,7 +6302,7 @@ export enum AuthUserRoles_Select_Column {
   /** column name */
   Role = 'role',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 /** input type for updating data in table "auth.user_roles" */
@@ -6356,7 +6338,7 @@ export enum AuthUserRoles_Update_Column {
   /** column name */
   Role = 'role',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 export type AuthUserRoles_Updates = {
@@ -6413,7 +6395,6 @@ export type AuthUserSecurityKeys_Aggregate_Fields = {
   var_samp?: Maybe<AuthUserSecurityKeys_Var_Samp_Fields>;
   variance?: Maybe<AuthUserSecurityKeys_Variance_Fields>;
 };
-
 
 /** aggregate fields of "auth.user_security_keys" */
 export type AuthUserSecurityKeys_Aggregate_FieldsCountArgs = {
@@ -6474,7 +6455,7 @@ export enum AuthUserSecurityKeys_Constraint {
   /** unique or primary key constraint on columns "credential_id" */
   UserSecurityKeyCredentialIdKey = 'user_security_key_credential_id_key',
   /** unique or primary key constraint on columns "id" */
-  UserSecurityKeysPkey = 'user_security_keys_pkey'
+  UserSecurityKeysPkey = 'user_security_keys_pkey',
 }
 
 /** input type for incrementing numeric columns in table "auth.user_security_keys" */
@@ -6584,7 +6565,7 @@ export enum AuthUserSecurityKeys_Select_Column {
   /** column name */
   Transports = 'transports',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 /** input type for updating data in table "auth.user_security_keys" */
@@ -6676,7 +6657,7 @@ export enum AuthUserSecurityKeys_Update_Column {
   /** column name */
   Transports = 'transports',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 export type AuthUserSecurityKeys_Updates = {
@@ -6753,7 +6734,6 @@ export type Auth_Migrations_Aggregate_Fields = {
   variance?: Maybe<Auth_Migrations_Variance_Fields>;
 };
 
-
 /** aggregate fields of "auth.migrations" */
 export type Auth_Migrations_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
@@ -6782,7 +6762,7 @@ export enum Auth_Migrations_Constraint {
   /** unique or primary key constraint on columns "name" */
   MigrationsNameKey = 'migrations_name_key',
   /** unique or primary key constraint on columns "id" */
-  MigrationsPkey = 'migrations_pkey'
+  MigrationsPkey = 'migrations_pkey',
 }
 
 /** input type for incrementing numeric columns in table "auth.migrations" */
@@ -6854,7 +6834,7 @@ export enum Auth_Migrations_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Name = 'name'
+  Name = 'name',
 }
 
 /** input type for updating data in table "auth.migrations" */
@@ -6914,7 +6894,7 @@ export enum Auth_Migrations_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Name = 'name'
+  Name = 'name',
 }
 
 export type Auth_Migrations_Updates = {
@@ -6991,7 +6971,6 @@ export type Backups_Aggregate_Fields = {
   variance?: Maybe<Backups_Variance_Fields>;
 };
 
-
 /** aggregate fields of "backups" */
 export type Backups_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Backups_Select_Column>>;
@@ -7048,7 +7027,7 @@ export type Backups_Bool_Exp = {
 /** unique or primary key constraints on table "backups" */
 export enum Backups_Constraint {
   /** unique or primary key constraint on columns "id" */
-  BackupsPkey = 'backups_pkey'
+  BackupsPkey = 'backups_pkey',
 }
 
 /** input type for incrementing numeric columns in table "backups" */
@@ -7154,7 +7133,7 @@ export enum Backups_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Size = 'size'
+  Size = 'size',
 }
 
 /** input type for updating data in table "backups" */
@@ -7242,7 +7221,7 @@ export enum Backups_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Size = 'size'
+  Size = 'size',
 }
 
 export type Backups_Updates = {
@@ -7337,7 +7316,6 @@ export type Billing_Dedicated_Compute_Aggregate_Fields = {
   variance?: Maybe<Billing_Dedicated_Compute_Variance_Fields>;
 };
 
-
 /** aggregate fields of "billing.dedicated_compute" */
 export type Billing_Dedicated_Compute_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
@@ -7369,7 +7347,7 @@ export enum Billing_Dedicated_Compute_Constraint {
   /** unique or primary key constraint on columns "app_id" */
   DedicatedComputeAppIdKey = 'dedicated_compute_app_id_key',
   /** unique or primary key constraint on columns "id" */
-  DedicatedComputePkey = 'dedicated_compute_pkey'
+  DedicatedComputePkey = 'dedicated_compute_pkey',
 }
 
 /** input type for incrementing numeric columns in table "billing.dedicated_compute" */
@@ -7458,7 +7436,7 @@ export enum Billing_Dedicated_Compute_Select_Column {
   /** column name */
   TotalMillicores = 'totalMillicores',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "billing.dedicated_compute" */
@@ -7522,7 +7500,7 @@ export enum Billing_Dedicated_Compute_Update_Column {
   /** column name */
   TotalMillicores = 'totalMillicores',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Billing_Dedicated_Compute_Updates = {
@@ -7574,7 +7552,6 @@ export type Billing_Report_Type_Aggregate_Fields = {
   min?: Maybe<Billing_Report_Type_Min_Fields>;
 };
 
-
 /** aggregate fields of "billing.report_type" */
 export type Billing_Report_Type_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
@@ -7593,7 +7570,7 @@ export type Billing_Report_Type_Bool_Exp = {
 /** unique or primary key constraints on table "billing.report_type" */
 export enum Billing_Report_Type_Constraint {
   /** unique or primary key constraint on columns "value" */
-  ReportTypePkey = 'report_type_pkey'
+  ReportTypePkey = 'report_type_pkey',
 }
 
 export enum Billing_Report_Type_Enum {
@@ -7602,7 +7579,7 @@ export enum Billing_Report_Type_Enum {
   /** Egress usage in MB */
   Egress = 'egress',
   /** Functions usage in seconds */
-  Functions = 'functions'
+  Functions = 'functions',
 }
 
 /** Boolean expression to compare columns of type "billing_report_type_enum". All fields are combined with logical 'AND'. */
@@ -7666,7 +7643,7 @@ export enum Billing_Report_Type_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 /** input type for updating data in table "billing.report_type" */
@@ -7694,7 +7671,7 @@ export enum Billing_Report_Type_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 export type Billing_Report_Type_Updates = {
@@ -7768,7 +7745,6 @@ export type Billing_Reports_Aggregate_Fields = {
   variance?: Maybe<Billing_Reports_Variance_Fields>;
 };
 
-
 /** aggregate fields of "billing.reports" */
 export type Billing_Reports_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Billing_Reports_Select_Column>>;
@@ -7827,7 +7803,7 @@ export type Billing_Reports_Bool_Exp = {
 /** unique or primary key constraints on table "billing.reports" */
 export enum Billing_Reports_Constraint {
   /** unique or primary key constraint on columns "id" */
-  ReportsPkey = 'reports_pkey'
+  ReportsPkey = 'reports_pkey',
 }
 
 /** input type for incrementing numeric columns in table "billing.reports" */
@@ -7947,19 +7923,19 @@ export enum Billing_Reports_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 /** select "billing_reports_aggregate_bool_exp_bool_and_arguments_columns" columns of table "billing.reports" */
 export enum Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  Pending = 'pending'
+  Pending = 'pending',
 }
 
 /** select "billing_reports_aggregate_bool_exp_bool_or_arguments_columns" columns of table "billing.reports" */
 export enum Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  Pending = 'pending'
+  Pending = 'pending',
 }
 
 /** input type for updating data in table "billing.reports" */
@@ -8059,7 +8035,7 @@ export enum Billing_Reports_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 export type Billing_Reports_Updates = {
@@ -8139,7 +8115,6 @@ export type Billing_Resources_Aggregate_Fields = {
   variance?: Maybe<Billing_Resources_Variance_Fields>;
 };
 
-
 /** aggregate fields of "billing.resources" */
 export type Billing_Resources_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Billing_Resources_Select_Column>>;
@@ -8173,7 +8148,7 @@ export enum Billing_Resources_Constraint {
   /** unique or primary key constraint on columns "app_id" */
   ResourcesAppIdKey = 'resources_app_id_key',
   /** unique or primary key constraint on columns "id" */
-  ResourcesPkey = 'resources_pkey'
+  ResourcesPkey = 'resources_pkey',
 }
 
 /** input type for incrementing numeric columns in table "billing.resources" */
@@ -8272,7 +8247,7 @@ export enum Billing_Resources_Select_Column {
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "billing.resources" */
@@ -8352,7 +8327,7 @@ export enum Billing_Resources_Update_Column {
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Billing_Resources_Updates = {
@@ -8418,7 +8393,6 @@ export type Billing_Subscription_Items_Aggregate_Fields = {
   min?: Maybe<Billing_Subscription_Items_Min_Fields>;
 };
 
-
 /** aggregate fields of "billing.subscription_items" */
 export type Billing_Subscription_Items_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
@@ -8445,7 +8419,7 @@ export type Billing_Subscription_Items_Bool_Exp = {
 /** unique or primary key constraints on table "billing.subscription_items" */
 export enum Billing_Subscription_Items_Constraint {
   /** unique or primary key constraint on columns "id" */
-  SubscriptionItemsPkey = 'subscription_items_pkey'
+  SubscriptionItemsPkey = 'subscription_items_pkey',
 }
 
 /** input type for inserting data into table "billing.subscription_items" */
@@ -8548,7 +8522,7 @@ export enum Billing_Subscription_Items_Select_Column {
   /** column name */
   Subscription = 'subscription',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updated_at',
 }
 
 /** input type for updating data in table "billing.subscription_items" */
@@ -8608,7 +8582,7 @@ export enum Billing_Subscription_Items_Update_Column {
   /** column name */
   Subscription = 'subscription',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updated_at',
 }
 
 export type Billing_Subscription_Items_Updates = {
@@ -8641,7 +8615,6 @@ export type Billing_Subscriptions = {
   updatedAt: Scalars['timestamptz'];
 };
 
-
 /** columns and relationships of "billing.subscriptions" */
 export type Billing_SubscriptionsReportsArgs = {
   distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
@@ -8650,7 +8623,6 @@ export type Billing_SubscriptionsReportsArgs = {
   order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
   where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
-
 
 /** columns and relationships of "billing.subscriptions" */
 export type Billing_SubscriptionsReports_AggregateArgs = {
@@ -8675,7 +8647,6 @@ export type Billing_Subscriptions_Aggregate_Fields = {
   max?: Maybe<Billing_Subscriptions_Max_Fields>;
   min?: Maybe<Billing_Subscriptions_Min_Fields>;
 };
-
 
 /** aggregate fields of "billing.subscriptions" */
 export type Billing_Subscriptions_Aggregate_FieldsCountArgs = {
@@ -8721,7 +8692,7 @@ export enum Billing_Subscriptions_Constraint {
   /** unique or primary key constraint on columns "persistent_volume" */
   SubscriptionsPersistentVolumeKey = 'subscriptions_persistent_volume_key',
   /** unique or primary key constraint on columns "id" */
-  SubscriptionsPkey = 'subscriptions_pkey'
+  SubscriptionsPkey = 'subscriptions_pkey',
 }
 
 /** input type for inserting data into table "billing.subscriptions" */
@@ -8837,7 +8808,7 @@ export enum Billing_Subscriptions_Select_Column {
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "billing.subscriptions" */
@@ -8897,7 +8868,7 @@ export enum Billing_Subscriptions_Update_Column {
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Billing_Subscriptions_Updates = {
@@ -8957,7 +8928,6 @@ export type Buckets = {
   updatedAt: Scalars['timestamptz'];
 };
 
-
 /** columns and relationships of "storage.buckets" */
 export type BucketsFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -8966,7 +8936,6 @@ export type BucketsFilesArgs = {
   order_by?: InputMaybe<Array<Files_Order_By>>;
   where?: InputMaybe<Files_Bool_Exp>;
 };
-
 
 /** columns and relationships of "storage.buckets" */
 export type BucketsFiles_AggregateArgs = {
@@ -8999,7 +8968,6 @@ export type Buckets_Aggregate_Fields = {
   var_samp?: Maybe<Buckets_Var_Samp_Fields>;
   variance?: Maybe<Buckets_Variance_Fields>;
 };
-
 
 /** aggregate fields of "storage.buckets" */
 export type Buckets_Aggregate_FieldsCountArgs = {
@@ -9035,7 +9003,7 @@ export type Buckets_Bool_Exp = {
 /** unique or primary key constraints on table "storage.buckets" */
 export enum Buckets_Constraint {
   /** unique or primary key constraint on columns "id" */
-  BucketsPkey = 'buckets_pkey'
+  BucketsPkey = 'buckets_pkey',
 }
 
 /** input type for incrementing numeric columns in table "storage.buckets" */
@@ -9140,7 +9108,7 @@ export enum Buckets_Select_Column {
   /** column name */
   PresignedUrlsEnabled = 'presignedUrlsEnabled',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "storage.buckets" */
@@ -9224,7 +9192,7 @@ export enum Buckets_Update_Column {
   /** column name */
   PresignedUrlsEnabled = 'presignedUrlsEnabled',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Buckets_Updates = {
@@ -9344,7 +9312,6 @@ export type CliTokens_Aggregate_Fields = {
   min?: Maybe<CliTokens_Min_Fields>;
 };
 
-
 /** aggregate fields of "cli_tokens" */
 export type CliTokens_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<CliTokens_Select_Column>>;
@@ -9381,7 +9348,7 @@ export type CliTokens_Bool_Exp = {
 /** unique or primary key constraints on table "cli_tokens" */
 export enum CliTokens_Constraint {
   /** unique or primary key constraint on columns "id" */
-  CliTokensPkey = 'cliTokens_pkey'
+  CliTokensPkey = 'cliTokens_pkey',
 }
 
 /** input type for inserting data into table "cli_tokens" */
@@ -9474,7 +9441,7 @@ export enum CliTokens_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 /** input type for updating data in table "cli_tokens" */
@@ -9514,7 +9481,7 @@ export enum CliTokens_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 export type CliTokens_Updates = {
@@ -9537,7 +9504,6 @@ export type Continents = {
   name?: Maybe<Scalars['String']>;
 };
 
-
 /** columns and relationships of "continents" */
 export type ContinentsCountriesArgs = {
   distinct_on?: InputMaybe<Array<Countries_Select_Column>>;
@@ -9546,7 +9512,6 @@ export type ContinentsCountriesArgs = {
   order_by?: InputMaybe<Array<Countries_Order_By>>;
   where?: InputMaybe<Countries_Bool_Exp>;
 };
-
 
 /** columns and relationships of "continents" */
 export type ContinentsCountries_AggregateArgs = {
@@ -9572,7 +9537,6 @@ export type Continents_Aggregate_Fields = {
   min?: Maybe<Continents_Min_Fields>;
 };
 
-
 /** aggregate fields of "continents" */
 export type Continents_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Continents_Select_Column>>;
@@ -9593,7 +9557,7 @@ export type Continents_Bool_Exp = {
 /** unique or primary key constraints on table "continents" */
 export enum Continents_Constraint {
   /** unique or primary key constraint on columns "code" */
-  ContinentPkey = 'continent_pkey'
+  ContinentPkey = 'continent_pkey',
 }
 
 /** input type for inserting data into table "continents" */
@@ -9664,7 +9628,7 @@ export enum Continents_Select_Column {
   /** column name */
   Code = 'code',
   /** column name */
-  Name = 'name'
+  Name = 'name',
 }
 
 /** input type for updating data in table "continents" */
@@ -9696,7 +9660,7 @@ export enum Continents_Update_Column {
   /** column name */
   Code = 'code',
   /** column name */
-  Name = 'name'
+  Name = 'name',
 }
 
 export type Continents_Updates = {
@@ -9733,7 +9697,6 @@ export type Countries = {
   workspaces_aggregate: Workspaces_Aggregate;
 };
 
-
 /** columns and relationships of "countries" */
 export type CountriesLocationsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
@@ -9742,7 +9705,6 @@ export type CountriesLocationsArgs = {
   order_by?: InputMaybe<Array<Regions_Order_By>>;
   where?: InputMaybe<Regions_Bool_Exp>;
 };
-
 
 /** columns and relationships of "countries" */
 export type CountriesLocations_AggregateArgs = {
@@ -9753,7 +9715,6 @@ export type CountriesLocations_AggregateArgs = {
   where?: InputMaybe<Regions_Bool_Exp>;
 };
 
-
 /** columns and relationships of "countries" */
 export type CountriesWorkspacesArgs = {
   distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
@@ -9762,7 +9723,6 @@ export type CountriesWorkspacesArgs = {
   order_by?: InputMaybe<Array<Workspaces_Order_By>>;
   where?: InputMaybe<Workspaces_Bool_Exp>;
 };
-
 
 /** columns and relationships of "countries" */
 export type CountriesWorkspaces_AggregateArgs = {
@@ -9806,7 +9766,6 @@ export type Countries_Aggregate_Fields = {
   var_samp?: Maybe<Countries_Var_Samp_Fields>;
   variance?: Maybe<Countries_Variance_Fields>;
 };
-
 
 /** aggregate fields of "countries" */
 export type Countries_Aggregate_FieldsCountArgs = {
@@ -9871,7 +9830,7 @@ export type Countries_Bool_Exp = {
 /** unique or primary key constraints on table "countries" */
 export enum Countries_Constraint {
   /** unique or primary key constraint on columns "code" */
-  CountryPkey = 'country_pkey'
+  CountryPkey = 'country_pkey',
 }
 
 /** input type for incrementing numeric columns in table "countries" */
@@ -10023,7 +9982,7 @@ export enum Countries_Select_Column {
   /** column name */
   IsoNumber = 'isoNumber',
   /** column name */
-  Name = 'name'
+  Name = 'name',
 }
 
 /** input type for updating data in table "countries" */
@@ -10133,7 +10092,7 @@ export enum Countries_Update_Column {
   /** column name */
   IsoNumber = 'isoNumber',
   /** column name */
-  Name = 'name'
+  Name = 'name',
 }
 
 export type Countries_Updates = {
@@ -10189,7 +10148,7 @@ export enum Cursor_Ordering {
   /** ascending ordering of the cursor */
   Asc = 'ASC',
   /** descending ordering of the cursor */
-  Desc = 'DESC'
+  Desc = 'DESC',
 }
 
 /** columns and relationships of "deployment_logs" */
@@ -10229,7 +10188,6 @@ export type DeploymentLogs_Aggregate_Fields = {
   min?: Maybe<DeploymentLogs_Min_Fields>;
 };
 
-
 /** aggregate fields of "deployment_logs" */
 export type DeploymentLogs_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<DeploymentLogs_Select_Column>>;
@@ -10265,7 +10223,7 @@ export type DeploymentLogs_Bool_Exp = {
 /** unique or primary key constraints on table "deployment_logs" */
 export enum DeploymentLogs_Constraint {
   /** unique or primary key constraint on columns "id" */
-  DeploymentLogsPkey = 'deployment_logs_pkey'
+  DeploymentLogsPkey = 'deployment_logs_pkey',
 }
 
 /** input type for inserting data into table "deployment_logs" */
@@ -10350,7 +10308,7 @@ export enum DeploymentLogs_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Message = 'message'
+  Message = 'message',
 }
 
 /** input type for updating data in table "deployment_logs" */
@@ -10386,7 +10344,7 @@ export enum DeploymentLogs_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Message = 'message'
+  Message = 'message',
 }
 
 export type DeploymentLogs_Updates = {
@@ -10425,7 +10383,6 @@ export type Deployments = {
   migrationsStatus?: Maybe<Scalars['String']>;
 };
 
-
 /** Table that keeps track of deployments done by watchtower */
 export type DeploymentsDeploymentLogsArgs = {
   distinct_on?: InputMaybe<Array<DeploymentLogs_Select_Column>>;
@@ -10434,7 +10391,6 @@ export type DeploymentsDeploymentLogsArgs = {
   order_by?: InputMaybe<Array<DeploymentLogs_Order_By>>;
   where?: InputMaybe<DeploymentLogs_Bool_Exp>;
 };
-
 
 /** Table that keeps track of deployments done by watchtower */
 export type DeploymentsDeploymentLogs_AggregateArgs = {
@@ -10470,7 +10426,6 @@ export type Deployments_Aggregate_Fields = {
   max?: Maybe<Deployments_Max_Fields>;
   min?: Maybe<Deployments_Min_Fields>;
 };
-
 
 /** aggregate fields of "deployments" */
 export type Deployments_Aggregate_FieldsCountArgs = {
@@ -10523,7 +10478,7 @@ export type Deployments_Bool_Exp = {
 /** unique or primary key constraints on table "deployments" */
 export enum Deployments_Constraint {
   /** unique or primary key constraint on columns "id" */
-  DeploymentsPkey = 'deployments_pkey'
+  DeploymentsPkey = 'deployments_pkey',
 }
 
 /** input type for inserting data into table "deployments" */
@@ -10729,7 +10684,7 @@ export enum Deployments_Select_Column {
   /** column name */
   MigrationsStartedAt = 'migrationsStartedAt',
   /** column name */
-  MigrationsStatus = 'migrationsStatus'
+  MigrationsStatus = 'migrationsStatus',
 }
 
 /** input type for updating data in table "deployments" */
@@ -10821,7 +10776,7 @@ export enum Deployments_Update_Column {
   /** column name */
   MigrationsStartedAt = 'migrationsStartedAt',
   /** column name */
-  MigrationsStatus = 'migrationsStatus'
+  MigrationsStatus = 'migrationsStatus',
 }
 
 export type Deployments_Updates = {
@@ -10869,7 +10824,6 @@ export type FeatureFlags_Aggregate_Fields = {
   min?: Maybe<FeatureFlags_Min_Fields>;
 };
 
-
 /** aggregate fields of "feature_flags" */
 export type FeatureFlags_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<FeatureFlags_Select_Column>>;
@@ -10906,7 +10860,7 @@ export type FeatureFlags_Bool_Exp = {
 /** unique or primary key constraints on table "feature_flags" */
 export enum FeatureFlags_Constraint {
   /** unique or primary key constraint on columns "id" */
-  FeatureFlagsPkey = 'feature_flags_pkey'
+  FeatureFlagsPkey = 'feature_flags_pkey',
 }
 
 /** input type for inserting data into table "feature_flags" */
@@ -10999,7 +10953,7 @@ export enum FeatureFlags_Select_Column {
   /** column name */
   Name = 'name',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 /** input type for updating data in table "feature_flags" */
@@ -11039,7 +10993,7 @@ export enum FeatureFlags_Update_Column {
   /** column name */
   Name = 'name',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 export type FeatureFlags_Updates = {
@@ -11116,7 +11070,6 @@ export type Files_Aggregate_Fields = {
   variance?: Maybe<Files_Variance_Fields>;
 };
 
-
 /** aggregate fields of "storage.files" */
 export type Files_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Files_Select_Column>>;
@@ -11177,7 +11130,7 @@ export type Files_Bool_Exp = {
 /** unique or primary key constraints on table "storage.files" */
 export enum Files_Constraint {
   /** unique or primary key constraint on columns "id" */
-  FilesPkey = 'files_pkey'
+  FilesPkey = 'files_pkey',
 }
 
 /** input type for incrementing numeric columns in table "storage.files" */
@@ -11311,19 +11264,19 @@ export enum Files_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UploadedByUserId = 'uploadedByUserId'
+  UploadedByUserId = 'uploadedByUserId',
 }
 
 /** select "files_aggregate_bool_exp_bool_and_arguments_columns" columns of table "storage.files" */
 export enum Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  IsUploaded = 'isUploaded'
+  IsUploaded = 'isUploaded',
 }
 
 /** select "files_aggregate_bool_exp_bool_or_arguments_columns" columns of table "storage.files" */
 export enum Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  IsUploaded = 'isUploaded'
+  IsUploaded = 'isUploaded',
 }
 
 /** input type for updating data in table "storage.files" */
@@ -11427,7 +11380,7 @@ export enum Files_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UploadedByUserId = 'uploadedByUserId'
+  UploadedByUserId = 'uploadedByUserId',
 }
 
 export type Files_Updates = {
@@ -11493,12 +11446,10 @@ export type GithubAppInstallations = {
   userId?: Maybe<Scalars['uuid']>;
 };
 
-
 /** columns and relationships of "github_app_installations" */
 export type GithubAppInstallationsGithubDataArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
-
 
 /** columns and relationships of "github_app_installations" */
 export type GithubAppInstallationsGithubRepositoriesArgs = {
@@ -11508,7 +11459,6 @@ export type GithubAppInstallationsGithubRepositoriesArgs = {
   order_by?: InputMaybe<Array<GithubRepositories_Order_By>>;
   where?: InputMaybe<GithubRepositories_Bool_Exp>;
 };
-
 
 /** columns and relationships of "github_app_installations" */
 export type GithubAppInstallationsGithubRepositories_AggregateArgs = {
@@ -11552,7 +11502,6 @@ export type GithubAppInstallations_Aggregate_Fields = {
   var_samp?: Maybe<GithubAppInstallations_Var_Samp_Fields>;
   variance?: Maybe<GithubAppInstallations_Variance_Fields>;
 };
-
 
 /** aggregate fields of "github_app_installations" */
 export type GithubAppInstallations_Aggregate_FieldsCountArgs = {
@@ -11623,7 +11572,7 @@ export enum GithubAppInstallations_Constraint {
   /** unique or primary key constraint on columns "external_github_app_installation_id" */
   GithubAppInstallationsExternalGithubAppInstallationIKey = 'github_app_installations_external_github_app_installation_i_key',
   /** unique or primary key constraint on columns "id" */
-  GithubAppInstallationsPkey = 'github_app_installations_pkey'
+  GithubAppInstallationsPkey = 'github_app_installations_pkey',
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -11786,7 +11735,7 @@ export enum GithubAppInstallations_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 /** input type for updating data in table "github_app_installations" */
@@ -11890,7 +11839,7 @@ export enum GithubAppInstallations_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId'
+  UserId = 'userId',
 }
 
 export type GithubAppInstallations_Updates = {
@@ -11964,7 +11913,6 @@ export type GithubRepositories = {
   updatedAt: Scalars['timestamptz'];
 };
 
-
 /** columns and relationships of "github_repositories" */
 export type GithubRepositoriesAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -11973,7 +11921,6 @@ export type GithubRepositoriesAppsArgs = {
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
-
 
 /** columns and relationships of "github_repositories" */
 export type GithubRepositoriesApps_AggregateArgs = {
@@ -12026,7 +11973,6 @@ export type GithubRepositories_Aggregate_Fields = {
   min?: Maybe<GithubRepositories_Min_Fields>;
 };
 
-
 /** aggregate fields of "github_repositories" */
 export type GithubRepositories_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<GithubRepositories_Select_Column>>;
@@ -12068,7 +12014,7 @@ export type GithubRepositories_Bool_Exp = {
 /** unique or primary key constraints on table "github_repositories" */
 export enum GithubRepositories_Constraint {
   /** unique or primary key constraint on columns "id" */
-  GithubRepositoriesPkey = 'github_repositories_pkey'
+  GithubRepositoriesPkey = 'github_repositories_pkey',
 }
 
 /** input type for inserting data into table "github_repositories" */
@@ -12190,19 +12136,19 @@ export enum GithubRepositories_Select_Column {
   /** column name */
   Private = 'private',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** select "githubRepositories_aggregate_bool_exp_bool_and_arguments_columns" columns of table "github_repositories" */
 export enum GithubRepositories_Select_Column_GithubRepositories_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  Private = 'private'
+  Private = 'private',
 }
 
 /** select "githubRepositories_aggregate_bool_exp_bool_or_arguments_columns" columns of table "github_repositories" */
 export enum GithubRepositories_Select_Column_GithubRepositories_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  Private = 'private'
+  Private = 'private',
 }
 
 /** input type for updating data in table "github_repositories" */
@@ -12254,7 +12200,7 @@ export enum GithubRepositories_Update_Column {
   /** column name */
   Private = 'private',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type GithubRepositories_Updates = {
@@ -12411,10 +12357,6 @@ export type Mutation_Root = {
   deleteGithubRepository?: Maybe<GithubRepositories>;
   /** delete single row from the table: "organizations" */
   deleteOrganization?: Maybe<Organizations>;
-  /** delete single row from the table: "organizations_free_usage" */
-  deleteOrganizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** delete data from the table: "organizations_free_usage" */
-  deleteOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** delete single row from the table: "organization_members" */
   deleteOrganizationMember?: Maybe<Organization_Members>;
   /** delete single row from the table: "organization_member_invites" */
@@ -12614,10 +12556,6 @@ export type Mutation_Root = {
   insertGithubRepository?: Maybe<GithubRepositories>;
   /** insert a single row into the table: "organizations" */
   insertOrganization?: Maybe<Organizations>;
-  /** insert a single row into the table: "organizations_free_usage" */
-  insertOrganizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** insert data into the table: "organizations_free_usage" */
-  insertOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** insert a single row into the table: "organization_members" */
   insertOrganizationMember?: Maybe<Organization_Members>;
   /** insert a single row into the table: "organization_member_invites" */
@@ -12720,8 +12658,8 @@ export type Mutation_Root = {
   insert_regions_one?: Maybe<Regions>;
   /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
   organizationMemberInviteAccept: Array<Organization_Members>;
-  pauseAppsExceedUsage: Array<Scalars['String']>;
   pauseInactiveApps: Array<Scalars['String']>;
+  pauseOrganizationsExceedUsage: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
   replaceConfigRawJSON: Scalars['String'];
   replaceRunServiceConfig: ConfigRunServiceConfig;
@@ -12826,21 +12764,21 @@ export type Mutation_Root = {
   /** update single row of the table: "github_repositories" */
   updateGithubRepository?: Maybe<GithubRepositories>;
   /** update multiples rows of table: "billing.reports" */
-  updateManyBillingReports?: Maybe<Array<Maybe<Billing_Reports_Mutation_Response>>>;
+  updateManyBillingReports?: Maybe<
+    Array<Maybe<Billing_Reports_Mutation_Response>>
+  >;
   /** update multiples rows of table: "billing.resources" */
-  updateManyBillingResources?: Maybe<Array<Maybe<Billing_Resources_Mutation_Response>>>;
+  updateManyBillingResources?: Maybe<
+    Array<Maybe<Billing_Resources_Mutation_Response>>
+  >;
   /** update multiples rows of table: "software_type" */
   updateManySoftwareType?: Maybe<Array<Maybe<Software_Type_Mutation_Response>>>;
   /** update multiples rows of table: "software_versions" */
-  updateManySoftwareVersions?: Maybe<Array<Maybe<Software_Versions_Mutation_Response>>>;
+  updateManySoftwareVersions?: Maybe<
+    Array<Maybe<Software_Versions_Mutation_Response>>
+  >;
   /** update single row of the table: "organizations" */
   updateOrganization?: Maybe<Organizations>;
-  /** update single row of the table: "organizations_free_usage" */
-  updateOrganizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** update multiples rows of table: "organizations_free_usage" */
-  updateOrganizationFreeUsageMany?: Maybe<Array<Maybe<Organizations_Free_Usage_Mutation_Response>>>;
-  /** update data of the table: "organizations_free_usage" */
-  updateOrganizationFreeUsages?: Maybe<Organizations_Free_Usage_Mutation_Response>;
   /** update single row of the table: "organization_members" */
   updateOrganizationMember?: Maybe<Organization_Members>;
   /** update single row of the table: "organization_member_invites" */
@@ -12848,21 +12786,29 @@ export type Mutation_Root = {
   /** update data of the table: "organization_member_invites" */
   updateOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
   /** update multiples rows of table: "organization_member_invites" */
-  updateOrganizationMemberInvitesMany?: Maybe<Array<Maybe<Organization_Member_Invites_Mutation_Response>>>;
+  updateOrganizationMemberInvitesMany?: Maybe<
+    Array<Maybe<Organization_Member_Invites_Mutation_Response>>
+  >;
   /** update data of the table: "organization_members" */
   updateOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
   /** update multiples rows of table: "organization_members" */
-  updateOrganizationMembersMany?: Maybe<Array<Maybe<Organization_Members_Mutation_Response>>>;
+  updateOrganizationMembersMany?: Maybe<
+    Array<Maybe<Organization_Members_Mutation_Response>>
+  >;
   /** update single row of the table: "organization_new_request" */
   updateOrganizationNewRequest?: Maybe<Organization_New_Request>;
   /** update data of the table: "organization_new_request" */
   updateOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
   /** update multiples rows of table: "organization_new_request" */
-  updateOrganizationNewRequestsMany?: Maybe<Array<Maybe<Organization_New_Request_Mutation_Response>>>;
+  updateOrganizationNewRequestsMany?: Maybe<
+    Array<Maybe<Organization_New_Request_Mutation_Response>>
+  >;
   /** update data of the table: "organizations" */
   updateOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** update multiples rows of table: "organizations" */
-  updateOrganizationsMany?: Maybe<Array<Maybe<Organizations_Mutation_Response>>>;
+  updateOrganizationsMany?: Maybe<
+    Array<Maybe<Organizations_Mutation_Response>>
+  >;
   /** update single row of the table: "payment_methods" */
   updatePaymentMethod?: Maybe<PaymentMethods>;
   /** update data of the table: "payment_methods" */
@@ -12876,7 +12822,9 @@ export type Mutation_Root = {
   /** update data of the table: "regions_allowed_organization" */
   updateRegionsAllowedOrganizations?: Maybe<Regions_Allowed_Organization_Mutation_Response>;
   /** update multiples rows of table: "regions_allowed_organization" */
-  updateRegionsAllowedOrganizationsMany?: Maybe<Array<Maybe<Regions_Allowed_Organization_Mutation_Response>>>;
+  updateRegionsAllowedOrganizationsMany?: Maybe<
+    Array<Maybe<Regions_Allowed_Organization_Mutation_Response>>
+  >;
   /** update single row of the table: "regions_allowed_workspace" */
   updateRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** update data of the table: "regions_allowed_workspace" */
@@ -12917,51 +12865,77 @@ export type Mutation_Root = {
   /** update single row of the table: "announcements" */
   update_announcements_by_pk?: Maybe<Announcements>;
   /** update multiples rows of table: "announcements" */
-  update_announcements_many?: Maybe<Array<Maybe<Announcements_Mutation_Response>>>;
+  update_announcements_many?: Maybe<
+    Array<Maybe<Announcements_Mutation_Response>>
+  >;
   /** update multiples rows of table: "app_state_history" */
-  update_appStateHistory_many?: Maybe<Array<Maybe<AppStateHistory_Mutation_Response>>>;
+  update_appStateHistory_many?: Maybe<
+    Array<Maybe<AppStateHistory_Mutation_Response>>
+  >;
   /** update multiples rows of table: "app_states" */
   update_appStates_many?: Maybe<Array<Maybe<AppStates_Mutation_Response>>>;
   /** update multiples rows of table: "apps" */
   update_apps_many?: Maybe<Array<Maybe<Apps_Mutation_Response>>>;
   /** update multiples rows of table: "auth.provider_requests" */
-  update_authProviderRequests_many?: Maybe<Array<Maybe<AuthProviderRequests_Mutation_Response>>>;
+  update_authProviderRequests_many?: Maybe<
+    Array<Maybe<AuthProviderRequests_Mutation_Response>>
+  >;
   /** update multiples rows of table: "auth.providers" */
-  update_authProviders_many?: Maybe<Array<Maybe<AuthProviders_Mutation_Response>>>;
+  update_authProviders_many?: Maybe<
+    Array<Maybe<AuthProviders_Mutation_Response>>
+  >;
   /** update multiples rows of table: "auth.refresh_token_types" */
-  update_authRefreshTokenTypes_many?: Maybe<Array<Maybe<AuthRefreshTokenTypes_Mutation_Response>>>;
+  update_authRefreshTokenTypes_many?: Maybe<
+    Array<Maybe<AuthRefreshTokenTypes_Mutation_Response>>
+  >;
   /** update multiples rows of table: "auth.refresh_tokens" */
-  update_authRefreshTokens_many?: Maybe<Array<Maybe<AuthRefreshTokens_Mutation_Response>>>;
+  update_authRefreshTokens_many?: Maybe<
+    Array<Maybe<AuthRefreshTokens_Mutation_Response>>
+  >;
   /** update multiples rows of table: "auth.roles" */
   update_authRoles_many?: Maybe<Array<Maybe<AuthRoles_Mutation_Response>>>;
   /** update multiples rows of table: "auth.user_providers" */
-  update_authUserProviders_many?: Maybe<Array<Maybe<AuthUserProviders_Mutation_Response>>>;
+  update_authUserProviders_many?: Maybe<
+    Array<Maybe<AuthUserProviders_Mutation_Response>>
+  >;
   /** update multiples rows of table: "auth.user_roles" */
-  update_authUserRoles_many?: Maybe<Array<Maybe<AuthUserRoles_Mutation_Response>>>;
+  update_authUserRoles_many?: Maybe<
+    Array<Maybe<AuthUserRoles_Mutation_Response>>
+  >;
   /** update multiples rows of table: "auth.user_security_keys" */
-  update_authUserSecurityKeys_many?: Maybe<Array<Maybe<AuthUserSecurityKeys_Mutation_Response>>>;
+  update_authUserSecurityKeys_many?: Maybe<
+    Array<Maybe<AuthUserSecurityKeys_Mutation_Response>>
+  >;
   /** update data of the table: "auth.migrations" */
   update_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** update single row of the table: "auth.migrations" */
   update_auth_migrations_by_pk?: Maybe<Auth_Migrations>;
   /** update multiples rows of table: "auth.migrations" */
-  update_auth_migrations_many?: Maybe<Array<Maybe<Auth_Migrations_Mutation_Response>>>;
+  update_auth_migrations_many?: Maybe<
+    Array<Maybe<Auth_Migrations_Mutation_Response>>
+  >;
   /** update multiples rows of table: "backups" */
   update_backups_many?: Maybe<Array<Maybe<Backups_Mutation_Response>>>;
   /** update multiples rows of table: "billing.dedicated_compute" */
-  update_billing_dedicated_compute_many?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Mutation_Response>>>;
+  update_billing_dedicated_compute_many?: Maybe<
+    Array<Maybe<Billing_Dedicated_Compute_Mutation_Response>>
+  >;
   /** update data of the table: "billing.report_type" */
   update_billing_report_type?: Maybe<Billing_Report_Type_Mutation_Response>;
   /** update single row of the table: "billing.report_type" */
   update_billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
   /** update multiples rows of table: "billing.report_type" */
-  update_billing_report_type_many?: Maybe<Array<Maybe<Billing_Report_Type_Mutation_Response>>>;
+  update_billing_report_type_many?: Maybe<
+    Array<Maybe<Billing_Report_Type_Mutation_Response>>
+  >;
   /** update data of the table: "billing.subscription_items" */
   update_billing_subscription_items?: Maybe<Billing_Subscription_Items_Mutation_Response>;
   /** update single row of the table: "billing.subscription_items" */
   update_billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
   /** update multiples rows of table: "billing.subscription_items" */
-  update_billing_subscription_items_many?: Maybe<Array<Maybe<Billing_Subscription_Items_Mutation_Response>>>;
+  update_billing_subscription_items_many?: Maybe<
+    Array<Maybe<Billing_Subscription_Items_Mutation_Response>>
+  >;
   /** update multiples rows of table: "storage.buckets" */
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "cli_tokens" */
@@ -12979,33 +12953,49 @@ export type Mutation_Root = {
   /** update multiples rows of table: "countries" */
   update_countries_many?: Maybe<Array<Maybe<Countries_Mutation_Response>>>;
   /** update multiples rows of table: "deployment_logs" */
-  update_deploymentLogs_many?: Maybe<Array<Maybe<DeploymentLogs_Mutation_Response>>>;
+  update_deploymentLogs_many?: Maybe<
+    Array<Maybe<DeploymentLogs_Mutation_Response>>
+  >;
   /** update multiples rows of table: "deployments" */
   update_deployments_many?: Maybe<Array<Maybe<Deployments_Mutation_Response>>>;
   /** update multiples rows of table: "feature_flags" */
-  update_featureFlags_many?: Maybe<Array<Maybe<FeatureFlags_Mutation_Response>>>;
+  update_featureFlags_many?: Maybe<
+    Array<Maybe<FeatureFlags_Mutation_Response>>
+  >;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<Files_Mutation_Response>>>;
   /** update multiples rows of table: "github_app_installations" */
-  update_githubAppInstallations_many?: Maybe<Array<Maybe<GithubAppInstallations_Mutation_Response>>>;
+  update_githubAppInstallations_many?: Maybe<
+    Array<Maybe<GithubAppInstallations_Mutation_Response>>
+  >;
   /** update multiples rows of table: "github_repositories" */
-  update_githubRepositories_many?: Maybe<Array<Maybe<GithubRepositories_Mutation_Response>>>;
+  update_githubRepositories_many?: Maybe<
+    Array<Maybe<GithubRepositories_Mutation_Response>>
+  >;
   /** update multiples rows of table: "billing.subscriptions" */
-  update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
+  update_many_billing_subscriptions?: Maybe<
+    Array<Maybe<Billing_Subscriptions_Mutation_Response>>
+  >;
   /** update data of the table: "organization_members_role" */
   update_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
   /** update single row of the table: "organization_members_role" */
   update_organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
   /** update multiples rows of table: "organization_members_role" */
-  update_organization_members_role_many?: Maybe<Array<Maybe<Organization_Members_Role_Mutation_Response>>>;
+  update_organization_members_role_many?: Maybe<
+    Array<Maybe<Organization_Members_Role_Mutation_Response>>
+  >;
   /** update data of the table: "organization_status" */
   update_organization_status?: Maybe<Organization_Status_Mutation_Response>;
   /** update single row of the table: "organization_status" */
   update_organization_status_by_pk?: Maybe<Organization_Status>;
   /** update multiples rows of table: "organization_status" */
-  update_organization_status_many?: Maybe<Array<Maybe<Organization_Status_Mutation_Response>>>;
+  update_organization_status_many?: Maybe<
+    Array<Maybe<Organization_Status_Mutation_Response>>
+  >;
   /** update multiples rows of table: "payment_methods" */
-  update_paymentMethods_many?: Maybe<Array<Maybe<PaymentMethods_Mutation_Response>>>;
+  update_paymentMethods_many?: Maybe<
+    Array<Maybe<PaymentMethods_Mutation_Response>>
+  >;
   /** update multiples rows of table: "plans" */
   update_plans_many?: Maybe<Array<Maybe<Plans_Mutation_Response>>>;
   /** update data of the table: "region_type" */
@@ -13017,7 +13007,9 @@ export type Mutation_Root = {
   /** update data of the table: "regions" */
   update_regions?: Maybe<Regions_Mutation_Response>;
   /** update multiples rows of table: "regions_allowed_workspace" */
-  update_regions_allowed_workspace_many?: Maybe<Array<Maybe<Regions_Allowed_Workspace_Mutation_Response>>>;
+  update_regions_allowed_workspace_many?: Maybe<
+    Array<Maybe<Regions_Allowed_Workspace_Mutation_Response>>
+  >;
   /** update single row of the table: "regions" */
   update_regions_by_pk?: Maybe<Regions>;
   /** update multiples rows of table: "regions" */
@@ -13027,20 +13019,22 @@ export type Mutation_Root = {
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_member_invites" */
-  update_workspaceMemberInvites_many?: Maybe<Array<Maybe<WorkspaceMemberInvites_Mutation_Response>>>;
+  update_workspaceMemberInvites_many?: Maybe<
+    Array<Maybe<WorkspaceMemberInvites_Mutation_Response>>
+  >;
   /** update multiples rows of table: "workspace_members" */
-  update_workspaceMembers_many?: Maybe<Array<Maybe<WorkspaceMembers_Mutation_Response>>>;
+  update_workspaceMembers_many?: Maybe<
+    Array<Maybe<WorkspaceMembers_Mutation_Response>>
+  >;
   /** update multiples rows of table: "workspaces" */
   update_workspaces_many?: Maybe<Array<Maybe<Workspaces_Mutation_Response>>>;
 };
-
 
 /** mutation root */
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
   expireInDays?: InputMaybe<Scalars['Int']>;
 };
-
 
 /** mutation root */
 export type Mutation_RootBillingCreateOrganizationRequestArgs = {
@@ -13049,12 +13043,10 @@ export type Mutation_RootBillingCreateOrganizationRequestArgs = {
   redirectURL: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootBillingDeleteOrganizationArgs = {
   organizationID: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootBillingFinishSubscriptionArgs = {
@@ -13066,12 +13058,10 @@ export type Mutation_RootBillingFinishSubscriptionArgs = {
   subscriptionID: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootBillingFullReportWorkflowArgs = {
   reportTime?: InputMaybe<Scalars['Timestamp']>;
 };
-
 
 /** mutation root */
 export type Mutation_RootBillingMigrateProjectToOrganizationArgs = {
@@ -13079,12 +13069,10 @@ export type Mutation_RootBillingMigrateProjectToOrganizationArgs = {
   organizationID: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootBillingPostOrganizationRequestArgs = {
   sessionID: Scalars['String'];
 };
-
 
 /** mutation root */
 export type Mutation_RootBillingUpdateCustomDomainsArgs = {
@@ -13092,13 +13080,11 @@ export type Mutation_RootBillingUpdateCustomDomainsArgs = {
   appID: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootBillingUpdateDedicatedComputeArgs = {
   appID: Scalars['uuid'];
   totalMillicores: Scalars['Int'];
 };
-
 
 /** mutation root */
 export type Mutation_RootBillingUpdateFunctionsAmountArgs = {
@@ -13106,19 +13092,16 @@ export type Mutation_RootBillingUpdateFunctionsAmountArgs = {
   appID: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootBillingUpdatePersistentVolumeArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootBillingUpdateReportsArgs = {
   reportTime?: InputMaybe<Scalars['Timestamp']>;
 };
-
 
 /** mutation root */
 export type Mutation_RootChangeDatabaseVersionArgs = {
@@ -13127,414 +13110,335 @@ export type Mutation_RootChangeDatabaseVersionArgs = {
   version: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAppArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAppStateArgs = {
   id: Scalars['Int'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAppStateHistoriesArgs = {
   where: AppStateHistory_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAppStateHistoryArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAppStatesArgs = {
   where: AppStates_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAppsArgs = {
   where: Apps_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderArgs = {
   id: Scalars['String'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderRequestsArgs = {
   where: AuthProviderRequests_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAuthProvidersArgs = {
   where: AuthProviders_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenTypesArgs = {
   where: AuthRefreshTokenTypes_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokensArgs = {
   where: AuthRefreshTokens_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAuthRoleArgs = {
   role: Scalars['String'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRolesArgs = {
   where: AuthRoles_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserProvidersArgs = {
   where: AuthUserProviders_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserRolesArgs = {
   where: AuthUserRoles_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserSecurityKeysArgs = {
   where: AuthUserSecurityKeys_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteBackupArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteBackupsArgs = {
   where: Backups_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteBillingDedicatedComputeArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteBillingDedicatedComputesArgs = {
   where: Billing_Dedicated_Compute_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteBillingReportArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteBillingReportsArgs = {
   where: Billing_Reports_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteBillingResourceArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteBillingResourcesArgs = {
   where: Billing_Resources_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteBillingSubscriptionArgs = {
   where: Billing_Subscriptions_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteBillingSubscriptionsArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteBucketArgs = {
   id: Scalars['String'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteBucketsArgs = {
   where: Buckets_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteCliTokenArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteCliTokensArgs = {
   where: CliTokens_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteConfigArgs = {
   appID: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteDeploymentArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteDeploymentLogArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteDeploymentLogsArgs = {
   where: DeploymentLogs_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteDeploymentsArgs = {
   where: Deployments_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteFeatureFlagArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteFeatureFlagsArgs = {
   where: FeatureFlags_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteFileArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteFilesArgs = {
   where: Files_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteGithubAppInstallationArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteGithubAppInstallationsArgs = {
   where: GithubAppInstallations_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteGithubRepositoriesArgs = {
   where: GithubRepositories_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteGithubRepositoryArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationArgs = {
   id: Scalars['uuid'];
 };
 
-
-/** mutation root */
-export type Mutation_RootDeleteOrganizationFreeUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteOrganizationFreeUsagesArgs = {
-  where: Organizations_Free_Usage_Bool_Exp;
-};
-
-
 /** mutation root */
 export type Mutation_RootDeleteOrganizationMemberArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationMemberInviteArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteOrganizationMemberInvitesArgs = {
   where: Organization_Member_Invites_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationMembersArgs = {
   where: Organization_Members_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteOrganizationNewRequestArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteOrganizationNewRequestsArgs = {
   where: Organization_New_Request_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteOrganizationsArgs = {
   where: Organizations_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeletePaymentMethodArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeletePaymentMethodsArgs = {
   where: PaymentMethods_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeletePlanArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeletePlansArgs = {
   where: Plans_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteRegionsAllowedOrganizationArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteRegionsAllowedOrganizationsArgs = {
   where: Regions_Allowed_Organization_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteRegionsAllowedWorkspaceArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteRegionsAllowedWorkspacesArgs = {
   where: Regions_Allowed_Workspace_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteRunServiceArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteRunServiceConfigArgs = {
@@ -13542,12 +13446,10 @@ export type Mutation_RootDeleteRunServiceConfigArgs = {
   serviceID: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteRunServicesArgs = {
   where: Run_Service_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteSecretArgs = {
@@ -13555,198 +13457,165 @@ export type Mutation_RootDeleteSecretArgs = {
   key: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteSoftwareTypeArgs = {
   type: Scalars['String'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteSoftwareTypesArgs = {
   where: Software_Type_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteSoftwareVersionArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteSoftwareVersionsArgs = {
   where: Software_Versions_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteUserArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteUsersArgs = {
   where: Users_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteWorkspaceArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteWorkspaceMemberArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteWorkspaceMemberInviteArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteWorkspaceMemberInvitesArgs = {
   where: WorkspaceMemberInvites_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDeleteWorkspaceMembersArgs = {
   where: WorkspaceMembers_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDeleteWorkspacesArgs = {
   where: Workspaces_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_AnnouncementsArgs = {
   where: Announcements_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Announcements_By_PkArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_Auth_MigrationsArgs = {
   where: Auth_Migrations_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Auth_Migrations_By_PkArgs = {
   id: Scalars['Int'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_Billing_Report_TypeArgs = {
   where: Billing_Report_Type_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Billing_Report_Type_By_PkArgs = {
   value: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_Billing_Subscription_ItemsArgs = {
   where: Billing_Subscription_Items_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Billing_Subscription_Items_By_PkArgs = {
   id: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_ContinentsArgs = {
   where: Continents_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Continents_By_PkArgs = {
   code: Scalars['bpchar'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_CountriesArgs = {
   where: Countries_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Countries_By_PkArgs = {
   code: Scalars['bpchar'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_Organization_Members_RoleArgs = {
   where: Organization_Members_Role_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Organization_Members_Role_By_PkArgs = {
   value: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_Organization_StatusArgs = {
   where: Organization_Status_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Organization_Status_By_PkArgs = {
   value: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_Region_TypeArgs = {
   where: Region_Type_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootDelete_Region_Type_By_PkArgs = {
   type: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_RegionsArgs = {
   where: Regions_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootDelete_Regions_By_PkArgs = {
   id: Scalars['uuid'];
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAppArgs = {
@@ -13754,13 +13623,11 @@ export type Mutation_RootInsertAppArgs = {
   on_conflict?: InputMaybe<Apps_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAppStateArgs = {
   object: AppStates_Insert_Input;
   on_conflict?: InputMaybe<AppStates_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAppStateHistoriesArgs = {
@@ -13768,13 +13635,11 @@ export type Mutation_RootInsertAppStateHistoriesArgs = {
   on_conflict?: InputMaybe<AppStateHistory_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAppStateHistoryArgs = {
   object: AppStateHistory_Insert_Input;
   on_conflict?: InputMaybe<AppStateHistory_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAppStatesArgs = {
@@ -13782,13 +13647,11 @@ export type Mutation_RootInsertAppStatesArgs = {
   on_conflict?: InputMaybe<AppStates_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAppsArgs = {
   objects: Array<Apps_Insert_Input>;
   on_conflict?: InputMaybe<Apps_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAuthProviderArgs = {
@@ -13796,13 +13659,11 @@ export type Mutation_RootInsertAuthProviderArgs = {
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAuthProviderRequestArgs = {
   object: AuthProviderRequests_Insert_Input;
   on_conflict?: InputMaybe<AuthProviderRequests_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAuthProviderRequestsArgs = {
@@ -13810,13 +13671,11 @@ export type Mutation_RootInsertAuthProviderRequestsArgs = {
   on_conflict?: InputMaybe<AuthProviderRequests_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAuthProvidersArgs = {
   objects: Array<AuthProviders_Insert_Input>;
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenArgs = {
@@ -13824,13 +13683,11 @@ export type Mutation_RootInsertAuthRefreshTokenArgs = {
   on_conflict?: InputMaybe<AuthRefreshTokens_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenTypeArgs = {
   object: AuthRefreshTokenTypes_Insert_Input;
   on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenTypesArgs = {
@@ -13838,13 +13695,11 @@ export type Mutation_RootInsertAuthRefreshTokenTypesArgs = {
   on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokensArgs = {
   objects: Array<AuthRefreshTokens_Insert_Input>;
   on_conflict?: InputMaybe<AuthRefreshTokens_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAuthRoleArgs = {
@@ -13852,13 +13707,11 @@ export type Mutation_RootInsertAuthRoleArgs = {
   on_conflict?: InputMaybe<AuthRoles_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAuthRolesArgs = {
   objects: Array<AuthRoles_Insert_Input>;
   on_conflict?: InputMaybe<AuthRoles_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserProviderArgs = {
@@ -13866,13 +13719,11 @@ export type Mutation_RootInsertAuthUserProviderArgs = {
   on_conflict?: InputMaybe<AuthUserProviders_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAuthUserProvidersArgs = {
   objects: Array<AuthUserProviders_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserProviders_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserRoleArgs = {
@@ -13880,13 +13731,11 @@ export type Mutation_RootInsertAuthUserRoleArgs = {
   on_conflict?: InputMaybe<AuthUserRoles_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAuthUserRolesArgs = {
   objects: Array<AuthUserRoles_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserRoles_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserSecurityKeyArgs = {
@@ -13894,13 +13743,11 @@ export type Mutation_RootInsertAuthUserSecurityKeyArgs = {
   on_conflict?: InputMaybe<AuthUserSecurityKeys_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertAuthUserSecurityKeysArgs = {
   objects: Array<AuthUserSecurityKeys_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserSecurityKeys_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertBackupArgs = {
@@ -13908,13 +13755,11 @@ export type Mutation_RootInsertBackupArgs = {
   on_conflict?: InputMaybe<Backups_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertBackupsArgs = {
   objects: Array<Backups_Insert_Input>;
   on_conflict?: InputMaybe<Backups_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertBillingDedicatedComputeArgs = {
@@ -13922,13 +13767,11 @@ export type Mutation_RootInsertBillingDedicatedComputeArgs = {
   on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertBillingDedicatedComputesArgs = {
   objects: Array<Billing_Dedicated_Compute_Insert_Input>;
   on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertBillingReportArgs = {
@@ -13936,13 +13779,11 @@ export type Mutation_RootInsertBillingReportArgs = {
   on_conflict?: InputMaybe<Billing_Reports_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertBillingReportsArgs = {
   objects: Array<Billing_Reports_Insert_Input>;
   on_conflict?: InputMaybe<Billing_Reports_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertBillingResourceArgs = {
@@ -13950,13 +13791,11 @@ export type Mutation_RootInsertBillingResourceArgs = {
   on_conflict?: InputMaybe<Billing_Resources_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertBillingResourcesArgs = {
   objects: Array<Billing_Resources_Insert_Input>;
   on_conflict?: InputMaybe<Billing_Resources_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertBillingSubscriptionArgs = {
@@ -13964,13 +13803,11 @@ export type Mutation_RootInsertBillingSubscriptionArgs = {
   on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertBillingSubscriptionsArgs = {
   object: Billing_Subscriptions_Insert_Input;
   on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertBucketArgs = {
@@ -13978,13 +13815,11 @@ export type Mutation_RootInsertBucketArgs = {
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertBucketsArgs = {
   objects: Array<Buckets_Insert_Input>;
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertCliTokenArgs = {
@@ -13992,13 +13827,11 @@ export type Mutation_RootInsertCliTokenArgs = {
   on_conflict?: InputMaybe<CliTokens_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertCliTokensArgs = {
   objects: Array<CliTokens_Insert_Input>;
   on_conflict?: InputMaybe<CliTokens_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertConfigArgs = {
@@ -14008,13 +13841,11 @@ export type Mutation_RootInsertConfigArgs = {
   systemConfig: ConfigSystemConfigInsertInput;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertDeploymentArgs = {
   object: Deployments_Insert_Input;
   on_conflict?: InputMaybe<Deployments_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertDeploymentLogArgs = {
@@ -14022,13 +13853,11 @@ export type Mutation_RootInsertDeploymentLogArgs = {
   on_conflict?: InputMaybe<DeploymentLogs_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertDeploymentLogsArgs = {
   objects: Array<DeploymentLogs_Insert_Input>;
   on_conflict?: InputMaybe<DeploymentLogs_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertDeploymentsArgs = {
@@ -14036,13 +13865,11 @@ export type Mutation_RootInsertDeploymentsArgs = {
   on_conflict?: InputMaybe<Deployments_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertFeatureFlagArgs = {
   object: FeatureFlags_Insert_Input;
   on_conflict?: InputMaybe<FeatureFlags_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertFeatureFlagsArgs = {
@@ -14050,13 +13877,11 @@ export type Mutation_RootInsertFeatureFlagsArgs = {
   on_conflict?: InputMaybe<FeatureFlags_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertFileArgs = {
   object: Files_Insert_Input;
   on_conflict?: InputMaybe<Files_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertFilesArgs = {
@@ -14064,13 +13889,11 @@ export type Mutation_RootInsertFilesArgs = {
   on_conflict?: InputMaybe<Files_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertGithubAppInstallationArgs = {
   object: GithubAppInstallations_Insert_Input;
   on_conflict?: InputMaybe<GithubAppInstallations_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertGithubAppInstallationsArgs = {
@@ -14078,13 +13901,11 @@ export type Mutation_RootInsertGithubAppInstallationsArgs = {
   on_conflict?: InputMaybe<GithubAppInstallations_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertGithubRepositoriesArgs = {
   objects: Array<GithubRepositories_Insert_Input>;
   on_conflict?: InputMaybe<GithubRepositories_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertGithubRepositoryArgs = {
@@ -14092,27 +13913,11 @@ export type Mutation_RootInsertGithubRepositoryArgs = {
   on_conflict?: InputMaybe<GithubRepositories_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertOrganizationArgs = {
   object: Organizations_Insert_Input;
   on_conflict?: InputMaybe<Organizations_On_Conflict>;
 };
-
-
-/** mutation root */
-export type Mutation_RootInsertOrganizationFreeUsageArgs = {
-  object: Organizations_Free_Usage_Insert_Input;
-  on_conflict?: InputMaybe<Organizations_Free_Usage_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertOrganizationFreeUsagesArgs = {
-  objects: Array<Organizations_Free_Usage_Insert_Input>;
-  on_conflict?: InputMaybe<Organizations_Free_Usage_On_Conflict>;
-};
-
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberArgs = {
@@ -14120,13 +13925,11 @@ export type Mutation_RootInsertOrganizationMemberArgs = {
   on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberInviteArgs = {
   object: Organization_Member_Invites_Insert_Input;
   on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationMemberInvitesArgs = {
@@ -14134,13 +13937,11 @@ export type Mutation_RootInsertOrganizationMemberInvitesArgs = {
   on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertOrganizationMembersArgs = {
   objects: Array<Organization_Members_Insert_Input>;
   on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationNewRequestArgs = {
@@ -14148,13 +13949,11 @@ export type Mutation_RootInsertOrganizationNewRequestArgs = {
   on_conflict?: InputMaybe<Organization_New_Request_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertOrganizationNewRequestsArgs = {
   objects: Array<Organization_New_Request_Insert_Input>;
   on_conflict?: InputMaybe<Organization_New_Request_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertOrganizationsArgs = {
@@ -14162,13 +13961,11 @@ export type Mutation_RootInsertOrganizationsArgs = {
   on_conflict?: InputMaybe<Organizations_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertPaymentMethodArgs = {
   object: PaymentMethods_Insert_Input;
   on_conflict?: InputMaybe<PaymentMethods_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertPaymentMethodsArgs = {
@@ -14176,13 +13973,11 @@ export type Mutation_RootInsertPaymentMethodsArgs = {
   on_conflict?: InputMaybe<PaymentMethods_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertPlanArgs = {
   object: Plans_Insert_Input;
   on_conflict?: InputMaybe<Plans_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertPlansArgs = {
@@ -14190,13 +13985,11 @@ export type Mutation_RootInsertPlansArgs = {
   on_conflict?: InputMaybe<Plans_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertRegionsAllowedOrganizationArgs = {
   object: Regions_Allowed_Organization_Insert_Input;
   on_conflict?: InputMaybe<Regions_Allowed_Organization_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertRegionsAllowedOrganizationsArgs = {
@@ -14204,13 +13997,11 @@ export type Mutation_RootInsertRegionsAllowedOrganizationsArgs = {
   on_conflict?: InputMaybe<Regions_Allowed_Organization_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertRegionsAllowedWorkspaceArgs = {
   object: Regions_Allowed_Workspace_Insert_Input;
   on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertRegionsAllowedWorkspacesArgs = {
@@ -14218,13 +14009,11 @@ export type Mutation_RootInsertRegionsAllowedWorkspacesArgs = {
   on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertRunServiceArgs = {
   object: Run_Service_Insert_Input;
   on_conflict?: InputMaybe<Run_Service_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertRunServiceConfigArgs = {
@@ -14233,13 +14022,11 @@ export type Mutation_RootInsertRunServiceConfigArgs = {
   serviceID: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertRunServicesArgs = {
   objects: Array<Run_Service_Insert_Input>;
   on_conflict?: InputMaybe<Run_Service_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertSecretArgs = {
@@ -14247,13 +14034,11 @@ export type Mutation_RootInsertSecretArgs = {
   secret: ConfigEnvironmentVariableInsertInput;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertSoftwareTypeArgs = {
   object: Software_Type_Insert_Input;
   on_conflict?: InputMaybe<Software_Type_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertSoftwareTypesArgs = {
@@ -14261,13 +14046,11 @@ export type Mutation_RootInsertSoftwareTypesArgs = {
   on_conflict?: InputMaybe<Software_Type_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertSoftwareVersionArgs = {
   object: Software_Versions_Insert_Input;
   on_conflict?: InputMaybe<Software_Versions_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertSoftwareVersionsArgs = {
@@ -14275,13 +14058,11 @@ export type Mutation_RootInsertSoftwareVersionsArgs = {
   on_conflict?: InputMaybe<Software_Versions_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertUserArgs = {
   object: Users_Insert_Input;
   on_conflict?: InputMaybe<Users_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertUsersArgs = {
@@ -14289,13 +14070,11 @@ export type Mutation_RootInsertUsersArgs = {
   on_conflict?: InputMaybe<Users_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertWorkspaceArgs = {
   object: Workspaces_Insert_Input;
   on_conflict?: InputMaybe<Workspaces_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertWorkspaceMemberArgs = {
@@ -14303,13 +14082,11 @@ export type Mutation_RootInsertWorkspaceMemberArgs = {
   on_conflict?: InputMaybe<WorkspaceMembers_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertWorkspaceMemberInviteArgs = {
   object: WorkspaceMemberInvites_Insert_Input;
   on_conflict?: InputMaybe<WorkspaceMemberInvites_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertWorkspaceMemberInvitesArgs = {
@@ -14317,13 +14094,11 @@ export type Mutation_RootInsertWorkspaceMemberInvitesArgs = {
   on_conflict?: InputMaybe<WorkspaceMemberInvites_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsertWorkspaceMembersArgs = {
   objects: Array<WorkspaceMembers_Insert_Input>;
   on_conflict?: InputMaybe<WorkspaceMembers_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsertWorkspacesArgs = {
@@ -14331,13 +14106,11 @@ export type Mutation_RootInsertWorkspacesArgs = {
   on_conflict?: InputMaybe<Workspaces_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_AnnouncementsArgs = {
   objects: Array<Announcements_Insert_Input>;
   on_conflict?: InputMaybe<Announcements_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Announcements_OneArgs = {
@@ -14345,13 +14118,11 @@ export type Mutation_RootInsert_Announcements_OneArgs = {
   on_conflict?: InputMaybe<Announcements_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_Auth_MigrationsArgs = {
   objects: Array<Auth_Migrations_Insert_Input>;
   on_conflict?: InputMaybe<Auth_Migrations_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Auth_Migrations_OneArgs = {
@@ -14359,13 +14130,11 @@ export type Mutation_RootInsert_Auth_Migrations_OneArgs = {
   on_conflict?: InputMaybe<Auth_Migrations_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_Billing_Report_TypeArgs = {
   objects: Array<Billing_Report_Type_Insert_Input>;
   on_conflict?: InputMaybe<Billing_Report_Type_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Billing_Report_Type_OneArgs = {
@@ -14373,13 +14142,11 @@ export type Mutation_RootInsert_Billing_Report_Type_OneArgs = {
   on_conflict?: InputMaybe<Billing_Report_Type_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_Billing_Subscription_ItemsArgs = {
   objects: Array<Billing_Subscription_Items_Insert_Input>;
   on_conflict?: InputMaybe<Billing_Subscription_Items_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Billing_Subscription_Items_OneArgs = {
@@ -14387,13 +14154,11 @@ export type Mutation_RootInsert_Billing_Subscription_Items_OneArgs = {
   on_conflict?: InputMaybe<Billing_Subscription_Items_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_ContinentsArgs = {
   objects: Array<Continents_Insert_Input>;
   on_conflict?: InputMaybe<Continents_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Continents_OneArgs = {
@@ -14401,13 +14166,11 @@ export type Mutation_RootInsert_Continents_OneArgs = {
   on_conflict?: InputMaybe<Continents_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_CountriesArgs = {
   objects: Array<Countries_Insert_Input>;
   on_conflict?: InputMaybe<Countries_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Countries_OneArgs = {
@@ -14415,13 +14178,11 @@ export type Mutation_RootInsert_Countries_OneArgs = {
   on_conflict?: InputMaybe<Countries_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_Organization_Members_RoleArgs = {
   objects: Array<Organization_Members_Role_Insert_Input>;
   on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Organization_Members_Role_OneArgs = {
@@ -14429,13 +14190,11 @@ export type Mutation_RootInsert_Organization_Members_Role_OneArgs = {
   on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_Organization_StatusArgs = {
   objects: Array<Organization_Status_Insert_Input>;
   on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Organization_Status_OneArgs = {
@@ -14443,13 +14202,11 @@ export type Mutation_RootInsert_Organization_Status_OneArgs = {
   on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_Region_TypeArgs = {
   objects: Array<Region_Type_Insert_Input>;
   on_conflict?: InputMaybe<Region_Type_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootInsert_Region_Type_OneArgs = {
@@ -14457,20 +14214,17 @@ export type Mutation_RootInsert_Region_Type_OneArgs = {
   on_conflict?: InputMaybe<Region_Type_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_RegionsArgs = {
   objects: Array<Regions_Insert_Input>;
   on_conflict?: InputMaybe<Regions_On_Conflict>;
 };
 
-
 /** mutation root */
 export type Mutation_RootInsert_Regions_OneArgs = {
   object: Regions_Insert_Input;
   on_conflict?: InputMaybe<Regions_On_Conflict>;
 };
-
 
 /** mutation root */
 export type Mutation_RootOrganizationMemberInviteAcceptArgs = {
@@ -14482,20 +14236,17 @@ export type Mutation_RootOrganizationMemberInviteAcceptArgs = {
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
-
 /** mutation root */
 export type Mutation_RootReplaceConfigArgs = {
   appID: Scalars['uuid'];
   config: ConfigConfigInsertInput;
 };
 
-
 /** mutation root */
 export type Mutation_RootReplaceConfigRawJsonArgs = {
   appID: Scalars['uuid'];
   rawJSON: Scalars['String'];
 };
-
 
 /** mutation root */
 export type Mutation_RootReplaceRunServiceConfigArgs = {
@@ -14504,20 +14255,17 @@ export type Mutation_RootReplaceRunServiceConfigArgs = {
   serviceID: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootResetPostgresPasswordArgs = {
   appID: Scalars['String'];
   newPassword: Scalars['String'];
 };
 
-
 /** mutation root */
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
 };
-
 
 /** mutation root */
 export type Mutation_RootSendEmailTemplateArgs = {
@@ -14526,7 +14274,6 @@ export type Mutation_RootSendEmailTemplateArgs = {
   templateModel?: InputMaybe<Scalars['map']>;
   to: Scalars['String'];
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAppArgs = {
@@ -14540,14 +14287,12 @@ export type Mutation_RootUpdateAppArgs = {
   pk_columns: Apps_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAppStateArgs = {
   _inc?: InputMaybe<AppStates_Inc_Input>;
   _set?: InputMaybe<AppStates_Set_Input>;
   pk_columns: AppStates_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAppStateHistoriesArgs = {
@@ -14556,7 +14301,6 @@ export type Mutation_RootUpdateAppStateHistoriesArgs = {
   where: AppStateHistory_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAppStateHistoryArgs = {
   _inc?: InputMaybe<AppStateHistory_Inc_Input>;
@@ -14564,14 +14308,12 @@ export type Mutation_RootUpdateAppStateHistoryArgs = {
   pk_columns: AppStateHistory_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAppStatesArgs = {
   _inc?: InputMaybe<AppStates_Inc_Input>;
   _set?: InputMaybe<AppStates_Set_Input>;
   where: AppStates_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAppsArgs = {
@@ -14585,13 +14327,11 @@ export type Mutation_RootUpdateAppsArgs = {
   where: Apps_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   pk_columns: AuthProviders_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderRequestArgs = {
@@ -14604,7 +14344,6 @@ export type Mutation_RootUpdateAuthProviderRequestArgs = {
   pk_columns: AuthProviderRequests_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderRequestsArgs = {
   _append?: InputMaybe<AuthProviderRequests_Append_Input>;
@@ -14616,13 +14355,11 @@ export type Mutation_RootUpdateAuthProviderRequestsArgs = {
   where: AuthProviderRequests_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthProvidersArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   where: AuthProviders_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenArgs = {
@@ -14635,20 +14372,17 @@ export type Mutation_RootUpdateAuthRefreshTokenArgs = {
   pk_columns: AuthRefreshTokens_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenTypeArgs = {
   _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
   pk_columns: AuthRefreshTokenTypes_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenTypesArgs = {
   _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
   where: AuthRefreshTokenTypes_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokensArgs = {
@@ -14661,13 +14395,11 @@ export type Mutation_RootUpdateAuthRefreshTokensArgs = {
   where: AuthRefreshTokens_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthRoleArgs = {
   _set?: InputMaybe<AuthRoles_Set_Input>;
   pk_columns: AuthRoles_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRolesArgs = {
@@ -14675,13 +14407,11 @@ export type Mutation_RootUpdateAuthRolesArgs = {
   where: AuthRoles_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthUserProviderArgs = {
   _set?: InputMaybe<AuthUserProviders_Set_Input>;
   pk_columns: AuthUserProviders_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAuthUserProvidersArgs = {
@@ -14689,20 +14419,17 @@ export type Mutation_RootUpdateAuthUserProvidersArgs = {
   where: AuthUserProviders_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthUserRoleArgs = {
   _set?: InputMaybe<AuthUserRoles_Set_Input>;
   pk_columns: AuthUserRoles_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthUserRolesArgs = {
   _set?: InputMaybe<AuthUserRoles_Set_Input>;
   where: AuthUserRoles_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateAuthUserSecurityKeyArgs = {
@@ -14711,14 +14438,12 @@ export type Mutation_RootUpdateAuthUserSecurityKeyArgs = {
   pk_columns: AuthUserSecurityKeys_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateAuthUserSecurityKeysArgs = {
   _inc?: InputMaybe<AuthUserSecurityKeys_Inc_Input>;
   _set?: InputMaybe<AuthUserSecurityKeys_Set_Input>;
   where: AuthUserSecurityKeys_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateBackupArgs = {
@@ -14727,14 +14452,12 @@ export type Mutation_RootUpdateBackupArgs = {
   pk_columns: Backups_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateBackupsArgs = {
   _inc?: InputMaybe<Backups_Inc_Input>;
   _set?: InputMaybe<Backups_Set_Input>;
   where: Backups_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateBillingDedicatedComputeArgs = {
@@ -14743,14 +14466,12 @@ export type Mutation_RootUpdateBillingDedicatedComputeArgs = {
   pk_columns: Billing_Dedicated_Compute_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateBillingDedicatedComputesArgs = {
   _inc?: InputMaybe<Billing_Dedicated_Compute_Inc_Input>;
   _set?: InputMaybe<Billing_Dedicated_Compute_Set_Input>;
   where: Billing_Dedicated_Compute_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateBillingReportArgs = {
@@ -14759,14 +14480,12 @@ export type Mutation_RootUpdateBillingReportArgs = {
   pk_columns: Billing_Reports_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateBillingReportsArgs = {
   _inc?: InputMaybe<Billing_Reports_Inc_Input>;
   _set?: InputMaybe<Billing_Reports_Set_Input>;
   where: Billing_Reports_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateBillingResourceArgs = {
@@ -14775,7 +14494,6 @@ export type Mutation_RootUpdateBillingResourceArgs = {
   pk_columns: Billing_Resources_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateBillingResourcesArgs = {
   _inc?: InputMaybe<Billing_Resources_Inc_Input>;
@@ -14783,20 +14501,17 @@ export type Mutation_RootUpdateBillingResourcesArgs = {
   where: Billing_Resources_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateBillingSubscriptionArgs = {
   _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
   pk_columns: Billing_Subscriptions_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateBillingSubscriptionsArgs = {
   _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
   where: Billing_Subscriptions_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateBucketArgs = {
@@ -14805,7 +14520,6 @@ export type Mutation_RootUpdateBucketArgs = {
   pk_columns: Buckets_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateBucketsArgs = {
   _inc?: InputMaybe<Buckets_Inc_Input>;
@@ -14813,13 +14527,11 @@ export type Mutation_RootUpdateBucketsArgs = {
   where: Buckets_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateCliTokenArgs = {
   _set?: InputMaybe<CliTokens_Set_Input>;
   pk_columns: CliTokens_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateCliTokensArgs = {
@@ -14827,13 +14539,11 @@ export type Mutation_RootUpdateCliTokensArgs = {
   where: CliTokens_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateConfigArgs = {
   appID: Scalars['uuid'];
   config: ConfigConfigUpdateInput;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateDeploymentArgs = {
@@ -14841,13 +14551,11 @@ export type Mutation_RootUpdateDeploymentArgs = {
   pk_columns: Deployments_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateDeploymentLogArgs = {
   _set?: InputMaybe<DeploymentLogs_Set_Input>;
   pk_columns: DeploymentLogs_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateDeploymentLogsArgs = {
@@ -14855,13 +14563,11 @@ export type Mutation_RootUpdateDeploymentLogsArgs = {
   where: DeploymentLogs_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateDeploymentsArgs = {
   _set?: InputMaybe<Deployments_Set_Input>;
   where: Deployments_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateFeatureFlagArgs = {
@@ -14869,13 +14575,11 @@ export type Mutation_RootUpdateFeatureFlagArgs = {
   pk_columns: FeatureFlags_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateFeatureFlagsArgs = {
   _set?: InputMaybe<FeatureFlags_Set_Input>;
   where: FeatureFlags_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateFileArgs = {
@@ -14884,14 +14588,12 @@ export type Mutation_RootUpdateFileArgs = {
   pk_columns: Files_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateFilesArgs = {
   _inc?: InputMaybe<Files_Inc_Input>;
   _set?: InputMaybe<Files_Set_Input>;
   where: Files_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateGithubAppInstallationArgs = {
@@ -14905,7 +14607,6 @@ export type Mutation_RootUpdateGithubAppInstallationArgs = {
   pk_columns: GithubAppInstallations_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateGithubAppInstallationsArgs = {
   _append?: InputMaybe<GithubAppInstallations_Append_Input>;
@@ -14918,13 +14619,11 @@ export type Mutation_RootUpdateGithubAppInstallationsArgs = {
   where: GithubAppInstallations_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateGithubRepositoriesArgs = {
   _set?: InputMaybe<GithubRepositories_Set_Input>;
   where: GithubRepositories_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateGithubRepositoryArgs = {
@@ -14932,30 +14631,25 @@ export type Mutation_RootUpdateGithubRepositoryArgs = {
   pk_columns: GithubRepositories_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateManyBillingReportsArgs = {
   updates: Array<Billing_Reports_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateManyBillingResourcesArgs = {
   updates: Array<Billing_Resources_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateManySoftwareTypeArgs = {
   updates: Array<Software_Type_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateManySoftwareVersionsArgs = {
   updates: Array<Software_Versions_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationArgs = {
@@ -14963,33 +14657,11 @@ export type Mutation_RootUpdateOrganizationArgs = {
   pk_columns: Organizations_Pk_Columns_Input;
 };
 
-
-/** mutation root */
-export type Mutation_RootUpdateOrganizationFreeUsageArgs = {
-  _set?: InputMaybe<Organizations_Free_Usage_Set_Input>;
-  pk_columns: Organizations_Free_Usage_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateOrganizationFreeUsageManyArgs = {
-  updates: Array<Organizations_Free_Usage_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateOrganizationFreeUsagesArgs = {
-  _set?: InputMaybe<Organizations_Free_Usage_Set_Input>;
-  where: Organizations_Free_Usage_Bool_Exp;
-};
-
-
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberArgs = {
   _set?: InputMaybe<Organization_Members_Set_Input>;
   pk_columns: Organization_Members_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInviteArgs = {
@@ -14997,19 +14669,16 @@ export type Mutation_RootUpdateOrganizationMemberInviteArgs = {
   pk_columns: Organization_Member_Invites_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInvitesArgs = {
   _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
   where: Organization_Member_Invites_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMemberInvitesManyArgs = {
   updates: Array<Organization_Member_Invites_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMembersArgs = {
@@ -15017,12 +14686,10 @@ export type Mutation_RootUpdateOrganizationMembersArgs = {
   where: Organization_Members_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateOrganizationMembersManyArgs = {
   updates: Array<Organization_Members_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestArgs = {
@@ -15030,19 +14697,16 @@ export type Mutation_RootUpdateOrganizationNewRequestArgs = {
   pk_columns: Organization_New_Request_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestsArgs = {
   _set?: InputMaybe<Organization_New_Request_Set_Input>;
   where: Organization_New_Request_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateOrganizationNewRequestsManyArgs = {
   updates: Array<Organization_New_Request_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationsArgs = {
@@ -15050,12 +14714,10 @@ export type Mutation_RootUpdateOrganizationsArgs = {
   where: Organizations_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateOrganizationsManyArgs = {
   updates: Array<Organizations_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdatePaymentMethodArgs = {
@@ -15064,14 +14726,12 @@ export type Mutation_RootUpdatePaymentMethodArgs = {
   pk_columns: PaymentMethods_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdatePaymentMethodsArgs = {
   _inc?: InputMaybe<PaymentMethods_Inc_Input>;
   _set?: InputMaybe<PaymentMethods_Set_Input>;
   where: PaymentMethods_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdatePlanArgs = {
@@ -15080,7 +14740,6 @@ export type Mutation_RootUpdatePlanArgs = {
   pk_columns: Plans_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdatePlansArgs = {
   _inc?: InputMaybe<Plans_Inc_Input>;
@@ -15088,13 +14747,11 @@ export type Mutation_RootUpdatePlansArgs = {
   where: Plans_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateRegionsAllowedOrganizationArgs = {
   _set?: InputMaybe<Regions_Allowed_Organization_Set_Input>;
   pk_columns: Regions_Allowed_Organization_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateRegionsAllowedOrganizationsArgs = {
@@ -15102,12 +14759,10 @@ export type Mutation_RootUpdateRegionsAllowedOrganizationsArgs = {
   where: Regions_Allowed_Organization_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateRegionsAllowedOrganizationsManyArgs = {
   updates: Array<Regions_Allowed_Organization_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateRegionsAllowedWorkspaceArgs = {
@@ -15115,20 +14770,17 @@ export type Mutation_RootUpdateRegionsAllowedWorkspaceArgs = {
   pk_columns: Regions_Allowed_Workspace_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateRegionsAllowedWorkspacesArgs = {
   _set?: InputMaybe<Regions_Allowed_Workspace_Set_Input>;
   where: Regions_Allowed_Workspace_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateRunServiceArgs = {
   _set?: InputMaybe<Run_Service_Set_Input>;
   pk_columns: Run_Service_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateRunServiceConfigArgs = {
@@ -15137,13 +14789,11 @@ export type Mutation_RootUpdateRunServiceConfigArgs = {
   serviceID: Scalars['uuid'];
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateRunServicesArgs = {
   _set?: InputMaybe<Run_Service_Set_Input>;
   where: Run_Service_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateSecretArgs = {
@@ -15151,13 +14801,11 @@ export type Mutation_RootUpdateSecretArgs = {
   secret: ConfigEnvironmentVariableInsertInput;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateSoftwareTypeArgs = {
   _set?: InputMaybe<Software_Type_Set_Input>;
   pk_columns: Software_Type_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateSoftwareTypesArgs = {
@@ -15165,13 +14813,11 @@ export type Mutation_RootUpdateSoftwareTypesArgs = {
   where: Software_Type_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateSoftwareVersionArgs = {
   _set?: InputMaybe<Software_Versions_Set_Input>;
   pk_columns: Software_Versions_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateSoftwareVersionsArgs = {
@@ -15179,13 +14825,11 @@ export type Mutation_RootUpdateSoftwareVersionsArgs = {
   where: Software_Versions_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateSystemConfigArgs = {
   appID: Scalars['uuid'];
   systemConfig: ConfigSystemConfigUpdateInput;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateUserArgs = {
@@ -15198,7 +14842,6 @@ export type Mutation_RootUpdateUserArgs = {
   pk_columns: Users_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateUsersArgs = {
   _append?: InputMaybe<Users_Append_Input>;
@@ -15210,13 +14853,11 @@ export type Mutation_RootUpdateUsersArgs = {
   where: Users_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateWorkspaceArgs = {
   _set?: InputMaybe<Workspaces_Set_Input>;
   pk_columns: Workspaces_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateWorkspaceMemberArgs = {
@@ -15224,13 +14865,11 @@ export type Mutation_RootUpdateWorkspaceMemberArgs = {
   pk_columns: WorkspaceMembers_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateWorkspaceMemberInviteArgs = {
   _set?: InputMaybe<WorkspaceMemberInvites_Set_Input>;
   pk_columns: WorkspaceMemberInvites_Pk_Columns_Input;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateWorkspaceMemberInvitesArgs = {
@@ -15238,13 +14877,11 @@ export type Mutation_RootUpdateWorkspaceMemberInvitesArgs = {
   where: WorkspaceMemberInvites_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdateWorkspaceMembersArgs = {
   _set?: InputMaybe<WorkspaceMembers_Set_Input>;
   where: WorkspaceMembers_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdateWorkspacesArgs = {
@@ -15252,13 +14889,11 @@ export type Mutation_RootUpdateWorkspacesArgs = {
   where: Workspaces_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_AnnouncementsArgs = {
   _set?: InputMaybe<Announcements_Set_Input>;
   where: Announcements_Bool_Exp;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Announcements_By_PkArgs = {
@@ -15266,78 +14901,65 @@ export type Mutation_RootUpdate_Announcements_By_PkArgs = {
   pk_columns: Announcements_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Announcements_ManyArgs = {
   updates: Array<Announcements_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_AppStateHistory_ManyArgs = {
   updates: Array<AppStateHistory_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_AppStates_ManyArgs = {
   updates: Array<AppStates_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Apps_ManyArgs = {
   updates: Array<Apps_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_AuthProviderRequests_ManyArgs = {
   updates: Array<AuthProviderRequests_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthProviders_ManyArgs = {
   updates: Array<AuthProviders_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_AuthRefreshTokenTypes_ManyArgs = {
   updates: Array<AuthRefreshTokenTypes_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthRefreshTokens_ManyArgs = {
   updates: Array<AuthRefreshTokens_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_AuthRoles_ManyArgs = {
   updates: Array<AuthRoles_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserProviders_ManyArgs = {
   updates: Array<AuthUserProviders_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserRoles_ManyArgs = {
   updates: Array<AuthUserRoles_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserSecurityKeys_ManyArgs = {
   updates: Array<AuthUserSecurityKeys_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Auth_MigrationsArgs = {
@@ -15346,7 +14968,6 @@ export type Mutation_RootUpdate_Auth_MigrationsArgs = {
   where: Auth_Migrations_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Auth_Migrations_By_PkArgs = {
   _inc?: InputMaybe<Auth_Migrations_Inc_Input>;
@@ -15354,24 +14975,20 @@ export type Mutation_RootUpdate_Auth_Migrations_By_PkArgs = {
   pk_columns: Auth_Migrations_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Auth_Migrations_ManyArgs = {
   updates: Array<Auth_Migrations_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Backups_ManyArgs = {
   updates: Array<Backups_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Billing_Dedicated_Compute_ManyArgs = {
   updates: Array<Billing_Dedicated_Compute_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Billing_Report_TypeArgs = {
@@ -15379,19 +14996,16 @@ export type Mutation_RootUpdate_Billing_Report_TypeArgs = {
   where: Billing_Report_Type_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Billing_Report_Type_By_PkArgs = {
   _set?: InputMaybe<Billing_Report_Type_Set_Input>;
   pk_columns: Billing_Report_Type_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Billing_Report_Type_ManyArgs = {
   updates: Array<Billing_Report_Type_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Billing_Subscription_ItemsArgs = {
@@ -15399,31 +15013,26 @@ export type Mutation_RootUpdate_Billing_Subscription_ItemsArgs = {
   where: Billing_Subscription_Items_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Billing_Subscription_Items_By_PkArgs = {
   _set?: InputMaybe<Billing_Subscription_Items_Set_Input>;
   pk_columns: Billing_Subscription_Items_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Billing_Subscription_Items_ManyArgs = {
   updates: Array<Billing_Subscription_Items_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Buckets_ManyArgs = {
   updates: Array<Buckets_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_CliTokens_ManyArgs = {
   updates: Array<CliTokens_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_ContinentsArgs = {
@@ -15431,19 +15040,16 @@ export type Mutation_RootUpdate_ContinentsArgs = {
   where: Continents_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Continents_By_PkArgs = {
   _set?: InputMaybe<Continents_Set_Input>;
   pk_columns: Continents_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Continents_ManyArgs = {
   updates: Array<Continents_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_CountriesArgs = {
@@ -15452,7 +15058,6 @@ export type Mutation_RootUpdate_CountriesArgs = {
   where: Countries_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Countries_By_PkArgs = {
   _inc?: InputMaybe<Countries_Inc_Input>;
@@ -15460,54 +15065,45 @@ export type Mutation_RootUpdate_Countries_By_PkArgs = {
   pk_columns: Countries_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Countries_ManyArgs = {
   updates: Array<Countries_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_DeploymentLogs_ManyArgs = {
   updates: Array<DeploymentLogs_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Deployments_ManyArgs = {
   updates: Array<Deployments_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_FeatureFlags_ManyArgs = {
   updates: Array<FeatureFlags_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Files_ManyArgs = {
   updates: Array<Files_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_GithubAppInstallations_ManyArgs = {
   updates: Array<GithubAppInstallations_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_GithubRepositories_ManyArgs = {
   updates: Array<GithubRepositories_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Many_Billing_SubscriptionsArgs = {
   updates: Array<Billing_Subscriptions_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Organization_Members_RoleArgs = {
@@ -15515,19 +15111,16 @@ export type Mutation_RootUpdate_Organization_Members_RoleArgs = {
   where: Organization_Members_Role_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Organization_Members_Role_By_PkArgs = {
   _set?: InputMaybe<Organization_Members_Role_Set_Input>;
   pk_columns: Organization_Members_Role_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Organization_Members_Role_ManyArgs = {
   updates: Array<Organization_Members_Role_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Organization_StatusArgs = {
@@ -15535,31 +15128,26 @@ export type Mutation_RootUpdate_Organization_StatusArgs = {
   where: Organization_Status_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Organization_Status_By_PkArgs = {
   _set?: InputMaybe<Organization_Status_Set_Input>;
   pk_columns: Organization_Status_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Organization_Status_ManyArgs = {
   updates: Array<Organization_Status_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_PaymentMethods_ManyArgs = {
   updates: Array<PaymentMethods_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Plans_ManyArgs = {
   updates: Array<Plans_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Region_TypeArgs = {
@@ -15567,19 +15155,16 @@ export type Mutation_RootUpdate_Region_TypeArgs = {
   where: Region_Type_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Region_Type_By_PkArgs = {
   _set?: InputMaybe<Region_Type_Set_Input>;
   pk_columns: Region_Type_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Region_Type_ManyArgs = {
   updates: Array<Region_Type_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_RegionsArgs = {
@@ -15587,12 +15172,10 @@ export type Mutation_RootUpdate_RegionsArgs = {
   where: Regions_Bool_Exp;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Regions_Allowed_Workspace_ManyArgs = {
   updates: Array<Regions_Allowed_Workspace_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Regions_By_PkArgs = {
@@ -15600,36 +15183,30 @@ export type Mutation_RootUpdate_Regions_By_PkArgs = {
   pk_columns: Regions_Pk_Columns_Input;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Regions_ManyArgs = {
   updates: Array<Regions_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Run_Service_ManyArgs = {
   updates: Array<Run_Service_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_WorkspaceMemberInvites_ManyArgs = {
   updates: Array<WorkspaceMemberInvites_Updates>;
 };
 
-
 /** mutation root */
 export type Mutation_RootUpdate_WorkspaceMembers_ManyArgs = {
   updates: Array<WorkspaceMembers_Updates>;
 };
-
 
 /** mutation root */
 export type Mutation_RootUpdate_Workspaces_ManyArgs = {
@@ -15649,7 +15226,7 @@ export enum Order_By {
   /** in descending order, nulls first */
   DescNullsFirst = 'desc_nulls_first',
   /** in descending order, nulls last */
-  DescNullsLast = 'desc_nulls_last'
+  DescNullsLast = 'desc_nulls_last',
 }
 
 export type OrganizationMemberInviteAccept_Args = {
@@ -15697,7 +15274,6 @@ export type Organization_Member_Invites_Aggregate_Fields = {
   min?: Maybe<Organization_Member_Invites_Min_Fields>;
 };
 
-
 /** aggregate fields of "organization_member_invites" */
 export type Organization_Member_Invites_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
@@ -15738,7 +15314,7 @@ export enum Organization_Member_Invites_Constraint {
   /** unique or primary key constraint on columns "email", "organization_id" */
   OrganizationMemberInvitesOrganizationIdEmailKey = 'organization_member_invites_organization_id_email_key',
   /** unique or primary key constraint on columns "id" */
-  OrganizationMemberInvitesPkey = 'organization_member_invites_pkey'
+  OrganizationMemberInvitesPkey = 'organization_member_invites_pkey',
 }
 
 /** input type for inserting data into table "organization_member_invites" */
@@ -15837,7 +15413,7 @@ export enum Organization_Member_Invites_Select_Column {
   /** column name */
   Role = 'role',
   /** column name */
-  UpdateAt = 'updateAt'
+  UpdateAt = 'updateAt',
 }
 
 /** input type for updating data in table "organization_member_invites" */
@@ -15881,7 +15457,7 @@ export enum Organization_Member_Invites_Update_Column {
   /** column name */
   Role = 'role',
   /** column name */
-  UpdateAt = 'updateAt'
+  UpdateAt = 'updateAt',
 }
 
 export type Organization_Member_Invites_Updates = {
@@ -15932,7 +15508,6 @@ export type Organization_Members_Aggregate_Fields = {
   min?: Maybe<Organization_Members_Min_Fields>;
 };
 
-
 /** aggregate fields of "organization_members" */
 export type Organization_Members_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Organization_Members_Select_Column>>;
@@ -15973,7 +15548,7 @@ export enum Organization_Members_Constraint {
   /** unique or primary key constraint on columns "user_id", "organization_id" */
   OrganizationMembersOrganizationIdUserIdKey = 'organization_members_organization_id_user_id_key',
   /** unique or primary key constraint on columns "id" */
-  OrganizationMembersPkey = 'organization_members_pkey'
+  OrganizationMembersPkey = 'organization_members_pkey',
 }
 
 /** input type for inserting data into table "organization_members" */
@@ -16081,7 +15656,6 @@ export type Organization_Members_Role_Aggregate_Fields = {
   min?: Maybe<Organization_Members_Role_Min_Fields>;
 };
 
-
 /** aggregate fields of "organization_members_role" */
 export type Organization_Members_Role_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
@@ -16100,14 +15674,14 @@ export type Organization_Members_Role_Bool_Exp = {
 /** unique or primary key constraints on table "organization_members_role" */
 export enum Organization_Members_Role_Constraint {
   /** unique or primary key constraint on columns "value" */
-  OrganizationMembersRolePkey = 'organization_members_role_pkey'
+  OrganizationMembersRolePkey = 'organization_members_role_pkey',
 }
 
 export enum Organization_Members_Role_Enum {
   /** Administrator */
   Admin = 'ADMIN',
   /** User */
-  User = 'USER'
+  User = 'USER',
 }
 
 /** Boolean expression to compare columns of type "organization_members_role_enum". All fields are combined with logical 'AND'. */
@@ -16171,7 +15745,7 @@ export enum Organization_Members_Role_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 /** input type for updating data in table "organization_members_role" */
@@ -16199,7 +15773,7 @@ export enum Organization_Members_Role_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 export type Organization_Members_Role_Updates = {
@@ -16222,7 +15796,7 @@ export enum Organization_Members_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userID'
+  UserId = 'userID',
 }
 
 /** input type for updating data in table "organization_members" */
@@ -16266,7 +15840,7 @@ export enum Organization_Members_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userID'
+  UserId = 'userID',
 }
 
 export type Organization_Members_Updates = {
@@ -16307,7 +15881,6 @@ export type Organization_New_Request_Aggregate_Fields = {
   min?: Maybe<Organization_New_Request_Min_Fields>;
 };
 
-
 /** aggregate fields of "organization_new_request" */
 export type Organization_New_Request_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
@@ -16335,7 +15908,7 @@ export enum Organization_New_Request_Constraint {
   /** unique or primary key constraint on columns "id" */
   OrganizationNewRequestPkey = 'organization_new_request_pkey',
   /** unique or primary key constraint on columns "session_id" */
-  OrganizationNewRequestSessionIdKey = 'organization_new_request_session_id_key'
+  OrganizationNewRequestSessionIdKey = 'organization_new_request_session_id_key',
 }
 
 /** input type for inserting data into table "organization_new_request" */
@@ -16424,7 +15997,7 @@ export enum Organization_New_Request_Select_Column {
   /** column name */
   Slug = 'slug',
   /** column name */
-  UserId = 'userID'
+  UserId = 'userID',
 }
 
 /** input type for updating data in table "organization_new_request" */
@@ -16472,7 +16045,7 @@ export enum Organization_New_Request_Update_Column {
   /** column name */
   Slug = 'slug',
   /** column name */
-  UserId = 'userID'
+  UserId = 'userID',
 }
 
 export type Organization_New_Request_Updates = {
@@ -16504,7 +16077,6 @@ export type Organization_Status_Aggregate_Fields = {
   min?: Maybe<Organization_Status_Min_Fields>;
 };
 
-
 /** aggregate fields of "organization_status" */
 export type Organization_Status_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Organization_Status_Select_Column>>;
@@ -16523,7 +16095,7 @@ export type Organization_Status_Bool_Exp = {
 /** unique or primary key constraints on table "organization_status" */
 export enum Organization_Status_Constraint {
   /** unique or primary key constraint on columns "value" */
-  OrganizationStatusPkey = 'organization_status_pkey'
+  OrganizationStatusPkey = 'organization_status_pkey',
 }
 
 export enum Organization_Status_Enum {
@@ -16534,7 +16106,7 @@ export enum Organization_Status_Enum {
   /** Organization is locked and changes to resources are not allowed */
   Locked = 'LOCKED',
   /** Organization is healthy */
-  Ok = 'OK'
+  Ok = 'OK',
 }
 
 /** Boolean expression to compare columns of type "organization_status_enum". All fields are combined with logical 'AND'. */
@@ -16598,7 +16170,7 @@ export enum Organization_Status_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 /** input type for updating data in table "organization_status" */
@@ -16626,7 +16198,7 @@ export enum Organization_Status_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value'
+  Value = 'value',
 }
 
 export type Organization_Status_Updates = {
@@ -16669,7 +16241,6 @@ export type Organizations = {
   updatedAt: Scalars['timestamptz'];
 };
 
-
 /** columns and relationships of "organizations" */
 export type OrganizationsAllowedPrivateRegionsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
@@ -16678,7 +16249,6 @@ export type OrganizationsAllowedPrivateRegionsArgs = {
   order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
-
 
 /** columns and relationships of "organizations" */
 export type OrganizationsAllowedPrivateRegions_AggregateArgs = {
@@ -16689,7 +16259,6 @@ export type OrganizationsAllowedPrivateRegions_AggregateArgs = {
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
 
-
 /** columns and relationships of "organizations" */
 export type OrganizationsAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -16698,7 +16267,6 @@ export type OrganizationsAppsArgs = {
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
-
 
 /** columns and relationships of "organizations" */
 export type OrganizationsApps_AggregateArgs = {
@@ -16709,7 +16277,6 @@ export type OrganizationsApps_AggregateArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 /** columns and relationships of "organizations" */
 export type OrganizationsInvitesArgs = {
   distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
@@ -16718,7 +16285,6 @@ export type OrganizationsInvitesArgs = {
   order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
   where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
-
 
 /** columns and relationships of "organizations" */
 export type OrganizationsInvites_AggregateArgs = {
@@ -16729,7 +16295,6 @@ export type OrganizationsInvites_AggregateArgs = {
   where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
-
 /** columns and relationships of "organizations" */
 export type OrganizationsMembersArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
@@ -16738,7 +16303,6 @@ export type OrganizationsMembersArgs = {
   order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
-
 
 /** columns and relationships of "organizations" */
 export type OrganizationsMembers_AggregateArgs = {
@@ -16774,7 +16338,6 @@ export type Organizations_Aggregate_Fields = {
   max?: Maybe<Organizations_Max_Fields>;
   min?: Maybe<Organizations_Min_Fields>;
 };
-
 
 /** aggregate fields of "organizations" */
 export type Organizations_Aggregate_FieldsCountArgs = {
@@ -16827,178 +16390,8 @@ export enum Organizations_Constraint {
   /** unique or primary key constraint on columns "id" */
   OrganizationsPkey = 'organizations_pkey',
   /** unique or primary key constraint on columns "slug" */
-  OrganizationsSlugKey = 'organizations_slug_key'
+  OrganizationsSlugKey = 'organizations_slug_key',
 }
-
-/** columns and relationships of "organizations_free_usage" */
-export type Organizations_Free_Usage = {
-  __typename?: 'organizations_free_usage';
-  createdAt: Scalars['timestamptz'];
-  freeAllowanceExceeded: Scalars['Boolean'];
-  id: Scalars['uuid'];
-  organizationID: Scalars['uuid'];
-  updated_at: Scalars['timestamptz'];
-};
-
-/** aggregated selection of "organizations_free_usage" */
-export type Organizations_Free_Usage_Aggregate = {
-  __typename?: 'organizations_free_usage_aggregate';
-  aggregate?: Maybe<Organizations_Free_Usage_Aggregate_Fields>;
-  nodes: Array<Organizations_Free_Usage>;
-};
-
-/** aggregate fields of "organizations_free_usage" */
-export type Organizations_Free_Usage_Aggregate_Fields = {
-  __typename?: 'organizations_free_usage_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Organizations_Free_Usage_Max_Fields>;
-  min?: Maybe<Organizations_Free_Usage_Min_Fields>;
-};
-
-
-/** aggregate fields of "organizations_free_usage" */
-export type Organizations_Free_Usage_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** Boolean expression to filter rows from the table "organizations_free_usage". All fields are combined with a logical 'AND'. */
-export type Organizations_Free_Usage_Bool_Exp = {
-  _and?: InputMaybe<Array<Organizations_Free_Usage_Bool_Exp>>;
-  _not?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-  _or?: InputMaybe<Array<Organizations_Free_Usage_Bool_Exp>>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  freeAllowanceExceeded?: InputMaybe<Boolean_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "organizations_free_usage" */
-export enum Organizations_Free_Usage_Constraint {
-  /** unique or primary key constraint on columns "organization_id" */
-  OrganizationsFreeUsageOrganizationIdKey = 'organizations_free_usage_organization_id_key',
-  /** unique or primary key constraint on columns "id" */
-  OrganizationsFreeUsagePkey = 'organizations_free_usage_pkey'
-}
-
-/** input type for inserting data into table "organizations_free_usage" */
-export type Organizations_Free_Usage_Insert_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  freeAllowanceExceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  organizationID?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate max on columns */
-export type Organizations_Free_Usage_Max_Fields = {
-  __typename?: 'organizations_free_usage_max_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  organizationID?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-};
-
-/** aggregate min on columns */
-export type Organizations_Free_Usage_Min_Fields = {
-  __typename?: 'organizations_free_usage_min_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  organizationID?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-};
-
-/** response of any mutation on the table "organizations_free_usage" */
-export type Organizations_Free_Usage_Mutation_Response = {
-  __typename?: 'organizations_free_usage_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Organizations_Free_Usage>;
-};
-
-/** on_conflict condition type for table "organizations_free_usage" */
-export type Organizations_Free_Usage_On_Conflict = {
-  constraint: Organizations_Free_Usage_Constraint;
-  update_columns?: Array<Organizations_Free_Usage_Update_Column>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "organizations_free_usage". */
-export type Organizations_Free_Usage_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  freeAllowanceExceeded?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  organizationID?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: organizations_free_usage */
-export type Organizations_Free_Usage_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "organizations_free_usage" */
-export enum Organizations_Free_Usage_Select_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  FreeAllowanceExceeded = 'freeAllowanceExceeded',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  OrganizationId = 'organizationID',
-  /** column name */
-  UpdatedAt = 'updated_at'
-}
-
-/** input type for updating data in table "organizations_free_usage" */
-export type Organizations_Free_Usage_Set_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  freeAllowanceExceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  organizationID?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** Streaming cursor of the table "organizations_free_usage" */
-export type Organizations_Free_Usage_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Organizations_Free_Usage_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Organizations_Free_Usage_Stream_Cursor_Value_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  freeAllowanceExceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  organizationID?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** update columns of table "organizations_free_usage" */
-export enum Organizations_Free_Usage_Update_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  FreeAllowanceExceeded = 'freeAllowanceExceeded',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  OrganizationId = 'organizationID',
-  /** column name */
-  UpdatedAt = 'updated_at'
-}
-
-export type Organizations_Free_Usage_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Organizations_Free_Usage_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Organizations_Free_Usage_Bool_Exp;
-};
 
 /** input type for inserting data into table "organizations" */
 export type Organizations_Insert_Input = {
@@ -17141,7 +16534,7 @@ export enum Organizations_Select_Column {
   /** column name */
   StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "organizations" */
@@ -17201,7 +16594,7 @@ export enum Organizations_Update_Column {
   /** column name */
   StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Organizations_Updates = {
@@ -17280,7 +16673,6 @@ export type PaymentMethods_Aggregate_Fields = {
   variance?: Maybe<PaymentMethods_Variance_Fields>;
 };
 
-
 /** aggregate fields of "payment_methods" */
 export type PaymentMethods_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<PaymentMethods_Select_Column>>;
@@ -17344,7 +16736,7 @@ export type PaymentMethods_Bool_Exp = {
 /** unique or primary key constraints on table "payment_methods" */
 export enum PaymentMethods_Constraint {
   /** unique or primary key constraint on columns "id" */
-  PaymentMethodsPkey = 'payment_methods_pkey'
+  PaymentMethodsPkey = 'payment_methods_pkey',
 }
 
 /** input type for incrementing numeric columns in table "payment_methods" */
@@ -17488,19 +16880,19 @@ export enum PaymentMethods_Select_Column {
   /** column name */
   StripePaymentMethodId = 'stripePaymentMethodId',
   /** column name */
-  WorkspaceId = 'workspaceId'
+  WorkspaceId = 'workspaceId',
 }
 
 /** select "paymentMethods_aggregate_bool_exp_bool_and_arguments_columns" columns of table "payment_methods" */
 export enum PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  IsDefault = 'isDefault'
+  IsDefault = 'isDefault',
 }
 
 /** select "paymentMethods_aggregate_bool_exp_bool_or_arguments_columns" columns of table "payment_methods" */
 export enum PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  IsDefault = 'isDefault'
+  IsDefault = 'isDefault',
 }
 
 /** input type for updating data in table "payment_methods" */
@@ -17612,7 +17004,7 @@ export enum PaymentMethods_Update_Column {
   /** column name */
   StripePaymentMethodId = 'stripePaymentMethodId',
   /** column name */
-  WorkspaceId = 'workspaceId'
+  WorkspaceId = 'workspaceId',
 }
 
 export type PaymentMethods_Updates = {
@@ -17708,7 +17100,6 @@ export type Plans = {
   upatedAt: Scalars['timestamptz'];
 };
 
-
 /** columns and relationships of "plans" */
 export type PlansAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -17717,7 +17108,6 @@ export type PlansAppsArgs = {
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
-
 
 /** columns and relationships of "plans" */
 export type PlansApps_AggregateArgs = {
@@ -17728,7 +17118,6 @@ export type PlansApps_AggregateArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 /** columns and relationships of "plans" */
 export type PlansOrganizationsArgs = {
   distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
@@ -17737,7 +17126,6 @@ export type PlansOrganizationsArgs = {
   order_by?: InputMaybe<Array<Organizations_Order_By>>;
   where?: InputMaybe<Organizations_Bool_Exp>;
 };
-
 
 /** columns and relationships of "plans" */
 export type PlansOrganizations_AggregateArgs = {
@@ -17770,7 +17158,6 @@ export type Plans_Aggregate_Fields = {
   var_samp?: Maybe<Plans_Var_Samp_Fields>;
   variance?: Maybe<Plans_Variance_Fields>;
 };
-
 
 /** aggregate fields of "plans" */
 export type Plans_Aggregate_FieldsCountArgs = {
@@ -17835,7 +17222,7 @@ export type Plans_Bool_Exp = {
 /** unique or primary key constraints on table "plans" */
 export enum Plans_Constraint {
   /** unique or primary key constraint on columns "id" */
-  PlansPkey = 'plans_pkey'
+  PlansPkey = 'plans_pkey',
 }
 
 /** input type for incrementing numeric columns in table "plans" */
@@ -18061,7 +17448,7 @@ export enum Plans_Select_Column {
   /** column name */
   StripePriceId = 'stripePriceId',
   /** column name */
-  UpatedAt = 'upatedAt'
+  UpatedAt = 'upatedAt',
 }
 
 /** input type for updating data in table "plans" */
@@ -18259,7 +17646,7 @@ export enum Plans_Update_Column {
   /** column name */
   StripePriceId = 'stripePriceId',
   /** column name */
-  UpatedAt = 'upatedAt'
+  UpatedAt = 'upatedAt',
 }
 
 export type Plans_Updates = {
@@ -18511,7 +17898,8 @@ export type Query_Root = {
    */
   getServiceLabelValues: Array<Scalars['String']>;
   getTotalRequests: Metrics;
-  getUsageAll: Array<UsageSummary>;
+  getUsageForApp: UsageSummary;
+  getUsageForOrganization: UsageSummary;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -18531,12 +17919,6 @@ export type Query_Root = {
   logs: Array<Log>;
   /** fetch data from the table: "organizations" using primary key columns */
   organization?: Maybe<Organizations>;
-  /** fetch data from the table: "organizations_free_usage" using primary key columns */
-  organizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** fetch data from the table: "organizations_free_usage" */
-  organizationFreeUsages: Array<Organizations_Free_Usage>;
-  /** fetch aggregated fields from the table: "organizations_free_usage" */
-  organizationFreeUsagesAggregate: Organizations_Free_Usage_Aggregate;
   /** fetch data from the table: "organization_members" using primary key columns */
   organizationMember?: Maybe<Organization_Members>;
   /** fetch data from the table: "organization_member_invites" using primary key columns */
@@ -18666,7 +18048,6 @@ export type Query_Root = {
   workspacesAggregate: Workspaces_Aggregate;
 };
 
-
 export type Query_RootAnnouncementsArgs = {
   distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18674,7 +18055,6 @@ export type Query_RootAnnouncementsArgs = {
   order_by?: InputMaybe<Array<Announcements_Order_By>>;
   where?: InputMaybe<Announcements_Bool_Exp>;
 };
-
 
 export type Query_RootAnnouncements_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
@@ -18684,26 +18064,21 @@ export type Query_RootAnnouncements_AggregateArgs = {
   where?: InputMaybe<Announcements_Bool_Exp>;
 };
 
-
 export type Query_RootAnnouncements_By_PkArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootAppArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Query_RootAppSecretsArgs = {
   appID: Scalars['uuid'];
 };
 
-
 export type Query_RootAppStateArgs = {
   id: Scalars['Int'];
 };
-
 
 export type Query_RootAppStateHistoriesArgs = {
   distinct_on?: InputMaybe<Array<AppStateHistory_Select_Column>>;
@@ -18713,11 +18088,9 @@ export type Query_RootAppStateHistoriesArgs = {
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
 
-
 export type Query_RootAppStateHistoryArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootAppStateHistoryAggregateArgs = {
   distinct_on?: InputMaybe<Array<AppStateHistory_Select_Column>>;
@@ -18727,7 +18100,6 @@ export type Query_RootAppStateHistoryAggregateArgs = {
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
 
-
 export type Query_RootAppStatesArgs = {
   distinct_on?: InputMaybe<Array<AppStates_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18735,7 +18107,6 @@ export type Query_RootAppStatesArgs = {
   order_by?: InputMaybe<Array<AppStates_Order_By>>;
   where?: InputMaybe<AppStates_Bool_Exp>;
 };
-
 
 export type Query_RootAppStatesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AppStates_Select_Column>>;
@@ -18745,7 +18116,6 @@ export type Query_RootAppStatesAggregateArgs = {
   where?: InputMaybe<AppStates_Bool_Exp>;
 };
 
-
 export type Query_RootAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18753,7 +18123,6 @@ export type Query_RootAppsArgs = {
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
-
 
 export type Query_RootAppsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -18763,16 +18132,13 @@ export type Query_RootAppsAggregateArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 export type Query_RootAuthProviderArgs = {
   id: Scalars['String'];
 };
 
-
 export type Query_RootAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootAuthProviderRequestsArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
@@ -18782,7 +18148,6 @@ export type Query_RootAuthProviderRequestsArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
-
 export type Query_RootAuthProviderRequestsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18790,7 +18155,6 @@ export type Query_RootAuthProviderRequestsAggregateArgs = {
   order_by?: InputMaybe<Array<AuthProviderRequests_Order_By>>;
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
-
 
 export type Query_RootAuthProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -18800,7 +18164,6 @@ export type Query_RootAuthProvidersArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
-
 export type Query_RootAuthProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18809,16 +18172,13 @@ export type Query_RootAuthProvidersAggregateArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
-
 export type Query_RootAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Query_RootAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
-
 
 export type Query_RootAuthRefreshTokenTypesArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -18828,7 +18188,6 @@ export type Query_RootAuthRefreshTokenTypesArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
-
 export type Query_RootAuthRefreshTokenTypesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18836,7 +18195,6 @@ export type Query_RootAuthRefreshTokenTypesAggregateArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokenTypes_Order_By>>;
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
-
 
 export type Query_RootAuthRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -18846,7 +18204,6 @@ export type Query_RootAuthRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
-
 export type Query_RootAuthRefreshTokensAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18855,11 +18212,9 @@ export type Query_RootAuthRefreshTokensAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
-
 export type Query_RootAuthRoleArgs = {
   role: Scalars['String'];
 };
-
 
 export type Query_RootAuthRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -18869,7 +18224,6 @@ export type Query_RootAuthRolesArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
-
 export type Query_RootAuthRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18878,11 +18232,9 @@ export type Query_RootAuthRolesAggregateArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
-
 export type Query_RootAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootAuthUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -18892,7 +18244,6 @@ export type Query_RootAuthUserProvidersArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
-
 export type Query_RootAuthUserProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18901,11 +18252,9 @@ export type Query_RootAuthUserProvidersAggregateArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
-
 export type Query_RootAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootAuthUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -18915,7 +18264,6 @@ export type Query_RootAuthUserRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
-
 export type Query_RootAuthUserRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18924,11 +18272,9 @@ export type Query_RootAuthUserRolesAggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
-
 export type Query_RootAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootAuthUserSecurityKeysArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -18938,7 +18284,6 @@ export type Query_RootAuthUserSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
-
 export type Query_RootAuthUserSecurityKeysAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18946,7 +18291,6 @@ export type Query_RootAuthUserSecurityKeysAggregateArgs = {
   order_by?: InputMaybe<Array<AuthUserSecurityKeys_Order_By>>;
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
-
 
 export type Query_RootAuth_MigrationsArgs = {
   distinct_on?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
@@ -18956,7 +18300,6 @@ export type Query_RootAuth_MigrationsArgs = {
   where?: InputMaybe<Auth_Migrations_Bool_Exp>;
 };
 
-
 export type Query_RootAuth_Migrations_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18965,16 +18308,13 @@ export type Query_RootAuth_Migrations_AggregateArgs = {
   where?: InputMaybe<Auth_Migrations_Bool_Exp>;
 };
 
-
 export type Query_RootAuth_Migrations_By_PkArgs = {
   id: Scalars['Int'];
 };
 
-
 export type Query_RootBackupArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootBackupsArgs = {
   distinct_on?: InputMaybe<Array<Backups_Select_Column>>;
@@ -18984,7 +18324,6 @@ export type Query_RootBackupsArgs = {
   where?: InputMaybe<Backups_Bool_Exp>;
 };
 
-
 export type Query_RootBackupsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Backups_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -18993,11 +18332,9 @@ export type Query_RootBackupsAggregateArgs = {
   where?: InputMaybe<Backups_Bool_Exp>;
 };
 
-
 export type Query_RootBillingDedicatedComputeArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootBillingDedicatedComputeAggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
@@ -19007,7 +18344,6 @@ export type Query_RootBillingDedicatedComputeAggregateArgs = {
   where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
 };
 
-
 export type Query_RootBillingDedicatedComputesArgs = {
   distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19016,21 +18352,17 @@ export type Query_RootBillingDedicatedComputesArgs = {
   where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
 };
 
-
 export type Query_RootBillingGetNextInvoiceArgs = {
   appID: Scalars['uuid'];
 };
-
 
 export type Query_RootBillingOrganizationCustomePortalArgs = {
   organizationID: Scalars['uuid'];
 };
 
-
 export type Query_RootBillingReportArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootBillingReportsArgs = {
   distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
@@ -19040,7 +18372,6 @@ export type Query_RootBillingReportsArgs = {
   where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
-
 export type Query_RootBillingReportsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19049,11 +18380,9 @@ export type Query_RootBillingReportsAggregateArgs = {
   where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
-
 export type Query_RootBillingResourceArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootBillingResourcesArgs = {
   distinct_on?: InputMaybe<Array<Billing_Resources_Select_Column>>;
@@ -19063,7 +18392,6 @@ export type Query_RootBillingResourcesArgs = {
   where?: InputMaybe<Billing_Resources_Bool_Exp>;
 };
 
-
 export type Query_RootBillingResourcesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Resources_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19072,11 +18400,9 @@ export type Query_RootBillingResourcesAggregateArgs = {
   where?: InputMaybe<Billing_Resources_Bool_Exp>;
 };
 
-
 export type Query_RootBillingSubscriptionArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootBillingSubscriptionsArgs = {
   distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
@@ -19086,7 +18412,6 @@ export type Query_RootBillingSubscriptionsArgs = {
   where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
 };
 
-
 export type Query_RootBillingSubscriptionsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19094,7 +18419,6 @@ export type Query_RootBillingSubscriptionsAggregateArgs = {
   order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
   where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
 };
-
 
 export type Query_RootBilling_Report_TypeArgs = {
   distinct_on?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
@@ -19104,7 +18428,6 @@ export type Query_RootBilling_Report_TypeArgs = {
   where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
 };
 
-
 export type Query_RootBilling_Report_Type_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19113,11 +18436,9 @@ export type Query_RootBilling_Report_Type_AggregateArgs = {
   where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
 };
 
-
 export type Query_RootBilling_Report_Type_By_PkArgs = {
   value: Scalars['String'];
 };
-
 
 export type Query_RootBilling_Subscription_ItemsArgs = {
   distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
@@ -19127,7 +18448,6 @@ export type Query_RootBilling_Subscription_ItemsArgs = {
   where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
 };
 
-
 export type Query_RootBilling_Subscription_Items_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19136,16 +18456,13 @@ export type Query_RootBilling_Subscription_Items_AggregateArgs = {
   where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
 };
 
-
 export type Query_RootBilling_Subscription_Items_By_PkArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Query_RootBucketArgs = {
   id: Scalars['String'];
 };
-
 
 export type Query_RootBucketsArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
@@ -19155,7 +18472,6 @@ export type Query_RootBucketsArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
-
 export type Query_RootBucketsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19164,11 +18480,9 @@ export type Query_RootBucketsAggregateArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
-
 export type Query_RootCliTokenArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootCliTokensArgs = {
   distinct_on?: InputMaybe<Array<CliTokens_Select_Column>>;
@@ -19178,7 +18492,6 @@ export type Query_RootCliTokensArgs = {
   where?: InputMaybe<CliTokens_Bool_Exp>;
 };
 
-
 export type Query_RootCliTokensAggregateArgs = {
   distinct_on?: InputMaybe<Array<CliTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19187,24 +18500,20 @@ export type Query_RootCliTokensAggregateArgs = {
   where?: InputMaybe<CliTokens_Bool_Exp>;
 };
 
-
 export type Query_RootConfigArgs = {
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 };
-
 
 export type Query_RootConfigRawJsonArgs = {
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 };
 
-
 export type Query_RootConfigsArgs = {
   resolve: Scalars['Boolean'];
   where?: InputMaybe<ConfigConfigComparisonExp>;
 };
-
 
 export type Query_RootContinentsArgs = {
   distinct_on?: InputMaybe<Array<Continents_Select_Column>>;
@@ -19214,7 +18523,6 @@ export type Query_RootContinentsArgs = {
   where?: InputMaybe<Continents_Bool_Exp>;
 };
 
-
 export type Query_RootContinents_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Continents_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19223,11 +18531,9 @@ export type Query_RootContinents_AggregateArgs = {
   where?: InputMaybe<Continents_Bool_Exp>;
 };
 
-
 export type Query_RootContinents_By_PkArgs = {
   code: Scalars['bpchar'];
 };
-
 
 export type Query_RootCountriesArgs = {
   distinct_on?: InputMaybe<Array<Countries_Select_Column>>;
@@ -19237,7 +18543,6 @@ export type Query_RootCountriesArgs = {
   where?: InputMaybe<Countries_Bool_Exp>;
 };
 
-
 export type Query_RootCountries_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Countries_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19246,21 +18551,17 @@ export type Query_RootCountries_AggregateArgs = {
   where?: InputMaybe<Countries_Bool_Exp>;
 };
 
-
 export type Query_RootCountries_By_PkArgs = {
   code: Scalars['bpchar'];
 };
-
 
 export type Query_RootDeploymentArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Query_RootDeploymentLogArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootDeploymentLogsArgs = {
   distinct_on?: InputMaybe<Array<DeploymentLogs_Select_Column>>;
@@ -19270,7 +18571,6 @@ export type Query_RootDeploymentLogsArgs = {
   where?: InputMaybe<DeploymentLogs_Bool_Exp>;
 };
 
-
 export type Query_RootDeploymentLogsAggregateArgs = {
   distinct_on?: InputMaybe<Array<DeploymentLogs_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19278,7 +18578,6 @@ export type Query_RootDeploymentLogsAggregateArgs = {
   order_by?: InputMaybe<Array<DeploymentLogs_Order_By>>;
   where?: InputMaybe<DeploymentLogs_Bool_Exp>;
 };
-
 
 export type Query_RootDeploymentsArgs = {
   distinct_on?: InputMaybe<Array<Deployments_Select_Column>>;
@@ -19288,7 +18587,6 @@ export type Query_RootDeploymentsArgs = {
   where?: InputMaybe<Deployments_Bool_Exp>;
 };
 
-
 export type Query_RootDeploymentsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Deployments_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19297,16 +18595,13 @@ export type Query_RootDeploymentsAggregateArgs = {
   where?: InputMaybe<Deployments_Bool_Exp>;
 };
 
-
 export type Query_RootDnsLookupCnameArgs = {
   hostname: Scalars['String'];
 };
 
-
 export type Query_RootFeatureFlagArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootFeatureFlagsArgs = {
   distinct_on?: InputMaybe<Array<FeatureFlags_Select_Column>>;
@@ -19316,7 +18611,6 @@ export type Query_RootFeatureFlagsArgs = {
   where?: InputMaybe<FeatureFlags_Bool_Exp>;
 };
 
-
 export type Query_RootFeatureFlagsAggregateArgs = {
   distinct_on?: InputMaybe<Array<FeatureFlags_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19325,11 +18619,9 @@ export type Query_RootFeatureFlagsAggregateArgs = {
   where?: InputMaybe<FeatureFlags_Bool_Exp>;
 };
 
-
 export type Query_RootFileArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -19339,7 +18631,6 @@ export type Query_RootFilesArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
-
 export type Query_RootFilesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19348,20 +18639,17 @@ export type Query_RootFilesAggregateArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
-
 export type Query_RootGetBackupPresignedUrlArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
   expireInMinutes?: InputMaybe<Scalars['Int']>;
 };
 
-
 export type Query_RootGetCpuSecondsUsageArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
-
 
 export type Query_RootGetEgressVolumeArgs = {
   appID: Scalars['String'];
@@ -19370,13 +18658,11 @@ export type Query_RootGetEgressVolumeArgs = {
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
-
 export type Query_RootGetFunctionsDurationArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
-
 
 export type Query_RootGetFunctionsInvocationsArgs = {
   appID: Scalars['String'];
@@ -19384,35 +18670,29 @@ export type Query_RootGetFunctionsInvocationsArgs = {
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
-
 export type Query_RootGetLogsVolumeArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
-
 export type Query_RootGetPostgresVolumeCapacityArgs = {
   appID: Scalars['String'];
   t?: InputMaybe<Scalars['Timestamp']>;
 };
-
 
 export type Query_RootGetPostgresVolumeUsageArgs = {
   appID: Scalars['String'];
   t?: InputMaybe<Scalars['Timestamp']>;
 };
 
-
 export type Query_RootGetProjectStatusArgs = {
   appID: Scalars['String'];
 };
 
-
 export type Query_RootGetServiceLabelValuesArgs = {
   appID: Scalars['String'];
 };
-
 
 export type Query_RootGetTotalRequestsArgs = {
   appID: Scalars['String'];
@@ -19420,17 +18700,21 @@ export type Query_RootGetTotalRequestsArgs = {
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
-
-export type Query_RootGetUsageAllArgs = {
-  from: Scalars['Timestamp'];
-  to: Scalars['Timestamp'];
+export type Query_RootGetUsageForAppArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
 };
 
+export type Query_RootGetUsageForOrganizationArgs = {
+  from?: InputMaybe<Scalars['Timestamp']>;
+  organizationID: Scalars['String'];
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
 
 export type Query_RootGithubAppInstallationArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootGithubAppInstallationsArgs = {
   distinct_on?: InputMaybe<Array<GithubAppInstallations_Select_Column>>;
@@ -19440,7 +18724,6 @@ export type Query_RootGithubAppInstallationsArgs = {
   where?: InputMaybe<GithubAppInstallations_Bool_Exp>;
 };
 
-
 export type Query_RootGithubAppInstallationsAggregateArgs = {
   distinct_on?: InputMaybe<Array<GithubAppInstallations_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19448,7 +18731,6 @@ export type Query_RootGithubAppInstallationsAggregateArgs = {
   order_by?: InputMaybe<Array<GithubAppInstallations_Order_By>>;
   where?: InputMaybe<GithubAppInstallations_Bool_Exp>;
 };
-
 
 export type Query_RootGithubRepositoriesArgs = {
   distinct_on?: InputMaybe<Array<GithubRepositories_Select_Column>>;
@@ -19458,7 +18740,6 @@ export type Query_RootGithubRepositoriesArgs = {
   where?: InputMaybe<GithubRepositories_Bool_Exp>;
 };
 
-
 export type Query_RootGithubRepositoriesAggregateArgs = {
   distinct_on?: InputMaybe<Array<GithubRepositories_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19467,11 +18748,9 @@ export type Query_RootGithubRepositoriesAggregateArgs = {
   where?: InputMaybe<GithubRepositories_Bool_Exp>;
 };
 
-
 export type Query_RootGithubRepositoryArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootLogsArgs = {
   appID: Scalars['String'];
@@ -19481,44 +18760,17 @@ export type Query_RootLogsArgs = {
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
-
 export type Query_RootOrganizationArgs = {
   id: Scalars['uuid'];
 };
-
-
-export type Query_RootOrganizationFreeUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootOrganizationFreeUsagesArgs = {
-  distinct_on?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organizations_Free_Usage_Order_By>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
-
-export type Query_RootOrganizationFreeUsagesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organizations_Free_Usage_Order_By>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
 
 export type Query_RootOrganizationMemberArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Query_RootOrganizationMemberInviteArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootOrganizationMemberInvitesArgs = {
   distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
@@ -19528,7 +18780,6 @@ export type Query_RootOrganizationMemberInvitesArgs = {
   where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
-
 export type Query_RootOrganizationMemberInvitesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19536,7 +18787,6 @@ export type Query_RootOrganizationMemberInvitesAggregateArgs = {
   order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
   where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
-
 
 export type Query_RootOrganizationMembersArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
@@ -19546,7 +18796,6 @@ export type Query_RootOrganizationMembersArgs = {
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
-
 export type Query_RootOrganizationMembersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19555,11 +18804,9 @@ export type Query_RootOrganizationMembersAggregateArgs = {
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
-
 export type Query_RootOrganizationNewRequestArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootOrganizationNewRequestsArgs = {
   distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
@@ -19569,7 +18816,6 @@ export type Query_RootOrganizationNewRequestsArgs = {
   where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
-
 export type Query_RootOrganizationNewRequestsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19577,7 +18823,6 @@ export type Query_RootOrganizationNewRequestsAggregateArgs = {
   order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
   where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
-
 
 export type Query_RootOrganization_Members_RoleArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
@@ -19587,7 +18832,6 @@ export type Query_RootOrganization_Members_RoleArgs = {
   where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
 
-
 export type Query_RootOrganization_Members_Role_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19596,11 +18840,9 @@ export type Query_RootOrganization_Members_Role_AggregateArgs = {
   where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
 
-
 export type Query_RootOrganization_Members_Role_By_PkArgs = {
   value: Scalars['String'];
 };
-
 
 export type Query_RootOrganization_StatusArgs = {
   distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
@@ -19610,7 +18852,6 @@ export type Query_RootOrganization_StatusArgs = {
   where?: InputMaybe<Organization_Status_Bool_Exp>;
 };
 
-
 export type Query_RootOrganization_Status_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19619,11 +18860,9 @@ export type Query_RootOrganization_Status_AggregateArgs = {
   where?: InputMaybe<Organization_Status_Bool_Exp>;
 };
 
-
 export type Query_RootOrganization_Status_By_PkArgs = {
   value: Scalars['String'];
 };
-
 
 export type Query_RootOrganizationsArgs = {
   distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
@@ -19633,7 +18872,6 @@ export type Query_RootOrganizationsArgs = {
   where?: InputMaybe<Organizations_Bool_Exp>;
 };
 
-
 export type Query_RootOrganizationsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19642,11 +18880,9 @@ export type Query_RootOrganizationsAggregateArgs = {
   where?: InputMaybe<Organizations_Bool_Exp>;
 };
 
-
 export type Query_RootPaymentMethodArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootPaymentMethodsArgs = {
   distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
@@ -19656,7 +18892,6 @@ export type Query_RootPaymentMethodsArgs = {
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
 
-
 export type Query_RootPaymentMethodsAggregateArgs = {
   distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19665,11 +18900,9 @@ export type Query_RootPaymentMethodsAggregateArgs = {
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
 
-
 export type Query_RootPlanArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootPlansArgs = {
   distinct_on?: InputMaybe<Array<Plans_Select_Column>>;
@@ -19679,7 +18912,6 @@ export type Query_RootPlansArgs = {
   where?: InputMaybe<Plans_Bool_Exp>;
 };
 
-
 export type Query_RootPlansAggregateArgs = {
   distinct_on?: InputMaybe<Array<Plans_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19687,7 +18919,6 @@ export type Query_RootPlansAggregateArgs = {
   order_by?: InputMaybe<Array<Plans_Order_By>>;
   where?: InputMaybe<Plans_Bool_Exp>;
 };
-
 
 export type Query_RootRegion_TypeArgs = {
   distinct_on?: InputMaybe<Array<Region_Type_Select_Column>>;
@@ -19697,7 +18928,6 @@ export type Query_RootRegion_TypeArgs = {
   where?: InputMaybe<Region_Type_Bool_Exp>;
 };
 
-
 export type Query_RootRegion_Type_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Region_Type_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19706,11 +18936,9 @@ export type Query_RootRegion_Type_AggregateArgs = {
   where?: InputMaybe<Region_Type_Bool_Exp>;
 };
 
-
 export type Query_RootRegion_Type_By_PkArgs = {
   type: Scalars['String'];
 };
-
 
 export type Query_RootRegionsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
@@ -19720,11 +18948,9 @@ export type Query_RootRegionsArgs = {
   where?: InputMaybe<Regions_Bool_Exp>;
 };
 
-
 export type Query_RootRegionsAllowedOrganizationArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootRegionsAllowedOrganizationsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
@@ -19734,7 +18960,6 @@ export type Query_RootRegionsAllowedOrganizationsArgs = {
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
 
-
 export type Query_RootRegionsAllowedOrganizationsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19742,7 +18967,6 @@ export type Query_RootRegionsAllowedOrganizationsAggregateArgs = {
   order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
-
 
 export type Query_RootRegions_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
@@ -19752,16 +18976,13 @@ export type Query_RootRegions_AggregateArgs = {
   where?: InputMaybe<Regions_Bool_Exp>;
 };
 
-
 export type Query_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Query_RootRunServiceArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootRunServiceConfigArgs = {
   appID: Scalars['uuid'];
@@ -19769,25 +18990,21 @@ export type Query_RootRunServiceConfigArgs = {
   serviceID: Scalars['uuid'];
 };
 
-
 export type Query_RootRunServiceConfigRawJsonArgs = {
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
   serviceID: Scalars['uuid'];
 };
 
-
 export type Query_RootRunServiceConfigsArgs = {
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 };
 
-
 export type Query_RootRunServiceConfigsAllArgs = {
   resolve: Scalars['Boolean'];
   where?: InputMaybe<ConfigRunServiceConfigComparisonExp>;
 };
-
 
 export type Query_RootRunServicesArgs = {
   distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
@@ -19797,7 +19014,6 @@ export type Query_RootRunServicesArgs = {
   where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
-
 export type Query_RootRunServicesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19806,11 +19022,9 @@ export type Query_RootRunServicesAggregateArgs = {
   where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
-
 export type Query_RootSelectRegionsAllowedWorkspaceArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootSelectRegionsAllowedWorkspacesArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
@@ -19820,7 +19034,6 @@ export type Query_RootSelectRegionsAllowedWorkspacesArgs = {
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
-
 export type Query_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19829,11 +19042,9 @@ export type Query_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
-
 export type Query_RootSoftwareTypeArgs = {
   type: Scalars['String'];
 };
-
 
 export type Query_RootSoftwareTypesArgs = {
   distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
@@ -19843,7 +19054,6 @@ export type Query_RootSoftwareTypesArgs = {
   where?: InputMaybe<Software_Type_Bool_Exp>;
 };
 
-
 export type Query_RootSoftwareTypesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19852,11 +19062,9 @@ export type Query_RootSoftwareTypesAggregateArgs = {
   where?: InputMaybe<Software_Type_Bool_Exp>;
 };
 
-
 export type Query_RootSoftwareVersionArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootSoftwareVersionsArgs = {
   distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
@@ -19866,7 +19074,6 @@ export type Query_RootSoftwareVersionsArgs = {
   where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
-
 export type Query_RootSoftwareVersionsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19875,22 +19082,18 @@ export type Query_RootSoftwareVersionsAggregateArgs = {
   where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
-
 export type Query_RootStatsLiveAppsArgs = {
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
-
 export type Query_RootSystemConfigArgs = {
   appID: Scalars['uuid'];
 };
 
-
 export type Query_RootSystemConfigsArgs = {
   where?: InputMaybe<ConfigSystemConfigComparisonExp>;
 };
-
 
 export type Query_RootSystemLogsArgs = {
   action: Scalars['String'];
@@ -19899,11 +19102,9 @@ export type Query_RootSystemLogsArgs = {
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
-
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -19913,7 +19114,6 @@ export type Query_RootUsersArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
-
 export type Query_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19922,21 +19122,17 @@ export type Query_RootUsersAggregateArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
-
 export type Query_RootWorkspaceArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootWorkspaceMemberArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Query_RootWorkspaceMemberInviteArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Query_RootWorkspaceMemberInvitesArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
@@ -19946,7 +19142,6 @@ export type Query_RootWorkspaceMemberInvitesArgs = {
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
 
-
 export type Query_RootWorkspaceMemberInvitesAggregateArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19954,7 +19149,6 @@ export type Query_RootWorkspaceMemberInvitesAggregateArgs = {
   order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
-
 
 export type Query_RootWorkspaceMembersArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
@@ -19964,7 +19158,6 @@ export type Query_RootWorkspaceMembersArgs = {
   where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
 };
 
-
 export type Query_RootWorkspaceMembersAggregateArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19973,7 +19166,6 @@ export type Query_RootWorkspaceMembersAggregateArgs = {
   where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
 };
 
-
 export type Query_RootWorkspacesArgs = {
   distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19981,7 +19173,6 @@ export type Query_RootWorkspacesArgs = {
   order_by?: InputMaybe<Array<Workspaces_Order_By>>;
   where?: InputMaybe<Workspaces_Bool_Exp>;
 };
-
 
 export type Query_RootWorkspacesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
@@ -20002,7 +19193,6 @@ export type Region_Type = {
   type: Scalars['String'];
 };
 
-
 /** columns and relationships of "region_type" */
 export type Region_TypeRegionsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
@@ -20011,7 +19201,6 @@ export type Region_TypeRegionsArgs = {
   order_by?: InputMaybe<Array<Regions_Order_By>>;
   where?: InputMaybe<Regions_Bool_Exp>;
 };
-
 
 /** columns and relationships of "region_type" */
 export type Region_TypeRegions_AggregateArgs = {
@@ -20037,7 +19226,6 @@ export type Region_Type_Aggregate_Fields = {
   min?: Maybe<Region_Type_Min_Fields>;
 };
 
-
 /** aggregate fields of "region_type" */
 export type Region_Type_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Region_Type_Select_Column>>;
@@ -20058,14 +19246,14 @@ export type Region_Type_Bool_Exp = {
 /** unique or primary key constraints on table "region_type" */
 export enum Region_Type_Constraint {
   /** unique or primary key constraint on columns "type" */
-  RegionTypePkey = 'region_type_pkey'
+  RegionTypePkey = 'region_type_pkey',
 }
 
 export enum Region_Type_Enum {
   /** Private region available to selected workspaces */
   Private = 'private',
   /** Public region available to all Nhost projects */
-  Public = 'public'
+  Public = 'public',
 }
 
 /** Boolean expression to compare columns of type "region_type_enum". All fields are combined with logical 'AND'. */
@@ -20138,7 +19326,7 @@ export enum Region_Type_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Type = 'type'
+  Type = 'type',
 }
 
 /** input type for updating data in table "region_type" */
@@ -20166,7 +19354,7 @@ export enum Region_Type_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Type = 'type'
+  Type = 'type',
 }
 
 export type Region_Type_Updates = {
@@ -20211,7 +19399,6 @@ export type Regions = {
   updatedAt: Scalars['timestamptz'];
 };
 
-
 /** columns and relationships of "regions" */
 export type RegionsAllowedOrganizationsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
@@ -20220,7 +19407,6 @@ export type RegionsAllowedOrganizationsArgs = {
   order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
-
 
 /** columns and relationships of "regions" */
 export type RegionsAllowedOrganizations_AggregateArgs = {
@@ -20231,7 +19417,6 @@ export type RegionsAllowedOrganizations_AggregateArgs = {
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
 
-
 /** columns and relationships of "regions" */
 export type RegionsAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -20240,7 +19425,6 @@ export type RegionsAppsArgs = {
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
-
 
 /** columns and relationships of "regions" */
 export type RegionsApps_AggregateArgs = {
@@ -20251,7 +19435,6 @@ export type RegionsApps_AggregateArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 /** columns and relationships of "regions" */
 export type RegionsRegions_Allowed_WorkspacesArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
@@ -20260,7 +19443,6 @@ export type RegionsRegions_Allowed_WorkspacesArgs = {
   order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
-
 
 /** columns and relationships of "regions" */
 export type RegionsRegions_Allowed_Workspaces_AggregateArgs = {
@@ -20312,7 +19494,6 @@ export type Regions_Aggregate_Fields = {
   max?: Maybe<Regions_Max_Fields>;
   min?: Maybe<Regions_Min_Fields>;
 };
-
 
 /** aggregate fields of "regions" */
 export type Regions_Aggregate_FieldsCountArgs = {
@@ -20368,7 +19549,6 @@ export type Regions_Allowed_Organization_Aggregate_Fields = {
   min?: Maybe<Regions_Allowed_Organization_Min_Fields>;
 };
 
-
 /** aggregate fields of "regions_allowed_organization" */
 export type Regions_Allowed_Organization_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
@@ -20409,7 +19589,7 @@ export enum Regions_Allowed_Organization_Constraint {
   /** unique or primary key constraint on columns "id" */
   RegionsAllowedOrganizationPkey = 'regions_allowed_organization_pkey',
   /** unique or primary key constraint on columns "region_id", "organization_id" */
-  RegionsAllowedOrganizationRegionIdOrganizationIdKey = 'regions_allowed_organization_region_id_organization_id_key'
+  RegionsAllowedOrganizationRegionIdOrganizationIdKey = 'regions_allowed_organization_region_id_organization_id_key',
 }
 
 /** input type for inserting data into table "regions_allowed_organization" */
@@ -20512,7 +19692,7 @@ export enum Regions_Allowed_Organization_Select_Column {
   /** column name */
   RegionId = 'regionID',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "regions_allowed_organization" */
@@ -20556,7 +19736,7 @@ export enum Regions_Allowed_Organization_Update_Column {
   /** column name */
   RegionId = 'regionID',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Regions_Allowed_Organization_Updates = {
@@ -20607,7 +19787,6 @@ export type Regions_Allowed_Workspace_Aggregate_Fields = {
   min?: Maybe<Regions_Allowed_Workspace_Min_Fields>;
 };
 
-
 /** aggregate fields of "regions_allowed_workspace" */
 export type Regions_Allowed_Workspace_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
@@ -20648,7 +19827,7 @@ export enum Regions_Allowed_Workspace_Constraint {
   /** unique or primary key constraint on columns "id" */
   RegionsAllowedWorkspacePkey = 'regions_allowed_workspace_pkey',
   /** unique or primary key constraint on columns "workspace_id", "region_id" */
-  RegionsAllowedWorkspaceRegionIdWorkspaceIdKey = 'regions_allowed_workspace_region_id_workspace_id_key'
+  RegionsAllowedWorkspaceRegionIdWorkspaceIdKey = 'regions_allowed_workspace_region_id_workspace_id_key',
 }
 
 /** input type for inserting data into table "regions_allowed_workspace" */
@@ -20758,7 +19937,7 @@ export enum Regions_Allowed_Workspace_Select_Column {
   /** column name */
   UpdatedAt = 'updated_at',
   /** column name */
-  WorkspaceId = 'workspace_id'
+  WorkspaceId = 'workspace_id',
 }
 
 /** input type for updating data in table "regions_allowed_workspace" */
@@ -20802,7 +19981,7 @@ export enum Regions_Allowed_Workspace_Update_Column {
   /** column name */
   UpdatedAt = 'updated_at',
   /** column name */
-  WorkspaceId = 'workspace_id'
+  WorkspaceId = 'workspace_id',
 }
 
 export type Regions_Allowed_Workspace_Updates = {
@@ -20850,7 +20029,7 @@ export type Regions_Bool_Exp = {
 /** unique or primary key constraints on table "regions" */
 export enum Regions_Constraint {
   /** unique or primary key constraint on columns "id" */
-  LocationsPkey = 'locations_pkey'
+  LocationsPkey = 'locations_pkey',
 }
 
 /** input type for inserting data into table "regions" */
@@ -21004,7 +20183,7 @@ export enum Regions_Select_Column {
   /** column name */
   Type = 'type',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** select "regions_aggregate_bool_exp_bool_and_arguments_columns" columns of table "regions" */
@@ -21012,7 +20191,7 @@ export enum Regions_Select_Column_Regions_Aggregate_Bool_Exp_Bool_And_Arguments_
   /** column name */
   Active = 'active',
   /** column name */
-  IsGdprCompliant = 'isGdprCompliant'
+  IsGdprCompliant = 'isGdprCompliant',
 }
 
 /** select "regions_aggregate_bool_exp_bool_or_arguments_columns" columns of table "regions" */
@@ -21020,7 +20199,7 @@ export enum Regions_Select_Column_Regions_Aggregate_Bool_Exp_Bool_Or_Arguments_C
   /** column name */
   Active = 'active',
   /** column name */
-  IsGdprCompliant = 'isGdprCompliant'
+  IsGdprCompliant = 'isGdprCompliant',
 }
 
 /** input type for updating data in table "regions" */
@@ -21088,7 +20267,7 @@ export enum Regions_Update_Column {
   /** column name */
   Type = 'type',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Regions_Updates = {
@@ -21114,7 +20293,6 @@ export type Run_Service = {
   subdomain: Scalars['String'];
   updatedAt: Scalars['timestamptz'];
 };
-
 
 /** columns and relationships of "run_service" */
 export type Run_ServiceConfigArgs = {
@@ -21146,7 +20324,6 @@ export type Run_Service_Aggregate_Fields = {
   max?: Maybe<Run_Service_Max_Fields>;
   min?: Maybe<Run_Service_Min_Fields>;
 };
-
 
 /** aggregate fields of "run_service" */
 export type Run_Service_Aggregate_FieldsCountArgs = {
@@ -21189,7 +20366,7 @@ export enum Run_Service_Constraint {
   /** unique or primary key constraint on columns "id" */
   RunServicePkey = 'run_service_pkey',
   /** unique or primary key constraint on columns "subdomain" */
-  RunServiceSubdomainKey = 'run_service_subdomain_key'
+  RunServiceSubdomainKey = 'run_service_subdomain_key',
 }
 
 /** input type for inserting data into table "run_service" */
@@ -21300,7 +20477,7 @@ export enum Run_Service_Select_Column {
   /** column name */
   Subdomain = 'subdomain',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "run_service" */
@@ -21348,7 +20525,7 @@ export enum Run_Service_Update_Column {
   /** column name */
   Subdomain = 'subdomain',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Run_Service_Updates = {
@@ -21382,7 +20559,6 @@ export type Software_Type = {
   type: Scalars['String'];
 };
 
-
 /** Software type: hasura, postgres, hasura-auth ... */
 export type Software_TypeSoftware_VersionsArgs = {
   distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
@@ -21391,7 +20567,6 @@ export type Software_TypeSoftware_VersionsArgs = {
   order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
   where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
-
 
 /** Software type: hasura, postgres, hasura-auth ... */
 export type Software_TypeSoftware_Versions_AggregateArgs = {
@@ -21417,7 +20592,6 @@ export type Software_Type_Aggregate_Fields = {
   min?: Maybe<Software_Type_Min_Fields>;
 };
 
-
 /** aggregate fields of "software_type" */
 export type Software_Type_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Software_Type_Select_Column>>;
@@ -21438,7 +20612,7 @@ export type Software_Type_Bool_Exp = {
 /** unique or primary key constraints on table "software_type" */
 export enum Software_Type_Constraint {
   /** unique or primary key constraint on columns "type" */
-  SoftwareTypePkey = 'software_type_pkey'
+  SoftwareTypePkey = 'software_type_pkey',
 }
 
 export enum Software_Type_Enum {
@@ -21451,7 +20625,7 @@ export enum Software_Type_Enum {
   /** PostgreSQL Database */
   PostgreSql = 'PostgreSQL',
   /** Hasura Storage */
-  Storage = 'Storage'
+  Storage = 'Storage',
 }
 
 /** Boolean expression to compare columns of type "software_type_enum". All fields are combined with logical 'AND'. */
@@ -21524,7 +20698,7 @@ export enum Software_Type_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Type = 'type'
+  Type = 'type',
 }
 
 /** input type for updating data in table "software_type" */
@@ -21552,7 +20726,7 @@ export enum Software_Type_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Type = 'type'
+  Type = 'type',
 }
 
 export type Software_Type_Updates = {
@@ -21598,7 +20772,6 @@ export type Software_Versions_Aggregate_Fields = {
   min?: Maybe<Software_Versions_Min_Fields>;
 };
 
-
 /** aggregate fields of "software_versions" */
 export type Software_Versions_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Software_Versions_Select_Column>>;
@@ -21633,7 +20806,7 @@ export type Software_Versions_Bool_Exp = {
 /** unique or primary key constraints on table "software_versions" */
 export enum Software_Versions_Constraint {
   /** unique or primary key constraint on columns "id" */
-  SoftwareVersionsPkey = 'software_versions_pkey'
+  SoftwareVersionsPkey = 'software_versions_pkey',
 }
 
 /** input type for inserting data into table "software_versions" */
@@ -21706,7 +20879,7 @@ export enum Software_Versions_Select_Column {
   /** column name */
   Software = 'software',
   /** column name */
-  Version = 'version'
+  Version = 'version',
 }
 
 /** input type for updating data in table "software_versions" */
@@ -21738,7 +20911,7 @@ export enum Software_Versions_Update_Column {
   /** column name */
   Software = 'software',
   /** column name */
-  Version = 'version'
+  Version = 'version',
 }
 
 export type Software_Versions_Updates = {
@@ -21997,14 +21170,6 @@ export type Subscription_Root = {
   logs: Array<Log>;
   /** fetch data from the table: "organizations" using primary key columns */
   organization?: Maybe<Organizations>;
-  /** fetch data from the table: "organizations_free_usage" using primary key columns */
-  organizationFreeUsage?: Maybe<Organizations_Free_Usage>;
-  /** fetch data from the table: "organizations_free_usage" */
-  organizationFreeUsages: Array<Organizations_Free_Usage>;
-  /** fetch aggregated fields from the table: "organizations_free_usage" */
-  organizationFreeUsagesAggregate: Organizations_Free_Usage_Aggregate;
-  /** fetch data from the table in a streaming manner: "organizations_free_usage" */
-  organizationFreeUsagesStream: Array<Organizations_Free_Usage>;
   /** fetch data from the table: "organization_members" using primary key columns */
   organizationMember?: Maybe<Organization_Members>;
   /** fetch data from the table: "organization_member_invites" using primary key columns */
@@ -22157,7 +21322,6 @@ export type Subscription_Root = {
   workspaces_stream: Array<Workspaces>;
 };
 
-
 export type Subscription_RootAnnouncementsArgs = {
   distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22165,7 +21329,6 @@ export type Subscription_RootAnnouncementsArgs = {
   order_by?: InputMaybe<Array<Announcements_Order_By>>;
   where?: InputMaybe<Announcements_Bool_Exp>;
 };
-
 
 export type Subscription_RootAnnouncements_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
@@ -22175,11 +21338,9 @@ export type Subscription_RootAnnouncements_AggregateArgs = {
   where?: InputMaybe<Announcements_Bool_Exp>;
 };
 
-
 export type Subscription_RootAnnouncements_By_PkArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootAnnouncements_StreamArgs = {
   batch_size: Scalars['Int'];
@@ -22187,16 +21348,13 @@ export type Subscription_RootAnnouncements_StreamArgs = {
   where?: InputMaybe<Announcements_Bool_Exp>;
 };
 
-
 export type Subscription_RootAppArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Subscription_RootAppStateArgs = {
   id: Scalars['Int'];
 };
-
 
 export type Subscription_RootAppStateHistoriesArgs = {
   distinct_on?: InputMaybe<Array<AppStateHistory_Select_Column>>;
@@ -22206,11 +21364,9 @@ export type Subscription_RootAppStateHistoriesArgs = {
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
 
-
 export type Subscription_RootAppStateHistoryArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootAppStateHistoryAggregateArgs = {
   distinct_on?: InputMaybe<Array<AppStateHistory_Select_Column>>;
@@ -22220,13 +21376,11 @@ export type Subscription_RootAppStateHistoryAggregateArgs = {
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
 
-
 export type Subscription_RootAppStateHistory_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AppStateHistory_Stream_Cursor_Input>>;
   where?: InputMaybe<AppStateHistory_Bool_Exp>;
 };
-
 
 export type Subscription_RootAppStatesArgs = {
   distinct_on?: InputMaybe<Array<AppStates_Select_Column>>;
@@ -22236,7 +21390,6 @@ export type Subscription_RootAppStatesArgs = {
   where?: InputMaybe<AppStates_Bool_Exp>;
 };
 
-
 export type Subscription_RootAppStatesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AppStates_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22245,13 +21398,11 @@ export type Subscription_RootAppStatesAggregateArgs = {
   where?: InputMaybe<AppStates_Bool_Exp>;
 };
 
-
 export type Subscription_RootAppStates_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AppStates_Stream_Cursor_Input>>;
   where?: InputMaybe<AppStates_Bool_Exp>;
 };
-
 
 export type Subscription_RootAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -22261,7 +21412,6 @@ export type Subscription_RootAppsArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 export type Subscription_RootAppsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22270,23 +21420,19 @@ export type Subscription_RootAppsAggregateArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 export type Subscription_RootApps_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Apps_Stream_Cursor_Input>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthProviderArgs = {
   id: Scalars['String'];
 };
 
-
 export type Subscription_RootAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootAuthProviderRequestsArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
@@ -22296,7 +21442,6 @@ export type Subscription_RootAuthProviderRequestsArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthProviderRequestsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22305,13 +21450,11 @@ export type Subscription_RootAuthProviderRequestsAggregateArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthProviderRequests_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthProviderRequests_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
-
 
 export type Subscription_RootAuthProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -22321,7 +21464,6 @@ export type Subscription_RootAuthProvidersArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22330,23 +21472,19 @@ export type Subscription_RootAuthProvidersAggregateArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthProviders_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthProviders_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Subscription_RootAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
-
 
 export type Subscription_RootAuthRefreshTokenTypesArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -22356,7 +21494,6 @@ export type Subscription_RootAuthRefreshTokenTypesArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthRefreshTokenTypesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22365,13 +21502,11 @@ export type Subscription_RootAuthRefreshTokenTypesAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthRefreshTokenTypes_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRefreshTokenTypes_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
-
 
 export type Subscription_RootAuthRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -22381,7 +21516,6 @@ export type Subscription_RootAuthRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthRefreshTokensAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22390,18 +21524,15 @@ export type Subscription_RootAuthRefreshTokensAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthRefreshTokens_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRefreshTokens_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthRoleArgs = {
   role: Scalars['String'];
 };
-
 
 export type Subscription_RootAuthRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -22411,7 +21542,6 @@ export type Subscription_RootAuthRolesArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22420,18 +21550,15 @@ export type Subscription_RootAuthRolesAggregateArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthRoles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRoles_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootAuthUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -22441,7 +21568,6 @@ export type Subscription_RootAuthUserProvidersArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22450,18 +21576,15 @@ export type Subscription_RootAuthUserProvidersAggregateArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserProviders_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserProviders_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootAuthUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -22471,7 +21594,6 @@ export type Subscription_RootAuthUserRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22480,18 +21602,15 @@ export type Subscription_RootAuthUserRolesAggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserRoles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserRoles_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootAuthUserSecurityKeysArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -22501,7 +21620,6 @@ export type Subscription_RootAuthUserSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserSecurityKeysAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22510,13 +21628,11 @@ export type Subscription_RootAuthUserSecurityKeysAggregateArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuthUserSecurityKeys_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserSecurityKeys_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
-
 
 export type Subscription_RootAuth_MigrationsArgs = {
   distinct_on?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
@@ -22526,7 +21642,6 @@ export type Subscription_RootAuth_MigrationsArgs = {
   where?: InputMaybe<Auth_Migrations_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuth_Migrations_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22535,11 +21650,9 @@ export type Subscription_RootAuth_Migrations_AggregateArgs = {
   where?: InputMaybe<Auth_Migrations_Bool_Exp>;
 };
 
-
 export type Subscription_RootAuth_Migrations_By_PkArgs = {
   id: Scalars['Int'];
 };
-
 
 export type Subscription_RootAuth_Migrations_StreamArgs = {
   batch_size: Scalars['Int'];
@@ -22547,11 +21660,9 @@ export type Subscription_RootAuth_Migrations_StreamArgs = {
   where?: InputMaybe<Auth_Migrations_Bool_Exp>;
 };
 
-
 export type Subscription_RootBackupArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootBackupsArgs = {
   distinct_on?: InputMaybe<Array<Backups_Select_Column>>;
@@ -22561,7 +21672,6 @@ export type Subscription_RootBackupsArgs = {
   where?: InputMaybe<Backups_Bool_Exp>;
 };
 
-
 export type Subscription_RootBackupsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Backups_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22570,18 +21680,15 @@ export type Subscription_RootBackupsAggregateArgs = {
   where?: InputMaybe<Backups_Bool_Exp>;
 };
 
-
 export type Subscription_RootBackups_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Backups_Stream_Cursor_Input>>;
   where?: InputMaybe<Backups_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingDedicatedComputeArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootBillingDedicatedComputeAggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
@@ -22591,7 +21698,6 @@ export type Subscription_RootBillingDedicatedComputeAggregateArgs = {
   where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingDedicatedComputesArgs = {
   distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22600,11 +21706,9 @@ export type Subscription_RootBillingDedicatedComputesArgs = {
   where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingReportArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootBillingReportsArgs = {
   distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
@@ -22614,7 +21718,6 @@ export type Subscription_RootBillingReportsArgs = {
   where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingReportsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22623,18 +21726,15 @@ export type Subscription_RootBillingReportsAggregateArgs = {
   where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingReportsStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Reports_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingResourceArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootBillingResourcesArgs = {
   distinct_on?: InputMaybe<Array<Billing_Resources_Select_Column>>;
@@ -22644,7 +21744,6 @@ export type Subscription_RootBillingResourcesArgs = {
   where?: InputMaybe<Billing_Resources_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingResourcesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Resources_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22653,18 +21752,15 @@ export type Subscription_RootBillingResourcesAggregateArgs = {
   where?: InputMaybe<Billing_Resources_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingResourcesStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Resources_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Resources_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingSubscriptionArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootBillingSubscriptionsArgs = {
   distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
@@ -22674,7 +21770,6 @@ export type Subscription_RootBillingSubscriptionsArgs = {
   where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
 };
 
-
 export type Subscription_RootBillingSubscriptionsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22683,13 +21778,11 @@ export type Subscription_RootBillingSubscriptionsAggregateArgs = {
   where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
 };
 
-
 export type Subscription_RootBilling_Dedicated_Compute_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Dedicated_Compute_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
 };
-
 
 export type Subscription_RootBilling_Report_TypeArgs = {
   distinct_on?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
@@ -22699,7 +21792,6 @@ export type Subscription_RootBilling_Report_TypeArgs = {
   where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
 };
 
-
 export type Subscription_RootBilling_Report_Type_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22708,18 +21800,15 @@ export type Subscription_RootBilling_Report_Type_AggregateArgs = {
   where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
 };
 
-
 export type Subscription_RootBilling_Report_Type_By_PkArgs = {
   value: Scalars['String'];
 };
-
 
 export type Subscription_RootBilling_Report_Type_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Report_Type_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
 };
-
 
 export type Subscription_RootBilling_Subscription_ItemsArgs = {
   distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
@@ -22729,7 +21818,6 @@ export type Subscription_RootBilling_Subscription_ItemsArgs = {
   where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
 };
 
-
 export type Subscription_RootBilling_Subscription_Items_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22738,11 +21826,9 @@ export type Subscription_RootBilling_Subscription_Items_AggregateArgs = {
   where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
 };
 
-
 export type Subscription_RootBilling_Subscription_Items_By_PkArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootBilling_Subscription_Items_StreamArgs = {
   batch_size: Scalars['Int'];
@@ -22750,18 +21836,15 @@ export type Subscription_RootBilling_Subscription_Items_StreamArgs = {
   where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
 };
 
-
 export type Subscription_RootBilling_Subscriptions_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Subscriptions_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
 };
 
-
 export type Subscription_RootBucketArgs = {
   id: Scalars['String'];
 };
-
 
 export type Subscription_RootBucketsArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
@@ -22771,7 +21854,6 @@ export type Subscription_RootBucketsArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
-
 export type Subscription_RootBucketsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22780,18 +21862,15 @@ export type Subscription_RootBucketsAggregateArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
-
 export type Subscription_RootBuckets_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Buckets_Stream_Cursor_Input>>;
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
-
 export type Subscription_RootCliTokenArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootCliTokensArgs = {
   distinct_on?: InputMaybe<Array<CliTokens_Select_Column>>;
@@ -22801,7 +21880,6 @@ export type Subscription_RootCliTokensArgs = {
   where?: InputMaybe<CliTokens_Bool_Exp>;
 };
 
-
 export type Subscription_RootCliTokensAggregateArgs = {
   distinct_on?: InputMaybe<Array<CliTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22810,13 +21888,11 @@ export type Subscription_RootCliTokensAggregateArgs = {
   where?: InputMaybe<CliTokens_Bool_Exp>;
 };
 
-
 export type Subscription_RootCliTokens_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<CliTokens_Stream_Cursor_Input>>;
   where?: InputMaybe<CliTokens_Bool_Exp>;
 };
-
 
 export type Subscription_RootContinentsArgs = {
   distinct_on?: InputMaybe<Array<Continents_Select_Column>>;
@@ -22826,7 +21902,6 @@ export type Subscription_RootContinentsArgs = {
   where?: InputMaybe<Continents_Bool_Exp>;
 };
 
-
 export type Subscription_RootContinents_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Continents_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22835,18 +21910,15 @@ export type Subscription_RootContinents_AggregateArgs = {
   where?: InputMaybe<Continents_Bool_Exp>;
 };
 
-
 export type Subscription_RootContinents_By_PkArgs = {
   code: Scalars['bpchar'];
 };
-
 
 export type Subscription_RootContinents_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Continents_Stream_Cursor_Input>>;
   where?: InputMaybe<Continents_Bool_Exp>;
 };
-
 
 export type Subscription_RootCountriesArgs = {
   distinct_on?: InputMaybe<Array<Countries_Select_Column>>;
@@ -22856,7 +21928,6 @@ export type Subscription_RootCountriesArgs = {
   where?: InputMaybe<Countries_Bool_Exp>;
 };
 
-
 export type Subscription_RootCountries_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Countries_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22865,11 +21936,9 @@ export type Subscription_RootCountries_AggregateArgs = {
   where?: InputMaybe<Countries_Bool_Exp>;
 };
 
-
 export type Subscription_RootCountries_By_PkArgs = {
   code: Scalars['bpchar'];
 };
-
 
 export type Subscription_RootCountries_StreamArgs = {
   batch_size: Scalars['Int'];
@@ -22877,16 +21946,13 @@ export type Subscription_RootCountries_StreamArgs = {
   where?: InputMaybe<Countries_Bool_Exp>;
 };
 
-
 export type Subscription_RootDeploymentArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Subscription_RootDeploymentLogArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootDeploymentLogsArgs = {
   distinct_on?: InputMaybe<Array<DeploymentLogs_Select_Column>>;
@@ -22896,7 +21962,6 @@ export type Subscription_RootDeploymentLogsArgs = {
   where?: InputMaybe<DeploymentLogs_Bool_Exp>;
 };
 
-
 export type Subscription_RootDeploymentLogsAggregateArgs = {
   distinct_on?: InputMaybe<Array<DeploymentLogs_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22905,13 +21970,11 @@ export type Subscription_RootDeploymentLogsAggregateArgs = {
   where?: InputMaybe<DeploymentLogs_Bool_Exp>;
 };
 
-
 export type Subscription_RootDeploymentLogs_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<DeploymentLogs_Stream_Cursor_Input>>;
   where?: InputMaybe<DeploymentLogs_Bool_Exp>;
 };
-
 
 export type Subscription_RootDeploymentsArgs = {
   distinct_on?: InputMaybe<Array<Deployments_Select_Column>>;
@@ -22921,7 +21984,6 @@ export type Subscription_RootDeploymentsArgs = {
   where?: InputMaybe<Deployments_Bool_Exp>;
 };
 
-
 export type Subscription_RootDeploymentsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Deployments_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22930,18 +21992,15 @@ export type Subscription_RootDeploymentsAggregateArgs = {
   where?: InputMaybe<Deployments_Bool_Exp>;
 };
 
-
 export type Subscription_RootDeployments_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Deployments_Stream_Cursor_Input>>;
   where?: InputMaybe<Deployments_Bool_Exp>;
 };
 
-
 export type Subscription_RootFeatureFlagArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootFeatureFlagsArgs = {
   distinct_on?: InputMaybe<Array<FeatureFlags_Select_Column>>;
@@ -22951,7 +22010,6 @@ export type Subscription_RootFeatureFlagsArgs = {
   where?: InputMaybe<FeatureFlags_Bool_Exp>;
 };
 
-
 export type Subscription_RootFeatureFlagsAggregateArgs = {
   distinct_on?: InputMaybe<Array<FeatureFlags_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22960,18 +22018,15 @@ export type Subscription_RootFeatureFlagsAggregateArgs = {
   where?: InputMaybe<FeatureFlags_Bool_Exp>;
 };
 
-
 export type Subscription_RootFeatureFlags_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<FeatureFlags_Stream_Cursor_Input>>;
   where?: InputMaybe<FeatureFlags_Bool_Exp>;
 };
 
-
 export type Subscription_RootFileArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -22981,7 +22036,6 @@ export type Subscription_RootFilesArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
-
 export type Subscription_RootFilesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22990,18 +22044,15 @@ export type Subscription_RootFilesAggregateArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
-
 export type Subscription_RootFiles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Files_Stream_Cursor_Input>>;
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
-
 export type Subscription_RootGithubAppInstallationArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootGithubAppInstallationsArgs = {
   distinct_on?: InputMaybe<Array<GithubAppInstallations_Select_Column>>;
@@ -23011,7 +22062,6 @@ export type Subscription_RootGithubAppInstallationsArgs = {
   where?: InputMaybe<GithubAppInstallations_Bool_Exp>;
 };
 
-
 export type Subscription_RootGithubAppInstallationsAggregateArgs = {
   distinct_on?: InputMaybe<Array<GithubAppInstallations_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23020,13 +22070,11 @@ export type Subscription_RootGithubAppInstallationsAggregateArgs = {
   where?: InputMaybe<GithubAppInstallations_Bool_Exp>;
 };
 
-
 export type Subscription_RootGithubAppInstallations_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<GithubAppInstallations_Stream_Cursor_Input>>;
   where?: InputMaybe<GithubAppInstallations_Bool_Exp>;
 };
-
 
 export type Subscription_RootGithubRepositoriesArgs = {
   distinct_on?: InputMaybe<Array<GithubRepositories_Select_Column>>;
@@ -23036,7 +22084,6 @@ export type Subscription_RootGithubRepositoriesArgs = {
   where?: InputMaybe<GithubRepositories_Bool_Exp>;
 };
 
-
 export type Subscription_RootGithubRepositoriesAggregateArgs = {
   distinct_on?: InputMaybe<Array<GithubRepositories_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23045,18 +22092,15 @@ export type Subscription_RootGithubRepositoriesAggregateArgs = {
   where?: InputMaybe<GithubRepositories_Bool_Exp>;
 };
 
-
 export type Subscription_RootGithubRepositories_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<GithubRepositories_Stream_Cursor_Input>>;
   where?: InputMaybe<GithubRepositories_Bool_Exp>;
 };
 
-
 export type Subscription_RootGithubRepositoryArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootLogsArgs = {
   appID: Scalars['String'];
@@ -23065,51 +22109,17 @@ export type Subscription_RootLogsArgs = {
   service?: InputMaybe<Scalars['String']>;
 };
 
-
 export type Subscription_RootOrganizationArgs = {
   id: Scalars['uuid'];
 };
-
-
-export type Subscription_RootOrganizationFreeUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootOrganizationFreeUsagesArgs = {
-  distinct_on?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organizations_Free_Usage_Order_By>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganizationFreeUsagesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Organizations_Free_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Organizations_Free_Usage_Order_By>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
-
-export type Subscription_RootOrganizationFreeUsagesStreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Organizations_Free_Usage_Stream_Cursor_Input>>;
-  where?: InputMaybe<Organizations_Free_Usage_Bool_Exp>;
-};
-
 
 export type Subscription_RootOrganizationMemberArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Subscription_RootOrganizationMemberInviteArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootOrganizationMemberInvitesArgs = {
   distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
@@ -23119,7 +22129,6 @@ export type Subscription_RootOrganizationMemberInvitesArgs = {
   where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationMemberInvitesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23128,13 +22137,11 @@ export type Subscription_RootOrganizationMemberInvitesAggregateArgs = {
   where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationMemberInvitesStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Organization_Member_Invites_Stream_Cursor_Input>>;
   where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
 };
-
 
 export type Subscription_RootOrganizationMembersArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
@@ -23144,7 +22151,6 @@ export type Subscription_RootOrganizationMembersArgs = {
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationMembersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23153,18 +22159,15 @@ export type Subscription_RootOrganizationMembersAggregateArgs = {
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationMembersStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Organization_Members_Stream_Cursor_Input>>;
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationNewRequestArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootOrganizationNewRequestsArgs = {
   distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
@@ -23174,7 +22177,6 @@ export type Subscription_RootOrganizationNewRequestsArgs = {
   where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationNewRequestsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23183,13 +22185,11 @@ export type Subscription_RootOrganizationNewRequestsAggregateArgs = {
   where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationNewRequestsStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Organization_New_Request_Stream_Cursor_Input>>;
   where?: InputMaybe<Organization_New_Request_Bool_Exp>;
 };
-
 
 export type Subscription_RootOrganization_Members_RoleArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
@@ -23199,7 +22199,6 @@ export type Subscription_RootOrganization_Members_RoleArgs = {
   where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganization_Members_Role_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23208,18 +22207,15 @@ export type Subscription_RootOrganization_Members_Role_AggregateArgs = {
   where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganization_Members_Role_By_PkArgs = {
   value: Scalars['String'];
 };
-
 
 export type Subscription_RootOrganization_Members_Role_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Organization_Members_Role_Stream_Cursor_Input>>;
   where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
 };
-
 
 export type Subscription_RootOrganization_StatusArgs = {
   distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
@@ -23229,7 +22225,6 @@ export type Subscription_RootOrganization_StatusArgs = {
   where?: InputMaybe<Organization_Status_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganization_Status_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23238,18 +22233,15 @@ export type Subscription_RootOrganization_Status_AggregateArgs = {
   where?: InputMaybe<Organization_Status_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganization_Status_By_PkArgs = {
   value: Scalars['String'];
 };
-
 
 export type Subscription_RootOrganization_Status_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Organization_Status_Stream_Cursor_Input>>;
   where?: InputMaybe<Organization_Status_Bool_Exp>;
 };
-
 
 export type Subscription_RootOrganizationsArgs = {
   distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
@@ -23259,7 +22251,6 @@ export type Subscription_RootOrganizationsArgs = {
   where?: InputMaybe<Organizations_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23268,18 +22259,15 @@ export type Subscription_RootOrganizationsAggregateArgs = {
   where?: InputMaybe<Organizations_Bool_Exp>;
 };
 
-
 export type Subscription_RootOrganizationsSteamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Organizations_Stream_Cursor_Input>>;
   where?: InputMaybe<Organizations_Bool_Exp>;
 };
 
-
 export type Subscription_RootPaymentMethodArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootPaymentMethodsArgs = {
   distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
@@ -23289,7 +22277,6 @@ export type Subscription_RootPaymentMethodsArgs = {
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
 
-
 export type Subscription_RootPaymentMethodsAggregateArgs = {
   distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23298,18 +22285,15 @@ export type Subscription_RootPaymentMethodsAggregateArgs = {
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
 
-
 export type Subscription_RootPaymentMethods_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<PaymentMethods_Stream_Cursor_Input>>;
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
 
-
 export type Subscription_RootPlanArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootPlansArgs = {
   distinct_on?: InputMaybe<Array<Plans_Select_Column>>;
@@ -23319,7 +22303,6 @@ export type Subscription_RootPlansArgs = {
   where?: InputMaybe<Plans_Bool_Exp>;
 };
 
-
 export type Subscription_RootPlansAggregateArgs = {
   distinct_on?: InputMaybe<Array<Plans_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23328,13 +22311,11 @@ export type Subscription_RootPlansAggregateArgs = {
   where?: InputMaybe<Plans_Bool_Exp>;
 };
 
-
 export type Subscription_RootPlans_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Plans_Stream_Cursor_Input>>;
   where?: InputMaybe<Plans_Bool_Exp>;
 };
-
 
 export type Subscription_RootRegion_TypeArgs = {
   distinct_on?: InputMaybe<Array<Region_Type_Select_Column>>;
@@ -23344,7 +22325,6 @@ export type Subscription_RootRegion_TypeArgs = {
   where?: InputMaybe<Region_Type_Bool_Exp>;
 };
 
-
 export type Subscription_RootRegion_Type_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Region_Type_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23353,18 +22333,15 @@ export type Subscription_RootRegion_Type_AggregateArgs = {
   where?: InputMaybe<Region_Type_Bool_Exp>;
 };
 
-
 export type Subscription_RootRegion_Type_By_PkArgs = {
   type: Scalars['String'];
 };
-
 
 export type Subscription_RootRegion_Type_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Region_Type_Stream_Cursor_Input>>;
   where?: InputMaybe<Region_Type_Bool_Exp>;
 };
-
 
 export type Subscription_RootRegionsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
@@ -23374,11 +22351,9 @@ export type Subscription_RootRegionsArgs = {
   where?: InputMaybe<Regions_Bool_Exp>;
 };
 
-
 export type Subscription_RootRegionsAllowedOrganizationArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootRegionsAllowedOrganizationsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
@@ -23388,7 +22363,6 @@ export type Subscription_RootRegionsAllowedOrganizationsArgs = {
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
 
-
 export type Subscription_RootRegionsAllowedOrganizationsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23397,13 +22371,11 @@ export type Subscription_RootRegionsAllowedOrganizationsAggregateArgs = {
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
 
-
 export type Subscription_RootRegionsAllowedOrganizationsStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Regions_Allowed_Organization_Stream_Cursor_Input>>;
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
-
 
 export type Subscription_RootRegions_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
@@ -23413,18 +22385,15 @@ export type Subscription_RootRegions_AggregateArgs = {
   where?: InputMaybe<Regions_Bool_Exp>;
 };
 
-
 export type Subscription_RootRegions_Allowed_Workspace_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Regions_Allowed_Workspace_Stream_Cursor_Input>>;
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
-
 export type Subscription_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootRegions_StreamArgs = {
   batch_size: Scalars['Int'];
@@ -23432,11 +22401,9 @@ export type Subscription_RootRegions_StreamArgs = {
   where?: InputMaybe<Regions_Bool_Exp>;
 };
 
-
 export type Subscription_RootRunServiceArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootRunServicesArgs = {
   distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
@@ -23446,7 +22413,6 @@ export type Subscription_RootRunServicesArgs = {
   where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
-
 export type Subscription_RootRunServicesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23455,18 +22421,15 @@ export type Subscription_RootRunServicesAggregateArgs = {
   where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
-
 export type Subscription_RootRun_Service_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Run_Service_Stream_Cursor_Input>>;
   where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
-
 export type Subscription_RootSelectRegionsAllowedWorkspaceArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootSelectRegionsAllowedWorkspacesArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
@@ -23476,7 +22439,6 @@ export type Subscription_RootSelectRegionsAllowedWorkspacesArgs = {
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
-
 export type Subscription_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23485,11 +22447,9 @@ export type Subscription_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
-
 export type Subscription_RootSoftwareTypeArgs = {
   type: Scalars['String'];
 };
-
 
 export type Subscription_RootSoftwareTypesArgs = {
   distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
@@ -23499,7 +22459,6 @@ export type Subscription_RootSoftwareTypesArgs = {
   where?: InputMaybe<Software_Type_Bool_Exp>;
 };
 
-
 export type Subscription_RootSoftwareTypesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23508,18 +22467,15 @@ export type Subscription_RootSoftwareTypesAggregateArgs = {
   where?: InputMaybe<Software_Type_Bool_Exp>;
 };
 
-
 export type Subscription_RootSoftwareTypesStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Software_Type_Stream_Cursor_Input>>;
   where?: InputMaybe<Software_Type_Bool_Exp>;
 };
 
-
 export type Subscription_RootSoftwareVersionArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootSoftwareVersionsArgs = {
   distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
@@ -23529,7 +22485,6 @@ export type Subscription_RootSoftwareVersionsArgs = {
   where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
-
 export type Subscription_RootSoftwareVersionsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23538,18 +22493,15 @@ export type Subscription_RootSoftwareVersionsAggregateArgs = {
   where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
-
 export type Subscription_RootSoftwareVersionsStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Software_Versions_Stream_Cursor_Input>>;
   where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
-
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -23559,7 +22511,6 @@ export type Subscription_RootUsersArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
-
 export type Subscription_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23568,28 +22519,23 @@ export type Subscription_RootUsersAggregateArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
-
 export type Subscription_RootUsers_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
-
 export type Subscription_RootWorkspaceArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootWorkspaceMemberArgs = {
   id: Scalars['uuid'];
 };
 
-
 export type Subscription_RootWorkspaceMemberInviteArgs = {
   id: Scalars['uuid'];
 };
-
 
 export type Subscription_RootWorkspaceMemberInvitesArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
@@ -23599,7 +22545,6 @@ export type Subscription_RootWorkspaceMemberInvitesArgs = {
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
 
-
 export type Subscription_RootWorkspaceMemberInvitesAggregateArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23608,13 +22553,11 @@ export type Subscription_RootWorkspaceMemberInvitesAggregateArgs = {
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
 
-
 export type Subscription_RootWorkspaceMemberInvites_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<WorkspaceMemberInvites_Stream_Cursor_Input>>;
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
-
 
 export type Subscription_RootWorkspaceMembersArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
@@ -23624,7 +22567,6 @@ export type Subscription_RootWorkspaceMembersArgs = {
   where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
 };
 
-
 export type Subscription_RootWorkspaceMembersAggregateArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23633,13 +22575,11 @@ export type Subscription_RootWorkspaceMembersAggregateArgs = {
   where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
 };
 
-
 export type Subscription_RootWorkspaceMembers_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<WorkspaceMembers_Stream_Cursor_Input>>;
   where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
 };
-
 
 export type Subscription_RootWorkspacesArgs = {
   distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
@@ -23649,7 +22589,6 @@ export type Subscription_RootWorkspacesArgs = {
   where?: InputMaybe<Workspaces_Bool_Exp>;
 };
 
-
 export type Subscription_RootWorkspacesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -23657,7 +22596,6 @@ export type Subscription_RootWorkspacesAggregateArgs = {
   order_by?: InputMaybe<Array<Workspaces_Order_By>>;
   where?: InputMaybe<Workspaces_Bool_Exp>;
 };
-
 
 export type Subscription_RootWorkspaces_StreamArgs = {
   batch_size: Scalars['Int'];
@@ -23781,7 +22719,6 @@ export type Users = {
   workspace_member_invites_aggregate: WorkspaceMemberInvites_Aggregate;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -23790,7 +22727,6 @@ export type UsersAppsArgs = {
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersApps_AggregateArgs = {
@@ -23801,7 +22737,6 @@ export type UsersApps_AggregateArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersCliTokensArgs = {
   distinct_on?: InputMaybe<Array<CliTokens_Select_Column>>;
@@ -23810,7 +22745,6 @@ export type UsersCliTokensArgs = {
   order_by?: InputMaybe<Array<CliTokens_Order_By>>;
   where?: InputMaybe<CliTokens_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersCliTokens_AggregateArgs = {
@@ -23821,7 +22755,6 @@ export type UsersCliTokens_AggregateArgs = {
   where?: InputMaybe<CliTokens_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersCreatorOfWorkspacesArgs = {
   distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
@@ -23830,7 +22763,6 @@ export type UsersCreatorOfWorkspacesArgs = {
   order_by?: InputMaybe<Array<Workspaces_Order_By>>;
   where?: InputMaybe<Workspaces_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersCreatorOfWorkspaces_AggregateArgs = {
@@ -23841,7 +22773,6 @@ export type UsersCreatorOfWorkspaces_AggregateArgs = {
   where?: InputMaybe<Workspaces_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersGithub_App_InstallationsArgs = {
   distinct_on?: InputMaybe<Array<GithubAppInstallations_Select_Column>>;
@@ -23850,7 +22781,6 @@ export type UsersGithub_App_InstallationsArgs = {
   order_by?: InputMaybe<Array<GithubAppInstallations_Order_By>>;
   where?: InputMaybe<GithubAppInstallations_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersGithub_App_Installations_AggregateArgs = {
@@ -23861,12 +22791,10 @@ export type UsersGithub_App_Installations_AggregateArgs = {
   where?: InputMaybe<GithubAppInstallations_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersOrganizationMembershipArgs = {
@@ -23877,7 +22805,6 @@ export type UsersOrganizationMembershipArgs = {
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersOrganizationMembership_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
@@ -23886,7 +22813,6 @@ export type UsersOrganizationMembership_AggregateArgs = {
   order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
   where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersPayment_MethodsArgs = {
@@ -23897,7 +22823,6 @@ export type UsersPayment_MethodsArgs = {
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersPayment_Methods_AggregateArgs = {
   distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
@@ -23906,7 +22831,6 @@ export type UsersPayment_Methods_AggregateArgs = {
   order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokensArgs = {
@@ -23917,7 +22841,6 @@ export type UsersRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokens_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -23926,7 +22849,6 @@ export type UsersRefreshTokens_AggregateArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRolesArgs = {
@@ -23937,7 +22859,6 @@ export type UsersRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRoles_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -23946,7 +22867,6 @@ export type UsersRoles_AggregateArgs = {
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRunServicesArgs = {
@@ -23957,7 +22877,6 @@ export type UsersRunServicesArgs = {
   where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRunServices_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
@@ -23966,7 +22885,6 @@ export type UsersRunServices_AggregateArgs = {
   order_by?: InputMaybe<Array<Run_Service_Order_By>>;
   where?: InputMaybe<Run_Service_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersSecurityKeysArgs = {
@@ -23977,7 +22895,6 @@ export type UsersSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersSecurityKeys_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -23986,7 +22903,6 @@ export type UsersSecurityKeys_AggregateArgs = {
   order_by?: InputMaybe<Array<AuthUserSecurityKeys_Order_By>>;
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersUserProvidersArgs = {
@@ -23997,7 +22913,6 @@ export type UsersUserProvidersArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersUserProviders_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -24006,7 +22921,6 @@ export type UsersUserProviders_AggregateArgs = {
   order_by?: InputMaybe<Array<AuthUserProviders_Order_By>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersWorkspaceMemberInvitesByInvitedByUserIdArgs = {
@@ -24017,7 +22931,6 @@ export type UsersWorkspaceMemberInvitesByInvitedByUserIdArgs = {
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersWorkspaceMemberInvitesByInvitedByUserId_AggregateArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
@@ -24026,7 +22939,6 @@ export type UsersWorkspaceMemberInvitesByInvitedByUserId_AggregateArgs = {
   order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersWorkspaceMembersArgs = {
@@ -24037,7 +22949,6 @@ export type UsersWorkspaceMembersArgs = {
   where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersWorkspaceMembers_AggregateArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
@@ -24047,7 +22958,6 @@ export type UsersWorkspaceMembers_AggregateArgs = {
   where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
 };
 
-
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersWorkspace_Member_InvitesArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
@@ -24056,7 +22966,6 @@ export type UsersWorkspace_Member_InvitesArgs = {
   order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
-
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersWorkspace_Member_Invites_AggregateArgs = {
@@ -24108,7 +23017,6 @@ export type Users_Aggregate_Fields = {
   max?: Maybe<Users_Max_Fields>;
   min?: Maybe<Users_Min_Fields>;
 };
-
 
 /** aggregate fields of "auth.users" */
 export type Users_Aggregate_FieldsCountArgs = {
@@ -24204,7 +23112,7 @@ export enum Users_Constraint {
   /** unique or primary key constraint on columns "phone_number" */
   UsersPhoneNumberKey = 'users_phone_number_key',
   /** unique or primary key constraint on columns "id" */
-  UsersPkey = 'users_pkey'
+  UsersPkey = 'users_pkey',
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -24494,7 +23402,7 @@ export enum Users_Select_Column {
   /** column name */
   TotpSecret = 'totpSecret',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** select "users_aggregate_bool_exp_bool_and_arguments_columns" columns of table "auth.users" */
@@ -24506,7 +23414,7 @@ export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_And_Arguments_Colu
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  PhoneNumberVerified = 'phoneNumberVerified'
+  PhoneNumberVerified = 'phoneNumberVerified',
 }
 
 /** select "users_aggregate_bool_exp_bool_or_arguments_columns" columns of table "auth.users" */
@@ -24518,7 +23426,7 @@ export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_Or_Arguments_Colum
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  PhoneNumberVerified = 'phoneNumberVerified'
+  PhoneNumberVerified = 'phoneNumberVerified',
 }
 
 /** input type for updating data in table "auth.users" */
@@ -24638,7 +23546,7 @@ export enum Users_Update_Column {
   /** column name */
   TotpSecret = 'totpSecret',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Users_Updates = {
@@ -24733,7 +23641,6 @@ export type WorkspaceMemberInvites_Aggregate_Fields = {
   min?: Maybe<WorkspaceMemberInvites_Min_Fields>;
 };
 
-
 /** aggregate fields of "workspace_member_invites" */
 export type WorkspaceMemberInvites_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
@@ -24777,7 +23684,7 @@ export enum WorkspaceMemberInvites_Constraint {
   /** unique or primary key constraint on columns "workspace_id", "email" */
   WorkspaceMemberInvitesEmailWorkspaceIdKey = 'workspace_member_invites_email_workspace_id_key',
   /** unique or primary key constraint on columns "id" */
-  WorkspaceMemberInvitesPkey = 'workspace_member_invites_pkey'
+  WorkspaceMemberInvitesPkey = 'workspace_member_invites_pkey',
 }
 
 /** input type for inserting data into table "workspace_member_invites" */
@@ -24899,19 +23806,19 @@ export enum WorkspaceMemberInvites_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  WorkspaceId = 'workspaceId'
+  WorkspaceId = 'workspaceId',
 }
 
 /** select "workspaceMemberInvites_aggregate_bool_exp_bool_and_arguments_columns" columns of table "workspace_member_invites" */
 export enum WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  IsAccepted = 'isAccepted'
+  IsAccepted = 'isAccepted',
 }
 
 /** select "workspaceMemberInvites_aggregate_bool_exp_bool_or_arguments_columns" columns of table "workspace_member_invites" */
 export enum WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  IsAccepted = 'isAccepted'
+  IsAccepted = 'isAccepted',
 }
 
 /** input type for updating data in table "workspace_member_invites" */
@@ -24965,7 +23872,7 @@ export enum WorkspaceMemberInvites_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  WorkspaceId = 'workspaceId'
+  WorkspaceId = 'workspaceId',
 }
 
 export type WorkspaceMemberInvites_Updates = {
@@ -25017,7 +23924,6 @@ export type WorkspaceMembers_Aggregate_Fields = {
   min?: Maybe<WorkspaceMembers_Min_Fields>;
 };
 
-
 /** aggregate fields of "workspace_members" */
 export type WorkspaceMembers_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
@@ -25058,7 +23964,7 @@ export enum WorkspaceMembers_Constraint {
   /** unique or primary key constraint on columns "id" */
   WorkspaceMembersPkey = 'workspace_members_pkey',
   /** unique or primary key constraint on columns "workspace_id", "user_id" */
-  WorkspaceMembersUserIdWorkspaceIdKey = 'workspace_members_user_id_workspace_id_key'
+  WorkspaceMembersUserIdWorkspaceIdKey = 'workspace_members_user_id_workspace_id_key',
 }
 
 /** input type for inserting data into table "workspace_members" */
@@ -25166,7 +24072,7 @@ export enum WorkspaceMembers_Select_Column {
   /** column name */
   UserId = 'userId',
   /** column name */
-  WorkspaceId = 'workspaceId'
+  WorkspaceId = 'workspaceId',
 }
 
 /** input type for updating data in table "workspace_members" */
@@ -25212,7 +24118,7 @@ export enum WorkspaceMembers_Update_Column {
   /** column name */
   UserId = 'userId',
   /** column name */
-  WorkspaceId = 'workspaceId'
+  WorkspaceId = 'workspaceId',
 }
 
 export type WorkspaceMembers_Updates = {
@@ -25278,7 +24184,6 @@ export type Workspaces = {
   workspaceMembers_aggregate: WorkspaceMembers_Aggregate;
 };
 
-
 /** columns and relationships of "workspaces" */
 export type WorkspacesAppsArgs = {
   distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
@@ -25287,7 +24192,6 @@ export type WorkspacesAppsArgs = {
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
 };
-
 
 /** columns and relationships of "workspaces" */
 export type WorkspacesApps_AggregateArgs = {
@@ -25298,7 +24202,6 @@ export type WorkspacesApps_AggregateArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
 /** columns and relationships of "workspaces" */
 export type WorkspacesPaymentMethodsArgs = {
   distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
@@ -25307,7 +24210,6 @@ export type WorkspacesPaymentMethodsArgs = {
   order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
-
 
 /** columns and relationships of "workspaces" */
 export type WorkspacesPaymentMethods_AggregateArgs = {
@@ -25318,7 +24220,6 @@ export type WorkspacesPaymentMethods_AggregateArgs = {
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
 };
 
-
 /** columns and relationships of "workspaces" */
 export type WorkspacesRegions_Allowed_WorkspacesArgs = {
   distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
@@ -25327,7 +24228,6 @@ export type WorkspacesRegions_Allowed_WorkspacesArgs = {
   order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
-
 
 /** columns and relationships of "workspaces" */
 export type WorkspacesRegions_Allowed_Workspaces_AggregateArgs = {
@@ -25338,7 +24238,6 @@ export type WorkspacesRegions_Allowed_Workspaces_AggregateArgs = {
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
-
 /** columns and relationships of "workspaces" */
 export type WorkspacesWorkspaceMemberInvitesArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
@@ -25347,7 +24246,6 @@ export type WorkspacesWorkspaceMemberInvitesArgs = {
   order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
-
 
 /** columns and relationships of "workspaces" */
 export type WorkspacesWorkspaceMemberInvites_AggregateArgs = {
@@ -25358,7 +24256,6 @@ export type WorkspacesWorkspaceMemberInvites_AggregateArgs = {
   where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
 };
 
-
 /** columns and relationships of "workspaces" */
 export type WorkspacesWorkspaceMembersArgs = {
   distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
@@ -25367,7 +24264,6 @@ export type WorkspacesWorkspaceMembersArgs = {
   order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
   where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
 };
-
 
 /** columns and relationships of "workspaces" */
 export type WorkspacesWorkspaceMembers_AggregateArgs = {
@@ -25403,7 +24299,6 @@ export type Workspaces_Aggregate_Fields = {
   max?: Maybe<Workspaces_Max_Fields>;
   min?: Maybe<Workspaces_Min_Fields>;
 };
-
 
 /** aggregate fields of "workspaces" */
 export type Workspaces_Aggregate_FieldsCountArgs = {
@@ -25468,7 +24363,7 @@ export enum Workspaces_Constraint {
   /** unique or primary key constraint on columns "id" */
   WorkspacesPkey = 'workspaces_pkey',
   /** unique or primary key constraint on columns "slug" */
-  WorkspacesSlugKey = 'workspaces_slug_key'
+  WorkspacesSlugKey = 'workspaces_slug_key',
 }
 
 /** input type for inserting data into table "workspaces" */
@@ -25710,7 +24605,7 @@ export enum Workspaces_Select_Column {
   /** column name */
   TaxIdValue = 'taxIdValue',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "workspaces" */
@@ -25810,7 +24705,7 @@ export enum Workspaces_Update_Column {
   /** column name */
   TaxIdValue = 'taxIdValue',
   /** column name */
-  UpdatedAt = 'updatedAt'
+  UpdatedAt = 'updatedAt',
 }
 
 export type Workspaces_Updates = {
@@ -25824,78 +24719,282 @@ export type DeleteUserAccountMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
+export type DeleteUserAccountMutation = {
+  __typename?: 'mutation_root';
+  deleteUser?: { __typename: 'users' } | null;
+};
 
-export type DeleteUserAccountMutation = { __typename?: 'mutation_root', deleteUser?: { __typename: 'users' } | null };
+export type GetAuthUserProvidersQueryVariables = Exact<{
+  [key: string]: never;
+}>;
 
-export type GetAuthUserProvidersQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetAuthUserProvidersQuery = {
+  __typename?: 'query_root';
+  authUserProviders: Array<{
+    __typename?: 'authUserProviders';
+    id: any;
+    providerId: string;
+  }>;
+};
 
+export type GetPersonalAccessTokensQueryVariables = Exact<{
+  [key: string]: never;
+}>;
 
-export type GetAuthUserProvidersQuery = { __typename?: 'query_root', authUserProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
-
-export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetPersonalAccessTokensQuery = { __typename?: 'query_root', personalAccessTokens: Array<{ __typename?: 'authRefreshTokens', id: any, metadata?: any | null, createdAt: any, expiresAt: any }> };
+export type GetPersonalAccessTokensQuery = {
+  __typename?: 'query_root';
+  personalAccessTokens: Array<{
+    __typename?: 'authRefreshTokens';
+    id: any;
+    metadata?: any | null;
+    createdAt: any;
+    expiresAt: any;
+  }>;
+};
 
 export type DeletePersonalAccessTokenMutationVariables = Exact<{
   patId: Scalars['uuid'];
 }>;
 
-
-export type DeletePersonalAccessTokenMutation = { __typename?: 'mutation_root', deletePersonalAccessToken?: { __typename?: 'authRefreshTokens', id: any, metadata?: any | null } | null };
+export type DeletePersonalAccessTokenMutation = {
+  __typename?: 'mutation_root';
+  deletePersonalAccessToken?: {
+    __typename?: 'authRefreshTokens';
+    id: any;
+    metadata?: any | null;
+  } | null;
+};
 
 export type UpdateUserDisplayNameMutationVariables = Exact<{
   id: Scalars['uuid'];
   displayName: Scalars['String'];
 }>;
 
-
-export type UpdateUserDisplayNameMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, displayName: string } | null };
+export type UpdateUserDisplayNameMutation = {
+  __typename?: 'mutation_root';
+  updateUser?: { __typename?: 'users'; id: any; displayName: string } | null;
+};
 
 export type GetAiSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetAiSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', apiKey: string, organization?: string | null }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null };
+export type GetAiSettingsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename?: 'ConfigConfig';
+    postgres?: {
+      __typename?: 'ConfigPostgres';
+      version?: string | null;
+    } | null;
+    ai?: {
+      __typename?: 'ConfigAI';
+      version?: string | null;
+      webhookSecret: string;
+      autoEmbeddings?: {
+        __typename?: 'ConfigAIAutoEmbeddings';
+        synchPeriodMinutes?: any | null;
+      } | null;
+      openai: {
+        __typename?: 'ConfigAIOpenai';
+        apiKey: string;
+        organization?: string | null;
+      };
+      resources: {
+        __typename?: 'ConfigAIResources';
+        compute: {
+          __typename?: 'ConfigComputeResources';
+          cpu: any;
+          memory: any;
+        };
+      };
+    } | null;
+  } | null;
+};
 
 export type GetAuthenticationSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename: 'ConfigConfig';
+    id: 'ConfigConfig';
+    auth?: {
+      __typename: 'ConfigAuth';
+      version?: string | null;
+      id: 'ConfigAuth';
+      redirections?: {
+        __typename?: 'ConfigAuthRedirections';
+        clientUrl?: any | null;
+        allowedUrls?: Array<string> | null;
+      } | null;
+      totp?: {
+        __typename?: 'ConfigAuthTotp';
+        enabled?: boolean | null;
+        issuer?: string | null;
+      } | null;
+      signUp?: {
+        __typename?: 'ConfigAuthSignUp';
+        enabled?: boolean | null;
+      } | null;
+      session?: {
+        __typename?: 'ConfigAuthSession';
+        accessToken?: {
+          __typename?: 'ConfigAuthSessionAccessToken';
+          expiresIn?: any | null;
+        } | null;
+        refreshToken?: {
+          __typename?: 'ConfigAuthSessionRefreshToken';
+          expiresIn?: any | null;
+        } | null;
+      } | null;
+      resources?: {
+        __typename?: 'ConfigResources';
+        networking?: {
+          __typename?: 'ConfigNetworking';
+          ingresses?: Array<{
+            __typename?: 'ConfigIngress';
+            fqdn?: Array<string> | null;
+          }> | null;
+        } | null;
+      } | null;
+      user?: {
+        __typename?: 'ConfigAuthUser';
+        email?: {
+          __typename?: 'ConfigAuthUserEmail';
+          allowed?: Array<any> | null;
+          blocked?: Array<any> | null;
+        } | null;
+        emailDomains?: {
+          __typename?: 'ConfigAuthUserEmailDomains';
+          allowed?: Array<string> | null;
+          blocked?: Array<string> | null;
+        } | null;
+        gravatar?: {
+          __typename?: 'ConfigAuthUserGravatar';
+          enabled?: boolean | null;
+          default?: string | null;
+          rating?: string | null;
+        } | null;
+        locale?: {
+          __typename?: 'ConfigAuthUserLocale';
+          allowed?: Array<any> | null;
+          default?: any | null;
+        } | null;
+      } | null;
+      misc?: {
+        __typename?: 'ConfigAuthMisc';
+        concealErrors?: boolean | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type GetPostgresSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null, resources?: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null } | null };
+export type GetPostgresSettingsQuery = {
+  __typename?: 'query_root';
+  systemConfig?: {
+    __typename?: 'ConfigSystemConfig';
+    postgres: { __typename?: 'ConfigSystemConfigPostgres'; database: string };
+  } | null;
+  config?: {
+    __typename: 'ConfigConfig';
+    id: 'ConfigConfig';
+    postgres?: {
+      __typename?: 'ConfigPostgres';
+      version?: string | null;
+      resources?: {
+        __typename?: 'ConfigPostgresResources';
+        enablePublicAccess?: boolean | null;
+        storage?: {
+          __typename?: 'ConfigPostgresStorage';
+          capacity: any;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type ResetDatabasePasswordMutationVariables = Exact<{
   appId: Scalars['String'];
   newPassword: Scalars['String'];
 }>;
 
-
-export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
+export type ResetDatabasePasswordMutation = {
+  __typename?: 'mutation_root';
+  resetPostgresPassword: boolean;
+};
 
 export type GetHasuraSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
+export type GetHasuraSettingsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename: 'ConfigConfig';
+    id: 'ConfigConfig';
+    hasura: {
+      __typename?: 'ConfigHasura';
+      version?: string | null;
+      settings?: {
+        __typename?: 'ConfigHasuraSettings';
+        enableAllowList?: boolean | null;
+        enableRemoteSchemaPermissions?: boolean | null;
+        enableConsole?: boolean | null;
+        devMode?: boolean | null;
+        corsDomain?: Array<any> | null;
+        enabledAPIs?: Array<any> | null;
+      } | null;
+      logs?: { __typename?: 'ConfigHasuraLogs'; level?: string | null } | null;
+      events?: {
+        __typename?: 'ConfigHasuraEvents';
+        httpPoolSize?: any | null;
+      } | null;
+      resources?: {
+        __typename?: 'ConfigResources';
+        networking?: {
+          __typename?: 'ConfigNetworking';
+          ingresses?: Array<{
+            __typename?: 'ConfigIngress';
+            fqdn?: Array<string> | null;
+          }> | null;
+        } | null;
+      } | null;
+    };
+  } | null;
+};
 
-export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } } | null };
-
-export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
+export type BackupFragment = {
+  __typename?: 'backups';
+  id: any;
+  size: any;
+  createdAt: any;
+  completedAt?: any | null;
+};
 
 export type GetApplicationBackupsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetApplicationBackupsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', backups: Array<{ __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null }> } | null };
+export type GetApplicationBackupsQuery = {
+  __typename?: 'query_root';
+  app?: {
+    __typename?: 'apps';
+    backups: Array<{
+      __typename?: 'backups';
+      id: any;
+      size: any;
+      createdAt: any;
+      completedAt?: any | null;
+    }>;
+  } | null;
+};
 
 export type GetBackupPresignedUrlQueryVariables = Exact<{
   appId: Scalars['String'];
@@ -25903,91 +25002,448 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
   expireInMinutes?: InputMaybe<Scalars['Int']>;
 }>;
 
+export type GetBackupPresignedUrlQuery = {
+  __typename?: 'query_root';
+  getBackupPresignedUrl: {
+    __typename?: 'BackupPresignedURL';
+    url: string;
+    expiresAt: any;
+  };
+};
 
-export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
-
-export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null };
+export type ServiceResourcesFragment = {
+  __typename?: 'ConfigConfig';
+  auth?: {
+    __typename?: 'ConfigAuth';
+    resources?: {
+      __typename?: 'ConfigResources';
+      replicas?: any | null;
+      compute?: {
+        __typename?: 'ConfigResourcesCompute';
+        cpu: any;
+        memory: any;
+      } | null;
+      autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
+    } | null;
+  } | null;
+  hasura: {
+    __typename?: 'ConfigHasura';
+    resources?: {
+      __typename?: 'ConfigResources';
+      replicas?: any | null;
+      compute?: {
+        __typename?: 'ConfigResourcesCompute';
+        cpu: any;
+        memory: any;
+      } | null;
+      autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
+    } | null;
+  };
+  postgres?: {
+    __typename?: 'ConfigPostgres';
+    resources?: {
+      __typename?: 'ConfigPostgresResources';
+      replicas?: any | null;
+      compute?: {
+        __typename?: 'ConfigResourcesCompute';
+        cpu: any;
+        memory: any;
+      } | null;
+      autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
+    } | null;
+  } | null;
+  storage?: {
+    __typename?: 'ConfigStorage';
+    resources?: {
+      __typename?: 'ConfigResources';
+      replicas?: any | null;
+      compute?: {
+        __typename?: 'ConfigResourcesCompute';
+        cpu: any;
+        memory: any;
+      } | null;
+      autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
+    } | null;
+  } | null;
+};
 
 export type GetResourcesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null } | null };
+export type GetResourcesQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename?: 'ConfigConfig';
+    auth?: {
+      __typename?: 'ConfigAuth';
+      resources?: {
+        __typename?: 'ConfigResources';
+        replicas?: any | null;
+        compute?: {
+          __typename?: 'ConfigResourcesCompute';
+          cpu: any;
+          memory: any;
+        } | null;
+        autoscaler?: {
+          __typename?: 'ConfigAutoscaler';
+          maxReplicas: any;
+        } | null;
+      } | null;
+    } | null;
+    hasura: {
+      __typename?: 'ConfigHasura';
+      resources?: {
+        __typename?: 'ConfigResources';
+        replicas?: any | null;
+        compute?: {
+          __typename?: 'ConfigResourcesCompute';
+          cpu: any;
+          memory: any;
+        } | null;
+        autoscaler?: {
+          __typename?: 'ConfigAutoscaler';
+          maxReplicas: any;
+        } | null;
+      } | null;
+    };
+    postgres?: {
+      __typename?: 'ConfigPostgres';
+      resources?: {
+        __typename?: 'ConfigPostgresResources';
+        replicas?: any | null;
+        compute?: {
+          __typename?: 'ConfigResourcesCompute';
+          cpu: any;
+          memory: any;
+        } | null;
+        autoscaler?: {
+          __typename?: 'ConfigAutoscaler';
+          maxReplicas: any;
+        } | null;
+      } | null;
+    } | null;
+    storage?: {
+      __typename?: 'ConfigStorage';
+      resources?: {
+        __typename?: 'ConfigResources';
+        replicas?: any | null;
+        compute?: {
+          __typename?: 'ConfigResourcesCompute';
+          cpu: any;
+          memory: any;
+        } | null;
+        autoscaler?: {
+          __typename?: 'ConfigAutoscaler';
+          maxReplicas: any;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type GetStorageSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetStorageSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', storage?: { __typename?: 'ConfigStorage', version?: string | null, antivirus?: { __typename?: 'ConfigStorageAntivirus', server?: string | null } | null } | null } | null };
+export type GetStorageSettingsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename: 'ConfigConfig';
+    id: 'ConfigConfig';
+    storage?: {
+      __typename?: 'ConfigStorage';
+      version?: string | null;
+      antivirus?: {
+        __typename?: 'ConfigStorageAntivirus';
+        server?: string | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type GetServerlessFunctionsSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetServerlessFunctionsSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', functions?: { __typename?: 'ConfigFunctions', resources?: { __typename?: 'ConfigFunctionsResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null } | null };
+export type GetServerlessFunctionsSettingsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename?: 'ConfigConfig';
+    functions?: {
+      __typename?: 'ConfigFunctions';
+      resources?: {
+        __typename?: 'ConfigFunctionsResources';
+        networking?: {
+          __typename?: 'ConfigNetworking';
+          ingresses?: Array<{
+            __typename?: 'ConfigIngress';
+            fqdn?: Array<string> | null;
+          }> | null;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
+export type DeleteApplicationMutation = {
+  __typename?: 'mutation_root';
+  deleteApp?: { __typename?: 'apps'; id: any } | null;
+};
 
-export type DeleteApplicationMutation = { __typename?: 'mutation_root', deleteApp?: { __typename?: 'apps', id: any } | null };
+export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{
+  [key: string]: never;
+}>;
 
-export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetAllWorkspacesAndProjectsQuery = {
+  __typename?: 'query_root';
+  workspaces: Array<{
+    __typename?: 'workspaces';
+    id: any;
+    name: string;
+    slug: string;
+    creatorUserId?: any | null;
+    workspaceMembers: Array<{
+      __typename?: 'workspaceMembers';
+      id: any;
+      type: string;
+      user: {
+        __typename?: 'users';
+        id: any;
+        email?: any | null;
+        displayName: string;
+      };
+    }>;
+    projects: Array<{
+      __typename?: 'apps';
+      id: any;
+      slug: string;
+      name: string;
+      repositoryProductionBranch: string;
+      subdomain: string;
+      createdAt: any;
+      desiredState: number;
+      nhostBaseFolder: string;
+      config?: {
+        __typename?: 'ConfigConfig';
+        observability: {
+          __typename?: 'ConfigObservability';
+          grafana: { __typename?: 'ConfigGrafana'; adminPassword: string };
+        };
+        hasura: {
+          __typename?: 'ConfigHasura';
+          adminSecret: string;
+          settings?: {
+            __typename?: 'ConfigHasuraSettings';
+            enableConsole?: boolean | null;
+          } | null;
+        };
+        ai?: { __typename?: 'ConfigAI'; version?: string | null } | null;
+      } | null;
+      featureFlags: Array<{
+        __typename?: 'featureFlags';
+        description: string;
+        id: any;
+        name: string;
+        value: string;
+      }>;
+      appStates: Array<{
+        __typename?: 'appStateHistory';
+        id: any;
+        appId: any;
+        message?: string | null;
+        stateId: number;
+        createdAt: any;
+      }>;
+      region: {
+        __typename?: 'regions';
+        id: any;
+        countryCode: string;
+        name: string;
+        domain: string;
+        city: string;
+      };
+      legacyPlan?: {
+        __typename?: 'plans';
+        id: any;
+        name: string;
+        price: number;
+        isFree: boolean;
+        featureMaxDbSize: number;
+      } | null;
+      githubRepository?: {
+        __typename?: 'githubRepositories';
+        fullName: string;
+      } | null;
+      deployments: Array<{
+        __typename?: 'deployments';
+        id: any;
+        commitSHA: string;
+        commitMessage?: string | null;
+        commitUserName?: string | null;
+        deploymentStartedAt?: any | null;
+        deploymentEndedAt?: any | null;
+        commitUserAvatarUrl?: string | null;
+        deploymentStatus?: string | null;
+      }>;
+      creator?: {
+        __typename?: 'users';
+        id: any;
+        email?: any | null;
+        displayName: string;
+      } | null;
+    }>;
+  }>;
+};
 
+export type GetAppPlanAndGlobalPlansAppFragment = {
+  __typename?: 'apps';
+  id: any;
+  subdomain: string;
+  workspace?: {
+    __typename?: 'workspaces';
+    id: any;
+    paymentMethods: Array<{ __typename?: 'paymentMethods'; id: any }>;
+  } | null;
+  legacyPlan?: { __typename?: 'plans'; id: any; name: string } | null;
+};
 
-export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
-
-export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace?: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> } | null, legacyPlan?: { __typename?: 'plans', id: any, name: string } | null };
-
-export type GetAppPlanAndGlobalPlansPlanFragment = { __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number };
+export type GetAppPlanAndGlobalPlansPlanFragment = {
+  __typename?: 'plans';
+  id: any;
+  name: string;
+  isFree: boolean;
+  price: number;
+  featureMaxDbSize: number;
+};
 
 export type GetAppPlanAndGlobalPlansQueryVariables = Exact<{
   workspaceSlug: Scalars['String'];
   appSlug: Scalars['String'];
 }>;
 
-
-export type GetAppPlanAndGlobalPlansQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, subdomain: string, workspace?: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> } | null, legacyPlan?: { __typename?: 'plans', id: any, name: string } | null }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number }> };
+export type GetAppPlanAndGlobalPlansQuery = {
+  __typename?: 'query_root';
+  apps: Array<{
+    __typename?: 'apps';
+    id: any;
+    subdomain: string;
+    workspace?: {
+      __typename?: 'workspaces';
+      id: any;
+      paymentMethods: Array<{ __typename?: 'paymentMethods'; id: any }>;
+    } | null;
+    legacyPlan?: { __typename?: 'plans'; id: any; name: string } | null;
+  }>;
+  plans: Array<{
+    __typename?: 'plans';
+    id: any;
+    name: string;
+    isFree: boolean;
+    price: number;
+    featureMaxDbSize: number;
+  }>;
+};
 
 export type GetApplicationPlanQueryVariables = Exact<{
   workspace: Scalars['String'];
   slug: Scalars['String'];
 }>;
 
-
-export type GetApplicationPlanQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, subdomain: string, legacyPlan?: { __typename?: 'plans', name: string, price: number, upatedAt: any, featureMaxDbSize: number } | null }> };
+export type GetApplicationPlanQuery = {
+  __typename?: 'query_root';
+  apps: Array<{
+    __typename?: 'apps';
+    id: any;
+    subdomain: string;
+    legacyPlan?: {
+      __typename?: 'plans';
+      name: string;
+      price: number;
+      upatedAt: any;
+      featureMaxDbSize: number;
+    } | null;
+  }>;
+};
 
 export type GetApplicationStateQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetApplicationStateQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, name: string, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> } | null };
+export type GetApplicationStateQuery = {
+  __typename?: 'query_root';
+  app?: {
+    __typename?: 'apps';
+    id: any;
+    name: string;
+    appStates: Array<{
+      __typename?: 'appStateHistory';
+      id: any;
+      appId: any;
+      message?: string | null;
+      stateId: number;
+      createdAt: any;
+    }>;
+  } | null;
+};
 
 export type GetConfiguredVersionsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetConfiguredVersionsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', version?: string | null } | null, postgres?: { __typename?: 'ConfigPostgres', version?: string | null } | null, hasura: { __typename?: 'ConfigHasura', version?: string | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null, storage?: { __typename?: 'ConfigStorage', version?: string | null } | null } | null };
+export type GetConfiguredVersionsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename?: 'ConfigConfig';
+    auth?: { __typename?: 'ConfigAuth'; version?: string | null } | null;
+    postgres?: {
+      __typename?: 'ConfigPostgres';
+      version?: string | null;
+    } | null;
+    hasura: { __typename?: 'ConfigHasura'; version?: string | null };
+    ai?: { __typename?: 'ConfigAI'; version?: string | null } | null;
+    storage?: { __typename?: 'ConfigStorage'; version?: string | null } | null;
+  } | null;
+};
 
 export type GetProjectIsLockedQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetProjectIsLockedQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', isLocked?: boolean | null, isLockedReason?: string | null } | null };
+export type GetProjectIsLockedQuery = {
+  __typename?: 'query_root';
+  app?: {
+    __typename?: 'apps';
+    isLocked?: boolean | null;
+    isLockedReason?: string | null;
+  } | null;
+};
 
 export type GetProjectLocalesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetProjectLocalesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', user?: { __typename?: 'ConfigAuthUser', locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
+export type GetProjectLocalesQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename?: 'ConfigConfig';
+    auth?: {
+      __typename?: 'ConfigAuth';
+      user?: {
+        __typename?: 'ConfigAuthUser';
+        locale?: {
+          __typename?: 'ConfigAuthUserLocale';
+          allowed?: Array<any> | null;
+          default?: any | null;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type GetProjectMetricsQueryVariables = Exact<{
   appId: Scalars['String'];
@@ -25996,217 +25452,902 @@ export type GetProjectMetricsQueryVariables = Exact<{
   to?: InputMaybe<Scalars['Timestamp']>;
 }>;
 
-
-export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
+export type GetProjectMetricsQuery = {
+  __typename?: 'query_root';
+  logsVolume: { __typename?: 'Metrics'; value: any };
+  cpuSecondsUsage: { __typename?: 'Metrics'; value: any };
+  functionInvocations: { __typename?: 'Metrics'; value: any };
+  functionsDuration: { __typename?: 'Metrics'; value: any };
+  postgresVolumeCapacity: { __typename?: 'Metrics'; value: any };
+  postgresVolumeUsage: { __typename?: 'Metrics'; value: any };
+  totalRequests: { __typename?: 'Metrics'; value: any };
+  egressVolume: { __typename?: 'Metrics'; value: any };
+};
 
 export type GetProjectServicesHealthQueryVariables = Exact<{
   appId: Scalars['String'];
 }>;
 
+export type GetProjectServicesHealthQuery = {
+  __typename?: 'query_root';
+  getProjectStatus: {
+    __typename?: 'ProjectStatusResponse';
+    services: Array<{
+      __typename?: 'ServiceStatus';
+      name: string;
+      state: ServiceState;
+      replicas: Array<{
+        __typename?: 'ReplicaStatus';
+        ready: boolean;
+        date: any;
+        errors: Array<{
+          __typename?: 'ContainerError';
+          name: string;
+          lastError: {
+            __typename?: 'LastError';
+            reason: string;
+            exitCode: number;
+            message: string;
+          };
+        }>;
+      }>;
+    }>;
+  };
+};
 
-export type GetProjectServicesHealthQuery = { __typename?: 'query_root', getProjectStatus: { __typename?: 'ProjectStatusResponse', services: Array<{ __typename?: 'ServiceStatus', name: string, state: ServiceState, replicas: Array<{ __typename?: 'ReplicaStatus', ready: boolean, date: any, errors: Array<{ __typename?: 'ContainerError', name: string, lastError: { __typename?: 'LastError', reason: string, exitCode: number, message: string } }> }> }> } };
+export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
+export type GetRemoteAppRolesQuery = {
+  __typename?: 'query_root';
+  authRoles: Array<{ __typename?: 'authRoles'; role: string }>;
+};
 
 export type GetWorkspaceAndProjectQueryVariables = Exact<{
   workspaceSlug: Scalars['String'];
   projectSlug?: InputMaybe<Scalars['String']>;
 }>;
 
-
-export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetWorkspaceAndProjectQuery = {
+  __typename?: 'query_root';
+  workspaces: Array<{
+    __typename?: 'workspaces';
+    id: any;
+    name: string;
+    slug: string;
+    creatorUserId?: any | null;
+    workspaceMembers: Array<{
+      __typename?: 'workspaceMembers';
+      id: any;
+      type: string;
+      user: {
+        __typename?: 'users';
+        id: any;
+        email?: any | null;
+        displayName: string;
+      };
+    }>;
+    projects: Array<{
+      __typename?: 'apps';
+      id: any;
+      slug: string;
+      name: string;
+      repositoryProductionBranch: string;
+      subdomain: string;
+      createdAt: any;
+      desiredState: number;
+      nhostBaseFolder: string;
+      config?: {
+        __typename?: 'ConfigConfig';
+        observability: {
+          __typename?: 'ConfigObservability';
+          grafana: { __typename?: 'ConfigGrafana'; adminPassword: string };
+        };
+        hasura: {
+          __typename?: 'ConfigHasura';
+          adminSecret: string;
+          settings?: {
+            __typename?: 'ConfigHasuraSettings';
+            enableConsole?: boolean | null;
+          } | null;
+        };
+        ai?: { __typename?: 'ConfigAI'; version?: string | null } | null;
+      } | null;
+      featureFlags: Array<{
+        __typename?: 'featureFlags';
+        description: string;
+        id: any;
+        name: string;
+        value: string;
+      }>;
+      appStates: Array<{
+        __typename?: 'appStateHistory';
+        id: any;
+        appId: any;
+        message?: string | null;
+        stateId: number;
+        createdAt: any;
+      }>;
+      region: {
+        __typename?: 'regions';
+        id: any;
+        countryCode: string;
+        name: string;
+        domain: string;
+        city: string;
+      };
+      legacyPlan?: {
+        __typename?: 'plans';
+        id: any;
+        name: string;
+        price: number;
+        isFree: boolean;
+        featureMaxDbSize: number;
+      } | null;
+      githubRepository?: {
+        __typename?: 'githubRepositories';
+        fullName: string;
+      } | null;
+      deployments: Array<{
+        __typename?: 'deployments';
+        id: any;
+        commitSHA: string;
+        commitMessage?: string | null;
+        commitUserName?: string | null;
+        deploymentStartedAt?: any | null;
+        deploymentEndedAt?: any | null;
+        commitUserAvatarUrl?: string | null;
+        deploymentStatus?: string | null;
+      }>;
+      creator?: {
+        __typename?: 'users';
+        id: any;
+        email?: any | null;
+        displayName: string;
+      } | null;
+    }>;
+  }>;
+};
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
 }>;
 
-
-export type InsertApplicationMutation = { __typename?: 'mutation_root', insertApp?: { __typename?: 'apps', id: any, name: string, slug: string, workspace?: { __typename?: 'workspaces', id: any, name: string, slug: string } | null } | null };
+export type InsertApplicationMutation = {
+  __typename?: 'mutation_root';
+  insertApp?: {
+    __typename?: 'apps';
+    id: any;
+    name: string;
+    slug: string;
+    workspace?: {
+      __typename?: 'workspaces';
+      id: any;
+      name: string;
+      slug: string;
+    } | null;
+  } | null;
+};
 
 export type PauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
+export type PauseApplicationMutation = {
+  __typename?: 'mutation_root';
+  updateApp?: { __typename?: 'apps'; id: any } | null;
+};
 
-export type PauseApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
+export type PrefetchNewAppRegionsFragment = {
+  __typename?: 'regions';
+  id: any;
+  city: string;
+  active: boolean;
+  country: { __typename?: 'countries'; code: any; name: string };
+};
 
-export type PrefetchNewAppRegionsFragment = { __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } };
+export type PrefetchNewAppPlansFragment = {
+  __typename?: 'plans';
+  id: any;
+  name: string;
+  isDefault: boolean;
+  isFree: boolean;
+  price: number;
+  featureBackupEnabled: boolean;
+  featureCustomDomainsEnabled: boolean;
+  featureMaxDbSize: number;
+};
 
-export type PrefetchNewAppPlansFragment = { __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number };
+export type PrefetchNewAppWorkspaceFragment = {
+  __typename?: 'workspaces';
+  id: any;
+  name: string;
+  slug: string;
+  paymentMethods: Array<{ __typename?: 'paymentMethods'; id: any }>;
+};
 
-export type PrefetchNewAppWorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> };
+export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never }>;
 
-export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
+export type PrefetchNewAppQuery = {
+  __typename?: 'query_root';
+  regions: Array<{
+    __typename?: 'regions';
+    id: any;
+    city: string;
+    active: boolean;
+    country: { __typename?: 'countries'; code: any; name: string };
+  }>;
+  plans: Array<{
+    __typename?: 'plans';
+    id: any;
+    name: string;
+    isDefault: boolean;
+    isFree: boolean;
+    price: number;
+    featureBackupEnabled: boolean;
+    featureCustomDomainsEnabled: boolean;
+    featureMaxDbSize: number;
+  }>;
+  workspaces: Array<{
+    __typename?: 'workspaces';
+    id: any;
+    name: string;
+    slug: string;
+    paymentMethods: Array<{ __typename?: 'paymentMethods'; id: any }>;
+  }>;
+};
 
 export type DnsLookupCnameQueryVariables = Exact<{
   hostname: Scalars['String'];
 }>;
 
+export type DnsLookupCnameQuery = {
+  __typename?: 'query_root';
+  dnsLookupCNAME: string;
+};
 
-export type DnsLookupCnameQuery = { __typename?: 'query_root', dnsLookupCNAME: string };
+export type EnvironmentVariableFragment = {
+  __typename?: 'ConfigGlobalEnvironmentVariable';
+  name: string;
+  value: string;
+  id: string;
+};
 
-export type EnvironmentVariableFragment = { __typename?: 'ConfigGlobalEnvironmentVariable', name: string, value: string, id: string };
-
-export type JwtSecretFragment = { __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null };
+export type JwtSecretFragment = {
+  __typename?: 'ConfigJWTSecret';
+  issuer?: string | null;
+  key?: string | null;
+  type?: string | null;
+  jwk_url?: any | null;
+  header?: string | null;
+  claims_namespace_path?: string | null;
+  claims_namespace?: string | null;
+  claims_format?: string | null;
+  audience?: string | null;
+  allowed_skew?: any | null;
+};
 
 export type GetEnvironmentVariablesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigGlobalEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
+export type GetEnvironmentVariablesQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename: 'ConfigConfig';
+    id: 'ConfigConfig';
+    global?: {
+      __typename?: 'ConfigGlobal';
+      environment?: Array<{
+        __typename?: 'ConfigGlobalEnvironmentVariable';
+        name: string;
+        value: string;
+        id: string;
+      }> | null;
+    } | null;
+    hasura: {
+      __typename?: 'ConfigHasura';
+      adminSecret: string;
+      webhookSecret: string;
+      jwtSecrets?: Array<{
+        __typename?: 'ConfigJWTSecret';
+        issuer?: string | null;
+        key?: string | null;
+        type?: string | null;
+        jwk_url?: any | null;
+        header?: string | null;
+        claims_namespace_path?: string | null;
+        claims_namespace?: string | null;
+        claims_format?: string | null;
+        audience?: string | null;
+        allowed_skew?: any | null;
+      }> | null;
+    };
+  } | null;
+};
 
 export type GetConfigRawJsonQueryVariables = Exact<{
   appID: Scalars['uuid'];
 }>;
 
-
-export type GetConfigRawJsonQuery = { __typename?: 'query_root', configRawJSON: string };
+export type GetConfigRawJsonQuery = {
+  __typename?: 'query_root';
+  configRawJSON: string;
+};
 
 export type GetRateLimitConfigQueryVariables = Exact<{
   appId: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 }>;
 
-
-export type GetRateLimitConfigQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }, storage?: { __typename?: 'ConfigStorage', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null, functions?: { __typename?: 'ConfigFunctions', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null, auth?: { __typename?: 'ConfigAuth', rateLimit?: { __typename?: 'ConfigAuthRateLimit', bruteForce?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, emails?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, global?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, signups?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, sms?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null } | null } | null };
+export type GetRateLimitConfigQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename?: 'ConfigConfig';
+    hasura: {
+      __typename?: 'ConfigHasura';
+      rateLimit?: {
+        __typename?: 'ConfigRateLimit';
+        limit: any;
+        interval: string;
+      } | null;
+    };
+    storage?: {
+      __typename?: 'ConfigStorage';
+      rateLimit?: {
+        __typename?: 'ConfigRateLimit';
+        limit: any;
+        interval: string;
+      } | null;
+    } | null;
+    functions?: {
+      __typename?: 'ConfigFunctions';
+      rateLimit?: {
+        __typename?: 'ConfigRateLimit';
+        limit: any;
+        interval: string;
+      } | null;
+    } | null;
+    auth?: {
+      __typename?: 'ConfigAuth';
+      rateLimit?: {
+        __typename?: 'ConfigAuthRateLimit';
+        bruteForce?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        emails?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        global?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        signups?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        sms?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type UpdateRateLimitConfigMutationVariables = Exact<{
   appId: Scalars['uuid'];
   config: ConfigConfigUpdateInput;
 }>;
 
-
-export type UpdateRateLimitConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }, storage?: { __typename?: 'ConfigStorage', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null, functions?: { __typename?: 'ConfigFunctions', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null, auth?: { __typename?: 'ConfigAuth', rateLimit?: { __typename?: 'ConfigAuthRateLimit', bruteForce?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, emails?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, global?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, signups?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, sms?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null } | null } };
+export type UpdateRateLimitConfigMutation = {
+  __typename?: 'mutation_root';
+  updateConfig: {
+    __typename?: 'ConfigConfig';
+    hasura: {
+      __typename?: 'ConfigHasura';
+      rateLimit?: {
+        __typename?: 'ConfigRateLimit';
+        limit: any;
+        interval: string;
+      } | null;
+    };
+    storage?: {
+      __typename?: 'ConfigStorage';
+      rateLimit?: {
+        __typename?: 'ConfigRateLimit';
+        limit: any;
+        interval: string;
+      } | null;
+    } | null;
+    functions?: {
+      __typename?: 'ConfigFunctions';
+      rateLimit?: {
+        __typename?: 'ConfigRateLimit';
+        limit: any;
+        interval: string;
+      } | null;
+    } | null;
+    auth?: {
+      __typename?: 'ConfigAuth';
+      rateLimit?: {
+        __typename?: 'ConfigAuthRateLimit';
+        bruteForce?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        emails?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        global?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        signups?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        sms?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+      } | null;
+    } | null;
+  };
+};
 
 export type ReplaceConfigRawJsonMutationVariables = Exact<{
   appID: Scalars['uuid'];
   rawJSON: Scalars['String'];
 }>;
 
+export type ReplaceConfigRawJsonMutation = {
+  __typename?: 'mutation_root';
+  replaceConfigRawJSON: string;
+};
 
-export type ReplaceConfigRawJsonMutation = { __typename?: 'mutation_root', replaceConfigRawJSON: string };
-
-export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
+export type PermissionVariableFragment = {
+  __typename?: 'ConfigAuthsessionaccessTokenCustomClaims';
+  key: string;
+  value: string;
+  id: string;
+};
 
 export type GetRolesPermissionsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetRolesPermissionsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', user?: { __typename?: 'ConfigAuthUser', roles?: { __typename?: 'ConfigAuthUserRoles', allowed?: Array<any> | null, default?: any | null } | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', customClaims?: Array<{ __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string }> | null } | null } | null } | null } | null };
+export type GetRolesPermissionsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename: 'ConfigConfig';
+    id: 'ConfigConfig';
+    auth?: {
+      __typename?: 'ConfigAuth';
+      user?: {
+        __typename?: 'ConfigAuthUser';
+        roles?: {
+          __typename?: 'ConfigAuthUserRoles';
+          allowed?: Array<any> | null;
+          default?: any | null;
+        } | null;
+      } | null;
+      session?: {
+        __typename?: 'ConfigAuthSession';
+        accessToken?: {
+          __typename?: 'ConfigAuthSessionAccessToken';
+          customClaims?: Array<{
+            __typename?: 'ConfigAuthsessionaccessTokenCustomClaims';
+            key: string;
+            value: string;
+            id: string;
+          }> | null;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type DeleteSecretMutationVariables = Exact<{
   appId: Scalars['uuid'];
   name: Scalars['String'];
 }>;
 
+export type DeleteSecretMutation = {
+  __typename?: 'mutation_root';
+  deleteSecret?: {
+    __typename?: 'ConfigEnvironmentVariable';
+    name: string;
+  } | null;
+};
 
-export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret?: { __typename?: 'ConfigEnvironmentVariable', name: string } | null };
-
-export type SecretFragment = { __typename?: 'ConfigEnvironmentVariable', name: string };
+export type SecretFragment = {
+  __typename?: 'ConfigEnvironmentVariable';
+  name: string;
+};
 
 export type GetSecretsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetSecretsQuery = { __typename?: 'query_root', appSecrets: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string }> };
+export type GetSecretsQuery = {
+  __typename?: 'query_root';
+  appSecrets: Array<{ __typename?: 'ConfigEnvironmentVariable'; name: string }>;
+};
 
 export type InsertSecretMutationVariables = Exact<{
   appId: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
 }>;
 
-
-export type InsertSecretMutation = { __typename?: 'mutation_root', insertSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+export type InsertSecretMutation = {
+  __typename?: 'mutation_root';
+  insertSecret: { __typename?: 'ConfigEnvironmentVariable'; name: string };
+};
 
 export type UpdateSecretMutationVariables = Exact<{
   appId: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
 }>;
 
-
-export type UpdateSecretMutation = { __typename?: 'mutation_root', updateSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+export type UpdateSecretMutation = {
+  __typename?: 'mutation_root';
+  updateSecret: { __typename?: 'ConfigEnvironmentVariable'; name: string };
+};
 
 export type GetSignInMethodsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null, passwordMinLength?: any | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, bitbucket?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, gitlab?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, strava?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null, azuread?: { __typename?: 'ConfigAuthMethodOauthAzuread', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, tenant?: string | null } | null } | null } | null } | null } | null };
+export type GetSignInMethodsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename: 'ConfigConfig';
+    id: 'ConfigConfig';
+    provider?: {
+      __typename: 'ConfigProvider';
+      id: 'ConfigProvider';
+      sms?: {
+        __typename?: 'ConfigSms';
+        accountSid: string;
+        authToken: string;
+        messagingServiceId: string;
+        provider?: string | null;
+      } | null;
+    } | null;
+    auth?: {
+      __typename: 'ConfigAuth';
+      id: 'ConfigAuth';
+      method?: {
+        __typename?: 'ConfigAuthMethod';
+        emailPassword?: {
+          __typename?: 'ConfigAuthMethodEmailPassword';
+          emailVerificationRequired?: boolean | null;
+          hibpEnabled?: boolean | null;
+          passwordMinLength?: any | null;
+        } | null;
+        emailPasswordless?: {
+          __typename?: 'ConfigAuthMethodEmailPasswordless';
+          enabled?: boolean | null;
+        } | null;
+        smsPasswordless?: {
+          __typename?: 'ConfigAuthMethodSmsPasswordless';
+          enabled?: boolean | null;
+        } | null;
+        anonymous?: {
+          __typename?: 'ConfigAuthMethodAnonymous';
+          enabled?: boolean | null;
+        } | null;
+        webauthn?: {
+          __typename?: 'ConfigAuthMethodWebauthn';
+          enabled?: boolean | null;
+        } | null;
+        oauth?: {
+          __typename?: 'ConfigAuthMethodOauth';
+          apple?: {
+            __typename?: 'ConfigAuthMethodOauthApple';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            keyId?: string | null;
+            teamId?: string | null;
+            privateKey?: string | null;
+          } | null;
+          bitbucket?: {
+            __typename?: 'ConfigStandardOauthProvider';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+          } | null;
+          gitlab?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          strava?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          discord?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          facebook?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          github?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          google?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          linkedin?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          spotify?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          twitch?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          twitter?: {
+            __typename?: 'ConfigAuthMethodOauthTwitter';
+            enabled?: boolean | null;
+            consumerKey?: string | null;
+            consumerSecret?: string | null;
+          } | null;
+          windowslive?: {
+            __typename?: 'ConfigStandardOauthProviderWithScope';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            scope?: Array<string> | null;
+          } | null;
+          workos?: {
+            __typename?: 'ConfigAuthMethodOauthWorkos';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            connection?: string | null;
+            organization?: string | null;
+          } | null;
+          azuread?: {
+            __typename?: 'ConfigAuthMethodOauthAzuread';
+            enabled?: boolean | null;
+            clientId?: string | null;
+            clientSecret?: string | null;
+            tenant?: string | null;
+          } | null;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type GetSmtpSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type GetSmtpSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp?: { __typename?: 'ConfigSmtp', host: string, method: string, port: any, secure: boolean, sender: string, user: string, password: string } | null } | null } | null };
+export type GetSmtpSettingsQuery = {
+  __typename?: 'query_root';
+  config?: {
+    __typename: 'ConfigConfig';
+    id: 'ConfigConfig';
+    provider?: {
+      __typename: 'ConfigProvider';
+      id: 'ConfigProvider';
+      smtp?: {
+        __typename?: 'ConfigSmtp';
+        host: string;
+        method: string;
+        port: any;
+        secure: boolean;
+        sender: string;
+        user: string;
+        password: string;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export type UpdateConfigMutationVariables = Exact<{
   appId: Scalars['uuid'];
   config: ConfigConfigUpdateInput;
 }>;
 
-
-export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
+export type UpdateConfigMutation = {
+  __typename?: 'mutation_root';
+  updateConfig: {
+    __typename?: 'ConfigConfig';
+    id: 'ConfigConfig';
+    postgres?: {
+      __typename?: 'ConfigPostgres';
+      resources?: {
+        __typename?: 'ConfigPostgresResources';
+        enablePublicAccess?: boolean | null;
+        storage?: {
+          __typename?: 'ConfigPostgresStorage';
+          capacity: any;
+        } | null;
+      } | null;
+    } | null;
+    ai?: {
+      __typename?: 'ConfigAI';
+      version?: string | null;
+      webhookSecret: string;
+      autoEmbeddings?: {
+        __typename?: 'ConfigAIAutoEmbeddings';
+        synchPeriodMinutes?: any | null;
+      } | null;
+      openai: {
+        __typename?: 'ConfigAIOpenai';
+        organization?: string | null;
+        apiKey: string;
+      };
+      resources: {
+        __typename?: 'ConfigAIResources';
+        compute: {
+          __typename?: 'ConfigComputeResources';
+          cpu: any;
+          memory: any;
+        };
+      };
+    } | null;
+  };
+};
 
 export type UpdateDatabaseVersionMutationVariables = Exact<{
   appId: Scalars['uuid'];
   version: Scalars['String'];
 }>;
 
-
-export type UpdateDatabaseVersionMutation = { __typename?: 'mutation_root', changeDatabaseVersion: boolean };
+export type UpdateDatabaseVersionMutation = {
+  __typename?: 'mutation_root';
+  changeDatabaseVersion: boolean;
+};
 
 export type UnpauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type UnpauseApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
+export type UnpauseApplicationMutation = {
+  __typename?: 'mutation_root';
+  updateApp?: { __typename?: 'apps'; id: any } | null;
+};
 
 export type UpdateApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
   app: Apps_Set_Input;
 }>;
 
+export type UpdateApplicationMutation = {
+  __typename?: 'mutation_root';
+  updateApp?: {
+    __typename?: 'apps';
+    name: string;
+    id: any;
+    slug: string;
+  } | null;
+};
 
-export type UpdateApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', name: string, id: any, slug: string } | null };
+export type GetCountriesQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetCountriesQuery = {
+  __typename?: 'query_root';
+  countries: Array<{ __typename?: 'countries'; code: any; name: string }>;
+};
 
-
-export type GetCountriesQuery = { __typename?: 'query_root', countries: Array<{ __typename?: 'countries', code: any, name: string }> };
-
-export type DeploymentRowFragment = { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null };
+export type DeploymentRowFragment = {
+  __typename?: 'deployments';
+  id: any;
+  commitSHA: string;
+  deploymentStartedAt?: any | null;
+  deploymentEndedAt?: any | null;
+  deploymentStatus?: string | null;
+  commitUserName?: string | null;
+  commitUserAvatarUrl?: string | null;
+  commitMessage?: string | null;
+};
 
 export type ScheduledOrPendingDeploymentsSubSubscriptionVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type ScheduledOrPendingDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+export type ScheduledOrPendingDeploymentsSubSubscription = {
+  __typename?: 'subscription_root';
+  deployments: Array<{
+    __typename?: 'deployments';
+    id: any;
+    commitSHA: string;
+    deploymentStartedAt?: any | null;
+    deploymentEndedAt?: any | null;
+    deploymentStatus?: string | null;
+    commitUserName?: string | null;
+    commitUserAvatarUrl?: string | null;
+    commitMessage?: string | null;
+  }>;
+};
 
 export type LatestLiveDeploymentSubSubscriptionVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
-
-export type LatestLiveDeploymentSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+export type LatestLiveDeploymentSubSubscription = {
+  __typename?: 'subscription_root';
+  deployments: Array<{
+    __typename?: 'deployments';
+    id: any;
+    commitSHA: string;
+    deploymentStartedAt?: any | null;
+    deploymentEndedAt?: any | null;
+    deploymentStatus?: string | null;
+    commitUserName?: string | null;
+    commitUserAvatarUrl?: string | null;
+    commitMessage?: string | null;
+  }>;
+};
 
 export type InsertDeploymentMutationVariables = Exact<{
   object: Deployments_Insert_Input;
 }>;
 
-
-export type InsertDeploymentMutation = { __typename?: 'mutation_root', insertDeployment?: { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null } | null };
+export type InsertDeploymentMutation = {
+  __typename?: 'mutation_root';
+  insertDeployment?: {
+    __typename?: 'deployments';
+    id: any;
+    commitSHA: string;
+    deploymentStartedAt?: any | null;
+    deploymentEndedAt?: any | null;
+    deploymentStatus?: string | null;
+    commitUserName?: string | null;
+    commitUserAvatarUrl?: string | null;
+    commitMessage?: string | null;
+  } | null;
+};
 
 export type GetDeploymentsSubSubscriptionVariables = Exact<{
   id: Scalars['uuid'];
@@ -26214,20 +26355,65 @@ export type GetDeploymentsSubSubscriptionVariables = Exact<{
   offset: Scalars['Int'];
 }>;
 
-
-export type GetDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+export type GetDeploymentsSubSubscription = {
+  __typename?: 'subscription_root';
+  deployments: Array<{
+    __typename?: 'deployments';
+    id: any;
+    commitSHA: string;
+    deploymentStartedAt?: any | null;
+    deploymentEndedAt?: any | null;
+    deploymentStatus?: string | null;
+    commitUserName?: string | null;
+    commitUserAvatarUrl?: string | null;
+    commitMessage?: string | null;
+  }>;
+};
 
 export type DeploymentSubSubscriptionVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
+export type DeploymentSubSubscription = {
+  __typename?: 'subscription_root';
+  deployment?: {
+    __typename?: 'deployments';
+    id: any;
+    commitMessage?: string | null;
+    commitSHA: string;
+    commitUserName?: string | null;
+    commitUserAvatarUrl?: string | null;
+    deploymentStartedAt?: any | null;
+    deploymentEndedAt?: any | null;
+    deploymentStatus?: string | null;
+    metadataStartedAt?: any | null;
+    metadataEndedAt?: any | null;
+    metadataStatus?: string | null;
+    migrationsStartedAt?: any | null;
+    migrationsEndedAt?: any | null;
+    migrationsStatus?: string | null;
+    functionsStartedAt?: any | null;
+    functionsEndedAt?: any | null;
+    functionsStatus?: string | null;
+    deploymentLogs: Array<{
+      __typename?: 'deploymentLogs';
+      id: any;
+      createdAt: any;
+      message: string;
+    }>;
+  } | null;
+};
 
-export type DeploymentSubSubscription = { __typename?: 'subscription_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+export type GetBucketsQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetBucketsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetBucketsQuery = { __typename?: 'query_root', buckets: Array<{ __typename?: 'buckets', id: string, maxUploadFileSize: number }> };
+export type GetBucketsQuery = {
+  __typename?: 'query_root';
+  buckets: Array<{
+    __typename?: 'buckets';
+    id: string;
+    maxUploadFileSize: number;
+  }>;
+};
 
 export type GetFilesQueryVariables = Exact<{
   where?: InputMaybe<Files_Bool_Exp>;
@@ -26236,28 +26422,265 @@ export type GetFilesQueryVariables = Exact<{
   order_by?: InputMaybe<Array<Files_Order_By> | Files_Order_By>;
 }>;
 
-
-export type GetFilesQuery = { __typename?: 'query_root', files: Array<{ __typename?: 'files', id: any, bucketId: string, createdAt: any, updatedAt: any, name?: string | null, size?: number | null, mimeType?: string | null, etag?: string | null, isUploaded?: boolean | null, uploadedByUserId?: any | null }> };
+export type GetFilesQuery = {
+  __typename?: 'query_root';
+  files: Array<{
+    __typename?: 'files';
+    id: any;
+    bucketId: string;
+    createdAt: any;
+    updatedAt: any;
+    name?: string | null;
+    size?: number | null;
+    mimeType?: string | null;
+    etag?: string | null;
+    isUploaded?: boolean | null;
+    uploadedByUserId?: any | null;
+  }>;
+};
 
 export type GetFilesAggregateQueryVariables = Exact<{
   where?: InputMaybe<Files_Bool_Exp>;
 }>;
 
+export type GetFilesAggregateQuery = {
+  __typename?: 'query_root';
+  filesAggregate: {
+    __typename?: 'files_aggregate';
+    aggregate?: { __typename?: 'files_aggregate_fields'; count: number } | null;
+  };
+};
 
-export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number } | null } };
+export type AppStateHistoryFragment = {
+  __typename?: 'appStateHistory';
+  id: any;
+  appId: any;
+  message?: string | null;
+  stateId: number;
+  createdAt: any;
+};
 
-export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
+export type ProjectFragment = {
+  __typename?: 'apps';
+  id: any;
+  slug: string;
+  name: string;
+  repositoryProductionBranch: string;
+  subdomain: string;
+  createdAt: any;
+  desiredState: number;
+  nhostBaseFolder: string;
+  config?: {
+    __typename?: 'ConfigConfig';
+    observability: {
+      __typename?: 'ConfigObservability';
+      grafana: { __typename?: 'ConfigGrafana'; adminPassword: string };
+    };
+    hasura: {
+      __typename?: 'ConfigHasura';
+      adminSecret: string;
+      settings?: {
+        __typename?: 'ConfigHasuraSettings';
+        enableConsole?: boolean | null;
+      } | null;
+    };
+    ai?: { __typename?: 'ConfigAI'; version?: string | null } | null;
+  } | null;
+  featureFlags: Array<{
+    __typename?: 'featureFlags';
+    description: string;
+    id: any;
+    name: string;
+    value: string;
+  }>;
+  appStates: Array<{
+    __typename?: 'appStateHistory';
+    id: any;
+    appId: any;
+    message?: string | null;
+    stateId: number;
+    createdAt: any;
+  }>;
+  region: {
+    __typename?: 'regions';
+    id: any;
+    countryCode: string;
+    name: string;
+    domain: string;
+    city: string;
+  };
+  legacyPlan?: {
+    __typename?: 'plans';
+    id: any;
+    name: string;
+    price: number;
+    isFree: boolean;
+    featureMaxDbSize: number;
+  } | null;
+  githubRepository?: {
+    __typename?: 'githubRepositories';
+    fullName: string;
+  } | null;
+  deployments: Array<{
+    __typename?: 'deployments';
+    id: any;
+    commitSHA: string;
+    commitMessage?: string | null;
+    commitUserName?: string | null;
+    deploymentStartedAt?: any | null;
+    deploymentEndedAt?: any | null;
+    commitUserAvatarUrl?: string | null;
+    deploymentStatus?: string | null;
+  }>;
+  creator?: {
+    __typename?: 'users';
+    id: any;
+    email?: any | null;
+    displayName: string;
+  } | null;
+};
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type WorkspaceFragment = {
+  __typename?: 'workspaces';
+  id: any;
+  name: string;
+  slug: string;
+  creatorUserId?: any | null;
+  workspaceMembers: Array<{
+    __typename?: 'workspaceMembers';
+    id: any;
+    type: string;
+    user: {
+      __typename?: 'users';
+      id: any;
+      email?: any | null;
+      displayName: string;
+    };
+  }>;
+  projects: Array<{
+    __typename?: 'apps';
+    id: any;
+    slug: string;
+    name: string;
+    repositoryProductionBranch: string;
+    subdomain: string;
+    createdAt: any;
+    desiredState: number;
+    nhostBaseFolder: string;
+    config?: {
+      __typename?: 'ConfigConfig';
+      observability: {
+        __typename?: 'ConfigObservability';
+        grafana: { __typename?: 'ConfigGrafana'; adminPassword: string };
+      };
+      hasura: {
+        __typename?: 'ConfigHasura';
+        adminSecret: string;
+        settings?: {
+          __typename?: 'ConfigHasuraSettings';
+          enableConsole?: boolean | null;
+        } | null;
+      };
+      ai?: { __typename?: 'ConfigAI'; version?: string | null } | null;
+    } | null;
+    featureFlags: Array<{
+      __typename?: 'featureFlags';
+      description: string;
+      id: any;
+      name: string;
+      value: string;
+    }>;
+    appStates: Array<{
+      __typename?: 'appStateHistory';
+      id: any;
+      appId: any;
+      message?: string | null;
+      stateId: number;
+      createdAt: any;
+    }>;
+    region: {
+      __typename?: 'regions';
+      id: any;
+      countryCode: string;
+      name: string;
+      domain: string;
+      city: string;
+    };
+    legacyPlan?: {
+      __typename?: 'plans';
+      id: any;
+      name: string;
+      price: number;
+      isFree: boolean;
+      featureMaxDbSize: number;
+    } | null;
+    githubRepository?: {
+      __typename?: 'githubRepositories';
+      fullName: string;
+    } | null;
+    deployments: Array<{
+      __typename?: 'deployments';
+      id: any;
+      commitSHA: string;
+      commitMessage?: string | null;
+      commitUserName?: string | null;
+      deploymentStartedAt?: any | null;
+      deploymentEndedAt?: any | null;
+      commitUserAvatarUrl?: string | null;
+      deploymentStatus?: string | null;
+    }>;
+    creator?: {
+      __typename?: 'users';
+      id: any;
+      email?: any | null;
+      displayName: string;
+    } | null;
+  }>;
+};
 
-export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GithubRepositoryFragment = {
+  __typename?: 'githubRepositories';
+  id: any;
+  name: string;
+  fullName: string;
+  private: boolean;
+  githubAppInstallation: {
+    __typename?: 'githubAppInstallations';
+    id: any;
+    accountLogin?: string | null;
+    accountType?: string | null;
+    accountAvatarUrl?: string | null;
+  };
+};
 
-export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
+export type GetGithubRepositoriesQueryVariables = Exact<{
+  [key: string]: never;
+}>;
 
-export type GetGithubRepositoriesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetGithubRepositoriesQuery = { __typename?: 'query_root', githubRepositories: Array<{ __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } }>, githubAppInstallations: Array<{ __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null }> };
+export type GetGithubRepositoriesQuery = {
+  __typename?: 'query_root';
+  githubRepositories: Array<{
+    __typename?: 'githubRepositories';
+    id: any;
+    name: string;
+    fullName: string;
+    private: boolean;
+    githubAppInstallation: {
+      __typename?: 'githubAppInstallations';
+      id: any;
+      accountLogin?: string | null;
+      accountType?: string | null;
+      accountAvatarUrl?: string | null;
+    };
+  }>;
+  githubAppInstallations: Array<{
+    __typename?: 'githubAppInstallations';
+    id: any;
+    accountLogin?: string | null;
+    accountType?: string | null;
+    accountAvatarUrl?: string | null;
+  }>;
+};
 
 export type GetProjectLogsQueryVariables = Exact<{
   appID: Scalars['String'];
@@ -26267,8 +26690,15 @@ export type GetProjectLogsQueryVariables = Exact<{
   regexFilter?: InputMaybe<Scalars['String']>;
 }>;
 
-
-export type GetProjectLogsQuery = { __typename?: 'query_root', logs: Array<{ __typename?: 'Log', log: string, service: string, timestamp: any }> };
+export type GetProjectLogsQuery = {
+  __typename?: 'query_root';
+  logs: Array<{
+    __typename?: 'Log';
+    log: string;
+    service: string;
+    timestamp: any;
+  }>;
+};
 
 export type GetLogsSubscriptionSubscriptionVariables = Exact<{
   appID: Scalars['String'];
@@ -26277,15 +26707,24 @@ export type GetLogsSubscriptionSubscriptionVariables = Exact<{
   regexFilter?: InputMaybe<Scalars['String']>;
 }>;
 
-
-export type GetLogsSubscriptionSubscription = { __typename?: 'subscription_root', logs: Array<{ __typename?: 'Log', log: string, service: string, timestamp: any }> };
+export type GetLogsSubscriptionSubscription = {
+  __typename?: 'subscription_root';
+  logs: Array<{
+    __typename?: 'Log';
+    log: string;
+    service: string;
+    timestamp: any;
+  }>;
+};
 
 export type GetServiceLabelValuesQueryVariables = Exact<{
   appID: Scalars['String'];
 }>;
 
-
-export type GetServiceLabelValuesQuery = { __typename?: 'query_root', getServiceLabelValues: Array<string> };
+export type GetServiceLabelValuesQuery = {
+  __typename?: 'query_root';
+  getServiceLabelValues: Array<string>;
+};
 
 export type GetSystemLogsQueryVariables = Exact<{
   appID: Scalars['String'];
@@ -26294,8 +26733,10 @@ export type GetSystemLogsQueryVariables = Exact<{
   to?: InputMaybe<Scalars['Timestamp']>;
 }>;
 
-
-export type GetSystemLogsQuery = { __typename?: 'query_root', systemLogs: Array<{ __typename?: 'Log', timestamp: any, log: string }> };
+export type GetSystemLogsQuery = {
+  __typename?: 'query_root';
+  systemLogs: Array<{ __typename?: 'Log'; timestamp: any; log: string }>;
+};
 
 export type CreateOrganizationRequestMutationVariables = Exact<{
   organizationName: Scalars['String'];
@@ -26303,135 +26744,485 @@ export type CreateOrganizationRequestMutationVariables = Exact<{
   redirectURL: Scalars['String'];
 }>;
 
-
-export type CreateOrganizationRequestMutation = { __typename?: 'mutation_root', billingCreateOrganizationRequest: string };
+export type CreateOrganizationRequestMutation = {
+  __typename?: 'mutation_root';
+  billingCreateOrganizationRequest: string;
+};
 
 export type GetOrganizationQueryVariables = Exact<{
   orgSlug: Scalars['String'];
 }>;
 
-
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = {
+  __typename?: 'query_root';
+  organizations: Array<{
+    __typename?: 'organizations';
+    id: any;
+    name: string;
+    slug: string;
+    plan: {
+      __typename?: 'plans';
+      id: any;
+      name: string;
+      deprecated: boolean;
+      individual: boolean;
+      isFree: boolean;
+    };
+    members: Array<{
+      __typename?: 'organization_members';
+      id: any;
+      role: Organization_Members_Role_Enum;
+      user: { __typename?: 'users'; id: any };
+    }>;
+    apps: Array<{
+      __typename?: 'apps';
+      id: any;
+      name: string;
+      subdomain: string;
+      slug: string;
+    }>;
+  }>;
+};
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
 }>;
 
-
-export type GetOrganizationByIdQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string }> };
+export type GetOrganizationByIdQuery = {
+  __typename?: 'query_root';
+  organizations: Array<{
+    __typename?: 'organizations';
+    id: any;
+    name: string;
+    slug: string;
+  }>;
+};
 
 export type GetOrganizationProjectsQueryVariables = Exact<{
   orgId: Scalars['uuid'];
 }>;
 
+export type GetOrganizationProjectsQuery = {
+  __typename?: 'query_root';
+  apps: Array<{
+    __typename?: 'apps';
+    id: any;
+    slug: string;
+    name: string;
+    repositoryProductionBranch: string;
+    subdomain: string;
+    createdAt: any;
+    desiredState: number;
+    nhostBaseFolder: string;
+    config?: {
+      __typename?: 'ConfigConfig';
+      observability: {
+        __typename?: 'ConfigObservability';
+        grafana: { __typename?: 'ConfigGrafana'; adminPassword: string };
+      };
+      hasura: {
+        __typename?: 'ConfigHasura';
+        adminSecret: string;
+        settings?: {
+          __typename?: 'ConfigHasuraSettings';
+          enableConsole?: boolean | null;
+        } | null;
+      };
+      ai?: { __typename?: 'ConfigAI'; version?: string | null } | null;
+    } | null;
+    featureFlags: Array<{
+      __typename?: 'featureFlags';
+      description: string;
+      id: any;
+      name: string;
+      value: string;
+    }>;
+    appStates: Array<{
+      __typename?: 'appStateHistory';
+      id: any;
+      appId: any;
+      message?: string | null;
+      stateId: number;
+      createdAt: any;
+    }>;
+    region: {
+      __typename?: 'regions';
+      id: any;
+      countryCode: string;
+      name: string;
+      domain: string;
+      city: string;
+    };
+    legacyPlan?: {
+      __typename?: 'plans';
+      id: any;
+      name: string;
+      price: number;
+      isFree: boolean;
+      featureMaxDbSize: number;
+    } | null;
+    githubRepository?: {
+      __typename?: 'githubRepositories';
+      fullName: string;
+    } | null;
+    deployments: Array<{
+      __typename?: 'deployments';
+      id: any;
+      commitSHA: string;
+      commitMessage?: string | null;
+      commitUserName?: string | null;
+      deploymentStartedAt?: any | null;
+      deploymentEndedAt?: any | null;
+      commitUserAvatarUrl?: string | null;
+      deploymentStatus?: string | null;
+    }>;
+    creator?: {
+      __typename?: 'users';
+      id: any;
+      email?: any | null;
+      displayName: string;
+    } | null;
+  }>;
+};
 
-export type GetOrganizationProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetOrganizationsQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetOrganizationsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationsQuery = {
+  __typename?: 'query_root';
+  organizations: Array<{
+    __typename?: 'organizations';
+    id: any;
+    name: string;
+    slug: string;
+    plan: {
+      __typename?: 'plans';
+      id: any;
+      name: string;
+      deprecated: boolean;
+      individual: boolean;
+      isFree: boolean;
+    };
+    apps: Array<{
+      __typename?: 'apps';
+      id: any;
+      name: string;
+      subdomain: string;
+      slug: string;
+    }>;
+  }>;
+};
 
 export type GetProjectQueryVariables = Exact<{
   slug: Scalars['String'];
 }>;
 
-
-export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetProjectQuery = {
+  __typename?: 'query_root';
+  apps: Array<{
+    __typename?: 'apps';
+    id: any;
+    slug: string;
+    name: string;
+    repositoryProductionBranch: string;
+    subdomain: string;
+    createdAt: any;
+    desiredState: number;
+    nhostBaseFolder: string;
+    config?: {
+      __typename?: 'ConfigConfig';
+      observability: {
+        __typename?: 'ConfigObservability';
+        grafana: { __typename?: 'ConfigGrafana'; adminPassword: string };
+      };
+      hasura: {
+        __typename?: 'ConfigHasura';
+        adminSecret: string;
+        settings?: {
+          __typename?: 'ConfigHasuraSettings';
+          enableConsole?: boolean | null;
+        } | null;
+      };
+      ai?: { __typename?: 'ConfigAI'; version?: string | null } | null;
+    } | null;
+    featureFlags: Array<{
+      __typename?: 'featureFlags';
+      description: string;
+      id: any;
+      name: string;
+      value: string;
+    }>;
+    appStates: Array<{
+      __typename?: 'appStateHistory';
+      id: any;
+      appId: any;
+      message?: string | null;
+      stateId: number;
+      createdAt: any;
+    }>;
+    region: {
+      __typename?: 'regions';
+      id: any;
+      countryCode: string;
+      name: string;
+      domain: string;
+      city: string;
+    };
+    legacyPlan?: {
+      __typename?: 'plans';
+      id: any;
+      name: string;
+      price: number;
+      isFree: boolean;
+      featureMaxDbSize: number;
+    } | null;
+    githubRepository?: {
+      __typename?: 'githubRepositories';
+      fullName: string;
+    } | null;
+    deployments: Array<{
+      __typename?: 'deployments';
+      id: any;
+      commitSHA: string;
+      commitMessage?: string | null;
+      commitUserName?: string | null;
+      deploymentStartedAt?: any | null;
+      deploymentEndedAt?: any | null;
+      commitUserAvatarUrl?: string | null;
+      deploymentStatus?: string | null;
+    }>;
+    creator?: {
+      __typename?: 'users';
+      id: any;
+      email?: any | null;
+      displayName: string;
+    } | null;
+  }>;
+};
 
 export type PostOrganizationRequestMutationVariables = Exact<{
   sessionID: Scalars['String'];
 }>;
 
-
-export type PostOrganizationRequestMutation = { __typename?: 'mutation_root', billingPostOrganizationRequest: { __typename?: 'PostOrganizationRequestResponse', Status: CheckoutStatus, Slug: string } };
+export type PostOrganizationRequestMutation = {
+  __typename?: 'mutation_root';
+  billingPostOrganizationRequest: {
+    __typename?: 'PostOrganizationRequestResponse';
+    Status: CheckoutStatus;
+    Slug: string;
+  };
+};
 
 export type DeletePaymentMethodMutationVariables = Exact<{
   paymentMethodId: Scalars['uuid'];
 }>;
 
+export type DeletePaymentMethodMutation = {
+  __typename?: 'mutation_root';
+  deletePaymentMethod?: { __typename?: 'paymentMethods'; id: any } | null;
+};
 
-export type DeletePaymentMethodMutation = { __typename?: 'mutation_root', deletePaymentMethod?: { __typename?: 'paymentMethods', id: any } | null };
-
-export type GetPaymentMethodsFragment = { __typename?: 'paymentMethods', id: any, createdAt: any, cardBrand: string, cardLast4: string, cardExpMonth: number, cardExpYear: number, isDefault: boolean, workspace: { __typename?: 'workspaces', id: any, apps: Array<{ __typename?: 'apps', id: any, legacyPlan?: { __typename?: 'plans', isFree: boolean } | null }> } };
+export type GetPaymentMethodsFragment = {
+  __typename?: 'paymentMethods';
+  id: any;
+  createdAt: any;
+  cardBrand: string;
+  cardLast4: string;
+  cardExpMonth: number;
+  cardExpYear: number;
+  isDefault: boolean;
+  workspace: {
+    __typename?: 'workspaces';
+    id: any;
+    apps: Array<{
+      __typename?: 'apps';
+      id: any;
+      legacyPlan?: { __typename?: 'plans'; isFree: boolean } | null;
+    }>;
+  };
+};
 
 export type GetPaymentMethodsQueryVariables = Exact<{
   workspaceId: Scalars['uuid'];
 }>;
 
-
-export type GetPaymentMethodsQuery = { __typename?: 'query_root', paymentMethods: Array<{ __typename?: 'paymentMethods', id: any, createdAt: any, cardBrand: string, cardLast4: string, cardExpMonth: number, cardExpYear: number, isDefault: boolean, workspace: { __typename?: 'workspaces', id: any, apps: Array<{ __typename?: 'apps', id: any, legacyPlan?: { __typename?: 'plans', isFree: boolean } | null }> } }> };
+export type GetPaymentMethodsQuery = {
+  __typename?: 'query_root';
+  paymentMethods: Array<{
+    __typename?: 'paymentMethods';
+    id: any;
+    createdAt: any;
+    cardBrand: string;
+    cardLast4: string;
+    cardExpMonth: number;
+    cardExpYear: number;
+    isDefault: boolean;
+    workspace: {
+      __typename?: 'workspaces';
+      id: any;
+      apps: Array<{
+        __typename?: 'apps';
+        id: any;
+        legacyPlan?: { __typename?: 'plans'; isFree: boolean } | null;
+      }>;
+    };
+  }>;
+};
 
 export type InsertNewPaymentMethodMutationVariables = Exact<{
   workspaceId: Scalars['uuid'];
   paymentMethod: PaymentMethods_Insert_Input;
 }>;
 
-
-export type InsertNewPaymentMethodMutation = { __typename?: 'mutation_root', updatePaymentMethods?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null, insertPaymentMethod?: { __typename?: 'paymentMethods', id: any } | null };
+export type InsertNewPaymentMethodMutation = {
+  __typename?: 'mutation_root';
+  updatePaymentMethods?: {
+    __typename?: 'paymentMethods_mutation_response';
+    affected_rows: number;
+  } | null;
+  insertPaymentMethod?: { __typename?: 'paymentMethods'; id: any } | null;
+};
 
 export type SetNewDefaultPaymentMethodMutationVariables = Exact<{
   workspaceId: Scalars['uuid'];
   paymentMethodId: Scalars['uuid'];
 }>;
 
-
-export type SetNewDefaultPaymentMethodMutation = { __typename?: 'mutation_root', setAllPaymentMethodToDefaultFalse?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null, updatePaymentMethods?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null };
+export type SetNewDefaultPaymentMethodMutation = {
+  __typename?: 'mutation_root';
+  setAllPaymentMethodToDefaultFalse?: {
+    __typename?: 'paymentMethods_mutation_response';
+    affected_rows: number;
+  } | null;
+  updatePaymentMethods?: {
+    __typename?: 'paymentMethods_mutation_response';
+    affected_rows: number;
+  } | null;
+};
 
 export type GetAnnouncementsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']>;
 }>;
 
-
-export type GetAnnouncementsQuery = { __typename?: 'query_root', announcements: Array<{ __typename?: 'announcements', id: any, href: string, content: string, createdAt: any }> };
+export type GetAnnouncementsQuery = {
+  __typename?: 'query_root';
+  announcements: Array<{
+    __typename?: 'announcements';
+    id: any;
+    href: string;
+    content: string;
+    createdAt: any;
+  }>;
+};
 
 export type GetPlansQueryVariables = Exact<{
   where?: InputMaybe<Plans_Bool_Exp>;
 }>;
 
+export type GetPlansQuery = {
+  __typename?: 'query_root';
+  plans: Array<{
+    __typename?: 'plans';
+    id: any;
+    name: string;
+    isFree: boolean;
+    price: number;
+  }>;
+};
 
-export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }> };
+export type GetRecommendedSoftwareVersionsQueryVariables = Exact<{
+  [key: string]: never;
+}>;
 
-export type GetRecommendedSoftwareVersionsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetRecommendedSoftwareVersionsQuery = { __typename?: 'query_root', softwareVersions: Array<{ __typename?: 'software_versions', software: Software_Type_Enum, version: string }> };
+export type GetRecommendedSoftwareVersionsQuery = {
+  __typename?: 'query_root';
+  softwareVersions: Array<{
+    __typename?: 'software_versions';
+    software: Software_Type_Enum;
+    version: string;
+  }>;
+};
 
 export type GetSoftwareVersionsQueryVariables = Exact<{
   software: Software_Type_Enum;
 }>;
 
-
-export type GetSoftwareVersionsQuery = { __typename?: 'query_root', softwareVersions: Array<{ __typename?: 'software_versions', version: string, software: Software_Type_Enum }> };
+export type GetSoftwareVersionsQuery = {
+  __typename?: 'query_root';
+  softwareVersions: Array<{
+    __typename?: 'software_versions';
+    version: string;
+    software: Software_Type_Enum;
+  }>;
+};
 
 export type RestoreApplicationDatabaseMutationVariables = Exact<{
   appId: Scalars['String'];
   backupId: Scalars['String'];
 }>;
 
-
-export type RestoreApplicationDatabaseMutation = { __typename?: 'mutation_root', restoreApplicationDatabase: boolean };
+export type RestoreApplicationDatabaseMutation = {
+  __typename?: 'mutation_root';
+  restoreApplicationDatabase: boolean;
+};
 
 export type RemoteAppDeleteUserMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
-
-export type RemoteAppDeleteUserMutation = { __typename?: 'mutation_root', deleteUser?: { __typename?: 'users', id: any } | null };
+export type RemoteAppDeleteUserMutation = {
+  __typename?: 'mutation_root';
+  deleteUser?: { __typename?: 'users'; id: any } | null;
+};
 
 export type GetAppFunctionsMetadataQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
+export type GetAppFunctionsMetadataQuery = {
+  __typename?: 'query_root';
+  app?: { __typename?: 'apps'; id: any; metadataFunctions: any } | null;
+};
 
-export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, metadataFunctions: any } | null };
+export type GetRemoteAppMetricsQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetRemoteAppMetricsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetRemoteAppMetricsQuery = {
+  __typename?: 'query_root';
+  filesAggregate: {
+    __typename?: 'files_aggregate';
+    aggregate?: {
+      __typename?: 'files_aggregate_fields';
+      count: number;
+      sum?: { __typename?: 'files_sum_fields'; size?: number | null } | null;
+    } | null;
+  };
+  usersAggregate: {
+    __typename?: 'users_aggregate';
+    aggregate?: { __typename?: 'users_aggregate_fields'; count: number } | null;
+  };
+};
 
-
-export type GetRemoteAppMetricsQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number, sum?: { __typename?: 'files_sum_fields', size?: number | null } | null } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
-
-export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
+export type RemoteAppGetUsersFragment = {
+  __typename?: 'users';
+  id: any;
+  createdAt: any;
+  displayName: string;
+  avatarUrl: string;
+  email?: any | null;
+  emailVerified: boolean;
+  phoneNumber?: string | null;
+  phoneNumberVerified: boolean;
+  disabled: boolean;
+  defaultRole: string;
+  lastSeen?: any | null;
+  locale: string;
+  metadata?: any | null;
+  roles: Array<{ __typename?: 'authUserRoles'; id: any; role: string }>;
+  userProviders: Array<{
+    __typename?: 'authUserProviders';
+    id: any;
+    providerId: string;
+  }>;
+};
 
 export type RemoteAppGetUsersQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -26439,8 +27230,39 @@ export type RemoteAppGetUsersQueryVariables = Exact<{
   offset: Scalars['Int'];
 }>;
 
-
-export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersQuery = {
+  __typename?: 'query_root';
+  users: Array<{
+    __typename?: 'users';
+    id: any;
+    createdAt: any;
+    displayName: string;
+    avatarUrl: string;
+    email?: any | null;
+    emailVerified: boolean;
+    phoneNumber?: string | null;
+    phoneNumberVerified: boolean;
+    disabled: boolean;
+    defaultRole: string;
+    lastSeen?: any | null;
+    locale: string;
+    metadata?: any | null;
+    roles: Array<{ __typename?: 'authUserRoles'; id: any; role: string }>;
+    userProviders: Array<{
+      __typename?: 'authUserProviders';
+      id: any;
+      providerId: string;
+    }>;
+  }>;
+  filteredUsersAggreggate: {
+    __typename?: 'users_aggregate';
+    aggregate?: { __typename?: 'users_aggregate_fields'; count: number } | null;
+  };
+  usersAggregate: {
+    __typename?: 'users_aggregate';
+    aggregate?: { __typename?: 'users_aggregate_fields'; count: number } | null;
+  };
+};
 
 export type RemoteAppGetUsersCustomQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -26448,76 +27270,231 @@ export type RemoteAppGetUsersCustomQueryVariables = Exact<{
   offset: Scalars['Int'];
 }>;
 
-
-export type RemoteAppGetUsersCustomQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, phoneNumber?: string | null, avatarUrl: string, email?: any | null, disabled: boolean, defaultRole: string, isAnonymous: boolean, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
+export type RemoteAppGetUsersCustomQuery = {
+  __typename?: 'query_root';
+  users: Array<{
+    __typename?: 'users';
+    id: any;
+    createdAt: any;
+    displayName: string;
+    phoneNumber?: string | null;
+    avatarUrl: string;
+    email?: any | null;
+    disabled: boolean;
+    defaultRole: string;
+    isAnonymous: boolean;
+    roles: Array<{ __typename?: 'authUserRoles'; role: string }>;
+  }>;
+};
 
 export type RemoteAppGetUsersWholeQueryVariables = Exact<{
   limit: Scalars['Int'];
   offset: Scalars['Int'];
 }>;
 
+export type RemoteAppGetUsersWholeQuery = {
+  __typename?: 'query_root';
+  users: Array<{
+    __typename?: 'users';
+    id: any;
+    createdAt: any;
+    displayName: string;
+    avatarUrl: string;
+    email?: any | null;
+    emailVerified: boolean;
+    phoneNumber?: string | null;
+    phoneNumberVerified: boolean;
+    disabled: boolean;
+    defaultRole: string;
+    lastSeen?: any | null;
+    locale: string;
+    metadata?: any | null;
+    roles: Array<{ __typename?: 'authUserRoles'; id: any; role: string }>;
+    userProviders: Array<{
+      __typename?: 'authUserProviders';
+      id: any;
+      providerId: string;
+    }>;
+  }>;
+  usersAggregate: {
+    __typename?: 'users_aggregate';
+    aggregate?: { __typename?: 'users_aggregate_fields'; count: number } | null;
+  };
+};
 
-export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type TotalUsersQueryVariables = Exact<{ [key: string]: never }>;
 
-export type TotalUsersQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type TotalUsersQuery = { __typename?: 'query_root', usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type TotalUsersQuery = {
+  __typename?: 'query_root';
+  usersAggregate: {
+    __typename?: 'users_aggregate';
+    aggregate?: { __typename?: 'users_aggregate_fields'; count: number } | null;
+  };
+};
 
 export type TotalUsersByDateQueryVariables = Exact<{
   where: Users_Bool_Exp;
 }>;
 
-
-export type TotalUsersByDateQuery = { __typename?: 'query_root', usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type TotalUsersByDateQuery = {
+  __typename?: 'query_root';
+  usersAggregate: {
+    __typename?: 'users_aggregate';
+    aggregate?: { __typename?: 'users_aggregate_fields'; count: number } | null;
+  };
+};
 
 export type UpdateRemoteAppUserMutationVariables = Exact<{
   id: Scalars['uuid'];
   user: Users_Set_Input;
 }>;
 
-
-export type UpdateRemoteAppUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any } | null };
+export type UpdateRemoteAppUserMutation = {
+  __typename?: 'mutation_root';
+  updateUser?: { __typename?: 'users'; id: any } | null;
+};
 
 export type InsertRemoteAppUserRolesMutationVariables = Exact<{
   roles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
 }>;
 
-
-export type InsertRemoteAppUserRolesMutation = { __typename?: 'mutation_root', insertAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
+export type InsertRemoteAppUserRolesMutation = {
+  __typename?: 'mutation_root';
+  insertAuthUserRoles?: {
+    __typename?: 'authUserRoles_mutation_response';
+    affected_rows: number;
+  } | null;
+};
 
 export type DeleteRemoteAppUserRolesMutationVariables = Exact<{
   userId: Scalars['uuid'];
   roles: Array<Scalars['String']> | Scalars['String'];
 }>;
 
-
-export type DeleteRemoteAppUserRolesMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
+export type DeleteRemoteAppUserRolesMutation = {
+  __typename?: 'mutation_root';
+  deleteAuthUserRoles?: {
+    __typename?: 'authUserRoles_mutation_response';
+    affected_rows: number;
+  } | null;
+};
 
 export type DeleteRunServiceMutationVariables = Exact<{
   serviceID: Scalars['uuid'];
 }>;
 
-
-export type DeleteRunServiceMutation = { __typename?: 'mutation_root', deleteRunService?: { __typename?: 'run_service', id: any } | null };
+export type DeleteRunServiceMutation = {
+  __typename?: 'mutation_root';
+  deleteRunService?: { __typename?: 'run_service'; id: any } | null;
+};
 
 export type DeleteRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
   serviceID: Scalars['uuid'];
 }>;
 
-
-export type DeleteRunServiceConfigMutation = { __typename?: 'mutation_root', deleteRunServiceConfig?: { __typename?: 'ConfigRunServiceConfig', name: any } | null };
+export type DeleteRunServiceConfigMutation = {
+  __typename?: 'mutation_root';
+  deleteRunServiceConfig?: {
+    __typename?: 'ConfigRunServiceConfig';
+    name: any;
+  } | null;
+};
 
 export type GetRunServiceQueryVariables = Exact<{
   id: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 }>;
 
+export type GetRunServiceQuery = {
+  __typename?: 'query_root';
+  runService?: {
+    __typename?: 'run_service';
+    id: any;
+    subdomain: string;
+    config?: {
+      __typename?: 'ConfigRunServiceConfig';
+      name: any;
+      command?: Array<string> | null;
+      image: { __typename?: 'ConfigRunServiceImage'; image: string };
+      resources: {
+        __typename?: 'ConfigRunServiceResources';
+        replicas: any;
+        compute: {
+          __typename?: 'ConfigComputeResources';
+          cpu: any;
+          memory: any;
+        };
+        storage?: Array<{
+          __typename?: 'ConfigRunServiceResourcesStorage';
+          name: any;
+          path: string;
+          capacity: any;
+        }> | null;
+        autoscaler?: {
+          __typename?: 'ConfigAutoscaler';
+          maxReplicas: any;
+        } | null;
+      };
+      environment?: Array<{
+        __typename?: 'ConfigEnvironmentVariable';
+        name: string;
+        value: string;
+      }> | null;
+      ports?: Array<{
+        __typename?: 'ConfigRunServicePort';
+        port: any;
+        type: string;
+        publish?: boolean | null;
+      }> | null;
+    } | null;
+  } | null;
+};
 
-export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
-
-export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
+export type RunServiceConfigFragment = {
+  __typename?: 'ConfigRunServiceConfig';
+  name: any;
+  command?: Array<string> | null;
+  image: { __typename?: 'ConfigRunServiceImage'; image: string };
+  resources: {
+    __typename?: 'ConfigRunServiceResources';
+    replicas: any;
+    compute: { __typename?: 'ConfigComputeResources'; cpu: any; memory: any };
+    storage?: Array<{
+      __typename?: 'ConfigRunServiceResourcesStorage';
+      name: any;
+      path: string;
+      capacity: any;
+    }> | null;
+    autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
+  };
+  environment?: Array<{
+    __typename?: 'ConfigEnvironmentVariable';
+    name: string;
+    value: string;
+  }> | null;
+  ports?: Array<{
+    __typename?: 'ConfigRunServicePort';
+    port: any;
+    type: string;
+    publish?: boolean | null;
+    ingresses?: Array<{
+      __typename?: 'ConfigIngress';
+      fqdn?: Array<string> | null;
+    }> | null;
+    rateLimit?: {
+      __typename?: 'ConfigRateLimit';
+      limit: any;
+      interval: string;
+    } | null;
+  }> | null;
+  healthCheck?: {
+    __typename?: 'ConfigHealthCheck';
+    port: any;
+    initialDelaySeconds?: number | null;
+    probePeriodSeconds?: number | null;
+  } | null;
+};
 
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -26526,41 +27503,241 @@ export type GetRunServicesQueryVariables = Exact<{
   offset: Scalars['Int'];
 }>;
 
+export type GetRunServicesQuery = {
+  __typename?: 'query_root';
+  app?: {
+    __typename?: 'apps';
+    runServices: Array<{
+      __typename?: 'run_service';
+      id: any;
+      createdAt: any;
+      updatedAt: any;
+      subdomain: string;
+      config?: {
+        __typename?: 'ConfigRunServiceConfig';
+        name: any;
+        command?: Array<string> | null;
+        image: { __typename?: 'ConfigRunServiceImage'; image: string };
+        resources: {
+          __typename?: 'ConfigRunServiceResources';
+          replicas: any;
+          compute: {
+            __typename?: 'ConfigComputeResources';
+            cpu: any;
+            memory: any;
+          };
+          storage?: Array<{
+            __typename?: 'ConfigRunServiceResourcesStorage';
+            name: any;
+            path: string;
+            capacity: any;
+          }> | null;
+          autoscaler?: {
+            __typename?: 'ConfigAutoscaler';
+            maxReplicas: any;
+          } | null;
+        };
+        environment?: Array<{
+          __typename?: 'ConfigEnvironmentVariable';
+          name: string;
+          value: string;
+        }> | null;
+        ports?: Array<{
+          __typename?: 'ConfigRunServicePort';
+          port: any;
+          type: string;
+          publish?: boolean | null;
+          ingresses?: Array<{
+            __typename?: 'ConfigIngress';
+            fqdn?: Array<string> | null;
+          }> | null;
+          rateLimit?: {
+            __typename?: 'ConfigRateLimit';
+            limit: any;
+            interval: string;
+          } | null;
+        }> | null;
+        healthCheck?: {
+          __typename?: 'ConfigHealthCheck';
+          port: any;
+          initialDelaySeconds?: number | null;
+          probePeriodSeconds?: number | null;
+        } | null;
+      } | null;
+    }>;
+    runServices_aggregate: {
+      __typename?: 'run_service_aggregate';
+      aggregate?: {
+        __typename?: 'run_service_aggregate_fields';
+        count: number;
+      } | null;
+    };
+  } | null;
+};
 
-export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+appID: Scalars['uuid'];
 
-export type GetLocalRunServiceConfigsQueryVariables = Exact<{
-  appID: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
-}>;
+export type GetLocalRunServiceConfigsQuery = {
+  __typename?: 'query_root';
+  runServiceConfigs: Array<{
+    __typename?: 'ConfigRunServiceConfigWithID';
+    serviceID: any;
+    config: {
+      __typename?: 'ConfigRunServiceConfig';
+      name: any;
+      command?: Array<string> | null;
+      image: { __typename?: 'ConfigRunServiceImage'; image: string };
+      resources: {
+        __typename?: 'ConfigRunServiceResources';
+        replicas: any;
+        compute: {
+          __typename?: 'ConfigComputeResources';
+          cpu: any;
+          memory: any;
+        };
+        storage?: Array<{
+          __typename?: 'ConfigRunServiceResourcesStorage';
+          name: any;
+          path: string;
+          capacity: any;
+        }> | null;
+        autoscaler?: {
+          __typename?: 'ConfigAutoscaler';
+          maxReplicas: any;
+        } | null;
+      };
+      environment?: Array<{
+        __typename?: 'ConfigEnvironmentVariable';
+        name: string;
+        value: string;
+      }> | null;
+      ports?: Array<{
+        __typename?: 'ConfigRunServicePort';
+        port: any;
+        type: string;
+        publish?: boolean | null;
+        ingresses?: Array<{
+          __typename?: 'ConfigIngress';
+          fqdn?: Array<string> | null;
+        }> | null;
+        rateLimit?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+      }> | null;
+      healthCheck?: {
+        __typename?: 'ConfigHealthCheck';
+        port: any;
+        initialDelaySeconds?: number | null;
+        probePeriodSeconds?: number | null;
+      } | null;
+    };
+  }>;
+};
 
-
-export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
-
-export type RunServiceRateLimitFragment = { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null };
+export type RunServiceRateLimitFragment = {
+  __typename?: 'ConfigRunServiceConfig';
+  name: any;
+  ports?: Array<{
+    __typename?: 'ConfigRunServicePort';
+    port: any;
+    type: string;
+    publish?: boolean | null;
+    rateLimit?: {
+      __typename?: 'ConfigRateLimit';
+      limit: any;
+      interval: string;
+    } | null;
+    ingresses?: Array<{
+      __typename?: 'ConfigIngress';
+      fqdn?: Array<string> | null;
+    }> | null;
+  }> | null;
+};
 
 export type GetRunServicesRateLimitQueryVariables = Exact<{
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 }>;
 
-
-export type GetRunServicesRateLimitQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } | null }> } | null };
+export type GetRunServicesRateLimitQuery = {
+  __typename?: 'query_root';
+  app?: {
+    __typename?: 'apps';
+    runServices: Array<{
+      __typename?: 'run_service';
+      id: any;
+      createdAt: any;
+      updatedAt: any;
+      subdomain: string;
+      config?: {
+        __typename?: 'ConfigRunServiceConfig';
+        name: any;
+        ports?: Array<{
+          __typename?: 'ConfigRunServicePort';
+          port: any;
+          type: string;
+          publish?: boolean | null;
+          rateLimit?: {
+            __typename?: 'ConfigRateLimit';
+            limit: any;
+            interval: string;
+          } | null;
+          ingresses?: Array<{
+            __typename?: 'ConfigIngress';
+            fqdn?: Array<string> | null;
+          }> | null;
+        }> | null;
+      } | null;
+    }>;
+  } | null;
+};
 
 export type GetLocalRunServiceRateLimitQueryVariables = Exact<{
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 }>;
 
-
-export type GetLocalRunServiceRateLimitQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } }> };
+export type GetLocalRunServiceRateLimitQuery = {
+  __typename?: 'query_root';
+  runServiceConfigs: Array<{
+    __typename?: 'ConfigRunServiceConfigWithID';
+    serviceID: any;
+    config: {
+      __typename?: 'ConfigRunServiceConfig';
+      name: any;
+      ports?: Array<{
+        __typename?: 'ConfigRunServicePort';
+        port: any;
+        type: string;
+        publish?: boolean | null;
+        rateLimit?: {
+          __typename?: 'ConfigRateLimit';
+          limit: any;
+          interval: string;
+        } | null;
+        ingresses?: Array<{
+          __typename?: 'ConfigIngress';
+          fqdn?: Array<string> | null;
+        }> | null;
+      }> | null;
+    };
+  }>;
+};
 
 export type InsertRunServiceMutationVariables = Exact<{
   object: Run_Service_Insert_Input;
 }>;
 
-
-export type InsertRunServiceMutation = { __typename?: 'mutation_root', insertRunService?: { __typename?: 'run_service', id: any, subdomain: string } | null };
+export type InsertRunServiceMutation = {
+  __typename?: 'mutation_root';
+  insertRunService?: {
+    __typename?: 'run_service';
+    id: any;
+    subdomain: string;
+  } | null;
+};
 
 export type InsertRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
@@ -26568,8 +27745,10 @@ export type InsertRunServiceConfigMutationVariables = Exact<{
   config: ConfigRunServiceConfigInsertInput;
 }>;
 
-
-export type InsertRunServiceConfigMutation = { __typename?: 'mutation_root', insertRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: any } };
+export type InsertRunServiceConfigMutation = {
+  __typename?: 'mutation_root';
+  insertRunServiceConfig: { __typename?: 'ConfigRunServiceConfig'; name: any };
+};
 
 export type ReplaceRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
@@ -26577,8 +27756,10 @@ export type ReplaceRunServiceConfigMutationVariables = Exact<{
   config: ConfigRunServiceConfigInsertInput;
 }>;
 
-
-export type ReplaceRunServiceConfigMutation = { __typename?: 'mutation_root', replaceRunServiceConfig: { __typename: 'ConfigRunServiceConfig' } };
+export type ReplaceRunServiceConfigMutation = {
+  __typename?: 'mutation_root';
+  replaceRunServiceConfig: { __typename: 'ConfigRunServiceConfig' };
+};
 
 export type UpdateRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
@@ -26586,3522 +27767,363 @@ export type UpdateRunServiceConfigMutationVariables = Exact<{
   config: ConfigRunServiceConfigUpdateInput;
 }>;
 
-
-export type UpdateRunServiceConfigMutation = { __typename?: 'mutation_root', updateRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: any } };
+export type UpdateRunServiceConfigMutation = {
+  __typename?: 'mutation_root';
+  updateRunServiceConfig: { __typename?: 'ConfigRunServiceConfig'; name: any };
+};
 
 export type GetFreeAndActiveProjectsQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
-
-export type GetFreeAndActiveProjectsQuery = { __typename?: 'query_root', freeAndActiveProjects: Array<{ __typename?: 'apps', id: any }> };
+export type GetFreeAndActiveProjectsQuery = {
+  __typename?: 'query_root';
+  freeAndActiveProjects: Array<{ __typename?: 'apps'; id: any }>;
+};
 
 export type DeleteWorkspaceMemberInvitesMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
-
-export type DeleteWorkspaceMemberInvitesMutation = { __typename?: 'mutation_root', deleteWorkspaceMemberInvites?: { __typename?: 'workspaceMemberInvites_mutation_response', affected_rows: number } | null };
+export type DeleteWorkspaceMemberInvitesMutation = {
+  __typename?: 'mutation_root';
+  deleteWorkspaceMemberInvites?: {
+    __typename?: 'workspaceMemberInvites_mutation_response';
+    affected_rows: number;
+  } | null;
+};
 
 export type GetWorkspaceMemberInvitesToManageQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
-
-export type GetWorkspaceMemberInvitesToManageQuery = { __typename?: 'query_root', workspaceMemberInvites: Array<{ __typename?: 'workspaceMemberInvites', id: any, email: any, userByEmail?: { __typename?: 'users', id: any } | null, workspace: { __typename?: 'workspaces', id: any, name: string, slug: string } }> };
+export type GetWorkspaceMemberInvitesToManageQuery = {
+  __typename?: 'query_root';
+  workspaceMemberInvites: Array<{
+    __typename?: 'workspaceMemberInvites';
+    id: any;
+    email: any;
+    userByEmail?: { __typename?: 'users'; id: any } | null;
+    workspace: {
+      __typename?: 'workspaces';
+      id: any;
+      name: string;
+      slug: string;
+    };
+  }>;
+};
 
 export type InsertWorkspaceMemberInviteMutationVariables = Exact<{
   workspaceMemberInvite: WorkspaceMemberInvites_Insert_Input;
 }>;
 
-
-export type InsertWorkspaceMemberInviteMutation = { __typename?: 'mutation_root', insertWorkspaceMemberInvite?: { __typename?: 'workspaceMemberInvites', id: any } | null };
+export type InsertWorkspaceMemberInviteMutation = {
+  __typename?: 'mutation_root';
+  insertWorkspaceMemberInvite?: {
+    __typename?: 'workspaceMemberInvites';
+    id: any;
+  } | null;
+};
 
 export type UpdateWorkspaceMemberInviteMutationVariables = Exact<{
   id: Scalars['uuid'];
   workspaceMemberInvite: WorkspaceMemberInvites_Set_Input;
 }>;
 
-
-export type UpdateWorkspaceMemberInviteMutation = { __typename?: 'mutation_root', updateWorkspaceMemberInvites?: { __typename?: 'workspaceMemberInvites_mutation_response', affected_rows: number } | null };
+export type UpdateWorkspaceMemberInviteMutation = {
+  __typename?: 'mutation_root';
+  updateWorkspaceMemberInvites?: {
+    __typename?: 'workspaceMemberInvites_mutation_response';
+    affected_rows: number;
+  } | null;
+};
 
 export type DeleteWorkspaceMemberMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
+export type DeleteWorkspaceMemberMutation = {
+  __typename?: 'mutation_root';
+  deleteWorkspaceMember?: { __typename?: 'workspaceMembers'; id: any } | null;
+};
 
-export type DeleteWorkspaceMemberMutation = { __typename?: 'mutation_root', deleteWorkspaceMember?: { __typename?: 'workspaceMembers', id: any } | null };
+export type GetWorkspaceMembersWorkspaceMemberFragment = {
+  __typename?: 'workspaceMembers';
+  id: any;
+  type: string;
+  user: {
+    __typename?: 'users';
+    id: any;
+    displayName: string;
+    avatarUrl: string;
+    email?: any | null;
+  };
+};
 
-export type GetWorkspaceMembersWorkspaceMemberFragment = { __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, email?: any | null } };
-
-export type GetWorkspaceMembersWorkspaceMemberInviteFragment = { __typename?: 'workspaceMemberInvites', id: any, email: any, memberType: string };
+export type GetWorkspaceMembersWorkspaceMemberInviteFragment = {
+  __typename?: 'workspaceMemberInvites';
+  id: any;
+  email: any;
+  memberType: string;
+};
 
 export type GetWorkspaceMembersQueryVariables = Exact<{
   workspaceId: Scalars['uuid'];
 }>;
 
-
-export type GetWorkspaceMembersQuery = { __typename?: 'query_root', workspace?: { __typename?: 'workspaces', id: any, creatorUser?: { __typename?: 'users', id: any } | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, email?: any | null } }>, workspaceMemberInvites: Array<{ __typename?: 'workspaceMemberInvites', id: any, email: any, memberType: string }> } | null };
+export type GetWorkspaceMembersQuery = {
+  __typename?: 'query_root';
+  workspace?: {
+    __typename?: 'workspaces';
+    id: any;
+    creatorUser?: { __typename?: 'users'; id: any } | null;
+    workspaceMembers: Array<{
+      __typename?: 'workspaceMembers';
+      id: any;
+      type: string;
+      user: {
+        __typename?: 'users';
+        id: any;
+        displayName: string;
+        avatarUrl: string;
+        email?: any | null;
+      };
+    }>;
+    workspaceMemberInvites: Array<{
+      __typename?: 'workspaceMemberInvites';
+      id: any;
+      email: any;
+      memberType: string;
+    }>;
+  } | null;
+};
 
 export type UpdateWorkspaceMemberMutationVariables = Exact<{
   id: Scalars['uuid'];
   workspaceMember: WorkspaceMembers_Set_Input;
 }>;
 
-
-export type UpdateWorkspaceMemberMutation = { __typename?: 'mutation_root', updateWorkspaceMember?: { __typename?: 'workspaceMembers', id: any } | null };
+export type UpdateWorkspaceMemberMutation = {
+  __typename?: 'mutation_root';
+  updateWorkspaceMember?: { __typename?: 'workspaceMembers'; id: any } | null;
+};
 
 export type DeleteWorkspaceMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
-
-export type DeleteWorkspaceMutation = { __typename?: 'mutation_root', deleteWorkspace?: { __typename?: 'workspaces', id: any } | null };
+export type DeleteWorkspaceMutation = {
+  __typename?: 'mutation_root';
+  deleteWorkspace?: { __typename?: 'workspaces'; id: any } | null;
+};
 
 export type InsertWorkspaceMutationVariables = Exact<{
   workspace: Workspaces_Insert_Input;
 }>;
 
-
-export type InsertWorkspaceMutation = { __typename?: 'mutation_root', insertWorkspace?: { __typename?: 'workspaces', name: string, id: any } | null };
+export type InsertWorkspaceMutation = {
+  __typename?: 'mutation_root';
+  insertWorkspace?: { __typename?: 'workspaces'; name: string; id: any } | null;
+};
 
 export type UpdateWorkspaceMutationVariables = Exact<{
   id: Scalars['uuid'];
   workspace: Workspaces_Set_Input;
 }>;
 
-
-export type UpdateWorkspaceMutation = { __typename?: 'mutation_root', updateWorkspace?: { __typename?: 'workspaces', id: any, name: string, email: string, companyName: string, addressLine1: string, addressLine2: string, addressPostalCode: string, addressCity: string, addressCountryCode?: string | null, slug: string, taxIdType: string, taxIdValue: string } | null };
+export type UpdateWorkspaceMutation = {
+  __typename?: 'mutation_root';
+  updateWorkspace?: {
+    __typename?: 'workspaces';
+    id: any;
+    name: string;
+    email: string;
+    companyName: string;
+    addressLine1: string;
+    addressLine2: string;
+    addressPostalCode: string;
+    addressCity: string;
+    addressCountryCode?: string | null;
+    slug: string;
+    taxIdType: string;
+    taxIdValue: string;
+  } | null;
+};
 
 export const BackupFragmentDoc = gql`
-    fragment Backup on backups {
-  id
-  size
-  createdAt
-  completedAt
-}
-    `;
-export const ServiceResourcesFragmentDoc = gql`
-    fragment ServiceResources on ConfigConfig {
-  auth {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-      autoscaler {
-        maxReplicas
-      }
-    }
-  }
-  hasura {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-      autoscaler {
-        maxReplicas
-      }
-    }
-  }
-  postgres {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-      autoscaler {
-        maxReplicas
-      }
-    }
-  }
-  storage {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-      autoscaler {
-        maxReplicas
-      }
-    }
-  }
-}
-    `;
-export const GetAppPlanAndGlobalPlansAppFragmentDoc = gql`
-    fragment getAppPlanAndGlobalPlansApp on apps {
-  id
-  subdomain
-  workspace {
+  fragment Backup on backups {
     id
+    size
+    createdAt
+    completedAt
+  }
+`;
+export const ServiceResourcesFragmentDoc = gql`
+  fragment ServiceResources on ConfigConfig {
+    auth {
+      resources {
+        compute {
+          cpu
+          memory
+        }
+        replicas
+        autoscaler {
+          maxReplicas
+        }
+      }
+    }
+    hasura {
+      resources {
+        compute {
+          cpu
+          memory
+        }
+        replicas
+        autoscaler {
+          maxReplicas
+        }
+      }
+    }
+    postgres {
+      resources {
+        compute {
+          cpu
+          memory
+        }
+        replicas
+        autoscaler {
+          maxReplicas
+        }
+      }
+    }
+    storage {
+      resources {
+        compute {
+          cpu
+          memory
+        }
+        replicas
+        autoscaler {
+          maxReplicas
+        }
+      }
+    }
+  }
+`;
+export const GetAppPlanAndGlobalPlansAppFragmentDoc = gql`
+  fragment getAppPlanAndGlobalPlansApp on apps {
+    id
+    subdomain
+    workspace {
+      id
+      paymentMethods {
+        id
+      }
+    }
+    legacyPlan {
+      id
+      name
+    }
+  }
+`;
+export const GetAppPlanAndGlobalPlansPlanFragmentDoc = gql`
+  fragment getAppPlanAndGlobalPlansPlan on plans {
+    id
+    name
+    isFree
+    price
+    featureMaxDbSize
+  }
+`;
+export const PrefetchNewAppRegionsFragmentDoc = gql`
+  fragment PrefetchNewAppRegions on regions {
+    id
+    city
+    active
+    country {
+      code
+      name
+    }
+  }
+`;
+export const PrefetchNewAppPlansFragmentDoc = gql`
+  fragment PrefetchNewAppPlans on plans {
+    id
+    name
+    isDefault
+    isFree
+    price
+    featureBackupEnabled
+    featureCustomDomainsEnabled
+    featureMaxDbSize
+  }
+`;
+export const PrefetchNewAppWorkspaceFragmentDoc = gql`
+  fragment PrefetchNewAppWorkspace on workspaces {
+    id
+    name
+    slug
     paymentMethods {
       id
     }
   }
-  legacyPlan {
-    id
-    name
-  }
-}
-    `;
-export const GetAppPlanAndGlobalPlansPlanFragmentDoc = gql`
-    fragment getAppPlanAndGlobalPlansPlan on plans {
-  id
-  name
-  isFree
-  price
-  featureMaxDbSize
-}
-    `;
-export const PrefetchNewAppRegionsFragmentDoc = gql`
-    fragment PrefetchNewAppRegions on regions {
-  id
-  city
-  active
-  country {
-    code
-    name
-  }
-}
-    `;
-export const PrefetchNewAppPlansFragmentDoc = gql`
-    fragment PrefetchNewAppPlans on plans {
-  id
-  name
-  isDefault
-  isFree
-  price
-  featureBackupEnabled
-  featureCustomDomainsEnabled
-  featureMaxDbSize
-}
-    `;
-export const PrefetchNewAppWorkspaceFragmentDoc = gql`
-    fragment PrefetchNewAppWorkspace on workspaces {
-  id
-  name
-  slug
-  paymentMethods {
-    id
-  }
-}
-    `;
+`;
 export const EnvironmentVariableFragmentDoc = gql`
-    fragment EnvironmentVariable on ConfigGlobalEnvironmentVariable {
-  id: name
-  name
-  value
-}
-    `;
-export const JwtSecretFragmentDoc = gql`
-    fragment JWTSecret on ConfigJWTSecret {
-  issuer
-  key
-  type
-  jwk_url
-  header
-  claims_namespace_path
-  claims_namespace
-  claims_format
-  audience
-  allowed_skew
-}
-    `;
-export const PermissionVariableFragmentDoc = gql`
-    fragment PermissionVariable on ConfigAuthsessionaccessTokenCustomClaims {
-  id: key
-  key
-  value
-}
-    `;
-export const SecretFragmentDoc = gql`
-    fragment Secret on ConfigEnvironmentVariable {
-  name
-}
-    `;
-export const DeploymentRowFragmentDoc = gql`
-    fragment DeploymentRow on deployments {
-  id
-  commitSHA
-  deploymentStartedAt
-  deploymentEndedAt
-  deploymentStatus
-  commitUserName
-  commitUserAvatarUrl
-  commitMessage
-}
-    `;
-export const AppStateHistoryFragmentDoc = gql`
-    fragment AppStateHistory on appStateHistory {
-  id
-  appId
-  message
-  stateId
-  createdAt
-}
-    `;
-export const ProjectFragmentDoc = gql`
-    fragment Project on apps {
-  id
-  slug
-  name
-  repositoryProductionBranch
-  subdomain
-  createdAt
-  desiredState
-  nhostBaseFolder
-  config(resolve: true) {
-    observability {
-      grafana {
-        adminPassword
-      }
-    }
-    hasura {
-      adminSecret
-      settings {
-        enableConsole
-      }
-    }
-    ai {
-      version
-    }
-  }
-  featureFlags {
-    description
-    id
+  fragment EnvironmentVariable on ConfigGlobalEnvironmentVariable {
+    id: name
     name
     value
   }
-  appStates(order_by: {createdAt: desc}, limit: 1) {
+`;
+export const JwtSecretFragmentDoc = gql`
+  fragment JWTSecret on ConfigJWTSecret {
+    issuer
+    key
+    type
+    jwk_url
+    header
+    claims_namespace_path
+    claims_namespace
+    claims_format
+    audience
+    allowed_skew
+  }
+`;
+export const PermissionVariableFragmentDoc = gql`
+  fragment PermissionVariable on ConfigAuthsessionaccessTokenCustomClaims {
+    id: key
+    key
+    value
+  }
+`;
+export const SecretFragmentDoc = gql`
+  fragment Secret on ConfigEnvironmentVariable {
+    name
+  }
+`;
+export const DeploymentRowFragmentDoc = gql`
+  fragment DeploymentRow on deployments {
+    id
+    commitSHA
+    deploymentStartedAt
+    deploymentEndedAt
+    deploymentStatus
+    commitUserName
+    commitUserAvatarUrl
+    commitMessage
+  }
+`;
+export const AppStateHistoryFragmentDoc = gql`
+  fragment AppStateHistory on appStateHistory {
     id
     appId
     message
     stateId
     createdAt
   }
-  region {
-    id
-    countryCode
-    name
-    domain
-    city
-  }
-  legacyPlan {
-    id
-    name
-    price
-    isFree
-    featureMaxDbSize
-  }
-  githubRepository {
-    fullName
-  }
-  deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
-    id
-    commitSHA
-    commitMessage
-    commitUserName
-    deploymentStartedAt
-    deploymentEndedAt
-    commitUserAvatarUrl
-    deploymentStatus
-  }
-  creator {
-    id
-    email
-    displayName
-  }
-}
-    `;
-export const WorkspaceFragmentDoc = gql`
-    fragment Workspace on workspaces {
-  id
-  name
-  slug
-  creatorUserId
-  workspaceMembers {
-    id
-    user {
-      id
-      email
-      displayName
-    }
-    type
-  }
-  projects: apps(order_by: {name: asc}) {
-    ...Project
-  }
-}
-    ${ProjectFragmentDoc}`;
-export const GithubRepositoryFragmentDoc = gql`
-    fragment GithubRepository on githubRepositories {
-  id
-  name
-  fullName
-  private
-  githubAppInstallation {
-    id
-    accountLogin
-    accountType
-    accountAvatarUrl
-  }
-}
-    `;
-export const GetPaymentMethodsFragmentDoc = gql`
-    fragment getPaymentMethods on paymentMethods {
-  id
-  createdAt
-  cardBrand
-  cardLast4
-  cardExpMonth
-  cardExpYear
-  isDefault
-  workspace {
-    id
-    apps {
-      id
-      legacyPlan {
-        isFree
-      }
-    }
-  }
-}
-    `;
-export const RemoteAppGetUsersFragmentDoc = gql`
-    fragment RemoteAppGetUsers on users {
-  id
-  createdAt
-  displayName
-  avatarUrl
-  email
-  emailVerified
-  phoneNumber
-  phoneNumberVerified
-  disabled
-  defaultRole
-  lastSeen
-  locale
-  metadata
-  roles {
-    id
-    role
-  }
-  userProviders {
-    id
-    providerId
-  }
-  disabled
-}
-    `;
-export const RunServiceConfigFragmentDoc = gql`
-    fragment RunServiceConfig on ConfigRunServiceConfig {
-  name
-  image {
-    image
-  }
-  command
-  resources {
-    compute {
-      cpu
-      memory
-    }
-    storage {
-      name
-      path
-      capacity
-    }
-    replicas
-    autoscaler {
-      maxReplicas
-    }
-  }
-  environment {
-    name
-    value
-  }
-  ports {
-    port
-    type
-    publish
-    ingresses {
-      fqdn
-    }
-    rateLimit {
-      limit
-      interval
-    }
-  }
-  healthCheck {
-    port
-    initialDelaySeconds
-    probePeriodSeconds
-  }
-}
-    `;
-export const RunServiceRateLimitFragmentDoc = gql`
-    fragment RunServiceRateLimit on ConfigRunServiceConfig {
-  name
-  ports {
-    port
-    type
-    publish
-    rateLimit {
-      limit
-      interval
-    }
-    ingresses {
-      fqdn
-    }
-  }
-}
-    `;
-export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
-    fragment getWorkspaceMembersWorkspaceMember on workspaceMembers {
-  id
-  type
-  user {
-    id
-    displayName
-    avatarUrl
-    email
-  }
-}
-    `;
-export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
-    fragment getWorkspaceMembersWorkspaceMemberInvite on workspaceMemberInvites {
-  id
-  email
-  memberType
-}
-    `;
-export const DeleteUserAccountDocument = gql`
-    mutation deleteUserAccount($id: uuid!) {
-  deleteUser(id: $id) {
-    __typename
-  }
-}
-    `;
-export type DeleteUserAccountMutationFn = Apollo.MutationFunction<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
-
-/**
- * __useDeleteUserAccountMutation__
- *
- * To run a mutation, you first call `useDeleteUserAccountMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteUserAccountMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteUserAccountMutation, { data, loading, error }] = useDeleteUserAccountMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeleteUserAccountMutation(baseOptions?: Apollo.MutationHookOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>(DeleteUserAccountDocument, options);
-      }
-export type DeleteUserAccountMutationHookResult = ReturnType<typeof useDeleteUserAccountMutation>;
-export type DeleteUserAccountMutationResult = Apollo.MutationResult<DeleteUserAccountMutation>;
-export type DeleteUserAccountMutationOptions = Apollo.BaseMutationOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
-export const GetAuthUserProvidersDocument = gql`
-    query getAuthUserProviders {
-  authUserProviders {
-    id
-    providerId
-  }
-}
-    `;
-
-/**
- * __useGetAuthUserProvidersQuery__
- *
- * To run a query within a React component, call `useGetAuthUserProvidersQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAuthUserProvidersQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAuthUserProvidersQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetAuthUserProvidersQuery(baseOptions?: Apollo.QueryHookOptions<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>(GetAuthUserProvidersDocument, options);
-      }
-export function useGetAuthUserProvidersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>(GetAuthUserProvidersDocument, options);
-        }
-export type GetAuthUserProvidersQueryHookResult = ReturnType<typeof useGetAuthUserProvidersQuery>;
-export type GetAuthUserProvidersLazyQueryHookResult = ReturnType<typeof useGetAuthUserProvidersLazyQuery>;
-export type GetAuthUserProvidersQueryResult = Apollo.QueryResult<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>;
-export function refetchGetAuthUserProvidersQuery(variables?: GetAuthUserProvidersQueryVariables) {
-      return { query: GetAuthUserProvidersDocument, variables: variables }
-    }
-export const GetPersonalAccessTokensDocument = gql`
-    query GetPersonalAccessTokens {
-  personalAccessTokens: authRefreshTokens(
-    where: {type: {_eq: pat}}
-    order_by: {expiresAt: asc}
-  ) {
-    id
-    metadata
-    createdAt
-    expiresAt
-  }
-}
-    `;
-
-/**
- * __useGetPersonalAccessTokensQuery__
- *
- * To run a query within a React component, call `useGetPersonalAccessTokensQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPersonalAccessTokensQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetPersonalAccessTokensQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetPersonalAccessTokensQuery(baseOptions?: Apollo.QueryHookOptions<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>(GetPersonalAccessTokensDocument, options);
-      }
-export function useGetPersonalAccessTokensLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>(GetPersonalAccessTokensDocument, options);
-        }
-export type GetPersonalAccessTokensQueryHookResult = ReturnType<typeof useGetPersonalAccessTokensQuery>;
-export type GetPersonalAccessTokensLazyQueryHookResult = ReturnType<typeof useGetPersonalAccessTokensLazyQuery>;
-export type GetPersonalAccessTokensQueryResult = Apollo.QueryResult<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>;
-export function refetchGetPersonalAccessTokensQuery(variables?: GetPersonalAccessTokensQueryVariables) {
-      return { query: GetPersonalAccessTokensDocument, variables: variables }
-    }
-export const DeletePersonalAccessTokenDocument = gql`
-    mutation DeletePersonalAccessToken($patId: uuid!) {
-  deletePersonalAccessToken: deleteAuthRefreshToken(id: $patId) {
-    id
-    metadata
-  }
-}
-    `;
-export type DeletePersonalAccessTokenMutationFn = Apollo.MutationFunction<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
-
-/**
- * __useDeletePersonalAccessTokenMutation__
- *
- * To run a mutation, you first call `useDeletePersonalAccessTokenMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeletePersonalAccessTokenMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deletePersonalAccessTokenMutation, { data, loading, error }] = useDeletePersonalAccessTokenMutation({
- *   variables: {
- *      patId: // value for 'patId'
- *   },
- * });
- */
-export function useDeletePersonalAccessTokenMutation(baseOptions?: Apollo.MutationHookOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>(DeletePersonalAccessTokenDocument, options);
-      }
-export type DeletePersonalAccessTokenMutationHookResult = ReturnType<typeof useDeletePersonalAccessTokenMutation>;
-export type DeletePersonalAccessTokenMutationResult = Apollo.MutationResult<DeletePersonalAccessTokenMutation>;
-export type DeletePersonalAccessTokenMutationOptions = Apollo.BaseMutationOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
-export const UpdateUserDisplayNameDocument = gql`
-    mutation updateUserDisplayName($id: uuid!, $displayName: String!) {
-  updateUser(pk_columns: {id: $id}, _set: {displayName: $displayName}) {
-    id
-    displayName
-  }
-}
-    `;
-export type UpdateUserDisplayNameMutationFn = Apollo.MutationFunction<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>;
-
-/**
- * __useUpdateUserDisplayNameMutation__
- *
- * To run a mutation, you first call `useUpdateUserDisplayNameMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateUserDisplayNameMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateUserDisplayNameMutation, { data, loading, error }] = useUpdateUserDisplayNameMutation({
- *   variables: {
- *      id: // value for 'id'
- *      displayName: // value for 'displayName'
- *   },
- * });
- */
-export function useUpdateUserDisplayNameMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>(UpdateUserDisplayNameDocument, options);
-      }
-export type UpdateUserDisplayNameMutationHookResult = ReturnType<typeof useUpdateUserDisplayNameMutation>;
-export type UpdateUserDisplayNameMutationResult = Apollo.MutationResult<UpdateUserDisplayNameMutation>;
-export type UpdateUserDisplayNameMutationOptions = Apollo.BaseMutationOptions<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>;
-export const GetAiSettingsDocument = gql`
-    query GetAISettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    postgres {
-      version
-    }
-    ai {
-      version
-      webhookSecret
-      autoEmbeddings {
-        synchPeriodMinutes
-      }
-      openai {
-        apiKey
-        organization
-      }
-      resources {
-        compute {
-          cpu
-          memory
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetAiSettingsQuery__
- *
- * To run a query within a React component, call `useGetAiSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAiSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAiSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetAiSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAiSettingsQuery, GetAiSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAiSettingsQuery, GetAiSettingsQueryVariables>(GetAiSettingsDocument, options);
-      }
-export function useGetAiSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAiSettingsQuery, GetAiSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAiSettingsQuery, GetAiSettingsQueryVariables>(GetAiSettingsDocument, options);
-        }
-export type GetAiSettingsQueryHookResult = ReturnType<typeof useGetAiSettingsQuery>;
-export type GetAiSettingsLazyQueryHookResult = ReturnType<typeof useGetAiSettingsLazyQuery>;
-export type GetAiSettingsQueryResult = Apollo.QueryResult<GetAiSettingsQuery, GetAiSettingsQueryVariables>;
-export function refetchGetAiSettingsQuery(variables: GetAiSettingsQueryVariables) {
-      return { query: GetAiSettingsDocument, variables: variables }
-    }
-export const GetAuthenticationSettingsDocument = gql`
-    query GetAuthenticationSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    auth {
-      id: __typename
-      __typename
-      redirections {
-        clientUrl
-        allowedUrls
-      }
-      totp {
-        enabled
-        issuer
-      }
-      signUp {
-        enabled
-      }
-      session {
-        accessToken {
-          expiresIn
-        }
-        refreshToken {
-          expiresIn
-        }
-      }
-      resources {
-        networking {
-          ingresses {
-            fqdn
-          }
-        }
-      }
-      user {
-        email {
-          allowed
-          blocked
-        }
-        emailDomains {
-          allowed
-          blocked
-        }
-        gravatar {
-          enabled
-          default
-          rating
-        }
-        locale {
-          allowed
-          default
-        }
-      }
-      misc {
-        concealErrors
-      }
-      version
-    }
-  }
-}
-    `;
-
-/**
- * __useGetAuthenticationSettingsQuery__
- *
- * To run a query within a React component, call `useGetAuthenticationSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAuthenticationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAuthenticationSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetAuthenticationSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
-      }
-export function useGetAuthenticationSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
-        }
-export type GetAuthenticationSettingsQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsQuery>;
-export type GetAuthenticationSettingsLazyQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsLazyQuery>;
-export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>;
-export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
-      return { query: GetAuthenticationSettingsDocument, variables: variables }
-    }
-export const GetPostgresSettingsDocument = gql`
-    query GetPostgresSettings($appId: uuid!) {
-  systemConfig(appID: $appId) {
-    postgres {
-      database
-    }
-  }
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    postgres {
-      version
-      resources {
-        storage {
-          capacity
-        }
-        enablePublicAccess
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetPostgresSettingsQuery__
- *
- * To run a query within a React component, call `useGetPostgresSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPostgresSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetPostgresSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetPostgresSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>(GetPostgresSettingsDocument, options);
-      }
-export function useGetPostgresSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>(GetPostgresSettingsDocument, options);
-        }
-export type GetPostgresSettingsQueryHookResult = ReturnType<typeof useGetPostgresSettingsQuery>;
-export type GetPostgresSettingsLazyQueryHookResult = ReturnType<typeof useGetPostgresSettingsLazyQuery>;
-export type GetPostgresSettingsQueryResult = Apollo.QueryResult<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>;
-export function refetchGetPostgresSettingsQuery(variables: GetPostgresSettingsQueryVariables) {
-      return { query: GetPostgresSettingsDocument, variables: variables }
-    }
-export const ResetDatabasePasswordDocument = gql`
-    mutation ResetDatabasePassword($appId: String!, $newPassword: String!) {
-  resetPostgresPassword(appID: $appId, newPassword: $newPassword)
-}
-    `;
-export type ResetDatabasePasswordMutationFn = Apollo.MutationFunction<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
-
-/**
- * __useResetDatabasePasswordMutation__
- *
- * To run a mutation, you first call `useResetDatabasePasswordMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useResetDatabasePasswordMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [resetDatabasePasswordMutation, { data, loading, error }] = useResetDatabasePasswordMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      newPassword: // value for 'newPassword'
- *   },
- * });
- */
-export function useResetDatabasePasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>(ResetDatabasePasswordDocument, options);
-      }
-export type ResetDatabasePasswordMutationHookResult = ReturnType<typeof useResetDatabasePasswordMutation>;
-export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDatabasePasswordMutation>;
-export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
-export const GetHasuraSettingsDocument = gql`
-    query GetHasuraSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    hasura {
-      version
-      settings {
-        enableAllowList
-        enableRemoteSchemaPermissions
-        enableConsole
-        devMode
-        corsDomain
-        enabledAPIs
-      }
-      logs {
-        level
-      }
-      events {
-        httpPoolSize
-      }
-      resources {
-        networking {
-          ingresses {
-            fqdn
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetHasuraSettingsQuery__
- *
- * To run a query within a React component, call `useGetHasuraSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetHasuraSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetHasuraSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetHasuraSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
-      }
-export function useGetHasuraSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
-        }
-export type GetHasuraSettingsQueryHookResult = ReturnType<typeof useGetHasuraSettingsQuery>;
-export type GetHasuraSettingsLazyQueryHookResult = ReturnType<typeof useGetHasuraSettingsLazyQuery>;
-export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>;
-export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
-      return { query: GetHasuraSettingsDocument, variables: variables }
-    }
-export const GetApplicationBackupsDocument = gql`
-    query getApplicationBackups($appId: uuid!) {
-  app(id: $appId) {
-    backups(order_by: {createdAt: desc}) {
-      ...Backup
-    }
-  }
-}
-    ${BackupFragmentDoc}`;
-
-/**
- * __useGetApplicationBackupsQuery__
- *
- * To run a query within a React component, call `useGetApplicationBackupsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetApplicationBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetApplicationBackupsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetApplicationBackupsQuery(baseOptions: Apollo.QueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
-      }
-export function useGetApplicationBackupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
-        }
-export type GetApplicationBackupsQueryHookResult = ReturnType<typeof useGetApplicationBackupsQuery>;
-export type GetApplicationBackupsLazyQueryHookResult = ReturnType<typeof useGetApplicationBackupsLazyQuery>;
-export type GetApplicationBackupsQueryResult = Apollo.QueryResult<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>;
-export function refetchGetApplicationBackupsQuery(variables: GetApplicationBackupsQueryVariables) {
-      return { query: GetApplicationBackupsDocument, variables: variables }
-    }
-export const GetBackupPresignedUrlDocument = gql`
-    query GetBackupPresignedUrl($appId: String!, $backupId: String!, $expireInMinutes: Int) {
-  getBackupPresignedUrl: getBackupPresignedURL(
-    appID: $appId
-    backupID: $backupId
-    expireInMinutes: $expireInMinutes
-  ) {
-    url
-    expiresAt: expires_at
-  }
-}
-    `;
-
-/**
- * __useGetBackupPresignedUrlQuery__
- *
- * To run a query within a React component, call `useGetBackupPresignedUrlQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetBackupPresignedUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetBackupPresignedUrlQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *      backupId: // value for 'backupId'
- *      expireInMinutes: // value for 'expireInMinutes'
- *   },
- * });
- */
-export function useGetBackupPresignedUrlQuery(baseOptions: Apollo.QueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
-      }
-export function useGetBackupPresignedUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
-        }
-export type GetBackupPresignedUrlQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlQuery>;
-export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlLazyQuery>;
-export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
-export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
-      return { query: GetBackupPresignedUrlDocument, variables: variables }
-    }
-export const GetResourcesDocument = gql`
-    query GetResources($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    ...ServiceResources
-  }
-}
-    ${ServiceResourcesFragmentDoc}`;
-
-/**
- * __useGetResourcesQuery__
- *
- * To run a query within a React component, call `useGetResourcesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetResourcesQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetResourcesQuery(baseOptions: Apollo.QueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
-      }
-export function useGetResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
-        }
-export type GetResourcesQueryHookResult = ReturnType<typeof useGetResourcesQuery>;
-export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesLazyQuery>;
-export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetResourcesQueryVariables>;
-export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
-      return { query: GetResourcesDocument, variables: variables }
-    }
-export const GetStorageSettingsDocument = gql`
-    query GetStorageSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    storage {
-      version
-      antivirus {
-        server
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetStorageSettingsQuery__
- *
- * To run a query within a React component, call `useGetStorageSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetStorageSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetStorageSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetStorageSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>(GetStorageSettingsDocument, options);
-      }
-export function useGetStorageSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>(GetStorageSettingsDocument, options);
-        }
-export type GetStorageSettingsQueryHookResult = ReturnType<typeof useGetStorageSettingsQuery>;
-export type GetStorageSettingsLazyQueryHookResult = ReturnType<typeof useGetStorageSettingsLazyQuery>;
-export type GetStorageSettingsQueryResult = Apollo.QueryResult<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>;
-export function refetchGetStorageSettingsQuery(variables: GetStorageSettingsQueryVariables) {
-      return { query: GetStorageSettingsDocument, variables: variables }
-    }
-export const GetServerlessFunctionsSettingsDocument = gql`
-    query GetServerlessFunctionsSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    functions {
-      resources {
-        networking {
-          ingresses {
-            fqdn
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetServerlessFunctionsSettingsQuery__
- *
- * To run a query within a React component, call `useGetServerlessFunctionsSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetServerlessFunctionsSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetServerlessFunctionsSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetServerlessFunctionsSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>(GetServerlessFunctionsSettingsDocument, options);
-      }
-export function useGetServerlessFunctionsSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>(GetServerlessFunctionsSettingsDocument, options);
-        }
-export type GetServerlessFunctionsSettingsQueryHookResult = ReturnType<typeof useGetServerlessFunctionsSettingsQuery>;
-export type GetServerlessFunctionsSettingsLazyQueryHookResult = ReturnType<typeof useGetServerlessFunctionsSettingsLazyQuery>;
-export type GetServerlessFunctionsSettingsQueryResult = Apollo.QueryResult<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>;
-export function refetchGetServerlessFunctionsSettingsQuery(variables: GetServerlessFunctionsSettingsQueryVariables) {
-      return { query: GetServerlessFunctionsSettingsDocument, variables: variables }
-    }
-export const DeleteApplicationDocument = gql`
-    mutation deleteApplication($appId: uuid!) {
-  deleteApp(id: $appId) {
-    id
-  }
-}
-    `;
-export type DeleteApplicationMutationFn = Apollo.MutationFunction<DeleteApplicationMutation, DeleteApplicationMutationVariables>;
-
-/**
- * __useDeleteApplicationMutation__
- *
- * To run a mutation, you first call `useDeleteApplicationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteApplicationMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteApplicationMutation, { data, loading, error }] = useDeleteApplicationMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useDeleteApplicationMutation(baseOptions?: Apollo.MutationHookOptions<DeleteApplicationMutation, DeleteApplicationMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteApplicationMutation, DeleteApplicationMutationVariables>(DeleteApplicationDocument, options);
-      }
-export type DeleteApplicationMutationHookResult = ReturnType<typeof useDeleteApplicationMutation>;
-export type DeleteApplicationMutationResult = Apollo.MutationResult<DeleteApplicationMutation>;
-export type DeleteApplicationMutationOptions = Apollo.BaseMutationOptions<DeleteApplicationMutation, DeleteApplicationMutationVariables>;
-export const GetAllWorkspacesAndProjectsDocument = gql`
-    query GetAllWorkspacesAndProjects {
-  workspaces(order_by: {name: asc}) {
-    ...Workspace
-  }
-}
-    ${WorkspaceFragmentDoc}`;
-
-/**
- * __useGetAllWorkspacesAndProjectsQuery__
- *
- * To run a query within a React component, call `useGetAllWorkspacesAndProjectsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAllWorkspacesAndProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAllWorkspacesAndProjectsQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetAllWorkspacesAndProjectsQuery(baseOptions?: Apollo.QueryHookOptions<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>(GetAllWorkspacesAndProjectsDocument, options);
-      }
-export function useGetAllWorkspacesAndProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>(GetAllWorkspacesAndProjectsDocument, options);
-        }
-export type GetAllWorkspacesAndProjectsQueryHookResult = ReturnType<typeof useGetAllWorkspacesAndProjectsQuery>;
-export type GetAllWorkspacesAndProjectsLazyQueryHookResult = ReturnType<typeof useGetAllWorkspacesAndProjectsLazyQuery>;
-export type GetAllWorkspacesAndProjectsQueryResult = Apollo.QueryResult<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>;
-export function refetchGetAllWorkspacesAndProjectsQuery(variables?: GetAllWorkspacesAndProjectsQueryVariables) {
-      return { query: GetAllWorkspacesAndProjectsDocument, variables: variables }
-    }
-export const GetAppPlanAndGlobalPlansDocument = gql`
-    query getAppPlanAndGlobalPlans($workspaceSlug: String!, $appSlug: String!) {
-  apps(where: {workspace: {slug: {_eq: $workspaceSlug}}, slug: {_eq: $appSlug}}) {
-    ...getAppPlanAndGlobalPlansApp
-  }
-  plans {
-    ...getAppPlanAndGlobalPlansPlan
-  }
-}
-    ${GetAppPlanAndGlobalPlansAppFragmentDoc}
-${GetAppPlanAndGlobalPlansPlanFragmentDoc}`;
-
-/**
- * __useGetAppPlanAndGlobalPlansQuery__
- *
- * To run a query within a React component, call `useGetAppPlanAndGlobalPlansQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppPlanAndGlobalPlansQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppPlanAndGlobalPlansQuery({
- *   variables: {
- *      workspaceSlug: // value for 'workspaceSlug'
- *      appSlug: // value for 'appSlug'
- *   },
- * });
- */
-export function useGetAppPlanAndGlobalPlansQuery(baseOptions: Apollo.QueryHookOptions<GetAppPlanAndGlobalPlansQuery, GetAppPlanAndGlobalPlansQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppPlanAndGlobalPlansQuery, GetAppPlanAndGlobalPlansQueryVariables>(GetAppPlanAndGlobalPlansDocument, options);
-      }
-export function useGetAppPlanAndGlobalPlansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppPlanAndGlobalPlansQuery, GetAppPlanAndGlobalPlansQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppPlanAndGlobalPlansQuery, GetAppPlanAndGlobalPlansQueryVariables>(GetAppPlanAndGlobalPlansDocument, options);
-        }
-export type GetAppPlanAndGlobalPlansQueryHookResult = ReturnType<typeof useGetAppPlanAndGlobalPlansQuery>;
-export type GetAppPlanAndGlobalPlansLazyQueryHookResult = ReturnType<typeof useGetAppPlanAndGlobalPlansLazyQuery>;
-export type GetAppPlanAndGlobalPlansQueryResult = Apollo.QueryResult<GetAppPlanAndGlobalPlansQuery, GetAppPlanAndGlobalPlansQueryVariables>;
-export function refetchGetAppPlanAndGlobalPlansQuery(variables: GetAppPlanAndGlobalPlansQueryVariables) {
-      return { query: GetAppPlanAndGlobalPlansDocument, variables: variables }
-    }
-export const GetApplicationPlanDocument = gql`
-    query getApplicationPlan($workspace: String!, $slug: String!) {
-  apps(where: {workspace: {slug: {_eq: $workspace}}, slug: {_eq: $slug}}) {
-    id
-    subdomain
-    legacyPlan {
-      name
-      price
-      upatedAt
-      featureMaxDbSize
-    }
-  }
-}
-    `;
-
-/**
- * __useGetApplicationPlanQuery__
- *
- * To run a query within a React component, call `useGetApplicationPlanQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetApplicationPlanQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetApplicationPlanQuery({
- *   variables: {
- *      workspace: // value for 'workspace'
- *      slug: // value for 'slug'
- *   },
- * });
- */
-export function useGetApplicationPlanQuery(baseOptions: Apollo.QueryHookOptions<GetApplicationPlanQuery, GetApplicationPlanQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetApplicationPlanQuery, GetApplicationPlanQueryVariables>(GetApplicationPlanDocument, options);
-      }
-export function useGetApplicationPlanLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApplicationPlanQuery, GetApplicationPlanQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetApplicationPlanQuery, GetApplicationPlanQueryVariables>(GetApplicationPlanDocument, options);
-        }
-export type GetApplicationPlanQueryHookResult = ReturnType<typeof useGetApplicationPlanQuery>;
-export type GetApplicationPlanLazyQueryHookResult = ReturnType<typeof useGetApplicationPlanLazyQuery>;
-export type GetApplicationPlanQueryResult = Apollo.QueryResult<GetApplicationPlanQuery, GetApplicationPlanQueryVariables>;
-export function refetchGetApplicationPlanQuery(variables: GetApplicationPlanQueryVariables) {
-      return { query: GetApplicationPlanDocument, variables: variables }
-    }
-export const GetApplicationStateDocument = gql`
-    query getApplicationState($appId: uuid!) {
-  app(id: $appId) {
-    id
-    name
-    appStates(order_by: {createdAt: desc}, limit: 10) {
-      ...AppStateHistory
-    }
-  }
-}
-    ${AppStateHistoryFragmentDoc}`;
-
-/**
- * __useGetApplicationStateQuery__
- *
- * To run a query within a React component, call `useGetApplicationStateQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetApplicationStateQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetApplicationStateQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetApplicationStateQuery(baseOptions: Apollo.QueryHookOptions<GetApplicationStateQuery, GetApplicationStateQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetApplicationStateQuery, GetApplicationStateQueryVariables>(GetApplicationStateDocument, options);
-      }
-export function useGetApplicationStateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApplicationStateQuery, GetApplicationStateQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetApplicationStateQuery, GetApplicationStateQueryVariables>(GetApplicationStateDocument, options);
-        }
-export type GetApplicationStateQueryHookResult = ReturnType<typeof useGetApplicationStateQuery>;
-export type GetApplicationStateLazyQueryHookResult = ReturnType<typeof useGetApplicationStateLazyQuery>;
-export type GetApplicationStateQueryResult = Apollo.QueryResult<GetApplicationStateQuery, GetApplicationStateQueryVariables>;
-export function refetchGetApplicationStateQuery(variables: GetApplicationStateQueryVariables) {
-      return { query: GetApplicationStateDocument, variables: variables }
-    }
-export const GetConfiguredVersionsDocument = gql`
-    query getConfiguredVersions($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
-    auth {
-      version
-    }
-    postgres {
-      version
-    }
-    hasura {
-      version
-    }
-    ai {
-      version
-    }
-    storage {
-      version
-    }
-  }
-}
-    `;
-
-/**
- * __useGetConfiguredVersionsQuery__
- *
- * To run a query within a React component, call `useGetConfiguredVersionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetConfiguredVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetConfiguredVersionsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetConfiguredVersionsQuery(baseOptions: Apollo.QueryHookOptions<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>(GetConfiguredVersionsDocument, options);
-      }
-export function useGetConfiguredVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>(GetConfiguredVersionsDocument, options);
-        }
-export type GetConfiguredVersionsQueryHookResult = ReturnType<typeof useGetConfiguredVersionsQuery>;
-export type GetConfiguredVersionsLazyQueryHookResult = ReturnType<typeof useGetConfiguredVersionsLazyQuery>;
-export type GetConfiguredVersionsQueryResult = Apollo.QueryResult<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>;
-export function refetchGetConfiguredVersionsQuery(variables: GetConfiguredVersionsQueryVariables) {
-      return { query: GetConfiguredVersionsDocument, variables: variables }
-    }
-export const GetProjectIsLockedDocument = gql`
-    query getProjectIsLocked($appId: uuid!) {
-  app(id: $appId) {
-    isLocked
-    isLockedReason
-  }
-}
-    `;
-
-/**
- * __useGetProjectIsLockedQuery__
- *
- * To run a query within a React component, call `useGetProjectIsLockedQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectIsLockedQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetProjectIsLockedQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetProjectIsLockedQuery(baseOptions: Apollo.QueryHookOptions<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>(GetProjectIsLockedDocument, options);
-      }
-export function useGetProjectIsLockedLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>(GetProjectIsLockedDocument, options);
-        }
-export type GetProjectIsLockedQueryHookResult = ReturnType<typeof useGetProjectIsLockedQuery>;
-export type GetProjectIsLockedLazyQueryHookResult = ReturnType<typeof useGetProjectIsLockedLazyQuery>;
-export type GetProjectIsLockedQueryResult = Apollo.QueryResult<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>;
-export function refetchGetProjectIsLockedQuery(variables: GetProjectIsLockedQueryVariables) {
-      return { query: GetProjectIsLockedDocument, variables: variables }
-    }
-export const GetProjectLocalesDocument = gql`
-    query getProjectLocales($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    auth {
-      user {
-        locale {
-          allowed
-          default
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetProjectLocalesQuery__
- *
- * To run a query within a React component, call `useGetProjectLocalesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectLocalesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetProjectLocalesQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetProjectLocalesQuery(baseOptions: Apollo.QueryHookOptions<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>(GetProjectLocalesDocument, options);
-      }
-export function useGetProjectLocalesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>(GetProjectLocalesDocument, options);
-        }
-export type GetProjectLocalesQueryHookResult = ReturnType<typeof useGetProjectLocalesQuery>;
-export type GetProjectLocalesLazyQueryHookResult = ReturnType<typeof useGetProjectLocalesLazyQuery>;
-export type GetProjectLocalesQueryResult = Apollo.QueryResult<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>;
-export function refetchGetProjectLocalesQuery(variables: GetProjectLocalesQueryVariables) {
-      return { query: GetProjectLocalesDocument, variables: variables }
-    }
-export const GetProjectMetricsDocument = gql`
-    query GetProjectMetrics($appId: String!, $subdomain: String!, $from: Timestamp, $to: Timestamp) {
-  logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
-    value
-  }
-  cpuSecondsUsage: getCPUSecondsUsage(appID: $appId, from: $from, to: $to) {
-    value
-  }
-  functionInvocations: getFunctionsInvocations(
-    appID: $appId
-    from: $from
-    to: $to
-  ) {
-    value
-  }
-  functionsDuration: getFunctionsDuration(appID: $appId, from: $from, to: $to) {
-    value
-  }
-  postgresVolumeCapacity: getPostgresVolumeCapacity(appID: $appId) {
-    value
-  }
-  postgresVolumeUsage: getPostgresVolumeUsage(appID: $appId) {
-    value
-  }
-  totalRequests: getTotalRequests(appID: $appId, from: $from, to: $to) {
-    value
-  }
-  egressVolume: getEgressVolume(
-    appID: $appId
-    subdomain: $subdomain
-    from: $from
-    to: $to
-  ) {
-    value
-  }
-}
-    `;
-
-/**
- * __useGetProjectMetricsQuery__
- *
- * To run a query within a React component, call `useGetProjectMetricsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetProjectMetricsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *      subdomain: // value for 'subdomain'
- *      from: // value for 'from'
- *      to: // value for 'to'
- *   },
- * });
- */
-export function useGetProjectMetricsQuery(baseOptions: Apollo.QueryHookOptions<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>(GetProjectMetricsDocument, options);
-      }
-export function useGetProjectMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>(GetProjectMetricsDocument, options);
-        }
-export type GetProjectMetricsQueryHookResult = ReturnType<typeof useGetProjectMetricsQuery>;
-export type GetProjectMetricsLazyQueryHookResult = ReturnType<typeof useGetProjectMetricsLazyQuery>;
-export type GetProjectMetricsQueryResult = Apollo.QueryResult<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>;
-export function refetchGetProjectMetricsQuery(variables: GetProjectMetricsQueryVariables) {
-      return { query: GetProjectMetricsDocument, variables: variables }
-    }
-export const GetProjectServicesHealthDocument = gql`
-    query getProjectServicesHealth($appId: String!) {
-  getProjectStatus(appID: $appId) {
-    services {
-      name
-      state
-      replicas {
-        ready
-        date
-        errors {
-          name
-          lastError {
-            reason
-            exitCode
-            message
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetProjectServicesHealthQuery__
- *
- * To run a query within a React component, call `useGetProjectServicesHealthQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectServicesHealthQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetProjectServicesHealthQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetProjectServicesHealthQuery(baseOptions: Apollo.QueryHookOptions<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>(GetProjectServicesHealthDocument, options);
-      }
-export function useGetProjectServicesHealthLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>(GetProjectServicesHealthDocument, options);
-        }
-export type GetProjectServicesHealthQueryHookResult = ReturnType<typeof useGetProjectServicesHealthQuery>;
-export type GetProjectServicesHealthLazyQueryHookResult = ReturnType<typeof useGetProjectServicesHealthLazyQuery>;
-export type GetProjectServicesHealthQueryResult = Apollo.QueryResult<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>;
-export function refetchGetProjectServicesHealthQuery(variables: GetProjectServicesHealthQueryVariables) {
-      return { query: GetProjectServicesHealthDocument, variables: variables }
-    }
-export const GetRemoteAppRolesDocument = gql`
-    query getRemoteAppRoles {
-  authRoles {
-    role
-  }
-}
-    `;
-
-/**
- * __useGetRemoteAppRolesQuery__
- *
- * To run a query within a React component, call `useGetRemoteAppRolesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRemoteAppRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetRemoteAppRolesQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetRemoteAppRolesQuery(baseOptions?: Apollo.QueryHookOptions<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>(GetRemoteAppRolesDocument, options);
-      }
-export function useGetRemoteAppRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>(GetRemoteAppRolesDocument, options);
-        }
-export type GetRemoteAppRolesQueryHookResult = ReturnType<typeof useGetRemoteAppRolesQuery>;
-export type GetRemoteAppRolesLazyQueryHookResult = ReturnType<typeof useGetRemoteAppRolesLazyQuery>;
-export type GetRemoteAppRolesQueryResult = Apollo.QueryResult<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>;
-export function refetchGetRemoteAppRolesQuery(variables?: GetRemoteAppRolesQueryVariables) {
-      return { query: GetRemoteAppRolesDocument, variables: variables }
-    }
-export const GetWorkspaceAndProjectDocument = gql`
-    query GetWorkspaceAndProject($workspaceSlug: String!, $projectSlug: String) {
-  workspaces(where: {slug: {_eq: $workspaceSlug}}) {
-    ...Workspace
-  }
-}
-    ${WorkspaceFragmentDoc}`;
-
-/**
- * __useGetWorkspaceAndProjectQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceAndProjectQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceAndProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceAndProjectQuery({
- *   variables: {
- *      workspaceSlug: // value for 'workspaceSlug'
- *      projectSlug: // value for 'projectSlug'
- *   },
- * });
- */
-export function useGetWorkspaceAndProjectQuery(baseOptions: Apollo.QueryHookOptions<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>(GetWorkspaceAndProjectDocument, options);
-      }
-export function useGetWorkspaceAndProjectLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>(GetWorkspaceAndProjectDocument, options);
-        }
-export type GetWorkspaceAndProjectQueryHookResult = ReturnType<typeof useGetWorkspaceAndProjectQuery>;
-export type GetWorkspaceAndProjectLazyQueryHookResult = ReturnType<typeof useGetWorkspaceAndProjectLazyQuery>;
-export type GetWorkspaceAndProjectQueryResult = Apollo.QueryResult<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>;
-export function refetchGetWorkspaceAndProjectQuery(variables: GetWorkspaceAndProjectQueryVariables) {
-      return { query: GetWorkspaceAndProjectDocument, variables: variables }
-    }
-export const InsertApplicationDocument = gql`
-    mutation insertApplication($app: apps_insert_input!) {
-  insertApp(object: $app) {
-    id
-    name
-    slug
-    workspace {
-      id
-      name
-      slug
-    }
-  }
-}
-    `;
-export type InsertApplicationMutationFn = Apollo.MutationFunction<InsertApplicationMutation, InsertApplicationMutationVariables>;
-
-/**
- * __useInsertApplicationMutation__
- *
- * To run a mutation, you first call `useInsertApplicationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertApplicationMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertApplicationMutation, { data, loading, error }] = useInsertApplicationMutation({
- *   variables: {
- *      app: // value for 'app'
- *   },
- * });
- */
-export function useInsertApplicationMutation(baseOptions?: Apollo.MutationHookOptions<InsertApplicationMutation, InsertApplicationMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertApplicationMutation, InsertApplicationMutationVariables>(InsertApplicationDocument, options);
-      }
-export type InsertApplicationMutationHookResult = ReturnType<typeof useInsertApplicationMutation>;
-export type InsertApplicationMutationResult = Apollo.MutationResult<InsertApplicationMutation>;
-export type InsertApplicationMutationOptions = Apollo.BaseMutationOptions<InsertApplicationMutation, InsertApplicationMutationVariables>;
-export const PauseApplicationDocument = gql`
-    mutation PauseApplication($appId: uuid!) {
-  updateApp(pk_columns: {id: $appId}, _set: {desiredState: 6}) {
-    id
-  }
-}
-    `;
-export type PauseApplicationMutationFn = Apollo.MutationFunction<PauseApplicationMutation, PauseApplicationMutationVariables>;
-
-/**
- * __usePauseApplicationMutation__
- *
- * To run a mutation, you first call `usePauseApplicationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `usePauseApplicationMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [pauseApplicationMutation, { data, loading, error }] = usePauseApplicationMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function usePauseApplicationMutation(baseOptions?: Apollo.MutationHookOptions<PauseApplicationMutation, PauseApplicationMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<PauseApplicationMutation, PauseApplicationMutationVariables>(PauseApplicationDocument, options);
-      }
-export type PauseApplicationMutationHookResult = ReturnType<typeof usePauseApplicationMutation>;
-export type PauseApplicationMutationResult = Apollo.MutationResult<PauseApplicationMutation>;
-export type PauseApplicationMutationOptions = Apollo.BaseMutationOptions<PauseApplicationMutation, PauseApplicationMutationVariables>;
-export const PrefetchNewAppDocument = gql`
-    query PrefetchNewApp {
-  regions(order_by: {city: asc}) {
-    ...PrefetchNewAppRegions
-  }
-  plans(
-    order_by: {sort: asc}
-    where: {deprecated: {_eq: false}, isPublic: {_eq: true}}
-  ) {
-    ...PrefetchNewAppPlans
-  }
-  workspaces {
-    ...PrefetchNewAppWorkspace
-  }
-}
-    ${PrefetchNewAppRegionsFragmentDoc}
-${PrefetchNewAppPlansFragmentDoc}
-${PrefetchNewAppWorkspaceFragmentDoc}`;
-
-/**
- * __usePrefetchNewAppQuery__
- *
- * To run a query within a React component, call `usePrefetchNewAppQuery` and pass it any options that fit your needs.
- * When your component renders, `usePrefetchNewAppQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = usePrefetchNewAppQuery({
- *   variables: {
- *   },
- * });
- */
-export function usePrefetchNewAppQuery(baseOptions?: Apollo.QueryHookOptions<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>(PrefetchNewAppDocument, options);
-      }
-export function usePrefetchNewAppLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>(PrefetchNewAppDocument, options);
-        }
-export type PrefetchNewAppQueryHookResult = ReturnType<typeof usePrefetchNewAppQuery>;
-export type PrefetchNewAppLazyQueryHookResult = ReturnType<typeof usePrefetchNewAppLazyQuery>;
-export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>;
-export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
-      return { query: PrefetchNewAppDocument, variables: variables }
-    }
-export const DnsLookupCnameDocument = gql`
-    query dnsLookupCNAME($hostname: String!) {
-  dnsLookupCNAME(hostname: $hostname)
-}
-    `;
-
-/**
- * __useDnsLookupCnameQuery__
- *
- * To run a query within a React component, call `useDnsLookupCnameQuery` and pass it any options that fit your needs.
- * When your component renders, `useDnsLookupCnameQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useDnsLookupCnameQuery({
- *   variables: {
- *      hostname: // value for 'hostname'
- *   },
- * });
- */
-export function useDnsLookupCnameQuery(baseOptions: Apollo.QueryHookOptions<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>(DnsLookupCnameDocument, options);
-      }
-export function useDnsLookupCnameLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>(DnsLookupCnameDocument, options);
-        }
-export type DnsLookupCnameQueryHookResult = ReturnType<typeof useDnsLookupCnameQuery>;
-export type DnsLookupCnameLazyQueryHookResult = ReturnType<typeof useDnsLookupCnameLazyQuery>;
-export type DnsLookupCnameQueryResult = Apollo.QueryResult<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>;
-export function refetchDnsLookupCnameQuery(variables: DnsLookupCnameQueryVariables) {
-      return { query: DnsLookupCnameDocument, variables: variables }
-    }
-export const GetEnvironmentVariablesDocument = gql`
-    query GetEnvironmentVariables($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    global {
-      environment {
-        ...EnvironmentVariable
-      }
-    }
-    hasura {
-      adminSecret
-      webhookSecret
-      jwtSecrets {
-        ...JWTSecret
-      }
-    }
-  }
-}
-    ${EnvironmentVariableFragmentDoc}
-${JwtSecretFragmentDoc}`;
-
-/**
- * __useGetEnvironmentVariablesQuery__
- *
- * To run a query within a React component, call `useGetEnvironmentVariablesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetEnvironmentVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetEnvironmentVariablesQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetEnvironmentVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
-      }
-export function useGetEnvironmentVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
-        }
-export type GetEnvironmentVariablesQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesQuery>;
-export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesLazyQuery>;
-export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
-export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
-      return { query: GetEnvironmentVariablesDocument, variables: variables }
-    }
-export const GetConfigRawJsonDocument = gql`
-    query getConfigRawJSON($appID: uuid!) {
-  configRawJSON(appID: $appID, resolve: false)
-}
-    `;
-
-/**
- * __useGetConfigRawJsonQuery__
- *
- * To run a query within a React component, call `useGetConfigRawJsonQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetConfigRawJsonQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetConfigRawJsonQuery({
- *   variables: {
- *      appID: // value for 'appID'
- *   },
- * });
- */
-export function useGetConfigRawJsonQuery(baseOptions: Apollo.QueryHookOptions<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>(GetConfigRawJsonDocument, options);
-      }
-export function useGetConfigRawJsonLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>(GetConfigRawJsonDocument, options);
-        }
-export type GetConfigRawJsonQueryHookResult = ReturnType<typeof useGetConfigRawJsonQuery>;
-export type GetConfigRawJsonLazyQueryHookResult = ReturnType<typeof useGetConfigRawJsonLazyQuery>;
-export type GetConfigRawJsonQueryResult = Apollo.QueryResult<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>;
-export function refetchGetConfigRawJsonQuery(variables: GetConfigRawJsonQueryVariables) {
-      return { query: GetConfigRawJsonDocument, variables: variables }
-    }
-export const GetRateLimitConfigDocument = gql`
-    query getRateLimitConfig($appId: uuid!, $resolve: Boolean!) {
-  config(appID: $appId, resolve: $resolve) {
-    hasura {
-      rateLimit {
-        limit
-        interval
-      }
-    }
-    storage {
-      rateLimit {
-        limit
-        interval
-      }
-    }
-    functions {
-      rateLimit {
-        limit
-        interval
-      }
-    }
-    auth {
-      rateLimit {
-        bruteForce {
-          limit
-          interval
-        }
-        emails {
-          limit
-          interval
-        }
-        global {
-          limit
-          interval
-        }
-        signups {
-          limit
-          interval
-        }
-        sms {
-          limit
-          interval
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetRateLimitConfigQuery__
- *
- * To run a query within a React component, call `useGetRateLimitConfigQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRateLimitConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetRateLimitConfigQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *      resolve: // value for 'resolve'
- *   },
- * });
- */
-export function useGetRateLimitConfigQuery(baseOptions: Apollo.QueryHookOptions<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>(GetRateLimitConfigDocument, options);
-      }
-export function useGetRateLimitConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>(GetRateLimitConfigDocument, options);
-        }
-export type GetRateLimitConfigQueryHookResult = ReturnType<typeof useGetRateLimitConfigQuery>;
-export type GetRateLimitConfigLazyQueryHookResult = ReturnType<typeof useGetRateLimitConfigLazyQuery>;
-export type GetRateLimitConfigQueryResult = Apollo.QueryResult<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>;
-export function refetchGetRateLimitConfigQuery(variables: GetRateLimitConfigQueryVariables) {
-      return { query: GetRateLimitConfigDocument, variables: variables }
-    }
-export const UpdateRateLimitConfigDocument = gql`
-    mutation UpdateRateLimitConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
-  updateConfig(appID: $appId, config: $config) {
-    hasura {
-      rateLimit {
-        limit
-        interval
-      }
-    }
-    storage {
-      rateLimit {
-        limit
-        interval
-      }
-    }
-    functions {
-      rateLimit {
-        limit
-        interval
-      }
-    }
-    auth {
-      rateLimit {
-        bruteForce {
-          limit
-          interval
-        }
-        emails {
-          limit
-          interval
-        }
-        global {
-          limit
-          interval
-        }
-        signups {
-          limit
-          interval
-        }
-        sms {
-          limit
-          interval
-        }
-      }
-    }
-  }
-}
-    `;
-export type UpdateRateLimitConfigMutationFn = Apollo.MutationFunction<UpdateRateLimitConfigMutation, UpdateRateLimitConfigMutationVariables>;
-
-/**
- * __useUpdateRateLimitConfigMutation__
- *
- * To run a mutation, you first call `useUpdateRateLimitConfigMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateRateLimitConfigMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateRateLimitConfigMutation, { data, loading, error }] = useUpdateRateLimitConfigMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      config: // value for 'config'
- *   },
- * });
- */
-export function useUpdateRateLimitConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRateLimitConfigMutation, UpdateRateLimitConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateRateLimitConfigMutation, UpdateRateLimitConfigMutationVariables>(UpdateRateLimitConfigDocument, options);
-      }
-export type UpdateRateLimitConfigMutationHookResult = ReturnType<typeof useUpdateRateLimitConfigMutation>;
-export type UpdateRateLimitConfigMutationResult = Apollo.MutationResult<UpdateRateLimitConfigMutation>;
-export type UpdateRateLimitConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRateLimitConfigMutation, UpdateRateLimitConfigMutationVariables>;
-export const ReplaceConfigRawJsonDocument = gql`
-    mutation ReplaceConfigRawJSON($appID: uuid!, $rawJSON: String!) {
-  replaceConfigRawJSON(appID: $appID, rawJSON: $rawJSON)
-}
-    `;
-export type ReplaceConfigRawJsonMutationFn = Apollo.MutationFunction<ReplaceConfigRawJsonMutation, ReplaceConfigRawJsonMutationVariables>;
-
-/**
- * __useReplaceConfigRawJsonMutation__
- *
- * To run a mutation, you first call `useReplaceConfigRawJsonMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useReplaceConfigRawJsonMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [replaceConfigRawJsonMutation, { data, loading, error }] = useReplaceConfigRawJsonMutation({
- *   variables: {
- *      appID: // value for 'appID'
- *      rawJSON: // value for 'rawJSON'
- *   },
- * });
- */
-export function useReplaceConfigRawJsonMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceConfigRawJsonMutation, ReplaceConfigRawJsonMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ReplaceConfigRawJsonMutation, ReplaceConfigRawJsonMutationVariables>(ReplaceConfigRawJsonDocument, options);
-      }
-export type ReplaceConfigRawJsonMutationHookResult = ReturnType<typeof useReplaceConfigRawJsonMutation>;
-export type ReplaceConfigRawJsonMutationResult = Apollo.MutationResult<ReplaceConfigRawJsonMutation>;
-export type ReplaceConfigRawJsonMutationOptions = Apollo.BaseMutationOptions<ReplaceConfigRawJsonMutation, ReplaceConfigRawJsonMutationVariables>;
-export const GetRolesPermissionsDocument = gql`
-    query GetRolesPermissions($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    auth {
-      user {
-        roles {
-          allowed
-          default
-        }
-      }
-      session {
-        accessToken {
-          customClaims {
-            ...PermissionVariable
-          }
-        }
-      }
-    }
-  }
-}
-    ${PermissionVariableFragmentDoc}`;
-
-/**
- * __useGetRolesPermissionsQuery__
- *
- * To run a query within a React component, call `useGetRolesPermissionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRolesPermissionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetRolesPermissionsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetRolesPermissionsQuery(baseOptions: Apollo.QueryHookOptions<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>(GetRolesPermissionsDocument, options);
-      }
-export function useGetRolesPermissionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>(GetRolesPermissionsDocument, options);
-        }
-export type GetRolesPermissionsQueryHookResult = ReturnType<typeof useGetRolesPermissionsQuery>;
-export type GetRolesPermissionsLazyQueryHookResult = ReturnType<typeof useGetRolesPermissionsLazyQuery>;
-export type GetRolesPermissionsQueryResult = Apollo.QueryResult<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>;
-export function refetchGetRolesPermissionsQuery(variables: GetRolesPermissionsQueryVariables) {
-      return { query: GetRolesPermissionsDocument, variables: variables }
-    }
-export const DeleteSecretDocument = gql`
-    mutation DeleteSecret($appId: uuid!, $name: String!) {
-  deleteSecret(appID: $appId, key: $name) {
-    name
-  }
-}
-    `;
-export type DeleteSecretMutationFn = Apollo.MutationFunction<DeleteSecretMutation, DeleteSecretMutationVariables>;
-
-/**
- * __useDeleteSecretMutation__
- *
- * To run a mutation, you first call `useDeleteSecretMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteSecretMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteSecretMutation, { data, loading, error }] = useDeleteSecretMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      name: // value for 'name'
- *   },
- * });
- */
-export function useDeleteSecretMutation(baseOptions?: Apollo.MutationHookOptions<DeleteSecretMutation, DeleteSecretMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteSecretMutation, DeleteSecretMutationVariables>(DeleteSecretDocument, options);
-      }
-export type DeleteSecretMutationHookResult = ReturnType<typeof useDeleteSecretMutation>;
-export type DeleteSecretMutationResult = Apollo.MutationResult<DeleteSecretMutation>;
-export type DeleteSecretMutationOptions = Apollo.BaseMutationOptions<DeleteSecretMutation, DeleteSecretMutationVariables>;
-export const GetSecretsDocument = gql`
-    query GetSecrets($appId: uuid!) {
-  appSecrets(appID: $appId) {
-    ...Secret
-  }
-}
-    ${SecretFragmentDoc}`;
-
-/**
- * __useGetSecretsQuery__
- *
- * To run a query within a React component, call `useGetSecretsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSecretsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSecretsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetSecretsQuery(baseOptions: Apollo.QueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
-      }
-export function useGetSecretsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
-        }
-export type GetSecretsQueryHookResult = ReturnType<typeof useGetSecretsQuery>;
-export type GetSecretsLazyQueryHookResult = ReturnType<typeof useGetSecretsLazyQuery>;
-export type GetSecretsQueryResult = Apollo.QueryResult<GetSecretsQuery, GetSecretsQueryVariables>;
-export function refetchGetSecretsQuery(variables: GetSecretsQueryVariables) {
-      return { query: GetSecretsDocument, variables: variables }
-    }
-export const InsertSecretDocument = gql`
-    mutation InsertSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
-  insertSecret(appID: $appId, secret: $secret) {
-    name
-  }
-}
-    `;
-export type InsertSecretMutationFn = Apollo.MutationFunction<InsertSecretMutation, InsertSecretMutationVariables>;
-
-/**
- * __useInsertSecretMutation__
- *
- * To run a mutation, you first call `useInsertSecretMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertSecretMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertSecretMutation, { data, loading, error }] = useInsertSecretMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      secret: // value for 'secret'
- *   },
- * });
- */
-export function useInsertSecretMutation(baseOptions?: Apollo.MutationHookOptions<InsertSecretMutation, InsertSecretMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertSecretMutation, InsertSecretMutationVariables>(InsertSecretDocument, options);
-      }
-export type InsertSecretMutationHookResult = ReturnType<typeof useInsertSecretMutation>;
-export type InsertSecretMutationResult = Apollo.MutationResult<InsertSecretMutation>;
-export type InsertSecretMutationOptions = Apollo.BaseMutationOptions<InsertSecretMutation, InsertSecretMutationVariables>;
-export const UpdateSecretDocument = gql`
-    mutation UpdateSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
-  updateSecret(appID: $appId, secret: $secret) {
-    name
-  }
-}
-    `;
-export type UpdateSecretMutationFn = Apollo.MutationFunction<UpdateSecretMutation, UpdateSecretMutationVariables>;
-
-/**
- * __useUpdateSecretMutation__
- *
- * To run a mutation, you first call `useUpdateSecretMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateSecretMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateSecretMutation, { data, loading, error }] = useUpdateSecretMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      secret: // value for 'secret'
- *   },
- * });
- */
-export function useUpdateSecretMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSecretMutation, UpdateSecretMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateSecretMutation, UpdateSecretMutationVariables>(UpdateSecretDocument, options);
-      }
-export type UpdateSecretMutationHookResult = ReturnType<typeof useUpdateSecretMutation>;
-export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutation>;
-export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
-export const GetSignInMethodsDocument = gql`
-    query GetSignInMethods($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    provider {
-      id: __typename
-      __typename
-      sms {
-        accountSid
-        authToken
-        messagingServiceId
-        provider
-      }
-    }
-    auth {
-      id: __typename
-      __typename
-      method {
-        emailPassword {
-          emailVerificationRequired
-          hibpEnabled
-          passwordMinLength
-        }
-        emailPasswordless {
-          enabled
-        }
-        smsPasswordless {
-          enabled
-        }
-        anonymous {
-          enabled
-        }
-        webauthn {
-          enabled
-        }
-        oauth {
-          apple {
-            enabled
-            clientId
-            keyId
-            teamId
-            privateKey
-          }
-          bitbucket {
-            enabled
-            clientId
-            clientSecret
-          }
-          gitlab {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          strava {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          discord {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          facebook {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          github {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          google {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          linkedin {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          spotify {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          twitch {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          twitter {
-            enabled
-            consumerKey
-            consumerSecret
-          }
-          windowslive {
-            enabled
-            clientId
-            clientSecret
-            scope
-          }
-          workos {
-            enabled
-            clientId
-            clientSecret
-            connection
-            organization
-          }
-          azuread {
-            enabled
-            clientId
-            clientSecret
-            tenant
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetSignInMethodsQuery__
- *
- * To run a query within a React component, call `useGetSignInMethodsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSignInMethodsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSignInMethodsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetSignInMethodsQuery(baseOptions: Apollo.QueryHookOptions<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>(GetSignInMethodsDocument, options);
-      }
-export function useGetSignInMethodsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>(GetSignInMethodsDocument, options);
-        }
-export type GetSignInMethodsQueryHookResult = ReturnType<typeof useGetSignInMethodsQuery>;
-export type GetSignInMethodsLazyQueryHookResult = ReturnType<typeof useGetSignInMethodsLazyQuery>;
-export type GetSignInMethodsQueryResult = Apollo.QueryResult<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>;
-export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVariables) {
-      return { query: GetSignInMethodsDocument, variables: variables }
-    }
-export const GetSmtpSettingsDocument = gql`
-    query GetSmtpSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    provider {
-      id: __typename
-      __typename
-      smtp {
-        host
-        method
-        port
-        secure
-        sender
-        user
-        password
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetSmtpSettingsQuery__
- *
- * To run a query within a React component, call `useGetSmtpSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSmtpSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSmtpSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetSmtpSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
-      }
-export function useGetSmtpSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
-        }
-export type GetSmtpSettingsQueryHookResult = ReturnType<typeof useGetSmtpSettingsQuery>;
-export type GetSmtpSettingsLazyQueryHookResult = ReturnType<typeof useGetSmtpSettingsLazyQuery>;
-export type GetSmtpSettingsQueryResult = Apollo.QueryResult<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>;
-export function refetchGetSmtpSettingsQuery(variables: GetSmtpSettingsQueryVariables) {
-      return { query: GetSmtpSettingsDocument, variables: variables }
-    }
-export const UpdateConfigDocument = gql`
-    mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
-  updateConfig(appID: $appId, config: $config) {
-    id: __typename
-    postgres {
-      resources {
-        storage {
-          capacity
-        }
-        enablePublicAccess
-      }
-    }
-    ai {
-      version
-      webhookSecret
-      autoEmbeddings {
-        synchPeriodMinutes
-      }
-      openai {
-        organization
-        apiKey
-      }
-      resources {
-        compute {
-          cpu
-          memory
-        }
-      }
-    }
-  }
-}
-    `;
-export type UpdateConfigMutationFn = Apollo.MutationFunction<UpdateConfigMutation, UpdateConfigMutationVariables>;
-
-/**
- * __useUpdateConfigMutation__
- *
- * To run a mutation, you first call `useUpdateConfigMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateConfigMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateConfigMutation, { data, loading, error }] = useUpdateConfigMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      config: // value for 'config'
- *   },
- * });
- */
-export function useUpdateConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateConfigMutation, UpdateConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateConfigMutation, UpdateConfigMutationVariables>(UpdateConfigDocument, options);
-      }
-export type UpdateConfigMutationHookResult = ReturnType<typeof useUpdateConfigMutation>;
-export type UpdateConfigMutationResult = Apollo.MutationResult<UpdateConfigMutation>;
-export type UpdateConfigMutationOptions = Apollo.BaseMutationOptions<UpdateConfigMutation, UpdateConfigMutationVariables>;
-export const UpdateDatabaseVersionDocument = gql`
-    mutation UpdateDatabaseVersion($appId: uuid!, $version: String!) {
-  changeDatabaseVersion(appID: $appId, version: $version)
-}
-    `;
-export type UpdateDatabaseVersionMutationFn = Apollo.MutationFunction<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>;
-
-/**
- * __useUpdateDatabaseVersionMutation__
- *
- * To run a mutation, you first call `useUpdateDatabaseVersionMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateDatabaseVersionMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateDatabaseVersionMutation, { data, loading, error }] = useUpdateDatabaseVersionMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      version: // value for 'version'
- *   },
- * });
- */
-export function useUpdateDatabaseVersionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>(UpdateDatabaseVersionDocument, options);
-      }
-export type UpdateDatabaseVersionMutationHookResult = ReturnType<typeof useUpdateDatabaseVersionMutation>;
-export type UpdateDatabaseVersionMutationResult = Apollo.MutationResult<UpdateDatabaseVersionMutation>;
-export type UpdateDatabaseVersionMutationOptions = Apollo.BaseMutationOptions<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>;
-export const UnpauseApplicationDocument = gql`
-    mutation UnpauseApplication($appId: uuid!) {
-  updateApp(pk_columns: {id: $appId}, _set: {desiredState: 5}) {
-    id
-  }
-}
-    `;
-export type UnpauseApplicationMutationFn = Apollo.MutationFunction<UnpauseApplicationMutation, UnpauseApplicationMutationVariables>;
-
-/**
- * __useUnpauseApplicationMutation__
- *
- * To run a mutation, you first call `useUnpauseApplicationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUnpauseApplicationMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [unpauseApplicationMutation, { data, loading, error }] = useUnpauseApplicationMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useUnpauseApplicationMutation(baseOptions?: Apollo.MutationHookOptions<UnpauseApplicationMutation, UnpauseApplicationMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UnpauseApplicationMutation, UnpauseApplicationMutationVariables>(UnpauseApplicationDocument, options);
-      }
-export type UnpauseApplicationMutationHookResult = ReturnType<typeof useUnpauseApplicationMutation>;
-export type UnpauseApplicationMutationResult = Apollo.MutationResult<UnpauseApplicationMutation>;
-export type UnpauseApplicationMutationOptions = Apollo.BaseMutationOptions<UnpauseApplicationMutation, UnpauseApplicationMutationVariables>;
-export const UpdateApplicationDocument = gql`
-    mutation updateApplication($appId: uuid!, $app: apps_set_input!) {
-  updateApp(pk_columns: {id: $appId}, _set: $app) {
-    name
-    id
-    slug
-  }
-}
-    `;
-export type UpdateApplicationMutationFn = Apollo.MutationFunction<UpdateApplicationMutation, UpdateApplicationMutationVariables>;
-
-/**
- * __useUpdateApplicationMutation__
- *
- * To run a mutation, you first call `useUpdateApplicationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateApplicationMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateApplicationMutation, { data, loading, error }] = useUpdateApplicationMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      app: // value for 'app'
- *   },
- * });
- */
-export function useUpdateApplicationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateApplicationMutation, UpdateApplicationMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateApplicationMutation, UpdateApplicationMutationVariables>(UpdateApplicationDocument, options);
-      }
-export type UpdateApplicationMutationHookResult = ReturnType<typeof useUpdateApplicationMutation>;
-export type UpdateApplicationMutationResult = Apollo.MutationResult<UpdateApplicationMutation>;
-export type UpdateApplicationMutationOptions = Apollo.BaseMutationOptions<UpdateApplicationMutation, UpdateApplicationMutationVariables>;
-export const GetCountriesDocument = gql`
-    query getCountries {
-  countries(order_by: {name: asc}) {
-    code
-    name
-  }
-}
-    `;
-
-/**
- * __useGetCountriesQuery__
- *
- * To run a query within a React component, call `useGetCountriesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCountriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCountriesQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetCountriesQuery(baseOptions?: Apollo.QueryHookOptions<GetCountriesQuery, GetCountriesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCountriesQuery, GetCountriesQueryVariables>(GetCountriesDocument, options);
-      }
-export function useGetCountriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCountriesQuery, GetCountriesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCountriesQuery, GetCountriesQueryVariables>(GetCountriesDocument, options);
-        }
-export type GetCountriesQueryHookResult = ReturnType<typeof useGetCountriesQuery>;
-export type GetCountriesLazyQueryHookResult = ReturnType<typeof useGetCountriesLazyQuery>;
-export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetCountriesQueryVariables>;
-export function refetchGetCountriesQuery(variables?: GetCountriesQueryVariables) {
-      return { query: GetCountriesDocument, variables: variables }
-    }
-export const ScheduledOrPendingDeploymentsSubDocument = gql`
-    subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
-  deployments(
-    where: {deploymentStatus: {_in: ["SCHEDULED"]}, appId: {_eq: $appId}}
-  ) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-
-/**
- * __useScheduledOrPendingDeploymentsSubSubscription__
- *
- * To run a query within a React component, call `useScheduledOrPendingDeploymentsSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useScheduledOrPendingDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useScheduledOrPendingDeploymentsSubSubscription({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useScheduledOrPendingDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<ScheduledOrPendingDeploymentsSubSubscription, ScheduledOrPendingDeploymentsSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<ScheduledOrPendingDeploymentsSubSubscription, ScheduledOrPendingDeploymentsSubSubscriptionVariables>(ScheduledOrPendingDeploymentsSubDocument, options);
-      }
-export type ScheduledOrPendingDeploymentsSubSubscriptionHookResult = ReturnType<typeof useScheduledOrPendingDeploymentsSubSubscription>;
-export type ScheduledOrPendingDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<ScheduledOrPendingDeploymentsSubSubscription>;
-export const LatestLiveDeploymentSubDocument = gql`
-    subscription LatestLiveDeploymentSub($appId: uuid!) {
-  deployments(
-    where: {deploymentStatus: {_eq: "DEPLOYED"}, appId: {_eq: $appId}}
-    order_by: {deploymentStartedAt: desc}
-    limit: 1
-    offset: 0
-  ) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-
-/**
- * __useLatestLiveDeploymentSubSubscription__
- *
- * To run a query within a React component, call `useLatestLiveDeploymentSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useLatestLiveDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useLatestLiveDeploymentSubSubscription({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useLatestLiveDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>(LatestLiveDeploymentSubDocument, options);
-      }
-export type LatestLiveDeploymentSubSubscriptionHookResult = ReturnType<typeof useLatestLiveDeploymentSubSubscription>;
-export type LatestLiveDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<LatestLiveDeploymentSubSubscription>;
-export const InsertDeploymentDocument = gql`
-    mutation InsertDeployment($object: deployments_insert_input!) {
-  insertDeployment(object: $object) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-export type InsertDeploymentMutationFn = Apollo.MutationFunction<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
-
-/**
- * __useInsertDeploymentMutation__
- *
- * To run a mutation, you first call `useInsertDeploymentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertDeploymentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertDeploymentMutation, { data, loading, error }] = useInsertDeploymentMutation({
- *   variables: {
- *      object: // value for 'object'
- *   },
- * });
- */
-export function useInsertDeploymentMutation(baseOptions?: Apollo.MutationHookOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertDeploymentMutation, InsertDeploymentMutationVariables>(InsertDeploymentDocument, options);
-      }
-export type InsertDeploymentMutationHookResult = ReturnType<typeof useInsertDeploymentMutation>;
-export type InsertDeploymentMutationResult = Apollo.MutationResult<InsertDeploymentMutation>;
-export type InsertDeploymentMutationOptions = Apollo.BaseMutationOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
-export const GetDeploymentsSubDocument = gql`
-    subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
-  deployments(
-    where: {appId: {_eq: $id}}
-    order_by: {deploymentStartedAt: desc}
-    limit: $limit
-    offset: $offset
-  ) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-
-/**
- * __useGetDeploymentsSubSubscription__
- *
- * To run a query within a React component, call `useGetDeploymentsSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useGetDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetDeploymentsSubSubscription({
- *   variables: {
- *      id: // value for 'id'
- *      limit: // value for 'limit'
- *      offset: // value for 'offset'
- *   },
- * });
- */
-export function useGetDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetDeploymentsSubSubscription, GetDeploymentsSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<GetDeploymentsSubSubscription, GetDeploymentsSubSubscriptionVariables>(GetDeploymentsSubDocument, options);
-      }
-export type GetDeploymentsSubSubscriptionHookResult = ReturnType<typeof useGetDeploymentsSubSubscription>;
-export type GetDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetDeploymentsSubSubscription>;
-export const DeploymentSubDocument = gql`
-    subscription deploymentSub($id: uuid!) {
-  deployment(id: $id) {
-    id
-    commitMessage
-    commitSHA
-    commitUserName
-    commitUserAvatarUrl
-    deploymentStartedAt
-    deploymentEndedAt
-    deploymentStatus
-    metadataStartedAt
-    metadataEndedAt
-    metadataStatus
-    migrationsStartedAt
-    migrationsEndedAt
-    migrationsStatus
-    functionsStartedAt
-    functionsEndedAt
-    functionsStatus
-    deploymentLogs(order_by: {createdAt: asc}) {
-      id
-      createdAt
-      message
-    }
-  }
-}
-    `;
-
-/**
- * __useDeploymentSubSubscription__
- *
- * To run a query within a React component, call `useDeploymentSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useDeploymentSubSubscription({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<DeploymentSubSubscription, DeploymentSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<DeploymentSubSubscription, DeploymentSubSubscriptionVariables>(DeploymentSubDocument, options);
-      }
-export type DeploymentSubSubscriptionHookResult = ReturnType<typeof useDeploymentSubSubscription>;
-export type DeploymentSubSubscriptionResult = Apollo.SubscriptionResult<DeploymentSubSubscription>;
-export const GetBucketsDocument = gql`
-    query getBuckets {
-  buckets {
-    id
-    maxUploadFileSize
-  }
-}
-    `;
-
-/**
- * __useGetBucketsQuery__
- *
- * To run a query within a React component, call `useGetBucketsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetBucketsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetBucketsQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetBucketsQuery(baseOptions?: Apollo.QueryHookOptions<GetBucketsQuery, GetBucketsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetBucketsQuery, GetBucketsQueryVariables>(GetBucketsDocument, options);
-      }
-export function useGetBucketsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBucketsQuery, GetBucketsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetBucketsQuery, GetBucketsQueryVariables>(GetBucketsDocument, options);
-        }
-export type GetBucketsQueryHookResult = ReturnType<typeof useGetBucketsQuery>;
-export type GetBucketsLazyQueryHookResult = ReturnType<typeof useGetBucketsLazyQuery>;
-export type GetBucketsQueryResult = Apollo.QueryResult<GetBucketsQuery, GetBucketsQueryVariables>;
-export function refetchGetBucketsQuery(variables?: GetBucketsQueryVariables) {
-      return { query: GetBucketsDocument, variables: variables }
-    }
-export const GetFilesDocument = gql`
-    query getFiles($where: files_bool_exp, $limit: Int, $offset: Int, $order_by: [files_order_by!]) {
-  files(where: $where, limit: $limit, offset: $offset, order_by: $order_by) {
-    id
-    bucketId
-    createdAt
-    updatedAt
-    name
-    size
-    mimeType
-    etag
-    isUploaded
-    uploadedByUserId
-  }
-}
-    `;
-
-/**
- * __useGetFilesQuery__
- *
- * To run a query within a React component, call `useGetFilesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFilesQuery({
- *   variables: {
- *      where: // value for 'where'
- *      limit: // value for 'limit'
- *      offset: // value for 'offset'
- *      order_by: // value for 'order_by'
- *   },
- * });
- */
-export function useGetFilesQuery(baseOptions?: Apollo.QueryHookOptions<GetFilesQuery, GetFilesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetFilesQuery, GetFilesQueryVariables>(GetFilesDocument, options);
-      }
-export function useGetFilesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFilesQuery, GetFilesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetFilesQuery, GetFilesQueryVariables>(GetFilesDocument, options);
-        }
-export type GetFilesQueryHookResult = ReturnType<typeof useGetFilesQuery>;
-export type GetFilesLazyQueryHookResult = ReturnType<typeof useGetFilesLazyQuery>;
-export type GetFilesQueryResult = Apollo.QueryResult<GetFilesQuery, GetFilesQueryVariables>;
-export function refetchGetFilesQuery(variables?: GetFilesQueryVariables) {
-      return { query: GetFilesDocument, variables: variables }
-    }
-export const GetFilesAggregateDocument = gql`
-    query getFilesAggregate($where: files_bool_exp) {
-  filesAggregate(where: $where) {
-    aggregate {
-      count
-    }
-  }
-}
-    `;
-
-/**
- * __useGetFilesAggregateQuery__
- *
- * To run a query within a React component, call `useGetFilesAggregateQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFilesAggregateQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFilesAggregateQuery({
- *   variables: {
- *      where: // value for 'where'
- *   },
- * });
- */
-export function useGetFilesAggregateQuery(baseOptions?: Apollo.QueryHookOptions<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>(GetFilesAggregateDocument, options);
-      }
-export function useGetFilesAggregateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>(GetFilesAggregateDocument, options);
-        }
-export type GetFilesAggregateQueryHookResult = ReturnType<typeof useGetFilesAggregateQuery>;
-export type GetFilesAggregateLazyQueryHookResult = ReturnType<typeof useGetFilesAggregateLazyQuery>;
-export type GetFilesAggregateQueryResult = Apollo.QueryResult<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>;
-export function refetchGetFilesAggregateQuery(variables?: GetFilesAggregateQueryVariables) {
-      return { query: GetFilesAggregateDocument, variables: variables }
-    }
-export const GetGithubRepositoriesDocument = gql`
-    query getGithubRepositories {
-  githubRepositories {
-    ...GithubRepository
-  }
-  githubAppInstallations {
-    id
-    accountLogin
-    accountType
-    accountAvatarUrl
-  }
-}
-    ${GithubRepositoryFragmentDoc}`;
-
-/**
- * __useGetGithubRepositoriesQuery__
- *
- * To run a query within a React component, call `useGetGithubRepositoriesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetGithubRepositoriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetGithubRepositoriesQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetGithubRepositoriesQuery(baseOptions?: Apollo.QueryHookOptions<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>(GetGithubRepositoriesDocument, options);
-      }
-export function useGetGithubRepositoriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>(GetGithubRepositoriesDocument, options);
-        }
-export type GetGithubRepositoriesQueryHookResult = ReturnType<typeof useGetGithubRepositoriesQuery>;
-export type GetGithubRepositoriesLazyQueryHookResult = ReturnType<typeof useGetGithubRepositoriesLazyQuery>;
-export type GetGithubRepositoriesQueryResult = Apollo.QueryResult<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>;
-export function refetchGetGithubRepositoriesQuery(variables?: GetGithubRepositoriesQueryVariables) {
-      return { query: GetGithubRepositoriesDocument, variables: variables }
-    }
-export const GetProjectLogsDocument = gql`
-    query getProjectLogs($appID: String!, $service: String, $from: Timestamp, $to: Timestamp, $regexFilter: String) {
-  logs(
-    appID: $appID
-    service: $service
-    from: $from
-    to: $to
-    regexFilter: $regexFilter
-  ) {
-    log
-    service
-    timestamp
-  }
-}
-    `;
-
-/**
- * __useGetProjectLogsQuery__
- *
- * To run a query within a React component, call `useGetProjectLogsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetProjectLogsQuery({
- *   variables: {
- *      appID: // value for 'appID'
- *      service: // value for 'service'
- *      from: // value for 'from'
- *      to: // value for 'to'
- *      regexFilter: // value for 'regexFilter'
- *   },
- * });
- */
-export function useGetProjectLogsQuery(baseOptions: Apollo.QueryHookOptions<GetProjectLogsQuery, GetProjectLogsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetProjectLogsQuery, GetProjectLogsQueryVariables>(GetProjectLogsDocument, options);
-      }
-export function useGetProjectLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectLogsQuery, GetProjectLogsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetProjectLogsQuery, GetProjectLogsQueryVariables>(GetProjectLogsDocument, options);
-        }
-export type GetProjectLogsQueryHookResult = ReturnType<typeof useGetProjectLogsQuery>;
-export type GetProjectLogsLazyQueryHookResult = ReturnType<typeof useGetProjectLogsLazyQuery>;
-export type GetProjectLogsQueryResult = Apollo.QueryResult<GetProjectLogsQuery, GetProjectLogsQueryVariables>;
-export function refetchGetProjectLogsQuery(variables: GetProjectLogsQueryVariables) {
-      return { query: GetProjectLogsDocument, variables: variables }
-    }
-export const GetLogsSubscriptionDocument = gql`
-    subscription getLogsSubscription($appID: String!, $service: String, $from: Timestamp, $regexFilter: String) {
-  logs(appID: $appID, service: $service, from: $from, regexFilter: $regexFilter) {
-    log
-    service
-    timestamp
-  }
-}
-    `;
-
-/**
- * __useGetLogsSubscriptionSubscription__
- *
- * To run a query within a React component, call `useGetLogsSubscriptionSubscription` and pass it any options that fit your needs.
- * When your component renders, `useGetLogsSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetLogsSubscriptionSubscription({
- *   variables: {
- *      appID: // value for 'appID'
- *      service: // value for 'service'
- *      from: // value for 'from'
- *      regexFilter: // value for 'regexFilter'
- *   },
- * });
- */
-export function useGetLogsSubscriptionSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetLogsSubscriptionSubscription, GetLogsSubscriptionSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<GetLogsSubscriptionSubscription, GetLogsSubscriptionSubscriptionVariables>(GetLogsSubscriptionDocument, options);
-      }
-export type GetLogsSubscriptionSubscriptionHookResult = ReturnType<typeof useGetLogsSubscriptionSubscription>;
-export type GetLogsSubscriptionSubscriptionResult = Apollo.SubscriptionResult<GetLogsSubscriptionSubscription>;
-export const GetServiceLabelValuesDocument = gql`
-    query getServiceLabelValues($appID: String!) {
-  getServiceLabelValues(appID: $appID)
-}
-    `;
-
-/**
- * __useGetServiceLabelValuesQuery__
- *
- * To run a query within a React component, call `useGetServiceLabelValuesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetServiceLabelValuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetServiceLabelValuesQuery({
- *   variables: {
- *      appID: // value for 'appID'
- *   },
- * });
- */
-export function useGetServiceLabelValuesQuery(baseOptions: Apollo.QueryHookOptions<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>(GetServiceLabelValuesDocument, options);
-      }
-export function useGetServiceLabelValuesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>(GetServiceLabelValuesDocument, options);
-        }
-export type GetServiceLabelValuesQueryHookResult = ReturnType<typeof useGetServiceLabelValuesQuery>;
-export type GetServiceLabelValuesLazyQueryHookResult = ReturnType<typeof useGetServiceLabelValuesLazyQuery>;
-export type GetServiceLabelValuesQueryResult = Apollo.QueryResult<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>;
-export function refetchGetServiceLabelValuesQuery(variables: GetServiceLabelValuesQueryVariables) {
-      return { query: GetServiceLabelValuesDocument, variables: variables }
-    }
-export const GetSystemLogsDocument = gql`
-    query getSystemLogs($appID: String!, $action: String!, $from: Timestamp, $to: Timestamp) {
-  systemLogs(appID: $appID, action: $action, from: $from) {
-    timestamp
-    log
-  }
-}
-    `;
-
-/**
- * __useGetSystemLogsQuery__
- *
- * To run a query within a React component, call `useGetSystemLogsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSystemLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSystemLogsQuery({
- *   variables: {
- *      appID: // value for 'appID'
- *      action: // value for 'action'
- *      from: // value for 'from'
- *      to: // value for 'to'
- *   },
- * });
- */
-export function useGetSystemLogsQuery(baseOptions: Apollo.QueryHookOptions<GetSystemLogsQuery, GetSystemLogsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSystemLogsQuery, GetSystemLogsQueryVariables>(GetSystemLogsDocument, options);
-      }
-export function useGetSystemLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSystemLogsQuery, GetSystemLogsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSystemLogsQuery, GetSystemLogsQueryVariables>(GetSystemLogsDocument, options);
-        }
-export type GetSystemLogsQueryHookResult = ReturnType<typeof useGetSystemLogsQuery>;
-export type GetSystemLogsLazyQueryHookResult = ReturnType<typeof useGetSystemLogsLazyQuery>;
-export type GetSystemLogsQueryResult = Apollo.QueryResult<GetSystemLogsQuery, GetSystemLogsQueryVariables>;
-export function refetchGetSystemLogsQuery(variables: GetSystemLogsQueryVariables) {
-      return { query: GetSystemLogsDocument, variables: variables }
-    }
-export const CreateOrganizationRequestDocument = gql`
-    mutation createOrganizationRequest($organizationName: String!, $planID: uuid!, $redirectURL: String!) {
-  billingCreateOrganizationRequest(
-    organizationName: $organizationName
-    planID: $planID
-    redirectURL: $redirectURL
-  )
-}
-    `;
-export type CreateOrganizationRequestMutationFn = Apollo.MutationFunction<CreateOrganizationRequestMutation, CreateOrganizationRequestMutationVariables>;
-
-/**
- * __useCreateOrganizationRequestMutation__
- *
- * To run a mutation, you first call `useCreateOrganizationRequestMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateOrganizationRequestMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createOrganizationRequestMutation, { data, loading, error }] = useCreateOrganizationRequestMutation({
- *   variables: {
- *      organizationName: // value for 'organizationName'
- *      planID: // value for 'planID'
- *      redirectURL: // value for 'redirectURL'
- *   },
- * });
- */
-export function useCreateOrganizationRequestMutation(baseOptions?: Apollo.MutationHookOptions<CreateOrganizationRequestMutation, CreateOrganizationRequestMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreateOrganizationRequestMutation, CreateOrganizationRequestMutationVariables>(CreateOrganizationRequestDocument, options);
-      }
-export type CreateOrganizationRequestMutationHookResult = ReturnType<typeof useCreateOrganizationRequestMutation>;
-export type CreateOrganizationRequestMutationResult = Apollo.MutationResult<CreateOrganizationRequestMutation>;
-export type CreateOrganizationRequestMutationOptions = Apollo.BaseMutationOptions<CreateOrganizationRequestMutation, CreateOrganizationRequestMutationVariables>;
-export const GetOrganizationDocument = gql`
-    query getOrganization($orgSlug: String!) {
-  organizations(where: {slug: {_eq: $orgSlug}}) {
-    id
-    name
-    slug
-    plan {
-      id
-      name
-      deprecated
-      individual
-      isFree
-    }
-    members {
-      id
-      role
-      user {
-        id
-      }
-    }
-    apps(order_by: {name: asc}) {
-      id
-      name
-      subdomain
-      slug
-    }
-  }
-}
-    `;
-
-/**
- * __useGetOrganizationQuery__
- *
- * To run a query within a React component, call `useGetOrganizationQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOrganizationQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetOrganizationQuery({
- *   variables: {
- *      orgSlug: // value for 'orgSlug'
- *   },
- * });
- */
-export function useGetOrganizationQuery(baseOptions: Apollo.QueryHookOptions<GetOrganizationQuery, GetOrganizationQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetOrganizationQuery, GetOrganizationQueryVariables>(GetOrganizationDocument, options);
-      }
-export function useGetOrganizationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationQuery, GetOrganizationQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetOrganizationQuery, GetOrganizationQueryVariables>(GetOrganizationDocument, options);
-        }
-export type GetOrganizationQueryHookResult = ReturnType<typeof useGetOrganizationQuery>;
-export type GetOrganizationLazyQueryHookResult = ReturnType<typeof useGetOrganizationLazyQuery>;
-export type GetOrganizationQueryResult = Apollo.QueryResult<GetOrganizationQuery, GetOrganizationQueryVariables>;
-export function refetchGetOrganizationQuery(variables: GetOrganizationQueryVariables) {
-      return { query: GetOrganizationDocument, variables: variables }
-    }
-export const GetOrganizationByIdDocument = gql`
-    query getOrganizationById($orgId: uuid!) {
-  organizations(where: {id: {_eq: $orgId}}) {
-    id
-    name
-    slug
-  }
-}
-    `;
-
-/**
- * __useGetOrganizationByIdQuery__
- *
- * To run a query within a React component, call `useGetOrganizationByIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOrganizationByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetOrganizationByIdQuery({
- *   variables: {
- *      orgId: // value for 'orgId'
- *   },
- * });
- */
-export function useGetOrganizationByIdQuery(baseOptions: Apollo.QueryHookOptions<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>(GetOrganizationByIdDocument, options);
-      }
-export function useGetOrganizationByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>(GetOrganizationByIdDocument, options);
-        }
-export type GetOrganizationByIdQueryHookResult = ReturnType<typeof useGetOrganizationByIdQuery>;
-export type GetOrganizationByIdLazyQueryHookResult = ReturnType<typeof useGetOrganizationByIdLazyQuery>;
-export type GetOrganizationByIdQueryResult = Apollo.QueryResult<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>;
-export function refetchGetOrganizationByIdQuery(variables: GetOrganizationByIdQueryVariables) {
-      return { query: GetOrganizationByIdDocument, variables: variables }
-    }
-export const GetOrganizationProjectsDocument = gql`
-    query getOrganizationProjects($orgId: uuid!) {
-  apps(where: {organizationID: {_eq: $orgId}}, order_by: {name: asc}) {
-    ...Project
-  }
-}
-    ${ProjectFragmentDoc}`;
-
-/**
- * __useGetOrganizationProjectsQuery__
- *
- * To run a query within a React component, call `useGetOrganizationProjectsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOrganizationProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetOrganizationProjectsQuery({
- *   variables: {
- *      orgId: // value for 'orgId'
- *   },
- * });
- */
-export function useGetOrganizationProjectsQuery(baseOptions: Apollo.QueryHookOptions<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>(GetOrganizationProjectsDocument, options);
-      }
-export function useGetOrganizationProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>(GetOrganizationProjectsDocument, options);
-        }
-export type GetOrganizationProjectsQueryHookResult = ReturnType<typeof useGetOrganizationProjectsQuery>;
-export type GetOrganizationProjectsLazyQueryHookResult = ReturnType<typeof useGetOrganizationProjectsLazyQuery>;
-export type GetOrganizationProjectsQueryResult = Apollo.QueryResult<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>;
-export function refetchGetOrganizationProjectsQuery(variables: GetOrganizationProjectsQueryVariables) {
-      return { query: GetOrganizationProjectsDocument, variables: variables }
-    }
-export const GetOrganizationsDocument = gql`
-    query getOrganizations {
-  organizations(order_by: {name: asc}) {
-    id
-    name
-    slug
-    plan {
-      id
-      name
-      deprecated
-      individual
-      isFree
-    }
-    apps(order_by: {name: asc}) {
-      id
-      name
-      subdomain
-      slug
-    }
-  }
-}
-    `;
-
-/**
- * __useGetOrganizationsQuery__
- *
- * To run a query within a React component, call `useGetOrganizationsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOrganizationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetOrganizationsQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetOrganizationsQuery(baseOptions?: Apollo.QueryHookOptions<GetOrganizationsQuery, GetOrganizationsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetOrganizationsQuery, GetOrganizationsQueryVariables>(GetOrganizationsDocument, options);
-      }
-export function useGetOrganizationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationsQuery, GetOrganizationsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetOrganizationsQuery, GetOrganizationsQueryVariables>(GetOrganizationsDocument, options);
-        }
-export type GetOrganizationsQueryHookResult = ReturnType<typeof useGetOrganizationsQuery>;
-export type GetOrganizationsLazyQueryHookResult = ReturnType<typeof useGetOrganizationsLazyQuery>;
-export type GetOrganizationsQueryResult = Apollo.QueryResult<GetOrganizationsQuery, GetOrganizationsQueryVariables>;
-export function refetchGetOrganizationsQuery(variables?: GetOrganizationsQueryVariables) {
-      return { query: GetOrganizationsDocument, variables: variables }
-    }
-export const GetProjectDocument = gql`
-    query getProject($slug: String!) {
-  apps(where: {slug: {_eq: $slug}}) {
+`;
+export const ProjectFragmentDoc = gql`
+  fragment Project on apps {
     id
     slug
     name
@@ -30132,7 +28154,7 @@ export const GetProjectDocument = gql`
       name
       value
     }
-    appStates(order_by: {createdAt: desc}, limit: 1) {
+    appStates(order_by: { createdAt: desc }, limit: 1) {
       id
       appId
       message
@@ -30156,7 +28178,7 @@ export const GetProjectDocument = gql`
     githubRepository {
       fullName
     }
-    deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
+    deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
       id
       commitSHA
       commitMessage
@@ -30172,8 +28194,4769 @@ export const GetProjectDocument = gql`
       displayName
     }
   }
+`;
+export const WorkspaceFragmentDoc = gql`
+  fragment Workspace on workspaces {
+    id
+    name
+    slug
+    creatorUserId
+    workspaceMembers {
+      id
+      user {
+        id
+        email
+        displayName
+      }
+      type
+    }
+    projects: apps(order_by: { name: asc }) {
+      ...Project
+    }
+  }
+  ${ProjectFragmentDoc}
+`;
+export const GithubRepositoryFragmentDoc = gql`
+  fragment GithubRepository on githubRepositories {
+    id
+    name
+    fullName
+    private
+    githubAppInstallation {
+      id
+      accountLogin
+      accountType
+      accountAvatarUrl
+    }
+  }
+`;
+export const GetPaymentMethodsFragmentDoc = gql`
+  fragment getPaymentMethods on paymentMethods {
+    id
+    createdAt
+    cardBrand
+    cardLast4
+    cardExpMonth
+    cardExpYear
+    isDefault
+    workspace {
+      id
+      apps {
+        id
+        legacyPlan {
+          isFree
+        }
+      }
+    }
+  }
+`;
+export const RemoteAppGetUsersFragmentDoc = gql`
+  fragment RemoteAppGetUsers on users {
+    id
+    createdAt
+    displayName
+    avatarUrl
+    email
+    emailVerified
+    phoneNumber
+    phoneNumberVerified
+    disabled
+    defaultRole
+    lastSeen
+    locale
+    metadata
+    roles {
+      id
+      role
+    }
+    userProviders {
+      id
+      providerId
+    }
+    disabled
+  }
+`;
+export const RunServiceConfigFragmentDoc = gql`
+  fragment RunServiceConfig on ConfigRunServiceConfig {
+    name
+    image {
+      image
+      pullCredentials
+    }
+    command
+    resources {
+      compute {
+        cpu
+        memory
+      }
+      storage {
+        name
+        path
+        capacity
+      }
+      replicas
+      autoscaler {
+        maxReplicas
+      }
+    }
+    environment {
+      name
+      value
+    }
+    ports {
+      port
+      type
+      publish
+      ingresses {
+        fqdn
+      }
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    healthCheck {
+      port
+      initialDelaySeconds
+      probePeriodSeconds
+    }
+  }
+`;
+export const RunServiceRateLimitFragmentDoc = gql`
+  fragment RunServiceRateLimit on ConfigRunServiceConfig {
+    name
+    ports {
+      port
+      type
+      publish
+      rateLimit {
+        limit
+        interval
+      }
+      ingresses {
+        fqdn
+      }
+    }
+  }
+`;
+export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
+  fragment getWorkspaceMembersWorkspaceMember on workspaceMembers {
+    id
+    type
+    user {
+      id
+      displayName
+      avatarUrl
+      email
+    }
+  }
+`;
+export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
+  fragment getWorkspaceMembersWorkspaceMemberInvite on workspaceMemberInvites {
+    id
+    email
+    memberType
+  }
+`;
+export const DeleteUserAccountDocument = gql`
+  mutation deleteUserAccount($id: uuid!) {
+    deleteUser(id: $id) {
+      __typename
+    }
+  }
+`;
+export type DeleteUserAccountMutationFn = Apollo.MutationFunction<
+  DeleteUserAccountMutation,
+  DeleteUserAccountMutationVariables
+>;
+
+/**
+ * __useDeleteUserAccountMutation__
+ *
+ * To run a mutation, you first call `useDeleteUserAccountMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteUserAccountMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteUserAccountMutation, { data, loading, error }] = useDeleteUserAccountMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteUserAccountMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteUserAccountMutation,
+    DeleteUserAccountMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteUserAccountMutation,
+    DeleteUserAccountMutationVariables
+  >(DeleteUserAccountDocument, options);
 }
-    `;
+export type DeleteUserAccountMutationHookResult = ReturnType<
+  typeof useDeleteUserAccountMutation
+>;
+export type DeleteUserAccountMutationResult =
+  Apollo.MutationResult<DeleteUserAccountMutation>;
+export type DeleteUserAccountMutationOptions = Apollo.BaseMutationOptions<
+  DeleteUserAccountMutation,
+  DeleteUserAccountMutationVariables
+>;
+export const GetAuthUserProvidersDocument = gql`
+  query getAuthUserProviders {
+    authUserProviders {
+      id
+      providerId
+    }
+  }
+`;
+
+/**
+ * __useGetAuthUserProvidersQuery__
+ *
+ * To run a query within a React component, call `useGetAuthUserProvidersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAuthUserProvidersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAuthUserProvidersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAuthUserProvidersQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetAuthUserProvidersQuery,
+    GetAuthUserProvidersQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetAuthUserProvidersQuery,
+    GetAuthUserProvidersQueryVariables
+  >(GetAuthUserProvidersDocument, options);
+}
+export function useGetAuthUserProvidersLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetAuthUserProvidersQuery,
+    GetAuthUserProvidersQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetAuthUserProvidersQuery,
+    GetAuthUserProvidersQueryVariables
+  >(GetAuthUserProvidersDocument, options);
+}
+export type GetAuthUserProvidersQueryHookResult = ReturnType<
+  typeof useGetAuthUserProvidersQuery
+>;
+export type GetAuthUserProvidersLazyQueryHookResult = ReturnType<
+  typeof useGetAuthUserProvidersLazyQuery
+>;
+export type GetAuthUserProvidersQueryResult = Apollo.QueryResult<
+  GetAuthUserProvidersQuery,
+  GetAuthUserProvidersQueryVariables
+>;
+export function refetchGetAuthUserProvidersQuery(
+  variables?: GetAuthUserProvidersQueryVariables,
+) {
+  return { query: GetAuthUserProvidersDocument, variables: variables };
+}
+export const GetPersonalAccessTokensDocument = gql`
+  query GetPersonalAccessTokens {
+    personalAccessTokens: authRefreshTokens(
+      where: { type: { _eq: pat } }
+      order_by: { expiresAt: asc }
+    ) {
+      id
+      metadata
+      createdAt
+      expiresAt
+    }
+  }
+`;
+
+/**
+ * __useGetPersonalAccessTokensQuery__
+ *
+ * To run a query within a React component, call `useGetPersonalAccessTokensQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPersonalAccessTokensQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPersonalAccessTokensQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetPersonalAccessTokensQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetPersonalAccessTokensQuery,
+    GetPersonalAccessTokensQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetPersonalAccessTokensQuery,
+    GetPersonalAccessTokensQueryVariables
+  >(GetPersonalAccessTokensDocument, options);
+}
+export function useGetPersonalAccessTokensLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPersonalAccessTokensQuery,
+    GetPersonalAccessTokensQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetPersonalAccessTokensQuery,
+    GetPersonalAccessTokensQueryVariables
+  >(GetPersonalAccessTokensDocument, options);
+}
+export type GetPersonalAccessTokensQueryHookResult = ReturnType<
+  typeof useGetPersonalAccessTokensQuery
+>;
+export type GetPersonalAccessTokensLazyQueryHookResult = ReturnType<
+  typeof useGetPersonalAccessTokensLazyQuery
+>;
+export type GetPersonalAccessTokensQueryResult = Apollo.QueryResult<
+  GetPersonalAccessTokensQuery,
+  GetPersonalAccessTokensQueryVariables
+>;
+export function refetchGetPersonalAccessTokensQuery(
+  variables?: GetPersonalAccessTokensQueryVariables,
+) {
+  return { query: GetPersonalAccessTokensDocument, variables: variables };
+}
+export const DeletePersonalAccessTokenDocument = gql`
+  mutation DeletePersonalAccessToken($patId: uuid!) {
+    deletePersonalAccessToken: deleteAuthRefreshToken(id: $patId) {
+      id
+      metadata
+    }
+  }
+`;
+export type DeletePersonalAccessTokenMutationFn = Apollo.MutationFunction<
+  DeletePersonalAccessTokenMutation,
+  DeletePersonalAccessTokenMutationVariables
+>;
+
+/**
+ * __useDeletePersonalAccessTokenMutation__
+ *
+ * To run a mutation, you first call `useDeletePersonalAccessTokenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeletePersonalAccessTokenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deletePersonalAccessTokenMutation, { data, loading, error }] = useDeletePersonalAccessTokenMutation({
+ *   variables: {
+ *      patId: // value for 'patId'
+ *   },
+ * });
+ */
+export function useDeletePersonalAccessTokenMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeletePersonalAccessTokenMutation,
+    DeletePersonalAccessTokenMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeletePersonalAccessTokenMutation,
+    DeletePersonalAccessTokenMutationVariables
+  >(DeletePersonalAccessTokenDocument, options);
+}
+export type DeletePersonalAccessTokenMutationHookResult = ReturnType<
+  typeof useDeletePersonalAccessTokenMutation
+>;
+export type DeletePersonalAccessTokenMutationResult =
+  Apollo.MutationResult<DeletePersonalAccessTokenMutation>;
+export type DeletePersonalAccessTokenMutationOptions =
+  Apollo.BaseMutationOptions<
+    DeletePersonalAccessTokenMutation,
+    DeletePersonalAccessTokenMutationVariables
+  >;
+export const UpdateUserDisplayNameDocument = gql`
+  mutation updateUserDisplayName($id: uuid!, $displayName: String!) {
+    updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName }) {
+      id
+      displayName
+    }
+  }
+`;
+export type UpdateUserDisplayNameMutationFn = Apollo.MutationFunction<
+  UpdateUserDisplayNameMutation,
+  UpdateUserDisplayNameMutationVariables
+>;
+
+/**
+ * __useUpdateUserDisplayNameMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserDisplayNameMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserDisplayNameMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserDisplayNameMutation, { data, loading, error }] = useUpdateUserDisplayNameMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      displayName: // value for 'displayName'
+ *   },
+ * });
+ */
+export function useUpdateUserDisplayNameMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateUserDisplayNameMutation,
+    UpdateUserDisplayNameMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateUserDisplayNameMutation,
+    UpdateUserDisplayNameMutationVariables
+  >(UpdateUserDisplayNameDocument, options);
+}
+export type UpdateUserDisplayNameMutationHookResult = ReturnType<
+  typeof useUpdateUserDisplayNameMutation
+>;
+export type UpdateUserDisplayNameMutationResult =
+  Apollo.MutationResult<UpdateUserDisplayNameMutation>;
+export type UpdateUserDisplayNameMutationOptions = Apollo.BaseMutationOptions<
+  UpdateUserDisplayNameMutation,
+  UpdateUserDisplayNameMutationVariables
+>;
+export const GetAiSettingsDocument = gql`
+  query GetAISettings($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      postgres {
+        version
+      }
+      ai {
+        version
+        webhookSecret
+        autoEmbeddings {
+          synchPeriodMinutes
+        }
+        openai {
+          apiKey
+          organization
+        }
+        resources {
+          compute {
+            cpu
+            memory
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetAiSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetAiSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAiSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAiSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetAiSettingsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetAiSettingsQuery,
+    GetAiSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetAiSettingsQuery, GetAiSettingsQueryVariables>(
+    GetAiSettingsDocument,
+    options,
+  );
+}
+export function useGetAiSettingsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetAiSettingsQuery,
+    GetAiSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetAiSettingsQuery, GetAiSettingsQueryVariables>(
+    GetAiSettingsDocument,
+    options,
+  );
+}
+export type GetAiSettingsQueryHookResult = ReturnType<
+  typeof useGetAiSettingsQuery
+>;
+export type GetAiSettingsLazyQueryHookResult = ReturnType<
+  typeof useGetAiSettingsLazyQuery
+>;
+export type GetAiSettingsQueryResult = Apollo.QueryResult<
+  GetAiSettingsQuery,
+  GetAiSettingsQueryVariables
+>;
+export function refetchGetAiSettingsQuery(
+  variables: GetAiSettingsQueryVariables,
+) {
+  return { query: GetAiSettingsDocument, variables: variables };
+}
+export const GetAuthenticationSettingsDocument = gql`
+  query GetAuthenticationSettings($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      id: __typename
+      __typename
+      auth {
+        id: __typename
+        __typename
+        redirections {
+          clientUrl
+          allowedUrls
+        }
+        totp {
+          enabled
+          issuer
+        }
+        signUp {
+          enabled
+        }
+        session {
+          accessToken {
+            expiresIn
+          }
+          refreshToken {
+            expiresIn
+          }
+        }
+        resources {
+          networking {
+            ingresses {
+              fqdn
+            }
+          }
+        }
+        user {
+          email {
+            allowed
+            blocked
+          }
+          emailDomains {
+            allowed
+            blocked
+          }
+          gravatar {
+            enabled
+            default
+            rating
+          }
+          locale {
+            allowed
+            default
+          }
+        }
+        misc {
+          concealErrors
+        }
+        version
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetAuthenticationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetAuthenticationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAuthenticationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAuthenticationSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetAuthenticationSettingsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetAuthenticationSettingsQuery,
+    GetAuthenticationSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetAuthenticationSettingsQuery,
+    GetAuthenticationSettingsQueryVariables
+  >(GetAuthenticationSettingsDocument, options);
+}
+export function useGetAuthenticationSettingsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetAuthenticationSettingsQuery,
+    GetAuthenticationSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetAuthenticationSettingsQuery,
+    GetAuthenticationSettingsQueryVariables
+  >(GetAuthenticationSettingsDocument, options);
+}
+export type GetAuthenticationSettingsQueryHookResult = ReturnType<
+  typeof useGetAuthenticationSettingsQuery
+>;
+export type GetAuthenticationSettingsLazyQueryHookResult = ReturnType<
+  typeof useGetAuthenticationSettingsLazyQuery
+>;
+export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<
+  GetAuthenticationSettingsQuery,
+  GetAuthenticationSettingsQueryVariables
+>;
+export function refetchGetAuthenticationSettingsQuery(
+  variables: GetAuthenticationSettingsQueryVariables,
+) {
+  return { query: GetAuthenticationSettingsDocument, variables: variables };
+}
+export const GetPostgresSettingsDocument = gql`
+  query GetPostgresSettings($appId: uuid!) {
+    systemConfig(appID: $appId) {
+      postgres {
+        database
+      }
+    }
+    config(appID: $appId, resolve: false) {
+      id: __typename
+      __typename
+      postgres {
+        version
+        resources {
+          storage {
+            capacity
+          }
+          enablePublicAccess
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetPostgresSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetPostgresSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPostgresSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPostgresSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetPostgresSettingsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetPostgresSettingsQuery,
+    GetPostgresSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetPostgresSettingsQuery,
+    GetPostgresSettingsQueryVariables
+  >(GetPostgresSettingsDocument, options);
+}
+export function useGetPostgresSettingsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPostgresSettingsQuery,
+    GetPostgresSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetPostgresSettingsQuery,
+    GetPostgresSettingsQueryVariables
+  >(GetPostgresSettingsDocument, options);
+}
+export type GetPostgresSettingsQueryHookResult = ReturnType<
+  typeof useGetPostgresSettingsQuery
+>;
+export type GetPostgresSettingsLazyQueryHookResult = ReturnType<
+  typeof useGetPostgresSettingsLazyQuery
+>;
+export type GetPostgresSettingsQueryResult = Apollo.QueryResult<
+  GetPostgresSettingsQuery,
+  GetPostgresSettingsQueryVariables
+>;
+export function refetchGetPostgresSettingsQuery(
+  variables: GetPostgresSettingsQueryVariables,
+) {
+  return { query: GetPostgresSettingsDocument, variables: variables };
+}
+export const ResetDatabasePasswordDocument = gql`
+  mutation ResetDatabasePassword($appId: String!, $newPassword: String!) {
+    resetPostgresPassword(appID: $appId, newPassword: $newPassword)
+  }
+`;
+export type ResetDatabasePasswordMutationFn = Apollo.MutationFunction<
+  ResetDatabasePasswordMutation,
+  ResetDatabasePasswordMutationVariables
+>;
+
+/**
+ * __useResetDatabasePasswordMutation__
+ *
+ * To run a mutation, you first call `useResetDatabasePasswordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResetDatabasePasswordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resetDatabasePasswordMutation, { data, loading, error }] = useResetDatabasePasswordMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      newPassword: // value for 'newPassword'
+ *   },
+ * });
+ */
+export function useResetDatabasePasswordMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    ResetDatabasePasswordMutation,
+    ResetDatabasePasswordMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    ResetDatabasePasswordMutation,
+    ResetDatabasePasswordMutationVariables
+  >(ResetDatabasePasswordDocument, options);
+}
+export type ResetDatabasePasswordMutationHookResult = ReturnType<
+  typeof useResetDatabasePasswordMutation
+>;
+export type ResetDatabasePasswordMutationResult =
+  Apollo.MutationResult<ResetDatabasePasswordMutation>;
+export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<
+  ResetDatabasePasswordMutation,
+  ResetDatabasePasswordMutationVariables
+>;
+export const GetHasuraSettingsDocument = gql`
+  query GetHasuraSettings($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      id: __typename
+      __typename
+      hasura {
+        version
+        settings {
+          enableAllowList
+          enableRemoteSchemaPermissions
+          enableConsole
+          devMode
+          corsDomain
+          enabledAPIs
+        }
+        logs {
+          level
+        }
+        events {
+          httpPoolSize
+        }
+        resources {
+          networking {
+            ingresses {
+              fqdn
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetHasuraSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetHasuraSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHasuraSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHasuraSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetHasuraSettingsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetHasuraSettingsQuery,
+    GetHasuraSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetHasuraSettingsQuery,
+    GetHasuraSettingsQueryVariables
+  >(GetHasuraSettingsDocument, options);
+}
+export function useGetHasuraSettingsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetHasuraSettingsQuery,
+    GetHasuraSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetHasuraSettingsQuery,
+    GetHasuraSettingsQueryVariables
+  >(GetHasuraSettingsDocument, options);
+}
+export type GetHasuraSettingsQueryHookResult = ReturnType<
+  typeof useGetHasuraSettingsQuery
+>;
+export type GetHasuraSettingsLazyQueryHookResult = ReturnType<
+  typeof useGetHasuraSettingsLazyQuery
+>;
+export type GetHasuraSettingsQueryResult = Apollo.QueryResult<
+  GetHasuraSettingsQuery,
+  GetHasuraSettingsQueryVariables
+>;
+export function refetchGetHasuraSettingsQuery(
+  variables: GetHasuraSettingsQueryVariables,
+) {
+  return { query: GetHasuraSettingsDocument, variables: variables };
+}
+export const GetApplicationBackupsDocument = gql`
+  query getApplicationBackups($appId: uuid!) {
+    app(id: $appId) {
+      backups(order_by: { createdAt: desc }) {
+        ...Backup
+      }
+    }
+  }
+  ${BackupFragmentDoc}
+`;
+
+/**
+ * __useGetApplicationBackupsQuery__
+ *
+ * To run a query within a React component, call `useGetApplicationBackupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetApplicationBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetApplicationBackupsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetApplicationBackupsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetApplicationBackupsQuery,
+    GetApplicationBackupsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetApplicationBackupsQuery,
+    GetApplicationBackupsQueryVariables
+  >(GetApplicationBackupsDocument, options);
+}
+export function useGetApplicationBackupsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetApplicationBackupsQuery,
+    GetApplicationBackupsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetApplicationBackupsQuery,
+    GetApplicationBackupsQueryVariables
+  >(GetApplicationBackupsDocument, options);
+}
+export type GetApplicationBackupsQueryHookResult = ReturnType<
+  typeof useGetApplicationBackupsQuery
+>;
+export type GetApplicationBackupsLazyQueryHookResult = ReturnType<
+  typeof useGetApplicationBackupsLazyQuery
+>;
+export type GetApplicationBackupsQueryResult = Apollo.QueryResult<
+  GetApplicationBackupsQuery,
+  GetApplicationBackupsQueryVariables
+>;
+export function refetchGetApplicationBackupsQuery(
+  variables: GetApplicationBackupsQueryVariables,
+) {
+  return { query: GetApplicationBackupsDocument, variables: variables };
+}
+export const GetBackupPresignedUrlDocument = gql`
+  query GetBackupPresignedUrl(
+    $appId: String!
+    $backupId: String!
+    $expireInMinutes: Int
+  ) {
+    getBackupPresignedUrl: getBackupPresignedURL(
+      appID: $appId
+      backupID: $backupId
+      expireInMinutes: $expireInMinutes
+    ) {
+      url
+      expiresAt: expires_at
+    }
+  }
+`;
+
+/**
+ * __useGetBackupPresignedUrlQuery__
+ *
+ * To run a query within a React component, call `useGetBackupPresignedUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBackupPresignedUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBackupPresignedUrlQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      backupId: // value for 'backupId'
+ *      expireInMinutes: // value for 'expireInMinutes'
+ *   },
+ * });
+ */
+export function useGetBackupPresignedUrlQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetBackupPresignedUrlQuery,
+    GetBackupPresignedUrlQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetBackupPresignedUrlQuery,
+    GetBackupPresignedUrlQueryVariables
+  >(GetBackupPresignedUrlDocument, options);
+}
+export function useGetBackupPresignedUrlLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetBackupPresignedUrlQuery,
+    GetBackupPresignedUrlQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetBackupPresignedUrlQuery,
+    GetBackupPresignedUrlQueryVariables
+  >(GetBackupPresignedUrlDocument, options);
+}
+export type GetBackupPresignedUrlQueryHookResult = ReturnType<
+  typeof useGetBackupPresignedUrlQuery
+>;
+export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<
+  typeof useGetBackupPresignedUrlLazyQuery
+>;
+export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<
+  GetBackupPresignedUrlQuery,
+  GetBackupPresignedUrlQueryVariables
+>;
+export function refetchGetBackupPresignedUrlQuery(
+  variables: GetBackupPresignedUrlQueryVariables,
+) {
+  return { query: GetBackupPresignedUrlDocument, variables: variables };
+}
+export const GetResourcesDocument = gql`
+  query GetResources($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      ...ServiceResources
+    }
+  }
+  ${ServiceResourcesFragmentDoc}
+`;
+
+/**
+ * __useGetResourcesQuery__
+ *
+ * To run a query within a React component, call `useGetResourcesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetResourcesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetResourcesQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetResourcesQuery,
+    GetResourcesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetResourcesQuery, GetResourcesQueryVariables>(
+    GetResourcesDocument,
+    options,
+  );
+}
+export function useGetResourcesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetResourcesQuery,
+    GetResourcesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetResourcesQuery, GetResourcesQueryVariables>(
+    GetResourcesDocument,
+    options,
+  );
+}
+export type GetResourcesQueryHookResult = ReturnType<
+  typeof useGetResourcesQuery
+>;
+export type GetResourcesLazyQueryHookResult = ReturnType<
+  typeof useGetResourcesLazyQuery
+>;
+export type GetResourcesQueryResult = Apollo.QueryResult<
+  GetResourcesQuery,
+  GetResourcesQueryVariables
+>;
+export function refetchGetResourcesQuery(
+  variables: GetResourcesQueryVariables,
+) {
+  return { query: GetResourcesDocument, variables: variables };
+}
+export const GetStorageSettingsDocument = gql`
+  query GetStorageSettings($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      id: __typename
+      __typename
+      storage {
+        version
+        antivirus {
+          server
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetStorageSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetStorageSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetStorageSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetStorageSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetStorageSettingsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetStorageSettingsQuery,
+    GetStorageSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetStorageSettingsQuery,
+    GetStorageSettingsQueryVariables
+  >(GetStorageSettingsDocument, options);
+}
+export function useGetStorageSettingsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetStorageSettingsQuery,
+    GetStorageSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetStorageSettingsQuery,
+    GetStorageSettingsQueryVariables
+  >(GetStorageSettingsDocument, options);
+}
+export type GetStorageSettingsQueryHookResult = ReturnType<
+  typeof useGetStorageSettingsQuery
+>;
+export type GetStorageSettingsLazyQueryHookResult = ReturnType<
+  typeof useGetStorageSettingsLazyQuery
+>;
+export type GetStorageSettingsQueryResult = Apollo.QueryResult<
+  GetStorageSettingsQuery,
+  GetStorageSettingsQueryVariables
+>;
+export function refetchGetStorageSettingsQuery(
+  variables: GetStorageSettingsQueryVariables,
+) {
+  return { query: GetStorageSettingsDocument, variables: variables };
+}
+export const GetServerlessFunctionsSettingsDocument = gql`
+  query GetServerlessFunctionsSettings($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      functions {
+        resources {
+          networking {
+            ingresses {
+              fqdn
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetServerlessFunctionsSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetServerlessFunctionsSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServerlessFunctionsSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServerlessFunctionsSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetServerlessFunctionsSettingsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetServerlessFunctionsSettingsQuery,
+    GetServerlessFunctionsSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetServerlessFunctionsSettingsQuery,
+    GetServerlessFunctionsSettingsQueryVariables
+  >(GetServerlessFunctionsSettingsDocument, options);
+}
+export function useGetServerlessFunctionsSettingsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetServerlessFunctionsSettingsQuery,
+    GetServerlessFunctionsSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetServerlessFunctionsSettingsQuery,
+    GetServerlessFunctionsSettingsQueryVariables
+  >(GetServerlessFunctionsSettingsDocument, options);
+}
+export type GetServerlessFunctionsSettingsQueryHookResult = ReturnType<
+  typeof useGetServerlessFunctionsSettingsQuery
+>;
+export type GetServerlessFunctionsSettingsLazyQueryHookResult = ReturnType<
+  typeof useGetServerlessFunctionsSettingsLazyQuery
+>;
+export type GetServerlessFunctionsSettingsQueryResult = Apollo.QueryResult<
+  GetServerlessFunctionsSettingsQuery,
+  GetServerlessFunctionsSettingsQueryVariables
+>;
+export function refetchGetServerlessFunctionsSettingsQuery(
+  variables: GetServerlessFunctionsSettingsQueryVariables,
+) {
+  return {
+    query: GetServerlessFunctionsSettingsDocument,
+    variables: variables,
+  };
+}
+export const DeleteApplicationDocument = gql`
+  mutation deleteApplication($appId: uuid!) {
+    deleteApp(id: $appId) {
+      id
+    }
+  }
+`;
+export type DeleteApplicationMutationFn = Apollo.MutationFunction<
+  DeleteApplicationMutation,
+  DeleteApplicationMutationVariables
+>;
+
+/**
+ * __useDeleteApplicationMutation__
+ *
+ * To run a mutation, you first call `useDeleteApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteApplicationMutation, { data, loading, error }] = useDeleteApplicationMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useDeleteApplicationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteApplicationMutation,
+    DeleteApplicationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteApplicationMutation,
+    DeleteApplicationMutationVariables
+  >(DeleteApplicationDocument, options);
+}
+export type DeleteApplicationMutationHookResult = ReturnType<
+  typeof useDeleteApplicationMutation
+>;
+export type DeleteApplicationMutationResult =
+  Apollo.MutationResult<DeleteApplicationMutation>;
+export type DeleteApplicationMutationOptions = Apollo.BaseMutationOptions<
+  DeleteApplicationMutation,
+  DeleteApplicationMutationVariables
+>;
+export const GetAllWorkspacesAndProjectsDocument = gql`
+  query GetAllWorkspacesAndProjects {
+    workspaces(order_by: { name: asc }) {
+      ...Workspace
+    }
+  }
+  ${WorkspaceFragmentDoc}
+`;
+
+/**
+ * __useGetAllWorkspacesAndProjectsQuery__
+ *
+ * To run a query within a React component, call `useGetAllWorkspacesAndProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllWorkspacesAndProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllWorkspacesAndProjectsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAllWorkspacesAndProjectsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetAllWorkspacesAndProjectsQuery,
+    GetAllWorkspacesAndProjectsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetAllWorkspacesAndProjectsQuery,
+    GetAllWorkspacesAndProjectsQueryVariables
+  >(GetAllWorkspacesAndProjectsDocument, options);
+}
+export function useGetAllWorkspacesAndProjectsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetAllWorkspacesAndProjectsQuery,
+    GetAllWorkspacesAndProjectsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetAllWorkspacesAndProjectsQuery,
+    GetAllWorkspacesAndProjectsQueryVariables
+  >(GetAllWorkspacesAndProjectsDocument, options);
+}
+export type GetAllWorkspacesAndProjectsQueryHookResult = ReturnType<
+  typeof useGetAllWorkspacesAndProjectsQuery
+>;
+export type GetAllWorkspacesAndProjectsLazyQueryHookResult = ReturnType<
+  typeof useGetAllWorkspacesAndProjectsLazyQuery
+>;
+export type GetAllWorkspacesAndProjectsQueryResult = Apollo.QueryResult<
+  GetAllWorkspacesAndProjectsQuery,
+  GetAllWorkspacesAndProjectsQueryVariables
+>;
+export function refetchGetAllWorkspacesAndProjectsQuery(
+  variables?: GetAllWorkspacesAndProjectsQueryVariables,
+) {
+  return { query: GetAllWorkspacesAndProjectsDocument, variables: variables };
+}
+export const GetAppPlanAndGlobalPlansDocument = gql`
+  query getAppPlanAndGlobalPlans($workspaceSlug: String!, $appSlug: String!) {
+    apps(
+      where: {
+        workspace: { slug: { _eq: $workspaceSlug } }
+        slug: { _eq: $appSlug }
+      }
+    ) {
+      ...getAppPlanAndGlobalPlansApp
+    }
+    plans {
+      ...getAppPlanAndGlobalPlansPlan
+    }
+  }
+  ${GetAppPlanAndGlobalPlansAppFragmentDoc}
+  ${GetAppPlanAndGlobalPlansPlanFragmentDoc}
+`;
+
+/**
+ * __useGetAppPlanAndGlobalPlansQuery__
+ *
+ * To run a query within a React component, call `useGetAppPlanAndGlobalPlansQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAppPlanAndGlobalPlansQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAppPlanAndGlobalPlansQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      appSlug: // value for 'appSlug'
+ *   },
+ * });
+ */
+export function useGetAppPlanAndGlobalPlansQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetAppPlanAndGlobalPlansQuery,
+    GetAppPlanAndGlobalPlansQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetAppPlanAndGlobalPlansQuery,
+    GetAppPlanAndGlobalPlansQueryVariables
+  >(GetAppPlanAndGlobalPlansDocument, options);
+}
+export function useGetAppPlanAndGlobalPlansLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetAppPlanAndGlobalPlansQuery,
+    GetAppPlanAndGlobalPlansQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetAppPlanAndGlobalPlansQuery,
+    GetAppPlanAndGlobalPlansQueryVariables
+  >(GetAppPlanAndGlobalPlansDocument, options);
+}
+export type GetAppPlanAndGlobalPlansQueryHookResult = ReturnType<
+  typeof useGetAppPlanAndGlobalPlansQuery
+>;
+export type GetAppPlanAndGlobalPlansLazyQueryHookResult = ReturnType<
+  typeof useGetAppPlanAndGlobalPlansLazyQuery
+>;
+export type GetAppPlanAndGlobalPlansQueryResult = Apollo.QueryResult<
+  GetAppPlanAndGlobalPlansQuery,
+  GetAppPlanAndGlobalPlansQueryVariables
+>;
+export function refetchGetAppPlanAndGlobalPlansQuery(
+  variables: GetAppPlanAndGlobalPlansQueryVariables,
+) {
+  return { query: GetAppPlanAndGlobalPlansDocument, variables: variables };
+}
+export const GetApplicationPlanDocument = gql`
+  query getApplicationPlan($workspace: String!, $slug: String!) {
+    apps(
+      where: { workspace: { slug: { _eq: $workspace } }, slug: { _eq: $slug } }
+    ) {
+      id
+      subdomain
+      legacyPlan {
+        name
+        price
+        upatedAt
+        featureMaxDbSize
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetApplicationPlanQuery__
+ *
+ * To run a query within a React component, call `useGetApplicationPlanQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetApplicationPlanQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetApplicationPlanQuery({
+ *   variables: {
+ *      workspace: // value for 'workspace'
+ *      slug: // value for 'slug'
+ *   },
+ * });
+ */
+export function useGetApplicationPlanQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetApplicationPlanQuery,
+    GetApplicationPlanQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetApplicationPlanQuery,
+    GetApplicationPlanQueryVariables
+  >(GetApplicationPlanDocument, options);
+}
+export function useGetApplicationPlanLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetApplicationPlanQuery,
+    GetApplicationPlanQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetApplicationPlanQuery,
+    GetApplicationPlanQueryVariables
+  >(GetApplicationPlanDocument, options);
+}
+export type GetApplicationPlanQueryHookResult = ReturnType<
+  typeof useGetApplicationPlanQuery
+>;
+export type GetApplicationPlanLazyQueryHookResult = ReturnType<
+  typeof useGetApplicationPlanLazyQuery
+>;
+export type GetApplicationPlanQueryResult = Apollo.QueryResult<
+  GetApplicationPlanQuery,
+  GetApplicationPlanQueryVariables
+>;
+export function refetchGetApplicationPlanQuery(
+  variables: GetApplicationPlanQueryVariables,
+) {
+  return { query: GetApplicationPlanDocument, variables: variables };
+}
+export const GetApplicationStateDocument = gql`
+  query getApplicationState($appId: uuid!) {
+    app(id: $appId) {
+      id
+      name
+      appStates(order_by: { createdAt: desc }, limit: 10) {
+        ...AppStateHistory
+      }
+    }
+  }
+  ${AppStateHistoryFragmentDoc}
+`;
+
+/**
+ * __useGetApplicationStateQuery__
+ *
+ * To run a query within a React component, call `useGetApplicationStateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetApplicationStateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetApplicationStateQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetApplicationStateQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetApplicationStateQuery,
+    GetApplicationStateQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetApplicationStateQuery,
+    GetApplicationStateQueryVariables
+  >(GetApplicationStateDocument, options);
+}
+export function useGetApplicationStateLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetApplicationStateQuery,
+    GetApplicationStateQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetApplicationStateQuery,
+    GetApplicationStateQueryVariables
+  >(GetApplicationStateDocument, options);
+}
+export type GetApplicationStateQueryHookResult = ReturnType<
+  typeof useGetApplicationStateQuery
+>;
+export type GetApplicationStateLazyQueryHookResult = ReturnType<
+  typeof useGetApplicationStateLazyQuery
+>;
+export type GetApplicationStateQueryResult = Apollo.QueryResult<
+  GetApplicationStateQuery,
+  GetApplicationStateQueryVariables
+>;
+export function refetchGetApplicationStateQuery(
+  variables: GetApplicationStateQueryVariables,
+) {
+  return { query: GetApplicationStateDocument, variables: variables };
+}
+export const GetConfiguredVersionsDocument = gql`
+  query getConfiguredVersions($appId: uuid!) {
+    config(appID: $appId, resolve: true) {
+      auth {
+        version
+      }
+      postgres {
+        version
+      }
+      hasura {
+        version
+      }
+      ai {
+        version
+      }
+      storage {
+        version
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetConfiguredVersionsQuery__
+ *
+ * To run a query within a React component, call `useGetConfiguredVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetConfiguredVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetConfiguredVersionsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetConfiguredVersionsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetConfiguredVersionsQuery,
+    GetConfiguredVersionsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetConfiguredVersionsQuery,
+    GetConfiguredVersionsQueryVariables
+  >(GetConfiguredVersionsDocument, options);
+}
+export function useGetConfiguredVersionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetConfiguredVersionsQuery,
+    GetConfiguredVersionsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetConfiguredVersionsQuery,
+    GetConfiguredVersionsQueryVariables
+  >(GetConfiguredVersionsDocument, options);
+}
+export type GetConfiguredVersionsQueryHookResult = ReturnType<
+  typeof useGetConfiguredVersionsQuery
+>;
+export type GetConfiguredVersionsLazyQueryHookResult = ReturnType<
+  typeof useGetConfiguredVersionsLazyQuery
+>;
+export type GetConfiguredVersionsQueryResult = Apollo.QueryResult<
+  GetConfiguredVersionsQuery,
+  GetConfiguredVersionsQueryVariables
+>;
+export function refetchGetConfiguredVersionsQuery(
+  variables: GetConfiguredVersionsQueryVariables,
+) {
+  return { query: GetConfiguredVersionsDocument, variables: variables };
+}
+export const GetProjectIsLockedDocument = gql`
+  query getProjectIsLocked($appId: uuid!) {
+    app(id: $appId) {
+      isLocked
+      isLockedReason
+    }
+  }
+`;
+
+/**
+ * __useGetProjectIsLockedQuery__
+ *
+ * To run a query within a React component, call `useGetProjectIsLockedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectIsLockedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectIsLockedQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetProjectIsLockedQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetProjectIsLockedQuery,
+    GetProjectIsLockedQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetProjectIsLockedQuery,
+    GetProjectIsLockedQueryVariables
+  >(GetProjectIsLockedDocument, options);
+}
+export function useGetProjectIsLockedLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetProjectIsLockedQuery,
+    GetProjectIsLockedQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetProjectIsLockedQuery,
+    GetProjectIsLockedQueryVariables
+  >(GetProjectIsLockedDocument, options);
+}
+export type GetProjectIsLockedQueryHookResult = ReturnType<
+  typeof useGetProjectIsLockedQuery
+>;
+export type GetProjectIsLockedLazyQueryHookResult = ReturnType<
+  typeof useGetProjectIsLockedLazyQuery
+>;
+export type GetProjectIsLockedQueryResult = Apollo.QueryResult<
+  GetProjectIsLockedQuery,
+  GetProjectIsLockedQueryVariables
+>;
+export function refetchGetProjectIsLockedQuery(
+  variables: GetProjectIsLockedQueryVariables,
+) {
+  return { query: GetProjectIsLockedDocument, variables: variables };
+}
+export const GetProjectLocalesDocument = gql`
+  query getProjectLocales($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      auth {
+        user {
+          locale {
+            allowed
+            default
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetProjectLocalesQuery__
+ *
+ * To run a query within a React component, call `useGetProjectLocalesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectLocalesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectLocalesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetProjectLocalesQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetProjectLocalesQuery,
+    GetProjectLocalesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetProjectLocalesQuery,
+    GetProjectLocalesQueryVariables
+  >(GetProjectLocalesDocument, options);
+}
+export function useGetProjectLocalesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetProjectLocalesQuery,
+    GetProjectLocalesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetProjectLocalesQuery,
+    GetProjectLocalesQueryVariables
+  >(GetProjectLocalesDocument, options);
+}
+export type GetProjectLocalesQueryHookResult = ReturnType<
+  typeof useGetProjectLocalesQuery
+>;
+export type GetProjectLocalesLazyQueryHookResult = ReturnType<
+  typeof useGetProjectLocalesLazyQuery
+>;
+export type GetProjectLocalesQueryResult = Apollo.QueryResult<
+  GetProjectLocalesQuery,
+  GetProjectLocalesQueryVariables
+>;
+export function refetchGetProjectLocalesQuery(
+  variables: GetProjectLocalesQueryVariables,
+) {
+  return { query: GetProjectLocalesDocument, variables: variables };
+}
+export const GetProjectMetricsDocument = gql`
+  query GetProjectMetrics(
+    $appId: String!
+    $subdomain: String!
+    $from: Timestamp
+    $to: Timestamp
+  ) {
+    logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
+      value
+    }
+    cpuSecondsUsage: getCPUSecondsUsage(appID: $appId, from: $from, to: $to) {
+      value
+    }
+    functionInvocations: getFunctionsInvocations(
+      appID: $appId
+      from: $from
+      to: $to
+    ) {
+      value
+    }
+    functionsDuration: getFunctionsDuration(
+      appID: $appId
+      from: $from
+      to: $to
+    ) {
+      value
+    }
+    postgresVolumeCapacity: getPostgresVolumeCapacity(appID: $appId) {
+      value
+    }
+    postgresVolumeUsage: getPostgresVolumeUsage(appID: $appId) {
+      value
+    }
+    totalRequests: getTotalRequests(appID: $appId, from: $from, to: $to) {
+      value
+    }
+    egressVolume: getEgressVolume(
+      appID: $appId
+      subdomain: $subdomain
+      from: $from
+      to: $to
+    ) {
+      value
+    }
+  }
+`;
+
+/**
+ * __useGetProjectMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectMetricsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      subdomain: // value for 'subdomain'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetProjectMetricsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetProjectMetricsQuery,
+    GetProjectMetricsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetProjectMetricsQuery,
+    GetProjectMetricsQueryVariables
+  >(GetProjectMetricsDocument, options);
+}
+export function useGetProjectMetricsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetProjectMetricsQuery,
+    GetProjectMetricsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetProjectMetricsQuery,
+    GetProjectMetricsQueryVariables
+  >(GetProjectMetricsDocument, options);
+}
+export type GetProjectMetricsQueryHookResult = ReturnType<
+  typeof useGetProjectMetricsQuery
+>;
+export type GetProjectMetricsLazyQueryHookResult = ReturnType<
+  typeof useGetProjectMetricsLazyQuery
+>;
+export type GetProjectMetricsQueryResult = Apollo.QueryResult<
+  GetProjectMetricsQuery,
+  GetProjectMetricsQueryVariables
+>;
+export function refetchGetProjectMetricsQuery(
+  variables: GetProjectMetricsQueryVariables,
+) {
+  return { query: GetProjectMetricsDocument, variables: variables };
+}
+export const GetProjectServicesHealthDocument = gql`
+  query getProjectServicesHealth($appId: String!) {
+    getProjectStatus(appID: $appId) {
+      services {
+        name
+        state
+        replicas {
+          ready
+          date
+          errors {
+            name
+            lastError {
+              reason
+              exitCode
+              message
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetProjectServicesHealthQuery__
+ *
+ * To run a query within a React component, call `useGetProjectServicesHealthQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectServicesHealthQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectServicesHealthQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetProjectServicesHealthQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetProjectServicesHealthQuery,
+    GetProjectServicesHealthQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetProjectServicesHealthQuery,
+    GetProjectServicesHealthQueryVariables
+  >(GetProjectServicesHealthDocument, options);
+}
+export function useGetProjectServicesHealthLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetProjectServicesHealthQuery,
+    GetProjectServicesHealthQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetProjectServicesHealthQuery,
+    GetProjectServicesHealthQueryVariables
+  >(GetProjectServicesHealthDocument, options);
+}
+export type GetProjectServicesHealthQueryHookResult = ReturnType<
+  typeof useGetProjectServicesHealthQuery
+>;
+export type GetProjectServicesHealthLazyQueryHookResult = ReturnType<
+  typeof useGetProjectServicesHealthLazyQuery
+>;
+export type GetProjectServicesHealthQueryResult = Apollo.QueryResult<
+  GetProjectServicesHealthQuery,
+  GetProjectServicesHealthQueryVariables
+>;
+export function refetchGetProjectServicesHealthQuery(
+  variables: GetProjectServicesHealthQueryVariables,
+) {
+  return { query: GetProjectServicesHealthDocument, variables: variables };
+}
+export const GetRemoteAppRolesDocument = gql`
+  query getRemoteAppRoles {
+    authRoles {
+      role
+    }
+  }
+`;
+
+/**
+ * __useGetRemoteAppRolesQuery__
+ *
+ * To run a query within a React component, call `useGetRemoteAppRolesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRemoteAppRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRemoteAppRolesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRemoteAppRolesQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetRemoteAppRolesQuery,
+    GetRemoteAppRolesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetRemoteAppRolesQuery,
+    GetRemoteAppRolesQueryVariables
+  >(GetRemoteAppRolesDocument, options);
+}
+export function useGetRemoteAppRolesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRemoteAppRolesQuery,
+    GetRemoteAppRolesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetRemoteAppRolesQuery,
+    GetRemoteAppRolesQueryVariables
+  >(GetRemoteAppRolesDocument, options);
+}
+export type GetRemoteAppRolesQueryHookResult = ReturnType<
+  typeof useGetRemoteAppRolesQuery
+>;
+export type GetRemoteAppRolesLazyQueryHookResult = ReturnType<
+  typeof useGetRemoteAppRolesLazyQuery
+>;
+export type GetRemoteAppRolesQueryResult = Apollo.QueryResult<
+  GetRemoteAppRolesQuery,
+  GetRemoteAppRolesQueryVariables
+>;
+export function refetchGetRemoteAppRolesQuery(
+  variables?: GetRemoteAppRolesQueryVariables,
+) {
+  return { query: GetRemoteAppRolesDocument, variables: variables };
+}
+export const GetWorkspaceAndProjectDocument = gql`
+  query GetWorkspaceAndProject($workspaceSlug: String!, $projectSlug: String) {
+    workspaces(where: { slug: { _eq: $workspaceSlug } }) {
+      ...Workspace
+    }
+  }
+  ${WorkspaceFragmentDoc}
+`;
+
+/**
+ * __useGetWorkspaceAndProjectQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceAndProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceAndProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceAndProjectQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      projectSlug: // value for 'projectSlug'
+ *   },
+ * });
+ */
+export function useGetWorkspaceAndProjectQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetWorkspaceAndProjectQuery,
+    GetWorkspaceAndProjectQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetWorkspaceAndProjectQuery,
+    GetWorkspaceAndProjectQueryVariables
+  >(GetWorkspaceAndProjectDocument, options);
+}
+export function useGetWorkspaceAndProjectLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetWorkspaceAndProjectQuery,
+    GetWorkspaceAndProjectQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetWorkspaceAndProjectQuery,
+    GetWorkspaceAndProjectQueryVariables
+  >(GetWorkspaceAndProjectDocument, options);
+}
+export type GetWorkspaceAndProjectQueryHookResult = ReturnType<
+  typeof useGetWorkspaceAndProjectQuery
+>;
+export type GetWorkspaceAndProjectLazyQueryHookResult = ReturnType<
+  typeof useGetWorkspaceAndProjectLazyQuery
+>;
+export type GetWorkspaceAndProjectQueryResult = Apollo.QueryResult<
+  GetWorkspaceAndProjectQuery,
+  GetWorkspaceAndProjectQueryVariables
+>;
+export function refetchGetWorkspaceAndProjectQuery(
+  variables: GetWorkspaceAndProjectQueryVariables,
+) {
+  return { query: GetWorkspaceAndProjectDocument, variables: variables };
+}
+export const InsertApplicationDocument = gql`
+  mutation insertApplication($app: apps_insert_input!) {
+    insertApp(object: $app) {
+      id
+      name
+      slug
+      workspace {
+        id
+        name
+        slug
+      }
+    }
+  }
+`;
+export type InsertApplicationMutationFn = Apollo.MutationFunction<
+  InsertApplicationMutation,
+  InsertApplicationMutationVariables
+>;
+
+/**
+ * __useInsertApplicationMutation__
+ *
+ * To run a mutation, you first call `useInsertApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertApplicationMutation, { data, loading, error }] = useInsertApplicationMutation({
+ *   variables: {
+ *      app: // value for 'app'
+ *   },
+ * });
+ */
+export function useInsertApplicationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertApplicationMutation,
+    InsertApplicationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertApplicationMutation,
+    InsertApplicationMutationVariables
+  >(InsertApplicationDocument, options);
+}
+export type InsertApplicationMutationHookResult = ReturnType<
+  typeof useInsertApplicationMutation
+>;
+export type InsertApplicationMutationResult =
+  Apollo.MutationResult<InsertApplicationMutation>;
+export type InsertApplicationMutationOptions = Apollo.BaseMutationOptions<
+  InsertApplicationMutation,
+  InsertApplicationMutationVariables
+>;
+export const PauseApplicationDocument = gql`
+  mutation PauseApplication($appId: uuid!) {
+    updateApp(pk_columns: { id: $appId }, _set: { desiredState: 6 }) {
+      id
+    }
+  }
+`;
+export type PauseApplicationMutationFn = Apollo.MutationFunction<
+  PauseApplicationMutation,
+  PauseApplicationMutationVariables
+>;
+
+/**
+ * __usePauseApplicationMutation__
+ *
+ * To run a mutation, you first call `usePauseApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePauseApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [pauseApplicationMutation, { data, loading, error }] = usePauseApplicationMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function usePauseApplicationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    PauseApplicationMutation,
+    PauseApplicationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    PauseApplicationMutation,
+    PauseApplicationMutationVariables
+  >(PauseApplicationDocument, options);
+}
+export type PauseApplicationMutationHookResult = ReturnType<
+  typeof usePauseApplicationMutation
+>;
+export type PauseApplicationMutationResult =
+  Apollo.MutationResult<PauseApplicationMutation>;
+export type PauseApplicationMutationOptions = Apollo.BaseMutationOptions<
+  PauseApplicationMutation,
+  PauseApplicationMutationVariables
+>;
+export const PrefetchNewAppDocument = gql`
+  query PrefetchNewApp {
+    regions(order_by: { city: asc }) {
+      ...PrefetchNewAppRegions
+    }
+    plans(
+      order_by: { sort: asc }
+      where: { deprecated: { _eq: false }, isPublic: { _eq: true } }
+    ) {
+      ...PrefetchNewAppPlans
+    }
+    workspaces {
+      ...PrefetchNewAppWorkspace
+    }
+  }
+  ${PrefetchNewAppRegionsFragmentDoc}
+  ${PrefetchNewAppPlansFragmentDoc}
+  ${PrefetchNewAppWorkspaceFragmentDoc}
+`;
+
+/**
+ * __usePrefetchNewAppQuery__
+ *
+ * To run a query within a React component, call `usePrefetchNewAppQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePrefetchNewAppQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePrefetchNewAppQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function usePrefetchNewAppQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    PrefetchNewAppQuery,
+    PrefetchNewAppQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>(
+    PrefetchNewAppDocument,
+    options,
+  );
+}
+export function usePrefetchNewAppLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    PrefetchNewAppQuery,
+    PrefetchNewAppQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>(
+    PrefetchNewAppDocument,
+    options,
+  );
+}
+export type PrefetchNewAppQueryHookResult = ReturnType<
+  typeof usePrefetchNewAppQuery
+>;
+export type PrefetchNewAppLazyQueryHookResult = ReturnType<
+  typeof usePrefetchNewAppLazyQuery
+>;
+export type PrefetchNewAppQueryResult = Apollo.QueryResult<
+  PrefetchNewAppQuery,
+  PrefetchNewAppQueryVariables
+>;
+export function refetchPrefetchNewAppQuery(
+  variables?: PrefetchNewAppQueryVariables,
+) {
+  return { query: PrefetchNewAppDocument, variables: variables };
+}
+export const DnsLookupCnameDocument = gql`
+  query dnsLookupCNAME($hostname: String!) {
+    dnsLookupCNAME(hostname: $hostname)
+  }
+`;
+
+/**
+ * __useDnsLookupCnameQuery__
+ *
+ * To run a query within a React component, call `useDnsLookupCnameQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDnsLookupCnameQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDnsLookupCnameQuery({
+ *   variables: {
+ *      hostname: // value for 'hostname'
+ *   },
+ * });
+ */
+export function useDnsLookupCnameQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    DnsLookupCnameQuery,
+    DnsLookupCnameQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>(
+    DnsLookupCnameDocument,
+    options,
+  );
+}
+export function useDnsLookupCnameLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    DnsLookupCnameQuery,
+    DnsLookupCnameQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>(
+    DnsLookupCnameDocument,
+    options,
+  );
+}
+export type DnsLookupCnameQueryHookResult = ReturnType<
+  typeof useDnsLookupCnameQuery
+>;
+export type DnsLookupCnameLazyQueryHookResult = ReturnType<
+  typeof useDnsLookupCnameLazyQuery
+>;
+export type DnsLookupCnameQueryResult = Apollo.QueryResult<
+  DnsLookupCnameQuery,
+  DnsLookupCnameQueryVariables
+>;
+export function refetchDnsLookupCnameQuery(
+  variables: DnsLookupCnameQueryVariables,
+) {
+  return { query: DnsLookupCnameDocument, variables: variables };
+}
+export const GetEnvironmentVariablesDocument = gql`
+  query GetEnvironmentVariables($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      id: __typename
+      __typename
+      global {
+        environment {
+          ...EnvironmentVariable
+        }
+      }
+      hasura {
+        adminSecret
+        webhookSecret
+        jwtSecrets {
+          ...JWTSecret
+        }
+      }
+    }
+  }
+  ${EnvironmentVariableFragmentDoc}
+  ${JwtSecretFragmentDoc}
+`;
+
+/**
+ * __useGetEnvironmentVariablesQuery__
+ *
+ * To run a query within a React component, call `useGetEnvironmentVariablesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnvironmentVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEnvironmentVariablesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetEnvironmentVariablesQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetEnvironmentVariablesQuery,
+    GetEnvironmentVariablesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetEnvironmentVariablesQuery,
+    GetEnvironmentVariablesQueryVariables
+  >(GetEnvironmentVariablesDocument, options);
+}
+export function useGetEnvironmentVariablesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetEnvironmentVariablesQuery,
+    GetEnvironmentVariablesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetEnvironmentVariablesQuery,
+    GetEnvironmentVariablesQueryVariables
+  >(GetEnvironmentVariablesDocument, options);
+}
+export type GetEnvironmentVariablesQueryHookResult = ReturnType<
+  typeof useGetEnvironmentVariablesQuery
+>;
+export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<
+  typeof useGetEnvironmentVariablesLazyQuery
+>;
+export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<
+  GetEnvironmentVariablesQuery,
+  GetEnvironmentVariablesQueryVariables
+>;
+export function refetchGetEnvironmentVariablesQuery(
+  variables: GetEnvironmentVariablesQueryVariables,
+) {
+  return { query: GetEnvironmentVariablesDocument, variables: variables };
+}
+export const GetConfigRawJsonDocument = gql`
+  query getConfigRawJSON($appID: uuid!) {
+    configRawJSON(appID: $appID, resolve: false)
+  }
+`;
+
+/**
+ * __useGetConfigRawJsonQuery__
+ *
+ * To run a query within a React component, call `useGetConfigRawJsonQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetConfigRawJsonQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetConfigRawJsonQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *   },
+ * });
+ */
+export function useGetConfigRawJsonQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetConfigRawJsonQuery,
+    GetConfigRawJsonQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>(
+    GetConfigRawJsonDocument,
+    options,
+  );
+}
+export function useGetConfigRawJsonLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetConfigRawJsonQuery,
+    GetConfigRawJsonQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetConfigRawJsonQuery,
+    GetConfigRawJsonQueryVariables
+  >(GetConfigRawJsonDocument, options);
+}
+export type GetConfigRawJsonQueryHookResult = ReturnType<
+  typeof useGetConfigRawJsonQuery
+>;
+export type GetConfigRawJsonLazyQueryHookResult = ReturnType<
+  typeof useGetConfigRawJsonLazyQuery
+>;
+export type GetConfigRawJsonQueryResult = Apollo.QueryResult<
+  GetConfigRawJsonQuery,
+  GetConfigRawJsonQueryVariables
+>;
+export function refetchGetConfigRawJsonQuery(
+  variables: GetConfigRawJsonQueryVariables,
+) {
+  return { query: GetConfigRawJsonDocument, variables: variables };
+}
+export const GetRateLimitConfigDocument = gql`
+  query getRateLimitConfig($appId: uuid!, $resolve: Boolean!) {
+    config(appID: $appId, resolve: $resolve) {
+      hasura {
+        rateLimit {
+          limit
+          interval
+        }
+      }
+      storage {
+        rateLimit {
+          limit
+          interval
+        }
+      }
+      functions {
+        rateLimit {
+          limit
+          interval
+        }
+      }
+      auth {
+        rateLimit {
+          bruteForce {
+            limit
+            interval
+          }
+          emails {
+            limit
+            interval
+          }
+          global {
+            limit
+            interval
+          }
+          signups {
+            limit
+            interval
+          }
+          sms {
+            limit
+            interval
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetRateLimitConfigQuery__
+ *
+ * To run a query within a React component, call `useGetRateLimitConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRateLimitConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRateLimitConfigQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetRateLimitConfigQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetRateLimitConfigQuery,
+    GetRateLimitConfigQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetRateLimitConfigQuery,
+    GetRateLimitConfigQueryVariables
+  >(GetRateLimitConfigDocument, options);
+}
+export function useGetRateLimitConfigLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRateLimitConfigQuery,
+    GetRateLimitConfigQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetRateLimitConfigQuery,
+    GetRateLimitConfigQueryVariables
+  >(GetRateLimitConfigDocument, options);
+}
+export type GetRateLimitConfigQueryHookResult = ReturnType<
+  typeof useGetRateLimitConfigQuery
+>;
+export type GetRateLimitConfigLazyQueryHookResult = ReturnType<
+  typeof useGetRateLimitConfigLazyQuery
+>;
+export type GetRateLimitConfigQueryResult = Apollo.QueryResult<
+  GetRateLimitConfigQuery,
+  GetRateLimitConfigQueryVariables
+>;
+export function refetchGetRateLimitConfigQuery(
+  variables: GetRateLimitConfigQueryVariables,
+) {
+  return { query: GetRateLimitConfigDocument, variables: variables };
+}
+export const UpdateRateLimitConfigDocument = gql`
+  mutation UpdateRateLimitConfig(
+    $appId: uuid!
+    $config: ConfigConfigUpdateInput!
+  ) {
+    updateConfig(appID: $appId, config: $config) {
+      hasura {
+        rateLimit {
+          limit
+          interval
+        }
+      }
+      storage {
+        rateLimit {
+          limit
+          interval
+        }
+      }
+      functions {
+        rateLimit {
+          limit
+          interval
+        }
+      }
+      auth {
+        rateLimit {
+          bruteForce {
+            limit
+            interval
+          }
+          emails {
+            limit
+            interval
+          }
+          global {
+            limit
+            interval
+          }
+          signups {
+            limit
+            interval
+          }
+          sms {
+            limit
+            interval
+          }
+        }
+      }
+    }
+  }
+`;
+export type UpdateRateLimitConfigMutationFn = Apollo.MutationFunction<
+  UpdateRateLimitConfigMutation,
+  UpdateRateLimitConfigMutationVariables
+>;
+
+/**
+ * __useUpdateRateLimitConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateRateLimitConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRateLimitConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRateLimitConfigMutation, { data, loading, error }] = useUpdateRateLimitConfigMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useUpdateRateLimitConfigMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateRateLimitConfigMutation,
+    UpdateRateLimitConfigMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateRateLimitConfigMutation,
+    UpdateRateLimitConfigMutationVariables
+  >(UpdateRateLimitConfigDocument, options);
+}
+export type UpdateRateLimitConfigMutationHookResult = ReturnType<
+  typeof useUpdateRateLimitConfigMutation
+>;
+export type UpdateRateLimitConfigMutationResult =
+  Apollo.MutationResult<UpdateRateLimitConfigMutation>;
+export type UpdateRateLimitConfigMutationOptions = Apollo.BaseMutationOptions<
+  UpdateRateLimitConfigMutation,
+  UpdateRateLimitConfigMutationVariables
+>;
+export const ReplaceConfigRawJsonDocument = gql`
+  mutation ReplaceConfigRawJSON($appID: uuid!, $rawJSON: String!) {
+    replaceConfigRawJSON(appID: $appID, rawJSON: $rawJSON)
+  }
+`;
+export type ReplaceConfigRawJsonMutationFn = Apollo.MutationFunction<
+  ReplaceConfigRawJsonMutation,
+  ReplaceConfigRawJsonMutationVariables
+>;
+
+/**
+ * __useReplaceConfigRawJsonMutation__
+ *
+ * To run a mutation, you first call `useReplaceConfigRawJsonMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplaceConfigRawJsonMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [replaceConfigRawJsonMutation, { data, loading, error }] = useReplaceConfigRawJsonMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      rawJSON: // value for 'rawJSON'
+ *   },
+ * });
+ */
+export function useReplaceConfigRawJsonMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    ReplaceConfigRawJsonMutation,
+    ReplaceConfigRawJsonMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    ReplaceConfigRawJsonMutation,
+    ReplaceConfigRawJsonMutationVariables
+  >(ReplaceConfigRawJsonDocument, options);
+}
+export type ReplaceConfigRawJsonMutationHookResult = ReturnType<
+  typeof useReplaceConfigRawJsonMutation
+>;
+export type ReplaceConfigRawJsonMutationResult =
+  Apollo.MutationResult<ReplaceConfigRawJsonMutation>;
+export type ReplaceConfigRawJsonMutationOptions = Apollo.BaseMutationOptions<
+  ReplaceConfigRawJsonMutation,
+  ReplaceConfigRawJsonMutationVariables
+>;
+export const GetRolesPermissionsDocument = gql`
+  query GetRolesPermissions($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      id: __typename
+      __typename
+      auth {
+        user {
+          roles {
+            allowed
+            default
+          }
+        }
+        session {
+          accessToken {
+            customClaims {
+              ...PermissionVariable
+            }
+          }
+        }
+      }
+    }
+  }
+  ${PermissionVariableFragmentDoc}
+`;
+
+/**
+ * __useGetRolesPermissionsQuery__
+ *
+ * To run a query within a React component, call `useGetRolesPermissionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRolesPermissionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRolesPermissionsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetRolesPermissionsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetRolesPermissionsQuery,
+    GetRolesPermissionsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetRolesPermissionsQuery,
+    GetRolesPermissionsQueryVariables
+  >(GetRolesPermissionsDocument, options);
+}
+export function useGetRolesPermissionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRolesPermissionsQuery,
+    GetRolesPermissionsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetRolesPermissionsQuery,
+    GetRolesPermissionsQueryVariables
+  >(GetRolesPermissionsDocument, options);
+}
+export type GetRolesPermissionsQueryHookResult = ReturnType<
+  typeof useGetRolesPermissionsQuery
+>;
+export type GetRolesPermissionsLazyQueryHookResult = ReturnType<
+  typeof useGetRolesPermissionsLazyQuery
+>;
+export type GetRolesPermissionsQueryResult = Apollo.QueryResult<
+  GetRolesPermissionsQuery,
+  GetRolesPermissionsQueryVariables
+>;
+export function refetchGetRolesPermissionsQuery(
+  variables: GetRolesPermissionsQueryVariables,
+) {
+  return { query: GetRolesPermissionsDocument, variables: variables };
+}
+export const DeleteSecretDocument = gql`
+  mutation DeleteSecret($appId: uuid!, $name: String!) {
+    deleteSecret(appID: $appId, key: $name) {
+      name
+    }
+  }
+`;
+export type DeleteSecretMutationFn = Apollo.MutationFunction<
+  DeleteSecretMutation,
+  DeleteSecretMutationVariables
+>;
+
+/**
+ * __useDeleteSecretMutation__
+ *
+ * To run a mutation, you first call `useDeleteSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSecretMutation, { data, loading, error }] = useDeleteSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useDeleteSecretMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteSecretMutation,
+    DeleteSecretMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteSecretMutation,
+    DeleteSecretMutationVariables
+  >(DeleteSecretDocument, options);
+}
+export type DeleteSecretMutationHookResult = ReturnType<
+  typeof useDeleteSecretMutation
+>;
+export type DeleteSecretMutationResult =
+  Apollo.MutationResult<DeleteSecretMutation>;
+export type DeleteSecretMutationOptions = Apollo.BaseMutationOptions<
+  DeleteSecretMutation,
+  DeleteSecretMutationVariables
+>;
+export const GetSecretsDocument = gql`
+  query GetSecrets($appId: uuid!) {
+    appSecrets(appID: $appId) {
+      ...Secret
+    }
+  }
+  ${SecretFragmentDoc}
+`;
+
+/**
+ * __useGetSecretsQuery__
+ *
+ * To run a query within a React component, call `useGetSecretsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSecretsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSecretsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSecretsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetSecretsQuery,
+    GetSecretsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetSecretsQuery, GetSecretsQueryVariables>(
+    GetSecretsDocument,
+    options,
+  );
+}
+export function useGetSecretsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetSecretsQuery,
+    GetSecretsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetSecretsQuery, GetSecretsQueryVariables>(
+    GetSecretsDocument,
+    options,
+  );
+}
+export type GetSecretsQueryHookResult = ReturnType<typeof useGetSecretsQuery>;
+export type GetSecretsLazyQueryHookResult = ReturnType<
+  typeof useGetSecretsLazyQuery
+>;
+export type GetSecretsQueryResult = Apollo.QueryResult<
+  GetSecretsQuery,
+  GetSecretsQueryVariables
+>;
+export function refetchGetSecretsQuery(variables: GetSecretsQueryVariables) {
+  return { query: GetSecretsDocument, variables: variables };
+}
+export const InsertSecretDocument = gql`
+  mutation InsertSecret(
+    $appId: uuid!
+    $secret: ConfigEnvironmentVariableInsertInput!
+  ) {
+    insertSecret(appID: $appId, secret: $secret) {
+      name
+    }
+  }
+`;
+export type InsertSecretMutationFn = Apollo.MutationFunction<
+  InsertSecretMutation,
+  InsertSecretMutationVariables
+>;
+
+/**
+ * __useInsertSecretMutation__
+ *
+ * To run a mutation, you first call `useInsertSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertSecretMutation, { data, loading, error }] = useInsertSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useInsertSecretMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertSecretMutation,
+    InsertSecretMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertSecretMutation,
+    InsertSecretMutationVariables
+  >(InsertSecretDocument, options);
+}
+export type InsertSecretMutationHookResult = ReturnType<
+  typeof useInsertSecretMutation
+>;
+export type InsertSecretMutationResult =
+  Apollo.MutationResult<InsertSecretMutation>;
+export type InsertSecretMutationOptions = Apollo.BaseMutationOptions<
+  InsertSecretMutation,
+  InsertSecretMutationVariables
+>;
+export const UpdateSecretDocument = gql`
+  mutation UpdateSecret(
+    $appId: uuid!
+    $secret: ConfigEnvironmentVariableInsertInput!
+  ) {
+    updateSecret(appID: $appId, secret: $secret) {
+      name
+    }
+  }
+`;
+export type UpdateSecretMutationFn = Apollo.MutationFunction<
+  UpdateSecretMutation,
+  UpdateSecretMutationVariables
+>;
+
+/**
+ * __useUpdateSecretMutation__
+ *
+ * To run a mutation, you first call `useUpdateSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSecretMutation, { data, loading, error }] = useUpdateSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useUpdateSecretMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateSecretMutation,
+    UpdateSecretMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateSecretMutation,
+    UpdateSecretMutationVariables
+  >(UpdateSecretDocument, options);
+}
+export type UpdateSecretMutationHookResult = ReturnType<
+  typeof useUpdateSecretMutation
+>;
+export type UpdateSecretMutationResult =
+  Apollo.MutationResult<UpdateSecretMutation>;
+export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<
+  UpdateSecretMutation,
+  UpdateSecretMutationVariables
+>;
+export const GetSignInMethodsDocument = gql`
+  query GetSignInMethods($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      id: __typename
+      __typename
+      provider {
+        id: __typename
+        __typename
+        sms {
+          accountSid
+          authToken
+          messagingServiceId
+          provider
+        }
+      }
+      auth {
+        id: __typename
+        __typename
+        method {
+          emailPassword {
+            emailVerificationRequired
+            hibpEnabled
+            passwordMinLength
+          }
+          emailPasswordless {
+            enabled
+          }
+          smsPasswordless {
+            enabled
+          }
+          anonymous {
+            enabled
+          }
+          webauthn {
+            enabled
+          }
+          oauth {
+            apple {
+              enabled
+              clientId
+              keyId
+              teamId
+              privateKey
+            }
+            bitbucket {
+              enabled
+              clientId
+              clientSecret
+            }
+            gitlab {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            strava {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            discord {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            facebook {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            github {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            google {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            linkedin {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            spotify {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            twitch {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            twitter {
+              enabled
+              consumerKey
+              consumerSecret
+            }
+            windowslive {
+              enabled
+              clientId
+              clientSecret
+              scope
+            }
+            workos {
+              enabled
+              clientId
+              clientSecret
+              connection
+              organization
+            }
+            azuread {
+              enabled
+              clientId
+              clientSecret
+              tenant
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetSignInMethodsQuery__
+ *
+ * To run a query within a React component, call `useGetSignInMethodsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSignInMethodsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSignInMethodsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSignInMethodsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetSignInMethodsQuery,
+    GetSignInMethodsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>(
+    GetSignInMethodsDocument,
+    options,
+  );
+}
+export function useGetSignInMethodsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetSignInMethodsQuery,
+    GetSignInMethodsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetSignInMethodsQuery,
+    GetSignInMethodsQueryVariables
+  >(GetSignInMethodsDocument, options);
+}
+export type GetSignInMethodsQueryHookResult = ReturnType<
+  typeof useGetSignInMethodsQuery
+>;
+export type GetSignInMethodsLazyQueryHookResult = ReturnType<
+  typeof useGetSignInMethodsLazyQuery
+>;
+export type GetSignInMethodsQueryResult = Apollo.QueryResult<
+  GetSignInMethodsQuery,
+  GetSignInMethodsQueryVariables
+>;
+export function refetchGetSignInMethodsQuery(
+  variables: GetSignInMethodsQueryVariables,
+) {
+  return { query: GetSignInMethodsDocument, variables: variables };
+}
+export const GetSmtpSettingsDocument = gql`
+  query GetSmtpSettings($appId: uuid!) {
+    config(appID: $appId, resolve: false) {
+      id: __typename
+      __typename
+      provider {
+        id: __typename
+        __typename
+        smtp {
+          host
+          method
+          port
+          secure
+          sender
+          user
+          password
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetSmtpSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetSmtpSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSmtpSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSmtpSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSmtpSettingsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetSmtpSettingsQuery,
+    GetSmtpSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(
+    GetSmtpSettingsDocument,
+    options,
+  );
+}
+export function useGetSmtpSettingsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetSmtpSettingsQuery,
+    GetSmtpSettingsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetSmtpSettingsQuery,
+    GetSmtpSettingsQueryVariables
+  >(GetSmtpSettingsDocument, options);
+}
+export type GetSmtpSettingsQueryHookResult = ReturnType<
+  typeof useGetSmtpSettingsQuery
+>;
+export type GetSmtpSettingsLazyQueryHookResult = ReturnType<
+  typeof useGetSmtpSettingsLazyQuery
+>;
+export type GetSmtpSettingsQueryResult = Apollo.QueryResult<
+  GetSmtpSettingsQuery,
+  GetSmtpSettingsQueryVariables
+>;
+export function refetchGetSmtpSettingsQuery(
+  variables: GetSmtpSettingsQueryVariables,
+) {
+  return { query: GetSmtpSettingsDocument, variables: variables };
+}
+export const UpdateConfigDocument = gql`
+  mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
+    updateConfig(appID: $appId, config: $config) {
+      id: __typename
+      postgres {
+        resources {
+          storage {
+            capacity
+          }
+          enablePublicAccess
+        }
+      }
+      ai {
+        version
+        webhookSecret
+        autoEmbeddings {
+          synchPeriodMinutes
+        }
+        openai {
+          organization
+          apiKey
+        }
+        resources {
+          compute {
+            cpu
+            memory
+          }
+        }
+      }
+    }
+  }
+`;
+export type UpdateConfigMutationFn = Apollo.MutationFunction<
+  UpdateConfigMutation,
+  UpdateConfigMutationVariables
+>;
+
+/**
+ * __useUpdateConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateConfigMutation, { data, loading, error }] = useUpdateConfigMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useUpdateConfigMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateConfigMutation,
+    UpdateConfigMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateConfigMutation,
+    UpdateConfigMutationVariables
+  >(UpdateConfigDocument, options);
+}
+export type UpdateConfigMutationHookResult = ReturnType<
+  typeof useUpdateConfigMutation
+>;
+export type UpdateConfigMutationResult =
+  Apollo.MutationResult<UpdateConfigMutation>;
+export type UpdateConfigMutationOptions = Apollo.BaseMutationOptions<
+  UpdateConfigMutation,
+  UpdateConfigMutationVariables
+>;
+export const UpdateDatabaseVersionDocument = gql`
+  mutation UpdateDatabaseVersion($appId: uuid!, $version: String!) {
+    changeDatabaseVersion(appID: $appId, version: $version)
+  }
+`;
+export type UpdateDatabaseVersionMutationFn = Apollo.MutationFunction<
+  UpdateDatabaseVersionMutation,
+  UpdateDatabaseVersionMutationVariables
+>;
+
+/**
+ * __useUpdateDatabaseVersionMutation__
+ *
+ * To run a mutation, you first call `useUpdateDatabaseVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateDatabaseVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateDatabaseVersionMutation, { data, loading, error }] = useUpdateDatabaseVersionMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      version: // value for 'version'
+ *   },
+ * });
+ */
+export function useUpdateDatabaseVersionMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateDatabaseVersionMutation,
+    UpdateDatabaseVersionMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateDatabaseVersionMutation,
+    UpdateDatabaseVersionMutationVariables
+  >(UpdateDatabaseVersionDocument, options);
+}
+export type UpdateDatabaseVersionMutationHookResult = ReturnType<
+  typeof useUpdateDatabaseVersionMutation
+>;
+export type UpdateDatabaseVersionMutationResult =
+  Apollo.MutationResult<UpdateDatabaseVersionMutation>;
+export type UpdateDatabaseVersionMutationOptions = Apollo.BaseMutationOptions<
+  UpdateDatabaseVersionMutation,
+  UpdateDatabaseVersionMutationVariables
+>;
+export const UnpauseApplicationDocument = gql`
+  mutation UnpauseApplication($appId: uuid!) {
+    updateApp(pk_columns: { id: $appId }, _set: { desiredState: 5 }) {
+      id
+    }
+  }
+`;
+export type UnpauseApplicationMutationFn = Apollo.MutationFunction<
+  UnpauseApplicationMutation,
+  UnpauseApplicationMutationVariables
+>;
+
+/**
+ * __useUnpauseApplicationMutation__
+ *
+ * To run a mutation, you first call `useUnpauseApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnpauseApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unpauseApplicationMutation, { data, loading, error }] = useUnpauseApplicationMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useUnpauseApplicationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UnpauseApplicationMutation,
+    UnpauseApplicationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UnpauseApplicationMutation,
+    UnpauseApplicationMutationVariables
+  >(UnpauseApplicationDocument, options);
+}
+export type UnpauseApplicationMutationHookResult = ReturnType<
+  typeof useUnpauseApplicationMutation
+>;
+export type UnpauseApplicationMutationResult =
+  Apollo.MutationResult<UnpauseApplicationMutation>;
+export type UnpauseApplicationMutationOptions = Apollo.BaseMutationOptions<
+  UnpauseApplicationMutation,
+  UnpauseApplicationMutationVariables
+>;
+export const UpdateApplicationDocument = gql`
+  mutation updateApplication($appId: uuid!, $app: apps_set_input!) {
+    updateApp(pk_columns: { id: $appId }, _set: $app) {
+      name
+      id
+      slug
+    }
+  }
+`;
+export type UpdateApplicationMutationFn = Apollo.MutationFunction<
+  UpdateApplicationMutation,
+  UpdateApplicationMutationVariables
+>;
+
+/**
+ * __useUpdateApplicationMutation__
+ *
+ * To run a mutation, you first call `useUpdateApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateApplicationMutation, { data, loading, error }] = useUpdateApplicationMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      app: // value for 'app'
+ *   },
+ * });
+ */
+export function useUpdateApplicationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateApplicationMutation,
+    UpdateApplicationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateApplicationMutation,
+    UpdateApplicationMutationVariables
+  >(UpdateApplicationDocument, options);
+}
+export type UpdateApplicationMutationHookResult = ReturnType<
+  typeof useUpdateApplicationMutation
+>;
+export type UpdateApplicationMutationResult =
+  Apollo.MutationResult<UpdateApplicationMutation>;
+export type UpdateApplicationMutationOptions = Apollo.BaseMutationOptions<
+  UpdateApplicationMutation,
+  UpdateApplicationMutationVariables
+>;
+export const GetCountriesDocument = gql`
+  query getCountries {
+    countries(order_by: { name: asc }) {
+      code
+      name
+    }
+  }
+`;
+
+/**
+ * __useGetCountriesQuery__
+ *
+ * To run a query within a React component, call `useGetCountriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCountriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCountriesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCountriesQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetCountriesQuery,
+    GetCountriesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetCountriesQuery, GetCountriesQueryVariables>(
+    GetCountriesDocument,
+    options,
+  );
+}
+export function useGetCountriesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetCountriesQuery,
+    GetCountriesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetCountriesQuery, GetCountriesQueryVariables>(
+    GetCountriesDocument,
+    options,
+  );
+}
+export type GetCountriesQueryHookResult = ReturnType<
+  typeof useGetCountriesQuery
+>;
+export type GetCountriesLazyQueryHookResult = ReturnType<
+  typeof useGetCountriesLazyQuery
+>;
+export type GetCountriesQueryResult = Apollo.QueryResult<
+  GetCountriesQuery,
+  GetCountriesQueryVariables
+>;
+export function refetchGetCountriesQuery(
+  variables?: GetCountriesQueryVariables,
+) {
+  return { query: GetCountriesDocument, variables: variables };
+}
+export const ScheduledOrPendingDeploymentsSubDocument = gql`
+  subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
+    deployments(
+      where: {
+        deploymentStatus: { _in: ["SCHEDULED"] }
+        appId: { _eq: $appId }
+      }
+    ) {
+      ...DeploymentRow
+    }
+  }
+  ${DeploymentRowFragmentDoc}
+`;
+
+/**
+ * __useScheduledOrPendingDeploymentsSubSubscription__
+ *
+ * To run a query within a React component, call `useScheduledOrPendingDeploymentsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useScheduledOrPendingDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useScheduledOrPendingDeploymentsSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useScheduledOrPendingDeploymentsSubSubscription(
+  baseOptions: Apollo.SubscriptionHookOptions<
+    ScheduledOrPendingDeploymentsSubSubscription,
+    ScheduledOrPendingDeploymentsSubSubscriptionVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSubscription<
+    ScheduledOrPendingDeploymentsSubSubscription,
+    ScheduledOrPendingDeploymentsSubSubscriptionVariables
+  >(ScheduledOrPendingDeploymentsSubDocument, options);
+}
+export type ScheduledOrPendingDeploymentsSubSubscriptionHookResult = ReturnType<
+  typeof useScheduledOrPendingDeploymentsSubSubscription
+>;
+export type ScheduledOrPendingDeploymentsSubSubscriptionResult =
+  Apollo.SubscriptionResult<ScheduledOrPendingDeploymentsSubSubscription>;
+export const LatestLiveDeploymentSubDocument = gql`
+  subscription LatestLiveDeploymentSub($appId: uuid!) {
+    deployments(
+      where: { deploymentStatus: { _eq: "DEPLOYED" }, appId: { _eq: $appId } }
+      order_by: { deploymentStartedAt: desc }
+      limit: 1
+      offset: 0
+    ) {
+      ...DeploymentRow
+    }
+  }
+  ${DeploymentRowFragmentDoc}
+`;
+
+/**
+ * __useLatestLiveDeploymentSubSubscription__
+ *
+ * To run a query within a React component, call `useLatestLiveDeploymentSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useLatestLiveDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLatestLiveDeploymentSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useLatestLiveDeploymentSubSubscription(
+  baseOptions: Apollo.SubscriptionHookOptions<
+    LatestLiveDeploymentSubSubscription,
+    LatestLiveDeploymentSubSubscriptionVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSubscription<
+    LatestLiveDeploymentSubSubscription,
+    LatestLiveDeploymentSubSubscriptionVariables
+  >(LatestLiveDeploymentSubDocument, options);
+}
+export type LatestLiveDeploymentSubSubscriptionHookResult = ReturnType<
+  typeof useLatestLiveDeploymentSubSubscription
+>;
+export type LatestLiveDeploymentSubSubscriptionResult =
+  Apollo.SubscriptionResult<LatestLiveDeploymentSubSubscription>;
+export const InsertDeploymentDocument = gql`
+  mutation InsertDeployment($object: deployments_insert_input!) {
+    insertDeployment(object: $object) {
+      ...DeploymentRow
+    }
+  }
+  ${DeploymentRowFragmentDoc}
+`;
+export type InsertDeploymentMutationFn = Apollo.MutationFunction<
+  InsertDeploymentMutation,
+  InsertDeploymentMutationVariables
+>;
+
+/**
+ * __useInsertDeploymentMutation__
+ *
+ * To run a mutation, you first call `useInsertDeploymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertDeploymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertDeploymentMutation, { data, loading, error }] = useInsertDeploymentMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertDeploymentMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertDeploymentMutation,
+    InsertDeploymentMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertDeploymentMutation,
+    InsertDeploymentMutationVariables
+  >(InsertDeploymentDocument, options);
+}
+export type InsertDeploymentMutationHookResult = ReturnType<
+  typeof useInsertDeploymentMutation
+>;
+export type InsertDeploymentMutationResult =
+  Apollo.MutationResult<InsertDeploymentMutation>;
+export type InsertDeploymentMutationOptions = Apollo.BaseMutationOptions<
+  InsertDeploymentMutation,
+  InsertDeploymentMutationVariables
+>;
+export const GetDeploymentsSubDocument = gql`
+  subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
+    deployments(
+      where: { appId: { _eq: $id } }
+      order_by: { deploymentStartedAt: desc }
+      limit: $limit
+      offset: $offset
+    ) {
+      ...DeploymentRow
+    }
+  }
+  ${DeploymentRowFragmentDoc}
+`;
+
+/**
+ * __useGetDeploymentsSubSubscription__
+ *
+ * To run a query within a React component, call `useGetDeploymentsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeploymentsSubSubscription({
+ *   variables: {
+ *      id: // value for 'id'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetDeploymentsSubSubscription(
+  baseOptions: Apollo.SubscriptionHookOptions<
+    GetDeploymentsSubSubscription,
+    GetDeploymentsSubSubscriptionVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSubscription<
+    GetDeploymentsSubSubscription,
+    GetDeploymentsSubSubscriptionVariables
+  >(GetDeploymentsSubDocument, options);
+}
+export type GetDeploymentsSubSubscriptionHookResult = ReturnType<
+  typeof useGetDeploymentsSubSubscription
+>;
+export type GetDeploymentsSubSubscriptionResult =
+  Apollo.SubscriptionResult<GetDeploymentsSubSubscription>;
+export const DeploymentSubDocument = gql`
+  subscription deploymentSub($id: uuid!) {
+    deployment(id: $id) {
+      id
+      commitMessage
+      commitSHA
+      commitUserName
+      commitUserAvatarUrl
+      deploymentStartedAt
+      deploymentEndedAt
+      deploymentStatus
+      metadataStartedAt
+      metadataEndedAt
+      metadataStatus
+      migrationsStartedAt
+      migrationsEndedAt
+      migrationsStatus
+      functionsStartedAt
+      functionsEndedAt
+      functionsStatus
+      deploymentLogs(order_by: { createdAt: asc }) {
+        id
+        createdAt
+        message
+      }
+    }
+  }
+`;
+
+/**
+ * __useDeploymentSubSubscription__
+ *
+ * To run a query within a React component, call `useDeploymentSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDeploymentSubSubscription({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeploymentSubSubscription(
+  baseOptions: Apollo.SubscriptionHookOptions<
+    DeploymentSubSubscription,
+    DeploymentSubSubscriptionVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSubscription<
+    DeploymentSubSubscription,
+    DeploymentSubSubscriptionVariables
+  >(DeploymentSubDocument, options);
+}
+export type DeploymentSubSubscriptionHookResult = ReturnType<
+  typeof useDeploymentSubSubscription
+>;
+export type DeploymentSubSubscriptionResult =
+  Apollo.SubscriptionResult<DeploymentSubSubscription>;
+export const GetBucketsDocument = gql`
+  query getBuckets {
+    buckets {
+      id
+      maxUploadFileSize
+    }
+  }
+`;
+
+/**
+ * __useGetBucketsQuery__
+ *
+ * To run a query within a React component, call `useGetBucketsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBucketsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBucketsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetBucketsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetBucketsQuery,
+    GetBucketsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetBucketsQuery, GetBucketsQueryVariables>(
+    GetBucketsDocument,
+    options,
+  );
+}
+export function useGetBucketsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetBucketsQuery,
+    GetBucketsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetBucketsQuery, GetBucketsQueryVariables>(
+    GetBucketsDocument,
+    options,
+  );
+}
+export type GetBucketsQueryHookResult = ReturnType<typeof useGetBucketsQuery>;
+export type GetBucketsLazyQueryHookResult = ReturnType<
+  typeof useGetBucketsLazyQuery
+>;
+export type GetBucketsQueryResult = Apollo.QueryResult<
+  GetBucketsQuery,
+  GetBucketsQueryVariables
+>;
+export function refetchGetBucketsQuery(variables?: GetBucketsQueryVariables) {
+  return { query: GetBucketsDocument, variables: variables };
+}
+export const GetFilesDocument = gql`
+  query getFiles(
+    $where: files_bool_exp
+    $limit: Int
+    $offset: Int
+    $order_by: [files_order_by!]
+  ) {
+    files(where: $where, limit: $limit, offset: $offset, order_by: $order_by) {
+      id
+      bucketId
+      createdAt
+      updatedAt
+      name
+      size
+      mimeType
+      etag
+      isUploaded
+      uploadedByUserId
+    }
+  }
+`;
+
+/**
+ * __useGetFilesQuery__
+ *
+ * To run a query within a React component, call `useGetFilesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFilesQuery({
+ *   variables: {
+ *      where: // value for 'where'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *      order_by: // value for 'order_by'
+ *   },
+ * });
+ */
+export function useGetFilesQuery(
+  baseOptions?: Apollo.QueryHookOptions<GetFilesQuery, GetFilesQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetFilesQuery, GetFilesQueryVariables>(
+    GetFilesDocument,
+    options,
+  );
+}
+export function useGetFilesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFilesQuery,
+    GetFilesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetFilesQuery, GetFilesQueryVariables>(
+    GetFilesDocument,
+    options,
+  );
+}
+export type GetFilesQueryHookResult = ReturnType<typeof useGetFilesQuery>;
+export type GetFilesLazyQueryHookResult = ReturnType<
+  typeof useGetFilesLazyQuery
+>;
+export type GetFilesQueryResult = Apollo.QueryResult<
+  GetFilesQuery,
+  GetFilesQueryVariables
+>;
+export function refetchGetFilesQuery(variables?: GetFilesQueryVariables) {
+  return { query: GetFilesDocument, variables: variables };
+}
+export const GetFilesAggregateDocument = gql`
+  query getFilesAggregate($where: files_bool_exp) {
+    filesAggregate(where: $where) {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetFilesAggregateQuery__
+ *
+ * To run a query within a React component, call `useGetFilesAggregateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFilesAggregateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFilesAggregateQuery({
+ *   variables: {
+ *      where: // value for 'where'
+ *   },
+ * });
+ */
+export function useGetFilesAggregateQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetFilesAggregateQuery,
+    GetFilesAggregateQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetFilesAggregateQuery,
+    GetFilesAggregateQueryVariables
+  >(GetFilesAggregateDocument, options);
+}
+export function useGetFilesAggregateLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFilesAggregateQuery,
+    GetFilesAggregateQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetFilesAggregateQuery,
+    GetFilesAggregateQueryVariables
+  >(GetFilesAggregateDocument, options);
+}
+export type GetFilesAggregateQueryHookResult = ReturnType<
+  typeof useGetFilesAggregateQuery
+>;
+export type GetFilesAggregateLazyQueryHookResult = ReturnType<
+  typeof useGetFilesAggregateLazyQuery
+>;
+export type GetFilesAggregateQueryResult = Apollo.QueryResult<
+  GetFilesAggregateQuery,
+  GetFilesAggregateQueryVariables
+>;
+export function refetchGetFilesAggregateQuery(
+  variables?: GetFilesAggregateQueryVariables,
+) {
+  return { query: GetFilesAggregateDocument, variables: variables };
+}
+export const GetGithubRepositoriesDocument = gql`
+  query getGithubRepositories {
+    githubRepositories {
+      ...GithubRepository
+    }
+    githubAppInstallations {
+      id
+      accountLogin
+      accountType
+      accountAvatarUrl
+    }
+  }
+  ${GithubRepositoryFragmentDoc}
+`;
+
+/**
+ * __useGetGithubRepositoriesQuery__
+ *
+ * To run a query within a React component, call `useGetGithubRepositoriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGithubRepositoriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGithubRepositoriesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetGithubRepositoriesQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetGithubRepositoriesQuery,
+    GetGithubRepositoriesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetGithubRepositoriesQuery,
+    GetGithubRepositoriesQueryVariables
+  >(GetGithubRepositoriesDocument, options);
+}
+export function useGetGithubRepositoriesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetGithubRepositoriesQuery,
+    GetGithubRepositoriesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetGithubRepositoriesQuery,
+    GetGithubRepositoriesQueryVariables
+  >(GetGithubRepositoriesDocument, options);
+}
+export type GetGithubRepositoriesQueryHookResult = ReturnType<
+  typeof useGetGithubRepositoriesQuery
+>;
+export type GetGithubRepositoriesLazyQueryHookResult = ReturnType<
+  typeof useGetGithubRepositoriesLazyQuery
+>;
+export type GetGithubRepositoriesQueryResult = Apollo.QueryResult<
+  GetGithubRepositoriesQuery,
+  GetGithubRepositoriesQueryVariables
+>;
+export function refetchGetGithubRepositoriesQuery(
+  variables?: GetGithubRepositoriesQueryVariables,
+) {
+  return { query: GetGithubRepositoriesDocument, variables: variables };
+}
+export const GetProjectLogsDocument = gql`
+  query getProjectLogs(
+    $appID: String!
+    $service: String
+    $from: Timestamp
+    $to: Timestamp
+    $regexFilter: String
+  ) {
+    logs(
+      appID: $appID
+      service: $service
+      from: $from
+      to: $to
+      regexFilter: $regexFilter
+    ) {
+      log
+      service
+      timestamp
+    }
+  }
+`;
+
+/**
+ * __useGetProjectLogsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      service: // value for 'service'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *      regexFilter: // value for 'regexFilter'
+ *   },
+ * });
+ */
+export function useGetProjectLogsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetProjectLogsQuery,
+    GetProjectLogsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetProjectLogsQuery, GetProjectLogsQueryVariables>(
+    GetProjectLogsDocument,
+    options,
+  );
+}
+export function useGetProjectLogsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetProjectLogsQuery,
+    GetProjectLogsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetProjectLogsQuery, GetProjectLogsQueryVariables>(
+    GetProjectLogsDocument,
+    options,
+  );
+}
+export type GetProjectLogsQueryHookResult = ReturnType<
+  typeof useGetProjectLogsQuery
+>;
+export type GetProjectLogsLazyQueryHookResult = ReturnType<
+  typeof useGetProjectLogsLazyQuery
+>;
+export type GetProjectLogsQueryResult = Apollo.QueryResult<
+  GetProjectLogsQuery,
+  GetProjectLogsQueryVariables
+>;
+export function refetchGetProjectLogsQuery(
+  variables: GetProjectLogsQueryVariables,
+) {
+  return { query: GetProjectLogsDocument, variables: variables };
+}
+export const GetLogsSubscriptionDocument = gql`
+  subscription getLogsSubscription(
+    $appID: String!
+    $service: String
+    $from: Timestamp
+    $regexFilter: String
+  ) {
+    logs(
+      appID: $appID
+      service: $service
+      from: $from
+      regexFilter: $regexFilter
+    ) {
+      log
+      service
+      timestamp
+    }
+  }
+`;
+
+/**
+ * __useGetLogsSubscriptionSubscription__
+ *
+ * To run a query within a React component, call `useGetLogsSubscriptionSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsSubscriptionSubscription({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      service: // value for 'service'
+ *      from: // value for 'from'
+ *      regexFilter: // value for 'regexFilter'
+ *   },
+ * });
+ */
+export function useGetLogsSubscriptionSubscription(
+  baseOptions: Apollo.SubscriptionHookOptions<
+    GetLogsSubscriptionSubscription,
+    GetLogsSubscriptionSubscriptionVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useSubscription<
+    GetLogsSubscriptionSubscription,
+    GetLogsSubscriptionSubscriptionVariables
+  >(GetLogsSubscriptionDocument, options);
+}
+export type GetLogsSubscriptionSubscriptionHookResult = ReturnType<
+  typeof useGetLogsSubscriptionSubscription
+>;
+export type GetLogsSubscriptionSubscriptionResult =
+  Apollo.SubscriptionResult<GetLogsSubscriptionSubscription>;
+export const GetServiceLabelValuesDocument = gql`
+  query getServiceLabelValues($appID: String!) {
+    getServiceLabelValues(appID: $appID)
+  }
+`;
+
+/**
+ * __useGetServiceLabelValuesQuery__
+ *
+ * To run a query within a React component, call `useGetServiceLabelValuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServiceLabelValuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServiceLabelValuesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *   },
+ * });
+ */
+export function useGetServiceLabelValuesQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetServiceLabelValuesQuery,
+    GetServiceLabelValuesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetServiceLabelValuesQuery,
+    GetServiceLabelValuesQueryVariables
+  >(GetServiceLabelValuesDocument, options);
+}
+export function useGetServiceLabelValuesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetServiceLabelValuesQuery,
+    GetServiceLabelValuesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetServiceLabelValuesQuery,
+    GetServiceLabelValuesQueryVariables
+  >(GetServiceLabelValuesDocument, options);
+}
+export type GetServiceLabelValuesQueryHookResult = ReturnType<
+  typeof useGetServiceLabelValuesQuery
+>;
+export type GetServiceLabelValuesLazyQueryHookResult = ReturnType<
+  typeof useGetServiceLabelValuesLazyQuery
+>;
+export type GetServiceLabelValuesQueryResult = Apollo.QueryResult<
+  GetServiceLabelValuesQuery,
+  GetServiceLabelValuesQueryVariables
+>;
+export function refetchGetServiceLabelValuesQuery(
+  variables: GetServiceLabelValuesQueryVariables,
+) {
+  return { query: GetServiceLabelValuesDocument, variables: variables };
+}
+export const GetSystemLogsDocument = gql`
+  query getSystemLogs(
+    $appID: String!
+    $action: String!
+    $from: Timestamp
+    $to: Timestamp
+  ) {
+    systemLogs(appID: $appID, action: $action, from: $from) {
+      timestamp
+      log
+    }
+  }
+`;
+
+/**
+ * __useGetSystemLogsQuery__
+ *
+ * To run a query within a React component, call `useGetSystemLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSystemLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSystemLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      action: // value for 'action'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetSystemLogsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetSystemLogsQuery,
+    GetSystemLogsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetSystemLogsQuery, GetSystemLogsQueryVariables>(
+    GetSystemLogsDocument,
+    options,
+  );
+}
+export function useGetSystemLogsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetSystemLogsQuery,
+    GetSystemLogsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetSystemLogsQuery, GetSystemLogsQueryVariables>(
+    GetSystemLogsDocument,
+    options,
+  );
+}
+export type GetSystemLogsQueryHookResult = ReturnType<
+  typeof useGetSystemLogsQuery
+>;
+export type GetSystemLogsLazyQueryHookResult = ReturnType<
+  typeof useGetSystemLogsLazyQuery
+>;
+export type GetSystemLogsQueryResult = Apollo.QueryResult<
+  GetSystemLogsQuery,
+  GetSystemLogsQueryVariables
+>;
+export function refetchGetSystemLogsQuery(
+  variables: GetSystemLogsQueryVariables,
+) {
+  return { query: GetSystemLogsDocument, variables: variables };
+}
+export const CreateOrganizationRequestDocument = gql`
+  mutation createOrganizationRequest(
+    $organizationName: String!
+    $planID: uuid!
+    $redirectURL: String!
+  ) {
+    billingCreateOrganizationRequest(
+      organizationName: $organizationName
+      planID: $planID
+      redirectURL: $redirectURL
+    )
+  }
+`;
+export type CreateOrganizationRequestMutationFn = Apollo.MutationFunction<
+  CreateOrganizationRequestMutation,
+  CreateOrganizationRequestMutationVariables
+>;
+
+/**
+ * __useCreateOrganizationRequestMutation__
+ *
+ * To run a mutation, you first call `useCreateOrganizationRequestMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateOrganizationRequestMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createOrganizationRequestMutation, { data, loading, error }] = useCreateOrganizationRequestMutation({
+ *   variables: {
+ *      organizationName: // value for 'organizationName'
+ *      planID: // value for 'planID'
+ *      redirectURL: // value for 'redirectURL'
+ *   },
+ * });
+ */
+export function useCreateOrganizationRequestMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    CreateOrganizationRequestMutation,
+    CreateOrganizationRequestMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    CreateOrganizationRequestMutation,
+    CreateOrganizationRequestMutationVariables
+  >(CreateOrganizationRequestDocument, options);
+}
+export type CreateOrganizationRequestMutationHookResult = ReturnType<
+  typeof useCreateOrganizationRequestMutation
+>;
+export type CreateOrganizationRequestMutationResult =
+  Apollo.MutationResult<CreateOrganizationRequestMutation>;
+export type CreateOrganizationRequestMutationOptions =
+  Apollo.BaseMutationOptions<
+    CreateOrganizationRequestMutation,
+    CreateOrganizationRequestMutationVariables
+  >;
+export const GetOrganizationDocument = gql`
+  query getOrganization($orgSlug: String!) {
+    organizations(where: { slug: { _eq: $orgSlug } }) {
+      id
+      name
+      slug
+      plan {
+        id
+        name
+        deprecated
+        individual
+        isFree
+      }
+      members {
+        id
+        role
+        user {
+          id
+        }
+      }
+      apps(order_by: { name: asc }) {
+        id
+        name
+        subdomain
+        slug
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetOrganizationQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationQuery({
+ *   variables: {
+ *      orgSlug: // value for 'orgSlug'
+ *   },
+ * });
+ */
+export function useGetOrganizationQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetOrganizationQuery,
+    GetOrganizationQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetOrganizationQuery, GetOrganizationQueryVariables>(
+    GetOrganizationDocument,
+    options,
+  );
+}
+export function useGetOrganizationLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetOrganizationQuery,
+    GetOrganizationQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetOrganizationQuery,
+    GetOrganizationQueryVariables
+  >(GetOrganizationDocument, options);
+}
+export type GetOrganizationQueryHookResult = ReturnType<
+  typeof useGetOrganizationQuery
+>;
+export type GetOrganizationLazyQueryHookResult = ReturnType<
+  typeof useGetOrganizationLazyQuery
+>;
+export type GetOrganizationQueryResult = Apollo.QueryResult<
+  GetOrganizationQuery,
+  GetOrganizationQueryVariables
+>;
+export function refetchGetOrganizationQuery(
+  variables: GetOrganizationQueryVariables,
+) {
+  return { query: GetOrganizationDocument, variables: variables };
+}
+export const GetOrganizationByIdDocument = gql`
+  query getOrganizationById($orgId: uuid!) {
+    organizations(where: { id: { _eq: $orgId } }) {
+      id
+      name
+      slug
+    }
+  }
+`;
+
+/**
+ * __useGetOrganizationByIdQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationByIdQuery({
+ *   variables: {
+ *      orgId: // value for 'orgId'
+ *   },
+ * });
+ */
+export function useGetOrganizationByIdQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetOrganizationByIdQuery,
+    GetOrganizationByIdQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetOrganizationByIdQuery,
+    GetOrganizationByIdQueryVariables
+  >(GetOrganizationByIdDocument, options);
+}
+export function useGetOrganizationByIdLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetOrganizationByIdQuery,
+    GetOrganizationByIdQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetOrganizationByIdQuery,
+    GetOrganizationByIdQueryVariables
+  >(GetOrganizationByIdDocument, options);
+}
+export type GetOrganizationByIdQueryHookResult = ReturnType<
+  typeof useGetOrganizationByIdQuery
+>;
+export type GetOrganizationByIdLazyQueryHookResult = ReturnType<
+  typeof useGetOrganizationByIdLazyQuery
+>;
+export type GetOrganizationByIdQueryResult = Apollo.QueryResult<
+  GetOrganizationByIdQuery,
+  GetOrganizationByIdQueryVariables
+>;
+export function refetchGetOrganizationByIdQuery(
+  variables: GetOrganizationByIdQueryVariables,
+) {
+  return { query: GetOrganizationByIdDocument, variables: variables };
+}
+export const GetOrganizationProjectsDocument = gql`
+  query getOrganizationProjects($orgId: uuid!) {
+    apps(where: { organizationID: { _eq: $orgId } }, order_by: { name: asc }) {
+      ...Project
+    }
+  }
+  ${ProjectFragmentDoc}
+`;
+
+/**
+ * __useGetOrganizationProjectsQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationProjectsQuery({
+ *   variables: {
+ *      orgId: // value for 'orgId'
+ *   },
+ * });
+ */
+export function useGetOrganizationProjectsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetOrganizationProjectsQuery,
+    GetOrganizationProjectsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetOrganizationProjectsQuery,
+    GetOrganizationProjectsQueryVariables
+  >(GetOrganizationProjectsDocument, options);
+}
+export function useGetOrganizationProjectsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetOrganizationProjectsQuery,
+    GetOrganizationProjectsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetOrganizationProjectsQuery,
+    GetOrganizationProjectsQueryVariables
+  >(GetOrganizationProjectsDocument, options);
+}
+export type GetOrganizationProjectsQueryHookResult = ReturnType<
+  typeof useGetOrganizationProjectsQuery
+>;
+export type GetOrganizationProjectsLazyQueryHookResult = ReturnType<
+  typeof useGetOrganizationProjectsLazyQuery
+>;
+export type GetOrganizationProjectsQueryResult = Apollo.QueryResult<
+  GetOrganizationProjectsQuery,
+  GetOrganizationProjectsQueryVariables
+>;
+export function refetchGetOrganizationProjectsQuery(
+  variables: GetOrganizationProjectsQueryVariables,
+) {
+  return { query: GetOrganizationProjectsDocument, variables: variables };
+}
+export const GetOrganizationsDocument = gql`
+  query getOrganizations {
+    organizations(order_by: { name: asc }) {
+      id
+      name
+      slug
+      plan {
+        id
+        name
+        deprecated
+        individual
+        isFree
+      }
+      apps(order_by: { name: asc }) {
+        id
+        name
+        subdomain
+        slug
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetOrganizationsQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOrganizationsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetOrganizationsQuery,
+    GetOrganizationsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetOrganizationsQuery, GetOrganizationsQueryVariables>(
+    GetOrganizationsDocument,
+    options,
+  );
+}
+export function useGetOrganizationsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetOrganizationsQuery,
+    GetOrganizationsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetOrganizationsQuery,
+    GetOrganizationsQueryVariables
+  >(GetOrganizationsDocument, options);
+}
+export type GetOrganizationsQueryHookResult = ReturnType<
+  typeof useGetOrganizationsQuery
+>;
+export type GetOrganizationsLazyQueryHookResult = ReturnType<
+  typeof useGetOrganizationsLazyQuery
+>;
+export type GetOrganizationsQueryResult = Apollo.QueryResult<
+  GetOrganizationsQuery,
+  GetOrganizationsQueryVariables
+>;
+export function refetchGetOrganizationsQuery(
+  variables?: GetOrganizationsQueryVariables,
+) {
+  return { query: GetOrganizationsDocument, variables: variables };
+}
+export const GetProjectDocument = gql`
+  query getProject($slug: String!) {
+    apps(where: { slug: { _eq: $slug } }) {
+      id
+      slug
+      name
+      repositoryProductionBranch
+      subdomain
+      createdAt
+      desiredState
+      nhostBaseFolder
+      config(resolve: true) {
+        observability {
+          grafana {
+            adminPassword
+          }
+        }
+        hasura {
+          adminSecret
+          settings {
+            enableConsole
+          }
+        }
+        ai {
+          version
+        }
+      }
+      featureFlags {
+        description
+        id
+        name
+        value
+      }
+      appStates(order_by: { createdAt: desc }, limit: 1) {
+        id
+        appId
+        message
+        stateId
+        createdAt
+      }
+      region {
+        id
+        countryCode
+        name
+        domain
+        city
+      }
+      legacyPlan {
+        id
+        name
+        price
+        isFree
+        featureMaxDbSize
+      }
+      githubRepository {
+        fullName
+      }
+      deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
+        id
+        commitSHA
+        commitMessage
+        commitUserName
+        deploymentStartedAt
+        deploymentEndedAt
+        commitUserAvatarUrl
+        deploymentStatus
+      }
+      creator {
+        id
+        email
+        displayName
+      }
+    }
+  }
+`;
 
 /**
  * __useGetProjectQuery__
@@ -30191,29 +32974,53 @@ export const GetProjectDocument = gql`
  *   },
  * });
  */
-export function useGetProjectQuery(baseOptions: Apollo.QueryHookOptions<GetProjectQuery, GetProjectQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetProjectQuery, GetProjectQueryVariables>(GetProjectDocument, options);
-      }
-export function useGetProjectLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectQuery, GetProjectQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetProjectQuery, GetProjectQueryVariables>(GetProjectDocument, options);
-        }
-export type GetProjectQueryHookResult = ReturnType<typeof useGetProjectQuery>;
-export type GetProjectLazyQueryHookResult = ReturnType<typeof useGetProjectLazyQuery>;
-export type GetProjectQueryResult = Apollo.QueryResult<GetProjectQuery, GetProjectQueryVariables>;
-export function refetchGetProjectQuery(variables: GetProjectQueryVariables) {
-      return { query: GetProjectDocument, variables: variables }
-    }
-export const PostOrganizationRequestDocument = gql`
-    mutation postOrganizationRequest($sessionID: String!) {
-  billingPostOrganizationRequest(sessionID: $sessionID) {
-    Status
-    Slug
-  }
+export function useGetProjectQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetProjectQuery,
+    GetProjectQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetProjectQuery, GetProjectQueryVariables>(
+    GetProjectDocument,
+    options,
+  );
 }
-    `;
-export type PostOrganizationRequestMutationFn = Apollo.MutationFunction<PostOrganizationRequestMutation, PostOrganizationRequestMutationVariables>;
+export function useGetProjectLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetProjectQuery,
+    GetProjectQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetProjectQuery, GetProjectQueryVariables>(
+    GetProjectDocument,
+    options,
+  );
+}
+export type GetProjectQueryHookResult = ReturnType<typeof useGetProjectQuery>;
+export type GetProjectLazyQueryHookResult = ReturnType<
+  typeof useGetProjectLazyQuery
+>;
+export type GetProjectQueryResult = Apollo.QueryResult<
+  GetProjectQuery,
+  GetProjectQueryVariables
+>;
+export function refetchGetProjectQuery(variables: GetProjectQueryVariables) {
+  return { query: GetProjectDocument, variables: variables };
+}
+export const PostOrganizationRequestDocument = gql`
+  mutation postOrganizationRequest($sessionID: String!) {
+    billingPostOrganizationRequest(sessionID: $sessionID) {
+      Status
+      Slug
+    }
+  }
+`;
+export type PostOrganizationRequestMutationFn = Apollo.MutationFunction<
+  PostOrganizationRequestMutation,
+  PostOrganizationRequestMutationVariables
+>;
 
 /**
  * __usePostOrganizationRequestMutation__
@@ -30232,21 +33039,38 @@ export type PostOrganizationRequestMutationFn = Apollo.MutationFunction<PostOrga
  *   },
  * });
  */
-export function usePostOrganizationRequestMutation(baseOptions?: Apollo.MutationHookOptions<PostOrganizationRequestMutation, PostOrganizationRequestMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<PostOrganizationRequestMutation, PostOrganizationRequestMutationVariables>(PostOrganizationRequestDocument, options);
-      }
-export type PostOrganizationRequestMutationHookResult = ReturnType<typeof usePostOrganizationRequestMutation>;
-export type PostOrganizationRequestMutationResult = Apollo.MutationResult<PostOrganizationRequestMutation>;
-export type PostOrganizationRequestMutationOptions = Apollo.BaseMutationOptions<PostOrganizationRequestMutation, PostOrganizationRequestMutationVariables>;
-export const DeletePaymentMethodDocument = gql`
-    mutation deletePaymentMethod($paymentMethodId: uuid!) {
-  deletePaymentMethod(id: $paymentMethodId) {
-    id
-  }
+export function usePostOrganizationRequestMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    PostOrganizationRequestMutation,
+    PostOrganizationRequestMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    PostOrganizationRequestMutation,
+    PostOrganizationRequestMutationVariables
+  >(PostOrganizationRequestDocument, options);
 }
-    `;
-export type DeletePaymentMethodMutationFn = Apollo.MutationFunction<DeletePaymentMethodMutation, DeletePaymentMethodMutationVariables>;
+export type PostOrganizationRequestMutationHookResult = ReturnType<
+  typeof usePostOrganizationRequestMutation
+>;
+export type PostOrganizationRequestMutationResult =
+  Apollo.MutationResult<PostOrganizationRequestMutation>;
+export type PostOrganizationRequestMutationOptions = Apollo.BaseMutationOptions<
+  PostOrganizationRequestMutation,
+  PostOrganizationRequestMutationVariables
+>;
+export const DeletePaymentMethodDocument = gql`
+  mutation deletePaymentMethod($paymentMethodId: uuid!) {
+    deletePaymentMethod(id: $paymentMethodId) {
+      id
+    }
+  }
+`;
+export type DeletePaymentMethodMutationFn = Apollo.MutationFunction<
+  DeletePaymentMethodMutation,
+  DeletePaymentMethodMutationVariables
+>;
 
 /**
  * __useDeletePaymentMethodMutation__
@@ -30265,23 +33089,38 @@ export type DeletePaymentMethodMutationFn = Apollo.MutationFunction<DeletePaymen
  *   },
  * });
  */
-export function useDeletePaymentMethodMutation(baseOptions?: Apollo.MutationHookOptions<DeletePaymentMethodMutation, DeletePaymentMethodMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeletePaymentMethodMutation, DeletePaymentMethodMutationVariables>(DeletePaymentMethodDocument, options);
-      }
-export type DeletePaymentMethodMutationHookResult = ReturnType<typeof useDeletePaymentMethodMutation>;
-export type DeletePaymentMethodMutationResult = Apollo.MutationResult<DeletePaymentMethodMutation>;
-export type DeletePaymentMethodMutationOptions = Apollo.BaseMutationOptions<DeletePaymentMethodMutation, DeletePaymentMethodMutationVariables>;
-export const GetPaymentMethodsDocument = gql`
-    query getPaymentMethods($workspaceId: uuid!) {
-  paymentMethods(
-    where: {workspaceId: {_eq: $workspaceId}}
-    order_by: {createdAt: desc}
-  ) {
-    ...getPaymentMethods
-  }
+export function useDeletePaymentMethodMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeletePaymentMethodMutation,
+    DeletePaymentMethodMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeletePaymentMethodMutation,
+    DeletePaymentMethodMutationVariables
+  >(DeletePaymentMethodDocument, options);
 }
-    ${GetPaymentMethodsFragmentDoc}`;
+export type DeletePaymentMethodMutationHookResult = ReturnType<
+  typeof useDeletePaymentMethodMutation
+>;
+export type DeletePaymentMethodMutationResult =
+  Apollo.MutationResult<DeletePaymentMethodMutation>;
+export type DeletePaymentMethodMutationOptions = Apollo.BaseMutationOptions<
+  DeletePaymentMethodMutation,
+  DeletePaymentMethodMutationVariables
+>;
+export const GetPaymentMethodsDocument = gql`
+  query getPaymentMethods($workspaceId: uuid!) {
+    paymentMethods(
+      where: { workspaceId: { _eq: $workspaceId } }
+      order_by: { createdAt: desc }
+    ) {
+      ...getPaymentMethods
+    }
+  }
+  ${GetPaymentMethodsFragmentDoc}
+`;
 
 /**
  * __useGetPaymentMethodsQuery__
@@ -30299,34 +33138,65 @@ export const GetPaymentMethodsDocument = gql`
  *   },
  * });
  */
-export function useGetPaymentMethodsQuery(baseOptions: Apollo.QueryHookOptions<GetPaymentMethodsQuery, GetPaymentMethodsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPaymentMethodsQuery, GetPaymentMethodsQueryVariables>(GetPaymentMethodsDocument, options);
-      }
-export function useGetPaymentMethodsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPaymentMethodsQuery, GetPaymentMethodsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPaymentMethodsQuery, GetPaymentMethodsQueryVariables>(GetPaymentMethodsDocument, options);
-        }
-export type GetPaymentMethodsQueryHookResult = ReturnType<typeof useGetPaymentMethodsQuery>;
-export type GetPaymentMethodsLazyQueryHookResult = ReturnType<typeof useGetPaymentMethodsLazyQuery>;
-export type GetPaymentMethodsQueryResult = Apollo.QueryResult<GetPaymentMethodsQuery, GetPaymentMethodsQueryVariables>;
-export function refetchGetPaymentMethodsQuery(variables: GetPaymentMethodsQueryVariables) {
-      return { query: GetPaymentMethodsDocument, variables: variables }
-    }
-export const InsertNewPaymentMethodDocument = gql`
-    mutation insertNewPaymentMethod($workspaceId: uuid!, $paymentMethod: paymentMethods_insert_input!) {
-  updatePaymentMethods(
-    where: {workspaceId: {_eq: $workspaceId}}
-    _set: {isDefault: false}
-  ) {
-    affected_rows
-  }
-  insertPaymentMethod(object: $paymentMethod) {
-    id
-  }
+export function useGetPaymentMethodsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetPaymentMethodsQuery,
+    GetPaymentMethodsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetPaymentMethodsQuery,
+    GetPaymentMethodsQueryVariables
+  >(GetPaymentMethodsDocument, options);
 }
-    `;
-export type InsertNewPaymentMethodMutationFn = Apollo.MutationFunction<InsertNewPaymentMethodMutation, InsertNewPaymentMethodMutationVariables>;
+export function useGetPaymentMethodsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPaymentMethodsQuery,
+    GetPaymentMethodsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetPaymentMethodsQuery,
+    GetPaymentMethodsQueryVariables
+  >(GetPaymentMethodsDocument, options);
+}
+export type GetPaymentMethodsQueryHookResult = ReturnType<
+  typeof useGetPaymentMethodsQuery
+>;
+export type GetPaymentMethodsLazyQueryHookResult = ReturnType<
+  typeof useGetPaymentMethodsLazyQuery
+>;
+export type GetPaymentMethodsQueryResult = Apollo.QueryResult<
+  GetPaymentMethodsQuery,
+  GetPaymentMethodsQueryVariables
+>;
+export function refetchGetPaymentMethodsQuery(
+  variables: GetPaymentMethodsQueryVariables,
+) {
+  return { query: GetPaymentMethodsDocument, variables: variables };
+}
+export const InsertNewPaymentMethodDocument = gql`
+  mutation insertNewPaymentMethod(
+    $workspaceId: uuid!
+    $paymentMethod: paymentMethods_insert_input!
+  ) {
+    updatePaymentMethods(
+      where: { workspaceId: { _eq: $workspaceId } }
+      _set: { isDefault: false }
+    ) {
+      affected_rows
+    }
+    insertPaymentMethod(object: $paymentMethod) {
+      id
+    }
+  }
+`;
+export type InsertNewPaymentMethodMutationFn = Apollo.MutationFunction<
+  InsertNewPaymentMethodMutation,
+  InsertNewPaymentMethodMutationVariables
+>;
 
 /**
  * __useInsertNewPaymentMethodMutation__
@@ -30346,30 +33216,50 @@ export type InsertNewPaymentMethodMutationFn = Apollo.MutationFunction<InsertNew
  *   },
  * });
  */
-export function useInsertNewPaymentMethodMutation(baseOptions?: Apollo.MutationHookOptions<InsertNewPaymentMethodMutation, InsertNewPaymentMethodMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertNewPaymentMethodMutation, InsertNewPaymentMethodMutationVariables>(InsertNewPaymentMethodDocument, options);
-      }
-export type InsertNewPaymentMethodMutationHookResult = ReturnType<typeof useInsertNewPaymentMethodMutation>;
-export type InsertNewPaymentMethodMutationResult = Apollo.MutationResult<InsertNewPaymentMethodMutation>;
-export type InsertNewPaymentMethodMutationOptions = Apollo.BaseMutationOptions<InsertNewPaymentMethodMutation, InsertNewPaymentMethodMutationVariables>;
-export const SetNewDefaultPaymentMethodDocument = gql`
-    mutation setNewDefaultPaymentMethod($workspaceId: uuid!, $paymentMethodId: uuid!) {
-  setAllPaymentMethodToDefaultFalse: updatePaymentMethods(
-    where: {workspaceId: {_eq: $workspaceId}}
-    _set: {isDefault: false}
-  ) {
-    affected_rows
-  }
-  updatePaymentMethods(
-    where: {id: {_eq: $paymentMethodId}}
-    _set: {isDefault: true}
-  ) {
-    affected_rows
-  }
+export function useInsertNewPaymentMethodMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertNewPaymentMethodMutation,
+    InsertNewPaymentMethodMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertNewPaymentMethodMutation,
+    InsertNewPaymentMethodMutationVariables
+  >(InsertNewPaymentMethodDocument, options);
 }
-    `;
-export type SetNewDefaultPaymentMethodMutationFn = Apollo.MutationFunction<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
+export type InsertNewPaymentMethodMutationHookResult = ReturnType<
+  typeof useInsertNewPaymentMethodMutation
+>;
+export type InsertNewPaymentMethodMutationResult =
+  Apollo.MutationResult<InsertNewPaymentMethodMutation>;
+export type InsertNewPaymentMethodMutationOptions = Apollo.BaseMutationOptions<
+  InsertNewPaymentMethodMutation,
+  InsertNewPaymentMethodMutationVariables
+>;
+export const SetNewDefaultPaymentMethodDocument = gql`
+  mutation setNewDefaultPaymentMethod(
+    $workspaceId: uuid!
+    $paymentMethodId: uuid!
+  ) {
+    setAllPaymentMethodToDefaultFalse: updatePaymentMethods(
+      where: { workspaceId: { _eq: $workspaceId } }
+      _set: { isDefault: false }
+    ) {
+      affected_rows
+    }
+    updatePaymentMethods(
+      where: { id: { _eq: $paymentMethodId } }
+      _set: { isDefault: true }
+    ) {
+      affected_rows
+    }
+  }
+`;
+export type SetNewDefaultPaymentMethodMutationFn = Apollo.MutationFunction<
+  SetNewDefaultPaymentMethodMutation,
+  SetNewDefaultPaymentMethodMutationVariables
+>;
 
 /**
  * __useSetNewDefaultPaymentMethodMutation__
@@ -30389,27 +33279,44 @@ export type SetNewDefaultPaymentMethodMutationFn = Apollo.MutationFunction<SetNe
  *   },
  * });
  */
-export function useSetNewDefaultPaymentMethodMutation(baseOptions?: Apollo.MutationHookOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>(SetNewDefaultPaymentMethodDocument, options);
-      }
-export type SetNewDefaultPaymentMethodMutationHookResult = ReturnType<typeof useSetNewDefaultPaymentMethodMutation>;
-export type SetNewDefaultPaymentMethodMutationResult = Apollo.MutationResult<SetNewDefaultPaymentMethodMutation>;
-export type SetNewDefaultPaymentMethodMutationOptions = Apollo.BaseMutationOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
-export const GetAnnouncementsDocument = gql`
-    query getAnnouncements($limit: Int) {
-  announcements(
-    order_by: {createdAt: desc}
-    limit: $limit
-    where: {_or: [{expiresAt: {_is_null: true}}, {expiresAt: {_gt: now}}]}
-  ) {
-    id
-    href
-    content
-    createdAt
-  }
+export function useSetNewDefaultPaymentMethodMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    SetNewDefaultPaymentMethodMutation,
+    SetNewDefaultPaymentMethodMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    SetNewDefaultPaymentMethodMutation,
+    SetNewDefaultPaymentMethodMutationVariables
+  >(SetNewDefaultPaymentMethodDocument, options);
 }
-    `;
+export type SetNewDefaultPaymentMethodMutationHookResult = ReturnType<
+  typeof useSetNewDefaultPaymentMethodMutation
+>;
+export type SetNewDefaultPaymentMethodMutationResult =
+  Apollo.MutationResult<SetNewDefaultPaymentMethodMutation>;
+export type SetNewDefaultPaymentMethodMutationOptions =
+  Apollo.BaseMutationOptions<
+    SetNewDefaultPaymentMethodMutation,
+    SetNewDefaultPaymentMethodMutationVariables
+  >;
+export const GetAnnouncementsDocument = gql`
+  query getAnnouncements($limit: Int) {
+    announcements(
+      order_by: { createdAt: desc }
+      limit: $limit
+      where: {
+        _or: [{ expiresAt: { _is_null: true } }, { expiresAt: { _gt: now } }]
+      }
+    ) {
+      id
+      href
+      content
+      createdAt
+    }
+  }
+`;
 
 /**
  * __useGetAnnouncementsQuery__
@@ -30427,30 +33334,55 @@ export const GetAnnouncementsDocument = gql`
  *   },
  * });
  */
-export function useGetAnnouncementsQuery(baseOptions?: Apollo.QueryHookOptions<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>(GetAnnouncementsDocument, options);
-      }
-export function useGetAnnouncementsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>(GetAnnouncementsDocument, options);
-        }
-export type GetAnnouncementsQueryHookResult = ReturnType<typeof useGetAnnouncementsQuery>;
-export type GetAnnouncementsLazyQueryHookResult = ReturnType<typeof useGetAnnouncementsLazyQuery>;
-export type GetAnnouncementsQueryResult = Apollo.QueryResult<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>;
-export function refetchGetAnnouncementsQuery(variables?: GetAnnouncementsQueryVariables) {
-      return { query: GetAnnouncementsDocument, variables: variables }
-    }
-export const GetPlansDocument = gql`
-    query GetPlans($where: plans_bool_exp) {
-  plans(where: $where) {
-    id
-    name
-    isFree
-    price
-  }
+export function useGetAnnouncementsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetAnnouncementsQuery,
+    GetAnnouncementsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>(
+    GetAnnouncementsDocument,
+    options,
+  );
 }
-    `;
+export function useGetAnnouncementsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetAnnouncementsQuery,
+    GetAnnouncementsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetAnnouncementsQuery,
+    GetAnnouncementsQueryVariables
+  >(GetAnnouncementsDocument, options);
+}
+export type GetAnnouncementsQueryHookResult = ReturnType<
+  typeof useGetAnnouncementsQuery
+>;
+export type GetAnnouncementsLazyQueryHookResult = ReturnType<
+  typeof useGetAnnouncementsLazyQuery
+>;
+export type GetAnnouncementsQueryResult = Apollo.QueryResult<
+  GetAnnouncementsQuery,
+  GetAnnouncementsQueryVariables
+>;
+export function refetchGetAnnouncementsQuery(
+  variables?: GetAnnouncementsQueryVariables,
+) {
+  return { query: GetAnnouncementsDocument, variables: variables };
+}
+export const GetPlansDocument = gql`
+  query GetPlans($where: plans_bool_exp) {
+    plans(where: $where) {
+      id
+      name
+      isFree
+      price
+    }
+  }
+`;
 
 /**
  * __useGetPlansQuery__
@@ -30468,28 +33400,46 @@ export const GetPlansDocument = gql`
  *   },
  * });
  */
-export function useGetPlansQuery(baseOptions?: Apollo.QueryHookOptions<GetPlansQuery, GetPlansQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPlansQuery, GetPlansQueryVariables>(GetPlansDocument, options);
-      }
-export function useGetPlansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPlansQuery, GetPlansQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPlansQuery, GetPlansQueryVariables>(GetPlansDocument, options);
-        }
-export type GetPlansQueryHookResult = ReturnType<typeof useGetPlansQuery>;
-export type GetPlansLazyQueryHookResult = ReturnType<typeof useGetPlansLazyQuery>;
-export type GetPlansQueryResult = Apollo.QueryResult<GetPlansQuery, GetPlansQueryVariables>;
-export function refetchGetPlansQuery(variables?: GetPlansQueryVariables) {
-      return { query: GetPlansDocument, variables: variables }
-    }
-export const GetRecommendedSoftwareVersionsDocument = gql`
-    query getRecommendedSoftwareVersions {
-  softwareVersions {
-    software
-    version
-  }
+export function useGetPlansQuery(
+  baseOptions?: Apollo.QueryHookOptions<GetPlansQuery, GetPlansQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetPlansQuery, GetPlansQueryVariables>(
+    GetPlansDocument,
+    options,
+  );
 }
-    `;
+export function useGetPlansLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPlansQuery,
+    GetPlansQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetPlansQuery, GetPlansQueryVariables>(
+    GetPlansDocument,
+    options,
+  );
+}
+export type GetPlansQueryHookResult = ReturnType<typeof useGetPlansQuery>;
+export type GetPlansLazyQueryHookResult = ReturnType<
+  typeof useGetPlansLazyQuery
+>;
+export type GetPlansQueryResult = Apollo.QueryResult<
+  GetPlansQuery,
+  GetPlansQueryVariables
+>;
+export function refetchGetPlansQuery(variables?: GetPlansQueryVariables) {
+  return { query: GetPlansDocument, variables: variables };
+}
+export const GetRecommendedSoftwareVersionsDocument = gql`
+  query getRecommendedSoftwareVersions {
+    softwareVersions {
+      software
+      version
+    }
+  }
+`;
 
 /**
  * __useGetRecommendedSoftwareVersionsQuery__
@@ -30506,28 +33456,59 @@ export const GetRecommendedSoftwareVersionsDocument = gql`
  *   },
  * });
  */
-export function useGetRecommendedSoftwareVersionsQuery(baseOptions?: Apollo.QueryHookOptions<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>(GetRecommendedSoftwareVersionsDocument, options);
-      }
-export function useGetRecommendedSoftwareVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>(GetRecommendedSoftwareVersionsDocument, options);
-        }
-export type GetRecommendedSoftwareVersionsQueryHookResult = ReturnType<typeof useGetRecommendedSoftwareVersionsQuery>;
-export type GetRecommendedSoftwareVersionsLazyQueryHookResult = ReturnType<typeof useGetRecommendedSoftwareVersionsLazyQuery>;
-export type GetRecommendedSoftwareVersionsQueryResult = Apollo.QueryResult<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>;
-export function refetchGetRecommendedSoftwareVersionsQuery(variables?: GetRecommendedSoftwareVersionsQueryVariables) {
-      return { query: GetRecommendedSoftwareVersionsDocument, variables: variables }
-    }
-export const GetSoftwareVersionsDocument = gql`
-    query getSoftwareVersions($software: software_type_enum!) {
-  softwareVersions(where: {software: {_eq: $software}}, order_by: {version: desc}) {
-    version
-    software
-  }
+export function useGetRecommendedSoftwareVersionsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetRecommendedSoftwareVersionsQuery,
+    GetRecommendedSoftwareVersionsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetRecommendedSoftwareVersionsQuery,
+    GetRecommendedSoftwareVersionsQueryVariables
+  >(GetRecommendedSoftwareVersionsDocument, options);
 }
-    `;
+export function useGetRecommendedSoftwareVersionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRecommendedSoftwareVersionsQuery,
+    GetRecommendedSoftwareVersionsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetRecommendedSoftwareVersionsQuery,
+    GetRecommendedSoftwareVersionsQueryVariables
+  >(GetRecommendedSoftwareVersionsDocument, options);
+}
+export type GetRecommendedSoftwareVersionsQueryHookResult = ReturnType<
+  typeof useGetRecommendedSoftwareVersionsQuery
+>;
+export type GetRecommendedSoftwareVersionsLazyQueryHookResult = ReturnType<
+  typeof useGetRecommendedSoftwareVersionsLazyQuery
+>;
+export type GetRecommendedSoftwareVersionsQueryResult = Apollo.QueryResult<
+  GetRecommendedSoftwareVersionsQuery,
+  GetRecommendedSoftwareVersionsQueryVariables
+>;
+export function refetchGetRecommendedSoftwareVersionsQuery(
+  variables?: GetRecommendedSoftwareVersionsQueryVariables,
+) {
+  return {
+    query: GetRecommendedSoftwareVersionsDocument,
+    variables: variables,
+  };
+}
+export const GetSoftwareVersionsDocument = gql`
+  query getSoftwareVersions($software: software_type_enum!) {
+    softwareVersions(
+      where: { software: { _eq: $software } }
+      order_by: { version: desc }
+    ) {
+      version
+      software
+    }
+  }
+`;
 
 /**
  * __useGetSoftwareVersionsQuery__
@@ -30545,26 +33526,54 @@ export const GetSoftwareVersionsDocument = gql`
  *   },
  * });
  */
-export function useGetSoftwareVersionsQuery(baseOptions: Apollo.QueryHookOptions<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>(GetSoftwareVersionsDocument, options);
-      }
-export function useGetSoftwareVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>(GetSoftwareVersionsDocument, options);
-        }
-export type GetSoftwareVersionsQueryHookResult = ReturnType<typeof useGetSoftwareVersionsQuery>;
-export type GetSoftwareVersionsLazyQueryHookResult = ReturnType<typeof useGetSoftwareVersionsLazyQuery>;
-export type GetSoftwareVersionsQueryResult = Apollo.QueryResult<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>;
-export function refetchGetSoftwareVersionsQuery(variables: GetSoftwareVersionsQueryVariables) {
-      return { query: GetSoftwareVersionsDocument, variables: variables }
-    }
-export const RestoreApplicationDatabaseDocument = gql`
-    mutation RestoreApplicationDatabase($appId: String!, $backupId: String!) {
-  restoreApplicationDatabase(appID: $appId, backupID: $backupId)
+export function useGetSoftwareVersionsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetSoftwareVersionsQuery,
+    GetSoftwareVersionsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetSoftwareVersionsQuery,
+    GetSoftwareVersionsQueryVariables
+  >(GetSoftwareVersionsDocument, options);
 }
-    `;
-export type RestoreApplicationDatabaseMutationFn = Apollo.MutationFunction<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>;
+export function useGetSoftwareVersionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetSoftwareVersionsQuery,
+    GetSoftwareVersionsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetSoftwareVersionsQuery,
+    GetSoftwareVersionsQueryVariables
+  >(GetSoftwareVersionsDocument, options);
+}
+export type GetSoftwareVersionsQueryHookResult = ReturnType<
+  typeof useGetSoftwareVersionsQuery
+>;
+export type GetSoftwareVersionsLazyQueryHookResult = ReturnType<
+  typeof useGetSoftwareVersionsLazyQuery
+>;
+export type GetSoftwareVersionsQueryResult = Apollo.QueryResult<
+  GetSoftwareVersionsQuery,
+  GetSoftwareVersionsQueryVariables
+>;
+export function refetchGetSoftwareVersionsQuery(
+  variables: GetSoftwareVersionsQueryVariables,
+) {
+  return { query: GetSoftwareVersionsDocument, variables: variables };
+}
+export const RestoreApplicationDatabaseDocument = gql`
+  mutation RestoreApplicationDatabase($appId: String!, $backupId: String!) {
+    restoreApplicationDatabase(appID: $appId, backupID: $backupId)
+  }
+`;
+export type RestoreApplicationDatabaseMutationFn = Apollo.MutationFunction<
+  RestoreApplicationDatabaseMutation,
+  RestoreApplicationDatabaseMutationVariables
+>;
 
 /**
  * __useRestoreApplicationDatabaseMutation__
@@ -30584,21 +33593,39 @@ export type RestoreApplicationDatabaseMutationFn = Apollo.MutationFunction<Resto
  *   },
  * });
  */
-export function useRestoreApplicationDatabaseMutation(baseOptions?: Apollo.MutationHookOptions<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>(RestoreApplicationDatabaseDocument, options);
-      }
-export type RestoreApplicationDatabaseMutationHookResult = ReturnType<typeof useRestoreApplicationDatabaseMutation>;
-export type RestoreApplicationDatabaseMutationResult = Apollo.MutationResult<RestoreApplicationDatabaseMutation>;
-export type RestoreApplicationDatabaseMutationOptions = Apollo.BaseMutationOptions<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>;
-export const RemoteAppDeleteUserDocument = gql`
-    mutation remoteAppDeleteUser($id: uuid!) {
-  deleteUser(id: $id) {
-    id
-  }
+export function useRestoreApplicationDatabaseMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    RestoreApplicationDatabaseMutation,
+    RestoreApplicationDatabaseMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    RestoreApplicationDatabaseMutation,
+    RestoreApplicationDatabaseMutationVariables
+  >(RestoreApplicationDatabaseDocument, options);
 }
-    `;
-export type RemoteAppDeleteUserMutationFn = Apollo.MutationFunction<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>;
+export type RestoreApplicationDatabaseMutationHookResult = ReturnType<
+  typeof useRestoreApplicationDatabaseMutation
+>;
+export type RestoreApplicationDatabaseMutationResult =
+  Apollo.MutationResult<RestoreApplicationDatabaseMutation>;
+export type RestoreApplicationDatabaseMutationOptions =
+  Apollo.BaseMutationOptions<
+    RestoreApplicationDatabaseMutation,
+    RestoreApplicationDatabaseMutationVariables
+  >;
+export const RemoteAppDeleteUserDocument = gql`
+  mutation remoteAppDeleteUser($id: uuid!) {
+    deleteUser(id: $id) {
+      id
+    }
+  }
+`;
+export type RemoteAppDeleteUserMutationFn = Apollo.MutationFunction<
+  RemoteAppDeleteUserMutation,
+  RemoteAppDeleteUserMutationVariables
+>;
 
 /**
  * __useRemoteAppDeleteUserMutation__
@@ -30617,21 +33644,35 @@ export type RemoteAppDeleteUserMutationFn = Apollo.MutationFunction<RemoteAppDel
  *   },
  * });
  */
-export function useRemoteAppDeleteUserMutation(baseOptions?: Apollo.MutationHookOptions<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>(RemoteAppDeleteUserDocument, options);
-      }
-export type RemoteAppDeleteUserMutationHookResult = ReturnType<typeof useRemoteAppDeleteUserMutation>;
-export type RemoteAppDeleteUserMutationResult = Apollo.MutationResult<RemoteAppDeleteUserMutation>;
-export type RemoteAppDeleteUserMutationOptions = Apollo.BaseMutationOptions<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>;
-export const GetAppFunctionsMetadataDocument = gql`
-    query getAppFunctionsMetadata($id: uuid!) {
-  app(id: $id) {
-    id
-    metadataFunctions
-  }
+export function useRemoteAppDeleteUserMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    RemoteAppDeleteUserMutation,
+    RemoteAppDeleteUserMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    RemoteAppDeleteUserMutation,
+    RemoteAppDeleteUserMutationVariables
+  >(RemoteAppDeleteUserDocument, options);
 }
-    `;
+export type RemoteAppDeleteUserMutationHookResult = ReturnType<
+  typeof useRemoteAppDeleteUserMutation
+>;
+export type RemoteAppDeleteUserMutationResult =
+  Apollo.MutationResult<RemoteAppDeleteUserMutation>;
+export type RemoteAppDeleteUserMutationOptions = Apollo.BaseMutationOptions<
+  RemoteAppDeleteUserMutation,
+  RemoteAppDeleteUserMutationVariables
+>;
+export const GetAppFunctionsMetadataDocument = gql`
+  query getAppFunctionsMetadata($id: uuid!) {
+    app(id: $id) {
+      id
+      metadataFunctions
+    }
+  }
+`;
 
 /**
  * __useGetAppFunctionsMetadataQuery__
@@ -30649,37 +33690,62 @@ export const GetAppFunctionsMetadataDocument = gql`
  *   },
  * });
  */
-export function useGetAppFunctionsMetadataQuery(baseOptions: Apollo.QueryHookOptions<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>(GetAppFunctionsMetadataDocument, options);
-      }
-export function useGetAppFunctionsMetadataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>(GetAppFunctionsMetadataDocument, options);
-        }
-export type GetAppFunctionsMetadataQueryHookResult = ReturnType<typeof useGetAppFunctionsMetadataQuery>;
-export type GetAppFunctionsMetadataLazyQueryHookResult = ReturnType<typeof useGetAppFunctionsMetadataLazyQuery>;
-export type GetAppFunctionsMetadataQueryResult = Apollo.QueryResult<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>;
-export function refetchGetAppFunctionsMetadataQuery(variables: GetAppFunctionsMetadataQueryVariables) {
-      return { query: GetAppFunctionsMetadataDocument, variables: variables }
-    }
-export const GetRemoteAppMetricsDocument = gql`
-    query getRemoteAppMetrics {
-  filesAggregate {
-    aggregate {
-      count
-      sum {
-        size
-      }
-    }
-  }
-  usersAggregate {
-    aggregate {
-      count
-    }
-  }
+export function useGetAppFunctionsMetadataQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetAppFunctionsMetadataQuery,
+    GetAppFunctionsMetadataQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetAppFunctionsMetadataQuery,
+    GetAppFunctionsMetadataQueryVariables
+  >(GetAppFunctionsMetadataDocument, options);
 }
-    `;
+export function useGetAppFunctionsMetadataLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetAppFunctionsMetadataQuery,
+    GetAppFunctionsMetadataQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetAppFunctionsMetadataQuery,
+    GetAppFunctionsMetadataQueryVariables
+  >(GetAppFunctionsMetadataDocument, options);
+}
+export type GetAppFunctionsMetadataQueryHookResult = ReturnType<
+  typeof useGetAppFunctionsMetadataQuery
+>;
+export type GetAppFunctionsMetadataLazyQueryHookResult = ReturnType<
+  typeof useGetAppFunctionsMetadataLazyQuery
+>;
+export type GetAppFunctionsMetadataQueryResult = Apollo.QueryResult<
+  GetAppFunctionsMetadataQuery,
+  GetAppFunctionsMetadataQueryVariables
+>;
+export function refetchGetAppFunctionsMetadataQuery(
+  variables: GetAppFunctionsMetadataQueryVariables,
+) {
+  return { query: GetAppFunctionsMetadataDocument, variables: variables };
+}
+export const GetRemoteAppMetricsDocument = gql`
+  query getRemoteAppMetrics {
+    filesAggregate {
+      aggregate {
+        count
+        sum {
+          size
+        }
+      }
+    }
+    usersAggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
 
 /**
  * __useGetRemoteAppMetricsQuery__
@@ -30696,42 +33762,72 @@ export const GetRemoteAppMetricsDocument = gql`
  *   },
  * });
  */
-export function useGetRemoteAppMetricsQuery(baseOptions?: Apollo.QueryHookOptions<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>(GetRemoteAppMetricsDocument, options);
-      }
-export function useGetRemoteAppMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>(GetRemoteAppMetricsDocument, options);
-        }
-export type GetRemoteAppMetricsQueryHookResult = ReturnType<typeof useGetRemoteAppMetricsQuery>;
-export type GetRemoteAppMetricsLazyQueryHookResult = ReturnType<typeof useGetRemoteAppMetricsLazyQuery>;
-export type GetRemoteAppMetricsQueryResult = Apollo.QueryResult<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>;
-export function refetchGetRemoteAppMetricsQuery(variables?: GetRemoteAppMetricsQueryVariables) {
-      return { query: GetRemoteAppMetricsDocument, variables: variables }
-    }
-export const RemoteAppGetUsersDocument = gql`
-    query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
-  users(
-    where: $where
-    limit: $limit
-    offset: $offset
-    order_by: {createdAt: desc}
-  ) {
-    ...RemoteAppGetUsers
-  }
-  filteredUsersAggreggate: usersAggregate(where: $where) {
-    aggregate {
-      count
-    }
-  }
-  usersAggregate {
-    aggregate {
-      count
-    }
-  }
+export function useGetRemoteAppMetricsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetRemoteAppMetricsQuery,
+    GetRemoteAppMetricsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetRemoteAppMetricsQuery,
+    GetRemoteAppMetricsQueryVariables
+  >(GetRemoteAppMetricsDocument, options);
 }
-    ${RemoteAppGetUsersFragmentDoc}`;
+export function useGetRemoteAppMetricsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRemoteAppMetricsQuery,
+    GetRemoteAppMetricsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetRemoteAppMetricsQuery,
+    GetRemoteAppMetricsQueryVariables
+  >(GetRemoteAppMetricsDocument, options);
+}
+export type GetRemoteAppMetricsQueryHookResult = ReturnType<
+  typeof useGetRemoteAppMetricsQuery
+>;
+export type GetRemoteAppMetricsLazyQueryHookResult = ReturnType<
+  typeof useGetRemoteAppMetricsLazyQuery
+>;
+export type GetRemoteAppMetricsQueryResult = Apollo.QueryResult<
+  GetRemoteAppMetricsQuery,
+  GetRemoteAppMetricsQueryVariables
+>;
+export function refetchGetRemoteAppMetricsQuery(
+  variables?: GetRemoteAppMetricsQueryVariables,
+) {
+  return { query: GetRemoteAppMetricsDocument, variables: variables };
+}
+export const RemoteAppGetUsersDocument = gql`
+  query remoteAppGetUsers(
+    $where: users_bool_exp!
+    $limit: Int!
+    $offset: Int!
+  ) {
+    users(
+      where: $where
+      limit: $limit
+      offset: $offset
+      order_by: { createdAt: desc }
+    ) {
+      ...RemoteAppGetUsers
+    }
+    filteredUsersAggreggate: usersAggregate(where: $where) {
+      aggregate {
+        count
+      }
+    }
+    usersAggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+  ${RemoteAppGetUsersFragmentDoc}
+`;
 
 /**
  * __useRemoteAppGetUsersQuery__
@@ -30751,43 +33847,72 @@ export const RemoteAppGetUsersDocument = gql`
  *   },
  * });
  */
-export function useRemoteAppGetUsersQuery(baseOptions: Apollo.QueryHookOptions<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>(RemoteAppGetUsersDocument, options);
-      }
-export function useRemoteAppGetUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>(RemoteAppGetUsersDocument, options);
-        }
-export type RemoteAppGetUsersQueryHookResult = ReturnType<typeof useRemoteAppGetUsersQuery>;
-export type RemoteAppGetUsersLazyQueryHookResult = ReturnType<typeof useRemoteAppGetUsersLazyQuery>;
-export type RemoteAppGetUsersQueryResult = Apollo.QueryResult<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>;
-export function refetchRemoteAppGetUsersQuery(variables: RemoteAppGetUsersQueryVariables) {
-      return { query: RemoteAppGetUsersDocument, variables: variables }
-    }
-export const RemoteAppGetUsersCustomDocument = gql`
-    query remoteAppGetUsersCustom($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
-  users(
-    where: $where
-    limit: $limit
-    offset: $offset
-    order_by: {createdAt: desc}
-  ) {
-    id
-    createdAt
-    displayName
-    phoneNumber
-    avatarUrl
-    email
-    disabled
-    defaultRole
-    roles(order_by: {role: asc}) {
-      role
-    }
-    isAnonymous
-  }
+export function useRemoteAppGetUsersQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    RemoteAppGetUsersQuery,
+    RemoteAppGetUsersQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    RemoteAppGetUsersQuery,
+    RemoteAppGetUsersQueryVariables
+  >(RemoteAppGetUsersDocument, options);
 }
-    `;
+export function useRemoteAppGetUsersLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    RemoteAppGetUsersQuery,
+    RemoteAppGetUsersQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    RemoteAppGetUsersQuery,
+    RemoteAppGetUsersQueryVariables
+  >(RemoteAppGetUsersDocument, options);
+}
+export type RemoteAppGetUsersQueryHookResult = ReturnType<
+  typeof useRemoteAppGetUsersQuery
+>;
+export type RemoteAppGetUsersLazyQueryHookResult = ReturnType<
+  typeof useRemoteAppGetUsersLazyQuery
+>;
+export type RemoteAppGetUsersQueryResult = Apollo.QueryResult<
+  RemoteAppGetUsersQuery,
+  RemoteAppGetUsersQueryVariables
+>;
+export function refetchRemoteAppGetUsersQuery(
+  variables: RemoteAppGetUsersQueryVariables,
+) {
+  return { query: RemoteAppGetUsersDocument, variables: variables };
+}
+export const RemoteAppGetUsersCustomDocument = gql`
+  query remoteAppGetUsersCustom(
+    $where: users_bool_exp!
+    $limit: Int!
+    $offset: Int!
+  ) {
+    users(
+      where: $where
+      limit: $limit
+      offset: $offset
+      order_by: { createdAt: desc }
+    ) {
+      id
+      createdAt
+      displayName
+      phoneNumber
+      avatarUrl
+      email
+      disabled
+      defaultRole
+      roles(order_by: { role: asc }) {
+        role
+      }
+      isAnonymous
+    }
+  }
+`;
 
 /**
  * __useRemoteAppGetUsersCustomQuery__
@@ -30807,32 +33932,58 @@ export const RemoteAppGetUsersCustomDocument = gql`
  *   },
  * });
  */
-export function useRemoteAppGetUsersCustomQuery(baseOptions: Apollo.QueryHookOptions<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>(RemoteAppGetUsersCustomDocument, options);
-      }
-export function useRemoteAppGetUsersCustomLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>(RemoteAppGetUsersCustomDocument, options);
-        }
-export type RemoteAppGetUsersCustomQueryHookResult = ReturnType<typeof useRemoteAppGetUsersCustomQuery>;
-export type RemoteAppGetUsersCustomLazyQueryHookResult = ReturnType<typeof useRemoteAppGetUsersCustomLazyQuery>;
-export type RemoteAppGetUsersCustomQueryResult = Apollo.QueryResult<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>;
-export function refetchRemoteAppGetUsersCustomQuery(variables: RemoteAppGetUsersCustomQueryVariables) {
-      return { query: RemoteAppGetUsersCustomDocument, variables: variables }
-    }
-export const RemoteAppGetUsersWholeDocument = gql`
-    query remoteAppGetUsersWhole($limit: Int!, $offset: Int!) {
-  users(limit: $limit, offset: $offset) {
-    ...RemoteAppGetUsers
-  }
-  usersAggregate {
-    aggregate {
-      count
-    }
-  }
+export function useRemoteAppGetUsersCustomQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    RemoteAppGetUsersCustomQuery,
+    RemoteAppGetUsersCustomQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    RemoteAppGetUsersCustomQuery,
+    RemoteAppGetUsersCustomQueryVariables
+  >(RemoteAppGetUsersCustomDocument, options);
 }
-    ${RemoteAppGetUsersFragmentDoc}`;
+export function useRemoteAppGetUsersCustomLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    RemoteAppGetUsersCustomQuery,
+    RemoteAppGetUsersCustomQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    RemoteAppGetUsersCustomQuery,
+    RemoteAppGetUsersCustomQueryVariables
+  >(RemoteAppGetUsersCustomDocument, options);
+}
+export type RemoteAppGetUsersCustomQueryHookResult = ReturnType<
+  typeof useRemoteAppGetUsersCustomQuery
+>;
+export type RemoteAppGetUsersCustomLazyQueryHookResult = ReturnType<
+  typeof useRemoteAppGetUsersCustomLazyQuery
+>;
+export type RemoteAppGetUsersCustomQueryResult = Apollo.QueryResult<
+  RemoteAppGetUsersCustomQuery,
+  RemoteAppGetUsersCustomQueryVariables
+>;
+export function refetchRemoteAppGetUsersCustomQuery(
+  variables: RemoteAppGetUsersCustomQueryVariables,
+) {
+  return { query: RemoteAppGetUsersCustomDocument, variables: variables };
+}
+export const RemoteAppGetUsersWholeDocument = gql`
+  query remoteAppGetUsersWhole($limit: Int!, $offset: Int!) {
+    users(limit: $limit, offset: $offset) {
+      ...RemoteAppGetUsers
+    }
+    usersAggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+  ${RemoteAppGetUsersFragmentDoc}
+`;
 
 /**
  * __useRemoteAppGetUsersWholeQuery__
@@ -30851,29 +34002,54 @@ export const RemoteAppGetUsersWholeDocument = gql`
  *   },
  * });
  */
-export function useRemoteAppGetUsersWholeQuery(baseOptions: Apollo.QueryHookOptions<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>(RemoteAppGetUsersWholeDocument, options);
-      }
-export function useRemoteAppGetUsersWholeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>(RemoteAppGetUsersWholeDocument, options);
-        }
-export type RemoteAppGetUsersWholeQueryHookResult = ReturnType<typeof useRemoteAppGetUsersWholeQuery>;
-export type RemoteAppGetUsersWholeLazyQueryHookResult = ReturnType<typeof useRemoteAppGetUsersWholeLazyQuery>;
-export type RemoteAppGetUsersWholeQueryResult = Apollo.QueryResult<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>;
-export function refetchRemoteAppGetUsersWholeQuery(variables: RemoteAppGetUsersWholeQueryVariables) {
-      return { query: RemoteAppGetUsersWholeDocument, variables: variables }
-    }
+export function useRemoteAppGetUsersWholeQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    RemoteAppGetUsersWholeQuery,
+    RemoteAppGetUsersWholeQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    RemoteAppGetUsersWholeQuery,
+    RemoteAppGetUsersWholeQueryVariables
+  >(RemoteAppGetUsersWholeDocument, options);
+}
+export function useRemoteAppGetUsersWholeLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    RemoteAppGetUsersWholeQuery,
+    RemoteAppGetUsersWholeQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    RemoteAppGetUsersWholeQuery,
+    RemoteAppGetUsersWholeQueryVariables
+  >(RemoteAppGetUsersWholeDocument, options);
+}
+export type RemoteAppGetUsersWholeQueryHookResult = ReturnType<
+  typeof useRemoteAppGetUsersWholeQuery
+>;
+export type RemoteAppGetUsersWholeLazyQueryHookResult = ReturnType<
+  typeof useRemoteAppGetUsersWholeLazyQuery
+>;
+export type RemoteAppGetUsersWholeQueryResult = Apollo.QueryResult<
+  RemoteAppGetUsersWholeQuery,
+  RemoteAppGetUsersWholeQueryVariables
+>;
+export function refetchRemoteAppGetUsersWholeQuery(
+  variables: RemoteAppGetUsersWholeQueryVariables,
+) {
+  return { query: RemoteAppGetUsersWholeDocument, variables: variables };
+}
 export const TotalUsersDocument = gql`
-    query totalUsers {
-  usersAggregate {
-    aggregate {
-      count
+  query totalUsers {
+    usersAggregate {
+      aggregate {
+        count
+      }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useTotalUsersQuery__
@@ -30890,29 +34066,50 @@ export const TotalUsersDocument = gql`
  *   },
  * });
  */
-export function useTotalUsersQuery(baseOptions?: Apollo.QueryHookOptions<TotalUsersQuery, TotalUsersQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<TotalUsersQuery, TotalUsersQueryVariables>(TotalUsersDocument, options);
-      }
-export function useTotalUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TotalUsersQuery, TotalUsersQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<TotalUsersQuery, TotalUsersQueryVariables>(TotalUsersDocument, options);
-        }
+export function useTotalUsersQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    TotalUsersQuery,
+    TotalUsersQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<TotalUsersQuery, TotalUsersQueryVariables>(
+    TotalUsersDocument,
+    options,
+  );
+}
+export function useTotalUsersLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    TotalUsersQuery,
+    TotalUsersQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<TotalUsersQuery, TotalUsersQueryVariables>(
+    TotalUsersDocument,
+    options,
+  );
+}
 export type TotalUsersQueryHookResult = ReturnType<typeof useTotalUsersQuery>;
-export type TotalUsersLazyQueryHookResult = ReturnType<typeof useTotalUsersLazyQuery>;
-export type TotalUsersQueryResult = Apollo.QueryResult<TotalUsersQuery, TotalUsersQueryVariables>;
+export type TotalUsersLazyQueryHookResult = ReturnType<
+  typeof useTotalUsersLazyQuery
+>;
+export type TotalUsersQueryResult = Apollo.QueryResult<
+  TotalUsersQuery,
+  TotalUsersQueryVariables
+>;
 export function refetchTotalUsersQuery(variables?: TotalUsersQueryVariables) {
-      return { query: TotalUsersDocument, variables: variables }
-    }
+  return { query: TotalUsersDocument, variables: variables };
+}
 export const TotalUsersByDateDocument = gql`
-    query totalUsersByDate($where: users_bool_exp!) {
-  usersAggregate(where: $where) {
-    aggregate {
-      count
+  query totalUsersByDate($where: users_bool_exp!) {
+    usersAggregate(where: $where) {
+      aggregate {
+        count
+      }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useTotalUsersByDateQuery__
@@ -30930,28 +34127,56 @@ export const TotalUsersByDateDocument = gql`
  *   },
  * });
  */
-export function useTotalUsersByDateQuery(baseOptions: Apollo.QueryHookOptions<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>(TotalUsersByDateDocument, options);
-      }
-export function useTotalUsersByDateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>(TotalUsersByDateDocument, options);
-        }
-export type TotalUsersByDateQueryHookResult = ReturnType<typeof useTotalUsersByDateQuery>;
-export type TotalUsersByDateLazyQueryHookResult = ReturnType<typeof useTotalUsersByDateLazyQuery>;
-export type TotalUsersByDateQueryResult = Apollo.QueryResult<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>;
-export function refetchTotalUsersByDateQuery(variables: TotalUsersByDateQueryVariables) {
-      return { query: TotalUsersByDateDocument, variables: variables }
-    }
-export const UpdateRemoteAppUserDocument = gql`
-    mutation updateRemoteAppUser($id: uuid!, $user: users_set_input!) {
-  updateUser(pk_columns: {id: $id}, _set: $user) {
-    id
-  }
+export function useTotalUsersByDateQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    TotalUsersByDateQuery,
+    TotalUsersByDateQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>(
+    TotalUsersByDateDocument,
+    options,
+  );
 }
-    `;
-export type UpdateRemoteAppUserMutationFn = Apollo.MutationFunction<UpdateRemoteAppUserMutation, UpdateRemoteAppUserMutationVariables>;
+export function useTotalUsersByDateLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    TotalUsersByDateQuery,
+    TotalUsersByDateQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    TotalUsersByDateQuery,
+    TotalUsersByDateQueryVariables
+  >(TotalUsersByDateDocument, options);
+}
+export type TotalUsersByDateQueryHookResult = ReturnType<
+  typeof useTotalUsersByDateQuery
+>;
+export type TotalUsersByDateLazyQueryHookResult = ReturnType<
+  typeof useTotalUsersByDateLazyQuery
+>;
+export type TotalUsersByDateQueryResult = Apollo.QueryResult<
+  TotalUsersByDateQuery,
+  TotalUsersByDateQueryVariables
+>;
+export function refetchTotalUsersByDateQuery(
+  variables: TotalUsersByDateQueryVariables,
+) {
+  return { query: TotalUsersByDateDocument, variables: variables };
+}
+export const UpdateRemoteAppUserDocument = gql`
+  mutation updateRemoteAppUser($id: uuid!, $user: users_set_input!) {
+    updateUser(pk_columns: { id: $id }, _set: $user) {
+      id
+    }
+  }
+`;
+export type UpdateRemoteAppUserMutationFn = Apollo.MutationFunction<
+  UpdateRemoteAppUserMutation,
+  UpdateRemoteAppUserMutationVariables
+>;
 
 /**
  * __useUpdateRemoteAppUserMutation__
@@ -30971,21 +34196,38 @@ export type UpdateRemoteAppUserMutationFn = Apollo.MutationFunction<UpdateRemote
  *   },
  * });
  */
-export function useUpdateRemoteAppUserMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRemoteAppUserMutation, UpdateRemoteAppUserMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateRemoteAppUserMutation, UpdateRemoteAppUserMutationVariables>(UpdateRemoteAppUserDocument, options);
-      }
-export type UpdateRemoteAppUserMutationHookResult = ReturnType<typeof useUpdateRemoteAppUserMutation>;
-export type UpdateRemoteAppUserMutationResult = Apollo.MutationResult<UpdateRemoteAppUserMutation>;
-export type UpdateRemoteAppUserMutationOptions = Apollo.BaseMutationOptions<UpdateRemoteAppUserMutation, UpdateRemoteAppUserMutationVariables>;
-export const InsertRemoteAppUserRolesDocument = gql`
-    mutation insertRemoteAppUserRoles($roles: [authUserRoles_insert_input!]!) {
-  insertAuthUserRoles(objects: $roles) {
-    affected_rows
-  }
+export function useUpdateRemoteAppUserMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateRemoteAppUserMutation,
+    UpdateRemoteAppUserMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateRemoteAppUserMutation,
+    UpdateRemoteAppUserMutationVariables
+  >(UpdateRemoteAppUserDocument, options);
 }
-    `;
-export type InsertRemoteAppUserRolesMutationFn = Apollo.MutationFunction<InsertRemoteAppUserRolesMutation, InsertRemoteAppUserRolesMutationVariables>;
+export type UpdateRemoteAppUserMutationHookResult = ReturnType<
+  typeof useUpdateRemoteAppUserMutation
+>;
+export type UpdateRemoteAppUserMutationResult =
+  Apollo.MutationResult<UpdateRemoteAppUserMutation>;
+export type UpdateRemoteAppUserMutationOptions = Apollo.BaseMutationOptions<
+  UpdateRemoteAppUserMutation,
+  UpdateRemoteAppUserMutationVariables
+>;
+export const InsertRemoteAppUserRolesDocument = gql`
+  mutation insertRemoteAppUserRoles($roles: [authUserRoles_insert_input!]!) {
+    insertAuthUserRoles(objects: $roles) {
+      affected_rows
+    }
+  }
+`;
+export type InsertRemoteAppUserRolesMutationFn = Apollo.MutationFunction<
+  InsertRemoteAppUserRolesMutation,
+  InsertRemoteAppUserRolesMutationVariables
+>;
 
 /**
  * __useInsertRemoteAppUserRolesMutation__
@@ -31004,23 +34246,41 @@ export type InsertRemoteAppUserRolesMutationFn = Apollo.MutationFunction<InsertR
  *   },
  * });
  */
-export function useInsertRemoteAppUserRolesMutation(baseOptions?: Apollo.MutationHookOptions<InsertRemoteAppUserRolesMutation, InsertRemoteAppUserRolesMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertRemoteAppUserRolesMutation, InsertRemoteAppUserRolesMutationVariables>(InsertRemoteAppUserRolesDocument, options);
-      }
-export type InsertRemoteAppUserRolesMutationHookResult = ReturnType<typeof useInsertRemoteAppUserRolesMutation>;
-export type InsertRemoteAppUserRolesMutationResult = Apollo.MutationResult<InsertRemoteAppUserRolesMutation>;
-export type InsertRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<InsertRemoteAppUserRolesMutation, InsertRemoteAppUserRolesMutationVariables>;
-export const DeleteRemoteAppUserRolesDocument = gql`
-    mutation deleteRemoteAppUserRoles($userId: uuid!, $roles: [String!]!) {
-  deleteAuthUserRoles(
-    where: {_and: [{userId: {_eq: $userId}}, {role: {_in: $roles}}]}
-  ) {
-    affected_rows
-  }
+export function useInsertRemoteAppUserRolesMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertRemoteAppUserRolesMutation,
+    InsertRemoteAppUserRolesMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertRemoteAppUserRolesMutation,
+    InsertRemoteAppUserRolesMutationVariables
+  >(InsertRemoteAppUserRolesDocument, options);
 }
-    `;
-export type DeleteRemoteAppUserRolesMutationFn = Apollo.MutationFunction<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
+export type InsertRemoteAppUserRolesMutationHookResult = ReturnType<
+  typeof useInsertRemoteAppUserRolesMutation
+>;
+export type InsertRemoteAppUserRolesMutationResult =
+  Apollo.MutationResult<InsertRemoteAppUserRolesMutation>;
+export type InsertRemoteAppUserRolesMutationOptions =
+  Apollo.BaseMutationOptions<
+    InsertRemoteAppUserRolesMutation,
+    InsertRemoteAppUserRolesMutationVariables
+  >;
+export const DeleteRemoteAppUserRolesDocument = gql`
+  mutation deleteRemoteAppUserRoles($userId: uuid!, $roles: [String!]!) {
+    deleteAuthUserRoles(
+      where: { _and: [{ userId: { _eq: $userId } }, { role: { _in: $roles } }] }
+    ) {
+      affected_rows
+    }
+  }
+`;
+export type DeleteRemoteAppUserRolesMutationFn = Apollo.MutationFunction<
+  DeleteRemoteAppUserRolesMutation,
+  DeleteRemoteAppUserRolesMutationVariables
+>;
 
 /**
  * __useDeleteRemoteAppUserRolesMutation__
@@ -31040,21 +34300,39 @@ export type DeleteRemoteAppUserRolesMutationFn = Apollo.MutationFunction<DeleteR
  *   },
  * });
  */
-export function useDeleteRemoteAppUserRolesMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>(DeleteRemoteAppUserRolesDocument, options);
-      }
-export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<typeof useDeleteRemoteAppUserRolesMutation>;
-export type DeleteRemoteAppUserRolesMutationResult = Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
-export type DeleteRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
-export const DeleteRunServiceDocument = gql`
-    mutation deleteRunService($serviceID: uuid!) {
-  deleteRunService(id: $serviceID) {
-    id
-  }
+export function useDeleteRemoteAppUserRolesMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteRemoteAppUserRolesMutation,
+    DeleteRemoteAppUserRolesMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteRemoteAppUserRolesMutation,
+    DeleteRemoteAppUserRolesMutationVariables
+  >(DeleteRemoteAppUserRolesDocument, options);
 }
-    `;
-export type DeleteRunServiceMutationFn = Apollo.MutationFunction<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
+export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<
+  typeof useDeleteRemoteAppUserRolesMutation
+>;
+export type DeleteRemoteAppUserRolesMutationResult =
+  Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
+export type DeleteRemoteAppUserRolesMutationOptions =
+  Apollo.BaseMutationOptions<
+    DeleteRemoteAppUserRolesMutation,
+    DeleteRemoteAppUserRolesMutationVariables
+  >;
+export const DeleteRunServiceDocument = gql`
+  mutation deleteRunService($serviceID: uuid!) {
+    deleteRunService(id: $serviceID) {
+      id
+    }
+  }
+`;
+export type DeleteRunServiceMutationFn = Apollo.MutationFunction<
+  DeleteRunServiceMutation,
+  DeleteRunServiceMutationVariables
+>;
 
 /**
  * __useDeleteRunServiceMutation__
@@ -31073,21 +34351,38 @@ export type DeleteRunServiceMutationFn = Apollo.MutationFunction<DeleteRunServic
  *   },
  * });
  */
-export function useDeleteRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>(DeleteRunServiceDocument, options);
-      }
-export type DeleteRunServiceMutationHookResult = ReturnType<typeof useDeleteRunServiceMutation>;
-export type DeleteRunServiceMutationResult = Apollo.MutationResult<DeleteRunServiceMutation>;
-export type DeleteRunServiceMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
-export const DeleteRunServiceConfigDocument = gql`
-    mutation deleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
-  deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
-    name
-  }
+export function useDeleteRunServiceMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteRunServiceMutation,
+    DeleteRunServiceMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteRunServiceMutation,
+    DeleteRunServiceMutationVariables
+  >(DeleteRunServiceDocument, options);
 }
-    `;
-export type DeleteRunServiceConfigMutationFn = Apollo.MutationFunction<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+export type DeleteRunServiceMutationHookResult = ReturnType<
+  typeof useDeleteRunServiceMutation
+>;
+export type DeleteRunServiceMutationResult =
+  Apollo.MutationResult<DeleteRunServiceMutation>;
+export type DeleteRunServiceMutationOptions = Apollo.BaseMutationOptions<
+  DeleteRunServiceMutation,
+  DeleteRunServiceMutationVariables
+>;
+export const DeleteRunServiceConfigDocument = gql`
+  mutation deleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
+    deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
+      name
+    }
+  }
+`;
+export type DeleteRunServiceConfigMutationFn = Apollo.MutationFunction<
+  DeleteRunServiceConfigMutation,
+  DeleteRunServiceConfigMutationVariables
+>;
 
 /**
  * __useDeleteRunServiceConfigMutation__
@@ -31107,52 +34402,67 @@ export type DeleteRunServiceConfigMutationFn = Apollo.MutationFunction<DeleteRun
  *   },
  * });
  */
-export function useDeleteRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>(DeleteRunServiceConfigDocument, options);
-      }
-export type DeleteRunServiceConfigMutationHookResult = ReturnType<typeof useDeleteRunServiceConfigMutation>;
-export type DeleteRunServiceConfigMutationResult = Apollo.MutationResult<DeleteRunServiceConfigMutation>;
-export type DeleteRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+export function useDeleteRunServiceConfigMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteRunServiceConfigMutation,
+    DeleteRunServiceConfigMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteRunServiceConfigMutation,
+    DeleteRunServiceConfigMutationVariables
+  >(DeleteRunServiceConfigDocument, options);
+}
+export type DeleteRunServiceConfigMutationHookResult = ReturnType<
+  typeof useDeleteRunServiceConfigMutation
+>;
+export type DeleteRunServiceConfigMutationResult =
+  Apollo.MutationResult<DeleteRunServiceConfigMutation>;
+export type DeleteRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<
+  DeleteRunServiceConfigMutation,
+  DeleteRunServiceConfigMutationVariables
+>;
 export const GetRunServiceDocument = gql`
-    query getRunService($id: uuid!, $resolve: Boolean!) {
-  runService(id: $id) {
-    id
-    subdomain
-    config(resolve: $resolve) {
-      name
-      image {
-        image
-      }
-      command
-      resources {
-        compute {
-          cpu
-          memory
-        }
-        storage {
-          name
-          path
-          capacity
-        }
-        replicas
-        autoscaler {
-          maxReplicas
-        }
-      }
-      environment {
+  query getRunService($id: uuid!, $resolve: Boolean!) {
+    runService(id: $id) {
+      id
+      subdomain
+      config(resolve: $resolve) {
         name
-        value
-      }
-      ports {
-        port
-        type
-        publish
+        image {
+          image
+          pullCredentials
+        }
+        command
+        resources {
+          compute {
+            cpu
+            memory
+          }
+          storage {
+            name
+            path
+            capacity
+          }
+          replicas
+          autoscaler {
+            maxReplicas
+          }
+        }
+        environment {
+          name
+          value
+        }
+        ports {
+          port
+          type
+          publish
+        }
       }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useGetRunServiceQuery__
@@ -31171,40 +34481,71 @@ export const GetRunServiceDocument = gql`
  *   },
  * });
  */
-export function useGetRunServiceQuery(baseOptions: Apollo.QueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
-      }
-export function useGetRunServiceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
-        }
-export type GetRunServiceQueryHookResult = ReturnType<typeof useGetRunServiceQuery>;
-export type GetRunServiceLazyQueryHookResult = ReturnType<typeof useGetRunServiceLazyQuery>;
-export type GetRunServiceQueryResult = Apollo.QueryResult<GetRunServiceQuery, GetRunServiceQueryVariables>;
-export function refetchGetRunServiceQuery(variables: GetRunServiceQueryVariables) {
-      return { query: GetRunServiceDocument, variables: variables }
-    }
+export function useGetRunServiceQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetRunServiceQuery,
+    GetRunServiceQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(
+    GetRunServiceDocument,
+    options,
+  );
+}
+export function useGetRunServiceLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRunServiceQuery,
+    GetRunServiceQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(
+    GetRunServiceDocument,
+    options,
+  );
+}
+export type GetRunServiceQueryHookResult = ReturnType<
+  typeof useGetRunServiceQuery
+>;
+export type GetRunServiceLazyQueryHookResult = ReturnType<
+  typeof useGetRunServiceLazyQuery
+>;
+export type GetRunServiceQueryResult = Apollo.QueryResult<
+  GetRunServiceQuery,
+  GetRunServiceQueryVariables
+>;
+export function refetchGetRunServiceQuery(
+  variables: GetRunServiceQueryVariables,
+) {
+  return { query: GetRunServiceDocument, variables: variables };
+}
 export const GetRunServicesDocument = gql`
-    query getRunServices($appID: uuid!, $resolve: Boolean!, $limit: Int!, $offset: Int!) {
-  app(id: $appID) {
-    runServices(limit: $limit, offset: $offset) {
-      id
-      createdAt
-      updatedAt
-      subdomain
-      config(resolve: $resolve) {
-        ...RunServiceConfig
+  query getRunServices(
+    $appID: uuid!
+    $resolve: Boolean!
+    $limit: Int!
+    $offset: Int!
+  ) {
+    app(id: $appID) {
+      runServices(limit: $limit, offset: $offset) {
+        id
+        createdAt
+        updatedAt
+        subdomain
+        config(resolve: $resolve) {
+          ...RunServiceConfig
+        }
       }
-    }
-    runServices_aggregate {
-      aggregate {
-        count
+      runServices_aggregate {
+        aggregate {
+          count
+        }
       }
     }
   }
-}
-    ${RunServiceConfigFragmentDoc}`;
+  ${RunServiceConfigFragmentDoc}
+`;
 
 /**
  * __useGetRunServicesQuery__
@@ -31225,30 +34566,56 @@ export const GetRunServicesDocument = gql`
  *   },
  * });
  */
-export function useGetRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
-      }
-export function useGetRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
-        }
-export type GetRunServicesQueryHookResult = ReturnType<typeof useGetRunServicesQuery>;
-export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServicesLazyQuery>;
-export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
-export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
-      return { query: GetRunServicesDocument, variables: variables }
-    }
+export function useGetRunServicesQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetRunServicesQuery,
+    GetRunServicesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(
+    GetRunServicesDocument,
+    options,
+  );
+}
+export function useGetRunServicesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRunServicesQuery,
+    GetRunServicesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(
+    GetRunServicesDocument,
+    options,
+  );
+}
+export type GetRunServicesQueryHookResult = ReturnType<
+  typeof useGetRunServicesQuery
+>;
+export type GetRunServicesLazyQueryHookResult = ReturnType<
+  typeof useGetRunServicesLazyQuery
+>;
+export type GetRunServicesQueryResult = Apollo.QueryResult<
+  GetRunServicesQuery,
+  GetRunServicesQueryVariables
+>;
+export function refetchGetRunServicesQuery(
+  variables: GetRunServicesQueryVariables,
+) {
+  return { query: GetRunServicesDocument, variables: variables };
+}
 export const GetLocalRunServiceConfigsDocument = gql`
-    query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {
-  runServiceConfigs(appID: $appID, resolve: $resolve) {
-    serviceID
-    config {
-      ...RunServiceConfig
+  query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {
+    runServiceConfigs(appID: $appID, resolve: $resolve) {
+      serviceID
+      config {
+        ...RunServiceConfig
+      }
     }
   }
-}
-    ${RunServiceConfigFragmentDoc}`;
+  ${RunServiceConfigFragmentDoc}
+`;
 
 /**
  * __useGetLocalRunServiceConfigsQuery__
@@ -31267,35 +34634,61 @@ export const GetLocalRunServiceConfigsDocument = gql`
  *   },
  * });
  */
-export function useGetLocalRunServiceConfigsQuery(baseOptions: Apollo.QueryHookOptions<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>(GetLocalRunServiceConfigsDocument, options);
-      }
-export function useGetLocalRunServiceConfigsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>(GetLocalRunServiceConfigsDocument, options);
-        }
-export type GetLocalRunServiceConfigsQueryHookResult = ReturnType<typeof useGetLocalRunServiceConfigsQuery>;
-export type GetLocalRunServiceConfigsLazyQueryHookResult = ReturnType<typeof useGetLocalRunServiceConfigsLazyQuery>;
-export type GetLocalRunServiceConfigsQueryResult = Apollo.QueryResult<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>;
-export function refetchGetLocalRunServiceConfigsQuery(variables: GetLocalRunServiceConfigsQueryVariables) {
-      return { query: GetLocalRunServiceConfigsDocument, variables: variables }
-    }
+export function useGetLocalRunServiceConfigsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetLocalRunServiceConfigsQuery,
+    GetLocalRunServiceConfigsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetLocalRunServiceConfigsQuery,
+    GetLocalRunServiceConfigsQueryVariables
+  >(GetLocalRunServiceConfigsDocument, options);
+}
+export function useGetLocalRunServiceConfigsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetLocalRunServiceConfigsQuery,
+    GetLocalRunServiceConfigsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetLocalRunServiceConfigsQuery,
+    GetLocalRunServiceConfigsQueryVariables
+  >(GetLocalRunServiceConfigsDocument, options);
+}
+export type GetLocalRunServiceConfigsQueryHookResult = ReturnType<
+  typeof useGetLocalRunServiceConfigsQuery
+>;
+export type GetLocalRunServiceConfigsLazyQueryHookResult = ReturnType<
+  typeof useGetLocalRunServiceConfigsLazyQuery
+>;
+export type GetLocalRunServiceConfigsQueryResult = Apollo.QueryResult<
+  GetLocalRunServiceConfigsQuery,
+  GetLocalRunServiceConfigsQueryVariables
+>;
+export function refetchGetLocalRunServiceConfigsQuery(
+  variables: GetLocalRunServiceConfigsQueryVariables,
+) {
+  return { query: GetLocalRunServiceConfigsDocument, variables: variables };
+}
 export const GetRunServicesRateLimitDocument = gql`
-    query getRunServicesRateLimit($appID: uuid!, $resolve: Boolean!) {
-  app(id: $appID) {
-    runServices {
-      id
-      createdAt
-      updatedAt
-      subdomain
-      config(resolve: $resolve) {
-        ...RunServiceRateLimit
+  query getRunServicesRateLimit($appID: uuid!, $resolve: Boolean!) {
+    app(id: $appID) {
+      runServices {
+        id
+        createdAt
+        updatedAt
+        subdomain
+        config(resolve: $resolve) {
+          ...RunServiceRateLimit
+        }
       }
     }
   }
-}
-    ${RunServiceRateLimitFragmentDoc}`;
+  ${RunServiceRateLimitFragmentDoc}
+`;
 
 /**
  * __useGetRunServicesRateLimitQuery__
@@ -31314,30 +34707,56 @@ export const GetRunServicesRateLimitDocument = gql`
  *   },
  * });
  */
-export function useGetRunServicesRateLimitQuery(baseOptions: Apollo.QueryHookOptions<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>(GetRunServicesRateLimitDocument, options);
-      }
-export function useGetRunServicesRateLimitLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>(GetRunServicesRateLimitDocument, options);
-        }
-export type GetRunServicesRateLimitQueryHookResult = ReturnType<typeof useGetRunServicesRateLimitQuery>;
-export type GetRunServicesRateLimitLazyQueryHookResult = ReturnType<typeof useGetRunServicesRateLimitLazyQuery>;
-export type GetRunServicesRateLimitQueryResult = Apollo.QueryResult<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>;
-export function refetchGetRunServicesRateLimitQuery(variables: GetRunServicesRateLimitQueryVariables) {
-      return { query: GetRunServicesRateLimitDocument, variables: variables }
-    }
+export function useGetRunServicesRateLimitQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetRunServicesRateLimitQuery,
+    GetRunServicesRateLimitQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetRunServicesRateLimitQuery,
+    GetRunServicesRateLimitQueryVariables
+  >(GetRunServicesRateLimitDocument, options);
+}
+export function useGetRunServicesRateLimitLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRunServicesRateLimitQuery,
+    GetRunServicesRateLimitQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetRunServicesRateLimitQuery,
+    GetRunServicesRateLimitQueryVariables
+  >(GetRunServicesRateLimitDocument, options);
+}
+export type GetRunServicesRateLimitQueryHookResult = ReturnType<
+  typeof useGetRunServicesRateLimitQuery
+>;
+export type GetRunServicesRateLimitLazyQueryHookResult = ReturnType<
+  typeof useGetRunServicesRateLimitLazyQuery
+>;
+export type GetRunServicesRateLimitQueryResult = Apollo.QueryResult<
+  GetRunServicesRateLimitQuery,
+  GetRunServicesRateLimitQueryVariables
+>;
+export function refetchGetRunServicesRateLimitQuery(
+  variables: GetRunServicesRateLimitQueryVariables,
+) {
+  return { query: GetRunServicesRateLimitDocument, variables: variables };
+}
 export const GetLocalRunServiceRateLimitDocument = gql`
-    query getLocalRunServiceRateLimit($appID: uuid!, $resolve: Boolean!) {
-  runServiceConfigs(appID: $appID, resolve: $resolve) {
-    serviceID
-    config {
-      ...RunServiceRateLimit
+  query getLocalRunServiceRateLimit($appID: uuid!, $resolve: Boolean!) {
+    runServiceConfigs(appID: $appID, resolve: $resolve) {
+      serviceID
+      config {
+        ...RunServiceRateLimit
+      }
     }
   }
-}
-    ${RunServiceRateLimitFragmentDoc}`;
+  ${RunServiceRateLimitFragmentDoc}
+`;
 
 /**
  * __useGetLocalRunServiceRateLimitQuery__
@@ -31356,29 +34775,57 @@ export const GetLocalRunServiceRateLimitDocument = gql`
  *   },
  * });
  */
-export function useGetLocalRunServiceRateLimitQuery(baseOptions: Apollo.QueryHookOptions<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>(GetLocalRunServiceRateLimitDocument, options);
-      }
-export function useGetLocalRunServiceRateLimitLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>(GetLocalRunServiceRateLimitDocument, options);
-        }
-export type GetLocalRunServiceRateLimitQueryHookResult = ReturnType<typeof useGetLocalRunServiceRateLimitQuery>;
-export type GetLocalRunServiceRateLimitLazyQueryHookResult = ReturnType<typeof useGetLocalRunServiceRateLimitLazyQuery>;
-export type GetLocalRunServiceRateLimitQueryResult = Apollo.QueryResult<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>;
-export function refetchGetLocalRunServiceRateLimitQuery(variables: GetLocalRunServiceRateLimitQueryVariables) {
-      return { query: GetLocalRunServiceRateLimitDocument, variables: variables }
-    }
-export const InsertRunServiceDocument = gql`
-    mutation insertRunService($object: run_service_insert_input!) {
-  insertRunService(object: $object) {
-    id
-    subdomain
-  }
+export function useGetLocalRunServiceRateLimitQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetLocalRunServiceRateLimitQuery,
+    GetLocalRunServiceRateLimitQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetLocalRunServiceRateLimitQuery,
+    GetLocalRunServiceRateLimitQueryVariables
+  >(GetLocalRunServiceRateLimitDocument, options);
 }
-    `;
-export type InsertRunServiceMutationFn = Apollo.MutationFunction<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
+export function useGetLocalRunServiceRateLimitLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetLocalRunServiceRateLimitQuery,
+    GetLocalRunServiceRateLimitQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetLocalRunServiceRateLimitQuery,
+    GetLocalRunServiceRateLimitQueryVariables
+  >(GetLocalRunServiceRateLimitDocument, options);
+}
+export type GetLocalRunServiceRateLimitQueryHookResult = ReturnType<
+  typeof useGetLocalRunServiceRateLimitQuery
+>;
+export type GetLocalRunServiceRateLimitLazyQueryHookResult = ReturnType<
+  typeof useGetLocalRunServiceRateLimitLazyQuery
+>;
+export type GetLocalRunServiceRateLimitQueryResult = Apollo.QueryResult<
+  GetLocalRunServiceRateLimitQuery,
+  GetLocalRunServiceRateLimitQueryVariables
+>;
+export function refetchGetLocalRunServiceRateLimitQuery(
+  variables: GetLocalRunServiceRateLimitQueryVariables,
+) {
+  return { query: GetLocalRunServiceRateLimitDocument, variables: variables };
+}
+export const InsertRunServiceDocument = gql`
+  mutation insertRunService($object: run_service_insert_input!) {
+    insertRunService(object: $object) {
+      id
+      subdomain
+    }
+  }
+`;
+export type InsertRunServiceMutationFn = Apollo.MutationFunction<
+  InsertRunServiceMutation,
+  InsertRunServiceMutationVariables
+>;
 
 /**
  * __useInsertRunServiceMutation__
@@ -31397,21 +34844,46 @@ export type InsertRunServiceMutationFn = Apollo.MutationFunction<InsertRunServic
  *   },
  * });
  */
-export function useInsertRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertRunServiceMutation, InsertRunServiceMutationVariables>(InsertRunServiceDocument, options);
-      }
-export type InsertRunServiceMutationHookResult = ReturnType<typeof useInsertRunServiceMutation>;
-export type InsertRunServiceMutationResult = Apollo.MutationResult<InsertRunServiceMutation>;
-export type InsertRunServiceMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
-export const InsertRunServiceConfigDocument = gql`
-    mutation insertRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
-  insertRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
-    name
-  }
+export function useInsertRunServiceMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertRunServiceMutation,
+    InsertRunServiceMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertRunServiceMutation,
+    InsertRunServiceMutationVariables
+  >(InsertRunServiceDocument, options);
 }
-    `;
-export type InsertRunServiceConfigMutationFn = Apollo.MutationFunction<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
+export type InsertRunServiceMutationHookResult = ReturnType<
+  typeof useInsertRunServiceMutation
+>;
+export type InsertRunServiceMutationResult =
+  Apollo.MutationResult<InsertRunServiceMutation>;
+export type InsertRunServiceMutationOptions = Apollo.BaseMutationOptions<
+  InsertRunServiceMutation,
+  InsertRunServiceMutationVariables
+>;
+export const InsertRunServiceConfigDocument = gql`
+  mutation insertRunServiceConfig(
+    $appID: uuid!
+    $serviceID: uuid!
+    $config: ConfigRunServiceConfigInsertInput!
+  ) {
+    insertRunServiceConfig(
+      appID: $appID
+      serviceID: $serviceID
+      config: $config
+    ) {
+      name
+    }
+  }
+`;
+export type InsertRunServiceConfigMutationFn = Apollo.MutationFunction<
+  InsertRunServiceConfigMutation,
+  InsertRunServiceConfigMutationVariables
+>;
 
 /**
  * __useInsertRunServiceConfigMutation__
@@ -31432,21 +34904,46 @@ export type InsertRunServiceConfigMutationFn = Apollo.MutationFunction<InsertRun
  *   },
  * });
  */
-export function useInsertRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>(InsertRunServiceConfigDocument, options);
-      }
-export type InsertRunServiceConfigMutationHookResult = ReturnType<typeof useInsertRunServiceConfigMutation>;
-export type InsertRunServiceConfigMutationResult = Apollo.MutationResult<InsertRunServiceConfigMutation>;
-export type InsertRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
-export const ReplaceRunServiceConfigDocument = gql`
-    mutation replaceRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
-  replaceRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
-    __typename
-  }
+export function useInsertRunServiceConfigMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertRunServiceConfigMutation,
+    InsertRunServiceConfigMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertRunServiceConfigMutation,
+    InsertRunServiceConfigMutationVariables
+  >(InsertRunServiceConfigDocument, options);
 }
-    `;
-export type ReplaceRunServiceConfigMutationFn = Apollo.MutationFunction<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
+export type InsertRunServiceConfigMutationHookResult = ReturnType<
+  typeof useInsertRunServiceConfigMutation
+>;
+export type InsertRunServiceConfigMutationResult =
+  Apollo.MutationResult<InsertRunServiceConfigMutation>;
+export type InsertRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<
+  InsertRunServiceConfigMutation,
+  InsertRunServiceConfigMutationVariables
+>;
+export const ReplaceRunServiceConfigDocument = gql`
+  mutation replaceRunServiceConfig(
+    $appID: uuid!
+    $serviceID: uuid!
+    $config: ConfigRunServiceConfigInsertInput!
+  ) {
+    replaceRunServiceConfig(
+      appID: $appID
+      serviceID: $serviceID
+      config: $config
+    ) {
+      __typename
+    }
+  }
+`;
+export type ReplaceRunServiceConfigMutationFn = Apollo.MutationFunction<
+  ReplaceRunServiceConfigMutation,
+  ReplaceRunServiceConfigMutationVariables
+>;
 
 /**
  * __useReplaceRunServiceConfigMutation__
@@ -31467,21 +34964,46 @@ export type ReplaceRunServiceConfigMutationFn = Apollo.MutationFunction<ReplaceR
  *   },
  * });
  */
-export function useReplaceRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>(ReplaceRunServiceConfigDocument, options);
-      }
-export type ReplaceRunServiceConfigMutationHookResult = ReturnType<typeof useReplaceRunServiceConfigMutation>;
-export type ReplaceRunServiceConfigMutationResult = Apollo.MutationResult<ReplaceRunServiceConfigMutation>;
-export type ReplaceRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
-export const UpdateRunServiceConfigDocument = gql`
-    mutation updateRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigUpdateInput!) {
-  updateRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
-    name
-  }
+export function useReplaceRunServiceConfigMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    ReplaceRunServiceConfigMutation,
+    ReplaceRunServiceConfigMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    ReplaceRunServiceConfigMutation,
+    ReplaceRunServiceConfigMutationVariables
+  >(ReplaceRunServiceConfigDocument, options);
 }
-    `;
-export type UpdateRunServiceConfigMutationFn = Apollo.MutationFunction<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
+export type ReplaceRunServiceConfigMutationHookResult = ReturnType<
+  typeof useReplaceRunServiceConfigMutation
+>;
+export type ReplaceRunServiceConfigMutationResult =
+  Apollo.MutationResult<ReplaceRunServiceConfigMutation>;
+export type ReplaceRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<
+  ReplaceRunServiceConfigMutation,
+  ReplaceRunServiceConfigMutationVariables
+>;
+export const UpdateRunServiceConfigDocument = gql`
+  mutation updateRunServiceConfig(
+    $appID: uuid!
+    $serviceID: uuid!
+    $config: ConfigRunServiceConfigUpdateInput!
+  ) {
+    updateRunServiceConfig(
+      appID: $appID
+      serviceID: $serviceID
+      config: $config
+    ) {
+      name
+    }
+  }
+`;
+export type UpdateRunServiceConfigMutationFn = Apollo.MutationFunction<
+  UpdateRunServiceConfigMutation,
+  UpdateRunServiceConfigMutationVariables
+>;
 
 /**
  * __useUpdateRunServiceConfigMutation__
@@ -31502,22 +35024,40 @@ export type UpdateRunServiceConfigMutationFn = Apollo.MutationFunction<UpdateRun
  *   },
  * });
  */
-export function useUpdateRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>(UpdateRunServiceConfigDocument, options);
-      }
-export type UpdateRunServiceConfigMutationHookResult = ReturnType<typeof useUpdateRunServiceConfigMutation>;
-export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateRunServiceConfigMutation>;
-export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
-export const GetFreeAndActiveProjectsDocument = gql`
-    query GetFreeAndActiveProjects($userId: uuid!) {
-  freeAndActiveProjects: apps(
-    where: {creatorUserId: {_eq: $userId}, legacyPlan: {isFree: {_eq: true}}, desiredState: {_eq: 5}}
-  ) {
-    id
-  }
+export function useUpdateRunServiceConfigMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateRunServiceConfigMutation,
+    UpdateRunServiceConfigMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateRunServiceConfigMutation,
+    UpdateRunServiceConfigMutationVariables
+  >(UpdateRunServiceConfigDocument, options);
 }
-    `;
+export type UpdateRunServiceConfigMutationHookResult = ReturnType<
+  typeof useUpdateRunServiceConfigMutation
+>;
+export type UpdateRunServiceConfigMutationResult =
+  Apollo.MutationResult<UpdateRunServiceConfigMutation>;
+export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<
+  UpdateRunServiceConfigMutation,
+  UpdateRunServiceConfigMutationVariables
+>;
+export const GetFreeAndActiveProjectsDocument = gql`
+  query GetFreeAndActiveProjects($userId: uuid!) {
+    freeAndActiveProjects: apps(
+      where: {
+        creatorUserId: { _eq: $userId }
+        legacyPlan: { isFree: { _eq: true } }
+        desiredState: { _eq: 5 }
+      }
+    ) {
+      id
+    }
+  }
+`;
 
 /**
  * __useGetFreeAndActiveProjectsQuery__
@@ -31535,28 +35075,56 @@ export const GetFreeAndActiveProjectsDocument = gql`
  *   },
  * });
  */
-export function useGetFreeAndActiveProjectsQuery(baseOptions: Apollo.QueryHookOptions<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>(GetFreeAndActiveProjectsDocument, options);
-      }
-export function useGetFreeAndActiveProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>(GetFreeAndActiveProjectsDocument, options);
-        }
-export type GetFreeAndActiveProjectsQueryHookResult = ReturnType<typeof useGetFreeAndActiveProjectsQuery>;
-export type GetFreeAndActiveProjectsLazyQueryHookResult = ReturnType<typeof useGetFreeAndActiveProjectsLazyQuery>;
-export type GetFreeAndActiveProjectsQueryResult = Apollo.QueryResult<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>;
-export function refetchGetFreeAndActiveProjectsQuery(variables: GetFreeAndActiveProjectsQueryVariables) {
-      return { query: GetFreeAndActiveProjectsDocument, variables: variables }
-    }
-export const DeleteWorkspaceMemberInvitesDocument = gql`
-    mutation deleteWorkspaceMemberInvites($id: uuid!) {
-  deleteWorkspaceMemberInvites(where: {id: {_eq: $id}}) {
-    affected_rows
-  }
+export function useGetFreeAndActiveProjectsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetFreeAndActiveProjectsQuery,
+    GetFreeAndActiveProjectsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetFreeAndActiveProjectsQuery,
+    GetFreeAndActiveProjectsQueryVariables
+  >(GetFreeAndActiveProjectsDocument, options);
 }
-    `;
-export type DeleteWorkspaceMemberInvitesMutationFn = Apollo.MutationFunction<DeleteWorkspaceMemberInvitesMutation, DeleteWorkspaceMemberInvitesMutationVariables>;
+export function useGetFreeAndActiveProjectsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFreeAndActiveProjectsQuery,
+    GetFreeAndActiveProjectsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetFreeAndActiveProjectsQuery,
+    GetFreeAndActiveProjectsQueryVariables
+  >(GetFreeAndActiveProjectsDocument, options);
+}
+export type GetFreeAndActiveProjectsQueryHookResult = ReturnType<
+  typeof useGetFreeAndActiveProjectsQuery
+>;
+export type GetFreeAndActiveProjectsLazyQueryHookResult = ReturnType<
+  typeof useGetFreeAndActiveProjectsLazyQuery
+>;
+export type GetFreeAndActiveProjectsQueryResult = Apollo.QueryResult<
+  GetFreeAndActiveProjectsQuery,
+  GetFreeAndActiveProjectsQueryVariables
+>;
+export function refetchGetFreeAndActiveProjectsQuery(
+  variables: GetFreeAndActiveProjectsQueryVariables,
+) {
+  return { query: GetFreeAndActiveProjectsDocument, variables: variables };
+}
+export const DeleteWorkspaceMemberInvitesDocument = gql`
+  mutation deleteWorkspaceMemberInvites($id: uuid!) {
+    deleteWorkspaceMemberInvites(where: { id: { _eq: $id } }) {
+      affected_rows
+    }
+  }
+`;
+export type DeleteWorkspaceMemberInvitesMutationFn = Apollo.MutationFunction<
+  DeleteWorkspaceMemberInvitesMutation,
+  DeleteWorkspaceMemberInvitesMutationVariables
+>;
 
 /**
  * __useDeleteWorkspaceMemberInvitesMutation__
@@ -31575,29 +35143,44 @@ export type DeleteWorkspaceMemberInvitesMutationFn = Apollo.MutationFunction<Del
  *   },
  * });
  */
-export function useDeleteWorkspaceMemberInvitesMutation(baseOptions?: Apollo.MutationHookOptions<DeleteWorkspaceMemberInvitesMutation, DeleteWorkspaceMemberInvitesMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteWorkspaceMemberInvitesMutation, DeleteWorkspaceMemberInvitesMutationVariables>(DeleteWorkspaceMemberInvitesDocument, options);
-      }
-export type DeleteWorkspaceMemberInvitesMutationHookResult = ReturnType<typeof useDeleteWorkspaceMemberInvitesMutation>;
-export type DeleteWorkspaceMemberInvitesMutationResult = Apollo.MutationResult<DeleteWorkspaceMemberInvitesMutation>;
-export type DeleteWorkspaceMemberInvitesMutationOptions = Apollo.BaseMutationOptions<DeleteWorkspaceMemberInvitesMutation, DeleteWorkspaceMemberInvitesMutationVariables>;
+export function useDeleteWorkspaceMemberInvitesMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteWorkspaceMemberInvitesMutation,
+    DeleteWorkspaceMemberInvitesMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteWorkspaceMemberInvitesMutation,
+    DeleteWorkspaceMemberInvitesMutationVariables
+  >(DeleteWorkspaceMemberInvitesDocument, options);
+}
+export type DeleteWorkspaceMemberInvitesMutationHookResult = ReturnType<
+  typeof useDeleteWorkspaceMemberInvitesMutation
+>;
+export type DeleteWorkspaceMemberInvitesMutationResult =
+  Apollo.MutationResult<DeleteWorkspaceMemberInvitesMutation>;
+export type DeleteWorkspaceMemberInvitesMutationOptions =
+  Apollo.BaseMutationOptions<
+    DeleteWorkspaceMemberInvitesMutation,
+    DeleteWorkspaceMemberInvitesMutationVariables
+  >;
 export const GetWorkspaceMemberInvitesToManageDocument = gql`
-    query getWorkspaceMemberInvitesToManage($userId: uuid!) {
-  workspaceMemberInvites(where: {userByEmail: {id: {_eq: $userId}}}) {
-    id
-    email
-    userByEmail {
+  query getWorkspaceMemberInvitesToManage($userId: uuid!) {
+    workspaceMemberInvites(where: { userByEmail: { id: { _eq: $userId } } }) {
       id
-    }
-    workspace {
-      id
-      name
-      slug
+      email
+      userByEmail {
+        id
+      }
+      workspace {
+        id
+        name
+        slug
+      }
     }
   }
-}
-    `;
+`;
 
 /**
  * __useGetWorkspaceMemberInvitesToManageQuery__
@@ -31615,28 +35198,61 @@ export const GetWorkspaceMemberInvitesToManageDocument = gql`
  *   },
  * });
  */
-export function useGetWorkspaceMemberInvitesToManageQuery(baseOptions: Apollo.QueryHookOptions<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>(GetWorkspaceMemberInvitesToManageDocument, options);
-      }
-export function useGetWorkspaceMemberInvitesToManageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>(GetWorkspaceMemberInvitesToManageDocument, options);
-        }
-export type GetWorkspaceMemberInvitesToManageQueryHookResult = ReturnType<typeof useGetWorkspaceMemberInvitesToManageQuery>;
-export type GetWorkspaceMemberInvitesToManageLazyQueryHookResult = ReturnType<typeof useGetWorkspaceMemberInvitesToManageLazyQuery>;
-export type GetWorkspaceMemberInvitesToManageQueryResult = Apollo.QueryResult<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>;
-export function refetchGetWorkspaceMemberInvitesToManageQuery(variables: GetWorkspaceMemberInvitesToManageQueryVariables) {
-      return { query: GetWorkspaceMemberInvitesToManageDocument, variables: variables }
-    }
-export const InsertWorkspaceMemberInviteDocument = gql`
-    mutation insertWorkspaceMemberInvite($workspaceMemberInvite: workspaceMemberInvites_insert_input!) {
-  insertWorkspaceMemberInvite(object: $workspaceMemberInvite) {
-    id
-  }
+export function useGetWorkspaceMemberInvitesToManageQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetWorkspaceMemberInvitesToManageQuery,
+    GetWorkspaceMemberInvitesToManageQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetWorkspaceMemberInvitesToManageQuery,
+    GetWorkspaceMemberInvitesToManageQueryVariables
+  >(GetWorkspaceMemberInvitesToManageDocument, options);
 }
-    `;
-export type InsertWorkspaceMemberInviteMutationFn = Apollo.MutationFunction<InsertWorkspaceMemberInviteMutation, InsertWorkspaceMemberInviteMutationVariables>;
+export function useGetWorkspaceMemberInvitesToManageLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetWorkspaceMemberInvitesToManageQuery,
+    GetWorkspaceMemberInvitesToManageQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetWorkspaceMemberInvitesToManageQuery,
+    GetWorkspaceMemberInvitesToManageQueryVariables
+  >(GetWorkspaceMemberInvitesToManageDocument, options);
+}
+export type GetWorkspaceMemberInvitesToManageQueryHookResult = ReturnType<
+  typeof useGetWorkspaceMemberInvitesToManageQuery
+>;
+export type GetWorkspaceMemberInvitesToManageLazyQueryHookResult = ReturnType<
+  typeof useGetWorkspaceMemberInvitesToManageLazyQuery
+>;
+export type GetWorkspaceMemberInvitesToManageQueryResult = Apollo.QueryResult<
+  GetWorkspaceMemberInvitesToManageQuery,
+  GetWorkspaceMemberInvitesToManageQueryVariables
+>;
+export function refetchGetWorkspaceMemberInvitesToManageQuery(
+  variables: GetWorkspaceMemberInvitesToManageQueryVariables,
+) {
+  return {
+    query: GetWorkspaceMemberInvitesToManageDocument,
+    variables: variables,
+  };
+}
+export const InsertWorkspaceMemberInviteDocument = gql`
+  mutation insertWorkspaceMemberInvite(
+    $workspaceMemberInvite: workspaceMemberInvites_insert_input!
+  ) {
+    insertWorkspaceMemberInvite(object: $workspaceMemberInvite) {
+      id
+    }
+  }
+`;
+export type InsertWorkspaceMemberInviteMutationFn = Apollo.MutationFunction<
+  InsertWorkspaceMemberInviteMutation,
+  InsertWorkspaceMemberInviteMutationVariables
+>;
 
 /**
  * __useInsertWorkspaceMemberInviteMutation__
@@ -31655,24 +35271,45 @@ export type InsertWorkspaceMemberInviteMutationFn = Apollo.MutationFunction<Inse
  *   },
  * });
  */
-export function useInsertWorkspaceMemberInviteMutation(baseOptions?: Apollo.MutationHookOptions<InsertWorkspaceMemberInviteMutation, InsertWorkspaceMemberInviteMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertWorkspaceMemberInviteMutation, InsertWorkspaceMemberInviteMutationVariables>(InsertWorkspaceMemberInviteDocument, options);
-      }
-export type InsertWorkspaceMemberInviteMutationHookResult = ReturnType<typeof useInsertWorkspaceMemberInviteMutation>;
-export type InsertWorkspaceMemberInviteMutationResult = Apollo.MutationResult<InsertWorkspaceMemberInviteMutation>;
-export type InsertWorkspaceMemberInviteMutationOptions = Apollo.BaseMutationOptions<InsertWorkspaceMemberInviteMutation, InsertWorkspaceMemberInviteMutationVariables>;
-export const UpdateWorkspaceMemberInviteDocument = gql`
-    mutation updateWorkspaceMemberInvite($id: uuid!, $workspaceMemberInvite: workspaceMemberInvites_set_input!) {
-  updateWorkspaceMemberInvites(
-    _set: $workspaceMemberInvite
-    where: {id: {_eq: $id}}
-  ) {
-    affected_rows
-  }
+export function useInsertWorkspaceMemberInviteMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertWorkspaceMemberInviteMutation,
+    InsertWorkspaceMemberInviteMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertWorkspaceMemberInviteMutation,
+    InsertWorkspaceMemberInviteMutationVariables
+  >(InsertWorkspaceMemberInviteDocument, options);
 }
-    `;
-export type UpdateWorkspaceMemberInviteMutationFn = Apollo.MutationFunction<UpdateWorkspaceMemberInviteMutation, UpdateWorkspaceMemberInviteMutationVariables>;
+export type InsertWorkspaceMemberInviteMutationHookResult = ReturnType<
+  typeof useInsertWorkspaceMemberInviteMutation
+>;
+export type InsertWorkspaceMemberInviteMutationResult =
+  Apollo.MutationResult<InsertWorkspaceMemberInviteMutation>;
+export type InsertWorkspaceMemberInviteMutationOptions =
+  Apollo.BaseMutationOptions<
+    InsertWorkspaceMemberInviteMutation,
+    InsertWorkspaceMemberInviteMutationVariables
+  >;
+export const UpdateWorkspaceMemberInviteDocument = gql`
+  mutation updateWorkspaceMemberInvite(
+    $id: uuid!
+    $workspaceMemberInvite: workspaceMemberInvites_set_input!
+  ) {
+    updateWorkspaceMemberInvites(
+      _set: $workspaceMemberInvite
+      where: { id: { _eq: $id } }
+    ) {
+      affected_rows
+    }
+  }
+`;
+export type UpdateWorkspaceMemberInviteMutationFn = Apollo.MutationFunction<
+  UpdateWorkspaceMemberInviteMutation,
+  UpdateWorkspaceMemberInviteMutationVariables
+>;
 
 /**
  * __useUpdateWorkspaceMemberInviteMutation__
@@ -31692,21 +35329,39 @@ export type UpdateWorkspaceMemberInviteMutationFn = Apollo.MutationFunction<Upda
  *   },
  * });
  */
-export function useUpdateWorkspaceMemberInviteMutation(baseOptions?: Apollo.MutationHookOptions<UpdateWorkspaceMemberInviteMutation, UpdateWorkspaceMemberInviteMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateWorkspaceMemberInviteMutation, UpdateWorkspaceMemberInviteMutationVariables>(UpdateWorkspaceMemberInviteDocument, options);
-      }
-export type UpdateWorkspaceMemberInviteMutationHookResult = ReturnType<typeof useUpdateWorkspaceMemberInviteMutation>;
-export type UpdateWorkspaceMemberInviteMutationResult = Apollo.MutationResult<UpdateWorkspaceMemberInviteMutation>;
-export type UpdateWorkspaceMemberInviteMutationOptions = Apollo.BaseMutationOptions<UpdateWorkspaceMemberInviteMutation, UpdateWorkspaceMemberInviteMutationVariables>;
-export const DeleteWorkspaceMemberDocument = gql`
-    mutation deleteWorkspaceMember($id: uuid!) {
-  deleteWorkspaceMember(id: $id) {
-    id
-  }
+export function useUpdateWorkspaceMemberInviteMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateWorkspaceMemberInviteMutation,
+    UpdateWorkspaceMemberInviteMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateWorkspaceMemberInviteMutation,
+    UpdateWorkspaceMemberInviteMutationVariables
+  >(UpdateWorkspaceMemberInviteDocument, options);
 }
-    `;
-export type DeleteWorkspaceMemberMutationFn = Apollo.MutationFunction<DeleteWorkspaceMemberMutation, DeleteWorkspaceMemberMutationVariables>;
+export type UpdateWorkspaceMemberInviteMutationHookResult = ReturnType<
+  typeof useUpdateWorkspaceMemberInviteMutation
+>;
+export type UpdateWorkspaceMemberInviteMutationResult =
+  Apollo.MutationResult<UpdateWorkspaceMemberInviteMutation>;
+export type UpdateWorkspaceMemberInviteMutationOptions =
+  Apollo.BaseMutationOptions<
+    UpdateWorkspaceMemberInviteMutation,
+    UpdateWorkspaceMemberInviteMutationVariables
+  >;
+export const DeleteWorkspaceMemberDocument = gql`
+  mutation deleteWorkspaceMember($id: uuid!) {
+    deleteWorkspaceMember(id: $id) {
+      id
+    }
+  }
+`;
+export type DeleteWorkspaceMemberMutationFn = Apollo.MutationFunction<
+  DeleteWorkspaceMemberMutation,
+  DeleteWorkspaceMemberMutationVariables
+>;
 
 /**
  * __useDeleteWorkspaceMemberMutation__
@@ -31725,30 +35380,45 @@ export type DeleteWorkspaceMemberMutationFn = Apollo.MutationFunction<DeleteWork
  *   },
  * });
  */
-export function useDeleteWorkspaceMemberMutation(baseOptions?: Apollo.MutationHookOptions<DeleteWorkspaceMemberMutation, DeleteWorkspaceMemberMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteWorkspaceMemberMutation, DeleteWorkspaceMemberMutationVariables>(DeleteWorkspaceMemberDocument, options);
-      }
-export type DeleteWorkspaceMemberMutationHookResult = ReturnType<typeof useDeleteWorkspaceMemberMutation>;
-export type DeleteWorkspaceMemberMutationResult = Apollo.MutationResult<DeleteWorkspaceMemberMutation>;
-export type DeleteWorkspaceMemberMutationOptions = Apollo.BaseMutationOptions<DeleteWorkspaceMemberMutation, DeleteWorkspaceMemberMutationVariables>;
+export function useDeleteWorkspaceMemberMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteWorkspaceMemberMutation,
+    DeleteWorkspaceMemberMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteWorkspaceMemberMutation,
+    DeleteWorkspaceMemberMutationVariables
+  >(DeleteWorkspaceMemberDocument, options);
+}
+export type DeleteWorkspaceMemberMutationHookResult = ReturnType<
+  typeof useDeleteWorkspaceMemberMutation
+>;
+export type DeleteWorkspaceMemberMutationResult =
+  Apollo.MutationResult<DeleteWorkspaceMemberMutation>;
+export type DeleteWorkspaceMemberMutationOptions = Apollo.BaseMutationOptions<
+  DeleteWorkspaceMemberMutation,
+  DeleteWorkspaceMemberMutationVariables
+>;
 export const GetWorkspaceMembersDocument = gql`
-    query getWorkspaceMembers($workspaceId: uuid!) {
-  workspace(id: $workspaceId) {
-    id
-    creatorUser {
+  query getWorkspaceMembers($workspaceId: uuid!) {
+    workspace(id: $workspaceId) {
       id
-    }
-    workspaceMembers(order_by: {createdAt: asc}) {
-      ...getWorkspaceMembersWorkspaceMember
-    }
-    workspaceMemberInvites(order_by: {createdAt: asc}) {
-      ...getWorkspaceMembersWorkspaceMemberInvite
+      creatorUser {
+        id
+      }
+      workspaceMembers(order_by: { createdAt: asc }) {
+        ...getWorkspaceMembersWorkspaceMember
+      }
+      workspaceMemberInvites(order_by: { createdAt: asc }) {
+        ...getWorkspaceMembersWorkspaceMemberInvite
+      }
     }
   }
-}
-    ${GetWorkspaceMembersWorkspaceMemberFragmentDoc}
-${GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc}`;
+  ${GetWorkspaceMembersWorkspaceMemberFragmentDoc}
+  ${GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc}
+`;
 
 /**
  * __useGetWorkspaceMembersQuery__
@@ -31766,28 +35436,59 @@ ${GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc}`;
  *   },
  * });
  */
-export function useGetWorkspaceMembersQuery(baseOptions: Apollo.QueryHookOptions<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>(GetWorkspaceMembersDocument, options);
-      }
-export function useGetWorkspaceMembersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>(GetWorkspaceMembersDocument, options);
-        }
-export type GetWorkspaceMembersQueryHookResult = ReturnType<typeof useGetWorkspaceMembersQuery>;
-export type GetWorkspaceMembersLazyQueryHookResult = ReturnType<typeof useGetWorkspaceMembersLazyQuery>;
-export type GetWorkspaceMembersQueryResult = Apollo.QueryResult<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>;
-export function refetchGetWorkspaceMembersQuery(variables: GetWorkspaceMembersQueryVariables) {
-      return { query: GetWorkspaceMembersDocument, variables: variables }
-    }
-export const UpdateWorkspaceMemberDocument = gql`
-    mutation updateWorkspaceMember($id: uuid!, $workspaceMember: workspaceMembers_set_input!) {
-  updateWorkspaceMember(_set: $workspaceMember, pk_columns: {id: $id}) {
-    id
-  }
+export function useGetWorkspaceMembersQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetWorkspaceMembersQuery,
+    GetWorkspaceMembersQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetWorkspaceMembersQuery,
+    GetWorkspaceMembersQueryVariables
+  >(GetWorkspaceMembersDocument, options);
 }
-    `;
-export type UpdateWorkspaceMemberMutationFn = Apollo.MutationFunction<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>;
+export function useGetWorkspaceMembersLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetWorkspaceMembersQuery,
+    GetWorkspaceMembersQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetWorkspaceMembersQuery,
+    GetWorkspaceMembersQueryVariables
+  >(GetWorkspaceMembersDocument, options);
+}
+export type GetWorkspaceMembersQueryHookResult = ReturnType<
+  typeof useGetWorkspaceMembersQuery
+>;
+export type GetWorkspaceMembersLazyQueryHookResult = ReturnType<
+  typeof useGetWorkspaceMembersLazyQuery
+>;
+export type GetWorkspaceMembersQueryResult = Apollo.QueryResult<
+  GetWorkspaceMembersQuery,
+  GetWorkspaceMembersQueryVariables
+>;
+export function refetchGetWorkspaceMembersQuery(
+  variables: GetWorkspaceMembersQueryVariables,
+) {
+  return { query: GetWorkspaceMembersDocument, variables: variables };
+}
+export const UpdateWorkspaceMemberDocument = gql`
+  mutation updateWorkspaceMember(
+    $id: uuid!
+    $workspaceMember: workspaceMembers_set_input!
+  ) {
+    updateWorkspaceMember(_set: $workspaceMember, pk_columns: { id: $id }) {
+      id
+    }
+  }
+`;
+export type UpdateWorkspaceMemberMutationFn = Apollo.MutationFunction<
+  UpdateWorkspaceMemberMutation,
+  UpdateWorkspaceMemberMutationVariables
+>;
 
 /**
  * __useUpdateWorkspaceMemberMutation__
@@ -31807,21 +35508,38 @@ export type UpdateWorkspaceMemberMutationFn = Apollo.MutationFunction<UpdateWork
  *   },
  * });
  */
-export function useUpdateWorkspaceMemberMutation(baseOptions?: Apollo.MutationHookOptions<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>(UpdateWorkspaceMemberDocument, options);
-      }
-export type UpdateWorkspaceMemberMutationHookResult = ReturnType<typeof useUpdateWorkspaceMemberMutation>;
-export type UpdateWorkspaceMemberMutationResult = Apollo.MutationResult<UpdateWorkspaceMemberMutation>;
-export type UpdateWorkspaceMemberMutationOptions = Apollo.BaseMutationOptions<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>;
-export const DeleteWorkspaceDocument = gql`
-    mutation deleteWorkspace($id: uuid!) {
-  deleteWorkspace(id: $id) {
-    id
-  }
+export function useUpdateWorkspaceMemberMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateWorkspaceMemberMutation,
+    UpdateWorkspaceMemberMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateWorkspaceMemberMutation,
+    UpdateWorkspaceMemberMutationVariables
+  >(UpdateWorkspaceMemberDocument, options);
 }
-    `;
-export type DeleteWorkspaceMutationFn = Apollo.MutationFunction<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>;
+export type UpdateWorkspaceMemberMutationHookResult = ReturnType<
+  typeof useUpdateWorkspaceMemberMutation
+>;
+export type UpdateWorkspaceMemberMutationResult =
+  Apollo.MutationResult<UpdateWorkspaceMemberMutation>;
+export type UpdateWorkspaceMemberMutationOptions = Apollo.BaseMutationOptions<
+  UpdateWorkspaceMemberMutation,
+  UpdateWorkspaceMemberMutationVariables
+>;
+export const DeleteWorkspaceDocument = gql`
+  mutation deleteWorkspace($id: uuid!) {
+    deleteWorkspace(id: $id) {
+      id
+    }
+  }
+`;
+export type DeleteWorkspaceMutationFn = Apollo.MutationFunction<
+  DeleteWorkspaceMutation,
+  DeleteWorkspaceMutationVariables
+>;
 
 /**
  * __useDeleteWorkspaceMutation__
@@ -31840,22 +35558,39 @@ export type DeleteWorkspaceMutationFn = Apollo.MutationFunction<DeleteWorkspaceM
  *   },
  * });
  */
-export function useDeleteWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>(DeleteWorkspaceDocument, options);
-      }
-export type DeleteWorkspaceMutationHookResult = ReturnType<typeof useDeleteWorkspaceMutation>;
-export type DeleteWorkspaceMutationResult = Apollo.MutationResult<DeleteWorkspaceMutation>;
-export type DeleteWorkspaceMutationOptions = Apollo.BaseMutationOptions<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>;
-export const InsertWorkspaceDocument = gql`
-    mutation insertWorkspace($workspace: workspaces_insert_input!) {
-  insertWorkspace(object: $workspace) {
-    name
-    id
-  }
+export function useDeleteWorkspaceMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteWorkspaceMutation,
+    DeleteWorkspaceMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteWorkspaceMutation,
+    DeleteWorkspaceMutationVariables
+  >(DeleteWorkspaceDocument, options);
 }
-    `;
-export type InsertWorkspaceMutationFn = Apollo.MutationFunction<InsertWorkspaceMutation, InsertWorkspaceMutationVariables>;
+export type DeleteWorkspaceMutationHookResult = ReturnType<
+  typeof useDeleteWorkspaceMutation
+>;
+export type DeleteWorkspaceMutationResult =
+  Apollo.MutationResult<DeleteWorkspaceMutation>;
+export type DeleteWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+  DeleteWorkspaceMutation,
+  DeleteWorkspaceMutationVariables
+>;
+export const InsertWorkspaceDocument = gql`
+  mutation insertWorkspace($workspace: workspaces_insert_input!) {
+    insertWorkspace(object: $workspace) {
+      name
+      id
+    }
+  }
+`;
+export type InsertWorkspaceMutationFn = Apollo.MutationFunction<
+  InsertWorkspaceMutation,
+  InsertWorkspaceMutationVariables
+>;
 
 /**
  * __useInsertWorkspaceMutation__
@@ -31874,32 +35609,49 @@ export type InsertWorkspaceMutationFn = Apollo.MutationFunction<InsertWorkspaceM
  *   },
  * });
  */
-export function useInsertWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<InsertWorkspaceMutation, InsertWorkspaceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertWorkspaceMutation, InsertWorkspaceMutationVariables>(InsertWorkspaceDocument, options);
-      }
-export type InsertWorkspaceMutationHookResult = ReturnType<typeof useInsertWorkspaceMutation>;
-export type InsertWorkspaceMutationResult = Apollo.MutationResult<InsertWorkspaceMutation>;
-export type InsertWorkspaceMutationOptions = Apollo.BaseMutationOptions<InsertWorkspaceMutation, InsertWorkspaceMutationVariables>;
-export const UpdateWorkspaceDocument = gql`
-    mutation updateWorkspace($id: uuid!, $workspace: workspaces_set_input!) {
-  updateWorkspace(pk_columns: {id: $id}, _set: $workspace) {
-    id
-    name
-    email
-    companyName
-    addressLine1
-    addressLine2
-    addressPostalCode
-    addressCity
-    addressCountryCode
-    slug
-    taxIdType
-    taxIdValue
-  }
+export function useInsertWorkspaceMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertWorkspaceMutation,
+    InsertWorkspaceMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertWorkspaceMutation,
+    InsertWorkspaceMutationVariables
+  >(InsertWorkspaceDocument, options);
 }
-    `;
-export type UpdateWorkspaceMutationFn = Apollo.MutationFunction<UpdateWorkspaceMutation, UpdateWorkspaceMutationVariables>;
+export type InsertWorkspaceMutationHookResult = ReturnType<
+  typeof useInsertWorkspaceMutation
+>;
+export type InsertWorkspaceMutationResult =
+  Apollo.MutationResult<InsertWorkspaceMutation>;
+export type InsertWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+  InsertWorkspaceMutation,
+  InsertWorkspaceMutationVariables
+>;
+export const UpdateWorkspaceDocument = gql`
+  mutation updateWorkspace($id: uuid!, $workspace: workspaces_set_input!) {
+    updateWorkspace(pk_columns: { id: $id }, _set: $workspace) {
+      id
+      name
+      email
+      companyName
+      addressLine1
+      addressLine2
+      addressPostalCode
+      addressCity
+      addressCountryCode
+      slug
+      taxIdType
+      taxIdValue
+    }
+  }
+`;
+export type UpdateWorkspaceMutationFn = Apollo.MutationFunction<
+  UpdateWorkspaceMutation,
+  UpdateWorkspaceMutationVariables
+>;
 
 /**
  * __useUpdateWorkspaceMutation__
@@ -31919,10 +35671,24 @@ export type UpdateWorkspaceMutationFn = Apollo.MutationFunction<UpdateWorkspaceM
  *   },
  * });
  */
-export function useUpdateWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<UpdateWorkspaceMutation, UpdateWorkspaceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateWorkspaceMutation, UpdateWorkspaceMutationVariables>(UpdateWorkspaceDocument, options);
-      }
-export type UpdateWorkspaceMutationHookResult = ReturnType<typeof useUpdateWorkspaceMutation>;
-export type UpdateWorkspaceMutationResult = Apollo.MutationResult<UpdateWorkspaceMutation>;
-export type UpdateWorkspaceMutationOptions = Apollo.BaseMutationOptions<UpdateWorkspaceMutation, UpdateWorkspaceMutationVariables>;
+export function useUpdateWorkspaceMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateWorkspaceMutation,
+    UpdateWorkspaceMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateWorkspaceMutation,
+    UpdateWorkspaceMutationVariables
+  >(UpdateWorkspaceDocument, options);
+}
+export type UpdateWorkspaceMutationHookResult = ReturnType<
+  typeof useUpdateWorkspaceMutation
+>;
+export type UpdateWorkspaceMutationResult =
+  Apollo.MutationResult<UpdateWorkspaceMutation>;
+export type UpdateWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+  UpdateWorkspaceMutation,
+  UpdateWorkspaceMutationVariables
+>;
