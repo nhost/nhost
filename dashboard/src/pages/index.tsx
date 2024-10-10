@@ -1,7 +1,7 @@
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { MaintenanceAlert } from '@/components/presentational/MaintenanceAlert';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import {
   useGetAllWorkspacesAndProjectsQuery,
   useGetOrganizationsQuery,
@@ -33,7 +33,7 @@ export default function IndexPage() {
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout
+    <ProjectLayout
       title="Dashboard"
       contentContainerProps={{ className: 'flex w-full flex-col px-4' }}
     >
@@ -42,6 +42,6 @@ IndexPage.getLayout = function getLayout(page: ReactElement) {
       </Container>
 
       {page}
-    </AuthenticatedLayout>
+    </ProjectLayout>
   );
 };
