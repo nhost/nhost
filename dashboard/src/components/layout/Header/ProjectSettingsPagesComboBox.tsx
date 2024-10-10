@@ -28,7 +28,7 @@ const projectSettingsPages = [
   { name: 'General', slug: 'general', route: '' },
   {
     name: 'Compute Resources',
-    slug: 'resources',
+    slug: 'compute-resources',
     route: 'compute-resources',
   },
   { name: 'Database', slug: 'database', route: 'database' },
