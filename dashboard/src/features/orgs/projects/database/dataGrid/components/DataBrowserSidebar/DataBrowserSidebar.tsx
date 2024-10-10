@@ -532,10 +532,6 @@ export default function DataBrowserSidebar({
   const isPlatform = useIsPlatform();
   const { project } = useProject();
 
-  const {
-    query: { dataSourceSlug },
-  } = useRouter();
-
   const [expanded, setExpanded] = useState(false);
 
   function toggleExpanded() {
