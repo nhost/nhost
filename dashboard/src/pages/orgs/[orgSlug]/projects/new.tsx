@@ -1,5 +1,4 @@
 import { useUI } from '@/components/common/UIProvider';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -9,6 +8,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -141,10 +141,10 @@ export function NewProjectPageContent({
   if (!selectedOrg) {
     return (
       <Container>
-        <Box className="mx-auto my-64 max-w-full subpixel-antialiased">
+        <Box className="max-w-full mx-auto my-64 subpixel-antialiased">
           <div className="relative transform">
-            <div className="mx-auto max-w-3xl text-center">
-              <Text variant="h1" className="text-center text-6xl font-semibold">
+            <div className="max-w-3xl mx-auto text-center">
+              <Text variant="h1" className="text-6xl font-semibold text-center">
                 Organization Error
               </Text>
               <Text className="mt-2">
@@ -207,7 +207,7 @@ export function NewProjectPageContent({
               }}
               value={selectedOrg.id}
               renderValue={(option) => (
-                <span className="inline-grid grid-flow-col items-center gap-2">
+                <span className="inline-grid items-center grid-flow-col gap-2">
                   {option?.label}
                 </span>
               )}
@@ -216,9 +216,9 @@ export function NewProjectPageContent({
                 <Option
                   value={option.id}
                   key={option.id}
-                  className="grid grid-flow-col items-center gap-2"
+                  className="grid items-center grid-flow-col gap-2"
                 >
-                  <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
+                  <span className="inline-block w-6 h-6 overflow-hidden rounded-md">
                     <Image
                       src="/logos/new.svg"
                       alt="Nhost Logo"
@@ -252,8 +252,8 @@ export function NewProjectPageContent({
               }}
               value={selectedRegion.id}
               renderValue={() => (
-                <div className="relative grid grid-flow-col items-center justify-start gap-x-3">
-                  <span className="row-span-2 flex">
+                <div className="relative grid items-center justify-start grid-flow-col gap-x-3">
+                  <span className="flex row-span-2">
                     <Image
                       src={`/assets/flags/${selectedRegion.code}.svg`}
                       alt={`${selectedRegion.name} country flag`}
@@ -278,7 +278,7 @@ export function NewProjectPageContent({
                   )}
                   disabled={option.disabled}
                 >
-                  <span className="row-span-2 flex">
+                  <span className="flex row-span-2">
                     <Image
                       src={`/assets/flags/${option.code}.svg`}
                       alt={`${option.country} country flag`}
@@ -296,7 +296,7 @@ export function NewProjectPageContent({
                   {option.disabled && (
                     <Text
                       variant="subtitle2"
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
+                      className="absolute -translate-y-1/2 right-4 top-1/2"
                     >
                       Disabled
                     </Text>
@@ -352,8 +352,8 @@ export default function NewProjectPage() {
   const preSelectedRegion = regions.find((region) => region.active);
 
   return (
-    <div className="flex h-full w-full items-start justify-center bg-muted p-4">
-      <div className="flex w-full max-w-4xl flex-col items-center justify-center space-y-8 overflow-hidden rounded-md border bg-background">
+    <div className="flex items-start justify-center w-full h-full p-4 bg-muted">
+      <div className="flex flex-col items-center justify-center w-full max-w-4xl space-y-8 overflow-hidden border rounded-md bg-background">
         <NewProjectPageContent
           regions={regions}
           orgs={orgs}
@@ -366,5 +366,5 @@ export default function NewProjectPage() {
 }
 
 NewProjectPage.getLayout = function getLayout(page: ReactElement) {
-  return <AuthenticatedLayout title="New Project">{page}</AuthenticatedLayout>;
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

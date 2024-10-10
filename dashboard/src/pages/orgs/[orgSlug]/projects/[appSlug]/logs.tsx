@@ -1,5 +1,5 @@
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import {

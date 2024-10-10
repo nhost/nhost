@@ -1,6 +1,8 @@
 import { InlineCode } from '@/components/presentational/InlineCode';
+import { Box } from '@/components/ui/v2/Box';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
-import { DataBrowserLayout } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserLayout';
+import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 
@@ -35,5 +37,20 @@ export default function DataBrowserDatabaseDetailsPage() {
 DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   page: ReactElement,
 ) {
-  return <DataBrowserLayout>{page}</DataBrowserLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <DataBrowserSidebar className="w-full max-w-sidebar" />
+
+      <Box
+        className="flex w-full flex-auto flex-col overflow-x-hidden"
+        sx={{ backgroundColor: 'background.default' }}
+      >
+        {page}
+      </Box>
+    </ProjectLayout>
+  );
 };

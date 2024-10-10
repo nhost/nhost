@@ -1,4 +1,4 @@
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { ApplicationErrored } from '@/features/projects/common/components/ApplicationErrored';
 import { ApplicationLive } from '@/features/projects/common/components/ApplicationLive';
 import { ApplicationPaused } from '@/features/projects/common/components/ApplicationPaused';

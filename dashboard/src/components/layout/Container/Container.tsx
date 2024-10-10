@@ -16,9 +16,9 @@ export default function Container({
   ...props
 }: ContainerProps) {
   return (
-    <Box className={twMerge('mx-auto w-full', rootClassName)}>
+    <Box className={twMerge('mx-auto w-full', rootClassName)} {...props}>
       <Box
-        className={twMerge('mx-auto max-w-7xl px-5 pt-6 pb-20', className)}
+        className={twMerge('mx-auto max-w-7xl px-5 py-4', className)}
         {...props}
       >
         {children}

@@ -2,6 +2,7 @@ import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
+import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 // eslint-disable-next-line import/extensions
 import '@/styles/fonts.css';
@@ -113,14 +114,16 @@ function MyApp({
               >
                 <RetryableErrorBoundary>
                   <RecoilRoot>
-                    <DialogProvider>
-                      <ProgressBar
-                        height="2px"
-                        color="#0052cd"
-                        options={{ showSpinner: false }}
-                      />
-                      {getLayout(<Component {...pageProps} />)}
-                    </DialogProvider>
+                    <TooltipProvider>
+                      <DialogProvider>
+                        <ProgressBar
+                          height="2px"
+                          color="#0052cd"
+                          options={{ showSpinner: false }}
+                        />
+                        {getLayout(<Component {...pageProps} />)}
+                      </DialogProvider>
+                    </TooltipProvider>
                   </RecoilRoot>
                 </RetryableErrorBoundary>
               </ThemeProvider>

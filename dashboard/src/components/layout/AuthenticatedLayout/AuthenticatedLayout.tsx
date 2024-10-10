@@ -88,6 +88,8 @@ export default function AuthenticatedLayout({
     router.push('/local/local');
   }, [isPlatform, router]);
 
+  const showOrgNavigation = !router.query.workspaceSlug && router.route !== '/';
+
   if (isPlatform && isLoading) {
     return (
       <BaseLayout className="h-full" {...props}>
@@ -150,10 +152,10 @@ export default function AuthenticatedLayout({
         {mainNavPinned && <PinnedMainNav />}
 
         <div className="flex flex-col w-full h-full overflow-auto">
-          <div className="relative flex flex-row items-center w-full h-12 px-2 space-x-2 border-b bg-background">
+          <div className="relative flex flex-row items-center flex-shrink-0 w-full h-12 px-2 space-x-2 border-b bg-background">
             {!mainNavPinned && <MainNav container={mainNavContainer} />}
 
-            {!router.query.appSlug &&
+            {showOrgNavigation &&
               orgPages.map((page) => {
                 const href = `/orgs/${org?.slug}/${page.value}`;
                 const isActive = router.asPath === href;

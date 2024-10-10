@@ -83,7 +83,15 @@ module.exports = {
       rules: {
         'react/prop-types': [
           2,
-          { ignore: ['className', 'align', 'sideOffset'] },
+          {
+            ignore: [
+              'className',
+              'align',
+              'sideOffset',
+              'orientation',
+              'decorative',
+            ],
+          },
         ],
         'react-refresh/only-export-components': 'off',
         'react/function-component-definition': 'off',

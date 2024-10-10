@@ -1,6 +1,7 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -26,13 +27,19 @@ export default function ResourceSettingsPage() {
 
 ResourceSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <SettingsLayout>
-      <Container
-        className="grid max-w-5xl grid-flow-row gap-8 bg-transparent"
-        rootClassName="bg-transparent"
-      >
-        {page}
-      </Container>
-    </SettingsLayout>
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container
+          sx={{ backgroundColor: 'background.default' }}
+          className="max-w-5xl"
+        >
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
   );
 };

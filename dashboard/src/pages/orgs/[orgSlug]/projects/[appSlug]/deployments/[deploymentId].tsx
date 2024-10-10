@@ -1,5 +1,4 @@
 import { Container } from '@/components/layout/Container';
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v1/Avatar';
@@ -7,8 +6,9 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useRouter } from 'next/router';
@@ -25,7 +25,7 @@ export default function DeploymentDetailsPage() {
     },
   });
 
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
 
   if (loading) {
     return (
@@ -44,7 +44,7 @@ export default function DeploymentDetailsPage() {
   if (!deployment) {
     return (
       <Container>
-        <Text variant="h1" className="text text-4xl font-semibold">
+        <Text variant="h1" className="text-4xl font-semibold text">
           Not found
         </Text>
         <Text className="text-sm" color="disabled">
@@ -92,12 +92,12 @@ export default function DeploymentDetailsPage() {
           </div>
         </div>
       </div>
-      <div className="my-8 flex justify-between">
-        <div className="grid grid-flow-col items-center gap-4">
+      <div className="flex justify-between my-8">
+        <div className="grid items-center grid-flow-col gap-4">
           <Avatar
             name={deployment.commitUserName}
             avatarUrl={deployment.commitUserAvatarUrl}
-            className="h-8 w-8"
+            className="w-8 h-8"
           />
 
           <div>
@@ -105,12 +105,12 @@ export default function DeploymentDetailsPage() {
             <Text color="secondary">{relativeDateOfDeployment}</Text>
           </div>
         </div>
-        <div className="flex items-center ">
+        <div className="flex items-center">
           <Link
             className="self-center font-mono font-medium"
             target="_blank"
             rel="noreferrer"
-            href={`https://github.com/${currentProject.githubRepository?.fullName}/commit/${deployment.commitSHA}`}
+            href={`https://github.com/${project.githubRepository?.fullName}/commit/${deployment.commitSHA}`}
             underline="hover"
           >
             {deployment.commitSHA.substring(0, 7)}
@@ -126,7 +126,7 @@ export default function DeploymentDetailsPage() {
       </div>
       <div>
         <Box
-          className="rounded-lg p-4 text-sm-"
+          className="p-4 rounded-lg text-sm-"
           sx={{
             color: 'common.white',
             backgroundColor: (theme) =>
@@ -139,7 +139,7 @@ export default function DeploymentDetailsPage() {
 
           {deployment.deploymentLogs.map((log) => (
             <div key={log.id} className="flex font-mono">
-              <div className="mr-2 flex-shrink-0 ">
+              <div className="flex-shrink-0 mr-2">
                 {format(parseISO(log.createdAt), 'HH:mm:ss')}:
               </div>
               <div className="break-all">{log.message}</div>

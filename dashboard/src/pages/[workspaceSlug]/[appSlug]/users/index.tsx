@@ -1,7 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -12,6 +11,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { CreateUserForm } from '@/features/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/authentication/users/components/UsersBody';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
@@ -233,7 +233,7 @@ export default function UsersPage() {
             placeholder="Search users"
             startAdornment={
               <SearchIcon
-                className="ml-2 -mr-1 h-4 w-4 shrink-0"
+                className="-mr-1 ml-2 h-4 w-4 shrink-0"
                 sx={{ color: 'text.disabled' }}
               />
             }
@@ -263,7 +263,7 @@ export default function UsersPage() {
           placeholder="Search users"
           startAdornment={
             <SearchIcon
-              className="ml-2 -mr-1 h-4 w-4 shrink-0"
+              className="-mr-1 ml-2 h-4 w-4 shrink-0"
               sx={{ color: 'text.disabled' }}
             />
           }

@@ -28,7 +28,7 @@ const useNavTreeStateFromURL = (): TreeState => {
   return useMemo(() => {
     if (!orgSlug) {
       // If no orgSlug, return an empty state
-      return { expandedItems: [], focusedItem: null };
+      return { expandedItems: ['organizations'], focusedItem: null };
     }
 
     const expandedItems: string[] = [];

@@ -9,6 +9,8 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   useRunServices,
   type RunServiceConfig,
@@ -18,8 +20,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import ServicesList from '@/features/orgs/projects/services/components/ServicesList/ServicesList';
-import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, type ReactElement } from 'react';
 

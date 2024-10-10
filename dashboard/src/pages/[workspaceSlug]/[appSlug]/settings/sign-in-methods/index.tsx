@@ -18,6 +18,7 @@ import { TwitterProviderSettings } from '@/features/authentication/settings/comp
 import { WebAuthnSettings } from '@/features/authentication/settings/components/WebAuthnSettings';
 import { WindowsLiveProviderSettings } from '@/features/authentication/settings/components/WindowsLiveProviderSettings';
 import { WorkOsProviderSettings } from '@/features/authentication/settings/components/WorkOsProviderSettings';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useGetSignInMethodsQuery } from '@/generated/graphql';
@@ -76,5 +77,17 @@ export default function SettingsSignInMethodsPage() {
 }
 
 SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container sx={{ backgroundColor: 'background.default' }}>
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

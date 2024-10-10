@@ -6,6 +6,7 @@ import { Select } from '@/components/ui/v2/Select';
 import DeleteSMTPSettings from '@/features/authentication/settings/components/DeleteSMTPSettings/DeleteSMTPSettings';
 import { PostmarkSettings } from '@/features/authentication/settings/components/PostmarkSettings';
 import { SMTPSettings } from '@/features/authentication/settings/components/SMTPSettings';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
@@ -84,5 +85,17 @@ export default function SMTPSettingsPage() {
 }
 
 SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container sx={{ backgroundColor: 'background.default' }}>
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

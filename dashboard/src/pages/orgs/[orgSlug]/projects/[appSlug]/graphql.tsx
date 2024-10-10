@@ -1,4 +1,3 @@
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
@@ -6,6 +5,7 @@ import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
 import { DEFAULT_ROLES } from '@/features/orgs/projects/graphql/common/utils/constants';

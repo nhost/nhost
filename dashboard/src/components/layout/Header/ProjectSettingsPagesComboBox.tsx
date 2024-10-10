@@ -21,27 +21,58 @@ import { useEffect, useMemo, useState } from 'react';
 type Option = {
   value: string;
   label: string;
+  route: string;
 };
 
 const projectSettingsPages = [
-  'General',
-  'Compute Resources',
-  'Database',
-  'Hasura',
-  'Authentication',
-  'Sign-In methods',
-  'Storage',
-  'Roles and Permissions',
-  'SMTP',
-  'Git',
-  'Environment Variables',
-  'Secrets',
-  'Custom Domains',
-  'Rate Limiting',
-  'AI',
+  { name: 'General', slug: 'general', route: '' },
+  {
+    name: 'Compute Resources',
+    slug: 'compute-resources',
+    route: 'compute-resources',
+  },
+  { name: 'Database', slug: 'database', route: 'database' },
+  { name: 'Hasura', slug: 'hasura', route: 'hasura' },
+  {
+    name: 'Authentication',
+    slug: 'authentication',
+    route: 'authentication',
+  },
+  {
+    name: 'Sign-In methods',
+    slug: 'sign-in-methods',
+    route: 'sign-in-methods',
+  },
+  { name: 'Storage', slug: 'storage', route: 'storage' },
+  {
+    name: 'Roles and Permissions',
+    slug: 'roles-and-permissions',
+    route: 'roles-and-permissions',
+  },
+  { name: 'SMTP', slug: 'smtp', route: 'smtp' },
+  { name: 'Git', slug: 'git', route: 'git' },
+  {
+    name: 'Environment Variables',
+    slug: 'environment-variables',
+    route: 'environment-variables',
+  },
+  { name: 'Secrets', slug: 'secrets', route: 'secrets' },
+  {
+    name: 'Custom Domains',
+    slug: 'custom-domains',
+    route: 'custom-domains',
+  },
+  {
+    name: 'Rate Limiting',
+    slug: 'rate-limiting',
+    route: 'rate-limiting',
+  },
+  { name: 'AI', slug: 'ai', route: 'ai' },
+  { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ].map((item) => ({
-  label: item,
-  value: item.toLowerCase().replaceAll(' ', '-'),
+  label: item.name,
+  value: item.slug,
+  route: item.route,
 }));
 
 export default function ProjectSettingsPagesComboBox() {
@@ -68,6 +99,7 @@ export default function ProjectSettingsPagesComboBox() {
       setSelectedSettingsPage({
         label: selectedSettingsPageFromUrl.label,
         value: selectedSettingsPageFromUrl.value,
+        route: selectedSettingsPageFromUrl.route,
       });
     }
   }, [selectedSettingsPageFromUrl]);
@@ -75,6 +107,7 @@ export default function ProjectSettingsPagesComboBox() {
   const options: Option[] = projectSettingsPages.map((page) => ({
     label: page.label,
     value: page.value,
+    route: page.route,
   }));
 
   const [open, setOpen] = useState(false);
@@ -92,7 +125,7 @@ export default function ProjectSettingsPagesComboBox() {
           ) : (
             <>Select a page</>
           )}
-          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -109,7 +142,7 @@ export default function ProjectSettingsPagesComboBox() {
                     setSelectedSettingsPage(option);
                     setOpen(false);
                     push(
-                      `/orgs/${orgSlug}/projects/${appSlug}/settings/${option.value}/`,
+                      `/orgs/${orgSlug}/projects/${appSlug}/settings/${option.route}/`,
                     );
                   }}
                 >
@@ -122,7 +155,7 @@ export default function ProjectSettingsPagesComboBox() {
                     )}
                   />
                   <div className="flex flex-row items-center gap-2">
-                    <span className="truncate max-w-52">{option.label}</span>
+                    <span className="max-w-52 truncate">{option.label}</span>
                   </div>
                 </CommandItem>
               ))}

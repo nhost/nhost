@@ -15,89 +15,89 @@ import { Button } from '@/components/ui/v3/button';
 import { useNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useNavTreeStateFromURL';
 import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
+import { dequal } from 'dequal';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, type ReactElement } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 
 import {
-  StaticTreeDataProvider,
+  ControlledTreeEnvironment,
   Tree,
-  UncontrolledTreeEnvironment,
   type TreeItem,
   type TreeItemIndex,
+  type TreeViewState,
 } from 'react-complex-tree';
 
 const projectPages = [
   {
     name: 'Overview',
-    icon: <HomeIcon className="w-4 h-4" />,
+    icon: <HomeIcon className="h-4 w-4" />,
     route: '',
     slug: 'overview',
   },
   {
     name: 'Database',
-    icon: <DatabaseIcon className="w-4 h-4" />,
-    route: '/database/browser/default',
+    icon: <DatabaseIcon className="h-4 w-4" />,
+    route: 'database/browser/default',
     slug: 'database',
   },
   {
     name: 'GraphQL',
-    icon: <GraphQLIcon className="w-4 h-4" />,
+    icon: <GraphQLIcon className="h-4 w-4" />,
     route: 'graphql',
     slug: 'graphql',
   },
   {
     name: 'Hasura',
-    icon: <HasuraIcon className="w-4 h-4" />,
+    icon: <HasuraIcon className="h-4 w-4" />,
     route: 'hasura',
     slug: 'hasura',
   },
   {
     name: 'Auth',
-    icon: <UserIcon className="w-4 h-4" />,
+    icon: <UserIcon className="h-4 w-4" />,
     route: 'users',
     slug: 'users',
   },
   {
     name: 'Storage',
-    icon: <StorageIcon className="w-4 h-4" />,
+    icon: <StorageIcon className="h-4 w-4" />,
     route: 'storage',
     slug: 'storage',
   },
   {
     name: 'Run',
-    icon: <ServicesIcon className="w-4 h-4" />,
+    icon: <ServicesIcon className="h-4 w-4" />,
     route: 'run',
     slug: 'run',
   },
   {
     name: 'AI',
-    icon: <AIIcon className="w-4 h-4" />,
+    icon: <AIIcon className="h-4 w-4" />,
     route: 'ai/auto-embeddings',
     slug: 'ai',
   },
   {
     name: 'Deployments',
-    icon: <RocketIcon className="w-4 h-4" />,
+    icon: <RocketIcon className="h-4 w-4" />,
     route: 'deployments',
     slug: 'deployments',
   },
   {
     name: 'Backups',
-    icon: <CloudIcon className="w-4 h-4" />,
+    icon: <CloudIcon className="h-4 w-4" />,
     route: 'backups',
     slug: 'backups',
   },
   {
     name: 'Logs',
-    icon: <FileTextIcon className="w-4 h-4" />,
+    icon: <FileTextIcon className="h-4 w-4" />,
     route: 'logs',
     slug: 'logs',
   },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="w-4 h-4" />,
+    icon: <GaugeIcon className="h-4 w-4" />,
     route: 'metrics',
     slug: 'metrics',
   },
@@ -109,25 +109,51 @@ const projectPages = [
 ];
 
 const projectSettingsPages = [
-  'General',
-  'Compute Resources',
-  'Database',
-  'Hasura',
-  'Authentication',
-  'Sign-In methods',
-  'Storage',
-  'Roles and Permissions',
-  'SMTP',
-  'Git',
-  'Environment Variables',
-  'Secrets',
-  'Custom Domains',
-  'Rate Limiting',
-  'AI',
-].map((item) => ({
-  name: item,
-  slug: item.toLowerCase().replaceAll(' ', '-'),
-}));
+  { name: 'General', slug: 'general', route: '' },
+  {
+    name: 'Compute Resources',
+    slug: 'compute-resources',
+    route: 'compute-resources',
+  },
+  { name: 'Database', slug: 'database', route: 'database' },
+  { name: 'Hasura', slug: 'hasura', route: 'hasura' },
+  {
+    name: 'Authentication',
+    slug: 'authentication',
+    route: 'authentication',
+  },
+  {
+    name: 'Sign-In methods',
+    slug: 'sign-in-methods',
+    route: 'sign-in-methods',
+  },
+  { name: 'Storage', slug: 'storage', route: 'storage' },
+  {
+    name: 'Roles and Permissions',
+    slug: 'roles-and-permissions',
+    route: 'roles-and-permissions',
+  },
+  { name: 'SMTP', slug: 'smtp', route: 'smtp' },
+  { name: 'Git', slug: 'git', route: 'git' },
+  {
+    name: 'Environment Variables',
+    slug: 'environment-variables',
+    route: 'environment-variables',
+  },
+  { name: 'Secrets', slug: 'secrets', route: 'secrets' },
+  {
+    name: 'Custom Domains',
+    slug: 'custom-domains',
+    route: 'custom-domains',
+  },
+  {
+    name: 'Rate Limiting',
+    slug: 'rate-limiting',
+    route: 'rate-limiting',
+  },
+  { name: 'AI', slug: 'ai', route: 'ai' },
+  { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
+];
 
 const createOrganization = (org: Org) => {
   const result = {};
@@ -174,7 +200,7 @@ const createOrganization = (org: Org) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="w-4 h-4" />,
+        icon: <Box className="h-4 w-4" />,
         targetUrl: `/orgs/${org.slug}/projects/${app.slug}`,
       },
       children: projectPages.map(
@@ -217,7 +243,7 @@ const createOrganization = (org: Org) => {
           targetUrl:
             p.slug === 'general'
               ? `/orgs/${org.slug}/projects/${_app.slug}/settings`
-              : `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.slug}`,
+              : `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.route}`,
         },
         canRename: false,
       };
@@ -304,45 +330,51 @@ const buildNavTreeData = (
   return navTree;
 };
 
+function useDeepMemo<T>(value: T): T {
+  const ref = useRef(value);
+
+  if (!dequal(ref.current, value)) {
+    ref.current = value;
+  }
+
+  return ref.current;
+}
+
 export default function NavTree() {
-  const { asPath } = useRouter();
   const { orgs } = useOrgs();
-  const navTree = buildNavTreeData(orgs);
+
+  // Deeply memoize orgs to avoid unnecessary updates
+  const memoizedOrgs = useDeepMemo(orgs);
+
+  // Build the navTree data only when memoizedOrgs changes
+  const navTree = useMemo(() => buildNavTreeData(memoizedOrgs), [memoizedOrgs]);
+
+  // Extract navigation state from the URL
   const { expandedItems, focusedItem } = useNavTreeStateFromURL();
 
-  const dataProvider = useMemo(
-    () =>
-      new StaticTreeDataProvider(navTree.items, (item) => ({
-        ...item,
-        data: item.data,
-      })),
-    [navTree.items],
-  );
+  const [viewState, setViewState] = useState<TreeViewState['nav-tree']>({
+    expandedItems,
+    focusedItem,
+    selectedItems: null,
+  });
 
+  // Sync the focusedItem and expandedItems from the URL whenever they change.
   useEffect(() => {
-    const validItems = [...expandedItems, focusedItem].filter((item) =>
-      Boolean(navTree.items[item]),
-    );
-
-    // TODO figure out if this is still necessary
-    // dataProvider.onDidChangeTreeDataEmitter.emit(
-    //   Object.values(navTree.items).map((item) => item.index),
-    // );
-
-    dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
-  }, [dataProvider, expandedItems, focusedItem, navTree.items]);
+    setViewState((prevState) => ({
+      ...prevState,
+      expandedItems: [
+        ...new Set([...prevState.expandedItems, ...expandedItems]),
+      ],
+      focusedItem,
+    }));
+  }, [expandedItems, focusedItem]);
 
   return (
-    <UncontrolledTreeEnvironment
-      key={asPath}
-      dataProvider={dataProvider}
+    <ControlledTreeEnvironment
+      items={navTree.items}
       getItemTitle={(item) => item.data.name}
       viewState={{
-        'nav-tree': {
-          focusedItem,
-          expandedItems,
-          selectedItems: null,
-        },
+        'nav-tree': viewState,
       }}
       renderItemTitle={({ title }) => <span>{title}</span>}
       renderItemArrow={({ item, context }) => {
@@ -358,9 +390,9 @@ export default function NavTree() {
             className="h-8 px-2"
           >
             {context.isExpanded ? (
-              <ChevronDown className="w-4 h-4 font-bold" strokeWidth={3} />
+              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
             ) : (
-              <ChevronRight className="w-4 h-4" strokeWidth={3} />
+              <ChevronRight className="h-4 w-4" strokeWidth={3} />
             )}
           </Button>
         );
@@ -376,15 +408,23 @@ export default function NavTree() {
               asChild
               variant={context.isFocused ? 'secondary' : 'ghost'}
               onClick={() => {
-                if (item.data.type === 'org') {
-                  context.toggleExpandedState();
-                } else {
+                // do not focus an item if we already there
+                // this will prevent the case where clikcing on the project name
+                // would focus on the project name instead of the overview page
+                if (
+                  navTree.items[item.index].data.targetUrl ===
+                  item.data.targetUrl
+                ) {
+                  return;
+                }
+
+                if (item.data.type !== 'org') {
                   context.focusItem();
                 }
               }}
-              className="flex flex-row justify-start w-full h-8 gap-2 px-1"
+              className="flex h-8 w-full flex-row justify-start gap-2 px-1"
             >
-              <Link href={item.data.targetUrl || '/'}>
+              <Link href={item.data.targetUrl || '/'} shallow>
                 {item.data.icon && (
                   <span
                     className={cn(
@@ -436,9 +476,9 @@ export default function NavTree() {
         }
 
         return (
-          <div className="flex flex-row w-full gap-1">
+          <div className="flex w-full flex-row gap-1">
             <div className="flex justify-center px-[15px] pb-3">
-              <div className="w-0 h-full border-r border-dashed" />
+              <div className="h-full w-0 border-r border-dashed" />
             </div>
             <ul {...containerProps} className="w-full">
               {children}
@@ -447,8 +487,33 @@ export default function NavTree() {
         );
       }}
       canSearch={false}
+      onExpandItem={(item) => {
+        setViewState(({ expandedItems: prevExpandedItems, ...rest }) => ({
+          ...rest,
+          // Add item index to expandedItems only if it's not already present
+          expandedItems: prevExpandedItems.includes(item.index)
+            ? prevExpandedItems
+            : [...prevExpandedItems, item.index],
+        }));
+      }}
+      onCollapseItem={(item) => {
+        setViewState(({ expandedItems: prevExpandedItems, ...rest }) => ({
+          ...rest,
+          // Remove the item index from expandedItems
+          expandedItems: prevExpandedItems.filter(
+            (index) => index !== item.index,
+          ),
+        }));
+      }}
+      onFocusItem={(item) => {
+        setViewState((prevViewState) => ({
+          ...prevViewState,
+          // Set the focused item
+          focusedItem: item.index,
+        }));
+      }}
     >
       <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
-    </UncontrolledTreeEnvironment>
+    </ControlledTreeEnvironment>
   );
 }
