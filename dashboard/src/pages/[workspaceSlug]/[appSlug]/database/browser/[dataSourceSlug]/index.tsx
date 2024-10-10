@@ -1,5 +1,6 @@
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { Box } from '@/components/ui/v2/Box';
 import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserSidebar } from '@/features/database/dataGrid/components/DataBrowserSidebar';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
@@ -39,10 +40,18 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
 ) {
   return (
     <ProjectLayout
-      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
     >
       <DataBrowserSidebar className="w-full max-w-sidebar" />
-      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+
+      <Box
+        className="flex w-full flex-auto flex-col overflow-x-hidden"
+        sx={{ backgroundColor: 'background.default' }}
+      >
+        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+      </Box>
     </ProjectLayout>
   );
 };

@@ -1,9 +1,8 @@
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { Box } from '@/components/ui/v2/Box';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
-// import { DataBrowserLayout } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserLayout';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 
@@ -40,10 +39,18 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
 ) {
   return (
     <ProjectLayout
-      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
     >
       <DataBrowserSidebar className="w-full max-w-sidebar" />
-      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+
+      <Box
+        className="flex w-full flex-auto flex-col overflow-x-hidden"
+        sx={{ backgroundColor: 'background.default' }}
+      >
+        {page}
+      </Box>
     </ProjectLayout>
   );
 };
