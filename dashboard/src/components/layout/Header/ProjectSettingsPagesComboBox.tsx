@@ -21,10 +21,11 @@ import { useEffect, useMemo, useState } from 'react';
 type Option = {
   value: string;
   label: string;
+  route: string;
 };
 
 const projectSettingsPages = [
-  { name: 'General', slug: 'general', route: 'general' },
+  { name: 'General', slug: 'general', route: '' },
   {
     name: 'Compute Resources',
     slug: 'resources',
@@ -71,6 +72,7 @@ const projectSettingsPages = [
 ].map((item) => ({
   label: item.name,
   value: item.slug,
+  route: item.route,
 }));
 
 export default function ProjectSettingsPagesComboBox() {
@@ -97,6 +99,7 @@ export default function ProjectSettingsPagesComboBox() {
       setSelectedSettingsPage({
         label: selectedSettingsPageFromUrl.label,
         value: selectedSettingsPageFromUrl.value,
+        route: selectedSettingsPageFromUrl.route,
       });
     }
   }, [selectedSettingsPageFromUrl]);
@@ -104,6 +107,7 @@ export default function ProjectSettingsPagesComboBox() {
   const options: Option[] = projectSettingsPages.map((page) => ({
     label: page.label,
     value: page.value,
+    route: page.route,
   }));
 
   const [open, setOpen] = useState(false);
@@ -138,7 +142,7 @@ export default function ProjectSettingsPagesComboBox() {
                     setSelectedSettingsPage(option);
                     setOpen(false);
                     push(
-                      `/orgs/${orgSlug}/projects/${appSlug}/settings/${option.value}/`,
+                      `/orgs/${orgSlug}/projects/${appSlug}/settings/${option.route}/`,
                     );
                   }}
                 >
