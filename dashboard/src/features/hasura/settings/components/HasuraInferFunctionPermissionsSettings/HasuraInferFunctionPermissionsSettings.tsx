@@ -14,10 +14,10 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean(),
@@ -32,14 +32,15 @@ export default function HasuraInferFunctionPermissionsSettings() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project, refetch: refetchProject } = useProject();
+  const { currentProject, refetch: refetchWorkspaceAndProject } =
+    useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetHasuraSettingsQuery({
-    variables: { appId: project?.id },
+    variables: { appId: currentProject?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -80,7 +81,7 @@ export default function HasuraInferFunctionPermissionsSettings() {
   ) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: currentProject.id,
         config: {
           hasura: {
             settings: {
@@ -95,7 +96,7 @@ export default function HasuraInferFunctionPermissionsSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
-        await refetchProject();
+        await refetchWorkspaceAndProject();
 
         if (!isPlatform) {
           openDialog({
