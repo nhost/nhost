@@ -22,15 +22,14 @@ import { useWorkspacesNavTreeStateFromURL } from '@/features/orgs/projects/hooks
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useEffect, useMemo, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 
 import {
-  StaticTreeDataProvider,
+  ControlledTreeEnvironment,
   Tree,
-  UncontrolledTreeEnvironment,
   type TreeItem,
   type TreeItemIndex,
+  type TreeViewState,
 } from 'react-complex-tree';
 
 const projectPages = [
@@ -299,28 +298,30 @@ const buildNavTreeData = (
 };
 
 export default function WorkspacesNavTree() {
-  const { asPath } = useRouter();
   const { workspaces } = useWorkspaces();
 
   const navTree = buildNavTreeData(workspaces);
+
   const { expandedItems, focusedItem } = useWorkspacesNavTreeStateFromURL();
 
-  const dataProvider = useMemo(
-    () =>
-      new StaticTreeDataProvider(navTree.items, (item) => ({
-        ...item,
-        data: item.data,
-      })),
-    [navTree.items],
-  );
+  const [viewState, setViewState] = useState<
+    TreeViewState['workspaces-nav-tree']
+  >({
+    expandedItems: [],
+    focusedItem,
+    selectedItems: null,
+  });
 
+  // Sync the focusedItem and expandedItems from the URL whenever they change.
   useEffect(() => {
-    const validItems = [...expandedItems, focusedItem].filter((item) =>
-      Boolean(navTree.items[item]),
-    );
-
-    dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
-  }, [dataProvider, expandedItems, focusedItem, navTree.items]);
+    setViewState((prevState) => ({
+      ...prevState,
+      expandedItems: [
+        ...new Set([...prevState.expandedItems, ...expandedItems]),
+      ],
+      focusedItem,
+    }));
+  }, [expandedItems, focusedItem]);
 
   const renderItem = ({ arrow, context, item, children }) => {
     const navItemContent = () => (
@@ -349,7 +350,6 @@ export default function WorkspacesNavTree() {
             <HoverCardTrigger asChild>
               <div
                 className={cn(
-                  // buttonVariants({ variant: 'secondary' }),
                   'h-5 rounded-full bg-muted bg-orange-200 px-[6px] text-[10px] dark:bg-orange-500',
                 )}
               >
@@ -398,16 +398,11 @@ export default function WorkspacesNavTree() {
   };
 
   return (
-    <UncontrolledTreeEnvironment
-      key={asPath}
-      dataProvider={dataProvider}
+    <ControlledTreeEnvironment
+      items={navTree.items}
       getItemTitle={(item) => item.data.name}
       viewState={{
-        'workspaces-nav-tree': {
-          focusedItem,
-          expandedItems,
-          selectedItems: null,
-        },
+        'workspaces-nav-tree': viewState,
       }}
       renderItemTitle={({ title }) => <span>{title}</span>}
       renderItemArrow={({ item, context }) => {
@@ -457,12 +452,37 @@ export default function WorkspacesNavTree() {
         );
       }}
       canSearch={false}
+      onExpandItem={(item) => {
+        setViewState(({ expandedItems: prevExpandedItems, ...rest }) => ({
+          ...rest,
+          // Add item index to expandedItems only if it's not already present
+          expandedItems: prevExpandedItems.includes(item.index)
+            ? prevExpandedItems
+            : [...prevExpandedItems, item.index],
+        }));
+      }}
+      onCollapseItem={(item) => {
+        setViewState(({ expandedItems: prevExpandedItems, ...rest }) => ({
+          ...rest,
+          // Remove the item index from expandedItems
+          expandedItems: prevExpandedItems.filter(
+            (index) => index !== item.index,
+          ),
+        }));
+      }}
+      onFocusItem={(item) => {
+        setViewState((prevViewState) => ({
+          ...prevViewState,
+          // Set the focused item
+          focusedItem: item.index,
+        }));
+      }}
     >
       <Tree
         rootItem="root"
         treeId="workspaces-nav-tree"
         treeLabel="Workspaces Navigation Tree"
       />
-    </UncontrolledTreeEnvironment>
+    </ControlledTreeEnvironment>
   );
 }
