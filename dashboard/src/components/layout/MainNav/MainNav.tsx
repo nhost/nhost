@@ -12,6 +12,8 @@ import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/Crea
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { PanelLeft, Pin, PinOff } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import NavTree from './NavTree';
 import WorkspacesNavTree from './WorkspacesNavTree';
 
@@ -20,13 +22,35 @@ interface MainNavProps {
 }
 
 export default function MainNav({ container }: MainNavProps) {
+  const { asPath } = useRouter();
+  const [open, setOpen] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
   const [mainNavPinned, setMainNavPinned] = useSSRLocalStorage(
     'nav-tree-pin',
     false,
   );
 
+  const scrollToElement = useCallback(() => {
+    requestAnimationFrame(() => {
+      const element = document.querySelector(`a[href="${asPath}"]`);
+
+      if (element && scrollContainerRef.current) {
+        element.scrollIntoView({ block: 'center' });
+      }
+    });
+  }, [asPath]);
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        scrollToElement();
+      }, 100);
+    }
+  }, [open, scrollToElement]);
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
@@ -62,7 +86,10 @@ export default function MainNav({ container }: MainNavProps) {
           </Button>
         </div>
 
-        <div className="h-[calc(100vh-6rem)] space-y-4 overflow-auto px-4 pb-12 pt-2">
+        <div
+          ref={scrollContainerRef}
+          className="h-[calc(100vh-6rem)] space-y-4 overflow-auto px-4 pb-12 pt-2"
+        >
           <div className="px-4">
             <NavTree />
             <CreateOrgDialog />

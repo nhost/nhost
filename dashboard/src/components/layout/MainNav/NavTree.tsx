@@ -408,6 +408,16 @@ export default function NavTree() {
               asChild
               variant={context.isFocused ? 'secondary' : 'ghost'}
               onClick={() => {
+                // do not focus an item if we already there
+                // this will prevent the case where clikcing on the project name
+                // would focus on the project name instead of the overview page
+                if (
+                  navTree.items[item.index].data.targetUrl ===
+                  item.data.targetUrl
+                ) {
+                  return;
+                }
+
                 if (item.data.type !== 'org') {
                   context.focusItem();
                 }

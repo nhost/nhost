@@ -35,7 +35,7 @@ export default function BreadcrumbNav() {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <div className="h-7 w-7">
+          <div className="mr-3 h-7 w-7">
             <Logo className="mx-auto cursor-pointer" />
           </div>
         </BreadcrumbItem>
