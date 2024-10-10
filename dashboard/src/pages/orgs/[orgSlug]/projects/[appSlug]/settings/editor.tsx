@@ -7,5 +7,13 @@ export default function TOMLEditorPage() {
 }
 
 TOMLEditorPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex flex-col h-full',
+      }}
+    >
+      {page}
+    </ProjectLayout>
+  );
 };
