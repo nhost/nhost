@@ -6,6 +6,7 @@ import { HasuraConsoleSettings } from '@/features/orgs/projects/hasura/settings/
 import { HasuraCorsDomainSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraCorsDomainSettings';
 import { HasuraDevModeSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraDevModeSettings';
 import { HasuraEnabledAPISettings } from '@/features/orgs/projects/hasura/settings/components/HasuraEnabledAPISettings';
+import { HasuraInferFunctionPermissionsSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraInferFunctionPermissionsSettings';
 import { HasuraLogLevelSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraLogLevelSettings';
 import { HasuraPoolSizeSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraPoolSizeSettings';
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
@@ -46,7 +47,7 @@ export default function HasuraSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <HasuraServiceVersionSettings />
@@ -58,6 +59,7 @@ export default function HasuraSettingsPage() {
       <HasuraDevModeSettings />
       <HasuraAllowListSettings />
       <HasuraRemoteSchemaPermissionsSettings />
+      <HasuraInferFunctionPermissionsSettings />
     </Container>
   );
 }

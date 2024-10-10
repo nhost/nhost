@@ -11,6 +11,7 @@ query GetHasuraSettings($appId: uuid!) {
         devMode
         corsDomain
         enabledAPIs
+        inferFunctionPermissions
       }
       logs {
         level
