@@ -42,7 +42,7 @@ const projectPages = [
   {
     name: 'Database',
     icon: <DatabaseIcon className="h-4 w-4" />,
-    route: '/database/browser/default',
+    route: 'database/browser/default',
     slug: 'database',
   },
   {
@@ -73,7 +73,7 @@ const projectPages = [
     name: 'Run',
     icon: <ServicesIcon className="h-4 w-4" />,
     route: 'services',
-    slug: 'run',
+    slug: 'services',
   },
   {
     name: 'AI',

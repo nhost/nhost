@@ -1,7 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import AILayout from '@/components/layout/AILayout/AILayout';
+import { AISidebar } from '@/components/layout/AISidebar';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -11,6 +12,7 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AutoEmbeddingsForm } from '@/features/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/ai/AutoEmbeddingsList';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
@@ -83,7 +85,10 @@ export default function AutoEmbeddingsPage() {
 
   if (isPlatform && currentProject?.legacyPlan?.isFree) {
     return (
-      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+      <Box
+        className="w-full p-4"
+        sx={{ backgroundColor: 'background.default' }}
+      >
         <UpgradeToProBanner
           title="Upgrade to Nhost Pro."
           description={
@@ -104,7 +109,10 @@ export default function AutoEmbeddingsPage() {
     !isGraphiteEnabled
   ) {
     return (
-      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+      <Box
+        className="w-full p-4"
+        sx={{ backgroundColor: 'background.default' }}
+      >
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <Text className="grid grid-flow-row justify-items-start gap-0.5">
             <Text component="span">
@@ -127,7 +135,10 @@ export default function AutoEmbeddingsPage() {
 
   if (data?.graphiteAutoEmbeddingsConfigurations.length === 0 && !loading) {
     return (
-      <Box className="p-6" sx={{ backgroundColor: 'background.default' }}>
+      <Box
+        className="w-full p-6"
+        sx={{ backgroundColor: 'background.default' }}
+      >
         <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <EmbeddingsIcon className="h-10 w-10" />
           <div className="flex flex-col space-y-1">
@@ -138,7 +149,7 @@ export default function AutoEmbeddingsPage() {
               All your configurations will be listed here.
             </Text>
           </div>
-          <div className="flex flex-row place-content-between rounded-lg ">
+          <div className="flex flex-row place-content-between rounded-lg">
             <Button
               variant="contained"
               color="primary"
@@ -155,7 +166,7 @@ export default function AutoEmbeddingsPage() {
   }
 
   return (
-    <Box className="flex flex-col overflow-hidden">
+    <Box className="flex w-full flex-col overflow-hidden">
       <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"
@@ -213,5 +224,12 @@ export default function AutoEmbeddingsPage() {
 }
 
 AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
-  return <AILayout>{page}</AILayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+    >
+      <AISidebar className="w-full max-w-sidebar" />
+      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+    </ProjectLayout>
+  );
 };

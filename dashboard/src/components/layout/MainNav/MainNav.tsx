@@ -49,7 +49,7 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex w-full justify-end bg-background p-1">
+        <div className="flex h-12 w-full items-center justify-end border-b bg-background">
           <Button
             variant="ghost"
             onClick={() => setMainNavPinned(!mainNavPinned)}
@@ -61,8 +61,6 @@ export default function MainNav({ container }: MainNavProps) {
             )}
           </Button>
         </div>
-
-        <Separator />
 
         <div className="h-[calc(100vh-6rem)] space-y-4 overflow-auto px-4 pb-12 pt-2">
           <div className="px-4">

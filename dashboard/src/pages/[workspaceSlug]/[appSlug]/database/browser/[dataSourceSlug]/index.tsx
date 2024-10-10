@@ -1,6 +1,8 @@
 import { InlineCode } from '@/components/presentational/InlineCode';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
-import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
+import { DataBrowserSidebar } from '@/features/database/dataGrid/components/DataBrowserSidebar';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 
@@ -35,5 +37,12 @@ export default function DataBrowserDatabaseDetailsPage() {
 DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   page: ReactElement,
 ) {
-  return <DataBrowserLayout>{page}</DataBrowserLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+    >
+      <DataBrowserSidebar className="w-full max-w-sidebar" />
+      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+    </ProjectLayout>
+  );
 };
