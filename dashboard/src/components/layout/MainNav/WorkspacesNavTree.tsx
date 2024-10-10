@@ -377,9 +377,12 @@ export default function WorkspacesNavTree() {
             asChild
             variant={context.isFocused ? 'secondary' : 'ghost'}
             onClick={() => {
-              if (item.data.type === 'workspace' || !item.data.targetUrl) {
-                context.toggleExpandedState();
-              } else {
+              // if (item.data.type === 'workspace' || !item.data.targetUrl) {
+              //   context.toggleExpandedState();
+              // } else {
+              //   context.focusItem();
+              // }
+              if (item.data.type !== 'workspace') {
                 context.focusItem();
               }
             }}

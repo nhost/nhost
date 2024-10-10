@@ -353,7 +353,7 @@ export default function NavTree() {
   const { expandedItems, focusedItem } = useNavTreeStateFromURL();
 
   const [viewState, setViewState] = useState<TreeViewState['nav-tree']>({
-    expandedItems: [],
+    expandedItems,
     focusedItem,
     selectedItems: null,
   });
@@ -408,9 +408,7 @@ export default function NavTree() {
               asChild
               variant={context.isFocused ? 'secondary' : 'ghost'}
               onClick={() => {
-                if (item.data.type === 'org') {
-                  context.toggleExpandedState();
-                } else {
+                if (item.data.type !== 'org') {
                   context.focusItem();
                 }
               }}
