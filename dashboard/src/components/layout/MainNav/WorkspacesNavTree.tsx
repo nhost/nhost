@@ -300,7 +300,7 @@ export default function WorkspacesNavTree() {
   const { workspaces } = useWorkspaces();
   const navTree = buildNavTreeData(workspaces);
 
-  const { workspacesTreeViewState, setWorkspacesTreeViewState } =
+  const { workspacesTreeViewState, setWorkspacesTreeViewState, setOpen } =
     useTreeNavState();
 
   const renderItem = ({ arrow, context, item, children }) => {
@@ -357,11 +357,6 @@ export default function WorkspacesNavTree() {
             asChild
             variant={context.isFocused ? 'secondary' : 'ghost'}
             onClick={() => {
-              // if (item.data.type === 'workspace' || !item.data.targetUrl) {
-              //   context.toggleExpandedState();
-              // } else {
-              //   context.focusItem();
-              // }
               if (item.data.type !== 'workspace') {
                 context.focusItem();
               }
@@ -369,7 +364,12 @@ export default function WorkspacesNavTree() {
             className="flex flex-row justify-start w-full h-8 gap-2 px-1"
           >
             {item.data.targetUrl ? (
-              <Link href={item.data.targetUrl || '/'}>{navItemContent()}</Link>
+              <Link
+                href={item.data.targetUrl || '/'}
+                onClick={() => setOpen(false)}
+              >
+                {navItemContent()}
+              </Link>
             ) : (
               <div className="cursor-pointer">{navItemContent()}</div>
             )}

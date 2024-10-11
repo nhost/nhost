@@ -14,6 +14,8 @@ import {
 import type { IndividualTreeViewState } from 'react-complex-tree';
 
 interface TreeNavStateContextType {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
   mainNavPinned: boolean;
   orgsTreeViewState: IndividualTreeViewState<never>;
   setOrgsTreeViewState: Dispatch<
@@ -62,11 +64,11 @@ function useSyncedTreeViewState(
 }
 
 function TreeNavStateProvider({ children }: TreeNavProviderProps) {
+  const [open, setOpen] = useState(false);
   const [mainNavPinned, setMainNavPinned] = useSSRLocalStorage(
     'nav-tree-pin',
     false,
   );
-
   const orgsTreeViewState = useSyncedTreeViewState(useNavTreeStateFromURL);
   const workspacesTreeViewState = useSyncedTreeViewState(
     useWorkspacesNavTreeStateFromURL,
@@ -74,6 +76,8 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
 
   const value = useMemo(
     () => ({
+      open,
+      setOpen,
       mainNavPinned,
       setMainNavPinned,
       orgsTreeViewState: orgsTreeViewState.state,
@@ -82,6 +86,8 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
       setWorkspacesTreeViewState: workspacesTreeViewState.setState,
     }),
     [
+      open,
+      setOpen,
       mainNavPinned,
       setMainNavPinned,
       orgsTreeViewState.state,

@@ -12,7 +12,7 @@ import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/Crea
 import { cn } from '@/lib/utils';
 import { PanelLeft, Pin, PinOff } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import NavTree from './NavTree';
 import { useTreeNavState } from './TreeNavStateContext';
 import WorkspacesNavTree from './WorkspacesNavTree';
@@ -23,9 +23,8 @@ interface MainNavProps {
 
 export default function MainNav({ container }: MainNavProps) {
   const { asPath } = useRouter();
-  const [open, setOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const { mainNavPinned, setMainNavPinned } = useTreeNavState();
+  const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
 
   const scrollToCurrentPath = () => {
     requestAnimationFrame(() => {

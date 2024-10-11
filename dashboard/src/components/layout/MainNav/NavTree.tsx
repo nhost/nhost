@@ -331,7 +331,8 @@ const buildNavTreeData = (
 export default function NavTree() {
   const { orgs } = useOrgs();
   const navTree = useMemo(() => buildNavTreeData(orgs), [orgs]);
-  const { orgsTreeViewState, setOrgsTreeViewState } = useTreeNavState();
+  const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
+    useTreeNavState();
 
   return (
     <ControlledTreeEnvironment
@@ -388,7 +389,11 @@ export default function NavTree() {
               }}
               className="flex flex-row justify-start w-full h-8 gap-2 px-1"
             >
-              <Link href={item.data.targetUrl || '/'} shallow>
+              <Link
+                href={item.data.targetUrl || '/'}
+                shallow
+                onClick={() => setOpen(false)}
+              >
                 {item.data.icon && (
                   <span
                     className={cn(
