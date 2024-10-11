@@ -19,51 +19,54 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-We're accommodating feedback from users and improving how billing works on the Nhost platform. These changes are meant to make billing more predictable and simple for our users, as well as pave the way for future features like preview environments and project transfer. 
 
-We're renaming workspaces to organizations, and moving from project-based billing to organization-based billing.
+We're actively working on user feedback by improving the billing experience on our platform. These improvements aim to make billing more predictable, transparent, and user-friendly. Additionally, they lay the groundwork for exciting new features, such as preview environments, the ability to transfer projects between organizations, and the option to pause paid projects when needed. 
+
+As part of these updates, we are renaming workspaces to organizations and shifting from a project-based billing model to an organization-based billing one. This change will provide a more streamlined and scalable approach, especially for users managing multiple projects within the same organization.
 
 ## Deprecating workspaces in favor of organizations
 
-We introduced the concept of Workspaces when we launched Nhost V2. We are now moving back to Organizations to be better aligned with our customers and with the rest of the industry.
+When we launched V2, we introduced Workspaces as a way to organize projects. However, after listening to user feedback and seeing industry trends, we are moving back to Organizations to better align with users' expectations and industry standards.
 
-Organizations, like workspaces, are a way to group projects together. Organizations may have multiple members with different roles.
+Organizations function similarly to workspaces, allowing you to group projects together. Organizations can also accommodate multiple members with different roles.
 
-Your existing workspaces will be available in the Nhost Dashboard until the 1st of February 2025 but you won't be able to edit them nor create new ones. 
+Your existing workspaces will remain accessible on the Nhost Dashboard until February 1st, 2025. During this time you won't be able to edit or create new ones. We encourage you to transition to organizations as soon as possible to take full advantage of the new mprovements.
 
 ## Moving from project-based to organization-based billing
 
 ![Project vs Organization billing](/images/blog/og-project-vs-org-billing.png)
 
-Currently, all projects have their own plan and subscription, and many of you have shared your frustation with the number of invoices involved, and how confusing billing can become when dealing with many projects.
+Currently, each project has its own plan and subscription, which has led to frustration for many of you due to the number of invoices involved and the complexity of managing billing across multiple projects.
 
-To simplify billing and address your frustration, we're moving plans and subscriptions from projects to organizations. Each organization will have a plan (Starter, Pro, Team, or Enterprise) and all resources related to projects, such as software addons like [Graphite](https://docs.nhost.io/product/ai), or platform features like [Compute Resources](https://docs.nhost.io/compute-resources), or [Custom Domains](https://docs.nhost.io/platform/custom-domains), will be added to the organization subscription. 
+To simplify the billing process and address these concerns, we are transitioning from project-based billing to organization-based billing. Going forward, each organization will have a single plan — Starter, Pro, Team, or Enterprise — that covers all associated projects. This includes any additional resources or features tied to those projects, such as software add-ons like [Graphite](https://docs.nhost.io/product/ai), or platform features like [Compute Resources](https://docs.nhost.io/compute-resources) and [Custom Domains](https://docs.nhost.io/platform/custom-domains).
 
-One invoice to rull them all!
+This means fewer invoices and a simpler billing experience: one plan, one invoice, covering everything under your organization.
 
-### Quotas & Features will be shared across organizations
+### Quotas & Featured shared across organizations
 
-Regardless of how many projects you have in an org, the included quota stays the same. For billing purposes, we sum the usage from all projects in a single invoice.
+No matter how many projects you manage within an organization, the included quota remains the same across all of them. For billing purposes, we aggregate the usage from all projects under the organization and reflect it in a single, consolidated invoice.
 
-Upgrading an organization to a paid plan means unlocking all the benefits of that plan for all projects on that organization. For example, if you upgrade your organization to the Team plan, you get advanced GraphQL metrics for all your projects in that organization. 
+Upgrading an organization to a paid plan unlocks the benefits of that plan for every project within the organization. For example, if you upgrade your organization to the Team plan, you’ll gain access to advanced GraphQL metrics and other premium features for all projects associated with that organizationu — without needing to upgrade each project individually.
 
 ### Billing & Billing Cycles
 
-With project-based billing, when a project in a paid plan is created, we charge for it right away. With organization-based billing, you get charged after creating an organization on a paid plan, but all resources for all projects in that org are charged at the end of the month.
+Under the current project-based billing, when you create a project on a paid plan, billing starts immediately. However, with the new organization-based billing system, you will only be charged after creating an organization on a paid plan, and billing for all resources associated with projects in that organization will occur at the end of each month.
 
-Every paid organization has $15 worth of credits that is enough to cover for the first pro/team project without dedicated compute. For every subsequent project you will be charged for $0.0012/minute. This means we are in fact only charging projects for compute, addons, and for any other quotas that are exceeded. 
+To help you get started, we offer $15 worth of credits for every paid organization you create. These credits are sufficient to cover one project with shared compute for a full month, or they can be applied toward dedicated compute if purchased.
+
 
 A few things to note:
 
-- you can create and delete projects as needed, and only be charged for the time projects are actually running - compute is billed by the minute. 
-- If you have, say, 2 projects in a pro org, you only pay $40, instead of $50 - we are making things cheaper in most cases.
-- you get charged for usage after the fact, not the entire monthly cost beforehand. 
+- Billing for projects applies only to compute resources (shared or dedicated), add-ons, and any quotas that are exceeded.
+- You can create and delete projects as needed, and you'll only be charged for the time your projects are actively running — compute is billed by the minute.
+- For example, if you have two projects within a Pro organization, you will only pay $40 instead of $50 as of today — meaning we’re making it cheaper in most scenarios.
+- You will be charged based on actual usage at the end of the billing cycle, rather than paying the full monthly cost upfront.
 
 ### Migration
 
-All starter projects will be automatically migrated by us, but you will have to migrate your paid projects to orgs. No worries, this will be as simple as a couple of clicks, and you will have plenty of time to do so. 
+All Starter projects will be automatically migrated by us to the new organization-based billing. However, for paid projects, you will need to handle the migration yourself. Don’t worry — this process will be very easy, requiring just a couple of clicks. Additionally, you’ll have plenty of time to complete the migration.
 
-We are hoping to have everything ready and released on the week of 28th, but it that doesn't happen, we will let you know. 
+We are aiming to have everything ready and released during the week of the 27th. If that doesn't happen, we will let you know.
 
 
 
