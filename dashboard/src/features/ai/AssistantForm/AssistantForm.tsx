@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -6,28 +7,34 @@ import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import type { DialogFormProps } from '@/types/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { type GraphiteFileStore } from 'pages/[workspaceSlug]/[appSlug]/ai/file-stores';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { useIsFileStoreSupported } from '@/features/ai/common/hooks/useIsFileStoreSupported';
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
   description: Yup.string(),
   instructions: Yup.string().required('The instructions are required'),
   model: Yup.string().required('The model is required'),
+  fileStore: Yup.string().label('File Store'),
   graphql: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -64,14 +71,17 @@ export type AssistantFormValues = Yup.InferType<typeof validationSchema>;
 
 export interface AssistantFormProps extends DialogFormProps {
   /**
-   * To use in conjunction with initialData to allow for updating the autoEmbeddingsConfiguration
+   * To use in conjunction with initialData to allow for updating the Assistant Configuration
    */
   assistantId?: string;
 
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AssistantFormValues;
+  initialData?: AssistantFormValues & {
+    fileStores?: string[];
+  };
+  fileStores?: GraphiteFileStore[];
 
   /**
    * Function to be called when the operation is cancelled.
@@ -86,6 +96,7 @@ export interface AssistantFormProps extends DialogFormProps {
 export default function AssistantForm({
   assistantId,
   initialData,
+  fileStores,
   onSubmit,
   onCancel,
   location,
@@ -102,8 +113,27 @@ export default function AssistantForm({
     client: adminClient,
   });
 
+  const { isFileStoreSupported } = useIsFileStoreSupported();
+  
+  const fileStoresOptions = fileStores
+    ? fileStores.map((fileStore: GraphiteFileStore) => ({
+        label: fileStore.name,
+        value: fileStore.name,
+        id: fileStore.id,
+      }))
+    : [];
+
+  const assistantFileStore = initialData?.fileStores
+    ? fileStores?.find((fileStore: GraphiteFileStore) =>
+      fileStore.id === initialData?.fileStores[0]
+      )
+    : null;
+
+  const formDefaultValues = { ...initialData, fileStores: [] };
+  formDefaultValues.fileStore = assistantFileStore ? assistantFileStore.id : '';
+
   const form = useForm<AssistantFormValues>({
-    defaultValues: initialData,
+    defaultValues: formDefaultValues,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
@@ -114,27 +144,35 @@ export default function AssistantForm({
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
-
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const createOrUpdateAutoEmbeddings = async (
-    values: DeepRequired<AssistantFormValues> & { assistantID: string },
+  const createOrUpdateAssistant = async (
+    values: DeepRequired<AssistantFormValues> & {
+      assistantID: string;
+    },
   ) => {
     // remove any __typename from the form values
     const payload = removeTypename(values);
 
-    if (values.webhooks.length === 0) {
+    if (values.webhooks?.length === 0) {
       delete payload.webhooks;
     }
 
-    if (values.graphql.length === 0) {
+    if (values.graphql?.length === 0) {
       delete payload.graphql;
     }
 
-    // remove assistantId because the update mutation fails otherwise
+    if (isFileStoreSupported && values.fileStore) {
+      payload.fileStores = [values.fileStore];
+    }
+    if (!isFileStoreSupported) {
+      delete payload.fileStores;
+    }
+
     delete payload.assistantID;
+    delete payload.fileStore;
 
     // If the assistantId is set then we do an update
     if (assistantId) {
@@ -151,18 +189,20 @@ export default function AssistantForm({
     await insertAssistantMutation({
       variables: {
         data: {
-          ...values,
+          ...payload,
         },
       },
     });
   };
 
   const handleSubmit = async (
-    values: DeepRequired<AssistantFormValues> & { assistantID: string },
+    values: DeepRequired<AssistantFormValues> & {
+      assistantID: string;
+    },
   ) => {
     await execPromiseWithErrorToast(
       async () => {
-        await createOrUpdateAutoEmbeddings(values);
+        await createOrUpdateAssistant(values);
         onSubmit?.();
       },
       {
@@ -173,6 +213,10 @@ export default function AssistantForm({
       },
     );
   };
+
+  const fileStoreTooltip = isFileStoreSupported
+    ? "File Store available to the assistant. All data in the file store will be available to the assistant."
+    : "Please upgrade Graphite to its latest version in order to use file stores.";
 
   return (
     <FormProvider {...form}>
@@ -282,8 +326,40 @@ export default function AssistantForm({
             autoComplete="off"
             autoFocus
           />
+
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
+
+          <ControlledSelect
+            slotProps={{
+              popper: { disablePortal: false, className: 'z-[10000]' },
+            }}
+            id="fileStore"
+            name="fileStore"
+            label={
+              <Box className="flex flex-row items-center space-x-2">
+                <Text>File Store</Text>
+                <Tooltip title={fileStoreTooltip}>
+                  <InfoIcon
+                    aria-label="Info"
+                    className="h-4 w-4"
+                    color="primary"
+                  />
+                </Tooltip>
+              </Box>
+            }
+            fullWidth
+            error={!!errors?.model?.message}
+            helperText={errors?.model?.message}
+            disabled={!isFileStoreSupported}
+          >
+            <Option value=""></Option>
+            {fileStoresOptions.map((fileStore) => (
+              <Option key={fileStore.id} value={fileStore.id}>
+                {fileStore.label}
+              </Option>
+            ))}
+          </ControlledSelect>
         </div>
 
         <Box className="flex w-full flex-row justify-between rounded border-t p-4">

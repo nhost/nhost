@@ -1,0 +1,7 @@
+mutation insertFileStore($object: graphiteFileStoreInput!) {
+  graphite {
+    insertFileStore(object: $object) {
+      id
+    }
+  }
+}
