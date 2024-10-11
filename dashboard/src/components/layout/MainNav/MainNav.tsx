@@ -30,7 +30,7 @@ export default function MainNav({ container }: MainNavProps) {
     requestAnimationFrame(() => {
       const element = document.querySelector(`a[href="${asPath}"]`);
       if (element && scrollContainerRef.current) {
-        element.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        element.scrollIntoView({ block: 'center' });
       }
     });
   };

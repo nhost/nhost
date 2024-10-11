@@ -20,7 +20,7 @@ export default function PinnedMainNav() {
     const scrollToElement = () => {
       const element = document.querySelector(`a[href="${asPath}"]`);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.scrollIntoView({ block: 'center' });
         observer.disconnect(); // Stop observing once the element is found and scrolled to
       }
     };
