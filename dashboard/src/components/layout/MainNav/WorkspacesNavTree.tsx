@@ -18,90 +18,89 @@ import {
 } from '@/components/ui/v3/hover-card';
 import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { type Workspace } from '@/features/orgs/projects/hooks/useWorkspaces/useWorkspaces';
-import { useWorkspacesNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useWorkspacesNavTreeStateFromURL';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 
 import {
   ControlledTreeEnvironment,
   Tree,
   type TreeItem,
   type TreeItemIndex,
-  type TreeViewState,
 } from 'react-complex-tree';
+import { useTreeNavState } from './TreeNavStateContext';
 
 const projectPages = [
   {
     name: 'Overview',
-    icon: <HomeIcon className="h-4 w-4" />,
+    icon: <HomeIcon className="w-4 h-4" />,
     route: '',
     slug: 'overview',
   },
   {
     name: 'Database',
-    icon: <DatabaseIcon className="h-4 w-4" />,
+    icon: <DatabaseIcon className="w-4 h-4" />,
     route: 'database/browser/default',
     slug: 'database',
   },
   {
     name: 'GraphQL',
-    icon: <GraphQLIcon className="h-4 w-4" />,
+    icon: <GraphQLIcon className="w-4 h-4" />,
     route: 'graphql',
     slug: 'graphql',
   },
   {
     name: 'Hasura',
-    icon: <HasuraIcon className="h-4 w-4" />,
+    icon: <HasuraIcon className="w-4 h-4" />,
     route: 'hasura',
     slug: 'hasura',
   },
   {
     name: 'Auth',
-    icon: <UserIcon className="h-4 w-4" />,
+    icon: <UserIcon className="w-4 h-4" />,
     route: 'users',
     slug: 'users',
   },
   {
     name: 'Storage',
-    icon: <StorageIcon className="h-4 w-4" />,
+    icon: <StorageIcon className="w-4 h-4" />,
     route: 'storage',
     slug: 'storage',
   },
   {
     name: 'Run',
-    icon: <ServicesIcon className="h-4 w-4" />,
+    icon: <ServicesIcon className="w-4 h-4" />,
     route: 'services',
     slug: 'services',
   },
   {
     name: 'AI',
-    icon: <AIIcon className="h-4 w-4" />,
+    icon: <AIIcon className="w-4 h-4" />,
     route: 'ai/auto-embeddings',
     slug: 'ai',
   },
   {
     name: 'Deployments',
-    icon: <RocketIcon className="h-4 w-4" />,
+    icon: <RocketIcon className="w-4 h-4" />,
     route: 'deployments',
     slug: 'deployments',
   },
   {
     name: 'Backups',
-    icon: <CloudIcon className="h-4 w-4" />,
+    icon: <CloudIcon className="w-4 h-4" />,
     route: 'backups',
     slug: 'backups',
   },
   {
     name: 'Logs',
-    icon: <FileTextIcon className="h-4 w-4" />,
+    icon: <FileTextIcon className="w-4 h-4" />,
     route: 'logs',
     slug: 'logs',
   },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="h-4 w-4" />,
+    icon: <GaugeIcon className="w-4 h-4" />,
     route: 'metrics',
     slug: 'metrics',
   },
@@ -208,7 +207,7 @@ const createWorkspace = (workspace: Workspace) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="h-4 w-4" />,
+        icon: <Box className="w-4 h-4" />,
         targetUrl: `/${workspace.slug}/${app.slug}`,
       },
       children: projectPages.map(
@@ -299,29 +298,10 @@ const buildNavTreeData = (
 
 export default function WorkspacesNavTree() {
   const { workspaces } = useWorkspaces();
-
   const navTree = buildNavTreeData(workspaces);
 
-  const { expandedItems, focusedItem } = useWorkspacesNavTreeStateFromURL();
-
-  const [viewState, setViewState] = useState<
-    TreeViewState['workspaces-nav-tree']
-  >({
-    expandedItems: [],
-    focusedItem,
-    selectedItems: null,
-  });
-
-  // Sync the focusedItem and expandedItems from the URL whenever they change.
-  useEffect(() => {
-    setViewState((prevState) => ({
-      ...prevState,
-      expandedItems: [
-        ...new Set([...prevState.expandedItems, ...expandedItems]),
-      ],
-      focusedItem,
-    }));
-  }, [expandedItems, focusedItem]);
+  const { workspacesTreeViewState, setWorkspacesTreeViewState } =
+    useTreeNavState();
 
   const renderItem = ({ arrow, context, item, children }) => {
     const navItemContent = () => (
@@ -386,7 +366,7 @@ export default function WorkspacesNavTree() {
                 context.focusItem();
               }
             }}
-            className="flex h-8 w-full flex-row justify-start gap-2 px-1"
+            className="flex flex-row justify-start w-full h-8 gap-2 px-1"
           >
             {item.data.targetUrl ? (
               <Link href={item.data.targetUrl || '/'}>{navItemContent()}</Link>
@@ -405,7 +385,7 @@ export default function WorkspacesNavTree() {
       items={navTree.items}
       getItemTitle={(item) => item.data.name}
       viewState={{
-        'workspaces-nav-tree': viewState,
+        'workspaces-nav-tree': workspacesTreeViewState,
       }}
       renderItemTitle={({ title }) => <span>{title}</span>}
       renderItemArrow={({ item, context }) => {
@@ -421,9 +401,9 @@ export default function WorkspacesNavTree() {
             className="h-8 px-2"
           >
             {context.isExpanded ? (
-              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
+              <ChevronDown className="w-4 h-4 font-bold" strokeWidth={3} />
             ) : (
-              <ChevronRight className="h-4 w-4" strokeWidth={3} />
+              <ChevronRight className="w-4 h-4" strokeWidth={3} />
             )}
           </Button>
         );
@@ -444,9 +424,9 @@ export default function WorkspacesNavTree() {
         }
 
         return (
-          <div className="flex w-full flex-row gap-1">
+          <div className="flex flex-row w-full gap-1">
             <div className="flex justify-center px-[15px] pb-3">
-              <div className="h-full w-0 border-r border-dashed" />
+              <div className="w-0 h-full border-r border-dashed" />
             </div>
             <ul {...containerProps} className="w-full">
               {children}
@@ -456,25 +436,29 @@ export default function WorkspacesNavTree() {
       }}
       canSearch={false}
       onExpandItem={(item) => {
-        setViewState(({ expandedItems: prevExpandedItems, ...rest }) => ({
-          ...rest,
-          // Add item index to expandedItems only if it's not already present
-          expandedItems: prevExpandedItems.includes(item.index)
-            ? prevExpandedItems
-            : [...prevExpandedItems, item.index],
-        }));
+        setWorkspacesTreeViewState(
+          ({ expandedItems: prevExpandedItems, ...rest }) => ({
+            ...rest,
+            // Add item index to expandedItems only if it's not already present
+            expandedItems: prevExpandedItems.includes(item.index)
+              ? prevExpandedItems
+              : [...prevExpandedItems, item.index],
+          }),
+        );
       }}
       onCollapseItem={(item) => {
-        setViewState(({ expandedItems: prevExpandedItems, ...rest }) => ({
-          ...rest,
-          // Remove the item index from expandedItems
-          expandedItems: prevExpandedItems.filter(
-            (index) => index !== item.index,
-          ),
-        }));
+        setWorkspacesTreeViewState(
+          ({ expandedItems: prevExpandedItems, ...rest }) => ({
+            ...rest,
+            // Remove the item index from expandedItems
+            expandedItems: prevExpandedItems.filter(
+              (index) => index !== item.index,
+            ),
+          }),
+        );
       }}
       onFocusItem={(item) => {
-        setViewState((prevViewState) => ({
+        setWorkspacesTreeViewState((prevViewState) => ({
           ...prevViewState,
           // Set the focused item
           focusedItem: item.index,

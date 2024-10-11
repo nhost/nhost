@@ -4,6 +4,7 @@ import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
 import { MainNav } from '@/components/layout/MainNav';
+import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -11,7 +12,6 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import NextLink from 'next/link';
 
@@ -63,7 +63,7 @@ export default function AuthenticatedLayout({
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const isHealthy = useIsHealthy();
   const [mainNavContainer, setMainNavContainer] = useState(null);
-  const [mainNavPinned] = useSSRLocalStorage('nav-tree-pin', false);
+  const { mainNavPinned } = useTreeNavState();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
