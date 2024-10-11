@@ -1,0 +1,75 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Organizations, and Organization-based Billing',
+  description: 'We are moving from project-based billing to organization-based billing',
+  image: '/images/blog/og-org-billing.png',
+  date: '2024-10-03',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Platform', 'Dashboard'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We're accommodating feedback from users and improving how billing works on the Nhost platform. These changes are meant to make billing more predictable and simple for our users, as well as pave the way for future features like preview environments and project transfer. 
+
+We're renaming workspaces to organizations, and moving from project-based billing to organization-based billing.
+
+## Deprecating workspaces in favor of organizations
+
+We introduced the concept of Workspaces when we launched Nhost V2. We are now moving back to Organizations to be better aligned with our customers and with the rest of the industry.
+
+Organizations, like workspaces, are a way to group projects together. Organizations may have multiple members with different roles.
+
+Your existing workspaces will be available in the Nhost Dashboard until the 1st of February 2025 but you won't be able to edit them nor create new ones. 
+
+## Moving from project-based to organization-based billing
+
+![Project vs Organization billing](/images/blog/og-project-vs-org-billing.png)
+
+Currently, all projects have their own plan and subscription, and many of you have shared your frustation with the number of invoices involved, and how confusing billing can become when dealing with many projects.
+
+To simplify billing and address your frustration, we're moving plans and subscriptions from projects to organizations. Each organization will have a plan (Starter, Pro, Team, or Enterprise) and all resources related to projects, such as software addons like [Graphite](https://docs.nhost.io/product/ai), or platform features like [Compute Resources](https://docs.nhost.io/compute-resources), or [Custom Domains](https://docs.nhost.io/platform/custom-domains), will be added to the organization subscription. 
+
+One invoice to rull them all!
+
+### Quotas & Features will be shared across organizations
+
+Regardless of how many projects you have in an org, the included quota stays the same. For billing purposes, we sum the usage from all projects in a single invoice.
+
+Upgrading an organization to a paid plan means unlocking all the benefits of that plan for all projects on that organization. For example, if you upgrade your organization to the Team plan, you get advanced GraphQL metrics for all your projects in that organization. 
+
+### Billing & Billing Cycles
+
+With project-based billing, when a project in a paid plan is created, we charge for it right away. With organization-based billing, you get charged after creating an organization on a paid plan, but all resources for all projects in that org are charged at the end of the month.
+
+Every paid organization has $15 worth of credits that is enough to cover for the first pro/team project without dedicated compute. For every subsequent project you will be charged for $0.0012/minute. This means we are in fact only charging projects for compute, addons, and for any other quotas that are exceeded. 
+
+A few things to note:
+
+- you can create and delete projects as needed, and only be charged for the time projects are actually running - compute is billed by the minute. 
+- If you have, say, 2 projects in a pro org, you only pay $40, instead of $50 - we are making things cheaper in most cases.
+- you get charged for usage after the fact, not the entire monthly cost beforehand. 
+
+### Migration
+
+All starter projects will be automatically migrated by us, but you will have to migrate your paid projects to orgs. No worries, this will be as simple as a couple of clicks, and you will have plenty of time to do so. 
+
+We are hoping to have everything ready and released on the week of 28th, but it that doesn't happen, we will let you know. 
+
+
+
+
+
+
+
+
+
