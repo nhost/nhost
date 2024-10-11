@@ -334,6 +334,7 @@ export const oauthProviders = Router()
         const userInput = await transformOauthProfile(profile, options);
         user = await insertUser({
           ...userInput,
+          disabled: ENV.AUTH_DISABLE_NEW_USERS,
           userProviders: {
             data: [
               {
@@ -349,6 +350,10 @@ export const oauthProviders = Router()
     }
 
     if (user) {
+      if (user.disabled) {
+        return sendError(res, 'disabled-user', { redirectTo }, true);
+      }
+
       const { refreshToken } = await getNewRefreshToken(user.id);
       // * redirect back user to app url
       return res.redirect(generateRedirectUrl(redirectTo, { refreshToken }));

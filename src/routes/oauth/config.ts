@@ -91,6 +91,9 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_AZUREAD_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_AZUREAD_CLIENT_SECRET,
       authorize_url: `${azureBaseUrl}/[subdomain]/oauth2/authorize`,
+      custom_params: {
+        prompt: 'select_account',
+      },
       access_url: `${azureBaseUrl}/[subdomain]/oauth2/token`,
       profile_url: `${azureBaseUrl}/[subdomain]/openid/userinfo`,
       subdomain: process.env.AUTH_PROVIDER_AZUREAD_TENANT || 'common',
