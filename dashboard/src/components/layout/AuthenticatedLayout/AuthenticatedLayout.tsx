@@ -88,7 +88,10 @@ export default function AuthenticatedLayout({
     router.push('/local/local');
   }, [isPlatform, router]);
 
-  const showOrgNavigation = !router.query.workspaceSlug && router.route !== '/';
+  const showOrgNavigation =
+    !router.query.workspaceSlug &&
+    !router.query.appSlug &&
+    router.route !== '/';
 
   if (isPlatform && isLoading) {
     return (
