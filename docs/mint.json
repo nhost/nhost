@@ -140,6 +140,7 @@
           "icon": "at",
           "pages": [
             "guides/auth/social/sign-in-apple",
+            "guides/auth/social/sign-in-azuread",
             "guides/auth/social/sign-in-discord",
             "guides/auth/social/sign-in-facebook",
             "guides/auth/social/sign-in-github",
