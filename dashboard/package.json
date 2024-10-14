@@ -41,6 +41,7 @@
     "@mui/x-date-pickers": "^5.0.20",
     "@nhost/nextjs": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
+    "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-hover-card": "^1.1.2",
     "@radix-ui/react-label": "^2.1.0",
