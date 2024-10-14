@@ -1,5 +1,4 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
@@ -11,6 +10,8 @@ import { PostmarkSettings } from '@/features/orgs/projects/authentication/settin
 import { SMTPSettings } from '@/features/orgs/projects/authentication/settings/components/SMTPSettings';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -88,5 +89,20 @@ export default function SMTPSettingsPage() {
 }
 
 SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container
+          sx={{ backgroundColor: 'background.default' }}
+          className="max-w-5xl"
+        >
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

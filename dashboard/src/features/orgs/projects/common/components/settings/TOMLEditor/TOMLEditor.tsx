@@ -3,11 +3,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
@@ -33,16 +33,16 @@ export default function TOMLEditor() {
 
   const { openDialog } = useDialog();
 
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
 
   const localMimirClient = useLocalMimirClient();
 
   // fetch the initial TOML code from the server
   const { data, loading } = useGetConfigRawJsonQuery({
     variables: {
-      appID: currentProject?.id,
+      appID: project?.id,
     },
-    skip: !currentProject,
+    skip: !project,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -103,7 +103,7 @@ export default function TOMLEditor() {
           data: { replaceConfigRawJSON: updatedConfig },
         } = await saveConfigMutation({
           variables: {
-            appID: currentProject?.id,
+            appID: project?.id,
             rawJSON: rawJSONString,
           },
         });

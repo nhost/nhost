@@ -1,5 +1,4 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
 import { HasuraAllowListSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraAllowListSettings';
@@ -7,11 +6,14 @@ import { HasuraConsoleSettings } from '@/features/orgs/projects/hasura/settings/
 import { HasuraCorsDomainSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraCorsDomainSettings';
 import { HasuraDevModeSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraDevModeSettings';
 import { HasuraEnabledAPISettings } from '@/features/orgs/projects/hasura/settings/components/HasuraEnabledAPISettings';
+import { HasuraInferFunctionPermissionsSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraInferFunctionPermissionsSettings';
 import { HasuraLogLevelSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraLogLevelSettings';
 import { HasuraPoolSizeSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraPoolSizeSettings';
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraServiceVersionSettings';
 
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -45,7 +47,7 @@ export default function HasuraSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <HasuraServiceVersionSettings />
@@ -57,10 +59,26 @@ export default function HasuraSettingsPage() {
       <HasuraDevModeSettings />
       <HasuraAllowListSettings />
       <HasuraRemoteSchemaPermissionsSettings />
+      <HasuraInferFunctionPermissionsSettings />
     </Container>
   );
 }
 
 HasuraSettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container
+          sx={{ backgroundColor: 'background.default' }}
+          className="max-w-5xl"
+        >
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

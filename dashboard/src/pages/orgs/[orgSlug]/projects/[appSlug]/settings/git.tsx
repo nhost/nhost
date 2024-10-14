@@ -1,5 +1,6 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/components/BaseDirectorySettings';
 import { DeploymentBranchSettings } from '@/features/orgs/projects/git/settings/components/DeploymentBranchSettings';
 import { GitConnectionSettings } from '@/features/orgs/projects/git/settings/components/GitConnectionSettings';
@@ -19,5 +20,20 @@ export default function GitSettingsPage() {
 }
 
 GitSettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container
+          sx={{ backgroundColor: 'background.default' }}
+          className="max-w-5xl"
+        >
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

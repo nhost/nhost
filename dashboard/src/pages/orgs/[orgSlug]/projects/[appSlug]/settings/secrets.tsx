@@ -3,7 +3,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -28,6 +27,8 @@ import type { ReactElement } from 'react';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -252,5 +253,20 @@ export default function SecretsPage() {
 }
 
 SecretsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container
+          sx={{ backgroundColor: 'background.default' }}
+          className="max-w-5xl"
+        >
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

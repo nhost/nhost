@@ -1,6 +1,7 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { DataBrowserLayout } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
@@ -14,13 +15,18 @@ export default function Editor() {
     return <LoadingScreen />;
   }
 
-  return (
-    <RetryableErrorBoundary>
-      <SQLEditor />
-    </RetryableErrorBoundary>
-  );
+  return <SQLEditor />;
 }
 
 Editor.getLayout = function getLayout(page: ReactElement) {
-  return <DataBrowserLayout>{page}</DataBrowserLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+    >
+      <DataBrowserSidebar className="w-full max-w-sidebar" />
+      <RetryableErrorBoundary>
+        <div className="flex w-full flex-col">{page}</div>
+      </RetryableErrorBoundary>
+    </ProjectLayout>
+  );
 };
