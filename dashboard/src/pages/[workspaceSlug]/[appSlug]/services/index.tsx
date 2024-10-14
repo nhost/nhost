@@ -1,13 +1,13 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
@@ -149,7 +149,7 @@ export default function ServicesPage() {
             </Text>
           </div>
           {isPlatform ? (
-            <div className="flex flex-row place-content-between rounded-lg ">
+            <div className="flex flex-row place-content-between rounded-lg">
               <Button
                 variant="contained"
                 color="primary"

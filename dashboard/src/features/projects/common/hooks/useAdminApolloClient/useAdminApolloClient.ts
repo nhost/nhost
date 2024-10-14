@@ -13,7 +13,7 @@ export default function useAdminApolloClient() {
     'graphql',
   );
 
-  const projectAdminSecret = currentProject.config?.hasura?.adminSecret;
+  const projectAdminSecret = currentProject?.config?.hasura?.adminSecret;
 
   const adminClient = useMemo(
     () =>

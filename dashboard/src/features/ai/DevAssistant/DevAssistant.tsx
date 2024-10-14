@@ -171,17 +171,17 @@ export default function DevAssistant() {
   if (
     (isPlatform &&
       !currentProject?.legacyPlan?.isFree &&
-      !currentProject.config?.ai) ||
+      !currentProject?.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
       <Box className="p-4">
-        <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
+        <Alert className="grid items-center w-full grid-flow-col gap-2 place-content-between">
           <Text className="grid grid-flow-row justify-items-start gap-0.5">
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
-                href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/ai`}
+                href={`/${currentWorkspace?.slug}/${currentProject?.slug}/settings/ai`}
                 target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"
@@ -197,11 +197,11 @@ export default function DevAssistant() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-auto">
+    <div className="flex flex-col h-full overflow-auto">
       <MessagesList loading={loading} />
 
       <form onSubmit={handleSubmit}>
-        <Box className="relative flex w-full flex-row justify-between p-2">
+        <Box className="relative flex flex-row justify-between w-full p-2">
           <Input
             value={userInput}
             onChange={(event) => {
@@ -224,7 +224,7 @@ export default function DevAssistant() {
             color="primary"
             aria-label="Send"
             type="submit"
-            className="absolute right-2 h-10 w-12 self-end rounded-xl"
+            className="absolute self-end w-12 h-10 right-2 rounded-xl"
           >
             {loading ? <ActivityIndicator /> : <ArrowUpIcon />}
           </IconButton>

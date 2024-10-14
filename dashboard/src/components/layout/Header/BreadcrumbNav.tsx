@@ -19,7 +19,7 @@ export default function BreadcrumbNav() {
   const { query, asPath, route } = useRouter();
 
   // Extract orgSlug and appSlug from router.query
-  const { appSlug } = query;
+  const { appSlug, workspaceSlug } = query;
 
   // Extract path segments from the URL
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
@@ -27,18 +27,20 @@ export default function BreadcrumbNav() {
   // Identify project and settings pages based on the URL pattern
   const projectPage = pathSegments[3] || null;
   const isSettingsPage = pathSegments[5] === 'settings';
-  const showNavigationBreadCrumbs = route !== '/orgs/verify';
+
+  const showBreadcrumbs =
+    !workspaceSlug && !['/', '/orgs/verify'].includes(route);
 
   return (
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <div className="h-7 w-7">
+          <div className="mr-3 h-7 w-7">
             <Logo className="mx-auto cursor-pointer" />
           </div>
         </BreadcrumbItem>
 
-        {showNavigationBreadCrumbs && (
+        {showBreadcrumbs && (
           <>
             <BreadcrumbSeparator>
               <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
@@ -56,7 +58,7 @@ export default function BreadcrumbNav() {
           </>
         )}
 
-        {showNavigationBreadCrumbs && appSlug && (
+        {showBreadcrumbs && appSlug && (
           <>
             <BreadcrumbSeparator>
               <Slash strokeWidth={3.5} className="text-muted-foreground/50" />

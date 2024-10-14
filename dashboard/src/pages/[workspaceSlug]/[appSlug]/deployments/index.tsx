@@ -1,9 +1,9 @@
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { AppDeployments } from '@/features/projects/deployments/components/AppDeployments';
 import Image from 'next/image';
@@ -38,7 +38,8 @@ export default function DeploymentsPage() {
         <NavLink
           href={`/${currentWorkspace?.slug}/${currentProject?.slug}/settings/git`}
           passHref
-          legacyBehavior>
+          legacyBehavior
+        >
           <Button
             variant="borderless"
             className="mx-auto font-medium"
