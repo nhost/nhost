@@ -1,16 +1,13 @@
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
-import { DesktopNav } from '@/components/layout/DesktopNav';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v2/Alert';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
-import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { NextSeo } from 'next-seo';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 import { twMerge } from 'tailwind-merge';
 
 export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
@@ -27,23 +24,24 @@ function ProjectLayoutContent({
     ...mainContainerProps
   } = {},
 }: ProjectLayoutProps) {
-  const { currentProject, loading, error } = useCurrentWorkspaceAndProject();
+  const { project, loading, error } = useProject();
 
-  const router = useRouter();
-  const shouldDisplayNav = useNavigationVisible();
+  // const router = useRouter();
+  // const shouldDisplayNav = useNavigationVisible();
   const isPlatform = useIsPlatform();
-  const { nhostRoutes } = useProjectRoutes();
-  const pathWithoutWorkspaceAndProject = router.asPath.replace(
-    /^\/[\w\-_[\]]+\/[\w\-_[\]]+/i,
-    '',
-  );
-  const isRestrictedPath =
-    !isPlatform &&
-    nhostRoutes.some((route) =>
-      pathWithoutWorkspaceAndProject.startsWith(
-        route.relativeMainPath || route.relativePath,
-      ),
-    );
+
+  // const pathWithoutWorkspaceAndProject = router.asPath.replace(
+  //   /^\/[\w\-_[\]]+\/[\w\-_[\]]+/i,
+  //   '',
+  // );
+
+  // const isRestrictedPath =
+  //   !isPlatform &&
+  //   nhostRoutes.some((route) =>
+  //     pathWithoutWorkspaceAndProject.startsWith(
+  //       route.relativeMainPath || route.relativePath,
+  //     ),
+  //   );
 
   // useNotFoundRedirect();
 
@@ -58,7 +56,11 @@ function ProjectLayoutContent({
   //   }
   // }, [isPlatform, isRestrictedPath, router]);
 
-  if (isRestrictedPath || loading) {
+  // if (isRestrictedPath || loading) {
+  //   return <LoadingScreen />;
+  // }
+
+  if (loading) {
     return <LoadingScreen />;
   }
 
@@ -68,31 +70,6 @@ function ProjectLayoutContent({
 
   if (!isPlatform) {
     return (
-      <>
-        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
-
-        <Box
-          component="main"
-          className={twMerge(
-            'relative flex-auto overflow-y-auto',
-            mainContainerClassName,
-          )}
-          {...mainContainerProps}
-        >
-          {children}
-
-          <NextSeo title="Local App" />
-        </Box>
-      </>
-    );
-  }
-
-  return (
-    <>
-      {shouldDisplayNav && (
-        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
-      )}
-
       <Box
         component="main"
         className={twMerge(
@@ -103,17 +80,27 @@ function ProjectLayoutContent({
       >
         {children}
 
-        <NextSeo title={currentProject?.name} />
+        <NextSeo title="Local App" />
       </Box>
-    </>
+    );
+  }
+
+  return (
+    <Box
+      component="main"
+      className={twMerge(
+        'relative flex-auto overflow-y-auto',
+        mainContainerClassName,
+      )}
+      {...mainContainerProps}
+    >
+      {children}
+
+      <NextSeo title={project?.name} />
+    </Box>
   );
 }
 
-/**
- * This components wraps the content in an `AuthenticatedLayout` and fetches
- * project and workspace data from the API. Use this layout for pages where
- * project related data is necessary (e.g: Overview, Data Browser, etc.).
- */
 export default function ProjectLayout({
   children,
   mainContainerProps,

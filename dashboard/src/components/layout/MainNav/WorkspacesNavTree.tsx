@@ -1,5 +1,4 @@
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
@@ -11,7 +10,6 @@ import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Button } from '@/components/ui/v3/button';
 import {
   HoverCard,
@@ -20,10 +18,9 @@ import {
 } from '@/components/ui/v3/hover-card';
 import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { type Workspace } from '@/features/orgs/projects/hooks/useWorkspaces/useWorkspaces';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
-import NextLink from 'next/link';
+import Link from 'next/link';
 import { type ReactElement } from 'react';
 
 import {
@@ -302,7 +299,6 @@ const buildNavTreeData = (
 export default function WorkspacesNavTree() {
   const { workspaces } = useWorkspaces();
   const navTree = buildNavTreeData(workspaces);
-  const [, setLastSlug] = useSSRLocalStorage('slug', null);
 
   const { workspacesTreeViewState, setWorkspacesTreeViewState, setOpen } =
     useTreeNavState();
@@ -314,7 +310,7 @@ export default function WorkspacesNavTree() {
           <span
             className={cn(
               'flex items-start',
-              context.isFocused ? 'text-primary' : '',
+              context.isFocused ? 'text-primary-main' : '',
             )}
           >
             {item.data.icon}
@@ -323,8 +319,8 @@ export default function WorkspacesNavTree() {
         <span
           className={cn(
             item?.index === 'workspaces' && 'font-bold',
-            context.isFocused ? 'font-bold text-primary' : '',
-            'max-w-40 truncate',
+            context.isFocused ? 'font-bold text-primary-main' : '',
+            'max-w-52 truncate',
           )}
         >
           {item.data.name}
@@ -342,16 +338,7 @@ export default function WorkspacesNavTree() {
             </HoverCardTrigger>
             <HoverCardContent className="w-64" side="top">
               <div className="whitespace-normal">
-                <span>For more information read the </span>
-                <Link
-                  href="https://nhost.io/blog/organization-billing"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium"
-                >
-                  announcement
-                  <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
-                </Link>
+                <p>These are your legacy workspaces. Read the announcement.</p>
               </div>
             </HoverCardContent>
           </HoverCard>
@@ -368,28 +355,21 @@ export default function WorkspacesNavTree() {
           {arrow}
           <Button
             asChild
+            variant={context.isFocused ? 'secondary' : 'ghost'}
             onClick={() => {
               if (item.data.type !== 'workspace') {
                 context.focusItem();
-              } else {
-                // persist last slug if the nav item is a workspace
-                setLastSlug(item.data.slug);
               }
             }}
-            className={cn(
-              'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent dark:hover:bg-muted',
-              context.isFocused &&
-                'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
-              item.data.disabled && 'pointer-events-none opacity-50',
-            )}
+            className="flex h-8 w-full flex-row justify-start gap-1 px-1"
           >
             {item.data.targetUrl ? (
-              <NextLink
+              <Link
                 href={item.data.targetUrl || '/'}
                 onClick={() => setOpen(false)}
               >
                 {navItemContent()}
-              </NextLink>
+              </Link>
             ) : (
               <div className="cursor-pointer">{navItemContent()}</div>
             )}

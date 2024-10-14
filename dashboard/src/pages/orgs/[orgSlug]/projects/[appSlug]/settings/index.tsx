@@ -3,9 +3,10 @@ import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -258,5 +259,17 @@ export default function SettingsGeneralPage() {
 }
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container sx={{ backgroundColor: 'background.default' }}>
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };
