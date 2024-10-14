@@ -1,0 +1,88 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Organizations, and Organization-based Billing',
+  description: 'We are moving from project-based billing to organization-based billing',
+  image: '/images/blog/og-org-billing.png',
+  date: '2024-10-14',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    } 
+  ],
+  tags: ['Product', 'Platform', 'Dashboard'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+
+We're actively working on implementing user feedback and improving the billing experience on our platform. These improvements aim to make billing more predictable, transparent, and user-friendly. Additionally, they lay the groundwork for exciting new features such as preview environments, and the option to pause paid projects when needed. 
+
+As part of these updates, we are deprecating workspaces in favor of organizations and shifting from a project-based billing model to an organization-based billing one. This change will provide a more streamlined and scalable approach, especially for users managing multiple projects within the same organization.
+
+## Deprecating workspaces in favor of organizations
+
+When we launched V2, we introduced Workspaces as a way to organize projects. However, after listening to user feedback and seeing industry trends, we are moving back to Organizations to better align with users' expectations and industry standards.
+
+Organizations function similarly to workspaces, allowing you to group projects together. Organizations can also accommodate multiple members with different roles. However, they will aggregate all projects within the organization in a single invoice. 
+
+Your existing workspaces will remain accessible on the Nhost Dashboard until February 1st, 2025. During this time you won't be able to edit or create new ones. We encourage you to transition to organizations as soon as possible to take full advantage of the new improvements.
+
+## Moving from project-based to organization-based billing
+
+![Project vs Organization billing](/images/blog/og-project-vs-org-billing.png)
+
+Currently, each project has its own plan and subscription, which has led to frustration for many of you due to the number of invoices involved and the complexity of managing billing across multiple projects.
+
+To simplify the billing process and address these concerns, we are transitioning from project-based billing to organization-based billing. Going forward, each organization will have a single plan — Starter, Pro, Team, or Enterprise — that covers all associated projects. This includes any additional resources or features tied to those projects, such as software addons like [Graphite](https://docs.nhost.io/product/ai), or platform features like [Compute Resources](https://docs.nhost.io/platform/compute-resources) and [Custom Domains](https://docs.nhost.io/platform/custom-domains).
+
+This means fewer invoices and a simpler billing experience: one plan, one invoice, covering everything under your organization.
+
+### Quotas & Features shared across organizations
+
+No matter how many projects you manage within an organization, the included quota applies to the organization as a whole, rather than being split between individual projects. For billing purposes, we aggregate the usage from all projects within the organization and reflect it in a single, consolidated invoice. 
+
+This approach simplifies managing multiple projects by unifying your resources under one quota.
+
+However, if you'd prefer to maintain separate quotas for different projects — similar to how it works today - you can achieve this by creating multiple organizations. For instance, instead of creating one Pro organization and sharing its resources across multiple projects, you could create separate Pro organizations with one project each. This would give you dedicated quotas per project at the plan level of each organization, and you can manage them individually for just $25 per organization.
+
+### Billing & Billing Cycles
+
+With the new organization-based billing, you only pay for the subscription once, as it’s tied to the organization, not individual projects. **This allows for free creation and deletion of projects within an organization, with billing based only on resources used beyond the plan's quotas**.
+
+To accommodate this flexibility, two changes are introduced:
+
+- A charge of $0.00033/minute for shared compute to run a Pro project (approximately $15/month)
+- Inclusion of $15 worth of compute in the subscription
+
+This translates to:
+
+- One Pro project running all month: no extra charge (usage within provided credits)
+- Two Pro projects running all month: additional $15 for shared compute ($40 total instead of $50)
+- Two Pro projects running half the month each: no extra charge (usage within provided credits)
+- Pro project with dedicated compute: $15 discount (credits also apply to dedicated compute)
+
+### Migration
+
+All Starter projects will be automatically migrated by us to the new organization-based billing. However, for paid projects, you will need to handle the migration yourself. Don’t worry — this process will be straightforward, requiring just a couple of clicks, and you’ll have plenty of time to complete it.
+
+For our Teams and Enterprise customers, we will reach out directly to assist with the migration process. This is to ensure that everything is handled smoothly and to avoid any unnecessary charges, such as paying for an additional month upfront.
+
+We are aiming to have everything ready and released by October 27th. If there are any changes to the schedule, we will let you know in advance.
+
+If you have any questions, don't hesitate to let me know.
+
+
+
+
+
+
+
+
+
+
+
