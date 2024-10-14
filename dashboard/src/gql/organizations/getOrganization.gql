@@ -18,7 +18,6 @@ query getOrganization($orgSlug: String!) {
       role
       user {
         id
-        email
         displayName
         avatarUrl
       }

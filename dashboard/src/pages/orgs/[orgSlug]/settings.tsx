@@ -1,14 +1,13 @@
-import { DeleteOrg } from '@/features/orgs/components/general/components/DeleteOrg';
+import { Container } from '@/components/layout/Container';
 import { GeneralSettings } from '@/features/orgs/components/general/components/GeneralSettings';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import type { ReactElement } from 'react';
 
 export default function OrgSettings() {
   return (
-    <div className="flex h-full flex-col gap-4 bg-accent p-4">
+    <Container className="">
       <GeneralSettings />
-      <DeleteOrg />
-    </div>
+    </Container>
   );
 }
 

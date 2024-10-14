@@ -36,7 +36,7 @@ function ProjectCard({ project }: { project: Project }) {
       </div>
 
       <div className="flex w-full justify-end">
-        <Button asChild variant="outline">
+        <Button asChild variant="secondary">
           <Link href={`/orgs/${org?.slug}/projects/${project.slug}`}>
             <ArrowRight />
           </Link>
@@ -77,7 +77,7 @@ export default function ProjectsGrid() {
   }
 
   return (
-    <div className="mx-auto h-full overflow-auto bg-accent">
+    <div className="mx-auto h-full overflow-auto bg-muted">
       <div className="flex w-full flex-shrink-0 flex-row items-center justify-between border-b bg-background p-2">
         <Input
           placeholder="Find Project"
@@ -101,7 +101,7 @@ export default function ProjectsGrid() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 lg:grid-cols-4">
         {filteredProjects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}

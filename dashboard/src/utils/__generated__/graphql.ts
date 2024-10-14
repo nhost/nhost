@@ -13198,6 +13198,17 @@ export type Mutation_RootBilling_Reports_Delete_Older_Than_DaysArgs = {
 
 
 /** mutation root */
+export type Mutation_RootBilling_Reports_Delete_Older_Than_DaysArgs = {
+  args: Billing_Reports_Delete_Older_Than_Days_Args;
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+
+/** mutation root */
 export type Mutation_RootChangeDatabaseVersionArgs = {
   appID: Scalars['uuid'];
   force?: InputMaybe<Scalars['Boolean']>;
@@ -26612,7 +26623,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, status: Organization_Status_Enum, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -26660,34 +26671,6 @@ export type GetProjectsQueryVariables = Exact<{
 
 
 export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
-
-export type InsertOrganizationMemberInviteMutationVariables = Exact<{
-  organizationMemberInvite: Organization_Member_Invites_Insert_Input;
-}>;
-
-
-export type InsertOrganizationMemberInviteMutation = { __typename?: 'mutation_root', insertOrganizationMemberInvite?: { __typename?: 'organization_member_invites', id: any } | null };
-
-export type OrganizationMemberInviteAcceptMutationVariables = Exact<{
-  inviteId: Scalars['uuid'];
-}>;
-
-
-export type OrganizationMemberInviteAcceptMutation = { __typename?: 'mutation_root', organizationMemberInviteAccept: Array<{ __typename: 'organization_members' }> };
-
-export type OrganizationMemberInvitesQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type OrganizationMemberInvitesQuery = { __typename?: 'query_root', organizationMemberInvites: Array<{ __typename?: 'organization_member_invites', id: any, email: any, role: Organization_Members_Role_Enum, createdAt: any, updateAt: any, organization: { __typename?: 'organizations', name: string, slug: string } }> };
-
-export type OrganizationNewRequestsQueryVariables = Exact<{
-  userID: Scalars['uuid'];
-}>;
-
-
-export type OrganizationNewRequestsQuery = { __typename?: 'query_root', organizationNewRequests: Array<{ __typename?: 'organization_new_request', id: any, sessionID: string }> };
 
 export type PostOrganizationRequestMutationVariables = Exact<{
   sessionID: Scalars['String'];
@@ -30658,7 +30641,6 @@ export const GetOrganizationDocument = gql`
       role
       user {
         id
-        email
         displayName
         avatarUrl
       }
@@ -31137,160 +31119,6 @@ export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLaz
 export type GetProjectsQueryResult = Apollo.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
 export function refetchGetProjectsQuery(variables: GetProjectsQueryVariables) {
       return { query: GetProjectsDocument, variables: variables }
-    }
-export const InsertOrganizationMemberInviteDocument = gql`
-    mutation insertOrganizationMemberInvite($organizationMemberInvite: organization_member_invites_insert_input!) {
-  insertOrganizationMemberInvite(object: $organizationMemberInvite) {
-    id
-  }
-}
-    `;
-export type InsertOrganizationMemberInviteMutationFn = Apollo.MutationFunction<InsertOrganizationMemberInviteMutation, InsertOrganizationMemberInviteMutationVariables>;
-
-/**
- * __useInsertOrganizationMemberInviteMutation__
- *
- * To run a mutation, you first call `useInsertOrganizationMemberInviteMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertOrganizationMemberInviteMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertOrganizationMemberInviteMutation, { data, loading, error }] = useInsertOrganizationMemberInviteMutation({
- *   variables: {
- *      organizationMemberInvite: // value for 'organizationMemberInvite'
- *   },
- * });
- */
-export function useInsertOrganizationMemberInviteMutation(baseOptions?: Apollo.MutationHookOptions<InsertOrganizationMemberInviteMutation, InsertOrganizationMemberInviteMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertOrganizationMemberInviteMutation, InsertOrganizationMemberInviteMutationVariables>(InsertOrganizationMemberInviteDocument, options);
-      }
-export type InsertOrganizationMemberInviteMutationHookResult = ReturnType<typeof useInsertOrganizationMemberInviteMutation>;
-export type InsertOrganizationMemberInviteMutationResult = Apollo.MutationResult<InsertOrganizationMemberInviteMutation>;
-export type InsertOrganizationMemberInviteMutationOptions = Apollo.BaseMutationOptions<InsertOrganizationMemberInviteMutation, InsertOrganizationMemberInviteMutationVariables>;
-export const OrganizationMemberInviteAcceptDocument = gql`
-    mutation organizationMemberInviteAccept($inviteId: uuid!) {
-  organizationMemberInviteAccept(args: {id: $inviteId}) {
-    __typename
-  }
-}
-    `;
-export type OrganizationMemberInviteAcceptMutationFn = Apollo.MutationFunction<OrganizationMemberInviteAcceptMutation, OrganizationMemberInviteAcceptMutationVariables>;
-
-/**
- * __useOrganizationMemberInviteAcceptMutation__
- *
- * To run a mutation, you first call `useOrganizationMemberInviteAcceptMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useOrganizationMemberInviteAcceptMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [organizationMemberInviteAcceptMutation, { data, loading, error }] = useOrganizationMemberInviteAcceptMutation({
- *   variables: {
- *      inviteId: // value for 'inviteId'
- *   },
- * });
- */
-export function useOrganizationMemberInviteAcceptMutation(baseOptions?: Apollo.MutationHookOptions<OrganizationMemberInviteAcceptMutation, OrganizationMemberInviteAcceptMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<OrganizationMemberInviteAcceptMutation, OrganizationMemberInviteAcceptMutationVariables>(OrganizationMemberInviteAcceptDocument, options);
-      }
-export type OrganizationMemberInviteAcceptMutationHookResult = ReturnType<typeof useOrganizationMemberInviteAcceptMutation>;
-export type OrganizationMemberInviteAcceptMutationResult = Apollo.MutationResult<OrganizationMemberInviteAcceptMutation>;
-export type OrganizationMemberInviteAcceptMutationOptions = Apollo.BaseMutationOptions<OrganizationMemberInviteAcceptMutation, OrganizationMemberInviteAcceptMutationVariables>;
-export const OrganizationMemberInvitesDocument = gql`
-    query organizationMemberInvites($userId: uuid!) {
-  organizationMemberInvites(
-    where: {user: {id: {_eq: $userId}}}
-    order_by: {createdAt: desc}
-  ) {
-    id
-    email
-    role
-    createdAt
-    updateAt
-    organization {
-      name
-      slug
-    }
-  }
-}
-    `;
-
-/**
- * __useOrganizationMemberInvitesQuery__
- *
- * To run a query within a React component, call `useOrganizationMemberInvitesQuery` and pass it any options that fit your needs.
- * When your component renders, `useOrganizationMemberInvitesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useOrganizationMemberInvitesQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useOrganizationMemberInvitesQuery(baseOptions: Apollo.QueryHookOptions<OrganizationMemberInvitesQuery, OrganizationMemberInvitesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<OrganizationMemberInvitesQuery, OrganizationMemberInvitesQueryVariables>(OrganizationMemberInvitesDocument, options);
-      }
-export function useOrganizationMemberInvitesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationMemberInvitesQuery, OrganizationMemberInvitesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<OrganizationMemberInvitesQuery, OrganizationMemberInvitesQueryVariables>(OrganizationMemberInvitesDocument, options);
-        }
-export type OrganizationMemberInvitesQueryHookResult = ReturnType<typeof useOrganizationMemberInvitesQuery>;
-export type OrganizationMemberInvitesLazyQueryHookResult = ReturnType<typeof useOrganizationMemberInvitesLazyQuery>;
-export type OrganizationMemberInvitesQueryResult = Apollo.QueryResult<OrganizationMemberInvitesQuery, OrganizationMemberInvitesQueryVariables>;
-export function refetchOrganizationMemberInvitesQuery(variables: OrganizationMemberInvitesQueryVariables) {
-      return { query: OrganizationMemberInvitesDocument, variables: variables }
-    }
-export const OrganizationNewRequestsDocument = gql`
-    query organizationNewRequests($userID: uuid!) {
-  organizationNewRequests(where: {userID: {_eq: $userID}}) {
-    id
-    sessionID
-  }
-}
-    `;
-
-/**
- * __useOrganizationNewRequestsQuery__
- *
- * To run a query within a React component, call `useOrganizationNewRequestsQuery` and pass it any options that fit your needs.
- * When your component renders, `useOrganizationNewRequestsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useOrganizationNewRequestsQuery({
- *   variables: {
- *      userID: // value for 'userID'
- *   },
- * });
- */
-export function useOrganizationNewRequestsQuery(baseOptions: Apollo.QueryHookOptions<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>(OrganizationNewRequestsDocument, options);
-      }
-export function useOrganizationNewRequestsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>(OrganizationNewRequestsDocument, options);
-        }
-export type OrganizationNewRequestsQueryHookResult = ReturnType<typeof useOrganizationNewRequestsQuery>;
-export type OrganizationNewRequestsLazyQueryHookResult = ReturnType<typeof useOrganizationNewRequestsLazyQuery>;
-export type OrganizationNewRequestsQueryResult = Apollo.QueryResult<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>;
-export function refetchOrganizationNewRequestsQuery(variables: OrganizationNewRequestsQueryVariables) {
-      return { query: OrganizationNewRequestsDocument, variables: variables }
     }
 export const PostOrganizationRequestDocument = gql`
     mutation postOrganizationRequest($sessionID: String!) {
