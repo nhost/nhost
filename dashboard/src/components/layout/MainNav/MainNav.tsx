@@ -50,7 +50,7 @@ export default function MainNav({ container }: MainNavProps) {
           className={cn('px-3 py-1', mainNavPinned && 'hidden')}
           disabled={mainNavPinned}
         >
-          <PanelLeft className="w-6 h-6" />
+          <PanelLeft className="h-6 w-6" />
         </Button>
       </SheetTrigger>
 
@@ -58,7 +58,7 @@ export default function MainNav({ container }: MainNavProps) {
         side="left"
         container={container}
         hideCloseButton
-        className="w-full h-full p-0 sm:max-w-72"
+        className="h-full w-full p-0 sm:max-w-[310px]"
       >
         <SheetHeader>
           <SheetTitle className="sr-only">Main navigation</SheetTitle>
@@ -67,29 +67,29 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex items-center justify-end w-full h-12 border-b bg-background">
+        <div className="flex h-12 w-full items-center justify-end border-b bg-background px-1">
           <Button
             variant="ghost"
             onClick={() => setMainNavPinned(!mainNavPinned)}
           >
             {mainNavPinned ? (
-              <PinOff className="w-5 h-5" />
+              <PinOff className="h-5 w-5" />
             ) : (
-              <Pin className="w-5 h-5" />
+              <Pin className="h-5 w-5" />
             )}
           </Button>
         </div>
 
         <div
           ref={scrollContainerRef}
-          className="h-[calc(100vh-6rem)] space-y-4 overflow-auto px-4 pb-12 pt-2"
+          className="h-[calc(100vh-6rem)] space-y-4 overflow-auto pb-12 pt-2"
         >
-          <div className="px-4">
+          <div className="pl-2">
             <NavTree />
             <CreateOrgDialog />
           </div>
           <Separator className="mx-auto my-2" />
-          <div className="px-4">
+          <div className="pl-2">
             <WorkspacesNavTree />
           </div>
         </div>

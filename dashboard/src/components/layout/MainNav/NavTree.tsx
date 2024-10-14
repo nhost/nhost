@@ -29,73 +29,73 @@ import { useTreeNavState } from './TreeNavStateContext';
 const projectPages = [
   {
     name: 'Overview',
-    icon: <HomeIcon className="w-4 h-4" />,
+    icon: <HomeIcon className="h-4 w-4" />,
     route: '',
     slug: 'overview',
   },
   {
     name: 'Database',
-    icon: <DatabaseIcon className="w-4 h-4" />,
+    icon: <DatabaseIcon className="h-4 w-4" />,
     route: 'database/browser/default',
     slug: 'database',
   },
   {
     name: 'GraphQL',
-    icon: <GraphQLIcon className="w-4 h-4" />,
+    icon: <GraphQLIcon className="h-4 w-4" />,
     route: 'graphql',
     slug: 'graphql',
   },
   {
     name: 'Hasura',
-    icon: <HasuraIcon className="w-4 h-4" />,
+    icon: <HasuraIcon className="h-4 w-4" />,
     route: 'hasura',
     slug: 'hasura',
   },
   {
     name: 'Auth',
-    icon: <UserIcon className="w-4 h-4" />,
+    icon: <UserIcon className="h-4 w-4" />,
     route: 'users',
     slug: 'users',
   },
   {
     name: 'Storage',
-    icon: <StorageIcon className="w-4 h-4" />,
+    icon: <StorageIcon className="h-4 w-4" />,
     route: 'storage',
     slug: 'storage',
   },
   {
     name: 'Run',
-    icon: <ServicesIcon className="w-4 h-4" />,
+    icon: <ServicesIcon className="h-4 w-4" />,
     route: 'run',
     slug: 'run',
   },
   {
     name: 'AI',
-    icon: <AIIcon className="w-4 h-4" />,
+    icon: <AIIcon className="h-4 w-4" />,
     route: 'ai/auto-embeddings',
     slug: 'ai',
   },
   {
     name: 'Deployments',
-    icon: <RocketIcon className="w-4 h-4" />,
+    icon: <RocketIcon className="h-4 w-4" />,
     route: 'deployments',
     slug: 'deployments',
   },
   {
     name: 'Backups',
-    icon: <CloudIcon className="w-4 h-4" />,
+    icon: <CloudIcon className="h-4 w-4" />,
     route: 'backups',
     slug: 'backups',
   },
   {
     name: 'Logs',
-    icon: <FileTextIcon className="w-4 h-4" />,
+    icon: <FileTextIcon className="h-4 w-4" />,
     route: 'logs',
     slug: 'logs',
   },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="w-4 h-4" />,
+    icon: <GaugeIcon className="h-4 w-4" />,
     route: 'metrics',
     slug: 'metrics',
   },
@@ -198,7 +198,7 @@ const createOrganization = (org: Org) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="w-4 h-4" />,
+        icon: <Box className="h-4 w-4" />,
         targetUrl: `/orgs/${org.slug}/projects/${app.slug}`,
       },
       children: projectPages.map(
@@ -352,12 +352,12 @@ export default function NavTree() {
             type="button"
             variant="ghost"
             onClick={() => context.toggleExpandedState()}
-            className="h-8 px-2"
+            className="h-8 px-1"
           >
             {context.isExpanded ? (
-              <ChevronDown className="w-4 h-4 font-bold" strokeWidth={3} />
+              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
             ) : (
-              <ChevronRight className="w-4 h-4" strokeWidth={3} />
+              <ChevronRight className="h-4 w-4" strokeWidth={3} />
             )}
           </Button>
         );
@@ -367,7 +367,7 @@ export default function NavTree() {
           {...context.itemContainerWithChildrenProps}
           className="flex flex-col gap-1"
         >
-          <div className="flex flex-row items-center gap-1">
+          <div className="flex flex-row items-center">
             {arrow}
             <Button
               asChild
@@ -387,7 +387,7 @@ export default function NavTree() {
                   context.focusItem();
                 }
               }}
-              className="flex flex-row justify-start w-full h-8 gap-2 px-1"
+              className="flex h-8 w-full flex-row justify-start gap-1 px-1"
             >
               <Link
                 href={item.data.targetUrl || '/'}
@@ -445,9 +445,9 @@ export default function NavTree() {
         }
 
         return (
-          <div className="flex flex-row w-full gap-1">
-            <div className="flex justify-center px-[15px] pb-3">
-              <div className="w-0 h-full border-r border-dashed" />
+          <div className="flex w-full flex-row">
+            <div className="flex justify-center px-[12px] pb-3">
+              <div className="h-full w-0 border-r border-dashed" />
             </div>
             <ul {...containerProps} className="w-full">
               {children}
