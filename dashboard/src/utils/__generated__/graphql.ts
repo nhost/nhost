@@ -26597,26 +26597,12 @@ export type CreateOrganizationRequestMutationVariables = Exact<{
 
 export type CreateOrganizationRequestMutation = { __typename?: 'mutation_root', billingCreateOrganizationRequest: string };
 
-export type DeleteOrganizationMemberInviteMutationVariables = Exact<{
-  inviteId: Scalars['uuid'];
-}>;
-
-
-export type DeleteOrganizationMemberInviteMutation = { __typename?: 'mutation_root', deleteOrganizationMemberInvite?: { __typename: 'organization_member_invites' } | null };
-
 export type DeleteOrganizationMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
 export type DeleteOrganizationMutation = { __typename?: 'mutation_root', billingDeleteOrganization: boolean };
-
-export type DeleteOrganizationMemberMutationVariables = Exact<{
-  memberId: Scalars['uuid'];
-}>;
-
-
-export type DeleteOrganizationMemberMutation = { __typename?: 'mutation_root', deleteOrganizationMember?: { __typename: 'organization_members' } | null };
 
 export type GetOrganizationQueryVariables = Exact<{
   orgSlug: Scalars['String'];
@@ -26686,22 +26672,6 @@ export type UpdateOrganizationMutationVariables = Exact<{
 
 
 export type UpdateOrganizationMutation = { __typename?: 'mutation_root', updateOrganization?: { __typename?: 'organizations', id: any, name: string } | null };
-
-export type UpdateOrganizationMemberInviteMutationVariables = Exact<{
-  inviteId: Scalars['uuid'];
-  role: Organization_Members_Role_Enum;
-}>;
-
-
-export type UpdateOrganizationMemberInviteMutation = { __typename?: 'mutation_root', updateOrganizationMemberInvite?: { __typename?: 'organization_member_invites', id: any } | null };
-
-export type UpdateOrganizationMemberMutationVariables = Exact<{
-  memberId: Scalars['uuid'];
-  role: Organization_Members_Role_Enum;
-}>;
-
-
-export type UpdateOrganizationMemberMutation = { __typename?: 'mutation_root', updateOrganizationMember?: { __typename?: 'organization_members', id: any } | null };
 
 export type DeletePaymentMethodMutationVariables = Exact<{
   paymentMethodId: Scalars['uuid'];
@@ -30523,39 +30493,6 @@ export function useCreateOrganizationRequestMutation(baseOptions?: Apollo.Mutati
 export type CreateOrganizationRequestMutationHookResult = ReturnType<typeof useCreateOrganizationRequestMutation>;
 export type CreateOrganizationRequestMutationResult = Apollo.MutationResult<CreateOrganizationRequestMutation>;
 export type CreateOrganizationRequestMutationOptions = Apollo.BaseMutationOptions<CreateOrganizationRequestMutation, CreateOrganizationRequestMutationVariables>;
-export const DeleteOrganizationMemberInviteDocument = gql`
-    mutation deleteOrganizationMemberInvite($inviteId: uuid!) {
-  deleteOrganizationMemberInvite(id: $inviteId) {
-    __typename
-  }
-}
-    `;
-export type DeleteOrganizationMemberInviteMutationFn = Apollo.MutationFunction<DeleteOrganizationMemberInviteMutation, DeleteOrganizationMemberInviteMutationVariables>;
-
-/**
- * __useDeleteOrganizationMemberInviteMutation__
- *
- * To run a mutation, you first call `useDeleteOrganizationMemberInviteMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteOrganizationMemberInviteMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteOrganizationMemberInviteMutation, { data, loading, error }] = useDeleteOrganizationMemberInviteMutation({
- *   variables: {
- *      inviteId: // value for 'inviteId'
- *   },
- * });
- */
-export function useDeleteOrganizationMemberInviteMutation(baseOptions?: Apollo.MutationHookOptions<DeleteOrganizationMemberInviteMutation, DeleteOrganizationMemberInviteMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteOrganizationMemberInviteMutation, DeleteOrganizationMemberInviteMutationVariables>(DeleteOrganizationMemberInviteDocument, options);
-      }
-export type DeleteOrganizationMemberInviteMutationHookResult = ReturnType<typeof useDeleteOrganizationMemberInviteMutation>;
-export type DeleteOrganizationMemberInviteMutationResult = Apollo.MutationResult<DeleteOrganizationMemberInviteMutation>;
-export type DeleteOrganizationMemberInviteMutationOptions = Apollo.BaseMutationOptions<DeleteOrganizationMemberInviteMutation, DeleteOrganizationMemberInviteMutationVariables>;
 export const DeleteOrganizationDocument = gql`
     mutation deleteOrganization($id: uuid!) {
   billingDeleteOrganization(organizationID: $id)
@@ -30587,39 +30524,6 @@ export function useDeleteOrganizationMutation(baseOptions?: Apollo.MutationHookO
 export type DeleteOrganizationMutationHookResult = ReturnType<typeof useDeleteOrganizationMutation>;
 export type DeleteOrganizationMutationResult = Apollo.MutationResult<DeleteOrganizationMutation>;
 export type DeleteOrganizationMutationOptions = Apollo.BaseMutationOptions<DeleteOrganizationMutation, DeleteOrganizationMutationVariables>;
-export const DeleteOrganizationMemberDocument = gql`
-    mutation deleteOrganizationMember($memberId: uuid!) {
-  deleteOrganizationMember(id: $memberId) {
-    __typename
-  }
-}
-    `;
-export type DeleteOrganizationMemberMutationFn = Apollo.MutationFunction<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>;
-
-/**
- * __useDeleteOrganizationMemberMutation__
- *
- * To run a mutation, you first call `useDeleteOrganizationMemberMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteOrganizationMemberMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteOrganizationMemberMutation, { data, loading, error }] = useDeleteOrganizationMemberMutation({
- *   variables: {
- *      memberId: // value for 'memberId'
- *   },
- * });
- */
-export function useDeleteOrganizationMemberMutation(baseOptions?: Apollo.MutationHookOptions<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>(DeleteOrganizationMemberDocument, options);
-      }
-export type DeleteOrganizationMemberMutationHookResult = ReturnType<typeof useDeleteOrganizationMemberMutation>;
-export type DeleteOrganizationMemberMutationResult = Apollo.MutationResult<DeleteOrganizationMemberMutation>;
-export type DeleteOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>;
 export const GetOrganizationDocument = gql`
     query getOrganization($orgSlug: String!) {
   organizations(where: {slug: {_eq: $orgSlug}}) {
@@ -31190,74 +31094,6 @@ export function useUpdateOrganizationMutation(baseOptions?: Apollo.MutationHookO
 export type UpdateOrganizationMutationHookResult = ReturnType<typeof useUpdateOrganizationMutation>;
 export type UpdateOrganizationMutationResult = Apollo.MutationResult<UpdateOrganizationMutation>;
 export type UpdateOrganizationMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationMutation, UpdateOrganizationMutationVariables>;
-export const UpdateOrganizationMemberInviteDocument = gql`
-    mutation updateOrganizationMemberInvite($inviteId: uuid!, $role: organization_members_role_enum!) {
-  updateOrganizationMemberInvite(pk_columns: {id: $inviteId}, _set: {role: $role}) {
-    id
-  }
-}
-    `;
-export type UpdateOrganizationMemberInviteMutationFn = Apollo.MutationFunction<UpdateOrganizationMemberInviteMutation, UpdateOrganizationMemberInviteMutationVariables>;
-
-/**
- * __useUpdateOrganizationMemberInviteMutation__
- *
- * To run a mutation, you first call `useUpdateOrganizationMemberInviteMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateOrganizationMemberInviteMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateOrganizationMemberInviteMutation, { data, loading, error }] = useUpdateOrganizationMemberInviteMutation({
- *   variables: {
- *      inviteId: // value for 'inviteId'
- *      role: // value for 'role'
- *   },
- * });
- */
-export function useUpdateOrganizationMemberInviteMutation(baseOptions?: Apollo.MutationHookOptions<UpdateOrganizationMemberInviteMutation, UpdateOrganizationMemberInviteMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateOrganizationMemberInviteMutation, UpdateOrganizationMemberInviteMutationVariables>(UpdateOrganizationMemberInviteDocument, options);
-      }
-export type UpdateOrganizationMemberInviteMutationHookResult = ReturnType<typeof useUpdateOrganizationMemberInviteMutation>;
-export type UpdateOrganizationMemberInviteMutationResult = Apollo.MutationResult<UpdateOrganizationMemberInviteMutation>;
-export type UpdateOrganizationMemberInviteMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationMemberInviteMutation, UpdateOrganizationMemberInviteMutationVariables>;
-export const UpdateOrganizationMemberDocument = gql`
-    mutation updateOrganizationMember($memberId: uuid!, $role: organization_members_role_enum!) {
-  updateOrganizationMember(pk_columns: {id: $memberId}, _set: {role: $role}) {
-    id
-  }
-}
-    `;
-export type UpdateOrganizationMemberMutationFn = Apollo.MutationFunction<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>;
-
-/**
- * __useUpdateOrganizationMemberMutation__
- *
- * To run a mutation, you first call `useUpdateOrganizationMemberMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateOrganizationMemberMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateOrganizationMemberMutation, { data, loading, error }] = useUpdateOrganizationMemberMutation({
- *   variables: {
- *      memberId: // value for 'memberId'
- *      role: // value for 'role'
- *   },
- * });
- */
-export function useUpdateOrganizationMemberMutation(baseOptions?: Apollo.MutationHookOptions<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>(UpdateOrganizationMemberDocument, options);
-      }
-export type UpdateOrganizationMemberMutationHookResult = ReturnType<typeof useUpdateOrganizationMemberMutation>;
-export type UpdateOrganizationMemberMutationResult = Apollo.MutationResult<UpdateOrganizationMemberMutation>;
-export type UpdateOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>;
 export const DeletePaymentMethodDocument = gql`
     mutation deletePaymentMethod($paymentMethodId: uuid!) {
   deletePaymentMethod(id: $paymentMethodId) {

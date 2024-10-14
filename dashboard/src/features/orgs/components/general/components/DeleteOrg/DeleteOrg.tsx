@@ -44,6 +44,8 @@ export default function DeleteOrg() {
             await router.push('/');
           },
         });
+
+        await router.push('/orgs');
       },
       {
         loadingMessage: 'Deleting the organization',
@@ -54,16 +56,24 @@ export default function DeleteOrg() {
   };
 
   return (
-    <div className="flex flex-col w-full border rounded-md border-destructive bg-background">
-      <div className="flex flex-col w-full gap-2 p-4 font-medium border-b">
-        <h3>Delete Organization</h3>
-        <p className="text-sm font-normal text-muted-foreground">
-          Proceed with caution, as this action is irreversible and will
-          permanently remove the organization.
-        </p>
+    <div className="flex w-full flex-col rounded-md border bg-background">
+      <div className="w-full border-b p-4 font-medium">Delete organization</div>
+
+      <div className="w-full">
+        <Alert severity="warning">
+          <div className="flex flex-row items-center gap-2">
+            <TriangleAlert className="h-4 w-4" strokeWidth={3} />
+            <span className="font-bold">Warning</span>
+          </div>
+          <p className="text-left">
+            Before deleting the organization, ensure that all associated
+            projects are deleted first. Proceed with caution, as this action is
+            irreversible and will permanently remove the organization.
+          </p>
+        </Alert>
       </div>
 
-      <div className="flex justify-end gap-2 p-2">
+      <div className="flex justify-end gap-2 border-t p-2">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
