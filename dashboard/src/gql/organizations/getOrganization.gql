@@ -15,6 +15,8 @@ query getOrganization($orgSlug: String!) {
       role
       user {
         id
+        displayName
+        avatarUrl
       }
     }
     apps(order_by: { name: asc }) {

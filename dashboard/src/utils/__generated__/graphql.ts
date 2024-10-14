@@ -3254,6 +3254,13 @@ export type UsageSummary = {
   TotalRequests: Scalars['float64'];
 };
 
+export type VerifySubscriptionsResponse = {
+  __typename?: 'VerifySubscriptionsResponse';
+  AppsWithInvalidSubscriptions: Array<Scalars['uuid']>;
+  OrganizationsWithInvalidSubscriptions: Array<Scalars['uuid']>;
+  SubscriptionsWithoutCustomer: Array<Scalars['String']>;
+};
+
 /** columns and relationships of "announcements" */
 export type Announcements = {
   __typename?: 'announcements';
@@ -7831,6 +7838,10 @@ export enum Billing_Reports_Constraint {
   ReportsPkey = 'reports_pkey'
 }
 
+export type Billing_Reports_Delete_Older_Than_Days_Args = {
+  days?: InputMaybe<Scalars['Int']>;
+};
+
 /** input type for incrementing numeric columns in table "billing.reports" */
 export type Billing_Reports_Inc_Input = {
   value?: InputMaybe<Scalars['Int']>;
@@ -12312,6 +12323,8 @@ export type Mutation_Root = {
   billingUpdatePersistentVolume: Scalars['Boolean'];
   billingUpdateReports: Scalars['Boolean'];
   billingUploadReports: Scalars['Boolean'];
+  /** execute VOLATILE function "billing.reports_delete_older_than_days" which returns "billing.reports" */
+  billing_reports_delete_older_than_days: Array<Billing_Reports>;
   changeDatabaseVersion: Scalars['Boolean'];
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
@@ -13104,6 +13117,17 @@ export type Mutation_RootBillingUpdatePersistentVolumeArgs = {
 /** mutation root */
 export type Mutation_RootBillingUpdateReportsArgs = {
   reportTime?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootBilling_Reports_Delete_Older_Than_DaysArgs = {
+  args: Billing_Reports_Delete_Older_Than_Days_Args;
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
 
@@ -16468,6 +16492,8 @@ export enum Organization_Status_Constraint {
 }
 
 export enum Organization_Status_Enum {
+  /** Allowance for the organization has been exceeded. Allowance will be reset at the end of the month. */
+  AllowanceExceeded = 'ALLOWANCE_EXCEEDED',
   /** Organization is cancelled. Contact support. */
   Cancelled = 'CANCELLED',
   /** Organization is disabled and all resources have been suspended */
@@ -18198,6 +18224,7 @@ export type Query_Root = {
   billingSubscriptions: Array<Billing_Subscriptions>;
   /** fetch aggregated fields from the table: "billing.subscriptions" */
   billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
+  billingVerifySubscriptions: VerifySubscriptionsResponse;
   /** fetch data from the table: "billing.report_type" */
   billing_report_type: Array<Billing_Report_Type>;
   /** fetch aggregated fields from the table: "billing.report_type" */
@@ -26024,7 +26051,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -26051,6 +26078,13 @@ export type GetProjectQueryVariables = Exact<{
 
 
 export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+
+export type GetProjectsQueryVariables = Exact<{
+  orgSlug: Scalars['String'];
+}>;
+
+
+export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type PostOrganizationRequestMutationVariables = Exact<{
   sessionID: Scalars['String'];
@@ -29627,6 +29661,8 @@ export const GetOrganizationDocument = gql`
       role
       user {
         id
+        displayName
+        avatarUrl
       }
     }
     apps(order_by: {name: asc}) {
@@ -29904,6 +29940,62 @@ export type GetProjectLazyQueryHookResult = ReturnType<typeof useGetProjectLazyQ
 export type GetProjectQueryResult = Apollo.QueryResult<GetProjectQuery, GetProjectQueryVariables>;
 export function refetchGetProjectQuery(variables: GetProjectQueryVariables) {
       return { query: GetProjectDocument, variables: variables }
+    }
+export const GetProjectsDocument = gql`
+    query getProjects($orgSlug: String!) {
+  apps(where: {organization: {slug: {_eq: $orgSlug}}}) {
+    id
+    name
+    slug
+    createdAt
+    deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
+      id
+      commitSHA
+      commitMessage
+      commitUserName
+      deploymentStartedAt
+      deploymentEndedAt
+      commitUserAvatarUrl
+      deploymentStatus
+    }
+    creator {
+      id
+      email
+      displayName
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetProjectsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectsQuery({
+ *   variables: {
+ *      orgSlug: // value for 'orgSlug'
+ *   },
+ * });
+ */
+export function useGetProjectsQuery(baseOptions: Apollo.QueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectsQuery, GetProjectsQueryVariables>(GetProjectsDocument, options);
+      }
+export function useGetProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectsQuery, GetProjectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectsQuery, GetProjectsQueryVariables>(GetProjectsDocument, options);
+        }
+export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
+export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLazyQuery>;
+export type GetProjectsQueryResult = Apollo.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
+export function refetchGetProjectsQuery(variables: GetProjectsQueryVariables) {
+      return { query: GetProjectsDocument, variables: variables }
     }
 export const PostOrganizationRequestDocument = gql`
     mutation postOrganizationRequest($sessionID: String!) {
