@@ -3192,6 +3192,7 @@ export type Metrics = {
 
 export type PostOrganizationRequestResponse = {
   __typename?: 'PostOrganizationRequestResponse';
+  ClientSecret?: Maybe<Scalars['String']>;
   Slug: Scalars['String'];
   Status: CheckoutStatus;
 };
@@ -3270,6 +3271,13 @@ export type UsageSummary = {
   LambdaUsageSeconds: Scalars['float64'];
   PostgresVolumeUsage: Scalars['float64'];
   TotalRequests: Scalars['float64'];
+};
+
+export type VerifySubscriptionsResponse = {
+  __typename?: 'VerifySubscriptionsResponse';
+  AppsWithInvalidSubscriptions: Array<Scalars['uuid']>;
+  OrganizationsWithInvalidSubscriptions: Array<Scalars['uuid']>;
+  SubscriptionsWithoutCustomer: Array<Scalars['String']>;
 };
 
 /** columns and relationships of "announcements" */
@@ -7287,8 +7295,7 @@ export type Billing_Dedicated_Compute = {
   appID: Scalars['uuid'];
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
-  /** An object relationship */
-  organization?: Maybe<Organizations>;
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
@@ -7337,7 +7344,7 @@ export type Billing_Dedicated_Compute_Bool_Exp = {
   appID?: InputMaybe<Uuid_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  organization?: InputMaybe<Organizations_Bool_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   totalMillicores?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -7361,7 +7368,7 @@ export type Billing_Dedicated_Compute_Insert_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
-  organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -7372,6 +7379,7 @@ export type Billing_Dedicated_Compute_Max_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -7382,6 +7390,7 @@ export type Billing_Dedicated_Compute_Min_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -7415,7 +7424,7 @@ export type Billing_Dedicated_Compute_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  organization?: InputMaybe<Organizations_Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   totalMillicores?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -7434,6 +7443,8 @@ export enum Billing_Dedicated_Compute_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
   TotalMillicores = 'totalMillicores',
   /** column name */
   UpdatedAt = 'updatedAt',
@@ -7444,6 +7455,7 @@ export type Billing_Dedicated_Compute_Set_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -7479,6 +7491,7 @@ export type Billing_Dedicated_Compute_Stream_Cursor_Value_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -7497,6 +7510,8 @@ export enum Billing_Dedicated_Compute_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   TotalMillicores = 'totalMillicores',
   /** column name */
@@ -7687,6 +7702,7 @@ export type Billing_Reports = {
   appID: Scalars['uuid'];
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
+  organizationID?: Maybe<Scalars['uuid']>;
   pending: Scalars['Boolean'];
   reportEnds: Scalars['timestamptz'];
   reportStarts: Scalars['timestamptz'];
@@ -7792,6 +7808,7 @@ export type Billing_Reports_Bool_Exp = {
   appID?: InputMaybe<Uuid_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   pending?: InputMaybe<Boolean_Comparison_Exp>;
   reportEnds?: InputMaybe<Timestamptz_Comparison_Exp>;
   reportStarts?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -7806,6 +7823,10 @@ export enum Billing_Reports_Constraint {
   ReportsPkey = 'reports_pkey',
 }
 
+export type Billing_Reports_Delete_Older_Than_Days_Args = {
+  days?: InputMaybe<Scalars['Int']>;
+};
+
 /** input type for incrementing numeric columns in table "billing.reports" */
 export type Billing_Reports_Inc_Input = {
   value?: InputMaybe<Scalars['Int']>;
@@ -7816,6 +7837,7 @@ export type Billing_Reports_Insert_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
@@ -7830,6 +7852,7 @@ export type Billing_Reports_Max_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
@@ -7841,6 +7864,7 @@ export type Billing_Reports_Max_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
@@ -7853,6 +7877,7 @@ export type Billing_Reports_Min_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
@@ -7864,6 +7889,7 @@ export type Billing_Reports_Min_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
@@ -7891,6 +7917,7 @@ export type Billing_Reports_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   pending?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
@@ -7912,6 +7939,8 @@ export enum Billing_Reports_Select_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   Pending = 'pending',
   /** column name */
@@ -7943,6 +7972,7 @@ export type Billing_Reports_Set_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
@@ -7997,6 +8027,7 @@ export type Billing_Reports_Stream_Cursor_Value_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
@@ -8024,6 +8055,8 @@ export enum Billing_Reports_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   Pending = 'pending',
   /** column name */
@@ -8088,6 +8121,7 @@ export type Billing_Resources = {
   customDomains: Scalars['Int'];
   functionsAmount: Scalars['Int'];
   id: Scalars['uuid'];
+  organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
@@ -8139,6 +8173,7 @@ export type Billing_Resources_Bool_Exp = {
   customDomains?: InputMaybe<Int_Comparison_Exp>;
   functionsAmount?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   persistentVolume?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -8165,6 +8200,7 @@ export type Billing_Resources_Insert_Input = {
   customDomains?: InputMaybe<Scalars['Int']>;
   functionsAmount?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -8177,6 +8213,7 @@ export type Billing_Resources_Max_Fields = {
   customDomains?: Maybe<Scalars['Int']>;
   functionsAmount?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -8189,6 +8226,7 @@ export type Billing_Resources_Min_Fields = {
   customDomains?: Maybe<Scalars['Int']>;
   functionsAmount?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -8223,6 +8261,7 @@ export type Billing_Resources_Order_By = {
   customDomains?: InputMaybe<Order_By>;
   functionsAmount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   persistentVolume?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -8245,6 +8284,8 @@ export enum Billing_Resources_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
   UpdatedAt = 'updatedAt',
@@ -8257,6 +8298,7 @@ export type Billing_Resources_Set_Input = {
   customDomains?: InputMaybe<Scalars['Int']>;
   functionsAmount?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -8300,6 +8342,7 @@ export type Billing_Resources_Stream_Cursor_Value_Input = {
   customDomains?: InputMaybe<Scalars['Int']>;
   functionsAmount?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -8324,6 +8367,8 @@ export enum Billing_Resources_Update_Column {
   FunctionsAmount = 'functionsAmount',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
@@ -12243,20 +12288,25 @@ export type Mutation_Root = {
   __typename?: 'mutation_root';
   backupAllApplicationsDatabase: Array<Maybe<BackupResultsItem>>;
   backupApplicationDatabase: BackupResult;
+  billingChangeOrganizationPlan: Scalars['Boolean'];
   billingCreateOrganizationRequest: Scalars['String'];
+  billingDeleteApp: Scalars['Boolean'];
   billingDeleteOrganization: Scalars['Boolean'];
   billingFinishSubscription: Scalars['Boolean'];
   billingFixSubscriptionItems: Scalars['Boolean'];
-  billingFixSubscriptions: Scalars['Boolean'];
   billingFullReportWorkflow: Scalars['Boolean'];
   billingMigrateProjectToOrganization: Scalars['Boolean'];
   billingPostOrganizationRequest: PostOrganizationRequestResponse;
+  billingTransferApp: Scalars['Boolean'];
   billingUpdateCustomDomains: Scalars['Boolean'];
   billingUpdateDedicatedCompute: Scalars['Boolean'];
   billingUpdateFunctionsAmount: Scalars['Boolean'];
+  billingUpdateOrganizationThresholds: Scalars['Boolean'];
   billingUpdatePersistentVolume: Scalars['Boolean'];
   billingUpdateReports: Scalars['Boolean'];
   billingUploadReports: Scalars['Boolean'];
+  /** execute VOLATILE function "billing.reports_delete_older_than_days" which returns "billing.reports" */
+  billing_reports_delete_older_than_days: Array<Billing_Reports>;
   changeDatabaseVersion: Scalars['Boolean'];
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
@@ -13037,10 +13087,21 @@ export type Mutation_RootBackupApplicationDatabaseArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootBillingChangeOrganizationPlanArgs = {
+  organizationID: Scalars['uuid'];
+  planID: Scalars['uuid'];
+};
+
+/** mutation root */
 export type Mutation_RootBillingCreateOrganizationRequestArgs = {
   organizationName: Scalars['String'];
   planID: Scalars['uuid'];
   redirectURL: Scalars['String'];
+};
+
+/** mutation root */
+export type Mutation_RootBillingDeleteAppArgs = {
+  appID: Scalars['uuid'];
 };
 
 /** mutation root */
@@ -13059,11 +13120,6 @@ export type Mutation_RootBillingFinishSubscriptionArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootBillingFullReportWorkflowArgs = {
-  reportTime?: InputMaybe<Scalars['Timestamp']>;
-};
-
-/** mutation root */
 export type Mutation_RootBillingMigrateProjectToOrganizationArgs = {
   appID: Scalars['uuid'];
   organizationID: Scalars['uuid'];
@@ -13075,14 +13131,22 @@ export type Mutation_RootBillingPostOrganizationRequestArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootBillingTransferAppArgs = {
+  appID: Scalars['uuid'];
+  organizationID: Scalars['uuid'];
+};
+
+/** mutation root */
 export type Mutation_RootBillingUpdateCustomDomainsArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
+  organizationID?: InputMaybe<Scalars['uuid']>;
 };
 
 /** mutation root */
 export type Mutation_RootBillingUpdateDedicatedComputeArgs = {
   appID: Scalars['uuid'];
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores: Scalars['Int'];
 };
 
@@ -13090,17 +13154,24 @@ export type Mutation_RootBillingUpdateDedicatedComputeArgs = {
 export type Mutation_RootBillingUpdateFunctionsAmountArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
+  organizationID?: InputMaybe<Scalars['uuid']>;
 };
 
 /** mutation root */
 export type Mutation_RootBillingUpdatePersistentVolumeArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
+  organizationID?: InputMaybe<Scalars['uuid']>;
 };
 
 /** mutation root */
-export type Mutation_RootBillingUpdateReportsArgs = {
-  reportTime?: InputMaybe<Scalars['Timestamp']>;
+export type Mutation_RootBilling_Reports_Delete_Older_Than_DaysArgs = {
+  args: Billing_Reports_Delete_Older_Than_Days_Args;
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
 /** mutation root */
@@ -14653,6 +14724,7 @@ export type Mutation_RootUpdateManySoftwareVersionsArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationArgs = {
+  _inc?: InputMaybe<Organizations_Inc_Input>;
   _set?: InputMaybe<Organizations_Set_Input>;
   pk_columns: Organizations_Pk_Columns_Input;
 };
@@ -14710,6 +14782,7 @@ export type Mutation_RootUpdateOrganizationNewRequestsManyArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationsArgs = {
+  _inc?: InputMaybe<Organizations_Inc_Input>;
   _set?: InputMaybe<Organizations_Set_Input>;
   where: Organizations_Bool_Exp;
 };
@@ -16099,6 +16172,8 @@ export enum Organization_Status_Constraint {
 }
 
 export enum Organization_Status_Enum {
+  /** Allowance for the organization has been exceeded. Allowance will be reset at the end of the month. */
+  AllowanceExceeded = 'ALLOWANCE_EXCEEDED',
   /** Organization is cancelled. Contact support. */
   Cancelled = 'CANCELLED',
   /** Organization is disabled and all resources have been suspended */
@@ -16220,6 +16295,7 @@ export type Organizations = {
   /** An aggregate relationship */
   apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
+  current_threshold: Scalars['String'];
   id: Scalars['uuid'];
   /** An array relationship */
   invites: Array<Organization_Member_Invites>;
@@ -16238,6 +16314,7 @@ export type Organizations = {
   status_comment?: Maybe<Scalars['String']>;
   stripeCustomerID?: Maybe<Scalars['String']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
 
@@ -16334,9 +16411,17 @@ export type Organizations_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "organizations" */
 export type Organizations_Aggregate_Fields = {
   __typename?: 'organizations_aggregate_fields';
+  avg?: Maybe<Organizations_Avg_Fields>;
   count: Scalars['Int'];
   max?: Maybe<Organizations_Max_Fields>;
   min?: Maybe<Organizations_Min_Fields>;
+  stddev?: Maybe<Organizations_Stddev_Fields>;
+  stddev_pop?: Maybe<Organizations_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Organizations_Stddev_Samp_Fields>;
+  sum?: Maybe<Organizations_Sum_Fields>;
+  var_pop?: Maybe<Organizations_Var_Pop_Fields>;
+  var_samp?: Maybe<Organizations_Var_Samp_Fields>;
+  variance?: Maybe<Organizations_Variance_Fields>;
 };
 
 /** aggregate fields of "organizations" */
@@ -16347,9 +16432,17 @@ export type Organizations_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "organizations" */
 export type Organizations_Aggregate_Order_By = {
+  avg?: InputMaybe<Organizations_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Organizations_Max_Order_By>;
   min?: InputMaybe<Organizations_Min_Order_By>;
+  stddev?: InputMaybe<Organizations_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Organizations_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Organizations_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Organizations_Sum_Order_By>;
+  var_pop?: InputMaybe<Organizations_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Organizations_Var_Samp_Order_By>;
+  variance?: InputMaybe<Organizations_Variance_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "organizations" */
@@ -16357,6 +16450,17 @@ export type Organizations_Arr_Rel_Insert_Input = {
   data: Array<Organizations_Insert_Input>;
   /** upsert condition */
   on_conflict?: InputMaybe<Organizations_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Organizations_Avg_Fields = {
+  __typename?: 'organizations_avg_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by avg() on columns of table "organizations" */
+export type Organizations_Avg_Order_By = {
+  threshold?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "organizations". All fields are combined with a logical 'AND'. */
@@ -16369,6 +16473,7 @@ export type Organizations_Bool_Exp = {
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  current_threshold?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   invites?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
   invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp>;
@@ -16382,6 +16487,7 @@ export type Organizations_Bool_Exp = {
   status_comment?: InputMaybe<String_Comparison_Exp>;
   stripeCustomerID?: InputMaybe<String_Comparison_Exp>;
   stripeSubscriptionID?: InputMaybe<String_Comparison_Exp>;
+  threshold?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -16393,11 +16499,17 @@ export enum Organizations_Constraint {
   OrganizationsSlugKey = 'organizations_slug_key',
 }
 
+/** input type for incrementing numeric columns in table "organizations" */
+export type Organizations_Inc_Input = {
+  threshold?: InputMaybe<Scalars['Int']>;
+};
+
 /** input type for inserting data into table "organizations" */
 export type Organizations_Insert_Input = {
   allowedPrivateRegions?: InputMaybe<Regions_Allowed_Organization_Arr_Rel_Insert_Input>;
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   invites?: InputMaybe<Organization_Member_Invites_Arr_Rel_Insert_Input>;
   members?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
@@ -16409,6 +16521,7 @@ export type Organizations_Insert_Input = {
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -16416,6 +16529,7 @@ export type Organizations_Insert_Input = {
 export type Organizations_Max_Fields = {
   __typename?: 'organizations_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  current_threshold?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   planID?: Maybe<Scalars['uuid']>;
@@ -16423,12 +16537,14 @@ export type Organizations_Max_Fields = {
   status_comment?: Maybe<Scalars['String']>;
   stripeCustomerID?: Maybe<Scalars['String']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by max() on columns of table "organizations" */
 export type Organizations_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
+  current_threshold?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   planID?: InputMaybe<Order_By>;
@@ -16436,6 +16552,7 @@ export type Organizations_Max_Order_By = {
   status_comment?: InputMaybe<Order_By>;
   stripeCustomerID?: InputMaybe<Order_By>;
   stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -16443,6 +16560,7 @@ export type Organizations_Max_Order_By = {
 export type Organizations_Min_Fields = {
   __typename?: 'organizations_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  current_threshold?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   planID?: Maybe<Scalars['uuid']>;
@@ -16450,12 +16568,14 @@ export type Organizations_Min_Fields = {
   status_comment?: Maybe<Scalars['String']>;
   stripeCustomerID?: Maybe<Scalars['String']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by min() on columns of table "organizations" */
 export type Organizations_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
+  current_threshold?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   planID?: InputMaybe<Order_By>;
@@ -16463,6 +16583,7 @@ export type Organizations_Min_Order_By = {
   status_comment?: InputMaybe<Order_By>;
   stripeCustomerID?: InputMaybe<Order_By>;
   stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -16494,6 +16615,7 @@ export type Organizations_Order_By = {
   allowedPrivateRegions_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Order_By>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  current_threshold?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Order_By>;
   members_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
@@ -16505,6 +16627,7 @@ export type Organizations_Order_By = {
   status_comment?: InputMaybe<Order_By>;
   stripeCustomerID?: InputMaybe<Order_By>;
   stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -16518,6 +16641,8 @@ export enum Organizations_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  CurrentThreshold = 'current_threshold',
+  /** column name */
   Id = 'id',
   /** column name */
   Name = 'name',
@@ -16534,12 +16659,15 @@ export enum Organizations_Select_Column {
   /** column name */
   StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
+  Threshold = 'threshold',
+  /** column name */
   UpdatedAt = 'updatedAt',
 }
 
 /** input type for updating data in table "organizations" */
 export type Organizations_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
@@ -16548,7 +16676,41 @@ export type Organizations_Set_Input = {
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate stddev on columns */
+export type Organizations_Stddev_Fields = {
+  __typename?: 'organizations_stddev_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev() on columns of table "organizations" */
+export type Organizations_Stddev_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Organizations_Stddev_Pop_Fields = {
+  __typename?: 'organizations_stddev_pop_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev_pop() on columns of table "organizations" */
+export type Organizations_Stddev_Pop_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Organizations_Stddev_Samp_Fields = {
+  __typename?: 'organizations_stddev_samp_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev_samp() on columns of table "organizations" */
+export type Organizations_Stddev_Samp_Order_By = {
+  threshold?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "organizations" */
@@ -16562,6 +16724,7 @@ export type Organizations_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Organizations_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
@@ -16570,13 +16733,27 @@ export type Organizations_Stream_Cursor_Value_Input = {
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate sum on columns */
+export type Organizations_Sum_Fields = {
+  __typename?: 'organizations_sum_fields';
+  threshold?: Maybe<Scalars['Int']>;
+};
+
+/** order by sum() on columns of table "organizations" */
+export type Organizations_Sum_Order_By = {
+  threshold?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "organizations" */
 export enum Organizations_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
+  /** column name */
+  CurrentThreshold = 'current_threshold',
   /** column name */
   Id = 'id',
   /** column name */
@@ -16594,14 +16771,51 @@ export enum Organizations_Update_Column {
   /** column name */
   StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
+  Threshold = 'threshold',
+  /** column name */
   UpdatedAt = 'updatedAt',
 }
 
 export type Organizations_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Organizations_Inc_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<Organizations_Set_Input>;
   /** filter the rows which have to be updated */
   where: Organizations_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Organizations_Var_Pop_Fields = {
+  __typename?: 'organizations_var_pop_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by var_pop() on columns of table "organizations" */
+export type Organizations_Var_Pop_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Organizations_Var_Samp_Fields = {
+  __typename?: 'organizations_var_samp_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by var_samp() on columns of table "organizations" */
+export type Organizations_Var_Samp_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Organizations_Variance_Fields = {
+  __typename?: 'organizations_variance_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by variance() on columns of table "organizations" */
+export type Organizations_Variance_Order_By = {
+  threshold?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "payment_methods" */
@@ -17814,6 +18028,7 @@ export type Query_Root = {
   billingSubscriptions: Array<Billing_Subscriptions>;
   /** fetch aggregated fields from the table: "billing.subscriptions" */
   billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
+  billingVerifySubscriptions: VerifySubscriptionsResponse;
   /** fetch data from the table: "billing.report_type" */
   billing_report_type: Array<Billing_Report_Type>;
   /** fetch aggregated fields from the table: "billing.report_type" */
@@ -18353,7 +18568,7 @@ export type Query_RootBillingDedicatedComputesArgs = {
 };
 
 export type Query_RootBillingGetNextInvoiceArgs = {
-  appID: Scalars['uuid'];
+  organizationID: Scalars['uuid'];
 };
 
 export type Query_RootBillingOrganizationCustomePortalArgs = {
@@ -24950,6 +25165,7 @@ export type GetHasuraSettingsQuery = {
         devMode?: boolean | null;
         corsDomain?: Array<any> | null;
         enabledAPIs?: Array<any> | null;
+        inferFunctionPermissions?: boolean | null;
       } | null;
       logs?: { __typename?: 'ConfigHasuraLogs'; level?: string | null } | null;
       events?: {
@@ -25023,7 +25239,6 @@ export type ServiceResourcesFragment = {
         cpu: any;
         memory: any;
       } | null;
-      autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
     } | null;
   } | null;
   hasura: {
@@ -25036,7 +25251,6 @@ export type ServiceResourcesFragment = {
         cpu: any;
         memory: any;
       } | null;
-      autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
     } | null;
   };
   postgres?: {
@@ -25049,7 +25263,6 @@ export type ServiceResourcesFragment = {
         cpu: any;
         memory: any;
       } | null;
-      autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
     } | null;
   } | null;
   storage?: {
@@ -25062,7 +25275,6 @@ export type ServiceResourcesFragment = {
         cpu: any;
         memory: any;
       } | null;
-      autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
     } | null;
   } | null;
 };
@@ -25085,10 +25297,6 @@ export type GetResourcesQuery = {
           cpu: any;
           memory: any;
         } | null;
-        autoscaler?: {
-          __typename?: 'ConfigAutoscaler';
-          maxReplicas: any;
-        } | null;
       } | null;
     } | null;
     hasura: {
@@ -25100,10 +25308,6 @@ export type GetResourcesQuery = {
           __typename?: 'ConfigResourcesCompute';
           cpu: any;
           memory: any;
-        } | null;
-        autoscaler?: {
-          __typename?: 'ConfigAutoscaler';
-          maxReplicas: any;
         } | null;
       } | null;
     };
@@ -25117,10 +25321,6 @@ export type GetResourcesQuery = {
           cpu: any;
           memory: any;
         } | null;
-        autoscaler?: {
-          __typename?: 'ConfigAutoscaler';
-          maxReplicas: any;
-        } | null;
       } | null;
     } | null;
     storage?: {
@@ -25132,10 +25332,6 @@ export type GetResourcesQuery = {
           __typename?: 'ConfigResourcesCompute';
           cpu: any;
           memory: any;
-        } | null;
-        autoscaler?: {
-          __typename?: 'ConfigAutoscaler';
-          maxReplicas: any;
         } | null;
       } | null;
     } | null;
@@ -26738,6 +26934,72 @@ export type GetSystemLogsQuery = {
   systemLogs: Array<{ __typename?: 'Log'; timestamp: any; log: string }>;
 };
 
+export type BillingChangeOrganizationPlanMutationVariables = Exact<{
+  organizationID: Scalars['uuid'];
+  planID: Scalars['uuid'];
+}>;
+
+export type BillingChangeOrganizationPlanMutation = {
+  __typename?: 'mutation_root';
+  billingChangeOrganizationPlan: boolean;
+};
+
+export type BillingDeleteAppMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+}>;
+
+export type BillingDeleteAppMutation = {
+  __typename?: 'mutation_root';
+  billingDeleteApp: boolean;
+};
+
+export type BillingGetNextInvoiceQueryVariables = Exact<{
+  organizationID: Scalars['uuid'];
+}>;
+
+export type BillingGetNextInvoiceQuery = {
+  __typename?: 'query_root';
+  billingGetNextInvoice?: {
+    __typename?: 'InvoiceSummary';
+    AmountDue: any;
+    PeriodEnd: any;
+    items: Array<{
+      __typename?: 'InvoiceItem';
+      Description: string;
+      Amount: any;
+    }>;
+  } | null;
+};
+
+export type BillingMigrateProjectToOrganizationMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  organizationID: Scalars['uuid'];
+}>;
+
+export type BillingMigrateProjectToOrganizationMutation = {
+  __typename?: 'mutation_root';
+  billingMigrateProjectToOrganization: boolean;
+};
+
+export type BillingOrganizationCustomePortalQueryVariables = Exact<{
+  organizationID: Scalars['uuid'];
+}>;
+
+export type BillingOrganizationCustomePortalQuery = {
+  __typename?: 'query_root';
+  billingOrganizationCustomePortal: string;
+};
+
+export type BillingTransferAppMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  organizationID: Scalars['uuid'];
+}>;
+
+export type BillingTransferAppMutation = {
+  __typename?: 'mutation_root';
+  billingTransferApp: boolean;
+};
+
 export type CreateOrganizationRequestMutationVariables = Exact<{
   organizationName: Scalars['String'];
   planID: Scalars['uuid'];
@@ -26747,6 +27009,35 @@ export type CreateOrganizationRequestMutationVariables = Exact<{
 export type CreateOrganizationRequestMutation = {
   __typename?: 'mutation_root';
   billingCreateOrganizationRequest: string;
+};
+
+export type DeleteOrganizationMemberInviteMutationVariables = Exact<{
+  inviteId: Scalars['uuid'];
+}>;
+
+export type DeleteOrganizationMemberInviteMutation = {
+  __typename?: 'mutation_root';
+  deleteOrganizationMemberInvite?: {
+    __typename: 'organization_member_invites';
+  } | null;
+};
+
+export type DeleteOrganizationMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+export type DeleteOrganizationMutation = {
+  __typename?: 'mutation_root';
+  billingDeleteOrganization: boolean;
+};
+
+export type DeleteOrganizationMemberMutationVariables = Exact<{
+  memberId: Scalars['uuid'];
+}>;
+
+export type DeleteOrganizationMemberMutation = {
+  __typename?: 'mutation_root';
+  deleteOrganizationMember?: { __typename: 'organization_members' } | null;
 };
 
 export type GetOrganizationQueryVariables = Exact<{
@@ -26760,19 +27051,28 @@ export type GetOrganizationQuery = {
     id: any;
     name: string;
     slug: string;
+    status: Organization_Status_Enum;
     plan: {
       __typename?: 'plans';
       id: any;
       name: string;
+      price: number;
       deprecated: boolean;
       individual: boolean;
       isFree: boolean;
+      featureMaxDbSize: number;
     };
     members: Array<{
       __typename?: 'organization_members';
       id: any;
       role: Organization_Members_Role_Enum;
-      user: { __typename?: 'users'; id: any };
+      user: {
+        __typename?: 'users';
+        id: any;
+        email?: any | null;
+        displayName: string;
+        avatarUrl: string;
+      };
     }>;
     apps: Array<{
       __typename?: 'apps';
@@ -26795,6 +27095,22 @@ export type GetOrganizationByIdQuery = {
     id: any;
     name: string;
     slug: string;
+  }>;
+};
+
+export type GetOrganizationInvitesQueryVariables = Exact<{
+  organizationId: Scalars['uuid'];
+}>;
+
+export type GetOrganizationInvitesQuery = {
+  __typename?: 'query_root';
+  organizationMemberInvites: Array<{
+    __typename?: 'organization_member_invites';
+    id: any;
+    email: any;
+    role: Organization_Members_Role_Enum;
+    createdAt: any;
+    updateAt: any;
   }>;
 };
 
@@ -26885,7 +27201,9 @@ export type GetOrganizationProjectsQuery = {
   }>;
 };
 
-export type GetOrganizationsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetOrganizationsQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
 
 export type GetOrganizationsQuery = {
   __typename?: 'query_root';
@@ -26898,9 +27216,11 @@ export type GetOrganizationsQuery = {
       __typename?: 'plans';
       id: any;
       name: string;
+      price: number;
       deprecated: boolean;
       individual: boolean;
       isFree: boolean;
+      featureMaxDbSize: number;
     };
     apps: Array<{
       __typename?: 'apps';
@@ -26909,6 +27229,25 @@ export type GetOrganizationsQuery = {
       subdomain: string;
       slug: string;
     }>;
+  }>;
+};
+
+export type GetOrganizationPlansQueryVariables = Exact<{
+  [key: string]: never;
+}>;
+
+export type GetOrganizationPlansQuery = {
+  __typename?: 'query_root';
+  plans: Array<{
+    __typename?: 'plans';
+    id: any;
+    name: string;
+    isDefault: boolean;
+    isFree: boolean;
+    price: number;
+    featureBackupEnabled: boolean;
+    featureCustomDomainsEnabled: boolean;
+    featureMaxDbSize: number;
   }>;
 };
 
@@ -26999,6 +27338,89 @@ export type GetProjectQuery = {
   }>;
 };
 
+export type GetProjectsQueryVariables = Exact<{
+  orgSlug: Scalars['String'];
+}>;
+
+export type GetProjectsQuery = {
+  __typename?: 'query_root';
+  apps: Array<{
+    __typename?: 'apps';
+    id: any;
+    name: string;
+    slug: string;
+    createdAt: any;
+    deployments: Array<{
+      __typename?: 'deployments';
+      id: any;
+      commitSHA: string;
+      commitMessage?: string | null;
+      commitUserName?: string | null;
+      deploymentStartedAt?: any | null;
+      deploymentEndedAt?: any | null;
+      commitUserAvatarUrl?: string | null;
+      deploymentStatus?: string | null;
+    }>;
+    creator?: {
+      __typename?: 'users';
+      id: any;
+      email?: any | null;
+      displayName: string;
+    } | null;
+  }>;
+};
+
+export type InsertOrganizationMemberInviteMutationVariables = Exact<{
+  organizationMemberInvite: Organization_Member_Invites_Insert_Input;
+}>;
+
+export type InsertOrganizationMemberInviteMutation = {
+  __typename?: 'mutation_root';
+  insertOrganizationMemberInvite?: {
+    __typename?: 'organization_member_invites';
+    id: any;
+  } | null;
+};
+
+export type OrganizationMemberInviteAcceptMutationVariables = Exact<{
+  inviteId: Scalars['uuid'];
+}>;
+
+export type OrganizationMemberInviteAcceptMutation = {
+  __typename?: 'mutation_root';
+  organizationMemberInviteAccept: Array<{ __typename: 'organization_members' }>;
+};
+
+export type OrganizationMemberInvitesQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+export type OrganizationMemberInvitesQuery = {
+  __typename?: 'query_root';
+  organizationMemberInvites: Array<{
+    __typename?: 'organization_member_invites';
+    id: any;
+    email: any;
+    role: Organization_Members_Role_Enum;
+    createdAt: any;
+    updateAt: any;
+    organization: { __typename?: 'organizations'; name: string; slug: string };
+  }>;
+};
+
+export type OrganizationNewRequestsQueryVariables = Exact<{
+  userID: Scalars['uuid'];
+}>;
+
+export type OrganizationNewRequestsQuery = {
+  __typename?: 'query_root';
+  organizationNewRequests: Array<{
+    __typename?: 'organization_new_request';
+    id: any;
+    sessionID: string;
+  }>;
+};
+
 export type PostOrganizationRequestMutationVariables = Exact<{
   sessionID: Scalars['String'];
 }>;
@@ -27009,7 +27431,48 @@ export type PostOrganizationRequestMutation = {
     __typename?: 'PostOrganizationRequestResponse';
     Status: CheckoutStatus;
     Slug: string;
+    ClientSecret?: string | null;
   };
+};
+
+export type UpdateOrganizationMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  organization: Organizations_Set_Input;
+}>;
+
+export type UpdateOrganizationMutation = {
+  __typename?: 'mutation_root';
+  updateOrganization?: {
+    __typename?: 'organizations';
+    id: any;
+    name: string;
+  } | null;
+};
+
+export type UpdateOrganizationMemberInviteMutationVariables = Exact<{
+  inviteId: Scalars['uuid'];
+  role: Organization_Members_Role_Enum;
+}>;
+
+export type UpdateOrganizationMemberInviteMutation = {
+  __typename?: 'mutation_root';
+  updateOrganizationMemberInvite?: {
+    __typename?: 'organization_member_invites';
+    id: any;
+  } | null;
+};
+
+export type UpdateOrganizationMemberMutationVariables = Exact<{
+  memberId: Scalars['uuid'];
+  role: Organization_Members_Role_Enum;
+}>;
+
+export type UpdateOrganizationMemberMutation = {
+  __typename?: 'mutation_root';
+  updateOrganizationMember?: {
+    __typename?: 'organization_members';
+    id: any;
+  } | null;
 };
 
 export type DeletePaymentMethodMutationVariables = Exact<{
@@ -27416,7 +27879,11 @@ export type GetRunServiceQuery = {
       __typename?: 'ConfigRunServiceConfig';
       name: any;
       command?: Array<string> | null;
-      image: { __typename?: 'ConfigRunServiceImage'; image: string };
+      image: {
+        __typename?: 'ConfigRunServiceImage';
+        image: string;
+        pullCredentials?: string | null;
+      };
       resources: {
         __typename?: 'ConfigRunServiceResources';
         replicas: any;
@@ -27431,10 +27898,6 @@ export type GetRunServiceQuery = {
           path: string;
           capacity: any;
         }> | null;
-        autoscaler?: {
-          __typename?: 'ConfigAutoscaler';
-          maxReplicas: any;
-        } | null;
       };
       environment?: Array<{
         __typename?: 'ConfigEnvironmentVariable';
@@ -27455,7 +27918,11 @@ export type RunServiceConfigFragment = {
   __typename?: 'ConfigRunServiceConfig';
   name: any;
   command?: Array<string> | null;
-  image: { __typename?: 'ConfigRunServiceImage'; image: string };
+  image: {
+    __typename?: 'ConfigRunServiceImage';
+    image: string;
+    pullCredentials?: string | null;
+  };
   resources: {
     __typename?: 'ConfigRunServiceResources';
     replicas: any;
@@ -27466,7 +27933,6 @@ export type RunServiceConfigFragment = {
       path: string;
       capacity: any;
     }> | null;
-    autoscaler?: { __typename?: 'ConfigAutoscaler'; maxReplicas: any } | null;
   };
   environment?: Array<{
     __typename?: 'ConfigEnvironmentVariable';
@@ -27517,7 +27983,11 @@ export type GetRunServicesQuery = {
         __typename?: 'ConfigRunServiceConfig';
         name: any;
         command?: Array<string> | null;
-        image: { __typename?: 'ConfigRunServiceImage'; image: string };
+        image: {
+          __typename?: 'ConfigRunServiceImage';
+          image: string;
+          pullCredentials?: string | null;
+        };
         resources: {
           __typename?: 'ConfigRunServiceResources';
           replicas: any;
@@ -27532,10 +28002,6 @@ export type GetRunServicesQuery = {
             path: string;
             capacity: any;
           }> | null;
-          autoscaler?: {
-            __typename?: 'ConfigAutoscaler';
-            maxReplicas: any;
-          } | null;
         };
         environment?: Array<{
           __typename?: 'ConfigEnvironmentVariable';
@@ -27575,7 +28041,10 @@ export type GetRunServicesQuery = {
   } | null;
 };
 
-appID: Scalars['uuid'];
+export type GetLocalRunServiceConfigsQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
 
 export type GetLocalRunServiceConfigsQuery = {
   __typename?: 'query_root';
@@ -27586,7 +28055,11 @@ export type GetLocalRunServiceConfigsQuery = {
       __typename?: 'ConfigRunServiceConfig';
       name: any;
       command?: Array<string> | null;
-      image: { __typename?: 'ConfigRunServiceImage'; image: string };
+      image: {
+        __typename?: 'ConfigRunServiceImage';
+        image: string;
+        pullCredentials?: string | null;
+      };
       resources: {
         __typename?: 'ConfigRunServiceResources';
         replicas: any;
@@ -27601,10 +28074,6 @@ export type GetLocalRunServiceConfigsQuery = {
           path: string;
           capacity: any;
         }> | null;
-        autoscaler?: {
-          __typename?: 'ConfigAutoscaler';
-          maxReplicas: any;
-        } | null;
       };
       environment?: Array<{
         __typename?: 'ConfigEnvironmentVariable';
@@ -27967,9 +28436,6 @@ export const ServiceResourcesFragmentDoc = gql`
           memory
         }
         replicas
-        autoscaler {
-          maxReplicas
-        }
       }
     }
     hasura {
@@ -27979,9 +28445,6 @@ export const ServiceResourcesFragmentDoc = gql`
           memory
         }
         replicas
-        autoscaler {
-          maxReplicas
-        }
       }
     }
     postgres {
@@ -27991,9 +28454,6 @@ export const ServiceResourcesFragmentDoc = gql`
           memory
         }
         replicas
-        autoscaler {
-          maxReplicas
-        }
       }
     }
     storage {
@@ -28003,9 +28463,6 @@ export const ServiceResourcesFragmentDoc = gql`
           memory
         }
         replicas
-        autoscaler {
-          maxReplicas
-        }
       }
     }
   }
@@ -28295,9 +28752,6 @@ export const RunServiceConfigFragmentDoc = gql`
         capacity
       }
       replicas
-      autoscaler {
-        maxReplicas
-      }
     }
     environment {
       name
@@ -28983,6 +29437,7 @@ export const GetHasuraSettingsDocument = gql`
           devMode
           corsDomain
           enabledAPIs
+          inferFunctionPermissions
         }
         logs {
           level
@@ -32532,6 +32987,348 @@ export function refetchGetSystemLogsQuery(
 ) {
   return { query: GetSystemLogsDocument, variables: variables };
 }
+export const BillingChangeOrganizationPlanDocument = gql`
+  mutation billingChangeOrganizationPlan(
+    $organizationID: uuid!
+    $planID: uuid!
+  ) {
+    billingChangeOrganizationPlan(
+      organizationID: $organizationID
+      planID: $planID
+    )
+  }
+`;
+export type BillingChangeOrganizationPlanMutationFn = Apollo.MutationFunction<
+  BillingChangeOrganizationPlanMutation,
+  BillingChangeOrganizationPlanMutationVariables
+>;
+
+/**
+ * __useBillingChangeOrganizationPlanMutation__
+ *
+ * To run a mutation, you first call `useBillingChangeOrganizationPlanMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBillingChangeOrganizationPlanMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [billingChangeOrganizationPlanMutation, { data, loading, error }] = useBillingChangeOrganizationPlanMutation({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *      planID: // value for 'planID'
+ *   },
+ * });
+ */
+export function useBillingChangeOrganizationPlanMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    BillingChangeOrganizationPlanMutation,
+    BillingChangeOrganizationPlanMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    BillingChangeOrganizationPlanMutation,
+    BillingChangeOrganizationPlanMutationVariables
+  >(BillingChangeOrganizationPlanDocument, options);
+}
+export type BillingChangeOrganizationPlanMutationHookResult = ReturnType<
+  typeof useBillingChangeOrganizationPlanMutation
+>;
+export type BillingChangeOrganizationPlanMutationResult =
+  Apollo.MutationResult<BillingChangeOrganizationPlanMutation>;
+export type BillingChangeOrganizationPlanMutationOptions =
+  Apollo.BaseMutationOptions<
+    BillingChangeOrganizationPlanMutation,
+    BillingChangeOrganizationPlanMutationVariables
+  >;
+export const BillingDeleteAppDocument = gql`
+  mutation billingDeleteApp($appID: uuid!) {
+    billingDeleteApp(appID: $appID)
+  }
+`;
+export type BillingDeleteAppMutationFn = Apollo.MutationFunction<
+  BillingDeleteAppMutation,
+  BillingDeleteAppMutationVariables
+>;
+
+/**
+ * __useBillingDeleteAppMutation__
+ *
+ * To run a mutation, you first call `useBillingDeleteAppMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBillingDeleteAppMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [billingDeleteAppMutation, { data, loading, error }] = useBillingDeleteAppMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *   },
+ * });
+ */
+export function useBillingDeleteAppMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    BillingDeleteAppMutation,
+    BillingDeleteAppMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    BillingDeleteAppMutation,
+    BillingDeleteAppMutationVariables
+  >(BillingDeleteAppDocument, options);
+}
+export type BillingDeleteAppMutationHookResult = ReturnType<
+  typeof useBillingDeleteAppMutation
+>;
+export type BillingDeleteAppMutationResult =
+  Apollo.MutationResult<BillingDeleteAppMutation>;
+export type BillingDeleteAppMutationOptions = Apollo.BaseMutationOptions<
+  BillingDeleteAppMutation,
+  BillingDeleteAppMutationVariables
+>;
+export const BillingGetNextInvoiceDocument = gql`
+  query billingGetNextInvoice($organizationID: uuid!) {
+    billingGetNextInvoice(organizationID: $organizationID) {
+      items {
+        Description
+        Amount
+      }
+      AmountDue
+      PeriodEnd
+    }
+  }
+`;
+
+/**
+ * __useBillingGetNextInvoiceQuery__
+ *
+ * To run a query within a React component, call `useBillingGetNextInvoiceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBillingGetNextInvoiceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBillingGetNextInvoiceQuery({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *   },
+ * });
+ */
+export function useBillingGetNextInvoiceQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    BillingGetNextInvoiceQuery,
+    BillingGetNextInvoiceQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    BillingGetNextInvoiceQuery,
+    BillingGetNextInvoiceQueryVariables
+  >(BillingGetNextInvoiceDocument, options);
+}
+export function useBillingGetNextInvoiceLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    BillingGetNextInvoiceQuery,
+    BillingGetNextInvoiceQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    BillingGetNextInvoiceQuery,
+    BillingGetNextInvoiceQueryVariables
+  >(BillingGetNextInvoiceDocument, options);
+}
+export type BillingGetNextInvoiceQueryHookResult = ReturnType<
+  typeof useBillingGetNextInvoiceQuery
+>;
+export type BillingGetNextInvoiceLazyQueryHookResult = ReturnType<
+  typeof useBillingGetNextInvoiceLazyQuery
+>;
+export type BillingGetNextInvoiceQueryResult = Apollo.QueryResult<
+  BillingGetNextInvoiceQuery,
+  BillingGetNextInvoiceQueryVariables
+>;
+export function refetchBillingGetNextInvoiceQuery(
+  variables: BillingGetNextInvoiceQueryVariables,
+) {
+  return { query: BillingGetNextInvoiceDocument, variables: variables };
+}
+export const BillingMigrateProjectToOrganizationDocument = gql`
+  mutation billingMigrateProjectToOrganization(
+    $appID: uuid!
+    $organizationID: uuid!
+  ) {
+    billingMigrateProjectToOrganization(
+      appID: $appID
+      organizationID: $organizationID
+    )
+  }
+`;
+export type BillingMigrateProjectToOrganizationMutationFn =
+  Apollo.MutationFunction<
+    BillingMigrateProjectToOrganizationMutation,
+    BillingMigrateProjectToOrganizationMutationVariables
+  >;
+
+/**
+ * __useBillingMigrateProjectToOrganizationMutation__
+ *
+ * To run a mutation, you first call `useBillingMigrateProjectToOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBillingMigrateProjectToOrganizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [billingMigrateProjectToOrganizationMutation, { data, loading, error }] = useBillingMigrateProjectToOrganizationMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      organizationID: // value for 'organizationID'
+ *   },
+ * });
+ */
+export function useBillingMigrateProjectToOrganizationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    BillingMigrateProjectToOrganizationMutation,
+    BillingMigrateProjectToOrganizationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    BillingMigrateProjectToOrganizationMutation,
+    BillingMigrateProjectToOrganizationMutationVariables
+  >(BillingMigrateProjectToOrganizationDocument, options);
+}
+export type BillingMigrateProjectToOrganizationMutationHookResult = ReturnType<
+  typeof useBillingMigrateProjectToOrganizationMutation
+>;
+export type BillingMigrateProjectToOrganizationMutationResult =
+  Apollo.MutationResult<BillingMigrateProjectToOrganizationMutation>;
+export type BillingMigrateProjectToOrganizationMutationOptions =
+  Apollo.BaseMutationOptions<
+    BillingMigrateProjectToOrganizationMutation,
+    BillingMigrateProjectToOrganizationMutationVariables
+  >;
+export const BillingOrganizationCustomePortalDocument = gql`
+  query billingOrganizationCustomePortal($organizationID: uuid!) {
+    billingOrganizationCustomePortal(organizationID: $organizationID)
+  }
+`;
+
+/**
+ * __useBillingOrganizationCustomePortalQuery__
+ *
+ * To run a query within a React component, call `useBillingOrganizationCustomePortalQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBillingOrganizationCustomePortalQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBillingOrganizationCustomePortalQuery({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *   },
+ * });
+ */
+export function useBillingOrganizationCustomePortalQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    BillingOrganizationCustomePortalQuery,
+    BillingOrganizationCustomePortalQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    BillingOrganizationCustomePortalQuery,
+    BillingOrganizationCustomePortalQueryVariables
+  >(BillingOrganizationCustomePortalDocument, options);
+}
+export function useBillingOrganizationCustomePortalLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    BillingOrganizationCustomePortalQuery,
+    BillingOrganizationCustomePortalQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    BillingOrganizationCustomePortalQuery,
+    BillingOrganizationCustomePortalQueryVariables
+  >(BillingOrganizationCustomePortalDocument, options);
+}
+export type BillingOrganizationCustomePortalQueryHookResult = ReturnType<
+  typeof useBillingOrganizationCustomePortalQuery
+>;
+export type BillingOrganizationCustomePortalLazyQueryHookResult = ReturnType<
+  typeof useBillingOrganizationCustomePortalLazyQuery
+>;
+export type BillingOrganizationCustomePortalQueryResult = Apollo.QueryResult<
+  BillingOrganizationCustomePortalQuery,
+  BillingOrganizationCustomePortalQueryVariables
+>;
+export function refetchBillingOrganizationCustomePortalQuery(
+  variables: BillingOrganizationCustomePortalQueryVariables,
+) {
+  return {
+    query: BillingOrganizationCustomePortalDocument,
+    variables: variables,
+  };
+}
+export const BillingTransferAppDocument = gql`
+  mutation billingTransferApp($appID: uuid!, $organizationID: uuid!) {
+    billingTransferApp(appID: $appID, organizationID: $organizationID)
+  }
+`;
+export type BillingTransferAppMutationFn = Apollo.MutationFunction<
+  BillingTransferAppMutation,
+  BillingTransferAppMutationVariables
+>;
+
+/**
+ * __useBillingTransferAppMutation__
+ *
+ * To run a mutation, you first call `useBillingTransferAppMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBillingTransferAppMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [billingTransferAppMutation, { data, loading, error }] = useBillingTransferAppMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      organizationID: // value for 'organizationID'
+ *   },
+ * });
+ */
+export function useBillingTransferAppMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    BillingTransferAppMutation,
+    BillingTransferAppMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    BillingTransferAppMutation,
+    BillingTransferAppMutationVariables
+  >(BillingTransferAppDocument, options);
+}
+export type BillingTransferAppMutationHookResult = ReturnType<
+  typeof useBillingTransferAppMutation
+>;
+export type BillingTransferAppMutationResult =
+  Apollo.MutationResult<BillingTransferAppMutation>;
+export type BillingTransferAppMutationOptions = Apollo.BaseMutationOptions<
+  BillingTransferAppMutation,
+  BillingTransferAppMutationVariables
+>;
 export const CreateOrganizationRequestDocument = gql`
   mutation createOrganizationRequest(
     $organizationName: String!
@@ -32591,24 +33388,180 @@ export type CreateOrganizationRequestMutationOptions =
     CreateOrganizationRequestMutation,
     CreateOrganizationRequestMutationVariables
   >;
+export const DeleteOrganizationMemberInviteDocument = gql`
+  mutation deleteOrganizationMemberInvite($inviteId: uuid!) {
+    deleteOrganizationMemberInvite(id: $inviteId) {
+      __typename
+    }
+  }
+`;
+export type DeleteOrganizationMemberInviteMutationFn = Apollo.MutationFunction<
+  DeleteOrganizationMemberInviteMutation,
+  DeleteOrganizationMemberInviteMutationVariables
+>;
+
+/**
+ * __useDeleteOrganizationMemberInviteMutation__
+ *
+ * To run a mutation, you first call `useDeleteOrganizationMemberInviteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteOrganizationMemberInviteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteOrganizationMemberInviteMutation, { data, loading, error }] = useDeleteOrganizationMemberInviteMutation({
+ *   variables: {
+ *      inviteId: // value for 'inviteId'
+ *   },
+ * });
+ */
+export function useDeleteOrganizationMemberInviteMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteOrganizationMemberInviteMutation,
+    DeleteOrganizationMemberInviteMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteOrganizationMemberInviteMutation,
+    DeleteOrganizationMemberInviteMutationVariables
+  >(DeleteOrganizationMemberInviteDocument, options);
+}
+export type DeleteOrganizationMemberInviteMutationHookResult = ReturnType<
+  typeof useDeleteOrganizationMemberInviteMutation
+>;
+export type DeleteOrganizationMemberInviteMutationResult =
+  Apollo.MutationResult<DeleteOrganizationMemberInviteMutation>;
+export type DeleteOrganizationMemberInviteMutationOptions =
+  Apollo.BaseMutationOptions<
+    DeleteOrganizationMemberInviteMutation,
+    DeleteOrganizationMemberInviteMutationVariables
+  >;
+export const DeleteOrganizationDocument = gql`
+  mutation deleteOrganization($id: uuid!) {
+    billingDeleteOrganization(organizationID: $id)
+  }
+`;
+export type DeleteOrganizationMutationFn = Apollo.MutationFunction<
+  DeleteOrganizationMutation,
+  DeleteOrganizationMutationVariables
+>;
+
+/**
+ * __useDeleteOrganizationMutation__
+ *
+ * To run a mutation, you first call `useDeleteOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteOrganizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteOrganizationMutation, { data, loading, error }] = useDeleteOrganizationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteOrganizationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteOrganizationMutation,
+    DeleteOrganizationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteOrganizationMutation,
+    DeleteOrganizationMutationVariables
+  >(DeleteOrganizationDocument, options);
+}
+export type DeleteOrganizationMutationHookResult = ReturnType<
+  typeof useDeleteOrganizationMutation
+>;
+export type DeleteOrganizationMutationResult =
+  Apollo.MutationResult<DeleteOrganizationMutation>;
+export type DeleteOrganizationMutationOptions = Apollo.BaseMutationOptions<
+  DeleteOrganizationMutation,
+  DeleteOrganizationMutationVariables
+>;
+export const DeleteOrganizationMemberDocument = gql`
+  mutation deleteOrganizationMember($memberId: uuid!) {
+    deleteOrganizationMember(id: $memberId) {
+      __typename
+    }
+  }
+`;
+export type DeleteOrganizationMemberMutationFn = Apollo.MutationFunction<
+  DeleteOrganizationMemberMutation,
+  DeleteOrganizationMemberMutationVariables
+>;
+
+/**
+ * __useDeleteOrganizationMemberMutation__
+ *
+ * To run a mutation, you first call `useDeleteOrganizationMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteOrganizationMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteOrganizationMemberMutation, { data, loading, error }] = useDeleteOrganizationMemberMutation({
+ *   variables: {
+ *      memberId: // value for 'memberId'
+ *   },
+ * });
+ */
+export function useDeleteOrganizationMemberMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteOrganizationMemberMutation,
+    DeleteOrganizationMemberMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteOrganizationMemberMutation,
+    DeleteOrganizationMemberMutationVariables
+  >(DeleteOrganizationMemberDocument, options);
+}
+export type DeleteOrganizationMemberMutationHookResult = ReturnType<
+  typeof useDeleteOrganizationMemberMutation
+>;
+export type DeleteOrganizationMemberMutationResult =
+  Apollo.MutationResult<DeleteOrganizationMemberMutation>;
+export type DeleteOrganizationMemberMutationOptions =
+  Apollo.BaseMutationOptions<
+    DeleteOrganizationMemberMutation,
+    DeleteOrganizationMemberMutationVariables
+  >;
 export const GetOrganizationDocument = gql`
   query getOrganization($orgSlug: String!) {
     organizations(where: { slug: { _eq: $orgSlug } }) {
       id
       name
       slug
+      status
       plan {
         id
         name
+        price
         deprecated
         individual
         isFree
+        featureMaxDbSize
       }
       members {
         id
         role
         user {
           id
+          email
+          displayName
+          avatarUrl
         }
       }
       apps(order_by: { name: asc }) {
@@ -32741,6 +33694,76 @@ export function refetchGetOrganizationByIdQuery(
 ) {
   return { query: GetOrganizationByIdDocument, variables: variables };
 }
+export const GetOrganizationInvitesDocument = gql`
+  query getOrganizationInvites($organizationId: uuid!) {
+    organizationMemberInvites(
+      where: { organizationID: { _eq: $organizationId } }
+      order_by: { createdAt: desc }
+    ) {
+      id
+      email
+      role
+      createdAt
+      updateAt
+    }
+  }
+`;
+
+/**
+ * __useGetOrganizationInvitesQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationInvitesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationInvitesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationInvitesQuery({
+ *   variables: {
+ *      organizationId: // value for 'organizationId'
+ *   },
+ * });
+ */
+export function useGetOrganizationInvitesQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetOrganizationInvitesQuery,
+    GetOrganizationInvitesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetOrganizationInvitesQuery,
+    GetOrganizationInvitesQueryVariables
+  >(GetOrganizationInvitesDocument, options);
+}
+export function useGetOrganizationInvitesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetOrganizationInvitesQuery,
+    GetOrganizationInvitesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetOrganizationInvitesQuery,
+    GetOrganizationInvitesQueryVariables
+  >(GetOrganizationInvitesDocument, options);
+}
+export type GetOrganizationInvitesQueryHookResult = ReturnType<
+  typeof useGetOrganizationInvitesQuery
+>;
+export type GetOrganizationInvitesLazyQueryHookResult = ReturnType<
+  typeof useGetOrganizationInvitesLazyQuery
+>;
+export type GetOrganizationInvitesQueryResult = Apollo.QueryResult<
+  GetOrganizationInvitesQuery,
+  GetOrganizationInvitesQueryVariables
+>;
+export function refetchGetOrganizationInvitesQuery(
+  variables: GetOrganizationInvitesQueryVariables,
+) {
+  return { query: GetOrganizationInvitesDocument, variables: variables };
+}
 export const GetOrganizationProjectsDocument = gql`
   query getOrganizationProjects($orgId: uuid!) {
     apps(where: { organizationID: { _eq: $orgId } }, order_by: { name: asc }) {
@@ -32806,17 +33829,22 @@ export function refetchGetOrganizationProjectsQuery(
   return { query: GetOrganizationProjectsDocument, variables: variables };
 }
 export const GetOrganizationsDocument = gql`
-  query getOrganizations {
-    organizations(order_by: { name: asc }) {
+  query getOrganizations($userId: uuid!) {
+    organizations(
+      order_by: { name: asc }
+      where: { members: { userID: { _eq: $userId } } }
+    ) {
       id
       name
       slug
       plan {
         id
         name
+        price
         deprecated
         individual
         isFree
+        featureMaxDbSize
       }
       apps(order_by: { name: asc }) {
         id
@@ -32840,11 +33868,12 @@ export const GetOrganizationsDocument = gql`
  * @example
  * const { data, loading, error } = useGetOrganizationsQuery({
  *   variables: {
+ *      userId: // value for 'userId'
  *   },
  * });
  */
 export function useGetOrganizationsQuery(
-  baseOptions?: Apollo.QueryHookOptions<
+  baseOptions: Apollo.QueryHookOptions<
     GetOrganizationsQuery,
     GetOrganizationsQueryVariables
   >,
@@ -32878,9 +33907,81 @@ export type GetOrganizationsQueryResult = Apollo.QueryResult<
   GetOrganizationsQueryVariables
 >;
 export function refetchGetOrganizationsQuery(
-  variables?: GetOrganizationsQueryVariables,
+  variables: GetOrganizationsQueryVariables,
 ) {
   return { query: GetOrganizationsDocument, variables: variables };
+}
+export const GetOrganizationPlansDocument = gql`
+  query getOrganizationPlans {
+    plans(
+      order_by: { sort: asc }
+      where: { deprecated: { _eq: false }, isPublic: { _eq: true } }
+    ) {
+      id
+      name
+      isDefault
+      isFree
+      price
+      featureBackupEnabled
+      featureCustomDomainsEnabled
+      featureMaxDbSize
+    }
+  }
+`;
+
+/**
+ * __useGetOrganizationPlansQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationPlansQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationPlansQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationPlansQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOrganizationPlansQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetOrganizationPlansQuery,
+    GetOrganizationPlansQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetOrganizationPlansQuery,
+    GetOrganizationPlansQueryVariables
+  >(GetOrganizationPlansDocument, options);
+}
+export function useGetOrganizationPlansLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetOrganizationPlansQuery,
+    GetOrganizationPlansQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetOrganizationPlansQuery,
+    GetOrganizationPlansQueryVariables
+  >(GetOrganizationPlansDocument, options);
+}
+export type GetOrganizationPlansQueryHookResult = ReturnType<
+  typeof useGetOrganizationPlansQuery
+>;
+export type GetOrganizationPlansLazyQueryHookResult = ReturnType<
+  typeof useGetOrganizationPlansLazyQuery
+>;
+export type GetOrganizationPlansQueryResult = Apollo.QueryResult<
+  GetOrganizationPlansQuery,
+  GetOrganizationPlansQueryVariables
+>;
+export function refetchGetOrganizationPlansQuery(
+  variables?: GetOrganizationPlansQueryVariables,
+) {
+  return { query: GetOrganizationPlansDocument, variables: variables };
 }
 export const GetProjectDocument = gql`
   query getProject($slug: String!) {
@@ -33009,11 +34110,331 @@ export type GetProjectQueryResult = Apollo.QueryResult<
 export function refetchGetProjectQuery(variables: GetProjectQueryVariables) {
   return { query: GetProjectDocument, variables: variables };
 }
+export const GetProjectsDocument = gql`
+  query getProjects($orgSlug: String!) {
+    apps(where: { organization: { slug: { _eq: $orgSlug } } }) {
+      id
+      name
+      slug
+      createdAt
+      deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
+        id
+        commitSHA
+        commitMessage
+        commitUserName
+        deploymentStartedAt
+        deploymentEndedAt
+        commitUserAvatarUrl
+        deploymentStatus
+      }
+      creator {
+        id
+        email
+        displayName
+      }
+    }
+  }
+`;
+
+/**
+ * __useGetProjectsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectsQuery({
+ *   variables: {
+ *      orgSlug: // value for 'orgSlug'
+ *   },
+ * });
+ */
+export function useGetProjectsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetProjectsQuery,
+    GetProjectsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetProjectsQuery, GetProjectsQueryVariables>(
+    GetProjectsDocument,
+    options,
+  );
+}
+export function useGetProjectsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetProjectsQuery,
+    GetProjectsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetProjectsQuery, GetProjectsQueryVariables>(
+    GetProjectsDocument,
+    options,
+  );
+}
+export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
+export type GetProjectsLazyQueryHookResult = ReturnType<
+  typeof useGetProjectsLazyQuery
+>;
+export type GetProjectsQueryResult = Apollo.QueryResult<
+  GetProjectsQuery,
+  GetProjectsQueryVariables
+>;
+export function refetchGetProjectsQuery(variables: GetProjectsQueryVariables) {
+  return { query: GetProjectsDocument, variables: variables };
+}
+export const InsertOrganizationMemberInviteDocument = gql`
+  mutation insertOrganizationMemberInvite(
+    $organizationMemberInvite: organization_member_invites_insert_input!
+  ) {
+    insertOrganizationMemberInvite(object: $organizationMemberInvite) {
+      id
+    }
+  }
+`;
+export type InsertOrganizationMemberInviteMutationFn = Apollo.MutationFunction<
+  InsertOrganizationMemberInviteMutation,
+  InsertOrganizationMemberInviteMutationVariables
+>;
+
+/**
+ * __useInsertOrganizationMemberInviteMutation__
+ *
+ * To run a mutation, you first call `useInsertOrganizationMemberInviteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertOrganizationMemberInviteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertOrganizationMemberInviteMutation, { data, loading, error }] = useInsertOrganizationMemberInviteMutation({
+ *   variables: {
+ *      organizationMemberInvite: // value for 'organizationMemberInvite'
+ *   },
+ * });
+ */
+export function useInsertOrganizationMemberInviteMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertOrganizationMemberInviteMutation,
+    InsertOrganizationMemberInviteMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertOrganizationMemberInviteMutation,
+    InsertOrganizationMemberInviteMutationVariables
+  >(InsertOrganizationMemberInviteDocument, options);
+}
+export type InsertOrganizationMemberInviteMutationHookResult = ReturnType<
+  typeof useInsertOrganizationMemberInviteMutation
+>;
+export type InsertOrganizationMemberInviteMutationResult =
+  Apollo.MutationResult<InsertOrganizationMemberInviteMutation>;
+export type InsertOrganizationMemberInviteMutationOptions =
+  Apollo.BaseMutationOptions<
+    InsertOrganizationMemberInviteMutation,
+    InsertOrganizationMemberInviteMutationVariables
+  >;
+export const OrganizationMemberInviteAcceptDocument = gql`
+  mutation organizationMemberInviteAccept($inviteId: uuid!) {
+    organizationMemberInviteAccept(args: { id: $inviteId }) {
+      __typename
+    }
+  }
+`;
+export type OrganizationMemberInviteAcceptMutationFn = Apollo.MutationFunction<
+  OrganizationMemberInviteAcceptMutation,
+  OrganizationMemberInviteAcceptMutationVariables
+>;
+
+/**
+ * __useOrganizationMemberInviteAcceptMutation__
+ *
+ * To run a mutation, you first call `useOrganizationMemberInviteAcceptMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationMemberInviteAcceptMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [organizationMemberInviteAcceptMutation, { data, loading, error }] = useOrganizationMemberInviteAcceptMutation({
+ *   variables: {
+ *      inviteId: // value for 'inviteId'
+ *   },
+ * });
+ */
+export function useOrganizationMemberInviteAcceptMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    OrganizationMemberInviteAcceptMutation,
+    OrganizationMemberInviteAcceptMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    OrganizationMemberInviteAcceptMutation,
+    OrganizationMemberInviteAcceptMutationVariables
+  >(OrganizationMemberInviteAcceptDocument, options);
+}
+export type OrganizationMemberInviteAcceptMutationHookResult = ReturnType<
+  typeof useOrganizationMemberInviteAcceptMutation
+>;
+export type OrganizationMemberInviteAcceptMutationResult =
+  Apollo.MutationResult<OrganizationMemberInviteAcceptMutation>;
+export type OrganizationMemberInviteAcceptMutationOptions =
+  Apollo.BaseMutationOptions<
+    OrganizationMemberInviteAcceptMutation,
+    OrganizationMemberInviteAcceptMutationVariables
+  >;
+export const OrganizationMemberInvitesDocument = gql`
+  query organizationMemberInvites($userId: uuid!) {
+    organizationMemberInvites(
+      where: { user: { id: { _eq: $userId } } }
+      order_by: { createdAt: desc }
+    ) {
+      id
+      email
+      role
+      createdAt
+      updateAt
+      organization {
+        name
+        slug
+      }
+    }
+  }
+`;
+
+/**
+ * __useOrganizationMemberInvitesQuery__
+ *
+ * To run a query within a React component, call `useOrganizationMemberInvitesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationMemberInvitesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOrganizationMemberInvitesQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useOrganizationMemberInvitesQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    OrganizationMemberInvitesQuery,
+    OrganizationMemberInvitesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    OrganizationMemberInvitesQuery,
+    OrganizationMemberInvitesQueryVariables
+  >(OrganizationMemberInvitesDocument, options);
+}
+export function useOrganizationMemberInvitesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    OrganizationMemberInvitesQuery,
+    OrganizationMemberInvitesQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    OrganizationMemberInvitesQuery,
+    OrganizationMemberInvitesQueryVariables
+  >(OrganizationMemberInvitesDocument, options);
+}
+export type OrganizationMemberInvitesQueryHookResult = ReturnType<
+  typeof useOrganizationMemberInvitesQuery
+>;
+export type OrganizationMemberInvitesLazyQueryHookResult = ReturnType<
+  typeof useOrganizationMemberInvitesLazyQuery
+>;
+export type OrganizationMemberInvitesQueryResult = Apollo.QueryResult<
+  OrganizationMemberInvitesQuery,
+  OrganizationMemberInvitesQueryVariables
+>;
+export function refetchOrganizationMemberInvitesQuery(
+  variables: OrganizationMemberInvitesQueryVariables,
+) {
+  return { query: OrganizationMemberInvitesDocument, variables: variables };
+}
+export const OrganizationNewRequestsDocument = gql`
+  query organizationNewRequests($userID: uuid!) {
+    organizationNewRequests(where: { userID: { _eq: $userID } }) {
+      id
+      sessionID
+    }
+  }
+`;
+
+/**
+ * __useOrganizationNewRequestsQuery__
+ *
+ * To run a query within a React component, call `useOrganizationNewRequestsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationNewRequestsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOrganizationNewRequestsQuery({
+ *   variables: {
+ *      userID: // value for 'userID'
+ *   },
+ * });
+ */
+export function useOrganizationNewRequestsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    OrganizationNewRequestsQuery,
+    OrganizationNewRequestsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    OrganizationNewRequestsQuery,
+    OrganizationNewRequestsQueryVariables
+  >(OrganizationNewRequestsDocument, options);
+}
+export function useOrganizationNewRequestsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    OrganizationNewRequestsQuery,
+    OrganizationNewRequestsQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    OrganizationNewRequestsQuery,
+    OrganizationNewRequestsQueryVariables
+  >(OrganizationNewRequestsDocument, options);
+}
+export type OrganizationNewRequestsQueryHookResult = ReturnType<
+  typeof useOrganizationNewRequestsQuery
+>;
+export type OrganizationNewRequestsLazyQueryHookResult = ReturnType<
+  typeof useOrganizationNewRequestsLazyQuery
+>;
+export type OrganizationNewRequestsQueryResult = Apollo.QueryResult<
+  OrganizationNewRequestsQuery,
+  OrganizationNewRequestsQueryVariables
+>;
+export function refetchOrganizationNewRequestsQuery(
+  variables: OrganizationNewRequestsQueryVariables,
+) {
+  return { query: OrganizationNewRequestsDocument, variables: variables };
+}
 export const PostOrganizationRequestDocument = gql`
   mutation postOrganizationRequest($sessionID: String!) {
     billingPostOrganizationRequest(sessionID: $sessionID) {
       Status
       Slug
+      ClientSecret
     }
   }
 `;
@@ -33060,6 +34481,177 @@ export type PostOrganizationRequestMutationOptions = Apollo.BaseMutationOptions<
   PostOrganizationRequestMutation,
   PostOrganizationRequestMutationVariables
 >;
+export const UpdateOrganizationDocument = gql`
+  mutation updateOrganization(
+    $id: uuid!
+    $organization: organizations_set_input!
+  ) {
+    updateOrganization(pk_columns: { id: $id }, _set: $organization) {
+      id
+      name
+    }
+  }
+`;
+export type UpdateOrganizationMutationFn = Apollo.MutationFunction<
+  UpdateOrganizationMutation,
+  UpdateOrganizationMutationVariables
+>;
+
+/**
+ * __useUpdateOrganizationMutation__
+ *
+ * To run a mutation, you first call `useUpdateOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateOrganizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateOrganizationMutation, { data, loading, error }] = useUpdateOrganizationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      organization: // value for 'organization'
+ *   },
+ * });
+ */
+export function useUpdateOrganizationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateOrganizationMutation,
+    UpdateOrganizationMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateOrganizationMutation,
+    UpdateOrganizationMutationVariables
+  >(UpdateOrganizationDocument, options);
+}
+export type UpdateOrganizationMutationHookResult = ReturnType<
+  typeof useUpdateOrganizationMutation
+>;
+export type UpdateOrganizationMutationResult =
+  Apollo.MutationResult<UpdateOrganizationMutation>;
+export type UpdateOrganizationMutationOptions = Apollo.BaseMutationOptions<
+  UpdateOrganizationMutation,
+  UpdateOrganizationMutationVariables
+>;
+export const UpdateOrganizationMemberInviteDocument = gql`
+  mutation updateOrganizationMemberInvite(
+    $inviteId: uuid!
+    $role: organization_members_role_enum!
+  ) {
+    updateOrganizationMemberInvite(
+      pk_columns: { id: $inviteId }
+      _set: { role: $role }
+    ) {
+      id
+    }
+  }
+`;
+export type UpdateOrganizationMemberInviteMutationFn = Apollo.MutationFunction<
+  UpdateOrganizationMemberInviteMutation,
+  UpdateOrganizationMemberInviteMutationVariables
+>;
+
+/**
+ * __useUpdateOrganizationMemberInviteMutation__
+ *
+ * To run a mutation, you first call `useUpdateOrganizationMemberInviteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateOrganizationMemberInviteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateOrganizationMemberInviteMutation, { data, loading, error }] = useUpdateOrganizationMemberInviteMutation({
+ *   variables: {
+ *      inviteId: // value for 'inviteId'
+ *      role: // value for 'role'
+ *   },
+ * });
+ */
+export function useUpdateOrganizationMemberInviteMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateOrganizationMemberInviteMutation,
+    UpdateOrganizationMemberInviteMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateOrganizationMemberInviteMutation,
+    UpdateOrganizationMemberInviteMutationVariables
+  >(UpdateOrganizationMemberInviteDocument, options);
+}
+export type UpdateOrganizationMemberInviteMutationHookResult = ReturnType<
+  typeof useUpdateOrganizationMemberInviteMutation
+>;
+export type UpdateOrganizationMemberInviteMutationResult =
+  Apollo.MutationResult<UpdateOrganizationMemberInviteMutation>;
+export type UpdateOrganizationMemberInviteMutationOptions =
+  Apollo.BaseMutationOptions<
+    UpdateOrganizationMemberInviteMutation,
+    UpdateOrganizationMemberInviteMutationVariables
+  >;
+export const UpdateOrganizationMemberDocument = gql`
+  mutation updateOrganizationMember(
+    $memberId: uuid!
+    $role: organization_members_role_enum!
+  ) {
+    updateOrganizationMember(
+      pk_columns: { id: $memberId }
+      _set: { role: $role }
+    ) {
+      id
+    }
+  }
+`;
+export type UpdateOrganizationMemberMutationFn = Apollo.MutationFunction<
+  UpdateOrganizationMemberMutation,
+  UpdateOrganizationMemberMutationVariables
+>;
+
+/**
+ * __useUpdateOrganizationMemberMutation__
+ *
+ * To run a mutation, you first call `useUpdateOrganizationMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateOrganizationMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateOrganizationMemberMutation, { data, loading, error }] = useUpdateOrganizationMemberMutation({
+ *   variables: {
+ *      memberId: // value for 'memberId'
+ *      role: // value for 'role'
+ *   },
+ * });
+ */
+export function useUpdateOrganizationMemberMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateOrganizationMemberMutation,
+    UpdateOrganizationMemberMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateOrganizationMemberMutation,
+    UpdateOrganizationMemberMutationVariables
+  >(UpdateOrganizationMemberDocument, options);
+}
+export type UpdateOrganizationMemberMutationHookResult = ReturnType<
+  typeof useUpdateOrganizationMemberMutation
+>;
+export type UpdateOrganizationMemberMutationResult =
+  Apollo.MutationResult<UpdateOrganizationMemberMutation>;
+export type UpdateOrganizationMemberMutationOptions =
+  Apollo.BaseMutationOptions<
+    UpdateOrganizationMemberMutation,
+    UpdateOrganizationMemberMutationVariables
+  >;
 export const DeletePaymentMethodDocument = gql`
   mutation deletePaymentMethod($paymentMethodId: uuid!) {
     deletePaymentMethod(id: $paymentMethodId) {
@@ -34446,9 +36038,6 @@ export const GetRunServiceDocument = gql`
             capacity
           }
           replicas
-          autoscaler {
-            maxReplicas
-          }
         }
         environment {
           name

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
 import {
   Sheet,
   SheetContent,
@@ -8,23 +9,41 @@ import {
   SheetTrigger,
 } from '@/components/ui/v3/sheet';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { PanelLeft, Pin, PinOff } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useEffect, useRef } from 'react';
 import NavTree from './NavTree';
+import { useTreeNavState } from './TreeNavStateContext';
+import WorkspacesNavTree from './WorkspacesNavTree';
 
 interface MainNavProps {
   container: HTMLElement;
 }
 
 export default function MainNav({ container }: MainNavProps) {
-  const [mainNavPinned, setMainNavPinned] = useSSRLocalStorage(
-    'nav-tree-pin',
-    false,
-  );
+  const { asPath } = useRouter();
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
+
+  const scrollToCurrentPath = () => {
+    requestAnimationFrame(() => {
+      const element = document.querySelector(`a[href="${asPath}"]`);
+      if (element && scrollContainerRef.current) {
+        element.scrollIntoView({ block: 'center' });
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (open) {
+      scrollToCurrentPath();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
@@ -34,11 +53,12 @@ export default function MainNav({ container }: MainNavProps) {
           <PanelLeft className="h-6 w-6" />
         </Button>
       </SheetTrigger>
+
       <SheetContent
         side="left"
         container={container}
         hideCloseButton
-        className="h-full w-full p-0 sm:max-w-72"
+        className="h-full w-full p-0 sm:max-w-[310px]"
       >
         <SheetHeader>
           <SheetTitle className="sr-only">Main navigation</SheetTitle>
@@ -47,7 +67,7 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex w-full justify-end bg-background p-1">
+        <div className="flex h-12 w-full items-center justify-end border-b bg-background px-1">
           <Button
             variant="ghost"
             onClick={() => setMainNavPinned(!mainNavPinned)}
@@ -60,9 +80,18 @@ export default function MainNav({ container }: MainNavProps) {
           </Button>
         </div>
 
-        <div className="h-[calc(100vh-6rem)] overflow-auto px-4 pb-12 pt-2">
-          <NavTree />
-          <CreateOrgDialog />
+        <div
+          ref={scrollContainerRef}
+          className="h-[calc(100vh-6rem)] space-y-4 overflow-auto pb-12 pt-2"
+        >
+          <div className="pl-2">
+            <NavTree />
+            <CreateOrgDialog />
+          </div>
+          <Separator className="mx-auto my-2" />
+          <div className="pl-2">
+            <WorkspacesNavTree />
+          </div>
         </div>
       </SheetContent>
     </Sheet>

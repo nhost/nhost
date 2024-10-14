@@ -1,6 +1,7 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { PermissionVariableSettings } from '@/features/projects/permissions/settings/components/PermissionVariableSettings';
@@ -46,5 +47,17 @@ export default function RolesAndPermissionsPage() {
 }
 
 RolesAndPermissionsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container sx={{ backgroundColor: 'background.default' }}>
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

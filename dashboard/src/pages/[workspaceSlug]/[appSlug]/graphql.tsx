@@ -1,4 +1,3 @@
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
@@ -8,6 +7,7 @@ import { Select } from '@/components/ui/v2/Select';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { UserSelect } from '@/features/graphql/common/components/UserSelect';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
@@ -117,7 +117,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
   }
 
   return (
-    <header className="grid items-end grid-flow-row gap-2 p-2 md:grid-flow-col md:justify-between">
+    <header className="grid grid-flow-row items-end gap-2 p-2 md:grid-flow-col md:justify-between">
       <div className="grid grid-flow-row gap-2 md:grid-flow-col md:items-end">
         <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
           <UserSelect

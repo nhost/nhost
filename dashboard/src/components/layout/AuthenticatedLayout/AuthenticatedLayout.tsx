@@ -4,6 +4,7 @@ import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
 import { MainNav } from '@/components/layout/MainNav';
+import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -11,7 +12,6 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import NextLink from 'next/link';
 
@@ -63,7 +63,7 @@ export default function AuthenticatedLayout({
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const isHealthy = useIsHealthy();
   const [mainNavContainer, setMainNavContainer] = useState(null);
-  const [mainNavPinned] = useSSRLocalStorage('nav-tree-pin', false);
+  const { mainNavPinned } = useTreeNavState();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -87,6 +87,11 @@ export default function AuthenticatedLayout({
 
     router.push('/local/local');
   }, [isPlatform, router]);
+
+  const showOrgNavigation =
+    !router.query.workspaceSlug &&
+    !router.query.appSlug &&
+    router.route !== '/';
 
   if (isPlatform && isLoading) {
     return (
@@ -150,10 +155,10 @@ export default function AuthenticatedLayout({
         {mainNavPinned && <PinnedMainNav />}
 
         <div className="flex flex-col w-full h-full overflow-auto">
-          <div className="relative flex flex-row items-center w-full h-12 px-2 space-x-2 border-b bg-background">
+          <div className="relative flex flex-row items-center flex-shrink-0 w-full h-12 px-2 space-x-2 border-b bg-background">
             {!mainNavPinned && <MainNav container={mainNavContainer} />}
 
-            {!router.query.appSlug &&
+            {showOrgNavigation &&
               orgPages.map((page) => {
                 const href = `/orgs/${org?.slug}/${page.value}`;
                 const isActive = router.asPath === href;

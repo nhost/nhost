@@ -23,7 +23,7 @@ export default function GitConnectionSettings() {
       payload: (
         <p>
           Are you sure you want to disconnect{' '}
-          <b>{currentProject.githubRepository.fullName}</b>?
+          <b>{currentProject?.githubRepository.fullName}</b>?
         </p>
       ),
       props: {
@@ -32,14 +32,14 @@ export default function GitConnectionSettings() {
         onPrimaryAction: async () => {
           await updateApp({
             variables: {
-              appId: currentProject.id,
+              appId: currentProject?.id,
               app: {
                 githubRepositoryId: null,
               },
             },
           });
           triggerToast(
-            `Successfully disconnected GitHub repository from ${currentProject.name}.`,
+            `Successfully disconnected GitHub repository from ${currentProject?.name}.`,
           );
           await refetch();
         },
@@ -55,21 +55,21 @@ export default function GitConnectionSettings() {
       slotProps={{ submitButton: { className: 'hidden' } }}
       className="grid grid-cols-5"
     >
-      {!currentProject.githubRepository ? (
+      {!currentProject?.githubRepository ? (
         <Button
           onClick={openGitHubModal}
           className="col-span-5 grid grid-flow-col gap-1.5 xs:col-span-3 lg:col-span-2"
-          startIcon={<GitHubIcon className="h-4 w-4 self-center" />}
+          startIcon={<GitHubIcon className="self-center w-4 h-4" />}
           disabled={maintenanceActive}
         >
           Connect to GitHub
         </Button>
       ) : (
-        <Box className="col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
-          <div className="ml-2 flex flex-row">
+        <Box className="flex flex-row items-center col-span-5 px-4 py-4 border rounded-lg place-content-between">
+          <div className="flex flex-row ml-2">
             <GitHubIcon className="mr-1.5 h-7 w-7 self-center" />
             <Text className="self-center font-normal">
-              {currentProject.githubRepository.fullName}
+              {currentProject?.githubRepository.fullName}
             </Text>
           </div>
           <Button

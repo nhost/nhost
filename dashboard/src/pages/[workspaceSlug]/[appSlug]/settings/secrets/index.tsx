@@ -16,6 +16,7 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { CreateSecretForm } from '@/features/projects/secrets/settings/components/CreateSecretForm';
@@ -156,7 +157,7 @@ export default function SecretsPage() {
           footer: { className: 'hidden' },
         }}
       >
-        <Box className="grid grid-cols-2 gap-2 px-4 py-3 border-b-1">
+        <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
           <Text className="font-medium">Secret Name</Text>
         </Box>
 
@@ -172,7 +173,7 @@ export default function SecretsPage() {
                         <Dropdown.Trigger
                           asChild
                           hideChevron
-                          className="absolute -translate-y-1/2 right-4 top-1/2"
+                          className="absolute right-4 top-1/2 -translate-y-1/2"
                         >
                           <IconButton
                             variant="borderless"
@@ -251,5 +252,17 @@ export default function SecretsPage() {
 }
 
 SecretsPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container sx={{ backgroundColor: 'background.default' }}>
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

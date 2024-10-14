@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -8,7 +9,9 @@ import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import AILayout from '@/features/orgs/layout/AILayout/AILayout';
+import { AISidebar } from '@/features/orgs/layout/AISidebar';
+// import AILayout from '@/features/orgs/layout/AILayout/AILayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
@@ -84,10 +87,13 @@ export default function AutoEmbeddingsPage() {
 
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+      <Box
+        className="w-full p-4"
+        sx={{ backgroundColor: 'background.default' }}
+      >
         <UpgradeNotification
           title="Upgrade to Nhost Pro."
-          message="Graphite is an addon to the Pro plan. To unlock it, please upgrade to Pro first."
+          message="Unlock Graphite by upgrading your organization to the Pro plan."
         />
       </Box>
     );
@@ -98,14 +104,16 @@ export default function AutoEmbeddingsPage() {
     !isGraphiteEnabled
   ) {
     return (
-      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
-        <Alert className="grid items-center w-full grid-flow-col gap-2 place-content-between">
+      <Box
+        className="w-full p-4"
+        sx={{ backgroundColor: 'background.default' }}
+      >
+        <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <Text className="grid grid-flow-row justify-items-start gap-0.5">
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
                 href={`/orgs/${org.slug}/projects/${project.slug}/settings/ai`}
-                target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"
               >
@@ -121,24 +129,27 @@ export default function AutoEmbeddingsPage() {
 
   if (data?.graphiteAutoEmbeddingsConfigurations.length === 0 && !loading) {
     return (
-      <Box className="p-6" sx={{ backgroundColor: 'background.default' }}>
-        <Box className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm">
-          <EmbeddingsIcon className="w-10 h-10" />
+      <Box
+        className="w-full p-6"
+        sx={{ backgroundColor: 'background.default' }}
+      >
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+          <EmbeddingsIcon className="h-10 w-10" />
           <div className="flex flex-col space-y-1">
-            <Text className="font-medium text-center" variant="h3">
+            <Text className="text-center font-medium" variant="h3">
               No Auto-Embeddings are configured
             </Text>
             <Text variant="subtitle1" className="text-center">
               All your configurations will be listed here.
             </Text>
           </div>
-          <div className="flex flex-row rounded-lg place-content-between">
+          <div className="flex flex-row place-content-between rounded-lg">
             <Button
               variant="contained"
               color="primary"
               className="w-full"
               onClick={openCreateAutoEmbeddingsConfiguration}
-              startIcon={<PlusIcon className="w-4 h-4" />}
+              startIcon={<PlusIcon className="h-4 w-4" />}
             >
               Add a new Auto-Embeddings Configuration
             </Button>
@@ -149,13 +160,13 @@ export default function AutoEmbeddingsPage() {
   }
 
   return (
-    <Box className="flex flex-col overflow-hidden">
-      <Box className="flex flex-row p-4 place-content-end border-b-1">
+    <Box className="flex w-full flex-col overflow-hidden">
+      <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"
           color="primary"
           onClick={openCreateAutoEmbeddingsConfiguration}
-          startIcon={<PlusIcon className="w-4 h-4" />}
+          startIcon={<PlusIcon className="h-4 w-4" />}
         >
           New
         </Button>
@@ -207,5 +218,12 @@ export default function AutoEmbeddingsPage() {
 }
 
 AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
-  return <AILayout>{page}</AILayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+    >
+      <AISidebar className="w-full max-w-sidebar" />
+      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+    </ProjectLayout>
+  );
 };
