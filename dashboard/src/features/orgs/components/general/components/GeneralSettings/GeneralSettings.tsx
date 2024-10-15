@@ -1,6 +1,5 @@
-import { Input } from '@/components/ui/v3/input';
-import { useUpdateOrganizationMutation } from '@/utils/__generated__/graphql';
-
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Button } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -9,13 +8,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
+import { useUpdateOrganizationMutation } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyIcon } from 'lucide-react';
 import { useEffect } from 'react';
@@ -38,8 +36,8 @@ export default function GeneralSettings() {
   });
 
   useEffect(() => {
-    if (org?.name) {
-      form.setValue('name', org?.name || '', { shouldDirty: false });
+    if (org?.name !== undefined) {
+      form.setValue('name', org.name, { shouldDirty: false });
     }
   }, [org, form]);
 
@@ -59,9 +57,11 @@ export default function GeneralSettings() {
             },
           },
         });
+
+        form.reset({ name });
       },
       {
-        loadingMessage: 'Updating orgnization',
+        loadingMessage: 'Updating organization',
         successMessage: 'Successfully updated the organization',
         errorMessage: 'An error occurred while updating the organization!',
       },
@@ -71,7 +71,7 @@ export default function GeneralSettings() {
   const toastStyle = getToastStyleProps();
 
   const copySlugToClipboard = () => {
-    navigator.clipboard.writeText(org.slug);
+    navigator.clipboard.writeText(org?.slug ?? ''); // Ensure default value
     toast.success('Organization slug copied.', {
       style: toastStyle.style,
       ...toastStyle.success,
@@ -107,7 +107,7 @@ export default function GeneralSettings() {
                 <Input
                   id="slug"
                   disabled
-                  value={org?.slug}
+                  value={org?.slug ?? ''}
                   className="disabled:opacity-100"
                 />
                 <Button
