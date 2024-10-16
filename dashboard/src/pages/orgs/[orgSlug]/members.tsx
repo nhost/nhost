@@ -9,7 +9,7 @@ export default function OrgMembers() {
   return (
     <div className="flex h-full flex-col gap-4 bg-muted p-4">
       <MembersList />
-      <PendingInvites />
+      {!isFree && <PendingInvites />}
     </div>
   );
 }
