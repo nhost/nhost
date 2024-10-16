@@ -88,10 +88,10 @@ export default function NotificationsTray() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="relative h-fit">
-          <Bell className="h-5 w-5" />
+        <Button variant="ghost" className="relative h-fit px-3 py-1">
+          <Bell className="mt-[2px] h-[1.15rem] w-[1.15rem]" />
           {invites.length > 0 && (
-            <div className="absolute right-4 top-3 h-2 w-2 rounded-full bg-red-500" />
+            <div className="absolute right-3 top-2 h-2 w-2 rounded-full bg-red-500" />
           )}
         </Button>
       </SheetTrigger>
