@@ -114,7 +114,7 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                         </div>
 
                         <div className="mt-0 flex h-full items-center text-xl font-semibold">
-                          {plan.isFree ? 'Free' : `$${plan.price}/mo`}
+                          {plan.isFree ? 'Free' : `${plan.price}/mo`}
                         </div>
                       </FormLabel>
                     </FormItem>
@@ -221,7 +221,7 @@ export default function CreateOrgDialog() {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className="flex flex-row justify-start w-full h-8 gap-3 px-2"
+          className="flex h-8 w-full flex-row justify-start gap-3 px-2"
           onClick={() => setStripeClientSecret('')}
         >
           <Plus className="h-4 w-4 font-bold" strokeWidth={3} />

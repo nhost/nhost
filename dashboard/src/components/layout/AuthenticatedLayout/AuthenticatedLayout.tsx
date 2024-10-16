@@ -87,7 +87,7 @@ export default function AuthenticatedLayout({
 
         <Container
           rootClassName="h-full"
-          className="grid justify-center max-w-md grid-flow-row gap-2 my-12 text-center"
+          className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
         >
           <div className="mx-auto">
             <Image
@@ -124,23 +124,21 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <BaseLayout className="flex flex-col h-full" {...props}>
+    <BaseLayout className="flex h-full flex-col" {...props}>
       <Header className="flex py-1" />
 
       <CheckPendingOrgs />
 
       <div
-        className="relative flex flex-row h-full overflow-x-hidden"
+        className="relative flex h-full flex-row overflow-x-hidden"
         ref={setMainNavContainer}
       >
         {mainNavPinned && <PinnedMainNav />}
 
-        <div className="relative flex flex-row w-full h-full overflow-hidden bg-accent">
-          {!mainNavPinned && (
-            <div className="flex justify-center w-6 h-full">
-              <MainNav container={mainNavContainer} />
-            </div>
-          )}
+        <div className="flex h-full w-full flex-col overflow-auto">
+          <div className="relative flex h-12 w-full flex-shrink-0 flex-row items-center space-x-2 border-b bg-background px-2">
+            {!mainNavPinned && <MainNav container={mainNavContainer} />}
+          </div>
 
           <RetryableErrorBoundary
             errorMessageProps={{

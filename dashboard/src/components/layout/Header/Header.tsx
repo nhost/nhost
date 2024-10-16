@@ -7,8 +7,7 @@ import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
-import { DevAssistant as WorkspaceProjectDevAssistant } from '@/features/ai/DevAssistant';
-import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
+import { DevAssistant } from '@/features/ai/DevAssistant';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
@@ -76,8 +75,6 @@ export default function Header({ className, ...props }: HeaderProps) {
         </Button>
 
         <NotificationsTray />
-
-        <AnnouncementsTray />
 
         {isPlatform && (
           <NavLink

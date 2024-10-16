@@ -11,7 +11,6 @@ import {
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  useDeleteOrganizationMemberInviteMutation,
   useOrganizationMemberInviteAcceptMutation,
   useOrganizationMemberInvitesLazyQuery,
 } from '@/utils/__generated__/graphql';
@@ -53,7 +52,6 @@ export default function NotificationsTray() {
   }, [asPath, userData, getInvites]);
 
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
-  const [deleteInvite] = useDeleteOrganizationMemberInviteMutation();
 
   const handleAccept = async (inviteId: string) => {
     await execPromiseWithErrorToast(
@@ -75,36 +73,19 @@ export default function NotificationsTray() {
     );
   };
 
-  const handleIgnore = async (inviteId: string) => {
-    await execPromiseWithErrorToast(
-      async () => {
-        await deleteInvite({
-          variables: {
-            inviteId,
-          },
-        });
-
-        refetchInvites();
-      },
-      {
-        loadingMessage: `Processing...`,
-        successMessage: `Invite ignored.`,
-        errorMessage: `Failed to ignore invite! Please try again`,
-      },
-    );
-  };
+  const handleIgnore = async () => {};
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="relative px-3 py-1 h-fit">
-          <Bell className="mt-[2px] h-[1.15rem] w-[1.15rem]" />
+        <Button variant="ghost" className="relative h-fit">
+          <Bell className="w-5 h-5" />
           {invites.length > 0 && (
-            <div className="absolute w-2 h-2 bg-red-500 rounded-full right-3 top-2" />
+            <div className="absolute w-2 h-2 bg-red-500 rounded-full right-4 top-3" />
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="h-full w-full bg-background p-0 text-foreground sm:max-w-[310px]">
+      <SheetContent className="h-full w-full bg-background p-0 sm:max-w-[310px]">
         <SheetHeader>
           <SheetTitle className="sr-only">Notifications</SheetTitle>
           <SheetDescription className="sr-only">
@@ -151,9 +132,7 @@ export default function NotificationsTray() {
                   <Button
                     variant="outline"
                     className="h-fit"
-                    onClick={() => {
-                      handleIgnore(invite.id);
-                    }}
+                    onClick={handleIgnore}
                   >
                     Ignore
                   </Button>
