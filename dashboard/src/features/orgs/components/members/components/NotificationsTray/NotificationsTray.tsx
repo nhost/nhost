@@ -11,6 +11,7 @@ import {
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
+  useDeleteOrganizationMemberInviteMutation,
   useOrganizationMemberInviteAcceptMutation,
   useOrganizationMemberInvitesLazyQuery,
 } from '@/utils/__generated__/graphql';
@@ -43,6 +44,7 @@ export default function NotificationsTray() {
   }, [asPath, userData, getInvites]);
 
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
+  const [deleteInvite] = useDeleteOrganizationMemberInviteMutation();
 
   const handleAccept = async (inviteId: string) => {
     await execPromiseWithErrorToast(
@@ -64,15 +66,32 @@ export default function NotificationsTray() {
     );
   };
 
-  const handleIgnore = async () => {};
+  const handleIgnore = async (inviteId: string) => {
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteInvite({
+          variables: {
+            inviteId,
+          },
+        });
+
+        refetchInvites();
+      },
+      {
+        loadingMessage: `Processing...`,
+        successMessage: `Invite ignored.`,
+        errorMessage: `Failed to ignore invite! Please try again`,
+      },
+    );
+  };
 
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="ghost" className="relative h-fit">
-          <Bell className="w-5 h-5" />
+          <Bell className="h-5 w-5" />
           {invites.length > 0 && (
-            <div className="absolute w-2 h-2 bg-red-500 rounded-full right-4 top-3" />
+            <div className="absolute right-4 top-3 h-2 w-2 rounded-full bg-red-500" />
           )}
         </Button>
       </SheetTrigger>
@@ -83,8 +102,8 @@ export default function NotificationsTray() {
             List of pending invites and create organization requests
           </SheetDescription>
         </SheetHeader>
-        <div className="flex flex-col w-full h-full">
-          <div className="flex items-center h-12 px-2 border-b">
+        <div className="flex h-full w-full flex-col">
+          <div className="flex h-12 items-center border-b px-2">
             <h3 className="font-medium">
               Notifications {invites.length > 0 && `(${invites.length})`}
             </h3>
@@ -94,10 +113,10 @@ export default function NotificationsTray() {
             {invites.map((invite) => (
               <div
                 key={invite.id}
-                className="flex flex-col gap-2 p-2 border rounded-md"
+                className="flex flex-col gap-2 rounded-md border p-2"
               >
                 <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center justify-between w-full">
+                  <div className="flex w-full items-center justify-between">
                     <Badge className="h-5 px-[6px] text-[10px]">
                       Invitation
                     </Badge>
@@ -118,7 +137,9 @@ export default function NotificationsTray() {
                   <Button
                     variant="outline"
                     className="h-fit"
-                    onClick={handleIgnore}
+                    onClick={() => {
+                      handleIgnore(invite.id);
+                    }}
                   >
                     Ignore
                   </Button>
