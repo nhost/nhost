@@ -77,8 +77,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
   const { id } = useUserData();
   const { push } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
-  const { org: { plan: { isFree } = {} } = {}, refetch: refetchCurrentOrg } =
-    useCurrentOrg();
+  const { refetch: refetchCurrentOrg } = useCurrentOrg();
   const [dropDownOpen, setDropDownOpen] = useState(false);
   const [confirmRemoveMemberDialogOpen, setConfirmRemoveMemberDialogOpen] =
     useState(false);
@@ -188,7 +187,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
 
           <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
             <DropdownMenuTrigger
-              disabled={(!isAdmin && id !== member.user.id) || isFree}
+              disabled={!isAdmin && id !== member.user.id}
               asChild
               className="h-fit"
             >

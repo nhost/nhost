@@ -215,7 +215,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
           setUpdateRoleDialogOpen(value);
         }}
       >
-        <DialogContent className="text-foreground sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
               <DialogHeader className="mb-4">

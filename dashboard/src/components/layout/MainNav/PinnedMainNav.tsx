@@ -70,7 +70,7 @@ export default function PinnedMainNav() {
         ref={scrollContainerRef}
         className="h-[calc(100vh-7rem)] overflow-auto pb-12 pt-2 lg:h-[calc(100vh-6rem)]"
       >
-        <div className="flex flex-col gap-1 px-2">
+        <div className="px-2">
           <NavTree />
           <CreateOrgDialog />
         </div>
