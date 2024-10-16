@@ -1,5 +1,8 @@
-query getOrganizations {
-  organizations(order_by: { name: asc }) {
+query getOrganizations($userId: uuid!) {
+  organizations(
+    order_by: { name: asc }
+    where: { members: { userID: { _eq: $userId } } }
+  ) {
     id
     name
     slug
@@ -9,6 +12,7 @@ query getOrganizations {
       deprecated
       individual
       isFree
+      featureMaxDbSize
     }
     apps(order_by: { name: asc }) {
       id

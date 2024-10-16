@@ -9,12 +9,14 @@ query getOrganization($orgSlug: String!) {
       deprecated
       individual
       isFree
+      featureMaxDbSize
     }
     members {
       id
       role
       user {
         id
+        email
         displayName
         avatarUrl
       }

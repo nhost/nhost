@@ -1,0 +1,12 @@
+query getOrganizationInvites($organizationId: uuid!) {
+  organizationMemberInvites(
+    where: { organizationID: { _eq: $organizationId } }
+    order_by: { createdAt: desc }
+  ) {
+    id
+    email
+    role
+    createdAt
+    updateAt
+  }
+}

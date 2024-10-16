@@ -84,7 +84,7 @@ export default function ErrorToast({
     error: errorToObject(error),
   };
 
-  const msg = getInternalErrorMessage(error) || errorMessage;
+  const msg = errorMessage || getInternalErrorMessage(error);
 
   return (
     <AnimatePresence>

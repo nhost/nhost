@@ -1,13 +1,14 @@
-import { Container } from '@/components/layout/Container';
 import { MembersList } from '@/features/orgs/components/members/components/MembersList';
+import { PendingInvites } from '@/features/orgs/components/members/components/PendingInvites';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import type { ReactElement } from 'react';
 
 export default function OrgMembers() {
   return (
-    <Container className="">
+    <div className="flex h-full flex-col gap-4 bg-muted p-4">
       <MembersList />
-    </Container>
+      <PendingInvites />
+    </div>
   );
 }
 
