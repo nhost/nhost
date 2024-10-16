@@ -114,6 +114,7 @@ export const mockOrganization: Organization = {
     deprecated: false,
     individual: false,
     isFree: false,
+    featureMaxDbSize: 1,
   },
   members: [],
   apps: [mockApplication],

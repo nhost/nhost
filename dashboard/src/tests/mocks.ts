@@ -123,6 +123,7 @@ export const mockOrganization: Organization = {
     deprecated: false,
     individual: false,
     isFree: false,
+    featureMaxDbSize: 1,
     __typename: 'plans',
   },
   members: [],
