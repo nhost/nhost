@@ -7316,6 +7316,7 @@ export type Billing_Dedicated_Compute = {
   appID: Scalars['uuid'];
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
@@ -7365,6 +7366,7 @@ export type Billing_Dedicated_Compute_Bool_Exp = {
   appID?: InputMaybe<Uuid_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   totalMillicores?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -7388,6 +7390,7 @@ export type Billing_Dedicated_Compute_Insert_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -7398,6 +7401,7 @@ export type Billing_Dedicated_Compute_Max_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -7408,6 +7412,7 @@ export type Billing_Dedicated_Compute_Min_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -7441,6 +7446,7 @@ export type Billing_Dedicated_Compute_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   totalMillicores?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -7459,6 +7465,8 @@ export enum Billing_Dedicated_Compute_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
   TotalMillicores = 'totalMillicores',
   /** column name */
   UpdatedAt = 'updatedAt'
@@ -7469,6 +7477,7 @@ export type Billing_Dedicated_Compute_Set_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -7504,6 +7513,7 @@ export type Billing_Dedicated_Compute_Stream_Cursor_Value_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -7522,6 +7532,8 @@ export enum Billing_Dedicated_Compute_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   TotalMillicores = 'totalMillicores',
   /** column name */
@@ -12338,6 +12350,7 @@ export type Mutation_Root = {
   billingFullReportWorkflow: Scalars['Boolean'];
   billingMigrateProjectToOrganization: Scalars['Boolean'];
   billingPostOrganizationRequest: PostOrganizationRequestResponse;
+  billingTransferApp: Scalars['Boolean'];
   billingUpdateCustomDomains: Scalars['Boolean'];
   billingUpdateDedicatedCompute: Scalars['Boolean'];
   billingUpdateFunctionsAmount: Scalars['Boolean'];
@@ -13089,12 +13102,6 @@ export type Mutation_RootBillingFinishSubscriptionArgs = {
 
 
 /** mutation root */
-export type Mutation_RootBillingFullReportWorkflowArgs = {
-  reportTime?: InputMaybe<Scalars['Timestamp']>;
-};
-
-
-/** mutation root */
 export type Mutation_RootBillingMigrateProjectToOrganizationArgs = {
   appID: Scalars['uuid'];
   organizationID: Scalars['uuid'];
@@ -13104,6 +13111,13 @@ export type Mutation_RootBillingMigrateProjectToOrganizationArgs = {
 /** mutation root */
 export type Mutation_RootBillingPostOrganizationRequestArgs = {
   sessionID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingTransferAppArgs = {
+  appID: Scalars['uuid'];
+  organizationID: Scalars['uuid'];
 };
 
 
@@ -13136,12 +13150,6 @@ export type Mutation_RootBillingUpdatePersistentVolumeArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
   organizationID?: InputMaybe<Scalars['uuid']>;
-};
-
-
-/** mutation root */
-export type Mutation_RootBillingUpdateReportsArgs = {
-  reportTime?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
@@ -18836,7 +18844,7 @@ export type Query_RootBillingDedicatedComputesArgs = {
 
 
 export type Query_RootBillingGetNextInvoiceArgs = {
-  appID: Scalars['uuid'];
+  organizationID: Scalars['uuid'];
 };
 
 
@@ -26062,6 +26070,13 @@ export type GetSystemLogsQueryVariables = Exact<{
 
 export type GetSystemLogsQuery = { __typename?: 'query_root', systemLogs: Array<{ __typename?: 'Log', timestamp: any, log: string }> };
 
+export type BillingGetNextInvoiceQueryVariables = Exact<{
+  organizationID: Scalars['uuid'];
+}>;
+
+
+export type BillingGetNextInvoiceQuery = { __typename?: 'query_root', billingGetNextInvoice?: { __typename?: 'InvoiceSummary', AmountDue: any, PeriodEnd: any, items: Array<{ __typename?: 'InvoiceItem', Description: string, Amount: any }> } | null };
+
 export type CreateOrganizationRequestMutationVariables = Exact<{
   organizationName: Scalars['String'];
   planID: Scalars['uuid'];
@@ -26097,7 +26112,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -26125,7 +26140,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetProjectQueryVariables = Exact<{
   slug: Scalars['String'];
@@ -29706,6 +29721,49 @@ export type GetSystemLogsQueryResult = Apollo.QueryResult<GetSystemLogsQuery, Ge
 export function refetchGetSystemLogsQuery(variables: GetSystemLogsQueryVariables) {
       return { query: GetSystemLogsDocument, variables: variables }
     }
+export const BillingGetNextInvoiceDocument = gql`
+    query billingGetNextInvoice($organizationID: uuid!) {
+  billingGetNextInvoice(organizationID: $organizationID) {
+    items {
+      Description
+      Amount
+    }
+    AmountDue
+    PeriodEnd
+  }
+}
+    `;
+
+/**
+ * __useBillingGetNextInvoiceQuery__
+ *
+ * To run a query within a React component, call `useBillingGetNextInvoiceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBillingGetNextInvoiceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBillingGetNextInvoiceQuery({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *   },
+ * });
+ */
+export function useBillingGetNextInvoiceQuery(baseOptions: Apollo.QueryHookOptions<BillingGetNextInvoiceQuery, BillingGetNextInvoiceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BillingGetNextInvoiceQuery, BillingGetNextInvoiceQueryVariables>(BillingGetNextInvoiceDocument, options);
+      }
+export function useBillingGetNextInvoiceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BillingGetNextInvoiceQuery, BillingGetNextInvoiceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BillingGetNextInvoiceQuery, BillingGetNextInvoiceQueryVariables>(BillingGetNextInvoiceDocument, options);
+        }
+export type BillingGetNextInvoiceQueryHookResult = ReturnType<typeof useBillingGetNextInvoiceQuery>;
+export type BillingGetNextInvoiceLazyQueryHookResult = ReturnType<typeof useBillingGetNextInvoiceLazyQuery>;
+export type BillingGetNextInvoiceQueryResult = Apollo.QueryResult<BillingGetNextInvoiceQuery, BillingGetNextInvoiceQueryVariables>;
+export function refetchBillingGetNextInvoiceQuery(variables: BillingGetNextInvoiceQueryVariables) {
+      return { query: BillingGetNextInvoiceDocument, variables: variables }
+    }
 export const CreateOrganizationRequestDocument = gql`
     mutation createOrganizationRequest($organizationName: String!, $planID: uuid!, $redirectURL: String!) {
   billingCreateOrganizationRequest(
@@ -29849,6 +29907,7 @@ export const GetOrganizationDocument = gql`
     plan {
       id
       name
+      price
       deprecated
       individual
       isFree
@@ -30036,6 +30095,7 @@ export const GetOrganizationsDocument = gql`
     plan {
       id
       name
+      price
       deprecated
       individual
       isFree

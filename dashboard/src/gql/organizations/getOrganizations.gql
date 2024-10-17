@@ -9,6 +9,7 @@ query getOrganizations($userId: uuid!) {
     plan {
       id
       name
+      price
       deprecated
       individual
       isFree
