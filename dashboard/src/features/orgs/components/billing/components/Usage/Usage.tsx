@@ -1,3 +1,4 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Progress } from '@/components/ui/v3/progress';
 import {
   Table,
@@ -15,7 +16,7 @@ import { useBillingGetNextInvoiceQuery } from '@/utils/__generated__/graphql';
 export default function Usage() {
   const { org } = useCurrentOrg();
   const { billingCycleRange, progress } = getBillingCycleInfo();
-  const { data } = useBillingGetNextInvoiceQuery({
+  const { data, loading } = useBillingGetNextInvoiceQuery({
     variables: {
       organizationID: org?.id,
     },
@@ -37,33 +38,48 @@ export default function Usage() {
             <Progress value={progress} className="h-2 max-w-xl" />
           </div>
           <div className="flex flex-col gap-4 p-4">
-            <span>Breakdown</span>
-            <Table className="border rounded-md">
-              <TableHeader className="w-full">
-                <TableRow>
-                  <TableHead colSpan={3} className="w-full">
-                    Item
-                  </TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {billingItems.map((billingItem) => (
-                  <TableRow key={billingItem.Description}>
-                    <TableCell colSpan={3}>{billingItem.Description}</TableCell>
-                    <TableCell colSpan={3} className="text-right">
-                      {billingItem.Amount}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={3}>Total</TableCell>
-                  <TableCell className="text-right">${amountDue}</TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+            {loading && (
+              <div className="flex h-32 place-content-center">
+                <ActivityIndicator
+                  label="Loading usage stats..."
+                  className="justify-center text-sm"
+                />
+              </div>
+            )}
+
+            {!loading && (
+              <>
+                <span>Breakdown</span>
+                <Table className="border rounded-md">
+                  <TableHeader className="w-full">
+                    <TableRow>
+                      <TableHead colSpan={3} className="w-full">
+                        Item
+                      </TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {billingItems.map((billingItem) => (
+                      <TableRow key={billingItem.Description}>
+                        <TableCell colSpan={3}>
+                          {billingItem.Description}
+                        </TableCell>
+                        <TableCell colSpan={3} className="text-right">
+                          {billingItem.Amount}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell colSpan={3}>Total</TableCell>
+                      <TableCell className="text-right">${amountDue}</TableCell>
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              </>
+            )}
           </div>
         </div>
       </div>
