@@ -47,37 +47,41 @@ export default function Usage() {
               </div>
             )}
 
-            {!loading && (
+            {!loading && data && (
               <>
                 <span>Breakdown</span>
-                <Table className="border rounded-md">
-                  <TableHeader className="w-full">
-                    <TableRow>
-                      <TableHead colSpan={3} className="w-full">
-                        Item
-                      </TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {billingItems.map((billingItem) => (
-                      <TableRow key={billingItem.Description}>
-                        <TableCell colSpan={3}>
-                          {billingItem.Description}
-                        </TableCell>
-                        <TableCell colSpan={3} className="text-right">
-                          {billingItem.Amount}
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader className="w-full">
+                      <TableRow>
+                        <TableHead colSpan={3} className="w-full">
+                          Item
+                        </TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {billingItems.map((billingItem) => (
+                        <TableRow key={billingItem.Description}>
+                          <TableCell colSpan={3}>
+                            {billingItem.Description}
+                          </TableCell>
+                          <TableCell colSpan={3} className="text-right">
+                            ${billingItem.Amount}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                    <TableFooter>
+                      <TableRow>
+                        <TableCell colSpan={3}>Total</TableCell>
+                        <TableCell className="text-right">
+                          ${amountDue}
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                  <TableFooter>
-                    <TableRow>
-                      <TableCell colSpan={3}>Total</TableCell>
-                      <TableCell className="text-right">${amountDue}</TableCell>
-                    </TableRow>
-                  </TableFooter>
-                </Table>
+                    </TableFooter>
+                  </Table>
+                </div>
               </>
             )}
           </div>
