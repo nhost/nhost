@@ -104,7 +104,7 @@ export default function NotificationsTray() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="h-full w-full bg-background p-0 sm:max-w-[310px]">
+      <SheetContent className="h-full w-full bg-background p-0 text-foreground sm:max-w-[310px]">
         <SheetHeader>
           <SheetTitle className="sr-only">Notifications</SheetTitle>
           <SheetDescription className="sr-only">

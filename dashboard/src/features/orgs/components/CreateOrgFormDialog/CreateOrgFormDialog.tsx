@@ -228,14 +228,7 @@ export default function CreateOrgDialog() {
           New Organization
         </Button>
       </DialogTrigger>
-      <DialogContent
-        className={cn(
-          'text-foreground sm:max-w-xl',
-          !loading && stripeClientSecret ? 'bg-white text-black' : '',
-        )}
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
+      <DialogContent className="text-foreground sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>New Organization</DialogTitle>
           <DialogDescription />
