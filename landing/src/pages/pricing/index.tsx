@@ -174,10 +174,10 @@ function SelfHostedPricingListItem({
   )
 }
 
-const PricingTabs = ({ onTabChange }) => {
+const PricingTabs = ({ onTabChange }: { onTabChange: (tab: string) => void }) => {
   const [activeTab, setActiveTab] = useState('cloud');
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     onTabChange(tab);
   };
@@ -230,7 +230,7 @@ const PricingTabs = ({ onTabChange }) => {
 export default function PricingPage() {
   const [activeTab, setActiveTab] = useState('cloud');
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
 
