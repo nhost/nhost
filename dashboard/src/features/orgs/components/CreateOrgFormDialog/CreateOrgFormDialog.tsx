@@ -200,7 +200,7 @@ export default function CreateOrgDialog() {
           New Organization
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="text-foreground sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>New Organization</DialogTitle>
           <DialogDescription />

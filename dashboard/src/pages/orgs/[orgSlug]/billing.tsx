@@ -7,7 +7,7 @@ import type { ReactElement } from 'react';
 export default function OrgBilling() {
   const { org: { plan: { isFree } = {} } = {} } = useCurrentOrg();
   return (
-    <div className="flex flex-col h-full gap-4 p-4 overflow-auto bg-muted/50">
+    <div className="flex h-full flex-col gap-4 overflow-auto bg-background p-4">
       <SubscriptionPlan />
       {!isFree && <Usage />}
     </div>

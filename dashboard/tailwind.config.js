@@ -25,6 +25,7 @@ module.exports = {
         'primary-main': '#0052cd',
         'primary-light': '#ebf3ff',
         'primary-dark': '#063799',
+        'theme-grey-200': '#21262d',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

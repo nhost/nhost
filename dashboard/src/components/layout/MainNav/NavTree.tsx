@@ -398,7 +398,7 @@ export default function NavTree() {
                   <span
                     className={cn(
                       'flex items-start',
-                      context.isFocused ? 'text-primary-main' : '',
+                      context.isFocused ? 'text-primary' : '',
                     )}
                   >
                     {item.data.icon}
@@ -407,7 +407,7 @@ export default function NavTree() {
                 <span
                   className={cn(
                     item?.index === 'organizations' && 'font-bold',
-                    context.isFocused ? 'font-bold text-primary-main' : '',
+                    context.isFocused ? 'font-bold text-primary' : '',
                     'max-w-52 truncate',
                   )}
                 >

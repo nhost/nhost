@@ -18,7 +18,7 @@ export default function AnnouncementsTray() {
           <Megaphone className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="h-full w-full bg-background p-0 sm:max-w-[310px]">
+      <SheetContent className="h-full w-full bg-background p-0 text-foreground sm:max-w-[310px]">
         <SheetHeader>
           <SheetTitle className="sr-only">Announcements</SheetTitle>
           <SheetDescription className="sr-only">
