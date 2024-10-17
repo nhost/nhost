@@ -17,6 +17,7 @@ export default function Usage() {
   const { org } = useCurrentOrg();
   const { billingCycleRange, progress } = getBillingCycleInfo();
   const { data, loading } = useBillingGetNextInvoiceQuery({
+    fetchPolicy: 'cache-first',
     variables: {
       organizationID: org?.id,
     },
