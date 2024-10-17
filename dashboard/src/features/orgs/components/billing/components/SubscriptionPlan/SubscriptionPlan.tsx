@@ -50,10 +50,16 @@ export default function SubscriptionPlan() {
             </Link>
           </div>
           <div className="flex flex-row items-center justify-end gap-2">
-            <Button className="h-fit" variant="secondary">
+            <Button
+              className="h-fit"
+              variant="secondary"
+              disabled={org?.plan?.isFree}
+            >
               Update payment details
             </Button>
-            <Button className="h-fit">Upgrade</Button>
+            <Button disabled={org?.plan?.isFree} className="h-fit">
+              Upgrade
+            </Button>
           </div>
         </div>
       </div>
