@@ -1,0 +1,3 @@
+mutation deleteOrganization($id: uuid!) {
+  billingDeleteOrganization(organizationID: $id)
+}

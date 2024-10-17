@@ -1,0 +1,5 @@
+mutation deleteOrganizationMemberInvite($inviteId: uuid!) {
+  deleteOrganizationMemberInvite(id: $inviteId) {
+    __typename
+  }
+}

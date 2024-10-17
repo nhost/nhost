@@ -1,0 +1,10 @@
+query billingGetNextInvoice($organizationID: uuid!) {
+  billingGetNextInvoice(organizationID: $organizationID) {
+    items {
+      Description
+      Amount
+    }
+    AmountDue
+    PeriodEnd
+  }
+}
