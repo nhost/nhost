@@ -124,6 +124,7 @@ export const mockOrganization: Organization = {
     individual: false,
     isFree: false,
     featureMaxDbSize: 1,
+    price: 25,
     __typename: 'plans',
   },
   members: [],
