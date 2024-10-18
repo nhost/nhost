@@ -5,6 +5,7 @@ import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
+import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
@@ -15,7 +16,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetAllWorkspacesAndProjectsDocument,
-  useDeleteApplicationMutation,
+  useBillingDeleteAppMutation,
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
@@ -49,10 +50,7 @@ export default function SettingsGeneralPage() {
     variables: { appId: project?.id },
     refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
-  const [deleteApplication] = useDeleteApplicationMutation({
-    variables: { appId: project?.id },
-    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
-  });
+  const [deleteApplication] = useBillingDeleteAppMutation();
   const router = useRouter();
   const { maintenanceActive } = useUI();
 
@@ -133,8 +131,13 @@ export default function SettingsGeneralPage() {
   async function handleDeleteApplication() {
     await execPromiseWithErrorToast(
       async () => {
-        await deleteApplication();
-        await router.push('/');
+        await deleteApplication({
+          variables: {
+            appID: project?.id,
+          },
+        });
+
+        await router.push(`/orgs/${org.slug}/projects`);
       },
       {
         loadingMessage: `Deleting ${project.name}...`,
@@ -222,6 +225,8 @@ export default function SettingsGeneralPage() {
           }}
         />
       )}
+
+      <TransferProject />
 
       {isOwner && (
         <SettingsContainer
