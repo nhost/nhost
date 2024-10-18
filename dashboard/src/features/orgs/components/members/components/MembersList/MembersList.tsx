@@ -8,8 +8,8 @@ export default function MembersList() {
   const isAdmin = useIsOrgAdmin();
 
   return (
-    <div className="flex flex-col w-full border rounded-md bg-background">
-      <div className="flex flex-col w-full gap-1 p-4 border-b">
+    <div className="flex w-full flex-col rounded-md border bg-background">
+      <div className="flex w-full flex-col gap-1 border-b p-4">
         <h4 className="font-medium">
           Members {members.length > 0 && `(${members.length})`}
         </h4>
@@ -20,7 +20,7 @@ export default function MembersList() {
       </div>
 
       {/* Todo add an empty state here */}
-      <div className="flex flex-col w-full gap-4 p-4">
+      <div className="flex w-full flex-col gap-4 p-4">
         {members.map((member) => (
           <OrgMember key={member.id} member={member} isAdmin={isAdmin} />
         ))}
