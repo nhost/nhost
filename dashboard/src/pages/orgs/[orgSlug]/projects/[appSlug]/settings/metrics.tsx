@@ -9,7 +9,8 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ContactPointsSettings } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings';
-import { GrafanaAlertingSettings } from '@/features/orgs/projects/metrics/settings/components/GrafanaAlertingSettings';
+import { MetricsAlertingSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsAlertingSettings';
+import { MetricsSMTPSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSMTPSettings';
 
 export default function MetricsSettingsPage() {
   const isPlatform = useIsPlatform();
@@ -41,7 +42,8 @@ export default function MetricsSettingsPage() {
       className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <GrafanaAlertingSettings />
+      <MetricsAlertingSettings />
+      <MetricsSMTPSettings />
       <ContactPointsSettings />
     </Container>
   );
