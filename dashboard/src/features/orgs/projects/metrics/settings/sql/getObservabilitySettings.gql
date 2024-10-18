@@ -1,0 +1,55 @@
+query GetObservabilitySettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    observability {
+      grafana {
+        alerting {
+          enabled
+        }
+        smtp {
+          host
+          password
+          port
+          sender
+          user
+        }
+        contacts {
+          emails
+          discord {
+            avatarUrl
+            url
+          }
+          pagerduty {
+            integrationKey
+            severity
+            class
+            component
+            group
+          }
+          slack {
+            recipient
+            token
+            username
+            iconEmoji
+            iconURL
+            mentionUsers
+            mentionGroups
+            mentionChannel
+            url
+            endpointURL
+          }
+          webhook {
+            url
+            httpMethod
+            username
+            password
+            authorizationScheme
+            authorizationCredentials
+            maxAlerts
+          }
+        }
+      }
+    }
+  }
+}
