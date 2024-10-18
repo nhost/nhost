@@ -6,10 +6,8 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/v3/sheet';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
-import { cn } from '@/lib/utils';
 import { PanelLeft, Pin, PinOff } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
@@ -44,21 +42,19 @@ export default function MainNav({ container }: MainNavProps) {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn('px-3 py-1', mainNavPinned && 'hidden')}
-          disabled={mainNavPinned}
-        >
-          <PanelLeft className="h-6 w-6" />
-        </Button>
-      </SheetTrigger>
+      <div
+        className="absolute left-0 flex justify-center w-10 h-full px-2 pt-2 border-r bg-background"
+        onMouseEnter={() => setOpen(true)}
+      >
+        <PanelLeft className="w-6 h-6" />
+      </div>
 
       <SheetContent
         side="left"
         container={container}
         hideCloseButton
         className="h-full w-full p-0 sm:max-w-[310px]"
+        onMouseLeave={() => setOpen(false)}
       >
         <SheetHeader>
           <SheetTitle className="sr-only">Main navigation</SheetTitle>
@@ -67,15 +63,15 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex h-12 w-full items-center justify-end border-b bg-background px-1">
+        <div className="flex items-center justify-end w-full h-12 px-1 border-b bg-background">
           <Button
             variant="ghost"
             onClick={() => setMainNavPinned(!mainNavPinned)}
           >
             {mainNavPinned ? (
-              <PinOff className="h-5 w-5" />
+              <PinOff className="w-5 h-5" />
             ) : (
-              <Pin className="h-5 w-5" />
+              <Pin className="w-5 h-5" />
             )}
           </Button>
         </div>

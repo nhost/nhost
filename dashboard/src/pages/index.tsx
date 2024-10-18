@@ -25,9 +25,9 @@ export default function IndexPage() {
   }
 
   return (
-    <Container className="grid grid-cols-1 gap-8 md:grid-cols-4">
+    <div className="w-full h-full p-4 bg-accent">
       <div>Orgs Grid</div>
-    </Container>
+    </div>
   );
 }
 
@@ -35,7 +35,7 @@ IndexPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       title="Dashboard"
-      contentContainerProps={{ className: 'flex w-full flex-col px-4' }}
+      contentContainerProps={{ className: 'flex w-full flex-col' }}
     >
       <Container className="py-0">
         <MaintenanceAlert />
