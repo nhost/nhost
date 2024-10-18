@@ -1,0 +1,11 @@
+mutation updateOrganizationMemberInvite(
+  $inviteId: uuid!
+  $role: organization_members_role_enum!
+) {
+  updateOrganizationMemberInvite(
+    pk_columns: { id: $inviteId }
+    _set: { role: $role }
+  ) {
+    id
+  }
+}

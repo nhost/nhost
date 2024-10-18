@@ -62,12 +62,12 @@ export default function PinnedMainNav() {
         ref={scrollContainerRef}
         className="h-[calc(100vh-6rem)] overflow-auto pb-12 pt-2"
       >
-        <div className="pl-2">
+        <div className="px-2">
           <NavTree />
           <CreateOrgDialog />
         </div>
         <Separator className="mx-auto my-2" />
-        <div className="pl-2">
+        <div className="px-2">
           <WorkspacesNavTree />
         </div>
       </div>

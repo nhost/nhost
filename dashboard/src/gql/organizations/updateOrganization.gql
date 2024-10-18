@@ -1,0 +1,9 @@
+mutation updateOrganization(
+  $id: uuid!
+  $organization: organizations_set_input!
+) {
+  updateOrganization(pk_columns: { id: $id }, _set: $organization) {
+    id
+    name
+  }
+}

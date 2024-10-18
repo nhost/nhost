@@ -25,6 +25,7 @@ module.exports = {
         'primary-main': '#0052cd',
         'primary-light': '#ebf3ff',
         'primary-dark': '#063799',
+        'theme-grey-200': '#21262d',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -212,11 +213,17 @@ module.exports = {
           '0%': { transform: 'scale(1)', opacity: 1 },
           '100%': { transform: 'scale(0.9)', opacity: 0 },
         },
+        progress: {
+          '0%': { transform: 'translateX(0) scaleX(0)' },
+          '40%': { transform: 'translateX(0) scaleX(0.4)' },
+          '100%': { transform: 'translateX(100%) scaleX(0.5)' },
+        },
       },
       animation: {
         blinking: 'blinking 1s infinite',
         toastenter: 'enter 200ms ease-out',
         toastleave: 'leave 150ms ease-in forwards',
+        progress: 'progress 1s infinite linear',
       },
     },
   },
