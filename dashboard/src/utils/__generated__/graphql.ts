@@ -26141,7 +26141,14 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
 
 export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
 
-export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null };
+export type GetObservabilitySettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetObservabilitySettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', alerting?: { __typename?: 'ConfigGrafanaAlerting', enabled?: boolean | null } | null, smtp?: { __typename?: 'ConfigGrafanaSmtp', host: string, password: string, port: any, sender: string, user: string } | null, contacts?: { __typename?: 'ConfigGrafanaContacts', emails?: Array<string> | null, discord?: Array<{ __typename?: 'ConfigGrafanacontactsDiscord', avatarUrl: string, url: string }> | null, pagerduty?: Array<{ __typename?: 'ConfigGrafanacontactsPagerduty', integrationKey: string, severity: string, class: string, component: string, group: string }> | null, slack?: Array<{ __typename?: 'ConfigGrafanacontactsSlack', recipient: string, token: string, username: string, iconEmoji: string, iconURL: string, mentionUsers: Array<string>, mentionGroups: Array<string>, mentionChannel: string, url: string, endpointURL: string }> | null, webhook?: Array<{ __typename?: 'ConfigGrafanacontactsWebhook', url: string, httpMethod: string, username: string, password: string, authorizationScheme: string, authorizationCredentials: string, maxAlerts: number }> | null } | null } } } | null };
+
+export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null };
 
 export type GetResourcesQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -28012,6 +28019,94 @@ export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetB
 export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
 export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
       return { query: GetBackupPresignedUrlDocument, variables: variables }
+    }
+export const GetObservabilitySettingsDocument = gql`
+    query GetObservabilitySettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    observability {
+      grafana {
+        alerting {
+          enabled
+        }
+        smtp {
+          host
+          password
+          port
+          sender
+          user
+        }
+        contacts {
+          emails
+          discord {
+            avatarUrl
+            url
+          }
+          pagerduty {
+            integrationKey
+            severity
+            class
+            component
+            group
+          }
+          slack {
+            recipient
+            token
+            username
+            iconEmoji
+            iconURL
+            mentionUsers
+            mentionGroups
+            mentionChannel
+            url
+            endpointURL
+          }
+          webhook {
+            url
+            httpMethod
+            username
+            password
+            authorizationScheme
+            authorizationCredentials
+            maxAlerts
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetObservabilitySettingsQuery__
+ *
+ * To run a query within a React component, call `useGetObservabilitySettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetObservabilitySettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetObservabilitySettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetObservabilitySettingsQuery(baseOptions: Apollo.QueryHookOptions<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>(GetObservabilitySettingsDocument, options);
+      }
+export function useGetObservabilitySettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>(GetObservabilitySettingsDocument, options);
+        }
+export type GetObservabilitySettingsQueryHookResult = ReturnType<typeof useGetObservabilitySettingsQuery>;
+export type GetObservabilitySettingsLazyQueryHookResult = ReturnType<typeof useGetObservabilitySettingsLazyQuery>;
+export type GetObservabilitySettingsQueryResult = Apollo.QueryResult<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>;
+export function refetchGetObservabilitySettingsQuery(variables: GetObservabilitySettingsQueryVariables) {
+      return { query: GetObservabilitySettingsDocument, variables: variables }
     }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {
