@@ -20,7 +20,7 @@ function ProjectCard({ project }: { project: Project }) {
   const [latestDeployment] = project.deployments;
 
   return (
-    <div className="dark:bg-theme-grey-200 flex cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm dark:border-0">
+    <div className="flex cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm">
       <div className="flex items-start gap-2">
         <div className="flex flex-row items-center space-x-2">
           <Box className="h-6 w-6" />
@@ -77,7 +77,7 @@ export default function ProjectsGrid() {
   }
 
   return (
-    <div className="mx-auto h-full overflow-auto bg-muted/50 dark:bg-background">
+    <div className="mx-auto h-full overflow-auto bg-accent">
       <div className="flex w-full flex-shrink-0 flex-row items-center justify-between border-b bg-background p-2">
         <Input
           placeholder="Find Project"
