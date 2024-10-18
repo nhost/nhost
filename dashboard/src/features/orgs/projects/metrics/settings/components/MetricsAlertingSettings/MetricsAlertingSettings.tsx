@@ -23,11 +23,11 @@ const validationSchema = Yup.object({
   enabled: Yup.boolean(),
 });
 
-export type GrafanaAlertingSettingsFormValues = Yup.InferType<
+export type MetricsAlertingSettingsFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-export default function GrafanaAlertingSettings() {
+export default function MetricsAlertingSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -46,7 +46,7 @@ export default function GrafanaAlertingSettings() {
   const { enabled: alertingEnabled } =
     data?.config?.observability.grafana.alerting || {};
 
-  const form = useForm<GrafanaAlertingSettingsFormValues>({
+  const form = useForm<MetricsAlertingSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
       enabled: alertingEnabled,
@@ -76,7 +76,7 @@ export default function GrafanaAlertingSettings() {
     throw error;
   }
 
-  async function handleSubmit(formValues: GrafanaAlertingSettingsFormValues) {
+  async function handleSubmit(formValues: MetricsAlertingSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: project.id,
@@ -132,7 +132,7 @@ export default function GrafanaAlertingSettings() {
             },
           }}
           switchId="enabled"
-          docsTitle="enabling or disabling Grafana Alerting"
+          docsTitle="enabling or disabling Alerting"
           docsLink="https://docs.nhost.io/platform/metrics#alerting"
           showSwitch
           className="hidden"
