@@ -4,61 +4,75 @@ import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
-import { LockIcon } from '@/components/ui/v2/icons/LockIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 
 import { CreateRoleForm } from '@/features/orgs/projects/roles/settings/components/CreateRoleForm';
 import { EditRoleForm } from '@/features/orgs/projects/roles/settings/components/EditRoleForm';
-import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 
 import type { Role } from '@/types/application';
 import {
   GetRolesPermissionsDocument,
-  useGetRolesPermissionsQuery,
+  useGetObservabilitySettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 
+import { Button } from '@/components/ui/v2/Button';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Form, FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 
-export interface RoleSettingsFormValues {
-  /**
-   * Default role.
-   */
-  authUserDefaultRole: string;
-  /**
-   * Default Allowed roles for the project.
-   */
-  authUserDefaultAllowedRoles: Role[];
-}
+export const validationSchema = Yup.object({
+  emails: Yup.array().of(
+    Yup.string().email('Invalid email address').required(),
+  ),
+});
 
-export default function ContactPointsSettings() {
+type ContactPointsEmailFormValues = Yup.InferType<typeof validationSchema>;
+
+export default function ContactPointsEmailSettings() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error, refetch } = useGetRolesPermissionsQuery({
+  const { data, loading, error, refetch } = useGetObservabilitySettingsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { allowed: allowedRoles, default: defaultRole } =
-    data?.config?.auth?.user?.roles || {};
+  const { emails } = data?.config?.observability?.grafana?.contacts || {};
+
+  const { fields, append, remove } = useFieldArray({
+    name: 'emails',
+  });
+
+  const { host, port, user, sender, password } =
+    data?.config?.observability?.grafana?.smtp || {};
+
+  const form = useForm<ContactPointsEmailFormValues>({
+    reValidateMode: 'onSubmit',
+    resolver: yupResolver(validationSchema),
+    defaultValues: {
+      emails: [],
+    },
+    values: {
+      emails: emails || [],
+    },
+    mode: 'onSubmit',
+    // criteriaMode: 'all',
+  });
+
+  const {
+    register,
+    formState: { errors, isDirty, isSubmitting },
+  } = form;
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetRolesPermissionsDocument],
@@ -87,67 +101,80 @@ export default function ContactPointsSettings() {
     }
   }
 
+  const handleEditContactPointsEmailSettings = async (
+    values: ContactPointsEmailFormValues,
+  ) => {
+    const { emails } = values;
+
+    const updateConfigPromise = updateConfig({
+      variables: {
+        appId: project.id,
+        config: {
+          observability: {
+            grafana: {
+              contacts: {
+                emails: values.emails,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
+      },
+      {
+        loadingMessage: 'SMTP settings are being updated...',
+        successMessage: 'SMTP settings have been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update the SMTP settings.',
+      },
+    );
+  };
+
   async function handleSetAsDefault({ name }: Role) {
-    const updateConfigPromise = updateConfig({
-      variables: {
-        appId: project?.id,
-        config: {
-          auth: {
-            user: {
-              roles: {
-                allowed: allowedRoles,
-                default: name,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await updateConfigPromise;
-        showApplyChangesDialog();
-      },
-      {
-        loadingMessage: 'Updating default role...',
-        successMessage: 'Default role has been updated successfully.',
-        errorMessage:
-          'An error occurred while trying to update the default role.',
-      },
-    );
+    // const updateConfigPromise = updateConfig({
+    //   variables: {
+    //     appId: project?.id,
+    //     config: {
+    //       grafana: {
+    //         contacts: {
+    //           emails: {
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
+    // await execPromiseWithErrorToast(
+    //   async () => {
+    //     await updateConfigPromise;
+    //     showApplyChangesDialog();
+    //   },
+    //   {
+    //     loadingMessage: 'Updating default role...',
+    //     successMessage: 'Default role has been updated successfully.',
+    //     errorMessage:
+    //       'An error occurred while trying to update the default role.',
+    //   },
+    // );
   }
 
-  async function handleDeleteRole({ name }: Role) {
-    const updateConfigPromise = updateConfig({
-      variables: {
-        appId: project?.id,
-        config: {
-          auth: {
-            user: {
-              roles: {
-                allowed: allowedRoles.filter((role) => role !== name),
-                default: name === defaultRole ? 'user' : defaultRole,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await updateConfigPromise;
-        showApplyChangesDialog();
-      },
-      {
-        loadingMessage: 'Deleting allowed role...',
-        successMessage: 'Allowed Role has been deleted successfully.',
-        errorMessage:
-          'An error occurred while trying to delete the allowed role.',
-      },
-    );
-  }
+  async function handleDeleteRole({ name }: Role) {}
 
   function handleOpenCreator() {
     openDialog({
@@ -190,26 +217,29 @@ export default function ContactPointsSettings() {
     });
   }
 
-  const availableAllowedRoles = getUserRoles(allowedRoles);
-
   return (
-    <SettingsContainer
-      title="Default Allowed Roles"
-      description="Default Allowed Roles are roles users get automatically when they sign up."
-      docsLink="https://docs.nhost.io/guides/auth/users#allowed-roles"
-      rootClassName="gap-0"
-      className={twMerge(
-        'my-2 px-0',
-        availableAllowedRoles.length === 0 && 'gap-2',
-      )}
-      slotProps={{ submitButton: { className: 'hidden' } }}
-    >
-      <Box className="px-4 py-3 border-b-1">
-        <Text className="font-medium">Name</Text>
-      </Box>
+    <FormProvider {...form}>
+      <Form onSubmit={handleEditSMTPSettings}>
+        <SettingsContainer
+          title="Contact Points"
+          description="Select your preferred emails for receiving notifications when your alert rules are firing."
+          docsLink="https://docs.nhost.io/platform/metrics#configure-contact-points"
+          rootClassName="gap-0"
+          submitButtonText="Save"
+          className={twMerge('my-2 px-0')}
+          slotProps={{
+            submitButton: {
+              disabled: !isDirty || maintenanceActive,
+              loading: isSubmitting,
+            },
+          }}
+        >
+          <Box className="border-b-1 px-4 py-3">
+            <Text className="font-medium">Name</Text>
+          </Box>
 
-      <div className="grid grid-flow-row gap-2">
-        {availableAllowedRoles.length > 0 && (
+          <div className="grid grid-flow-row gap-2">
+            {/* {availableAllowedRoles.length > 0 && (
           <List>
             {availableAllowedRoles.map((role, index) => (
               <Fragment key={role.name}>
@@ -220,7 +250,7 @@ export default function ContactPointsSettings() {
                       <Dropdown.Trigger
                         asChild
                         hideChevron
-                        className="absolute -translate-y-1/2 right-4 top-1/2"
+                        className="absolute right-4 top-1/2 -translate-y-1/2"
                       >
                         <IconButton
                           variant="borderless"
@@ -249,17 +279,13 @@ export default function ContactPointsSettings() {
 
                         <Divider component="li" />
 
-                        <Dropdown.Item
-                          disabled={role.isSystemRole}
-                          onClick={() => handleOpenEditor(role)}
-                        >
+                        <Dropdown.Item onClick={() => handleOpenEditor(role)}>
                           <Text className="font-medium">Edit</Text>
                         </Dropdown.Item>
 
                         <Divider component="li" />
 
                         <Dropdown.Item
-                          disabled={role.isSystemRole}
                           onClick={() => handleConfirmDelete(role)}
                         >
                           <Text className="font-medium" color="error">
@@ -278,17 +304,6 @@ export default function ContactPointsSettings() {
                     primary={
                       <>
                         {role.name}
-
-                        {role.isSystemRole && <LockIcon className="w-4 h-4" />}
-
-                        {defaultRole === role.name && (
-                          <Chip
-                            component="span"
-                            color="info"
-                            size="small"
-                            label="Default"
-                          />
-                        )}
                       </>
                     }
                   />
@@ -297,9 +312,7 @@ export default function ContactPointsSettings() {
                 <Divider
                   component="li"
                   className={twMerge(
-                    index === availableAllowedRoles.length - 1
-                      ? '!mt-4'
-                      : '!my-4',
+                      '!my-4'
                   )}
                 />
               </Fragment>
@@ -315,8 +328,19 @@ export default function ContactPointsSettings() {
           disabled={maintenanceActive}
         >
           Create Allowed Role
-        </Button>
-      </div>
-    </SettingsContainer>
+        </Button> */}
+            <Button
+              className="mx-4 justify-self-start"
+              variant="borderless"
+              startIcon={<PlusIcon />}
+              onClick={handleOpenCreator}
+              disabled={maintenanceActive}
+            >
+              Add a new email
+            </Button>
+          </div>
+        </SettingsContainer>
+      </Form>
+    </FormProvider>
   );
 }
