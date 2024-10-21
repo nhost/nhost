@@ -22,11 +22,34 @@ export default function IndexPage() {
         return;
       }
 
-  return (
-    <div className="w-full h-full p-4 bg-accent">
-      <div>Orgs Grid</div>
-    </div>
-  );
+      if (orgs && workspaces) {
+        const orgFromLastSlug = orgs.find((o) => o.slug === lastSlug);
+        const workspaceFromLastSlug = workspaces.find(
+          (w) => w.slug === lastSlug,
+        );
+
+        if (orgFromLastSlug) {
+          await push(`/orgs/${orgFromLastSlug.slug}/projects`);
+          return;
+        }
+
+        if (workspaceFromLastSlug) {
+          await push(`/${workspaceFromLastSlug.slug}`);
+          return;
+        }
+
+        const personalOrg = orgs.find((org) => org.plan.isFree);
+
+        if (personalOrg) {
+          push(`/orgs/${personalOrg.slug}/projects`);
+        }
+      }
+    };
+
+    navigateToSlug();
+  }, [orgs, lastSlug, push, workspaces, loadingOrgs, loadingWorkspaces]);
+
+  return <LoadingScreen />;
 }
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {

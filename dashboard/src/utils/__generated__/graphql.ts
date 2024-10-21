@@ -26532,6 +26532,14 @@ export type GetSystemLogsQueryVariables = Exact<{
 
 export type GetSystemLogsQuery = { __typename?: 'query_root', systemLogs: Array<{ __typename?: 'Log', timestamp: any, log: string }> };
 
+export type BillingChangeOrganizationPlanMutationVariables = Exact<{
+  organizationID: Scalars['uuid'];
+  planID: Scalars['uuid'];
+}>;
+
+
+export type BillingChangeOrganizationPlanMutation = { __typename?: 'mutation_root', billingChangeOrganizationPlan: boolean };
+
 export type BillingDeleteAppMutationVariables = Exact<{
   appID: Scalars['uuid'];
 }>;
@@ -30267,6 +30275,38 @@ export type GetSystemLogsQueryResult = Apollo.QueryResult<GetSystemLogsQuery, Ge
 export function refetchGetSystemLogsQuery(variables: GetSystemLogsQueryVariables) {
       return { query: GetSystemLogsDocument, variables: variables }
     }
+export const BillingChangeOrganizationPlanDocument = gql`
+    mutation billingChangeOrganizationPlan($organizationID: uuid!, $planID: uuid!) {
+  billingChangeOrganizationPlan(organizationID: $organizationID, planID: $planID)
+}
+    `;
+export type BillingChangeOrganizationPlanMutationFn = Apollo.MutationFunction<BillingChangeOrganizationPlanMutation, BillingChangeOrganizationPlanMutationVariables>;
+
+/**
+ * __useBillingChangeOrganizationPlanMutation__
+ *
+ * To run a mutation, you first call `useBillingChangeOrganizationPlanMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBillingChangeOrganizationPlanMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [billingChangeOrganizationPlanMutation, { data, loading, error }] = useBillingChangeOrganizationPlanMutation({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *      planID: // value for 'planID'
+ *   },
+ * });
+ */
+export function useBillingChangeOrganizationPlanMutation(baseOptions?: Apollo.MutationHookOptions<BillingChangeOrganizationPlanMutation, BillingChangeOrganizationPlanMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<BillingChangeOrganizationPlanMutation, BillingChangeOrganizationPlanMutationVariables>(BillingChangeOrganizationPlanDocument, options);
+      }
+export type BillingChangeOrganizationPlanMutationHookResult = ReturnType<typeof useBillingChangeOrganizationPlanMutation>;
+export type BillingChangeOrganizationPlanMutationResult = Apollo.MutationResult<BillingChangeOrganizationPlanMutation>;
+export type BillingChangeOrganizationPlanMutationOptions = Apollo.BaseMutationOptions<BillingChangeOrganizationPlanMutation, BillingChangeOrganizationPlanMutationVariables>;
 export const BillingDeleteAppDocument = gql`
     mutation billingDeleteApp($appID: uuid!) {
   billingDeleteApp(appID: $appID)
