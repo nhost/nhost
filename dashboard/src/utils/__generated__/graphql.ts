@@ -26115,6 +26115,13 @@ export type BillingMigrateProjectToOrganizationMutationVariables = Exact<{
 
 export type BillingMigrateProjectToOrganizationMutation = { __typename?: 'mutation_root', billingMigrateProjectToOrganization: boolean };
 
+export type BillingOrganizationCustomePortalQueryVariables = Exact<{
+  organizationID: Scalars['uuid'];
+}>;
+
+
+export type BillingOrganizationCustomePortalQuery = { __typename?: 'query_root', billingOrganizationCustomePortal: string };
+
 export type BillingTransferAppMutationVariables = Exact<{
   appID: Scalars['uuid'];
   organizationID: Scalars['uuid'];
@@ -26187,6 +26194,11 @@ export type GetOrganizationsQueryVariables = Exact<{
 
 
 export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+
+export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetOrganizationPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }> };
 
 export type GetProjectQueryVariables = Exact<{
   slug: Scalars['String'];
@@ -29908,6 +29920,42 @@ export function useBillingMigrateProjectToOrganizationMutation(baseOptions?: Apo
 export type BillingMigrateProjectToOrganizationMutationHookResult = ReturnType<typeof useBillingMigrateProjectToOrganizationMutation>;
 export type BillingMigrateProjectToOrganizationMutationResult = Apollo.MutationResult<BillingMigrateProjectToOrganizationMutation>;
 export type BillingMigrateProjectToOrganizationMutationOptions = Apollo.BaseMutationOptions<BillingMigrateProjectToOrganizationMutation, BillingMigrateProjectToOrganizationMutationVariables>;
+export const BillingOrganizationCustomePortalDocument = gql`
+    query billingOrganizationCustomePortal($organizationID: uuid!) {
+  billingOrganizationCustomePortal(organizationID: $organizationID)
+}
+    `;
+
+/**
+ * __useBillingOrganizationCustomePortalQuery__
+ *
+ * To run a query within a React component, call `useBillingOrganizationCustomePortalQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBillingOrganizationCustomePortalQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBillingOrganizationCustomePortalQuery({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *   },
+ * });
+ */
+export function useBillingOrganizationCustomePortalQuery(baseOptions: Apollo.QueryHookOptions<BillingOrganizationCustomePortalQuery, BillingOrganizationCustomePortalQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BillingOrganizationCustomePortalQuery, BillingOrganizationCustomePortalQueryVariables>(BillingOrganizationCustomePortalDocument, options);
+      }
+export function useBillingOrganizationCustomePortalLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BillingOrganizationCustomePortalQuery, BillingOrganizationCustomePortalQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BillingOrganizationCustomePortalQuery, BillingOrganizationCustomePortalQueryVariables>(BillingOrganizationCustomePortalDocument, options);
+        }
+export type BillingOrganizationCustomePortalQueryHookResult = ReturnType<typeof useBillingOrganizationCustomePortalQuery>;
+export type BillingOrganizationCustomePortalLazyQueryHookResult = ReturnType<typeof useBillingOrganizationCustomePortalLazyQuery>;
+export type BillingOrganizationCustomePortalQueryResult = Apollo.QueryResult<BillingOrganizationCustomePortalQuery, BillingOrganizationCustomePortalQueryVariables>;
+export function refetchBillingOrganizationCustomePortalQuery(variables: BillingOrganizationCustomePortalQueryVariables) {
+      return { query: BillingOrganizationCustomePortalDocument, variables: variables }
+    }
 export const BillingTransferAppDocument = gql`
     mutation billingTransferApp($appID: uuid!, $organizationID: uuid!) {
   billingTransferApp(appID: $appID, organizationID: $organizationID)
@@ -30316,6 +30364,53 @@ export type GetOrganizationsLazyQueryHookResult = ReturnType<typeof useGetOrgani
 export type GetOrganizationsQueryResult = Apollo.QueryResult<GetOrganizationsQuery, GetOrganizationsQueryVariables>;
 export function refetchGetOrganizationsQuery(variables: GetOrganizationsQueryVariables) {
       return { query: GetOrganizationsDocument, variables: variables }
+    }
+export const GetOrganizationPlansDocument = gql`
+    query getOrganizationPlans {
+  plans(
+    order_by: {sort: asc}
+    where: {deprecated: {_eq: false}, isPublic: {_eq: true}}
+  ) {
+    id
+    name
+    isDefault
+    isFree
+    price
+    featureBackupEnabled
+    featureCustomDomainsEnabled
+    featureMaxDbSize
+  }
+}
+    `;
+
+/**
+ * __useGetOrganizationPlansQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationPlansQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationPlansQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationPlansQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOrganizationPlansQuery(baseOptions?: Apollo.QueryHookOptions<GetOrganizationPlansQuery, GetOrganizationPlansQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOrganizationPlansQuery, GetOrganizationPlansQueryVariables>(GetOrganizationPlansDocument, options);
+      }
+export function useGetOrganizationPlansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationPlansQuery, GetOrganizationPlansQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOrganizationPlansQuery, GetOrganizationPlansQueryVariables>(GetOrganizationPlansDocument, options);
+        }
+export type GetOrganizationPlansQueryHookResult = ReturnType<typeof useGetOrganizationPlansQuery>;
+export type GetOrganizationPlansLazyQueryHookResult = ReturnType<typeof useGetOrganizationPlansLazyQuery>;
+export type GetOrganizationPlansQueryResult = Apollo.QueryResult<GetOrganizationPlansQuery, GetOrganizationPlansQueryVariables>;
+export function refetchGetOrganizationPlansQuery(variables?: GetOrganizationPlansQueryVariables) {
+      return { query: GetOrganizationPlansDocument, variables: variables }
     }
 export const GetProjectDocument = gql`
     query getProject($slug: String!) {
