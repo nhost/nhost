@@ -12,9 +12,10 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
-import { Box, ChevronDown, ChevronRight } from 'lucide-react';
+import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, type ReactElement } from 'react';
 
@@ -29,73 +30,73 @@ import { useTreeNavState } from './TreeNavStateContext';
 const projectPages = [
   {
     name: 'Overview',
-    icon: <HomeIcon className="h-4 w-4" />,
+    icon: <HomeIcon className="w-4 h-4" />,
     route: '',
     slug: 'overview',
   },
   {
     name: 'Database',
-    icon: <DatabaseIcon className="h-4 w-4" />,
+    icon: <DatabaseIcon className="w-4 h-4" />,
     route: 'database/browser/default',
     slug: 'database',
   },
   {
     name: 'GraphQL',
-    icon: <GraphQLIcon className="h-4 w-4" />,
+    icon: <GraphQLIcon className="w-4 h-4" />,
     route: 'graphql',
     slug: 'graphql',
   },
   {
     name: 'Hasura',
-    icon: <HasuraIcon className="h-4 w-4" />,
+    icon: <HasuraIcon className="w-4 h-4" />,
     route: 'hasura',
     slug: 'hasura',
   },
   {
     name: 'Auth',
-    icon: <UserIcon className="h-4 w-4" />,
+    icon: <UserIcon className="w-4 h-4" />,
     route: 'users',
     slug: 'users',
   },
   {
     name: 'Storage',
-    icon: <StorageIcon className="h-4 w-4" />,
+    icon: <StorageIcon className="w-4 h-4" />,
     route: 'storage',
     slug: 'storage',
   },
   {
     name: 'Run',
-    icon: <ServicesIcon className="h-4 w-4" />,
+    icon: <ServicesIcon className="w-4 h-4" />,
     route: 'run',
     slug: 'run',
   },
   {
     name: 'AI',
-    icon: <AIIcon className="h-4 w-4" />,
+    icon: <AIIcon className="w-4 h-4" />,
     route: 'ai/auto-embeddings',
     slug: 'ai',
   },
   {
     name: 'Deployments',
-    icon: <RocketIcon className="h-4 w-4" />,
+    icon: <RocketIcon className="w-4 h-4" />,
     route: 'deployments',
     slug: 'deployments',
   },
   {
     name: 'Backups',
-    icon: <CloudIcon className="h-4 w-4" />,
+    icon: <CloudIcon className="w-4 h-4" />,
     route: 'backups',
     slug: 'backups',
   },
   {
     name: 'Logs',
-    icon: <FileTextIcon className="h-4 w-4" />,
+    icon: <FileTextIcon className="w-4 h-4" />,
     route: 'logs',
     slug: 'logs',
   },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="h-4 w-4" />,
+    icon: <GaugeIcon className="w-4 h-4" />,
     route: 'metrics',
     slug: 'metrics',
   },
@@ -181,12 +182,28 @@ const createOrganization = (org: Org) => {
     index: `${org.slug}-projects`,
     canMove: false,
     isFolder: true,
-    children: org.apps.map((app) => `${org.slug}-${app.slug}`),
+    children: [
+      ...org.apps.map((app) => `${org.slug}-${app.slug}`),
+      `${org.slug}-new-project`,
+    ],
     data: {
       name: 'Projects',
       targetUrl: `/orgs/${org.slug}/projects`,
     },
     canRename: false,
+  };
+
+  result[`${org.slug}-new-project`] = {
+    index: `${org.slug}-new-project`,
+    isFolder: false,
+    canMove: false,
+    canRename: false,
+    data: {
+      name: 'New project',
+      slug: 'new',
+      icon: <Plus className="w-4 h-4 mr-1 font-bold" strokeWidth={3} />,
+      targetUrl: `/orgs/${org.slug}/projects/new`,
+    },
   };
 
   org.apps.forEach((app) => {
@@ -198,7 +215,7 @@ const createOrganization = (org: Org) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="h-4 w-4" />,
+        icon: <Box className="w-4 h-4" />,
         targetUrl: `/orgs/${org.slug}/projects/${app.slug}`,
       },
       children: projectPages.map(
@@ -298,30 +315,39 @@ type NavItem = {
 };
 
 const buildNavTreeData = (
-  orgs: Org[],
+  org: Org,
 ): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
+  if (!org) {
+    return {
+      items: {
+        root: {
+          index: 'root',
+          canMove: false,
+          isFolder: true,
+          children: [],
+          data: { name: 'root' },
+          canRename: false,
+        },
+      },
+    };
+  }
+
   const navTree = {
     items: {
       root: {
         index: 'root',
         canMove: false,
         isFolder: true,
-        children: ['organizations'],
+        children: [
+          `${org.slug}-projects`,
+          `${org.slug}-settings`,
+          `${org.slug}-members`,
+          `${org.slug}-billing`,
+        ],
         data: { name: 'root' },
         canRename: false,
       },
-      organizations: {
-        index: 'organizations',
-        canMove: false,
-        isFolder: true,
-        children: orgs.map((org) => org.slug),
-        data: { name: 'Organizations' },
-        canRename: false,
-      },
-      ...orgs.reduce(
-        (acc, org) => ({ ...acc, ...createOrganization(org) }),
-        {},
-      ),
+      ...createOrganization(org),
     },
   };
 
@@ -329,8 +355,8 @@ const buildNavTreeData = (
 };
 
 export default function NavTree() {
-  const { orgs } = useOrgs();
-  const navTree = useMemo(() => buildNavTreeData(orgs), [orgs]);
+  const { org } = useCurrentOrg();
+  const navTree = useMemo(() => buildNavTreeData(org), [org]);
   const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
     useTreeNavState();
 
@@ -355,9 +381,9 @@ export default function NavTree() {
             className="h-8 px-1"
           >
             {context.isExpanded ? (
-              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
+              <ChevronDown className="w-4 h-4 font-bold" strokeWidth={3} />
             ) : (
-              <ChevronRight className="h-4 w-4" strokeWidth={3} />
+              <ChevronRight className="w-4 h-4" strokeWidth={3} />
             )}
           </Button>
         );
@@ -387,7 +413,7 @@ export default function NavTree() {
                   context.focusItem();
                 }
               }}
-              className="flex h-8 w-full flex-row justify-start gap-1 px-1"
+              className="flex flex-row justify-start w-full h-8 gap-1 px-1"
             >
               <Link
                 href={item.data.targetUrl || '/'}
@@ -445,9 +471,9 @@ export default function NavTree() {
         }
 
         return (
-          <div className="flex w-full flex-row">
+          <div className="flex flex-row w-full">
             <div className="flex justify-center px-[12px] pb-3">
-              <div className="h-full w-0 border-r border-dashed" />
+              <div className="w-0 h-full border-r border-dashed" />
             </div>
             <ul {...containerProps} className="w-full">
               {children}

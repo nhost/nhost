@@ -9,7 +9,11 @@ import { useTreeNavState } from './TreeNavStateContext';
 import WorkspacesNavTree from './WorkspacesNavTree';
 
 export default function PinnedMainNav() {
-  const { asPath } = useRouter();
+  const {
+    asPath,
+    query: { workspaceSlug, orgSlug },
+  } = useRouter();
+
   const scrollContainerRef = useRef();
 
   const { mainNavPinned, setMainNavPinned } = useTreeNavState();
@@ -43,6 +47,10 @@ export default function PinnedMainNav() {
     };
   }, [asPath]);
 
+  if (!orgSlug && !workspaceSlug) {
+    return null;
+  }
+
   return (
     <div className="h-full w-full border-r p-0 sm:max-w-[310px]">
       <div className="flex h-12 w-full justify-end border-b bg-background p-1">
@@ -62,7 +70,7 @@ export default function PinnedMainNav() {
         ref={scrollContainerRef}
         className="h-[calc(100vh-6rem)] overflow-auto pb-12 pt-2"
       >
-        <div className="px-2">
+        <div className="flex flex-col gap-1 px-2">
           <NavTree />
           <CreateOrgDialog />
         </div>

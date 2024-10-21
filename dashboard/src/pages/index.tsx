@@ -1,39 +1,60 @@
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { MaintenanceAlert } from '@/components/presentational/MaintenanceAlert';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import {
-  useGetAllWorkspacesAndProjectsQuery,
-  useGetOrganizationsQuery,
-} from '@/utils/__generated__/graphql';
-import { useUserData } from '@nhost/nextjs';
-import { type ReactElement } from 'react';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
+import { useRouter } from 'next/router';
+import { useEffect, type ReactElement } from 'react';
 
 export default function IndexPage() {
-  const user = useUserData();
+  const { push } = useRouter();
 
-  const { loading: loadingOrgs } = useGetOrganizationsQuery({
-    skip: !user,
-  });
+  const { orgs, loading: loadingOrgs } = useOrgs();
+  const { workspaces, loading: loadingWorkspaces } = useWorkspaces();
 
-  const { loading: loadingWorkspaces } = useGetAllWorkspacesAndProjectsQuery({
-    fetchPolicy: 'cache-and-network',
-  });
+  const [lastSlug] = useSSRLocalStorage('slug', null);
 
-  if (!user || loadingOrgs || loadingWorkspaces) {
-    return <LoadingScreen />;
-  }
+  useEffect(() => {
+    const navigateToSlug = async () => {
+      if (loadingOrgs || loadingWorkspaces) {
+        return;
+      }
 
-  return (
-    <div className="w-full h-full p-4 bg-accent">
-      <div>Orgs Grid</div>
-    </div>
-  );
+      if (orgs && workspaces) {
+        const orgFromLastSlug = orgs.find((o) => o.slug === lastSlug);
+        const workspaceFromLastSlug = workspaces.find(
+          (w) => w.slug === lastSlug,
+        );
+
+        if (orgFromLastSlug) {
+          await push(`/orgs/${orgFromLastSlug.slug}/projects`);
+          return;
+        }
+
+        if (workspaceFromLastSlug) {
+          await push(`/${workspaceFromLastSlug.slug}`);
+          return;
+        }
+
+        const personalOrg = orgs.find((org) => org.plan.isFree);
+
+        if (personalOrg) {
+          push(`/orgs/${personalOrg.slug}/projects`);
+        }
+      }
+    };
+
+    navigateToSlug();
+  }, [orgs, lastSlug, push, workspaces, loadingOrgs, loadingWorkspaces]);
+
+  return <LoadingScreen />;
 }
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <AuthenticatedLayout
       title="Dashboard"
       contentContainerProps={{ className: 'flex w-full flex-col' }}
     >
@@ -42,6 +63,6 @@ IndexPage.getLayout = function getLayout(page: ReactElement) {
       </Container>
 
       {page}
-    </ProjectLayout>
+    </AuthenticatedLayout>
   );
 };
