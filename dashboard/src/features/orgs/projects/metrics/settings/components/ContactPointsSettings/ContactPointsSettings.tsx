@@ -6,9 +6,10 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
 import {
-  GetRolesPermissionsDocument,
+  GetObservabilitySettingsDocument,
   useGetObservabilitySettingsQuery,
   useUpdateConfigMutation,
+  type ConfigConfigUpdateInput,
 } from '@/utils/__generated__/graphql';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -20,6 +21,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { DiscordFormSection } from '@/features/orgs/projects/metrics/settings/components/DiscordFormSection';
 import { EmailsFormSection } from '@/features/orgs/projects/metrics/settings/components/EmailsFormSection';
 import { PagerdutyFormSection } from '@/features/orgs/projects/metrics/settings/components/PagerdutyFormSection';
+import type { EventSeverity } from '@/features/orgs/projects/metrics/settings/components/PagerdutyFormSection/PagerdutyFormSectionTypes';
 import { SlackFormSection } from '@/features/orgs/projects/metrics/settings/components/SlackFormSection';
 import { WebhookFormSection } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -35,14 +37,13 @@ export default function ContactPointsSettings() {
   const { project, refetch: refetchProject } = useProject();
   const { openDialog } = useDialog();
 
-  const { data, loading, error, refetch } = useGetObservabilitySettingsQuery({
+  const { data, loading, error } = useGetObservabilitySettingsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  console.log('Data:', data?.config?.observability?.grafana);
-
-  const { emails } = data?.config?.observability?.grafana?.contacts || {};
+  const { emails, pagerduty } =
+    data?.config?.observability?.grafana?.contacts || {};
 
   const form = useForm<ContactPointsFormValues>({
     defaultValues: {
@@ -53,46 +54,41 @@ export default function ContactPointsSettings() {
     values: {
       emails: emails?.map((email) => ({ email })) || [],
       discord: [],
-      pagerduty: [],
+      pagerduty:
+        pagerduty?.map((elem) => ({
+          ...elem,
+          severity: elem.severity as EventSeverity,
+        })) || [],
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetRolesPermissionsDocument],
+    refetchQueries: [GetObservabilitySettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const getFormattedConfig = (values: ContactPointsFormValues) => {
     // Remove any __typename property from the values
     const sanitizedValues = removeTypename(values) as ContactPointsFormValues;
+    const newEmails =
+      sanitizedValues.emails?.map((email) => email.email) ?? null;
+    const newPagerduty =
+      sanitizedValues.pagerduty?.length > 0 ? sanitizedValues.pagerduty : null;
 
-    return sanitizedValues;
-  };
-
-  const createOrUpdateContactPoint = async (
-    values: ContactPointsFormValues,
-  ) => {
-    console.log(values);
-
-    const newEmails = values.emails?.map((email) => email.email) ?? null;
-
-    // Update service config
-    await updateConfig({
-      variables: {
-        appId: project.id,
-        config: {
-          observability: {
-            grafana: {
-              contacts: {
-                emails: newEmails,
-              },
-            },
+    const config: ConfigConfigUpdateInput = {
+      observability: {
+        grafana: {
+          contacts: {
+            emails: newEmails,
+            pagerduty: newPagerduty,
           },
         },
       },
-    });
+    };
+
+    return config;
   };
 
   if (loading) {
@@ -103,38 +99,14 @@ export default function ContactPointsSettings() {
     throw error;
   }
 
-  async function showApplyChangesDialog() {
-    if (!isPlatform) {
-      openDialog({
-        title: 'Apply your changes',
-        component: <ApplyLocalSettingsDialog />,
-        props: {
-          PaperProps: {
-            className: 'max-w-2xl',
-          },
-        },
-      });
-    }
-  }
-
   const handleSubmit = async (formValues: ContactPointsFormValues) => {
-    console.log(formValues);
-
-    const newEmails = formValues.emails?.map((email) => email.email) ?? null;
+    const config = getFormattedConfig(formValues);
 
     // Update service config
     const updateConfigPromise = updateConfig({
       variables: {
         appId: project.id,
-        config: {
-          observability: {
-            grafana: {
-              contacts: {
-                emails: newEmails,
-              },
-            },
-          },
-        },
+        config,
       },
     });
 
@@ -142,7 +114,7 @@ export default function ContactPointsSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
-        await refetch();
+        await refetchProject();
 
         if (!isPlatform) {
           openDialog({

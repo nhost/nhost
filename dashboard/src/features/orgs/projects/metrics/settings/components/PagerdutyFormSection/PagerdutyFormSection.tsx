@@ -3,21 +3,30 @@ import { Button } from '@/components/ui/v2/Button';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
+import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { EventSeverity } from './PagerdutyFormSectionTypes';
 
 export default function PagerdutyFormSection() {
   const {
     register,
     formState: { errors },
+    setValue,
     control,
   } = useFormContext<ContactPointsFormValues>();
+  const formValues = useWatch<ContactPointsFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'pagerduty',
   });
+
+  const onChangeSeverity = (value: string | undefined, index: number) =>
+    setValue(`pagerduty.${index}.severity`, value as EventSeverity);
 
   return (
     <Box className="space-y-4 rounded p-4">
@@ -41,10 +50,10 @@ export default function PagerdutyFormSection() {
           variant="borderless"
           onClick={() =>
             append({
-              class: 'infra',
+              class: '',
               component: '',
               group: '',
-              severity: 'critical',
+              severity: EventSeverity.CRITICAL,
               integrationKey: '',
             })
           }
@@ -53,10 +62,86 @@ export default function PagerdutyFormSection() {
         </Button>
       </Box>
 
-      <Box className="flex flex-col space-y-4">
+      <Box className="flex flex-col space-y-12">
         {fields.map((field, index) => (
           <Box key={field.id} className="flex w-full items-center space-x-2">
-            <p>PagerDuty {index + 1}</p>
+            <Box className="grid flex-grow grid-cols-9 gap-4">
+              <Input
+                {...register(`pagerduty.${index}.integrationKey`)}
+                id={`${field.id}-integrationKey`}
+                placeholder="Integration Key"
+                className="w-full lg:col-span-7"
+                hideEmptyHelperText
+                error={!!errors?.pagerduty?.[index]?.integrationKey}
+                helperText={errors?.pagerduty?.[index]?.integrationKey?.message}
+                fullWidth
+                label="Integration Key"
+                autoComplete="off"
+              />
+
+              <Select
+                fullWidth
+                value={formValues.pagerduty.at(index)?.severity || ''}
+                className="lg:col-span-2"
+                label="Severity"
+                onChange={(_event, inputValue) =>
+                  onChangeSeverity(inputValue as string, index)
+                }
+                placeholder="Select severity"
+                slotProps={{
+                  listbox: { className: 'min-w-0 w-full' },
+                  popper: {
+                    disablePortal: false,
+                    className: 'z-[10000] w-[270px]',
+                  },
+                }}
+              >
+                {Object.values(EventSeverity).map((severity) => (
+                  <Option key={severity} value={severity}>
+                    {severity}
+                  </Option>
+                ))}
+              </Select>
+
+              <Input
+                {...register(`pagerduty.${index}.class`)}
+                id={`${field.id}-class`}
+                placeholder="Enter type of the event"
+                label="Class"
+                className="w-full lg:col-span-3"
+                hideEmptyHelperText
+                error={!!errors?.pagerduty?.[index]?.class}
+                helperText={errors?.pagerduty?.[index]?.class?.message}
+                fullWidth
+                autoComplete="off"
+              />
+
+              <Input
+                {...register(`pagerduty.${index}.component`)}
+                id={`${field.id}-component`}
+                placeholder="Enter responsible for the event"
+                label="Component"
+                className="w-full lg:col-span-3"
+                hideEmptyHelperText
+                error={!!errors?.pagerduty?.[index]?.component}
+                helperText={errors?.pagerduty?.[index]?.component?.message}
+                fullWidth
+                autoComplete="off"
+              />
+              <Input
+                {...register(`pagerduty.${index}.group`)}
+                id={`${field.id}-group`}
+                placeholder="Enter logical group of the event"
+                label="Group"
+                className="w-full lg:col-span-3"
+                hideEmptyHelperText
+                error={!!errors?.pagerduty?.[index]?.group}
+                helperText={errors?.pagerduty?.[index]?.group?.message}
+                fullWidth
+                autoComplete="off"
+              />
+            </Box>
+
             <Button
               variant="borderless"
               className=""

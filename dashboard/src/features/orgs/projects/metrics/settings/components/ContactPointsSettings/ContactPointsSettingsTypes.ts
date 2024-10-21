@@ -1,3 +1,4 @@
+import { EventSeverity } from '@/features/orgs/projects/metrics/settings/components/PagerdutyFormSection/PagerdutyFormSectionTypes';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
@@ -16,16 +17,16 @@ export const validationSchema = Yup.object({
       }),
     )
     .nullable(),
-  pagerduty: Yup.array() // TODO: Review this validation
+  pagerduty: Yup.array()
     .of(
       Yup.object({
         integrationKey: Yup.string().required('Required'),
         severity: Yup.string()
-          .oneOf(['critical', 'error', 'warning', 'info'])
+          .oneOf(Object.values(EventSeverity))
           .required('Required'),
-        class: Yup.string().required('Required'),
-        component: Yup.string().required('Required'),
-        group: Yup.string().required('Required'),
+        class: Yup.string(),
+        component: Yup.string(),
+        group: Yup.string(),
       }),
     )
     .nullable(),
