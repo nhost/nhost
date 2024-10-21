@@ -99,7 +99,7 @@ export default function ContactPointForm({
   const createOrUpdateContactPoint = async (values: ContactPointFormValues) => {
     console.log(values);
 
-    const emails = initialEmails.concat(values.emails ?? []);
+    const emails = values.emails ?? [];
 
     // Update service config
     await updateConfig({
@@ -160,7 +160,7 @@ export default function ContactPointForm({
           </Box>
 
           <Tabs defaultValue="email">
-            <TabsList className="">
+            <TabsList>
               <TabsTrigger value="email">Email</TabsTrigger>
               <TabsTrigger value="pagerduty">Pagerduty</TabsTrigger>
               <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
