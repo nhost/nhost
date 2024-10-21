@@ -30,20 +30,37 @@ export const validationSchema = Yup.object({
       }),
     )
     .nullable(),
-  slack: Yup.array() // TODO: Review this validation
+  slack: Yup.array()
     .of(
       Yup.object({
-        recipient: Yup.string().required('Recipient is required'),
-        token: Yup.string().required('Token is required'),
-        username: Yup.string().required('Username is required'),
+        recipient: Yup.string(),
+        token: Yup.string(),
+        username: Yup.string(),
         iconEmoji: Yup.string(),
         iconURL: Yup.string().url('Invalid icon URL'),
-        mentionUsers: Yup.array().of(Yup.string()),
-        mentionGroups: Yup.array().of(Yup.string()),
+        mentionUsers: Yup.string(),
+        mentionGroups: Yup.string(),
         mentionChannel: Yup.string(),
         url: Yup.string().url('Invalid Slack webhook URL'),
         endpointURL: Yup.string().url('Invalid endpoint URL'),
       }),
+    )
+    .test(
+      'either-url-or-recipient-token',
+      'Either URL or both recipient and token must be provided',
+      (value) => {
+        if (!value) {
+          return true;
+        }
+        const result = value.every(
+          (item) => item.url || (item.recipient && item.token),
+        );
+        console.log('result', result);
+        if (result) {
+          return true;
+        }
+        return false;
+      },
     )
     .nullable(),
   webhook: Yup.array()

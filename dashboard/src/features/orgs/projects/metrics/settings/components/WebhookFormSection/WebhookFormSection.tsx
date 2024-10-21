@@ -3,21 +3,30 @@ import { Button } from '@/components/ui/v2/Button';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
+import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { HttpMethod } from './WebhookFormSectionTypes';
 
 export default function WebhookFormSection() {
   const {
     register,
     formState: { errors },
+    setValue,
     control,
   } = useFormContext<ContactPointsFormValues>();
+  const formValues = useWatch<ContactPointsFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'webhook',
   });
+
+  const onChangeHttpMethod = (value: string | undefined, index: number) =>
+    setValue(`webhook.${index}.httpMethod`, value as HttpMethod);
 
   return (
     <Box className="space-y-4 rounded p-4">
@@ -42,10 +51,10 @@ export default function WebhookFormSection() {
           onClick={() =>
             append({
               url: '',
-              httpMethod: 'POST',
+              httpMethod: HttpMethod.POST,
               username: '',
               password: '',
-              authorizationScheme: 'Bearer',
+              authorizationScheme: '',
               authorizationCredentials: '',
               maxAlerts: 0,
             })
@@ -55,10 +64,115 @@ export default function WebhookFormSection() {
         </Button>
       </Box>
 
-      <Box className="flex flex-col space-y-4">
+      <Box className="flex flex-col space-y-12">
         {fields.map((field, index) => (
           <Box key={field.id} className="flex w-full items-center space-x-2">
-            <p>Webhook {index + 1}</p>
+            <Box className="grid flex-grow grid-cols-9 gap-4">
+              <Input
+                {...register(`webhook.${index}.url`)}
+                id={`${field.id}-url`}
+                placeholder="URL"
+                className="w-full lg:col-span-7"
+                hideEmptyHelperText
+                error={!!errors?.webhook?.[index]?.url}
+                helperText={errors?.webhook?.[index]?.url?.message}
+                fullWidth
+                label="URL"
+                autoComplete="off"
+              />
+
+              <Select
+                fullWidth
+                value={formValues.webhook.at(index)?.httpMethod || ''}
+                className="lg:col-span-2"
+                label="HTTP Method"
+                onChange={(_event, inputValue) =>
+                  onChangeHttpMethod(inputValue as string, index)
+                }
+                placeholder="Select HTTP Method"
+                slotProps={{
+                  listbox: { className: 'min-w-0 w-full' },
+                  popper: {
+                    disablePortal: false,
+                    className: 'z-[10000] w-[270px]',
+                  },
+                }}
+              >
+                {Object.values(HttpMethod).map((httpMethod) => (
+                  <Option key={httpMethod} value={httpMethod}>
+                    {httpMethod}
+                  </Option>
+                ))}
+              </Select>
+
+              <Input
+                {...register(`webhook.${index}.username`)}
+                id={`${field.id}-username`}
+                placeholder="Enter username"
+                label="Username"
+                className="w-full lg:col-span-3"
+                hideEmptyHelperText
+                error={!!errors?.webhook?.[index]?.username}
+                helperText={errors?.webhook?.[index]?.username?.message}
+                fullWidth
+                autoComplete="off"
+              />
+
+              <Input
+                {...register(`webhook.${index}.password`)}
+                id={`${field.id}-password`}
+                placeholder="Enter password"
+                label="Password"
+                className="w-full lg:col-span-3"
+                hideEmptyHelperText
+                error={!!errors?.webhook?.[index]?.password}
+                helperText={errors?.webhook?.[index]?.password?.message}
+                fullWidth
+                autoComplete="off"
+              />
+              <Input
+                {...register(`webhook.${index}.authorizationScheme`)}
+                id={`${field.id}-authorizationScheme`}
+                placeholder="Enter authorization scheme"
+                label="Authorization Scheme"
+                className="w-full lg:col-span-3"
+                hideEmptyHelperText
+                error={!!errors?.webhook?.[index]?.authorizationScheme}
+                helperText={
+                  errors?.webhook?.[index]?.authorizationScheme?.message
+                }
+                fullWidth
+                autoComplete="off"
+              />
+              <Input
+                {...register(`webhook.${index}.authorizationCredentials`)}
+                id={`${field.id}-authorizationCredentials`}
+                placeholder="Enter authorization credentials"
+                label="Authorization Credentials"
+                className="w-full lg:col-span-3"
+                hideEmptyHelperText
+                error={!!errors?.webhook?.[index]?.authorizationCredentials}
+                helperText={
+                  errors?.webhook?.[index]?.authorizationCredentials?.message
+                }
+                fullWidth
+                autoComplete="off"
+              />
+              <Input
+                type="number"
+                {...register(`webhook.${index}.maxAlerts`)}
+                id={`${field.id}-maxAlerts`}
+                placeholder="Enter max alerts"
+                label="Max Alerts"
+                className="w-full lg:col-span-3"
+                hideEmptyHelperText
+                error={!!errors?.webhook?.[index]?.maxAlerts}
+                helperText={errors?.webhook?.[index]?.maxAlerts?.message}
+                fullWidth
+                autoComplete="off"
+              />
+            </Box>
+
             <Button
               variant="borderless"
               className=""

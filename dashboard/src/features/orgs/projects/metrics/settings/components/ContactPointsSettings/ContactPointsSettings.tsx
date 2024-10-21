@@ -24,6 +24,7 @@ import { PagerdutyFormSection } from '@/features/orgs/projects/metrics/settings/
 import type { EventSeverity } from '@/features/orgs/projects/metrics/settings/components/PagerdutyFormSection/PagerdutyFormSectionTypes';
 import { SlackFormSection } from '@/features/orgs/projects/metrics/settings/components/SlackFormSection';
 import { WebhookFormSection } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection';
+import type { HttpMethod } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection/WebhookFormSectionTypes';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { removeTypename } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -42,7 +43,7 @@ export default function ContactPointsSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { emails, pagerduty } =
+  const { emails, pagerduty, discord, slack, webhook } =
     data?.config?.observability?.grafana?.contacts || {};
 
   const form = useForm<ContactPointsFormValues>({
@@ -50,14 +51,27 @@ export default function ContactPointsSettings() {
       emails: [],
       discord: [],
       pagerduty: [],
+      slack: [],
+      webhook: [],
     },
     values: {
       emails: emails?.map((email) => ({ email })) || [],
-      discord: [],
+      discord: discord || [],
       pagerduty:
         pagerduty?.map((elem) => ({
           ...elem,
           severity: elem.severity as EventSeverity,
+        })) || [],
+      slack:
+        slack?.map((elem) => ({
+          ...elem,
+          mentionUsers: elem.mentionUsers.join(','),
+          mentionGroups: elem.mentionGroups.join(','),
+        })) || [],
+      webhook:
+        webhook?.map((elem) => ({
+          ...elem,
+          httpMethod: elem.httpMethod as HttpMethod,
         })) || [],
     },
     reValidateMode: 'onSubmit',
@@ -76,6 +90,20 @@ export default function ContactPointsSettings() {
       sanitizedValues.emails?.map((email) => email.email) ?? null;
     const newPagerduty =
       sanitizedValues.pagerduty?.length > 0 ? sanitizedValues.pagerduty : null;
+    const newDiscord =
+      sanitizedValues.discord?.length > 0 ? sanitizedValues.discord : null;
+
+    const newSlack =
+      sanitizedValues.slack?.length > 0
+        ? sanitizedValues.slack.map((elem) => ({
+            ...elem,
+            mentionUsers: elem.mentionUsers.split(','),
+            mentionGroups: elem.mentionGroups.split(','),
+          }))
+        : null;
+
+    const newWebhook =
+      sanitizedValues.webhook?.length > 0 ? sanitizedValues.webhook : null;
 
     const config: ConfigConfigUpdateInput = {
       observability: {
@@ -83,6 +111,9 @@ export default function ContactPointsSettings() {
           contacts: {
             emails: newEmails,
             pagerduty: newPagerduty,
+            discord: newDiscord,
+            slack: newSlack,
+            webhook: newWebhook,
           },
         },
       },
