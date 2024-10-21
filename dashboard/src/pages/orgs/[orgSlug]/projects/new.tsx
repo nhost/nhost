@@ -340,7 +340,7 @@ export default function NewProjectPage() {
     throw error;
   }
 
-  if (loadingOrgs || loadingPlans) {
+  if (loadingOrgs || loadingPlans || !data) {
     return <ActivityIndicator delay={500} label="Loading regions..." />;
   }
 
