@@ -1,14 +1,19 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { EyeIcon } from '@/components/ui/v2/icons/EyeIcon';
+import { EyeOffIcon } from '@/components/ui/v2/icons/EyeOffIcon';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
+import { useState } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { HttpMethod } from './WebhookFormSectionTypes';
 
@@ -24,6 +29,8 @@ export default function WebhookFormSection() {
     control,
     name: 'webhook',
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const onChangeHttpMethod = (value: string | undefined, index: number) =>
     setValue(`webhook.${index}.httpMethod`, value as HttpMethod);
@@ -121,6 +128,7 @@ export default function WebhookFormSection() {
               <Input
                 {...register(`webhook.${index}.password`)}
                 id={`${field.id}-password`}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Enter password"
                 label="Password"
                 className="w-full lg:col-span-3"
@@ -129,6 +137,24 @@ export default function WebhookFormSection() {
                 helperText={errors?.webhook?.[index]?.password?.message}
                 fullWidth
                 autoComplete="off"
+                endAdornment={
+                  <InputAdornment className="px-2" position="end">
+                    <IconButton
+                      variant="borderless"
+                      color="secondary"
+                      aria-label={
+                        showPassword ? 'Hide Password' : 'Show Password'
+                      }
+                      onClick={() => setShowPassword((show) => !show)}
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="h-5 w-5" />
+                      ) : (
+                        <EyeIcon className="h-5 w-5" />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                }
               />
               <Input
                 {...register(`webhook.${index}.authorizationScheme`)}
