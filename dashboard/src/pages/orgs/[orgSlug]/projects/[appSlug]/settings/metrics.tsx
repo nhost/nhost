@@ -8,7 +8,7 @@ import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { ContactPointsEmailSettings } from '@/features/orgs/projects/metrics/settings/components/ContactPointsEmailSettings';
+import { ContactPointsSettings } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings';
 import { MetricsAlertingSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsAlertingSettings';
 import { MetricsSMTPSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSMTPSettings';
 
@@ -44,7 +44,7 @@ export default function MetricsSettingsPage() {
     >
       <MetricsAlertingSettings />
       <MetricsSMTPSettings />
-      <ContactPointsEmailSettings />
+      <ContactPointsSettings />
     </Container>
   );
 }
