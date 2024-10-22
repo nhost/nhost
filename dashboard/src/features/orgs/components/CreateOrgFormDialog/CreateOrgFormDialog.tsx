@@ -24,7 +24,6 @@ import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
-import { cn } from '@/lib/utils';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useCreateOrganizationRequestMutation,
@@ -98,13 +97,13 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                 >
                   {plans.map((plan) => (
                     <FormItem key={plan.id}>
-                      <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                      <FormLabel className="flex flex-row items-center justify-between w-full p-3 space-y-0 border rounded-md cursor-pointer">
                         <div className="flex flex-row items-center space-x-3">
                           <FormControl>
                             <RadioGroupItem value={plan.id} />
                           </FormControl>
                           <div className="flex flex-col space-y-2">
-                            <div className="text-md font-semibold">
+                            <div className="font-semibold text-md">
                               {plan.name}
                             </div>
                             <FormDescription className="w-2/3 text-xs">
@@ -113,7 +112,7 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                           </div>
                         </div>
 
-                        <div className="mt-0 flex h-full items-center text-xl font-semibold">
+                        <div className="flex items-center h-full mt-0 text-xl font-semibold">
                           {plan.isFree ? 'Free' : `${plan.price}/mo`}
                         </div>
                       </FormLabel>
@@ -197,8 +196,7 @@ export default function CreateOrgDialog() {
           variables: {
             organizationName: name,
             planID: plan,
-            // redirectURL: `${window.location.origin}/orgs/verify`,
-            redirectURL: `https://staging.app.nhost.io/orgs/verify`,
+            redirectURL: `${window.location.origin}/orgs/verify`,
           },
         });
 
@@ -221,21 +219,21 @@ export default function CreateOrgDialog() {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className="flex h-8 w-full flex-row justify-start gap-3 px-2"
+          className="flex flex-row justify-start w-full h-8 gap-3 px-2"
           onClick={() => setStripeClientSecret('')}
         >
-          <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
+          <Plus className="w-4 h-4 font-bold" strokeWidth={3} />
           New Organization
         </Button>
       </DialogTrigger>
-      <DialogContent className="text-foreground sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>New Organization</DialogTitle>
           <DialogDescription />
         </DialogHeader>
 
         {loading && (
-          <div className="flex h-52 items-center justify-center">
+          <div className="flex items-center justify-center h-52">
             <ActivityIndicator
               circularProgressProps={{
                 className: 'w-5 h-5',
