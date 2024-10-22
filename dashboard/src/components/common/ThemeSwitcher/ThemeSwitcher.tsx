@@ -11,8 +11,6 @@ export default function ThemeSwitcher({
 }: ThemeSwitcherProps) {
   const { colorPreference, setColorPreference } = useColorPreference();
 
-  console.log({ colorPreference });
-
   return (
     <Select
       {...props}
