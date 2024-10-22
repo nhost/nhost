@@ -1,0 +1,15 @@
+query getOrganizationPlans {
+  plans(
+    order_by: { sort: asc }
+    where: { deprecated: { _eq: false }, isPublic: { _eq: true } }
+  ) {
+    id
+    name
+    isDefault
+    isFree
+    price
+    featureBackupEnabled
+    featureCustomDomainsEnabled
+    featureMaxDbSize
+  }
+}

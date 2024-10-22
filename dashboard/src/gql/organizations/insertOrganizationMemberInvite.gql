@@ -1,0 +1,7 @@
+mutation insertOrganizationMemberInvite(
+  $organizationMemberInvite: organization_member_invites_insert_input!
+) {
+  insertOrganizationMemberInvite(object: $organizationMemberInvite) {
+    id
+  }
+}

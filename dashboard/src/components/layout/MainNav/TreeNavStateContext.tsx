@@ -70,6 +70,7 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
     false,
   );
   const orgsTreeViewState = useSyncedTreeViewState(useNavTreeStateFromURL);
+
   const workspacesTreeViewState = useSyncedTreeViewState(
     useWorkspacesNavTreeStateFromURL,
   );

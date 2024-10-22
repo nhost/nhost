@@ -90,6 +90,8 @@ module.exports = {
               'sideOffset',
               'orientation',
               'decorative',
+              'checked',
+              'position',
             ],
           },
         ],
