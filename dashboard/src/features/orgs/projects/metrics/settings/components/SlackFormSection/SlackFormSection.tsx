@@ -15,12 +15,17 @@ export default function SlackFormSection() {
     control,
     register,
     formState: { errors },
+    trigger: triggerValidation,
   } = useFormContext<ContactPointsFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'slack',
   });
 
+  const handleRemove = (index: number) => {
+    remove(index);
+    triggerValidation();
+  };
   return (
     <Box className="space-y-4 rounded p-4">
       <Box className="flex flex-row items-center justify-between">
@@ -202,7 +207,7 @@ export default function SlackFormSection() {
               variant="borderless"
               className=""
               color="error"
-              onClick={() => remove(index)}
+              onClick={() => handleRemove(index)}
             >
               <TrashIcon className="h-6 w-4" />
             </Button>
