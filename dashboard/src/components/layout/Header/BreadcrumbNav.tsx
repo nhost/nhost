@@ -35,21 +35,21 @@ export default function BreadcrumbNav() {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <div className="mr-3 h-7 w-7">
-            <Logo className="mx-auto cursor-pointer" />
+          <div className="w-6 h-6 mr-3">
+            <Logo className="w-6 h-6 mx-auto cursor-pointer" />
           </div>
+        </BreadcrumbItem>
+
+        <BreadcrumbSeparator>
+          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+        </BreadcrumbSeparator>
+
+        <BreadcrumbItem>
+          <OrgsComboBox />
         </BreadcrumbItem>
 
         {showBreadcrumbs && (
           <>
-            <BreadcrumbSeparator>
-              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-            </BreadcrumbSeparator>
-
-            <BreadcrumbItem>
-              <OrgsComboBox />
-            </BreadcrumbItem>
-
             <BreadcrumbSeparator>
               <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
             </BreadcrumbSeparator>

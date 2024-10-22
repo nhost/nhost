@@ -17,8 +17,6 @@ import {
 } from '@/components/ui/v3/form';
 
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Badge } from '@/components/ui/v3/badge';
 import {
   Select,
@@ -91,33 +89,18 @@ export default function MigrateProjectToOrg() {
       }}
     >
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2 py-1 text-base">
-          Migrate to an Organization
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 text-base h-9 text-primary hover:text-primary"
+        >
+          Migrate
           <CornerRightUp className="w-5 h-5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="text-foreground sm:max-w-xl">
-        <DialogHeader className="gap-2">
+        <DialogHeader>
           <DialogTitle>Migrate project to an Organization</DialogTitle>
-          <DialogDescription className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <p>
-              Any remaining usage credits in your current workspace will be
-              transferred and credited to the target organization.
-            </p>
-            <div className="flex items-center justify-start gap-1">
-              <span>For more information read the</span>
-              <Link
-                href="https://nhost.io/blog/organization-billing"
-                target="_blank"
-                rel="noopener noreferrer"
-                underline="hover"
-                className="font-medium"
-              >
-                announcement
-                <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
-              </Link>
-            </div>
-          </DialogDescription>
+          <DialogDescription />
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

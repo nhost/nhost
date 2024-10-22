@@ -1,4 +1,3 @@
-import { useUI } from '@/components/common/UIProvider';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Button } from '@/components/ui/v3/button';
@@ -39,7 +38,6 @@ const changeOrgPlanForm = z.object({
 });
 
 export default function SubscriptionPlan() {
-  const { maintenanceActive } = useUI();
   const { org, refetch: refetchOrg } = useCurrentOrg();
   const [open, setOpen] = useState(false);
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
@@ -164,12 +162,12 @@ export default function SubscriptionPlan() {
                 className="h-fit"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
-                disabled={org?.plan?.isFree || maintenanceActive}
+                disabled={org?.plan?.isFree}
               >
-                Stripe Customer Portal
+                Update payment details
               </Button>
               <Button
-                disabled={org?.plan?.isFree || maintenanceActive}
+                disabled={org?.plan?.isFree}
                 className="h-fit"
                 onClick={() => setOpen(true)}
               >

@@ -29,12 +29,12 @@ export default function Usage() {
 
   return (
     <div className="font-medium">
-      <div className="flex flex-col w-full border rounded-md bg-background">
-        <div className="flex flex-col w-full gap-1 p-4">
+      <div className="flex w-full flex-col rounded-md border bg-background">
+        <div className="flex w-full flex-col gap-1 border-b p-4">
           <span>Usage</span>
         </div>
-        <div className="flex flex-col">
-          <div className="flex flex-row items-center justify-between w-full p-4 border-t border-b">
+        <div className="flex flex-col border-b">
+          <div className="flex w-full flex-row items-center justify-between border-b p-4">
             <span>Billing cycle ({billingCycleRange})</span>
             <Progress value={progress} className="h-2 max-w-xl" />
           </div>
@@ -51,16 +51,14 @@ export default function Usage() {
             {!loading && data && (
               <>
                 <span>Breakdown</span>
-                <div className="border rounded-md">
+                <div className="rounded-md border">
                   <Table>
                     <TableHeader className="w-full bg-accent">
                       <TableRow>
-                        <TableHead colSpan={3} className="w-full rounded-tl-md">
+                        <TableHead colSpan={3} className="w-full">
                           Item
                         </TableHead>
-                        <TableHead className="text-right rounded-tr-md">
-                          Amount
-                        </TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -77,10 +75,8 @@ export default function Usage() {
                     </TableBody>
                     <TableFooter className="bg-accent">
                       <TableRow>
-                        <TableCell colSpan={3} className="rounded-bl-md">
-                          Total
-                        </TableCell>
-                        <TableCell className="text-right rounded-br-md">
+                        <TableCell colSpan={3}>Total</TableCell>
+                        <TableCell className="text-right">
                           ${amountDue}
                         </TableCell>
                       </TableRow>

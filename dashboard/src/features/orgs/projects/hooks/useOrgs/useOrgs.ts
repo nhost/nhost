@@ -4,7 +4,7 @@ import {
   type Exact,
   type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
-import { useAuthenticationStatus } from '@nhost/nextjs';
+import { useAuthenticationStatus, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 
 export type Org = GetOrganizationsQuery['organizations'][0];
@@ -24,14 +24,18 @@ export interface UseOrgsReturnType {
 }
 
 export default function useOrgs(): UseOrgsReturnType {
-  const isPlatform = useIsPlatform();
-  const { isAuthenticated, isLoading: isAuthLoading } =
-    useAuthenticationStatus();
   const router = useRouter();
+  const isPlatform = useIsPlatform();
+  const userData = useUserData();
+  const { isAuthenticated, isLoading } = useAuthenticationStatus();
 
-  const shouldFetchOrg = isPlatform && isAuthenticated && !isAuthLoading;
+  const shouldFetchOrg =
+    isPlatform && isAuthenticated && !isLoading && userData;
 
   const { data, loading, error, refetch } = useGetOrganizationsQuery({
+    variables: {
+      userId: userData?.id,
+    },
     fetchPolicy: 'cache-and-network',
     skip: !shouldFetchOrg,
   });
@@ -43,7 +47,7 @@ export default function useOrgs(): UseOrgsReturnType {
   return {
     orgs,
     currentOrg,
-    loading: data ? false : loading || isAuthLoading,
+    loading: data ? false : loading || isLoading,
     error: error
       ? new Error(error?.message || 'Unknown error occurred.')
       : null,
