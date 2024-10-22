@@ -68,7 +68,15 @@ const useNavTreeStateFromURL = (): TreeState => {
     }
 
     return { expandedItems, focusedItem };
-  }, [orgSlug, appSlug, orgPage, projectPage, settingsPage, isSettingsPage]);
+  }, [
+    orgSlug,
+    appSlug,
+    orgPage,
+    projectPage,
+    settingsPage,
+    isSettingsPage,
+    newProject,
+  ]);
 };
 
 export default useNavTreeStateFromURL;
