@@ -1,4 +1,3 @@
-import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v3/button';
@@ -49,7 +48,6 @@ const sendInviteFormSchema = z.object({
 });
 
 export default function PendingInvites() {
-  const { maintenanceActive } = useUI();
   const { org } = useCurrentOrg();
   const isAdmin = useIsOrgAdmin();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -129,8 +127,8 @@ export default function PendingInvites() {
   }
 
   return (
-    <div className="flex flex-col w-full border rounded-md bg-background">
-      <div className="flex flex-row items-center justify-between w-full p-4 border-b">
+    <div className="flex w-full flex-col rounded-md border bg-background">
+      <div className="flex w-full flex-row items-center justify-between border-b p-4">
         <h4 className="font-medium">
           Pending Invites{' '}
           {organizationMemberInvites.length > 0 &&
@@ -145,7 +143,7 @@ export default function PendingInvites() {
           }}
         >
           <DialogTrigger asChild>
-            <Button disabled={maintenanceActive}>Add member</Button>
+            <Button>Add member</Button>
           </DialogTrigger>
           <DialogContent className="text-foreground sm:max-w-xl">
             <Form {...form}>
@@ -162,7 +160,7 @@ export default function PendingInvites() {
                 {orgInviteError && (
                   <Alert severity="error" className="mb-4">
                     <div className="flex flex-row items-center gap-2">
-                      <TriangleAlert className="w-4 h-4" strokeWidth={3} />
+                      <TriangleAlert className="h-4 w-4" strokeWidth={3} />
                       <span className="font-bold">Warning</span>
                     </div>
                     <p className="text-left">
@@ -172,7 +170,7 @@ export default function PendingInvites() {
                   </Alert>
                 )}
 
-                <div className="flex flex-col gap-4 mb-4">
+                <div className="mb-4 flex flex-col gap-4">
                   <FormField
                     control={form.control}
                     name="email"
@@ -237,7 +235,7 @@ export default function PendingInvites() {
       </div>
 
       {/* Todo add an empty state here */}
-      <div className="flex flex-col items-center w-full gap-4 p-4">
+      <div className="flex w-full flex-col items-center gap-4 p-4">
         {loading && (
           <ActivityIndicator
             delay={1000}
@@ -252,7 +250,7 @@ export default function PendingInvites() {
           ))}
 
         {!loading && organizationMemberInvites.length === 0 && (
-          <div className="flex flex-col items-center justify-center w-full text-muted-foreground">
+          <div className="flex w-full flex-col items-center justify-center text-muted-foreground">
             <Inbox />
             <p className="text-sm">No pending invites</p>
           </div>

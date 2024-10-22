@@ -39,7 +39,6 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 
-import { useUI } from '@/components/common/UIProvider';
 import { Input } from '@/components/ui/v3/input';
 import {
   Select,
@@ -75,7 +74,6 @@ const updateMemberRoleFormSchema = z.object({
 });
 
 export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
-  const { maintenanceActive } = useUI();
   const { id } = useUserData();
   const { push } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
@@ -160,7 +158,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
 
   return (
     <>
-      <div className="flex flex-row w-full place-content-between">
+      <div className="flex w-full flex-row place-content-between">
         <div className="flex flex-row items-center">
           <Avatar
             className="rounded-full"
@@ -170,11 +168,11 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
             {member.user.displayName || 'local'}
           </Avatar>
 
-          <div className="flex flex-col ml-3">
+          <div className="ml-3 flex flex-col">
             <div className="flex flex-row items-center gap-2">
               <span className="font-medium">{member.user.displayName}</span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 bg-blue-100 px-[6px] text-[10px] font-bold text-primary-main dark:bg-primary">
+                <Badge className="h-5 bg-blue-100 px-[6px] text-[10px] font-bold text-primary-main">
                   Me
                 </Badge>
               )}
@@ -190,11 +188,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
 
           <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
             <DropdownMenuTrigger
-              disabled={
-                (!isAdmin && id !== member.user.id) ||
-                isFree ||
-                maintenanceActive
-              }
+              disabled={(!isAdmin && id !== member.user.id) || isFree}
               asChild
               className="h-fit"
             >
@@ -229,7 +223,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
         open={confirmRemoveMemberDialogOpen}
         onOpenChange={setConfirmRemoveMemberDialogOpen}
       >
-        <AlertDialogContent className="text-foreground">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -255,7 +249,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
           setUpdateMemberRoleDialogOpen(value);
         }}
       >
-        <DialogContent className="text-foreground sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
               <DialogHeader className="mb-4">
@@ -266,7 +260,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex flex-col gap-4 mb-4">
+              <div className="mb-4 flex flex-col gap-4">
                 <FormField
                   control={form.control}
                   name="email"

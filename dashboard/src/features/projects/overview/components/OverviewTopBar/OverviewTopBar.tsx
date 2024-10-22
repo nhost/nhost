@@ -17,7 +17,6 @@ export default function OverviewTopBar() {
   const isOwner = useIsCurrentUserOwner();
   const isStarter = currentProject?.legacyPlan?.name === 'Starter';
   const isPro = currentProject?.legacyPlan?.name === 'Pro';
-  const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
 
   if (!isPlatform) {
@@ -58,21 +57,13 @@ export default function OverviewTopBar() {
 
           <div className="grid grid-flow-row">
             <div className="grid items-center justify-start grid-flow-row md:grid-flow-col md:gap-3">
-              <div className="flex flex-row items-center gap-2">
-                <Text
-                  variant="h2"
-                  component="h1"
-                  className="grid items-center grid-flow-col gap-3"
-                >
-                  {currentProject.name}
-                </Text>
-                <Chip
-                  size="small"
-                  className="w-fit"
-                  label={currentProject.legacyPlan.name}
-                  color={!isStarter ? 'primary' : 'default'}
-                />
-              </div>
+              <Text
+                variant="h2"
+                component="h1"
+                className="grid items-center grid-flow-col gap-3"
+              >
+                {currentProject.name}
+              </Text>
               {currentProject.creator && (
                 <Text
                   color="secondary"
@@ -88,29 +79,14 @@ export default function OverviewTopBar() {
                   ago
                 </Text>
               )}
-              <div className="mt-1 inline-grid grid-flow-col items-center justify-start gap-2 md:mt-0">
+              <div className="inline-grid items-center justify-start grid-flow-col gap-2 md:mt-0">
                 <Chip
                   size="small"
                   label={currentProject.legacyPlan.name}
                   color={!isStarter ? 'primary' : 'default'}
                 />
 
-                {(isStarter || isPro) && isOwner && (
-                  <Button
-                    variant="borderless"
-                    className="mr-2"
-                    onClick={() => {
-                      openDialog({
-                        component: <ChangePlanModal />,
-                        props: {
-                          PaperProps: { className: 'p-0 max-w-xl w-full' },
-                        },
-                      });
-                    }}
-                  >
-                    Upgrade
-                  </Button>
-                )}
+                {isPro && isOwner && <MigrateProjectToOrg />}
               </div>
             </div>
 
@@ -137,7 +113,7 @@ export default function OverviewTopBar() {
         legacyBehavior
       >
         <Button
-          endIcon={<CogIcon className="h-4 w-4" />}
+          endIcon={<CogIcon className="w-4 h-4" />}
           variant="outlined"
           color="secondary"
           disabled={maintenanceActive}

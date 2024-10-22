@@ -7,6 +7,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/v3/command';
 import {
   Popover,
@@ -14,6 +15,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -23,32 +26,52 @@ type Option = {
   value: string;
   label: string;
   plan: string;
+  type: 'organization' | 'workspace';
 };
 
 export default function OrgsComboBox() {
+  const { orgs } = useOrgs();
+  const { workspaces } = useWorkspaces();
+  const [, setLastSlug] = useSSRLocalStorage('slug', null);
+
   const {
-    query: { orgSlug },
+    query: { orgSlug, workspaceSlug },
     push,
   } = useRouter();
 
-  const { orgs } = useOrgs();
-  const selectedOrgFromUrl = orgs.find((item) => item.slug === orgSlug);
-  const [selectedOrg, setSelectedOrg] = useState<Option | null>(null);
+  const selectedOrgFromUrl =
+    Boolean(orgSlug) && orgs.find((item) => item.slug === orgSlug);
+  const selectedWorkspaceFromUrl =
+    Boolean(workspaceSlug) &&
+    workspaces.find((item) => item.slug === workspaceSlug);
+
+  const [selectedItem, setSelectedItem] = useState<Option | null>(null);
 
   useEffect(() => {
-    if (selectedOrgFromUrl) {
-      setSelectedOrg({
-        label: selectedOrgFromUrl.name,
-        value: selectedOrgFromUrl.slug,
-        plan: selectedOrgFromUrl.plan.name,
+    const selectedItemFromUrl = selectedOrgFromUrl || selectedWorkspaceFromUrl;
+
+    if (selectedItemFromUrl) {
+      setSelectedItem({
+        label: selectedItemFromUrl.name,
+        value: selectedItemFromUrl.slug,
+        plan: selectedOrgFromUrl ? selectedOrgFromUrl.plan.name : 'Legacy',
+        type: selectedOrgFromUrl ? 'organization' : 'workspace',
       });
     }
-  }, [selectedOrgFromUrl]);
+  }, [selectedOrgFromUrl, selectedWorkspaceFromUrl]);
 
-  const options: Option[] = orgs.map((org) => ({
+  const orgsOptions: Option[] = orgs.map((org) => ({
     label: org.name,
     value: org.slug,
     plan: org.plan.name,
+    type: 'organization',
+  }));
+
+  const workspacesOptions: Option[] = workspaces.map((workspace) => ({
+    label: workspace.name,
+    value: workspace.slug,
+    plan: 'Legacy',
+    type: 'workspace',
   }));
 
   const [open, setOpen] = useState(false);
@@ -58,6 +81,9 @@ export default function OrgsComboBox() {
       variant={plan === 'Starter' ? 'outline' : 'default'}
       className={cn(
         plan === 'Starter' ? 'bg-muted' : '',
+        plan === 'Legacy'
+          ? 'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500'
+          : '',
         'hover:none ml-2 h-5 px-[6px] text-[10px]',
       )}
     >
@@ -69,19 +95,19 @@ export default function OrgsComboBox() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
           size="sm"
-          className="justify-start gap-2 text-foreground"
+          variant="ghost"
+          className="w-full justify-between gap-2 text-foreground"
         >
-          {selectedOrg ? (
+          {selectedItem ? (
             <div className="flex flex-row items-center justify-center">
-              {selectedOrg.label}
-              {renderBadge(selectedOrg.plan)}
+              {selectedItem.label}
+              {renderBadge(selectedItem.plan)}
             </div>
           ) : (
-            'Select organization'
+            'Select organization / workspace'
           )}
-          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -89,27 +115,76 @@ export default function OrgsComboBox() {
           <CommandInput placeholder="Select organization..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
+            <CommandGroup heading="Organizations">
+              {orgsOptions.map((option) => (
                 <CommandItem
                   keywords={[option.label]}
                   key={option.value}
                   value={option.label}
+                  className="flex items-center justify-between"
                   onSelect={() => {
-                    setSelectedOrg(option);
+                    setSelectedItem(option);
                     setOpen(false);
-                    push(`/orgs/${option.value}/projects`);
+
+                    // persist last slug in local storage
+                    setLastSlug(option.value);
+
+                    if (option.type === 'organization') {
+                      push(`/orgs/${option.value}/projects`);
+                    } else {
+                      push(`/${option.value}`);
+                    }
                   }}
                 >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedOrg?.value === option.value
-                        ? 'opacity-100'
-                        : 'opacity-0',
-                    )}
-                  />
-                  <span className="truncate max-w-52">{option.label}</span>
+                  <div className="flex items-center">
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        selectedItem?.value === option.value
+                          ? 'opacity-100'
+                          : 'opacity-0',
+                      )}
+                    />
+                    <span className="max-w-52 truncate">{option.label}</span>
+                  </div>
+                  {renderBadge(option.plan)}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+
+            <CommandSeparator />
+
+            <CommandGroup heading="Workspaces">
+              {workspacesOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.label}
+                  className="flex items-center justify-between"
+                  onSelect={() => {
+                    setSelectedItem(option);
+                    setOpen(false);
+
+                    // persist last slug in local storage
+                    setLastSlug(option.value);
+
+                    if (option.type === 'organization') {
+                      push(`/orgs/${option.value}/projects`);
+                    } else {
+                      push(`/${option.value}`);
+                    }
+                  }}
+                >
+                  <div className="flex items-center">
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        selectedItem?.value === option.value
+                          ? 'opacity-100'
+                          : 'opacity-0',
+                      )}
+                    />
+                    <span className="max-w-52 truncate">{option.label}</span>
+                  </div>
                   {renderBadge(option.plan)}
                 </CommandItem>
               ))}

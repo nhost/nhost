@@ -9,9 +9,6 @@ import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { DevAssistant as WorkspaceProjectDevAssistant } from '@/features/ai/DevAssistant';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
-import { DevAssistant } from '@/features/orgs/projects/ai/DevAssistant';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -26,8 +23,6 @@ export interface HeaderProps
   > {}
 
 export default function Header({ className, ...props }: HeaderProps) {
-  // const router = useRouter();
-
   const isPlatform = useIsPlatform();
   const { openDrawer } = useDialog();
   const { project } = useProject();
@@ -62,7 +57,7 @@ export default function Header({ className, ...props }: HeaderProps) {
     <Box
       component="header"
       className={twMerge(
-        'z-40 grid h-12 w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 px-4 py-3',
+        'z-40 grid h-12 w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-4 py-3',
         className,
       )}
       sx={{ backgroundColor: 'background.paper' }}
@@ -70,9 +65,9 @@ export default function Header({ className, ...props }: HeaderProps) {
     >
       <BreadcrumbNav />
 
-      <div className="items-center hidden grid-flow-col gap-2 sm:grid">
+      <div className="hidden grid-flow-col items-center gap-1 sm:grid">
         <Button className="rounded-full" onClick={openDevAssistant}>
-          <GraphiteIcon className="w-4 h-4" />
+          <GraphiteIcon className="h-4 w-4" />
         </Button>
 
         <NotificationsTray />

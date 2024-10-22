@@ -20,10 +20,7 @@ function ProjectCard({ project }: { project: Project }) {
   const [latestDeployment] = project.deployments;
 
   return (
-    <Link
-      href={`/orgs/${org?.slug}/projects/${project.subdomain}`}
-      className="flex cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm"
-    >
+    <div className="flex cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm">
       <div className="flex items-start gap-2">
         <div className="flex w-full flex-row items-center space-x-2">
           <Box className="h-6 w-6 flex-shrink-0" />
@@ -39,9 +36,13 @@ function ProjectCard({ project }: { project: Project }) {
       </div>
 
       <div className="flex w-full justify-end">
-        <ArrowRight />
+        <Button asChild variant="outline">
+          <Link href={`/orgs/${org?.slug}/projects/${project.slug}`}>
+            <ArrowRight />
+          </Link>
+        </Button>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -77,7 +78,7 @@ export default function ProjectsGrid() {
 
   return (
     <div className="mx-auto h-full overflow-auto bg-accent">
-      <div className="flex w-full flex-shrink-0 flex-row items-center justify-between gap-2 border-b bg-background p-2">
+      <div className="flex w-full flex-shrink-0 flex-row items-center justify-between border-b bg-background p-2">
         <Input
           placeholder="Find Project"
           fullWidth
@@ -100,7 +101,7 @@ export default function ProjectsGrid() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
         {filteredProjects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}
