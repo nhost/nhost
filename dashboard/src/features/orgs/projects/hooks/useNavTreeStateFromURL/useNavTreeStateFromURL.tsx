@@ -21,6 +21,7 @@ const useNavTreeStateFromURL = (): TreeState => {
   // Identify project and settings pages based on the URL pattern
   const orgPage = pathSegments[3] || null;
   const projectPage = pathSegments[5] || null;
+  const newProject = pathSegments[4] === 'new';
 
   const isSettingsPage = pathSegments.includes('settings');
   const settingsPage = isSettingsPage ? pathSegments[6] || null : null;
@@ -38,7 +39,10 @@ const useNavTreeStateFromURL = (): TreeState => {
     expandedItems.push('organizations', orgSlug);
 
     if (!appSlug) {
-      if (orgPage) {
+      if (newProject) {
+        expandedItems.push(`${orgSlug}-projects`);
+        focusedItem = `${orgSlug}-new-project`;
+      } else if (orgPage) {
         focusedItem = `${orgSlug}-${orgPage}`;
       }
       return { expandedItems, focusedItem };
@@ -64,7 +68,15 @@ const useNavTreeStateFromURL = (): TreeState => {
     }
 
     return { expandedItems, focusedItem };
-  }, [orgSlug, appSlug, orgPage, projectPage, settingsPage, isSettingsPage]);
+  }, [
+    orgSlug,
+    appSlug,
+    orgPage,
+    projectPage,
+    settingsPage,
+    isSettingsPage,
+    newProject,
+  ]);
 };
 
 export default useNavTreeStateFromURL;

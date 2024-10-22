@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/v3/hover-card';
 import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { type Workspace } from '@/features/orgs/projects/hooks/useWorkspaces/useWorkspaces';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -299,6 +300,7 @@ const buildNavTreeData = (
 export default function WorkspacesNavTree() {
   const { workspaces } = useWorkspaces();
   const navTree = buildNavTreeData(workspaces);
+  const [, setLastSlug] = useSSRLocalStorage('slug', null);
 
   const { workspacesTreeViewState, setWorkspacesTreeViewState, setOpen } =
     useTreeNavState();
@@ -359,6 +361,9 @@ export default function WorkspacesNavTree() {
             onClick={() => {
               if (item.data.type !== 'workspace') {
                 context.focusItem();
+              } else {
+                // persist last slug if the nav item is a workspace
+                setLastSlug(item.data.slug);
               }
             }}
             className="flex h-8 w-full flex-row justify-start gap-1 px-1"

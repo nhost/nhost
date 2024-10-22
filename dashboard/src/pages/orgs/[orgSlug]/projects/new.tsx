@@ -333,14 +333,14 @@ export function NewProjectPageContent({
 }
 
 export default function NewProjectPage() {
-  const { currentOrg, orgs } = useOrgs();
-  const { data, loading, error } = usePrefetchNewAppQuery();
+  const { currentOrg, orgs, loading: loadingOrgs } = useOrgs();
+  const { data, loading: loadingPlans, error } = usePrefetchNewAppQuery();
 
   if (error) {
     throw error;
   }
 
-  if (loading) {
+  if (loadingOrgs || loadingPlans || !data) {
     return <ActivityIndicator delay={500} label="Loading regions..." />;
   }
 
@@ -352,8 +352,8 @@ export default function NewProjectPage() {
   const preSelectedRegion = regions.find((region) => region.active);
 
   return (
-    <div className="flex items-start justify-center w-full h-full p-4 bg-muted">
-      <div className="flex flex-col items-center justify-center w-full max-w-4xl space-y-8 overflow-hidden border rounded-md bg-background">
+    <div className="flex items-start justify-center w-full h-full p-4 bg-background">
+      <div className="flex flex-col items-center justify-center w-full max-w-4xl space-y-8 overflow-hidden rounded-md bg-background">
         <NewProjectPageContent
           regions={regions}
           orgs={orgs}

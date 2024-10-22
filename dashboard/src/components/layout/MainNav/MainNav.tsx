@@ -6,11 +6,9 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/v3/sheet';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
-import { cn } from '@/lib/utils';
-import { PanelLeft, Pin, PinOff } from 'lucide-react';
+import { Menu, Pin, PinOff } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import NavTree from './NavTree';
@@ -44,21 +42,19 @@ export default function MainNav({ container }: MainNavProps) {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn('px-3 py-1', mainNavPinned && 'hidden')}
-          disabled={mainNavPinned}
-        >
-          <PanelLeft className="h-6 w-6" />
-        </Button>
-      </SheetTrigger>
+      <div
+        className="absolute left-0 flex h-full w-6 justify-center border-r-[1.5px] bg-background pt-1 hover:bg-accent"
+        onMouseEnter={() => setOpen(true)}
+      >
+        <Menu className="w-4 h-4" />
+      </div>
 
       <SheetContent
         side="left"
         container={container}
         hideCloseButton
         className="h-full w-full p-0 sm:max-w-[310px]"
+        onMouseLeave={() => setOpen(false)}
       >
         <SheetHeader>
           <SheetTitle className="sr-only">Main navigation</SheetTitle>
@@ -67,15 +63,15 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex h-12 w-full items-center justify-end border-b bg-background px-1">
+        <div className="flex items-center justify-end w-full h-12 px-1 border-b bg-background">
           <Button
             variant="ghost"
             onClick={() => setMainNavPinned(!mainNavPinned)}
           >
             {mainNavPinned ? (
-              <PinOff className="h-5 w-5" />
+              <PinOff className="w-5 h-5" />
             ) : (
-              <Pin className="h-5 w-5" />
+              <Pin className="w-5 h-5" />
             )}
           </Button>
         </div>
@@ -84,12 +80,12 @@ export default function MainNav({ container }: MainNavProps) {
           ref={scrollContainerRef}
           className="h-[calc(100vh-6rem)] space-y-4 overflow-auto pb-12 pt-2"
         >
-          <div className="pl-2">
+          <div className="flex flex-col gap-1 px-2">
             <NavTree />
             <CreateOrgDialog />
           </div>
           <Separator className="mx-auto my-2" />
-          <div className="pl-2">
+          <div className="px-2">
             <WorkspacesNavTree />
           </div>
         </div>
