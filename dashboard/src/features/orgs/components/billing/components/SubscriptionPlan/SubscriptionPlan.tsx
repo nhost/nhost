@@ -98,7 +98,7 @@ export default function SubscriptionPlan() {
           });
 
         if (billingOrganizationCustomePortal) {
-          window.location.href = billingOrganizationCustomePortal;
+          window.open(billingOrganizationCustomePortal);
         } else {
           throw new Error('Could not fetch customer portal link');
         }

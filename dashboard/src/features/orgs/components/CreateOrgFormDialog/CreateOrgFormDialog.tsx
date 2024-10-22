@@ -24,6 +24,7 @@ import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
+import { cn } from '@/lib/utils';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useCreateOrganizationRequestMutation,
@@ -197,6 +198,7 @@ export default function CreateOrgDialog() {
             organizationName: name,
             planID: plan,
             redirectURL: `${window.location.origin}/orgs/verify`,
+            // redirectURL: `https://staging.app.nhost.io/orgs/verify`,
           },
         });
 
@@ -226,7 +228,14 @@ export default function CreateOrgDialog() {
           New Organization
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent
+        className={cn(
+          'text-foreground sm:max-w-xl',
+          !loading && stripeClientSecret ? 'bg-white text-black' : '',
+        )}
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>New Organization</DialogTitle>
           <DialogDescription />
