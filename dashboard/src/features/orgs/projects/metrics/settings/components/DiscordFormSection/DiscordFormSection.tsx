@@ -21,7 +21,7 @@ export default function DiscordFormSection() {
   });
 
   return (
-    <Box className="space-y-4 rounded p-4">
+    <Box className="flex flex-col gap-4 p-4">
       <Box className="flex flex-row items-center justify-between">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
@@ -30,8 +30,8 @@ export default function DiscordFormSection() {
           <Tooltip
             title={
               <span>
-                Select your preferred Discord channels for receiving
-                notifications when your alert rules are firing.
+                Receive alert notifications in your Discord channels when your
+                Grafana alert rules are triggered and resolved.
               </span>
             }
           >
@@ -45,47 +45,48 @@ export default function DiscordFormSection() {
           <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
-
-      <Box className="flex flex-col space-y-4">
-        {fields.map((field, index) => (
-          <Box key={field.id} className="flex w-full items-center space-x-2">
-            <Box className="flex flex-1 flex-col gap-2">
-              <Input
-                {...register(`discord.${index}.url`)}
-                id={`${field.id}-discord`}
-                label="Discord URL"
-                placeholder="https://discord.com/api/webhooks/..."
-                className="w-full"
-                hideEmptyHelperText
-                error={!!errors?.discord?.[index]?.url}
-                helperText={errors?.discord?.[index]?.url?.message}
-                fullWidth
-                autoComplete="off"
-              />
-              <Input
-                {...register(`discord.${index}.avatarUrl`)}
-                id={`${field.id}-discord-avatar`}
-                label="Avatar URL"
-                placeholder="https://discord.com/api/avatar/..."
-                className="w-full"
-                hideEmptyHelperText
-                error={!!errors?.discord?.[index]?.avatarUrl}
-                helperText={errors?.discord?.[index]?.avatarUrl?.message}
-                fullWidth
-                autoComplete="off"
-              />
+      {fields?.length > 0 ? (
+        <Box className="flex flex-col gap-12">
+          {fields.map((field, index) => (
+            <Box key={field.id} className="flex w-full items-center gap-2">
+              <Box className="flex flex-1 flex-col gap-2">
+                <Input
+                  {...register(`discord.${index}.url`)}
+                  id={`${field.id}-discord`}
+                  label="Discord URL"
+                  placeholder="https://discord.com/api/webhooks/..."
+                  className="w-full"
+                  hideEmptyHelperText
+                  error={!!errors?.discord?.[index]?.url}
+                  helperText={errors?.discord?.[index]?.url?.message}
+                  fullWidth
+                  autoComplete="off"
+                />
+                <Input
+                  {...register(`discord.${index}.avatarUrl`)}
+                  id={`${field.id}-discord-avatar`}
+                  label="Avatar URL"
+                  placeholder="https://discord.com/api/avatar/..."
+                  className="w-full"
+                  hideEmptyHelperText
+                  error={!!errors?.discord?.[index]?.avatarUrl}
+                  helperText={errors?.discord?.[index]?.avatarUrl?.message}
+                  fullWidth
+                  autoComplete="off"
+                />
+              </Box>
+              <Button
+                variant="borderless"
+                className=""
+                color="error"
+                onClick={() => remove(index)}
+              >
+                <TrashIcon className="h-6 w-4" />
+              </Button>
             </Box>
-            <Button
-              variant="borderless"
-              className=""
-              color="error"
-              onClick={() => remove(index)}
-            >
-              <TrashIcon className="h-6 w-4" />
-            </Button>
-          </Box>
-        ))}
-      </Box>
+          ))}
+        </Box>
+      ) : null}
     </Box>
   );
 }

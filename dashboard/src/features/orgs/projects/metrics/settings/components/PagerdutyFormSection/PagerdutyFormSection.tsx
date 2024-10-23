@@ -29,7 +29,7 @@ export default function PagerdutyFormSection() {
     setValue(`pagerduty.${index}.severity`, value as EventSeverity);
 
   return (
-    <Box className="space-y-4 rounded p-4">
+    <Box className="flex flex-col gap-4 p-4">
       <Box className="flex flex-row items-center justify-between">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
@@ -38,8 +38,8 @@ export default function PagerdutyFormSection() {
           <Tooltip
             title={
               <span>
-                Select your preferred Slack channels for receiving notifications
-                when your alert rules are firing.
+                Receive notifications in PagerDuty when your alert rules are
+                firing.
               </span>
             }
           >
@@ -62,97 +62,100 @@ export default function PagerdutyFormSection() {
         </Button>
       </Box>
 
-      <Box className="flex flex-col space-y-12">
-        {fields.map((field, index) => (
-          <Box key={field.id} className="flex w-full items-center space-x-2">
-            <Box className="grid flex-grow grid-cols-9 gap-4">
-              <Input
-                {...register(`pagerduty.${index}.integrationKey`)}
-                id={`${field.id}-integrationKey`}
-                placeholder="Integration Key"
-                className="w-full lg:col-span-7"
-                hideEmptyHelperText
-                error={!!errors?.pagerduty?.[index]?.integrationKey}
-                helperText={errors?.pagerduty?.[index]?.integrationKey?.message}
-                fullWidth
-                label="Integration Key"
-                autoComplete="off"
-              />
+      {fields?.length > 0 ? (
+        <Box className="flex flex-col gap-12">
+          {fields.map((field, index) => (
+            <Box key={field.id} className="flex w-full items-center gap-2">
+              <Box className="grid flex-grow gap-4 lg:grid-cols-9">
+                <Input
+                  {...register(`pagerduty.${index}.integrationKey`)}
+                  id={`${field.id}-integrationKey`}
+                  placeholder="Enter PagerDuty Integration Key"
+                  className="w-full lg:col-span-7"
+                  hideEmptyHelperText
+                  error={!!errors?.pagerduty?.[index]?.integrationKey}
+                  helperText={
+                    errors?.pagerduty?.[index]?.integrationKey?.message
+                  }
+                  fullWidth
+                  label="Integration Key"
+                  autoComplete="off"
+                />
 
-              <Select
-                fullWidth
-                value={formValues.pagerduty.at(index)?.severity || ''}
-                className="lg:col-span-2"
-                label="Severity"
-                onChange={(_event, inputValue) =>
-                  onChangeSeverity(inputValue as string, index)
-                }
-                placeholder="Select severity"
-                slotProps={{
-                  listbox: { className: 'min-w-0 w-full' },
-                  popper: {
-                    disablePortal: false,
-                    className: 'z-[10000] w-[270px]',
-                  },
-                }}
+                <Select
+                  fullWidth
+                  value={formValues.pagerduty.at(index)?.severity || ''}
+                  className="lg:col-span-2"
+                  label="Severity"
+                  onChange={(_event, inputValue) =>
+                    onChangeSeverity(inputValue as string, index)
+                  }
+                  placeholder="Select severity"
+                  slotProps={{
+                    listbox: { className: 'min-w-0 w-full' },
+                    popper: {
+                      disablePortal: false,
+                      className: 'z-[10000] w-[270px]',
+                    },
+                  }}
+                >
+                  {Object.values(EventSeverity).map((severity) => (
+                    <Option key={severity} value={severity}>
+                      {severity}
+                    </Option>
+                  ))}
+                </Select>
+
+                <Input
+                  {...register(`pagerduty.${index}.class`)}
+                  id={`${field.id}-class`}
+                  placeholder="Enter type of the event"
+                  label="Class"
+                  className="w-full lg:col-span-3"
+                  hideEmptyHelperText
+                  error={!!errors?.pagerduty?.[index]?.class}
+                  helperText={errors?.pagerduty?.[index]?.class?.message}
+                  fullWidth
+                  autoComplete="off"
+                />
+
+                <Input
+                  {...register(`pagerduty.${index}.component`)}
+                  id={`${field.id}-component`}
+                  placeholder="Enter component of the event"
+                  label="Component"
+                  className="w-full lg:col-span-3"
+                  hideEmptyHelperText
+                  error={!!errors?.pagerduty?.[index]?.component}
+                  helperText={errors?.pagerduty?.[index]?.component?.message}
+                  fullWidth
+                  autoComplete="off"
+                />
+                <Input
+                  {...register(`pagerduty.${index}.group`)}
+                  id={`${field.id}-group`}
+                  placeholder="Enter logical group of components"
+                  label="Group"
+                  className="w-full lg:col-span-3"
+                  hideEmptyHelperText
+                  error={!!errors?.pagerduty?.[index]?.group}
+                  helperText={errors?.pagerduty?.[index]?.group?.message}
+                  fullWidth
+                  autoComplete="off"
+                />
+              </Box>
+
+              <Button
+                variant="borderless"
+                color="error"
+                onClick={() => remove(index)}
               >
-                {Object.values(EventSeverity).map((severity) => (
-                  <Option key={severity} value={severity}>
-                    {severity}
-                  </Option>
-                ))}
-              </Select>
-
-              <Input
-                {...register(`pagerduty.${index}.class`)}
-                id={`${field.id}-class`}
-                placeholder="Enter type of the event"
-                label="Class"
-                className="w-full lg:col-span-3"
-                hideEmptyHelperText
-                error={!!errors?.pagerduty?.[index]?.class}
-                helperText={errors?.pagerduty?.[index]?.class?.message}
-                fullWidth
-                autoComplete="off"
-              />
-
-              <Input
-                {...register(`pagerduty.${index}.component`)}
-                id={`${field.id}-component`}
-                placeholder="Enter responsible for the event"
-                label="Component"
-                className="w-full lg:col-span-3"
-                hideEmptyHelperText
-                error={!!errors?.pagerduty?.[index]?.component}
-                helperText={errors?.pagerduty?.[index]?.component?.message}
-                fullWidth
-                autoComplete="off"
-              />
-              <Input
-                {...register(`pagerduty.${index}.group`)}
-                id={`${field.id}-group`}
-                placeholder="Enter logical group of the event"
-                label="Group"
-                className="w-full lg:col-span-3"
-                hideEmptyHelperText
-                error={!!errors?.pagerduty?.[index]?.group}
-                helperText={errors?.pagerduty?.[index]?.group?.message}
-                fullWidth
-                autoComplete="off"
-              />
+                <TrashIcon className="h-6 w-4" />
+              </Button>
             </Box>
-
-            <Button
-              variant="borderless"
-              className=""
-              color="error"
-              onClick={() => remove(index)}
-            >
-              <TrashIcon className="h-6 w-4" />
-            </Button>
-          </Box>
-        ))}
-      </Box>
+          ))}
+        </Box>
+      ) : null}
     </Box>
   );
 }

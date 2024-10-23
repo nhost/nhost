@@ -21,7 +21,7 @@ export default function EmailsFormSection() {
   });
 
   return (
-    <Box className="space-y-4 rounded p-4">
+    <Box className="flex flex-col gap-4 p-4">
       <Box className="flex flex-row items-center justify-between">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
@@ -43,31 +43,34 @@ export default function EmailsFormSection() {
         </Button>
       </Box>
 
-      <Box className="flex flex-col space-y-4">
-        {fields.map((field, index) => (
-          <Box key={field.id} className="flex w-full items-center space-x-2">
-            <Input
-              {...register(`emails.${index}.email`)}
-              id={`${field.id}-email`}
-              placeholder="Email"
-              className="w-full"
-              hideEmptyHelperText
-              error={!!errors?.emails?.[index]?.email}
-              helperText={errors?.emails?.[index]?.email?.message}
-              fullWidth
-              autoComplete="off"
-            />
-            <Button
-              variant="borderless"
-              className=""
-              color="error"
-              onClick={() => remove(index)}
-            >
-              <TrashIcon className="h-6 w-4" />
-            </Button>
-          </Box>
-        ))}
-      </Box>
+      {fields?.length > 0 ? (
+        <Box className="flex flex-col gap-6">
+          {fields.map((field, index) => (
+            <Box key={field.id} className="flex w-full items-center gap-2">
+              <Input
+                {...register(`emails.${index}.email`)}
+                id={`${field.id}-email`}
+                placeholder="Enter email address"
+                className="w-full"
+                label={`Email #${index + 1}`}
+                hideEmptyHelperText
+                error={!!errors?.emails?.[index]?.email}
+                helperText={errors?.emails?.[index]?.email?.message}
+                fullWidth
+                autoComplete="off"
+              />
+              <Button
+                variant="borderless"
+                className="h-10 self-end"
+                color="error"
+                onClick={() => remove(index)}
+              >
+                <TrashIcon className="h-6 w-4" />
+              </Button>
+            </Box>
+          ))}
+        </Box>
+      ) : null}
     </Box>
   );
 }

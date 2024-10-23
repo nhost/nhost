@@ -173,7 +173,7 @@ export default function ContactPointsSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Contact Points"
-          description="Select your preferred emails for receiving notifications when your alert rules are firing."
+          description="Define the contact points where your notifications will be sent."
           docsLink="https://docs.nhost.io/platform/metrics#configure-contact-points"
           rootClassName="gap-0"
           className={twMerge('my-2 px-0')}
