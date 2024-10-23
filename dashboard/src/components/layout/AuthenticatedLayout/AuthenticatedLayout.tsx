@@ -147,10 +147,7 @@ export default function AuthenticatedLayout({
               className: 'flex flex-col items-center',
             }}
           >
-            <div className="flex flex-col w-full h-full">
-              <OrgStatus />
-              {children}
-            </div>
+            {children}
           </RetryableErrorBoundary>
 
           <InviteNotification />
