@@ -25,7 +25,6 @@ import {
 
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
-import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
