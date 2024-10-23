@@ -1,4 +1,5 @@
 import { EventSeverity } from '@/features/orgs/projects/metrics/settings/components/PagerdutyFormSection/PagerdutyFormSectionTypes';
+import { HttpMethod } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection/WebhookFormSectionTypes';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
@@ -73,7 +74,7 @@ export const validationSchema = Yup.object({
           .url('Invalid webhook URL')
           .required('URL is required'),
         httpMethod: Yup.string()
-          .oneOf(['POST', 'PUT'], 'Invalid HTTP method')
+          .oneOf(Object.values(HttpMethod), 'Invalid HTTP method')
           .required('HTTP method is required'),
         username: Yup.string(),
         password: Yup.string(),
