@@ -15,7 +15,6 @@ import { useAuthenticationStatus } from '@nhost/nextjs';
 
 import { useMediaQuery } from '@/components/common/useMediaQuery';
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
-import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import Image from 'next/image';
@@ -145,10 +144,7 @@ export default function AuthenticatedLayout({
               className: 'flex flex-col items-center',
             }}
           >
-            <div className="flex h-full w-full flex-col">
-              <OrgStatus />
-              {children}
-            </div>
+            {children}
           </RetryableErrorBoundary>
 
           <InviteNotification />

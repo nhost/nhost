@@ -34,7 +34,7 @@ export default function Usage() {
           <span>Usage</span>
         </div>
         <div className="flex flex-col">
-          <div className="flex flex-row items-center justify-between w-full p-4 border-t border-b">
+          <div className="flex flex-row items-center justify-between w-full p-4 border-b">
             <span>Billing cycle ({billingCycleRange})</span>
             <Progress value={progress} className="h-2 max-w-xl" />
           </div>
