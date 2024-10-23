@@ -79,7 +79,7 @@ export default function SlackFormSection() {
                 <Input
                   {...register(`slack.${index}.recipient`)}
                   id={`${field.id}-recipient`}
-                  placeholder="Recipient"
+                  placeholder="Enter recipient"
                   className="w-full lg:col-span-3"
                   hideEmptyHelperText
                   error={!!errors?.slack?.[index]?.recipient}
@@ -92,7 +92,7 @@ export default function SlackFormSection() {
                 <Input
                   {...register(`slack.${index}.token`)}
                   id={`${field.id}-token`}
-                  placeholder="Token"
+                  placeholder="Enter Slack API token"
                   label="Token"
                   className="w-full lg:col-span-6"
                   hideEmptyHelperText

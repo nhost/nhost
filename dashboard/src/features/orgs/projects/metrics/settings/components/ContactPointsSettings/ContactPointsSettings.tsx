@@ -133,7 +133,6 @@ export default function ContactPointsSettings() {
   const handleSubmit = async (formValues: ContactPointsFormValues) => {
     const config = getFormattedConfig(formValues);
 
-    // Update service config
     const updateConfigPromise = updateConfig({
       variables: {
         appId: project.id,
