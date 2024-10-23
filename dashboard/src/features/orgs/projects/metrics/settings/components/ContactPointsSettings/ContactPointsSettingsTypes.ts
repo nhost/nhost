@@ -5,14 +5,16 @@ export const validationSchema = Yup.object({
   emails: Yup.array()
     .of(
       Yup.object({
-        email: Yup.string().email('Invalid email address'),
+        email: Yup.string().email('Invalid email address').required(),
       }),
     )
     .nullable(),
   discord: Yup.array()
     .of(
       Yup.object({
-        url: Yup.string().url('Invalid Discord URL'),
+        url: Yup.string()
+          .url('Invalid Discord URL')
+          .required('Discord webhook URL is required'),
         avatarUrl: Yup.string().url('Invalid avatar URL'),
       }),
     )
@@ -20,10 +22,12 @@ export const validationSchema = Yup.object({
   pagerduty: Yup.array()
     .of(
       Yup.object({
-        integrationKey: Yup.string().required('Required'),
+        integrationKey: Yup.string().required(
+          'PagerDuty integration key is required',
+        ),
         severity: Yup.string()
           .oneOf(Object.values(EventSeverity))
-          .required('Required'),
+          .required('PagerDuty severity is required'),
         class: Yup.string(),
         component: Yup.string(),
         group: Yup.string(),
@@ -55,7 +59,6 @@ export const validationSchema = Yup.object({
         const result = value.every(
           (item) => item.url || (item.recipient && item.token),
         );
-        console.log('result', result);
         if (result) {
           return true;
         }
