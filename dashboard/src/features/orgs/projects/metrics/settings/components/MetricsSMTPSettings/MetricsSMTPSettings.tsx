@@ -127,7 +127,7 @@ export default function MetricsSMTPSettings() {
           description="Configure your SMTP settings to send emails as part of your alerting."
           docsLink="https://docs.nhost.io/platform/metrics#smtp"
           submitButtonText="Save"
-          className="grid grid-cols-9 gap-4"
+          className="grid gap-4 lg:grid-cols-9"
           slotProps={{
             submitButton: {
               disabled: !isDirty || maintenanceActive,
