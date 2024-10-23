@@ -111,10 +111,10 @@ export default function MetricsSMTPSettings() {
         }
       },
       {
-        loadingMessage: 'SMTP settings are being updated...',
-        successMessage: 'SMTP settings have been updated successfully.',
+        loadingMessage: 'Metrics SMTP settings are being updated...',
+        successMessage: 'Metrics SMTP settings have been updated successfully.',
         errorMessage:
-          'An error occurred while trying to update the SMTP settings.',
+          'An error occurred while trying to update the Metrics SMTP settings.',
       },
     );
   };
@@ -125,6 +125,7 @@ export default function MetricsSMTPSettings() {
         <SettingsContainer
           title="SMTP Settings"
           description="Configure your SMTP settings to send emails as part of your alerting."
+          docsLink="https://docs.nhost.io/platform/metrics#smtp"
           submitButtonText="Save"
           className="grid grid-cols-9 gap-4"
           slotProps={{
