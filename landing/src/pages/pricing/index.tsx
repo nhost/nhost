@@ -248,11 +248,11 @@ export default function PricingPage() {
         <Glow className="top-5 h-32 w-32 bg-opacity-50 blur-3xl lg:top-16" />
 
         <SectionHeading
-          title="Choose the right plan for your infrastructure"
+          title="Predictable pricing for your infrastructure"
           slotProps={{
             title: {
               component: 'h1',
-              className: 'text-3.5xl md:text-5xl',
+              className: 'text-3.5xl md:text-4xl',
             },
           }}
           className="relative z-10 pb-8 lg:pb-16"
@@ -269,30 +269,28 @@ export default function PricingPage() {
             {/* Starter plan  */}
             <div className="mt-14 w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8">
               <div className="flex flex-col space-y-4 ">
-                <div className="flex flex-row justify-between">
-                  <h2 className="font-mona text-2xl font-semibold">Starter</h2>
+                <div className="flex flex-col space-y-1 mb-3">
+                  <div className="flex flex-row justify-between">
+                    <h2 className="font-mona text-2xl font-semibold">Starter</h2>
+                  </div>
+                  <h2 className="font-normal text-white text-opacity-65">
+                    Get your idea off the ground for free.
+                  </h2>
                 </div>
-
-                <h2 className="font-normal text-white text-opacity-65">
-                  Get your idea off the ground for free.
-                </h2>
 
                 <div className="flex flex-col items-start">
                   <div className="flex flex-row items-center space-x-2">
                     <h2 className="font-mona text-4xl font-medium">$0</h2>
                     <h2 className="mt-1 font-normal text-white text-opacity-65">
-                      / month / project
+                      / month
                     </h2>
                   </div>
-                  <div className="p-1 text-xs">Limit of 1 project</div>
+                  <div className="p-1">Limit of 1 project. Project paused after 1 week of inactivity.</div>
                 </div>
               </div>
 
               <PricingFeature
                 subFeatures={[
-                  {
-                    title: 'Project pauses with inactivity',
-                  },
                   {
                     title: '1 GB database',
                   },
@@ -341,23 +339,27 @@ export default function PricingPage() {
               <span className="px-8 py-4">Most Popular</span>
               <div className="space-y-8 overflow-hidden rounded-md border border-divider bg-black p-8">
                 <div className="flex flex-col space-y-4 ">
-                  <div className="flex flex-row justify-between">
-                    <h2 className="font-mona text-2xl font-semibold">Pro</h2>
+
+                  <div className="flex flex-col space-y-1 mb-3">
+                    <div className="flex flex-row justify-between">
+                      <h2 className="font-mona text-2xl font-semibold">Pro</h2>
+                    </div>
+                    <h2 className="font-normal text-white text-opacity-65">
+                      Well suited for production applications, scale as needed.
+                    </h2>
                   </div>
-                  <h2 className="font-normal text-white text-opacity-65">
-                    Well suited for production applications, scale as needed.
-                  </h2>
 
                   <div className="flex flex-col items-start">
-                    <h2 className="mt-1 font-normal text-white text-opacity-65">
+                    <h2 className="mt-1 font-normal text-white text-opacity-65 mb-2">
                       From
                     </h2>
                     <div className="flex flex-row items-center space-x-2">
                       <h2 className="font-mona text-4xl font-medium">$25</h2>
                       <h2 className="mt-1 font-normal text-white text-opacity-65">
-                        / month / project
+                        / month
                       </h2>
                     </div>
+                  <div className="p-1">$15 in compute credits included</div>
                   </div>
                 </div>
 
@@ -367,9 +369,6 @@ export default function PricingPage() {
 
                 <PricingFeature
                   subFeatures={[
-                    {
-                      title: 'No project pausing',
-                    },
                     {
                       title: '10 GB database',
                     },
@@ -383,16 +382,16 @@ export default function PricingPage() {
                       title: 'Automated backups',
                     },
                     {
-                      title: 'AI toolkit',
+                      title: 'Bring your own services',
                     },
                     {
-                      title: 'Run your own services',
-                    },
-                    {
-                      title: 'Managed Grafana',
+                      title: 'Managed Grafana (Metrics & Alerting)',
                     },
                     {
                       title: 'Email support',
+                    },
+                    {
+                      title: 'Addons (AI toolkit, custom domains, etc)',
                     },
                   ]}
                 />
@@ -411,25 +410,26 @@ export default function PricingPage() {
             {/* Teams plan  */}
             <div className="mt-14 w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8">
               <div className="flex flex-col space-y-4 ">
-                <div className="flex flex-row justify-between">
-                  <h2 className="font-mona text-2xl font-semibold">Team</h2>
-                  <span className="rounded-md bg-brand-main px-2 py-2">New</span>
+                <div className="flex flex-col space-y-1 mb-3">
+                  <div className="flex flex-row justify-between">
+                    <h2 className="font-mona text-2xl font-semibold">Team</h2>
+                  </div>
+                  <h2 className="font-normal text-white text-opacity-65">
+                    Collaborate with added support, scale as needed.
+                  </h2>
                 </div>
 
-                <h2 className="font-normal text-white text-opacity-65">
-                  Collaborate with added support, scale as needed.
-                </h2>
-
                 <div className="flex flex-col items-start">
-                  <h2 className="mt-1 font-normal text-white text-opacity-65">
+                  <h2 className="mt-1 font-normal text-white text-opacity-65 mb-2">
                     From
                   </h2>
                   <div className="flex flex-row items-center space-x-2">
                     <h2 className="font-mona text-4xl font-medium">$599</h2>
                     <h2 className="mt-1 font-normal text-white text-opacity-65">
-                      / month / project
+                      / month
                     </h2>
                   </div>
+                  <div className="p-1">$15 in compute credits included</div>
                 </div>
               </div>
 
@@ -470,11 +470,13 @@ export default function PricingPage() {
             {/* Enterprise plan */}
             <div className="w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8 md:mt-14">
               <div className="flex flex-col space-y-4 ">
-                <h2 className="font-mona text-2xl font-semibold">Enterprise</h2>
+                <div className="flex flex-col space-y-1 mb-3">
+                  <h2 className="font-mona text-2xl font-semibold">Enterprise</h2>
 
-                <h2 className="font-normal text-white text-opacity-65">
-                  Ideal for specific infrastructure and customization needs.
-                </h2>
+                  <h2 className="font-normal text-white text-opacity-65">
+                    Ideal for specific infrastructure and customization needs.
+                  </h2>
+                </div>
 
                 <div className="flex flex-row items-center space-x-2">
                   <h2 className="font-mona text-4xl font-medium">Contact us</h2>
@@ -542,7 +544,7 @@ export default function PricingPage() {
               <div className="flex flex-col space-y-4 ">
                 <h2 className="font-mona text-2xl font-semibold">Self Hosted Enterprise</h2>
                 <h2 className="font-normal text-white text-opacity-65">
-                  Extend your infrastructure and backend teams with our expertise.
+                  Extend your backend and infrastructure teams with our expertise.
                 </h2>
                 <div className="flex flex-col items-start">
                   <div className="flex flex-row items-center space-x-2">
@@ -1247,7 +1249,7 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="Automated Backups"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
               </ul>
             </section>
@@ -1329,7 +1331,7 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="Advanced security features"
                   ossIcon="x"
-                  enterpriseIcon="check"
+                  enterpriseContent="Contact Us"
                 />
               </ul>
             </section>
@@ -1355,7 +1357,7 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="Global CDN"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
               </ul>
             </section>
@@ -1391,17 +1393,17 @@ export default function PricingPage() {
                 />
                 <SelfHostedPricingListItem
                   title="Graphite"
-                  ossIcon="x"
+                  ossContent="License Required"
                   enterpriseIcon="check"
                 />
                 <SelfHostedPricingListItem
                   title="Auto-Embeddings"
-                  ossIcon="x"
+                  ossContent="License Required"
                   enterpriseIcon="check"
                 />
                 <SelfHostedPricingListItem
                   title="Nhost Assistants"
-                  ossIcon="x"
+                  ossContent="License Required"
                   enterpriseIcon="check"
                 />
               </ul>
@@ -1413,42 +1415,42 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="HTTPS / SSL"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
                 <SelfHostedPricingListItem
                   title="Compute resources"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
                 <SelfHostedPricingListItem
                   title="Service replicas"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
                 <SelfHostedPricingListItem
                   title="Custom domains"
                   ossContent="Self-managed"
-                  enterpriseIcon="check"
+                  enterpriseContent="Self-managed*"
                 />
                 <SelfHostedPricingListItem
                   title="External databases"
                   ossContent="Self-managed"
-                  enterpriseIcon="check"
+                  enterpriseContent="Self-managed*"
                 />
                 <SelfHostedPricingListItem
                   title="Auto scaling"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
                 <SelfHostedPricingListItem
                   title="99.9% SLA"
                   ossContent="Self-managed"
-                  enterpriseIcon="check"
+                  enterpriseContent="Self-managed*"
                 />
                 <SelfHostedPricingListItem
                   title="Dedicated clusters"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
               </ul>
             </section>
@@ -1459,15 +1461,17 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="Nhost Logs"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
                 <SelfHostedPricingListItem
                   title="Managed Grafana for metrics"
                   ossContent="Self-managed"
-                  enterpriseContent="Custom"
+                  enterpriseContent="Self-managed*"
                 />
               </ul>
             </section>
+
+              <div className="text-xl text-gray-400 mt-4">* With Nhost Support</div>
 
             <section>
               <h3 className="py-4 text-xl">Support</h3>
@@ -1529,29 +1533,52 @@ export default function PricingPage() {
           subtitle="Billed by the minute"
         />
 
-        <div className="bg-background inline-flex shrink grow basis-0 flex-col items-center justify-start gap-4 rounded-lg border border-black border-opacity-5 pb-16">
-          <div className="flex flex-col items-center justify-center gap-2">
-            <div className="inline-flex items-center justify-center gap-[4px] p-[0px]">
-              {/* <div className="text-center text-[24px] font-medium leading-loose text-zinc-500">
-                $
-              </div> */}
-              {/* <div className="text-[48px] font-semibold leading-10 text-zinc-500"> */}
-              <h2 className="font-mona text-2xl font-semibold">$</h2>
-              <h2 className="font-mona text-2xl font-semibold">50</h2>
+        <div className="flex justify-center gap-8">
+          <div className="bg-background flex flex-col items-center justify-start gap-4 rounded-lg border border-black border-opacity-5 pb-16 w-[300px]">
+            <h3 className="text-xl font-semibold mt-4">Dedicated</h3>
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div className="inline-flex items-center justify-center gap-[4px] p-[0px]">
+                <h2 className="font-mona text-2xl font-semibold">$</h2>
+                <h2 className="font-mona text-2xl font-semibold">50</h2>
+              </div>
+              <div className="text-[16px] font-normal leading-snug text-gray-300">
+                Per vCPU core / month
+              </div>
+              <div className="text-[14px] font-normal leading-snug text-gray-300 text-opacity-50">
+                $0.0012 / vCPU / minute
+              </div>
             </div>
-            <div className="text-[16px] font-normal leading-snug text-gray-300">
-              Per vCPU core / month
-            </div>
-            <div className="text-[14px] font-normal leading-snug text-gray-300 text-opacity-50">
-              For each vCPU core you get 2 GB of memory.
+            <div className="flex h-[38px] flex-col items-center justify-start gap-4 self-stretch p-[0px]">
+              <div className="inline-flex h-[1px] w-[270px] items-center justify-center p-[0px]">
+                <div className="h-[1px] w-[270px] bg-black bg-opacity-5 dark:bg-gray-100"></div>
+              </div>
+              <div className="text-[14px] font-normal leading-tight text-gray-500">
+                2 GB of memory for each vCPU
+              </div>
             </div>
           </div>
-          <div className="flex h-[38px] flex-col items-center justify-start gap-4 self-stretch p-[0px]">
-            <div className="inline-flex h-[1px] w-[270px] items-center justify-center p-[0px]">
-              <div className="h-[1px] w-[270px] bg-black bg-opacity-5 dark:bg-gray-100"></div>
+
+          <div className="bg-background flex flex-col items-center justify-start gap-4 rounded-lg border border-black border-opacity-5 pb-16 w-[300px]">
+            <h3 className="text-xl font-semibold mt-4">Shared</h3>
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div className="inline-flex items-center justify-center gap-[4px] p-[0px]">
+                <h2 className="font-mona text-2xl font-semibold">$</h2>
+                <h2 className="font-mona text-2xl font-semibold">15</h2>
+              </div>
+              <div className="text-[16px] font-normal leading-snug text-gray-300">
+                Per vCPU core / month
+              </div>
+              <div className="text-[14px] font-normal leading-snug text-gray-300 text-opacity-50">
+                $0.00034 / vCPU / minute
+              </div>
             </div>
-            <div className="text-[14px] font-normal leading-tight text-gray-500">
-              $0.0012 / vCPU / minute
+            <div className="flex h-[38px] flex-col items-center justify-start gap-4 self-stretch p-[0px]">
+              <div className="inline-flex h-[1px] w-[270px] items-center justify-center p-[0px]">
+                <div className="h-[1px] w-[270px] bg-black bg-opacity-5 dark:bg-gray-100"></div>
+              </div>
+              <div className="text-[14px] font-normal leading-tight text-gray-500">
+                2 GB of memory for each vCPU
+              </div>
             </div>
           </div>
         </div>
@@ -1576,16 +1603,16 @@ export default function PricingPage() {
 
         <ul className="divide-y divide-divider">
           <li className="grid grid-flow-row gap-4 py-6">
-            <h3 className="text-xl">Are plans per project?</h3>
+            <h3 className="text-xl">Are plans per organization?</h3>
 
-            <p className="text-base">Yes, plans are per project.</p>
+            <p className="text-base">Yes, plans are per organization. One invoice for all your projects</p>
           </li>
           <li className="grid grid-flow-row gap-4 py-6">
             <h3 className="text-xl">
               How many free projects can I have?
             </h3>
 
-            <p className="text-base">You can have as many free projects as you want, as long as only 1 is active at any given time. You can pause and unpause free projects as needed.</p>
+            <p className="text-base">You can have as many projects as you want in a free organization, as long as only 1 is active at any given time. You can pause and unpause free projects as needed.</p>
           </li>
           <li className="grid grid-flow-row gap-4 py-6">
             <h3 className="text-xl">Can I switch between plans later?</h3>
