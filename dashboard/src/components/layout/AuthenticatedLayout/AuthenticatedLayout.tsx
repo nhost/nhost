@@ -25,6 +25,7 @@ import {
 import { twMerge } from 'tailwind-merge';
 
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
+import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -129,6 +130,8 @@ export default function AuthenticatedLayout({
   return (
     <BaseLayout className="flex flex-col h-full" {...props}>
       <Header className="flex py-1" />
+
+      <CheckPendingOrgs />
 
       <div
         className="relative flex flex-row h-full overflow-x-hidden"
