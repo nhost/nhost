@@ -1249,7 +1249,7 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="Automated Backups"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
               </ul>
             </section>
@@ -1357,7 +1357,7 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="Global CDN"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
               </ul>
             </section>
@@ -1415,42 +1415,42 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="HTTPS / SSL"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
                 <SelfHostedPricingListItem
                   title="Compute resources"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
                 <SelfHostedPricingListItem
                   title="Service replicas"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
                 <SelfHostedPricingListItem
                   title="Custom domains"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
                 <SelfHostedPricingListItem
                   title="External databases"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
                 <SelfHostedPricingListItem
                   title="Auto scaling"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
                 <SelfHostedPricingListItem
                   title="99.9% SLA"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
                 <SelfHostedPricingListItem
                   title="Dedicated clusters"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
               </ul>
             </section>
@@ -1461,17 +1461,15 @@ export default function PricingPage() {
                 <SelfHostedPricingListItem
                   title="Nhost Logs"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
                 <SelfHostedPricingListItem
                   title="Managed Grafana for metrics"
                   ossContent="Self-managed"
-                  enterpriseContent="Self-managed*"
+                  enterpriseContent="Self-managed with Nhost Support"
                 />
               </ul>
             </section>
-
-              <div className="text-xl text-gray-400 mt-4">* With Nhost Support</div>
 
             <section>
               <h3 className="py-4 text-xl">Support</h3>
