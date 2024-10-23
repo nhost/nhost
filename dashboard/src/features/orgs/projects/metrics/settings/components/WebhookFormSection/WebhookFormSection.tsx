@@ -36,7 +36,7 @@ export default function WebhookFormSection() {
     setValue(`webhook.${index}.httpMethod`, value as HttpMethod);
 
   return (
-    <Box className="space-y-4 rounded p-4">
+    <Box className="flex flex-col gap-4 p-4">
       <Box className="flex flex-row items-center justify-between">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
@@ -45,8 +45,8 @@ export default function WebhookFormSection() {
           <Tooltip
             title={
               <span>
-                Select your preferred Slack channels for receiving notifications
-                when your alert rules are firing.
+                Send information about a state change to an external service
+                over HTTP.
               </span>
             }
           >
@@ -71,145 +71,148 @@ export default function WebhookFormSection() {
         </Button>
       </Box>
 
-      <Box className="flex flex-col space-y-12">
-        {fields.map((field, index) => (
-          <Box key={field.id} className="flex w-full items-center space-x-2">
-            <Box className="grid flex-grow grid-cols-9 gap-4">
-              <Input
-                {...register(`webhook.${index}.url`)}
-                id={`${field.id}-url`}
-                placeholder="URL"
-                className="w-full lg:col-span-7"
-                hideEmptyHelperText
-                error={!!errors?.webhook?.[index]?.url}
-                helperText={errors?.webhook?.[index]?.url?.message}
-                fullWidth
-                label="URL"
-                autoComplete="off"
-              />
+      {fields?.length > 0 ? (
+        <Box className="flex flex-col gap-12">
+          {fields.map((field, index) => (
+            <Box key={field.id} className="flex w-full items-center space-x-2">
+              <Box className="grid flex-grow gap-4 lg:grid-cols-9">
+                <Input
+                  {...register(`webhook.${index}.url`)}
+                  id={`${field.id}-url`}
+                  placeholder="Enter URL"
+                  className="w-full lg:col-span-7"
+                  hideEmptyHelperText
+                  error={!!errors?.webhook?.[index]?.url}
+                  helperText={errors?.webhook?.[index]?.url?.message}
+                  fullWidth
+                  label="URL"
+                  autoComplete="off"
+                />
 
-              <Select
-                fullWidth
-                value={formValues.webhook.at(index)?.httpMethod || ''}
-                className="lg:col-span-2"
-                label="HTTP Method"
-                onChange={(_event, inputValue) =>
-                  onChangeHttpMethod(inputValue as string, index)
-                }
-                placeholder="Select HTTP Method"
-                slotProps={{
-                  listbox: { className: 'min-w-0 w-full' },
-                  popper: {
-                    disablePortal: false,
-                    className: 'z-[10000] w-[270px]',
-                  },
-                }}
+                <Select
+                  fullWidth
+                  value={formValues.webhook.at(index)?.httpMethod || ''}
+                  className="lg:col-span-2"
+                  label="HTTP Method"
+                  onChange={(_event, inputValue) =>
+                    onChangeHttpMethod(inputValue as string, index)
+                  }
+                  placeholder="Select HTTP Method"
+                  slotProps={{
+                    listbox: { className: 'min-w-0 w-full' },
+                    popper: {
+                      disablePortal: false,
+                      className: 'z-[10000] w-[270px]',
+                    },
+                  }}
+                >
+                  {Object.values(HttpMethod).map((httpMethod) => (
+                    <Option key={httpMethod} value={httpMethod}>
+                      {httpMethod}
+                    </Option>
+                  ))}
+                </Select>
+
+                <Input
+                  {...register(`webhook.${index}.username`)}
+                  id={`${field.id}-username`}
+                  placeholder="Enter username"
+                  label="Username"
+                  className="w-full lg:col-span-3"
+                  hideEmptyHelperText
+                  error={!!errors?.webhook?.[index]?.username}
+                  helperText={errors?.webhook?.[index]?.username?.message}
+                  fullWidth
+                  autoComplete="off"
+                />
+
+                <Input
+                  {...register(`webhook.${index}.password`)}
+                  id={`${field.id}-password`}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter password"
+                  label="Password"
+                  className="w-full lg:col-span-4"
+                  hideEmptyHelperText
+                  error={!!errors?.webhook?.[index]?.password}
+                  helperText={errors?.webhook?.[index]?.password?.message}
+                  fullWidth
+                  autoComplete="off"
+                  endAdornment={
+                    <InputAdornment className="px-2" position="end">
+                      <IconButton
+                        variant="borderless"
+                        color="secondary"
+                        aria-label={
+                          showPassword ? 'Hide Password' : 'Show Password'
+                        }
+                        onClick={() => setShowPassword((show) => !show)}
+                      >
+                        {showPassword ? (
+                          <EyeOffIcon className="h-5 w-5" />
+                        ) : (
+                          <EyeIcon className="h-5 w-5" />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                />
+                <Input
+                  type="number"
+                  {...register(`webhook.${index}.maxAlerts`)}
+                  id={`${field.id}-maxAlerts`}
+                  placeholder="Enter max alerts"
+                  label="Max Alerts (0 means no limit)"
+                  className="w-full lg:col-span-2"
+                  hideEmptyHelperText
+                  error={!!errors?.webhook?.[index]?.maxAlerts}
+                  helperText={errors?.webhook?.[index]?.maxAlerts?.message}
+                  fullWidth
+                  autoComplete="off"
+                />
+
+                <Input
+                  {...register(`webhook.${index}.authorizationScheme`)}
+                  id={`${field.id}-authorizationScheme`}
+                  placeholder="Enter authorization scheme"
+                  label="Authorization Scheme"
+                  className="w-full lg:col-span-3"
+                  hideEmptyHelperText
+                  error={!!errors?.webhook?.[index]?.authorizationScheme}
+                  helperText={
+                    errors?.webhook?.[index]?.authorizationScheme?.message
+                  }
+                  fullWidth
+                  autoComplete="off"
+                />
+                <Input
+                  {...register(`webhook.${index}.authorizationCredentials`)}
+                  id={`${field.id}-authorizationCredentials`}
+                  placeholder="Enter authorization credentials"
+                  label="Authorization Credentials"
+                  className="w-full lg:col-span-6"
+                  hideEmptyHelperText
+                  error={!!errors?.webhook?.[index]?.authorizationCredentials}
+                  helperText={
+                    errors?.webhook?.[index]?.authorizationCredentials?.message
+                  }
+                  fullWidth
+                  autoComplete="off"
+                />
+              </Box>
+
+              <Button
+                variant="borderless"
+                className=""
+                color="error"
+                onClick={() => remove(index)}
               >
-                {Object.values(HttpMethod).map((httpMethod) => (
-                  <Option key={httpMethod} value={httpMethod}>
-                    {httpMethod}
-                  </Option>
-                ))}
-              </Select>
-
-              <Input
-                {...register(`webhook.${index}.username`)}
-                id={`${field.id}-username`}
-                placeholder="Enter username"
-                label="Username"
-                className="w-full lg:col-span-3"
-                hideEmptyHelperText
-                error={!!errors?.webhook?.[index]?.username}
-                helperText={errors?.webhook?.[index]?.username?.message}
-                fullWidth
-                autoComplete="off"
-              />
-
-              <Input
-                {...register(`webhook.${index}.password`)}
-                id={`${field.id}-password`}
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter password"
-                label="Password"
-                className="w-full lg:col-span-3"
-                hideEmptyHelperText
-                error={!!errors?.webhook?.[index]?.password}
-                helperText={errors?.webhook?.[index]?.password?.message}
-                fullWidth
-                autoComplete="off"
-                endAdornment={
-                  <InputAdornment className="px-2" position="end">
-                    <IconButton
-                      variant="borderless"
-                      color="secondary"
-                      aria-label={
-                        showPassword ? 'Hide Password' : 'Show Password'
-                      }
-                      onClick={() => setShowPassword((show) => !show)}
-                    >
-                      {showPassword ? (
-                        <EyeOffIcon className="h-5 w-5" />
-                      ) : (
-                        <EyeIcon className="h-5 w-5" />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                }
-              />
-              <Input
-                {...register(`webhook.${index}.authorizationScheme`)}
-                id={`${field.id}-authorizationScheme`}
-                placeholder="Enter authorization scheme"
-                label="Authorization Scheme"
-                className="w-full lg:col-span-3"
-                hideEmptyHelperText
-                error={!!errors?.webhook?.[index]?.authorizationScheme}
-                helperText={
-                  errors?.webhook?.[index]?.authorizationScheme?.message
-                }
-                fullWidth
-                autoComplete="off"
-              />
-              <Input
-                {...register(`webhook.${index}.authorizationCredentials`)}
-                id={`${field.id}-authorizationCredentials`}
-                placeholder="Enter authorization credentials"
-                label="Authorization Credentials"
-                className="w-full lg:col-span-3"
-                hideEmptyHelperText
-                error={!!errors?.webhook?.[index]?.authorizationCredentials}
-                helperText={
-                  errors?.webhook?.[index]?.authorizationCredentials?.message
-                }
-                fullWidth
-                autoComplete="off"
-              />
-              <Input
-                type="number"
-                {...register(`webhook.${index}.maxAlerts`)}
-                id={`${field.id}-maxAlerts`}
-                placeholder="Enter max alerts"
-                label="Max Alerts"
-                className="w-full lg:col-span-3"
-                hideEmptyHelperText
-                error={!!errors?.webhook?.[index]?.maxAlerts}
-                helperText={errors?.webhook?.[index]?.maxAlerts?.message}
-                fullWidth
-                autoComplete="off"
-              />
+                <TrashIcon className="h-6 w-4" />
+              </Button>
             </Box>
-
-            <Button
-              variant="borderless"
-              className=""
-              color="error"
-              onClick={() => remove(index)}
-            >
-              <TrashIcon className="h-6 w-4" />
-            </Button>
-          </Box>
-        ))}
-      </Box>
+          ))}
+        </Box>
+      ) : null}
     </Box>
   );
 }
