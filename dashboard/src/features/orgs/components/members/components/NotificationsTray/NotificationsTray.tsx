@@ -28,8 +28,9 @@ export default function NotificationsTray() {
   const [
     getInvites,
     {
-      data: { organizationMemberInvites: invites = [] } = {},
+      loading,
       refetch: refetchInvites,
+      data: { organizationMemberInvites: invites = [] } = {},
     },
   ] = useOrganizationMemberInvitesLazyQuery();
 
@@ -88,10 +89,10 @@ export default function NotificationsTray() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="relative h-fit px-3 py-1">
+        <Button variant="ghost" className="relative px-3 py-1 h-fit">
           <Bell className="mt-[2px] h-[1.15rem] w-[1.15rem]" />
           {invites.length > 0 && (
-            <div className="absolute right-3 top-2 h-2 w-2 rounded-full bg-red-500" />
+            <div className="absolute w-2 h-2 bg-red-500 rounded-full right-3 top-2" />
           )}
         </Button>
       </SheetTrigger>
@@ -102,21 +103,26 @@ export default function NotificationsTray() {
             List of pending invites and create organization requests
           </SheetDescription>
         </SheetHeader>
-        <div className="flex h-full w-full flex-col">
-          <div className="flex h-12 items-center border-b px-2">
+        <div className="flex flex-col w-full h-full">
+          <div className="flex items-center h-12 px-2 border-b">
             <h3 className="font-medium">
               Notifications {invites.length > 0 && `(${invites.length})`}
             </h3>
           </div>
 
           <div className="p-2">
+            {!loading && invites.length === 0 && (
+              <span className="text-muted-foreground">
+                No new notifications
+              </span>
+            )}
             {invites.map((invite) => (
               <div
                 key={invite.id}
-                className="flex flex-col gap-2 rounded-md border p-2"
+                className="flex flex-col gap-2 p-2 border rounded-md"
               >
                 <div className="flex flex-col items-end gap-2">
-                  <div className="flex w-full items-center justify-between">
+                  <div className="flex items-center justify-between w-full">
                     <Badge className="h-5 px-[6px] text-[10px]">
                       Invitation
                     </Badge>

@@ -53,22 +53,22 @@ export default function PinnedMainNav() {
 
   return (
     <div className="h-full w-full border-r p-0 sm:max-w-[310px]">
-      <div className="flex h-12 w-full justify-end border-b bg-background p-1">
+      <div className="flex justify-end w-full h-12 p-1 border-b bg-background">
         <Button
           variant="ghost"
           onClick={() => setMainNavPinned(!mainNavPinned)}
         >
           {mainNavPinned ? (
-            <PinOff className="h-5 w-5" />
+            <PinOff className="w-5 h-5" />
           ) : (
-            <Pin className="h-5 w-5" />
+            <Pin className="w-5 h-5" />
           )}
         </Button>
       </div>
 
       <div
         ref={scrollContainerRef}
-        className="h-[calc(100vh-6rem)] overflow-auto pb-12 pt-2"
+        className="h-[calc(100vh-7rem)] overflow-auto pb-12 pt-2 lg:h-[calc(100vh-6rem)]"
       >
         <div className="flex flex-col gap-1 px-2">
           <NavTree />

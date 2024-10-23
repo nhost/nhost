@@ -22,7 +22,6 @@ import {
   type DetailedHTMLProps,
   type HTMLProps,
 } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
@@ -139,23 +138,19 @@ export default function AuthenticatedLayout({
       >
         {mainNavPinned && <PinnedMainNav />}
 
-        <div className="relative flex flex-row w-full h-full overflow-auto bg-accent">
+        <div className="relative flex flex-row w-full h-full overflow-hidden bg-accent">
           {!mainNavPinned && (
             <div className="flex justify-center w-6 h-full">
               <MainNav container={mainNavContainer} />
             </div>
           )}
 
-          <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
-            <div
-              className={twMerge(
-                'relative flex w-full flex-auto overflow-x-hidden',
-                contentContainerClassName,
-              )}
-              {...contentContainerProps}
-            >
-              {children}
-            </div>
+          <RetryableErrorBoundary
+            errorMessageProps={{
+              className: 'flex flex-col items-center',
+            }}
+          >
+            {children}
           </RetryableErrorBoundary>
 
           <InviteNotification />

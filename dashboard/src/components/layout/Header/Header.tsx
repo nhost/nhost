@@ -3,6 +3,7 @@ import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
 import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
+import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
@@ -74,17 +75,21 @@ export default function Header({ className, ...props }: HeaderProps) {
     <Box
       component="header"
       className={twMerge(
-        'z-40 grid h-12 w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-4 py-3',
+        'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-4',
         className,
       )}
       sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
+      <div className="w-6 h-6 mr-2">
+        <Logo className="w-6 h-6 mx-auto cursor-pointer" />
+      </div>
+
       <BreadcrumbNav />
 
-      <div className="hidden grid-flow-col items-center gap-1 sm:grid">
+      <div className="items-center hidden grid-flow-col gap-1 sm:grid">
         <Button className="rounded-full" onClick={openDevAssistant}>
-          <GraphiteIcon className="h-4 w-4" />
+          <GraphiteIcon className="w-4 h-4" />
         </Button>
 
         <NotificationsTray />

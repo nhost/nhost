@@ -331,7 +331,7 @@ export default function EditPermissionsForm({
           <Alert className="text-left">
             Please go to the{' '}
             <NavLink
-              href={`/orgs/${org.slug}/projects/${project.slug}/settings/roles-and-permissions`}
+              href={`/orgs/${org?.slug}/projects/${project?.slug}/settings/roles-and-permissions`}
               passHref
               legacyBehavior
             >
