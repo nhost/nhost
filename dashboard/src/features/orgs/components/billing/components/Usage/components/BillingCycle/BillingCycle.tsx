@@ -29,7 +29,7 @@ export default function BillingCycle() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex w-full flex-row items-center justify-between border-b p-4">
+      <div className="flex w-full flex-row items-center justify-between border-b border-t p-4">
         <span>Billing cycle ({billingCycleRange})</span>
         <Progress value={progress} className="h-2 max-w-xl" />
       </div>
