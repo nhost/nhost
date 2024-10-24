@@ -1,0 +1,6 @@
+query organizationNewRequests($userID: uuid!) {
+  organizationNewRequests(where: { userID: { _eq: $userID } }) {
+    id
+    sessionID
+  }
+}
