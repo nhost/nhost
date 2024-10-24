@@ -42,6 +42,7 @@
     "@nhost/nextjs": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
     "@radix-ui/react-alert-dialog": "^1.1.2",
+    "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",
     "@radix-ui/react-hover-card": "^1.1.2",
