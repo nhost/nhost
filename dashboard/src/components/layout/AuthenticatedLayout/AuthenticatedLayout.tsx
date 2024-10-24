@@ -135,7 +135,7 @@ export default function AuthenticatedLayout({
       >
         {mainNavPinned && <PinnedMainNav />}
 
-        <div className="relative flex flex-row w-full h-full overflow-auto bg-accent">
+        <div className="relative flex flex-row w-full h-full overflow-hidden bg-accent">
           {!mainNavPinned && (
             <div className="flex justify-center w-6 h-full">
               <MainNav container={mainNavContainer} />
