@@ -20,10 +20,10 @@ export default function OverviewRepository() {
           ? 'Connect your project with a GitHub repository to create your first deployment.'
           : 'GitHub is connected.'}
       </Text>
-      {!project?.githubRepository ? (
+      {!project.githubRepository ? (
         <div className="flex flex-row mt-6 rounded-lg place-content-between">
           <NavLink
-            href={`/orgs/${org.slug}/projects/${project.slug}/settings/git`}
+            href={`/orgs/${org?.slug}/projects/${project?.slug}/settings/git`}
             passHref
             legacyBehavior
           >
@@ -54,7 +54,7 @@ export default function OverviewRepository() {
           </Box>
 
           <NavLink
-            href={`/orgs/${org.slug}/${project.slug}/settings/git`}
+            href={`/orgs/${org?.slug}/${project?.slug}/settings/git`}
             passHref
             legacyBehavior
           >

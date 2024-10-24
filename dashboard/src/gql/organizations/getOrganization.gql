@@ -3,6 +3,7 @@ query getOrganization($orgSlug: String!) {
     id
     name
     slug
+    status
     plan {
       id
       name

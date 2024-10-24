@@ -118,6 +118,7 @@ export const mockOrganization: Organization = {
   id: '93297df9-125e-49df-9db3-94067fa065bd',
   name: 'Test organization',
   slug: 'xyz',
+  status: Organization_Status_Enum.Ok,
   plan: {
     id: 'abc',
     name: 'Pro',

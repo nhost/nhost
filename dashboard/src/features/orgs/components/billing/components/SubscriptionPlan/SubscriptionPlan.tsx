@@ -173,7 +173,7 @@ export default function SubscriptionPlan() {
                 onClick={handleUpdatePaymentDetails}
                 disabled={org?.plan?.isFree}
               >
-                Update payment details
+                Stripe Customer Portal
               </Button>
               <Button
                 disabled={org?.plan?.isFree}

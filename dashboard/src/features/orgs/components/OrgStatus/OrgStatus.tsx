@@ -1,7 +1,6 @@
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 import { TriangleAlert } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
@@ -10,12 +9,12 @@ function StatusBanner({
   description,
 }: {
   title: string;
-  description: React.ReactNode;
+  description: string;
 }) {
   return (
-    <div className="m-4 rounded-lg bg-destructive p-4 text-white">
+    <div className="w-full p-4 text-white bg-destructive">
       <div className="flex items-center gap-2">
-        <TriangleAlert className="h-4 w-4" />
+        <TriangleAlert className="w-4 h-4" />
         <h3 className="font-medium">{title}</h3>
       </div>
       <p>{description}</p>
@@ -45,8 +44,8 @@ export default function OrgStatus() {
   if (org.status === Organization_Status_Enum.AllowanceExceeded) {
     return (
       <StatusBanner
-        title="Usage limit has been exceeded for this organization"
-        description="Your project has been paused. You can either migrate it to a paid organization or wait until the billing cycle resets to unpause it."
+        title="Usage Limit Exceeded"
+        description="Your organization has exceeded its usage allowance. Please review your billing."
       />
     );
   }
@@ -54,21 +53,8 @@ export default function OrgStatus() {
   if (org.status === Organization_Status_Enum.Cancelled) {
     return (
       <StatusBanner
-        title="Subscription is cancelled after multiple failed billing attempts"
-        description={
-          <span>
-            Please open a{' '}
-            <Link
-              href="https://app.nhost.io/support"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold underline"
-            >
-              support ticket
-            </Link>{' '}
-            if you need to restore access to this organization.
-          </span>
-        }
+        title="Subscription cancelled"
+        description="Your subscription has been cancelled. Contact support to restore access."
       />
     );
   }
@@ -76,8 +62,8 @@ export default function OrgStatus() {
   if (org.status === Organization_Status_Enum.Disabled) {
     return (
       <StatusBanner
-        title="Organization is disabled after multiple failed billing attempts"
-        description="All projects have been paused and new projects cannot be created until a valid payment method is provided and the outstanding invoice is closed."
+        title={`Organization ${org.name} is disabled`}
+        description="This organization has been disabled due to unpaid invoices for 20 days. Please settle your payment."
       />
     );
   }
@@ -85,8 +71,8 @@ export default function OrgStatus() {
   if (org.status === Organization_Status_Enum.Locked) {
     return (
       <StatusBanner
-        title="Organization is locked due to an outstanding invoice"
-        description="New projects cannot be created until a valid payment method is provided and the outstanding invoice is closed. Your existing projects are not affected."
+        title={`Organization ${org.name} is locked`}
+        description="Your organization is locked due to an outstanding invoice. Please settle your payment to unlock access."
       />
     );
   }

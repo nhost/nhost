@@ -1,7 +1,6 @@
 import { Slash } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { Logo } from '@/components/presentational/Logo';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -32,14 +31,8 @@ export default function BreadcrumbNav() {
     !workspaceSlug && !['/', '/orgs/verify'].includes(route);
 
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <div className="w-6 h-6 mr-3">
-            <Logo className="w-6 h-6 mx-auto cursor-pointer" />
-          </div>
-        </BreadcrumbItem>
-
+    <Breadcrumb className="flex flex-row w-full mt-2 overflow-x-auto flex-nowrap lg:mt-0 lg:overflow-visible">
+      <BreadcrumbList className="flex-nowrap">
         <BreadcrumbSeparator>
           <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
         </BreadcrumbSeparator>
