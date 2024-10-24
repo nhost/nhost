@@ -8,7 +8,7 @@ import {
   SheetTitle,
 } from '@/components/ui/v3/sheet';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
-import { Menu, Pin, PinOff } from 'lucide-react';
+import { Menu, Pin, PinOff, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import NavTree from './NavTree';
@@ -43,7 +43,7 @@ export default function MainNav({ container }: MainNavProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <div
-        className="absolute left-0 flex h-full w-6 justify-center border-r-[1.5px] bg-background pt-1 hover:bg-accent"
+        className="min- absolute left-0 z-50 flex h-full w-6 justify-center border-r-[1.5px] bg-background pt-1 hover:bg-accent"
         onMouseEnter={() => setOpen(true)}
       >
         <Menu className="w-4 h-4" />
