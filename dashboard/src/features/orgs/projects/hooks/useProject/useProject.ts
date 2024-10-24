@@ -53,7 +53,7 @@ export default function useProject({
     variables: { slug: appSlug as string },
     skip: !shouldFetchProject && target === 'console-next',
     fetchPolicy: 'cache-and-network',
-    pollInterval: poll ? 5000 : 0,
+    pollInterval: poll ? 5000 * 2 : 0, // every 10s
   });
 
   // Fetch project data for 'user-project' target using client.graphql
