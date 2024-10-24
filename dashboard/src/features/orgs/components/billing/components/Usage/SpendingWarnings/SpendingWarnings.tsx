@@ -23,7 +23,7 @@ const validationSchema = Yup.object({
   threshold: Yup.number()
     .test(
       'is-valid-threshold',
-      `Threshold must be either 0 or greater than 110% of your plan's price`,
+      `Threshold must be either 0 (disabled) or greater than 110% of your plan's price`,
       (value: number, { options }) => {
         const planPrice = options?.context?.planPrice || 0;
         if (value === 0) {
@@ -98,7 +98,7 @@ export default function SpendingWarnings() {
     }
 
     const percent = (amountDue / currentThreshold) * 100;
-    return Math.max(percent, 0);
+    return Math.min(Math.max(percent, 0), 100);
   }, [amountDue, showAmountDue, currentThreshold]);
 
   const submitDisabled = !isDirty || isSubmitting;
