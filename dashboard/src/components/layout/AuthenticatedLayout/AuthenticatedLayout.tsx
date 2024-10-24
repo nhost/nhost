@@ -25,6 +25,7 @@ import {
 
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
+import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -147,7 +148,10 @@ export default function AuthenticatedLayout({
               className: 'flex flex-col items-center',
             }}
           >
-            {children}
+            <div className="flex flex-col w-full h-full">
+              <OrgStatus />
+              {children}
+            </div>
           </RetryableErrorBoundary>
 
           <InviteNotification />
