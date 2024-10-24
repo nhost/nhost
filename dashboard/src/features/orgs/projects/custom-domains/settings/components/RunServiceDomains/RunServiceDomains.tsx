@@ -37,7 +37,7 @@ export default function RunServiceDomains() {
                   {service.config?.name ?? 'unset'}
                 </Text>
                 <Link
-                  href={`/orgs/${org.slug}/projects/${project.slug}/services`}
+                  href={`/orgs/${org?.slug}/projects/${project?.slug}/services`}
                   target="_blank"
                   rel="noopener noreferrer"
                   underline="hover"

@@ -22,9 +22,10 @@ import {
   type DetailedHTMLProps,
   type HTMLProps,
 } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
+import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
+import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -38,13 +39,10 @@ export interface AuthenticatedLayoutProps extends BaseLayoutProps {
 
 export default function AuthenticatedLayout({
   children,
-  contentContainerProps: {
-    className: contentContainerClassName,
-    ...contentContainerProps
-  } = {},
   ...props
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
+
   const isPlatform = useIsPlatform();
 
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
@@ -130,27 +128,28 @@ export default function AuthenticatedLayout({
     <BaseLayout className="flex flex-col h-full" {...props}>
       <Header className="flex py-1" />
 
+      <CheckPendingOrgs />
+
       <div
         className="relative flex flex-row h-full overflow-x-hidden"
         ref={setMainNavContainer}
       >
         {mainNavPinned && <PinnedMainNav />}
 
-        <div className="relative flex flex-row w-full h-full overflow-auto bg-accent">
+        <div className="relative flex flex-row w-full h-full overflow-hidden bg-accent">
           {!mainNavPinned && (
             <div className="flex justify-center w-6 h-full">
               <MainNav container={mainNavContainer} />
             </div>
           )}
 
-          <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
-            <div
-              className={twMerge(
-                'relative flex w-full flex-auto overflow-x-hidden',
-                contentContainerClassName,
-              )}
-              {...contentContainerProps}
-            >
+          <RetryableErrorBoundary
+            errorMessageProps={{
+              className: 'flex flex-col items-center',
+            }}
+          >
+            <div className="flex flex-col w-full h-full">
+              <OrgStatus />
               {children}
             </div>
           </RetryableErrorBoundary>

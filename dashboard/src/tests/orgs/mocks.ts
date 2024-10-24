@@ -1,5 +1,6 @@
 import type { Organization } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
+import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 import { faker } from '@faker-js/faker';
 import type { NhostSession } from '@nhost/nextjs';
 import type { NextRouter } from 'next/router';
@@ -108,6 +109,7 @@ export const mockOrganization: Organization = {
   id: '93297df9-125e-49df-9db3-94067fa065bd',
   name: 'Test organization',
   slug: 'xyz',
+  status: Organization_Status_Enum.Ok,
   plan: {
     id: 'abc',
     name: 'Pro',
