@@ -34,6 +34,7 @@ export default function OrgStatus() {
     ) {
       push(`/orgs/${org.slug}/billing`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asPath, org]);
 
   if (!org) {
@@ -44,7 +45,7 @@ export default function OrgStatus() {
     return (
       <StatusBanner
         title="Usage Limit Exceeded"
-        description="Your organization has exceeded its usage allowance. Please review your billing or upgrade your plan."
+        description="Your organization has exceeded its usage allowance. Please review your billing."
       />
     );
   }
@@ -71,7 +72,7 @@ export default function OrgStatus() {
     return (
       <StatusBanner
         title={`Organization ${org.name} is locked`}
-        description="Your organization is locked due to an outstanding invoice. Contact support to unlock access."
+        description="Your organization is locked due to an outstanding invoice. Please settle your payment to unlock access."
       />
     );
   }

@@ -132,7 +132,7 @@ export default function CheckPendingOrgs() {
         <AlertDialogContent className="text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              You've recenly created a new Organization
+              You&apos;ve recenly created a new Organization
             </AlertDialogTitle>
             <AlertDialogDescription>
               Would you like to continue to the new Organization
