@@ -317,7 +317,7 @@ GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{
-        className: 'flex flex-col',
+        className: 'flex flex-col h-full',
         sx: {
           [`& .graphiql-container`]: {
             [`& .graphiql-main, & .graphiql-sessions`]: {
