@@ -31,7 +31,7 @@ export default function ProjectStatus() {
     return <Chip size="small" label="Updating" color="warning" />;
   }
 
-  if (!isProjectMigratingDatabase) {
+  if (isProjectMigratingDatabase) {
     return (
       <Chip size="small" label="Upgrading Postgres version" color="warning" />
     );
