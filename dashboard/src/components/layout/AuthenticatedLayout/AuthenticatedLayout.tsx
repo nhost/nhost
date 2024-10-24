@@ -26,6 +26,8 @@ import {
   type HTMLProps,
 } from 'react';
 
+import { OrgStatus } from '@/features/orgs/components/OrgStatus';
+
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
    * Props passed to the internal content container.
@@ -144,7 +146,10 @@ export default function AuthenticatedLayout({
               className: 'flex flex-col items-center',
             }}
           >
-            {children}
+            <div className="flex h-full w-full flex-col">
+              <OrgStatus />
+              {children}
+            </div>
           </RetryableErrorBoundary>
 
           <InviteNotification />
