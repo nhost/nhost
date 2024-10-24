@@ -1,3 +1,4 @@
+import ProjectStatus from '@/components/layout/Header/ProjectStatus';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -59,13 +60,14 @@ export default function ProjectsComboBox() {
         >
           {selectedProject ? (
             <div className="flex flex-row items-center justify-center gap-1">
-              <Box className="h-4 w-4" />
+              <Box className="w-4 h-4" />
               {selectedProject.label}
+              <ProjectStatus />
             </div>
           ) : (
             <>Select a project</>
           )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
+          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -93,8 +95,8 @@ export default function ProjectsComboBox() {
                     )}
                   />
                   <div className="flex flex-row items-center gap-1">
-                    <Box className="h-4 w-4" />
-                    <span className="max-w-52 truncate">{option.label}</span>
+                    <Box className="w-4 h-4" />
+                    <span className="truncate max-w-52">{option.label}</span>
                   </div>
                 </CommandItem>
               ))}
