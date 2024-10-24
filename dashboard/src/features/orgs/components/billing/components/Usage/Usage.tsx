@@ -1,5 +1,5 @@
 import { BillingCycle } from './components/BillingCycle';
-import { SpendingWarnings } from './SpendingWarnings';
+import { SpendingWarnings } from './components/SpendingWarnings';
 
 export default function Usage() {
   return (
