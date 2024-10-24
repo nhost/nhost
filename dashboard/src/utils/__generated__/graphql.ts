@@ -3174,6 +3174,7 @@ export type Metrics = {
 
 export type PostOrganizationRequestResponse = {
   __typename?: 'PostOrganizationRequestResponse';
+  ClientSecret?: Maybe<Scalars['String']>;
   Slug: Scalars['String'];
   Status: CheckoutStatus;
 };
@@ -12348,7 +12349,6 @@ export type Mutation_Root = {
   billingDeleteOrganization: Scalars['Boolean'];
   billingFinishSubscription: Scalars['Boolean'];
   billingFixSubscriptionItems: Scalars['Boolean'];
-  billingFixSubscriptions: Scalars['Boolean'];
   billingFullReportWorkflow: Scalars['Boolean'];
   billingMigrateProjectToOrganization: Scalars['Boolean'];
   billingPostOrganizationRequest: PostOrganizationRequestResponse;
@@ -14993,6 +14993,7 @@ export type Mutation_RootUpdateManySoftwareVersionsArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationArgs = {
+  _inc?: InputMaybe<Organizations_Inc_Input>;
   _set?: InputMaybe<Organizations_Set_Input>;
   pk_columns: Organizations_Pk_Columns_Input;
 };
@@ -15060,6 +15061,7 @@ export type Mutation_RootUpdateOrganizationNewRequestsManyArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateOrganizationsArgs = {
+  _inc?: InputMaybe<Organizations_Inc_Input>;
   _set?: InputMaybe<Organizations_Set_Input>;
   where: Organizations_Bool_Exp;
 };
@@ -16664,6 +16666,7 @@ export type Organizations = {
   /** An aggregate relationship */
   apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
+  current_threshold: Scalars['String'];
   id: Scalars['uuid'];
   /** An array relationship */
   invites: Array<Organization_Member_Invites>;
@@ -16682,6 +16685,7 @@ export type Organizations = {
   status_comment?: Maybe<Scalars['String']>;
   stripeCustomerID?: Maybe<Scalars['String']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
 
@@ -16786,9 +16790,17 @@ export type Organizations_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "organizations" */
 export type Organizations_Aggregate_Fields = {
   __typename?: 'organizations_aggregate_fields';
+  avg?: Maybe<Organizations_Avg_Fields>;
   count: Scalars['Int'];
   max?: Maybe<Organizations_Max_Fields>;
   min?: Maybe<Organizations_Min_Fields>;
+  stddev?: Maybe<Organizations_Stddev_Fields>;
+  stddev_pop?: Maybe<Organizations_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Organizations_Stddev_Samp_Fields>;
+  sum?: Maybe<Organizations_Sum_Fields>;
+  var_pop?: Maybe<Organizations_Var_Pop_Fields>;
+  var_samp?: Maybe<Organizations_Var_Samp_Fields>;
+  variance?: Maybe<Organizations_Variance_Fields>;
 };
 
 
@@ -16800,9 +16812,17 @@ export type Organizations_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "organizations" */
 export type Organizations_Aggregate_Order_By = {
+  avg?: InputMaybe<Organizations_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Organizations_Max_Order_By>;
   min?: InputMaybe<Organizations_Min_Order_By>;
+  stddev?: InputMaybe<Organizations_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Organizations_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Organizations_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Organizations_Sum_Order_By>;
+  var_pop?: InputMaybe<Organizations_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Organizations_Var_Samp_Order_By>;
+  variance?: InputMaybe<Organizations_Variance_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "organizations" */
@@ -16810,6 +16830,17 @@ export type Organizations_Arr_Rel_Insert_Input = {
   data: Array<Organizations_Insert_Input>;
   /** upsert condition */
   on_conflict?: InputMaybe<Organizations_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Organizations_Avg_Fields = {
+  __typename?: 'organizations_avg_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by avg() on columns of table "organizations" */
+export type Organizations_Avg_Order_By = {
+  threshold?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "organizations". All fields are combined with a logical 'AND'. */
@@ -16822,6 +16853,7 @@ export type Organizations_Bool_Exp = {
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  current_threshold?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   invites?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
   invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp>;
@@ -16835,6 +16867,7 @@ export type Organizations_Bool_Exp = {
   status_comment?: InputMaybe<String_Comparison_Exp>;
   stripeCustomerID?: InputMaybe<String_Comparison_Exp>;
   stripeSubscriptionID?: InputMaybe<String_Comparison_Exp>;
+  threshold?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -16846,11 +16879,17 @@ export enum Organizations_Constraint {
   OrganizationsSlugKey = 'organizations_slug_key'
 }
 
+/** input type for incrementing numeric columns in table "organizations" */
+export type Organizations_Inc_Input = {
+  threshold?: InputMaybe<Scalars['Int']>;
+};
+
 /** input type for inserting data into table "organizations" */
 export type Organizations_Insert_Input = {
   allowedPrivateRegions?: InputMaybe<Regions_Allowed_Organization_Arr_Rel_Insert_Input>;
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   invites?: InputMaybe<Organization_Member_Invites_Arr_Rel_Insert_Input>;
   members?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
@@ -16862,6 +16901,7 @@ export type Organizations_Insert_Input = {
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -16869,6 +16909,7 @@ export type Organizations_Insert_Input = {
 export type Organizations_Max_Fields = {
   __typename?: 'organizations_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  current_threshold?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   planID?: Maybe<Scalars['uuid']>;
@@ -16876,12 +16917,14 @@ export type Organizations_Max_Fields = {
   status_comment?: Maybe<Scalars['String']>;
   stripeCustomerID?: Maybe<Scalars['String']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by max() on columns of table "organizations" */
 export type Organizations_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
+  current_threshold?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   planID?: InputMaybe<Order_By>;
@@ -16889,6 +16932,7 @@ export type Organizations_Max_Order_By = {
   status_comment?: InputMaybe<Order_By>;
   stripeCustomerID?: InputMaybe<Order_By>;
   stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -16896,6 +16940,7 @@ export type Organizations_Max_Order_By = {
 export type Organizations_Min_Fields = {
   __typename?: 'organizations_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  current_threshold?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   planID?: Maybe<Scalars['uuid']>;
@@ -16903,12 +16948,14 @@ export type Organizations_Min_Fields = {
   status_comment?: Maybe<Scalars['String']>;
   stripeCustomerID?: Maybe<Scalars['String']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by min() on columns of table "organizations" */
 export type Organizations_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
+  current_threshold?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   planID?: InputMaybe<Order_By>;
@@ -16916,6 +16963,7 @@ export type Organizations_Min_Order_By = {
   status_comment?: InputMaybe<Order_By>;
   stripeCustomerID?: InputMaybe<Order_By>;
   stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -16947,6 +16995,7 @@ export type Organizations_Order_By = {
   allowedPrivateRegions_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Order_By>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  current_threshold?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Order_By>;
   members_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
@@ -16958,6 +17007,7 @@ export type Organizations_Order_By = {
   status_comment?: InputMaybe<Order_By>;
   stripeCustomerID?: InputMaybe<Order_By>;
   stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -16971,6 +17021,8 @@ export enum Organizations_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  CurrentThreshold = 'current_threshold',
+  /** column name */
   Id = 'id',
   /** column name */
   Name = 'name',
@@ -16987,12 +17039,15 @@ export enum Organizations_Select_Column {
   /** column name */
   StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
+  Threshold = 'threshold',
+  /** column name */
   UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "organizations" */
 export type Organizations_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
@@ -17001,7 +17056,41 @@ export type Organizations_Set_Input = {
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate stddev on columns */
+export type Organizations_Stddev_Fields = {
+  __typename?: 'organizations_stddev_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev() on columns of table "organizations" */
+export type Organizations_Stddev_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Organizations_Stddev_Pop_Fields = {
+  __typename?: 'organizations_stddev_pop_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev_pop() on columns of table "organizations" */
+export type Organizations_Stddev_Pop_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Organizations_Stddev_Samp_Fields = {
+  __typename?: 'organizations_stddev_samp_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev_samp() on columns of table "organizations" */
+export type Organizations_Stddev_Samp_Order_By = {
+  threshold?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "organizations" */
@@ -17015,6 +17104,7 @@ export type Organizations_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Organizations_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
@@ -17023,13 +17113,27 @@ export type Organizations_Stream_Cursor_Value_Input = {
   status_comment?: InputMaybe<Scalars['String']>;
   stripeCustomerID?: InputMaybe<Scalars['String']>;
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate sum on columns */
+export type Organizations_Sum_Fields = {
+  __typename?: 'organizations_sum_fields';
+  threshold?: Maybe<Scalars['Int']>;
+};
+
+/** order by sum() on columns of table "organizations" */
+export type Organizations_Sum_Order_By = {
+  threshold?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "organizations" */
 export enum Organizations_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
+  /** column name */
+  CurrentThreshold = 'current_threshold',
   /** column name */
   Id = 'id',
   /** column name */
@@ -17047,14 +17151,51 @@ export enum Organizations_Update_Column {
   /** column name */
   StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
+  Threshold = 'threshold',
+  /** column name */
   UpdatedAt = 'updatedAt'
 }
 
 export type Organizations_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Organizations_Inc_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<Organizations_Set_Input>;
   /** filter the rows which have to be updated */
   where: Organizations_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Organizations_Var_Pop_Fields = {
+  __typename?: 'organizations_var_pop_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by var_pop() on columns of table "organizations" */
+export type Organizations_Var_Pop_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Organizations_Var_Samp_Fields = {
+  __typename?: 'organizations_var_samp_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by var_samp() on columns of table "organizations" */
+export type Organizations_Var_Samp_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Organizations_Variance_Fields = {
+  __typename?: 'organizations_variance_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by variance() on columns of table "organizations" */
+export type Organizations_Variance_Order_By = {
+  threshold?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "payment_methods" */
@@ -26166,7 +26307,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, status: Organization_Status_Enum, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -26236,12 +26377,19 @@ export type OrganizationMemberInvitesQueryVariables = Exact<{
 
 export type OrganizationMemberInvitesQuery = { __typename?: 'query_root', organizationMemberInvites: Array<{ __typename?: 'organization_member_invites', id: any, email: any, role: Organization_Members_Role_Enum, createdAt: any, updateAt: any, organization: { __typename?: 'organizations', name: string, slug: string } }> };
 
+export type OrganizationNewRequestsQueryVariables = Exact<{
+  userID: Scalars['uuid'];
+}>;
+
+
+export type OrganizationNewRequestsQuery = { __typename?: 'query_root', organizationNewRequests: Array<{ __typename?: 'organization_new_request', id: any, sessionID: string }> };
+
 export type PostOrganizationRequestMutationVariables = Exact<{
   sessionID: Scalars['String'];
 }>;
 
 
-export type PostOrganizationRequestMutation = { __typename?: 'mutation_root', billingPostOrganizationRequest: { __typename?: 'PostOrganizationRequestResponse', Status: CheckoutStatus, Slug: string } };
+export type PostOrganizationRequestMutation = { __typename?: 'mutation_root', billingPostOrganizationRequest: { __typename?: 'PostOrganizationRequestResponse', Status: CheckoutStatus, Slug: string, ClientSecret?: string | null } };
 
 export type UpdateOrganizationMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -30189,6 +30337,7 @@ export const GetOrganizationDocument = gql`
     id
     name
     slug
+    status
     plan {
       id
       name
@@ -30750,11 +30899,51 @@ export type OrganizationMemberInvitesQueryResult = Apollo.QueryResult<Organizati
 export function refetchOrganizationMemberInvitesQuery(variables: OrganizationMemberInvitesQueryVariables) {
       return { query: OrganizationMemberInvitesDocument, variables: variables }
     }
+export const OrganizationNewRequestsDocument = gql`
+    query organizationNewRequests($userID: uuid!) {
+  organizationNewRequests(where: {userID: {_eq: $userID}}) {
+    id
+    sessionID
+  }
+}
+    `;
+
+/**
+ * __useOrganizationNewRequestsQuery__
+ *
+ * To run a query within a React component, call `useOrganizationNewRequestsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationNewRequestsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOrganizationNewRequestsQuery({
+ *   variables: {
+ *      userID: // value for 'userID'
+ *   },
+ * });
+ */
+export function useOrganizationNewRequestsQuery(baseOptions: Apollo.QueryHookOptions<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>(OrganizationNewRequestsDocument, options);
+      }
+export function useOrganizationNewRequestsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>(OrganizationNewRequestsDocument, options);
+        }
+export type OrganizationNewRequestsQueryHookResult = ReturnType<typeof useOrganizationNewRequestsQuery>;
+export type OrganizationNewRequestsLazyQueryHookResult = ReturnType<typeof useOrganizationNewRequestsLazyQuery>;
+export type OrganizationNewRequestsQueryResult = Apollo.QueryResult<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>;
+export function refetchOrganizationNewRequestsQuery(variables: OrganizationNewRequestsQueryVariables) {
+      return { query: OrganizationNewRequestsDocument, variables: variables }
+    }
 export const PostOrganizationRequestDocument = gql`
     mutation postOrganizationRequest($sessionID: String!) {
   billingPostOrganizationRequest(sessionID: $sessionID) {
     Status
     Slug
+    ClientSecret
   }
 }
     `;
