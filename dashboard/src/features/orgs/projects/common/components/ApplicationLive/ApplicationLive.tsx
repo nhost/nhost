@@ -11,7 +11,6 @@ import { OverviewProjectHealth } from '@/features/orgs/projects/overview/compone
 import { OverviewProjectInfo } from '@/features/orgs/projects/overview/components/OverviewProjectInfo';
 import { OverviewRepository } from '@/features/orgs/projects/overview/components/OverviewRepository';
 import { OverviewTopBar } from '@/features/orgs/projects/overview/components/OverviewTopBar';
-import { OverviewUsage } from '@/features/orgs/projects/overview/components/OverviewUsage';
 import { features } from '@/features/orgs/projects/overview/features';
 import { frameworks } from '@/features/orgs/projects/overview/frameworks';
 
@@ -35,7 +34,7 @@ export default function ApplicationLive({
         <OverviewTopBar />
 
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
-          <div className="order-2 grid grid-flow-row gap-12 lg:order-1 lg:col-span-2">
+          <div className="grid order-2 grid-flow-row gap-12 lg:order-1 lg:col-span-2">
             <OverviewDocumentation
               title="Pick your favorite framework and start learning"
               description="Nhost integrates smoothly with all of the frameworks you already know."
@@ -49,10 +48,8 @@ export default function ApplicationLive({
             />
           </div>
 
-          <div className="order-1 grid grid-flow-row content-start gap-8 lg:order-2 lg:col-span-1 lg:gap-12">
+          <div className="grid content-start order-1 grid-flow-row gap-8 lg:order-2 lg:col-span-1 lg:gap-12">
             <OverviewProjectInfo />
-            <Divider />
-            <OverviewUsage />
           </div>
         </div>
       </Container>
@@ -92,14 +89,12 @@ export default function ApplicationLive({
           />
         </div>
 
-        <div className="grid grid-flow-row content-start gap-8 lg:col-span-1 lg:gap-12">
+        <div className="grid content-start grid-flow-row gap-8 lg:col-span-1 lg:gap-12">
           <OverviewProjectHealth />
           <Divider />
           <OverviewProjectInfo />
           <Divider />
           <OverviewRepository />
-          <Divider />
-          <OverviewUsage />
         </div>
 
         <OverviewDocumentation
