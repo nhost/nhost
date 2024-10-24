@@ -25,6 +25,8 @@ import {
 
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
+import { OrgStatus } from '@/features/orgs/components/OrgStatus';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -45,6 +47,9 @@ export default function AuthenticatedLayout({
   ...props
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
+
+  const { org } = useCurrentOrg();
+
   const isPlatform = useIsPlatform();
 
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
@@ -150,7 +155,10 @@ export default function AuthenticatedLayout({
               className: 'flex flex-col items-center',
             }}
           >
-            {children}
+            <div className="flex flex-col w-full h-full">
+              <OrgStatus />
+              {children}
+            </div>
           </RetryableErrorBoundary>
 
           <InviteNotification />

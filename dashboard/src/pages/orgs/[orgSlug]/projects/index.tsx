@@ -53,7 +53,7 @@ export default function OrgProjects() {
   }
 
   return (
-    <div className="h-full">
+    <div className="h-full bg-accent">
       <ProjectsGrid />
     </div>
   );

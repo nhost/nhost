@@ -170,7 +170,8 @@ export default function CreateOrgDialog() {
           variables: {
             organizationName: name,
             planID: plan,
-            redirectURL: `${window.location.origin}/orgs/verify`,
+            // redirectURL: `${window.location.origin}/orgs/verify`,
+            redirectURL: `https://staging.app.nhost.io/orgs/verify`,
           },
         });
 

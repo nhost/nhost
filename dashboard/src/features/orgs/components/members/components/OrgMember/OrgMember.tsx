@@ -172,7 +172,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
             <div className="flex flex-row items-center gap-2">
               <span className="font-medium">{member.user.displayName}</span>
               {isSelf && (
-                <Badge className="h-5 bg-blue-100 px-[6px] text-[10px] font-bold text-primary-main">
+                <Badge className="pointer-events-none h-5 bg-blue-100 px-[6px] text-[10px] font-bold text-primary-main dark:bg-primary">
                   Me
                 </Badge>
               )}
