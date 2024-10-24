@@ -61,7 +61,7 @@ export default function OrgStatus() {
             <Link href="https://app.nhost.io/support" target="_blank" rel="noopener noreferrer" className="underline font-bold">
               support ticket
             </Link>{' '}
-            to restore access.
+            if you need to restore access to this organization.
           </span>
         }
       />
