@@ -181,7 +181,7 @@ export default function SpendingWarnings() {
         {showAmountDue && (
           <>
             <p>
-              Spent ${amountDue} of ${currentThreshold} (threshold)
+              Spent ${amountDue} of ${currentThreshold} (notification threshold)
             </p>
             <div className="flex flex-row items-center gap-1">
               <Progress value={progress} className="h-2 max-w-xl" />
@@ -203,7 +203,7 @@ export default function SpendingWarnings() {
               value={currentThreshold}
               id="threshold"
               name="threshold"
-              label="Threshold"
+              label="Notification Threshold"
               type="number"
               placeholder="0"
               hideEmptyHelperText
