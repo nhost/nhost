@@ -105,7 +105,7 @@ export default function Usage() {
                     size="sm"
                     className="flex flex-row gap-1 pl-0 pr-4 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                   >
-                    <span>More details</span>
+                    <span>Details</span>
                     <ChevronsUpDown className="h-5 w-5" />
                   </Button>
                 </CollapsibleTrigger>

@@ -33,22 +33,20 @@ import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean().required(),
-  threshold: Yup.number()
-    .test(
-      'is-valid-threshold',
-      `Threshold must be either 0 (disabled) or greater than 110% of your plan's price`,
-      (value: number, { options }) => {
-        const planPrice = options?.context?.planPrice || 0;
-        if (value === 0) {
-          return true;
-        }
-        if (typeof value === 'number' && value > 1.1 * planPrice) {
-          return true;
-        }
-        return false;
-      },
-    )
-    .required(),
+  threshold: Yup.number().test(
+    'is-valid-threshold',
+    `Threshold must be either 0 (disabled) or greater than 110% of your plan's price`,
+    (value: number, { options }) => {
+      const planPrice = options?.context?.planPrice || 0;
+      if (value === 0) {
+        return true;
+      }
+      if (typeof value === 'number' && value > 1.1 * planPrice) {
+        return true;
+      }
+      return false;
+    },
+  ),
 });
 
 type SpendingWarningsFormValues = Yup.InferType<typeof validationSchema>;
@@ -108,21 +106,14 @@ export default function SpendingWarnings() {
   const enabled = watch('enabled');
   const currentThreshold = watch('threshold');
 
-  const showAmountDue =
-    enabled ||
-    (typeof amountDue === 'number' &&
-      !Number.isNaN(amountDue) &&
-      enabled &&
-      currentThreshold !== 0);
-
   const progress = useMemo(() => {
-    if (!showAmountDue || currentThreshold <= 0) {
+    if (!enabled || currentThreshold <= 0) {
       return 0;
     }
 
     const percent = (amountDue / currentThreshold) * 100;
     return Math.min(Math.max(percent, 0), 100);
-  }, [amountDue, showAmountDue, currentThreshold]);
+  }, [amountDue, enabled, currentThreshold]);
 
   const handleThresholdChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.value === '') {
@@ -199,43 +190,40 @@ export default function SpendingWarnings() {
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <div className="flex flex-col">
-          <div className="flex w-full flex-col p-4">
-            <div className="flex flex-row items-center gap-2">
-              <span className="text-muted-foreground">
-                Spending Notifications: ${threshold}
-              </span>
-              <Tooltip
-                placement="right"
-                title={
-                  <span>
-                    You&apos;ll receive email alerts when your usage reaches
-                    75%, 90%, and 100% of your configured value. These are
-                    notifications only - your service will continue running
-                    normally.
-                  </span>
-                }
-              >
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
-              </Tooltip>
-              <Switch
-                id="enabled"
-                checked={enabled}
-                onCheckedChange={handleEnabledChange}
-              />
-            </div>
-          </div>
           {isAdmin && (
-            <div className="">
+            <div>
               <FormField
                 control={form.control}
                 name="threshold"
                 render={({ field }) => (
                   <FormItem className="p-4">
-                    <FormLabel>Notification Threshold</FormLabel>
+                    <FormLabel className="flex flex-row items-center gap-2">
+                      <span className="text-muted-foreground">
+                        Spending Notifications
+                      </span>
+                      <Tooltip
+                        placement="right"
+                        title={
+                          <span>
+                            You&apos;ll receive email alerts when your usage
+                            reaches 75%, 90%, and 100% of your configured value.
+                            These are notifications only - your service will
+                            continue running normally.
+                          </span>
+                        }
+                      >
+                        <InfoIcon
+                          aria-label="Info"
+                          className="h-4 w-4"
+                          color="primary"
+                        />
+                      </Tooltip>
+                      <Switch
+                        id="enabled"
+                        checked={enabled}
+                        onCheckedChange={handleEnabledChange}
+                      />
+                    </FormLabel>
                     <FormControl>
                       <Input
                         prefix="$"
@@ -252,39 +240,36 @@ export default function SpendingWarnings() {
                   </FormItem>
                 )}
               />
-              <div className="flex flex-col gap-4 px-4 pb-4">
-                {showAmountDue && (
-                  <div className="flex flex-1 flex-row gap-1">
-                    <div className="flex max-w-xl flex-1 flex-col">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          ${amountDue}
-                        </span>
-                        <span className="text-muted-foreground">
-                          ${currentThreshold} (threshold)
-                        </span>
-                      </div>
-                      <Progress value={progress} className="h-3" />
-                    </div>
-                    <span className="-mb-1 self-end">
-                      {progress ? `${Math.round(progress)}%` : '\u00A0'}
+            </div>
+          )}
+
+          {enabled && (
+            <div className="flex flex-col gap-4 px-4 pb-4">
+              <div className="flex flex-1 flex-row gap-1">
+                <div className="flex max-w-xl flex-1 flex-col">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">${amountDue}</span>
+                    <span className="text-muted-foreground">
+                      ${currentThreshold} (threshold)
                     </span>
                   </div>
-                )}
-              </div>
-              <div className="flex justify-end gap-2 border-t">
-                <div className="p-4">
-                  <Button type="submit" disabled={!form.formState.isDirty}>
-                    {form.formState.isSubmitting ? (
-                      <ActivityIndicator />
-                    ) : (
-                      'Save'
-                    )}
-                  </Button>
+                  <Progress value={progress} className="h-3" />
                 </div>
+                <span className="-mb-1 self-end">
+                  {progress ? `${Math.round(progress)}%` : '\u00A0'}
+                </span>
               </div>
             </div>
           )}
+          <div className="px-4 pb-4">
+            <Button
+              className="h-fit"
+              type="submit"
+              disabled={!form.formState.isDirty}
+            >
+              {form.formState.isSubmitting ? <ActivityIndicator /> : 'Save'}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>
