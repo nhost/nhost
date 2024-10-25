@@ -65,7 +65,7 @@ export default function UserSelect({
   useEffect(() => {
     fetchOptions({ input: inputValue }, (results) => {
       if (active || inputValue === '') {
-        setUsers(results);
+        setUsers(results || []);
       }
     });
   }, [inputValue, fetchOptions, active]);

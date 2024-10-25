@@ -10,7 +10,6 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 
@@ -26,6 +25,7 @@ import {
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
+import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -63,14 +63,11 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    if (
-      router.query.workspaceSlug === 'local' &&
-      router.query.appSlug === 'local'
-    ) {
+    if (router.query.orgSlug === 'local' && router.query.appSlug === 'local') {
       return;
     }
 
-    router.push('/local/local');
+    router.push('/orgs/local/projects/local');
   }, [isPlatform, router]);
 
   if (isPlatform && isLoading) {

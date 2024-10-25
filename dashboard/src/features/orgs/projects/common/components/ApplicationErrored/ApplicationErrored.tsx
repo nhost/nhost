@@ -5,11 +5,12 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { ApplicationLive } from '@/features/projects/common/components/ApplicationLive';
 import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { getPreviousApplicationState } from '@/features/projects/common/utils/getPreviousApplicationState';
 import type { ApplicationState } from '@/types/application';
@@ -28,11 +29,10 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 export default function ApplicationErrored() {
-  const {
-    currentWorkspace,
-    currentProject,
-    refetch: refetchProject,
-  } = useCurrentWorkspaceAndProject();
+  const { project, refetch: refetchProject } = useProject();
+
+  const { org } = useCurrentOrg();
+
   const [changingApplicationStateLoading, setChangingApplicationStateLoading] =
     useState(false);
 
@@ -43,8 +43,8 @@ export default function ApplicationErrored() {
   // state, but we want to query again to double-check that we have the latest state
   // of the application. @GC.
   const { data, loading, error } = useGetApplicationStateQuery({
-    variables: { appId: currentProject?.id },
-    skip: !currentProject,
+    variables: { appId: project?.id },
+    skip: !project,
   });
 
   const previousState = data?.app?.appStates
@@ -58,7 +58,7 @@ export default function ApplicationErrored() {
   const user = useUserData();
   const isOwner = useIsCurrentUserOwner();
 
-  const appCreatedAt = new Date(currentProject.createdAt).getTime();
+  const appCreatedAt = new Date(project?.createdAt).getTime();
 
   const FIVE_DAYS_IN_MILLISECONDS = 60 * 24 * 60 * 5 * 1000;
   const HALF_DAY_IN_MILLISECONDS = 60 * 12 * 60 * 1000;
@@ -67,34 +67,32 @@ export default function ApplicationErrored() {
     try {
       await deleteApplication({
         variables: {
-          appId: currentProject.id,
+          appId: project.id,
         },
       });
 
-      triggerToast(`${currentProject?.name} deleted`);
+      triggerToast(`${project?.name} deleted`);
     } catch (e) {
-      triggerToast(`Error deleting ${currentProject?.name}`);
-      discordAnnounce(
-        `Error deleting app: ${currentProject?.name} (${user.email})`,
-      );
+      triggerToast(`Error deleting ${project?.name}`);
+      discordAnnounce(`Error deleting app: ${project?.name} (${user.email})`);
       return;
     }
     try {
       await insertApp({
         variables: {
           app: {
-            name: currentProject.name,
-            slug: currentProject.slug,
-            workspaceId: currentWorkspace.id,
-            regionId: currentProject.region.id,
+            name: project.name,
+            slug: project.slug,
+            organizationID: org.id,
+            regionId: project.region.id,
           },
         },
       });
-      discordAnnounce(`Recreating: ${currentProject?.name} (${user.email})`);
-      triggerToast(`Recreating ${currentProject?.name} `);
+      discordAnnounce(`Recreating: ${project?.name} (${user.email})`);
+      triggerToast(`Recreating ${project?.name} `);
       await refetchProject();
     } catch (e) {
-      triggerToast(`Error trying to recreate: ${currentProject?.name}`);
+      triggerToast(`Error trying to recreate: ${project?.name}`);
     }
   }
 
@@ -103,18 +101,18 @@ export default function ApplicationErrored() {
     try {
       await updateApplication({
         variables: {
-          appId: currentProject?.id,
+          appId: project?.id,
           app: {
             desiredState: ApplicationStatus.Live,
           },
         },
       });
 
-      triggerToast(`${currentProject?.name} set to awake.`);
+      triggerToast(`${project?.name} set to awake.`);
     } catch (e) {
-      triggerToast(`Error trying to awake ${currentProject?.name}`);
+      triggerToast(`Error trying to awake ${project?.name}`);
       discordAnnounce(
-        `Error trying to awake app: ${currentProject?.name} (${user.email})`,
+        `Error trying to awake app: ${project?.name} (${user.email})`,
       );
     }
   }
@@ -138,11 +136,11 @@ export default function ApplicationErrored() {
 
   if (loading || previousState === null) {
     return (
-      <Container className="mx-auto mt-12 max-w-sm text-center">
+      <Container className="max-w-sm mx-auto mt-12 text-center">
         <ActivityIndicator
           delay={500}
           label="Loading application state..."
-          className="mx-auto inline-grid"
+          className="inline-grid mx-auto"
         />
       </Container>
     );
@@ -172,8 +170,8 @@ export default function ApplicationErrored() {
           // which instead of deleting just an application, it deletes and recreates.
           handler={recreateApplication}
           close={() => setShowRecreateModal(false)}
-          title={`Recreate project ${currentProject.name}?`}
-          description={`The project ${currentProject?.name} will be removed and then re-created. All data will be lost and there will be no way to
+          title={`Recreate project ${project.name}?`}
+          description={`The project ${project?.name} will be removed and then re-created. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
         />
       </Modal>
@@ -184,14 +182,14 @@ export default function ApplicationErrored() {
       >
         <RemoveApplicationModal
           close={() => setShowDeleteModal(false)}
-          title={`Remove project ${currentProject.name}?`}
-          description={`The project ${currentProject?.name} will be removed. All data will be lost and there will be no way to
+          title={`Remove project ${project.name}?`}
+          description={`The project ${project?.name} will be removed. All data will be lost and there will be no way to
         recover the app once it has been deleted.`}
         />
       </Modal>
 
-      <Container className="mx-auto mt-12 max-w-sm text-center">
-        <div className="mx-auto flex w-centImage flex-col text-center">
+      <Container className="max-w-sm mx-auto mt-12 text-center">
+        <div className="flex flex-col mx-auto text-center w-centImage">
           <Image
             src="/assets/ProvisioningFailed.svg"
             alt="Danger sign"
@@ -208,7 +206,7 @@ export default function ApplicationErrored() {
           keeps happening, contact support.
         </Text>
 
-        <div className="mx-auto mt-6 grid grid-flow-row gap-2">
+        <div className="grid grid-flow-row gap-2 mx-auto mt-6">
           {(previousState === ApplicationStatus.Provisioning ||
             previousState === ApplicationStatus.Unpausing) &&
           currentDate - appCreatedAt < FIVE_DAYS_IN_MILLISECONDS ? (
