@@ -198,9 +198,7 @@ export default function SpendingWarnings() {
                 render={({ field }) => (
                   <FormItem className="p-4">
                     <FormLabel className="flex flex-row items-center gap-2">
-                      <span className="text-muted-foreground">
-                        Spending Notifications
-                      </span>
+                      <span>Spending Notifications</span>
                       <Tooltip
                         placement="right"
                         title={
