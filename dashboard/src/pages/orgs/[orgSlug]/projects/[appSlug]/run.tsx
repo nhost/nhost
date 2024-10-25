@@ -1,5 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -9,7 +10,6 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   useRunServices,
@@ -119,10 +119,13 @@ export default function RunPage() {
 
   if (isPlatform && isPlanFree) {
     return (
-      <Container className="w-full p-0">
-        <UpgradeNotification
-          message="Unlock Nhost Run by upgrading your organization to the Pro plan."
-          className="mt-4"
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent"
+        rootClassName="bg-transparent"
+      >
+        <UpgradeToProBanner
+          title="To unlock Nhost Run, transfer this project to a Pro or Team organization."
+          description=""
         />
       </Container>
     );

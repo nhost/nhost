@@ -75,7 +75,8 @@ export default function ResourcesConfirmationDialog({
         priceForTotalAvailableVCPU,
         (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
           RESOURCE_VCPU_PRICE,
-      ) + proPlan.price
+      // ) + proPlan.price
+      )
     : proPlan.price;
 
   if (!loading && !proPlan) {
@@ -129,10 +130,10 @@ export default function ResourcesConfirmationDialog({
       )}
 
       <Box className="grid grid-flow-row gap-4">
-        <Box className="grid grid-flow-col justify-between gap-2">
+        {/* <Box className="grid grid-flow-col justify-between gap-2">
           <Text className="font-medium">{proPlan.name} Plan</Text>
           <Text>${proPlan.price.toFixed(2)}/mo</Text>
-        </Box>
+        </Box> */}
 
         <Box className="grid grid-flow-row gap-1.5">
           <Box className="grid grid-flow-col items-center justify-between gap-2">
@@ -219,6 +220,10 @@ export default function ResourcesConfirmationDialog({
 
           <Text>${updatedPrice.toFixed(2)}/mo</Text>
         </Box>
+        <Text className="text-xs text-gray-400">
+          Note: Your organization&apos;s $15 worth of credits cover for both shared
+          and dedicated compute.
+        </Text>
       </Box>
 
       <Box className="grid grid-flow-row gap-2">

@@ -1,10 +1,9 @@
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AISettings } from '@/features/orgs/projects/ai/settings/components';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import type { ReactElement } from 'react';
 
@@ -23,13 +22,24 @@ export default function AISettingsPage() {
 
   if (org?.plan?.isFree) {
     return (
-      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
-        <UpgradeNotification
-          title="Upgrade to Pro."
-          message="Graphite is an addon to the Pro plan. To unlock it, please upgrade to Pro first."
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent"
+        rootClassName="bg-transparent"
+      >
+        <UpgradeToProBanner
+          title="To unlock AI, transfer this project to a Pro or Team organization."
+          description=""
         />
-      </Box>
+      </Container>
     );
+    // return (
+    //   <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+    //     <UpgradeNotification
+    //       title="Upgrade to Pro."
+    //       message="Graphite is an addon to the Pro plan. To unlock it, please upgrade to Pro first."
+    //     />
+    //   </Box>
+    // );
   }
 
   if (error) {

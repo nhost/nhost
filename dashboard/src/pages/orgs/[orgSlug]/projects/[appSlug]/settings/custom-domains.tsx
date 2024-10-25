@@ -1,3 +1,4 @@
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
@@ -5,7 +6,6 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { AuthDomain } from '@/features/orgs/projects/custom-domains/settings/components/AuthDomain';
 import { DatabaseDomain } from '@/features/orgs/projects/custom-domains/settings/components/DatabaseDomain';
 import { HasuraDomain } from '@/features/orgs/projects/custom-domains/settings/components/HasuraDomain';
@@ -23,11 +23,10 @@ export default function CustomDomains() {
         className="grid grid-flow-row gap-6 bg-transparent"
         rootClassName="bg-transparent"
       >
-        {/* <UpgradeToProBanner
-          title="Upgrade to Nhost Pro to unlock custom domains"
+        <UpgradeToProBanner
+          title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
           description=""
-        /> */}
-        <UpgradeNotification message="Unlock Custom Domains by upgrading your organization to the Pro plan." />
+        />
       </Container>
     );
   }
