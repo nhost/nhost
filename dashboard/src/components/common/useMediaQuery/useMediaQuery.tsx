@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import resolveConfig from 'tailwindcss/resolveConfig';
 // eslint-disable-next-line no-restricted-imports
+import { useEffect, useState } from 'react';
 import tailwindConfig from '../../../../tailwind.config';
 
 const fullConfig = resolveConfig(tailwindConfig);

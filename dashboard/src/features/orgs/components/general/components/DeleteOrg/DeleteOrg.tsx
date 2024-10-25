@@ -1,3 +1,4 @@
+import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   AlertDialog,
@@ -21,6 +22,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 export default function DeleteOrg() {
+  const { maintenanceActive } = useUI();
   const router = useRouter();
   const { org } = useCurrentOrg();
   const { refetch: refetchOrgs } = useOrgs();
@@ -68,7 +70,7 @@ export default function DeleteOrg() {
           <AlertDialogTrigger asChild>
             <Button
               variant="destructive"
-              disabled={deleting || org?.plan?.isFree}
+              disabled={deleting || org?.plan?.isFree || maintenanceActive}
             >
               Delete
             </Button>
@@ -129,7 +131,11 @@ export default function DeleteOrg() {
                   await handleDeleteOrg();
                 }}
                 className={buttonVariants({ variant: 'destructive' })}
-                disabled={deleting || !(deleteCheck1 && deleteCheck2)}
+                disabled={
+                  deleting ||
+                  !(deleteCheck1 && deleteCheck2) ||
+                  maintenanceActive
+                }
               >
                 {deleting ? <ActivityIndicator /> : 'Delete'}
               </AlertDialogAction>

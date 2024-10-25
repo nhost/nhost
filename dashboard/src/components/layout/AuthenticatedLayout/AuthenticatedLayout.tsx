@@ -13,6 +13,12 @@ import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 
+import { useMediaQuery } from '@/components/common/useMediaQuery';
+import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
+import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
+import { OrgStatus } from '@/features/orgs/components/OrgStatus';
+import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
+import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import {
@@ -21,11 +27,6 @@ import {
   type DetailedHTMLProps,
   type HTMLProps,
 } from 'react';
-
-import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
-import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
-import { OrgStatus } from '@/features/orgs/components/OrgStatus';
-import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -42,13 +43,15 @@ export default function AuthenticatedLayout({
   ...props
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
-
   const isPlatform = useIsPlatform();
+  const isMdOrLarger = useMediaQuery('md');
 
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const isHealthy = useIsHealthy();
   const [mainNavContainer, setMainNavContainer] = useState(null);
   const { mainNavPinned } = useTreeNavState();
+
+  useNotFoundRedirect();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -131,10 +134,10 @@ export default function AuthenticatedLayout({
         className="relative flex flex-row h-full overflow-x-hidden"
         ref={setMainNavContainer}
       >
-        {mainNavPinned && <PinnedMainNav />}
+        {mainNavPinned && isMdOrLarger && <PinnedMainNav />}
 
         <div className="relative flex flex-row w-full h-full overflow-hidden bg-accent">
-          {!mainNavPinned && (
+          {(!mainNavPinned || !isMdOrLarger) && (
             <div className="flex justify-center w-6 h-full">
               <MainNav container={mainNavContainer} />
             </div>

@@ -110,7 +110,7 @@ export default function DeploymentDetailsPage() {
             className="self-center font-mono font-medium"
             target="_blank"
             rel="noreferrer"
-            href={`https://github.com/${project.githubRepository?.fullName}/commit/${deployment.commitSHA}`}
+            href={`https://github.com/${project?.githubRepository?.fullName}/commit/${deployment?.commitSHA}`}
             underline="hover"
           >
             {deployment.commitSHA.substring(0, 7)}

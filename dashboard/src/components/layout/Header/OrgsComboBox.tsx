@@ -159,43 +159,49 @@ export default function OrgsComboBox() {
               ))}
             </CommandGroup>
 
-            <CommandSeparator />
+            {workspaces.length > 0 && (
+              <>
+                <CommandSeparator />
 
-            <CommandGroup heading="Workspaces">
-              {workspacesOptions.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  className="flex items-center justify-between"
-                  onSelect={() => {
-                    setSelectedItem(option);
-                    setOpen(false);
+                <CommandGroup heading="Workspaces">
+                  {workspacesOptions.map((option) => (
+                    <CommandItem
+                      key={option.value}
+                      value={option.label}
+                      className="flex items-center justify-between"
+                      onSelect={() => {
+                        setSelectedItem(option);
+                        setOpen(false);
 
-                    // persist last slug in local storage
-                    setLastSlug(option.value);
+                        // persist last slug in local storage
+                        setLastSlug(option.value);
 
-                    if (option.type === 'organization') {
-                      push(`/orgs/${option.value}/projects`);
-                    } else {
-                      push(`/${option.value}`);
-                    }
-                  }}
-                >
-                  <div className="flex items-center">
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedItem?.value === option.value
-                          ? 'opacity-100'
-                          : 'opacity-0',
-                      )}
-                    />
-                    <span className="truncate max-w-52">{option.label}</span>
-                  </div>
-                  {renderBadge(option.plan)}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+                        if (option.type === 'organization') {
+                          push(`/orgs/${option.value}/projects`);
+                        } else {
+                          push(`/${option.value}`);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center">
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            selectedItem?.value === option.value
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                          )}
+                        />
+                        <span className="truncate max-w-52">
+                          {option.label}
+                        </span>
+                      </div>
+                      {renderBadge(option.plan)}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>
