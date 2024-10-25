@@ -2,14 +2,17 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v2/Button';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import { Progress } from '@/components/ui/v3/progress';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
+  GetOrganizationSpendingWarningDocument,
   useBillingGetNextInvoiceQuery,
   useGetOrganizationSpendingWarningQuery,
   useUpdateOrganizationSpendingWarningMutation,
@@ -66,7 +69,9 @@ export default function SpendingWarnings() {
 
   const isAdmin = useIsOrgAdmin();
 
-  const [updateConfig] = useUpdateOrganizationSpendingWarningMutation();
+  const [updateConfig] = useUpdateOrganizationSpendingWarningMutation({
+    refetchQueries: [GetOrganizationSpendingWarningDocument],
+  });
 
   const { openDialog } = useDialog();
 
@@ -157,9 +162,6 @@ export default function SpendingWarnings() {
   if (loading || loadingInvoice) {
     return (
       <div className="flex flex-col">
-        <div className="flex w-full flex-row items-center justify-between border-b p-4">
-          <span>Spending Warnings</span>
-        </div>
         <div className="flex flex-col gap-4 p-4">
           <div className="flex h-32 place-content-center">
             <ActivityIndicator
@@ -173,11 +175,26 @@ export default function SpendingWarnings() {
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="flex w-full flex-row items-center justify-between border-b p-4">
-        <span>Spending Warnings</span>
+    <div className="flex flex-col p-4">
+      <div className="flex w-full flex-col">
+        <div className="flex flex-row items-center gap-2">
+          <span className="text-muted-foreground">Spending Notifications</span>
+          <Tooltip
+            placement="right"
+            title={
+              <span>
+                You&apos;ll receive email alerts when your usage reaches 75%,
+                90%, and 100% of your configured value. These are notifications
+                only - your service will continue running normally.
+              </span>
+            }
+          >
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          </Tooltip>
+        </div>
+        <span className="">${threshold}</span>
       </div>
-      <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-4">
         {showAmountDue && (
           <>
             <p>
@@ -189,15 +206,10 @@ export default function SpendingWarnings() {
             </div>
           </>
         )}
-        <p>
-          You&apos;ll receive email alerts when your usage reaches 75%, 90%, and
-          100% of your configured value. These are notifications only - your
-          service will continue running normally.
-        </p>
       </div>
       {isAdmin && (
         <FormProvider {...form}>
-          <Form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
+          <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
               onChange={handleThresholdChange}
               value={currentThreshold}
@@ -212,12 +224,7 @@ export default function SpendingWarnings() {
               helperText={errors.threshold?.message}
             />
             <div className="grid grid-flow-col items-center justify-end pt-3.5">
-              <Button
-                variant={submitDisabled ? 'outlined' : 'contained'}
-                color={submitDisabled ? 'secondary' : 'primary'}
-                type="submit"
-                disabled={submitDisabled}
-              >
+              <Button type="submit" className="h-fit" disabled={submitDisabled}>
                 Save
               </Button>
             </div>

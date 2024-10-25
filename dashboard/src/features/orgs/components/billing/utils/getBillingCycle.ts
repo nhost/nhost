@@ -20,6 +20,8 @@ export const getBillingCycleInfo = () => {
   const progress = (daysPassed / totalDays) * 100;
 
   return {
+    billingCycleStart,
+    billingCycleEnd,
     billingCycleRange: `${billingCycleStart} - ${billingCycleEnd}`,
     progress: Math.min(Math.max(progress, 0), 100), // Ensure the value is between 0 and 100
   };
