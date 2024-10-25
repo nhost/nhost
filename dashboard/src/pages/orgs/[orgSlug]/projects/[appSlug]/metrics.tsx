@@ -1,3 +1,4 @@
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,7 +9,6 @@ import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon'
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -32,8 +32,14 @@ export default function MetricsPage() {
 
   if (org.plan.isFree) {
     return (
-      <Container>
-        <UpgradeNotification message="Unlock metrics by upgrading your project to the Pro plan." />
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent"
+        rootClassName="bg-transparent"
+      >
+        <UpgradeToProBanner
+          title="To unlock Grafana Metrics & Alerts, transfer this project to a Pro or Team organization."
+          description=""
+        />
       </Container>
     );
   }

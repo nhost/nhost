@@ -1,5 +1,7 @@
 /* eslint-disable import/extensions */
 import { useDialog } from '@/components/common/DialogProvider';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -19,7 +21,6 @@ import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
@@ -73,15 +74,15 @@ export default function AssistantsPage() {
 
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <Box
-        className="w-full p-4"
-        sx={{ backgroundColor: 'background.default' }}
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent"
+        rootClassName="bg-transparent"
       >
-        <UpgradeNotification
-          title="Upgrade to Nhost Pro."
-          message="Unlock Graphite by upgrading your organization to the Pro plan."
+        <UpgradeToProBanner
+          title="To unlock Nhost Assistants, transfer this project to a Pro or Team organization."
+          description=""
         />
-      </Box>
+      </Container>
     );
   }
 

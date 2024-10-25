@@ -168,8 +168,8 @@ export default function ResourcesForm() {
   );
 
   const initialPrice = isPlatform
-    ? proPlan.price +
-      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
+    // ? proPlan.price +
+    ? (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
     : 0;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
@@ -318,7 +318,8 @@ export default function ResourcesForm() {
       <Form onSubmit={handleConfirm}>
         <SettingsContainer
           title="Compute Resources"
-          description="See how much compute you have available and customise allocation on this page."
+          description="Customize the compute resources for your project. Your organization's $15 worth of credits cover for both shared and dedicated compute."
+          // description="See how much compute you have available and customise allocation on this page."
           className="gap-0 px-0"
           showSwitch
           switchId="enabled"

@@ -1,3 +1,4 @@
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -5,23 +6,10 @@ import { Chip } from '@/components/ui/v2/Chip';
 import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { BackupList } from '@/features/orgs/projects/backups/components/BackupList';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import type { ReactElement } from 'react';
 
 function BackupsContent() {
-  const { currentOrg: org } = useOrgs();
-  const isPlanFree = org.plan.isFree;
-
-  if (isPlanFree) {
-    return (
-      <UpgradeNotification
-        message="Unlock backups by upgrading your project to the Pro plan."
-        className="mt-4"
-      />
-    );
-  }
-
   return (
     <div className="grid w-full grid-flow-row gap-6 mt-6">
       <div>
@@ -39,13 +27,29 @@ function BackupsContent() {
 
 export default function BackupsPage() {
   const { currentOrg: org, loading } = useOrgs();
+  const isPlanFree = org.plan.isFree;
 
   if (loading) {
     return <ActivityIndicator label="Loading project..." delay={1000} />;
   }
 
+  if (isPlanFree) {
+    return (
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent"
+        rootClassName="bg-transparent"
+      >
+        <UpgradeToProBanner
+          title="To unlock Database Backups, transfer this project to a Pro or Team organization."
+          description=""
+        />
+      </Container>
+    )
+  }
+
+
   return (
-    <Container className="max-w-2.5xl">
+    <Container className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6">
       <div className="grid justify-between grid-flow-col gap-2">
         <Text className="text-2xl font-medium" variant="h1">
           Backups
