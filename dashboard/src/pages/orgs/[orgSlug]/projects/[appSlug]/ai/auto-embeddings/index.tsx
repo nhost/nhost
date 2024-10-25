@@ -1,6 +1,8 @@
 /* eslint-disable import/extensions */
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -14,7 +16,6 @@ import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
@@ -87,15 +88,15 @@ export default function AutoEmbeddingsPage() {
 
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <Box
-        className="w-full p-4"
-        sx={{ backgroundColor: 'background.default' }}
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent"
+        rootClassName="bg-transparent"
       >
-        <UpgradeNotification
-          title="Upgrade to Nhost Pro."
-          message="Unlock Graphite by upgrading your organization to the Pro plan."
+        <UpgradeToProBanner
+          title="To unlock Auto-Embeddings, transfer this project to a Pro or Team organization."
+          description=""
         />
-      </Box>
+      </Container>
     );
   }
 

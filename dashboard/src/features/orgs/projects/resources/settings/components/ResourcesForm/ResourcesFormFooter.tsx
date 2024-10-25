@@ -77,7 +77,7 @@ export default function ResourcesFormFooter() {
           priceForTotalAvailableVCPU,
           (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
             RESOURCE_VCPU_PRICE,
-        ) + proPlan.price
+        )
       );
     }
 
@@ -103,7 +103,7 @@ export default function ResourcesFormFooter() {
         </Link>
       </Text>
 
-      {(enabled || isDirty) && (
+      {(enabled) && (
         <Box className="grid items-center justify-between grid-flow-col gap-4">
           <Box className="grid grid-flow-col items-center gap-1.5">
             <Text>
@@ -120,8 +120,8 @@ export default function ResourcesFormFooter() {
 
           <Button
             type="submit"
-            variant={isDirty ? 'contained' : 'outlined'}
-            color={isDirty ? 'primary' : 'secondary'}
+            variant='outlined'
+            color='secondary'
             disabled={!isDirty}
           >
             Save

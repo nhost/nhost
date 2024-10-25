@@ -1,8 +1,8 @@
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ResourcesForm } from '@/features/orgs/projects/resources/settings/components/ResourcesForm';
@@ -18,7 +18,15 @@ export default function ResourceSettingsPage() {
 
   if (org?.plan?.isFree) {
     return (
-      <UpgradeNotification message="Unlock Compute settings by upgrading your organization to the Pro plan." />
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent"
+        rootClassName="bg-transparent"
+      >
+        <UpgradeToProBanner
+          title="To unlock Compute Resources, transfer this project to a Pro or Team organization."
+          description=""
+        />
+      </Container>
     );
   }
 

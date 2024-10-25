@@ -1,3 +1,4 @@
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Option } from '@/components/ui/v2/Option';
@@ -8,7 +9,6 @@ import { useEffect, useState, type ReactElement } from 'react';
 import DeleteSMTPSettings from '@/features/orgs/projects/authentication/settings/components/DeleteSMTPSettings/DeleteSMTPSettings';
 import { PostmarkSettings } from '@/features/orgs/projects/authentication/settings/components/PostmarkSettings';
 import { SMTPSettings } from '@/features/orgs/projects/authentication/settings/components/SMTPSettings';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -39,10 +39,13 @@ export default function SMTPSettingsPage() {
   if (isPlatform && org?.plan?.isFree) {
     return (
       <Container
-        className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
+        className="grid grid-flow-row gap-6 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UpgradeNotification message="Unlock SMTP settings by upgrading your project to the Pro plan." />
+        <UpgradeToProBanner
+          title="To unlock custom SMTP, transfer this project to a Pro or Team organization."
+          description=""
+        />
       </Container>
     );
   }
