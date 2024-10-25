@@ -66,8 +66,8 @@ function useSyncedTreeViewState(
 function TreeNavStateProvider({ children }: TreeNavProviderProps) {
   const [open, setOpen] = useState(false);
   const [mainNavPinned, setMainNavPinned] = useSSRLocalStorage(
-    'nav-tree-pin',
-    false,
+    'pin-nav-tree',
+    true,
   );
   const orgsTreeViewState = useSyncedTreeViewState(useNavTreeStateFromURL);
 
