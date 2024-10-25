@@ -2,6 +2,7 @@ import NavTree from '@/components/layout/MainNav/NavTree';
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
+import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { Pin, PinOff } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
@@ -13,6 +14,8 @@ export default function PinnedMainNav() {
     asPath,
     query: { workspaceSlug, orgSlug },
   } = useRouter();
+
+  const { workspaces } = useWorkspaces();
 
   const scrollContainerRef = useRef();
 
@@ -74,10 +77,14 @@ export default function PinnedMainNav() {
           <NavTree />
           <CreateOrgDialog />
         </div>
-        <Separator className="mx-auto my-2" />
-        <div className="px-2">
-          <WorkspacesNavTree />
-        </div>
+        {workspaces.length > 0 && (
+          <>
+            <Separator className="mx-auto my-2" />
+            <div className="px-2">
+              <WorkspacesNavTree />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
