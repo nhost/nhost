@@ -89,14 +89,11 @@ export default function TransferProjectDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="text-foreground sm:max-w-xl">
-        <DialogHeader className="flex gap-2">
+        <DialogHeader>
           <DialogTitle>
             Move the current project to a different organization.
           </DialogTitle>
-          <DialogDescription>
-            To transfer a project between two organizations, you must be ADMIN
-            in both.
-          </DialogDescription>
+          <DialogDescription />
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

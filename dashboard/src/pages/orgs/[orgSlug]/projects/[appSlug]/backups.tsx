@@ -6,11 +6,11 @@ import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { BackupList } from '@/features/orgs/projects/backups/components/BackupList';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import type { ReactElement } from 'react';
 
 function BackupsContent() {
-  const { org } = useCurrentOrg();
+  const { currentOrg: org } = useOrgs();
   const isPlanFree = org.plan.isFree;
 
   if (isPlanFree) {
@@ -38,7 +38,7 @@ function BackupsContent() {
 }
 
 export default function BackupsPage() {
-  const { org, loading } = useCurrentOrg();
+  const { currentOrg: org, loading } = useOrgs();
 
   if (loading) {
     return <ActivityIndicator label="Loading project..." delay={1000} />;
@@ -52,8 +52,8 @@ export default function BackupsPage() {
         </Text>
 
         <Chip
-          color={org.plan.isFree ? 'default' : 'success'}
-          label={org.plan.isFree ? 'Off' : 'Live'}
+          color={org?.plan.isFree ? 'default' : 'success'}
+          label={org?.plan.isFree ? 'Off' : 'Live'}
           size="small"
         />
       </div>

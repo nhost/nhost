@@ -1,5 +1,4 @@
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { ApplicationErrored } from '@/features/projects/common/components/ApplicationErrored';
 import { ApplicationLive } from '@/features/projects/common/components/ApplicationLive';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { ReactElement } from 'react';

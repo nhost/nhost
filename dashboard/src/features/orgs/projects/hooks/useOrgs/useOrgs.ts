@@ -1,3 +1,4 @@
+import { localOrganization } from '@/features/orgs/utils/local-dashboard';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetOrganizationsQuery,
@@ -44,9 +45,21 @@ export default function useOrgs(): UseOrgsReturnType {
   const currentOrgSlug = router.query.orgSlug as string | undefined;
   const currentOrg = orgs.find((org) => org.slug === currentOrgSlug);
 
+  if (isPlatform) {
+    return {
+      orgs,
+      currentOrg,
+      loading: data ? false : loading || isLoading,
+      error: error
+        ? new Error(error?.message || 'Unknown error occurred.')
+        : null,
+      refetch,
+    };
+  }
+
   return {
-    orgs,
-    currentOrg,
+    orgs: [localOrganization],
+    currentOrg: localOrganization,
     loading: data ? false : loading || isLoading,
     error: error
       ? new Error(error?.message || 'Unknown error occurred.')

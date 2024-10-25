@@ -3,10 +3,19 @@ import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
+import { ApplicationErrored } from '@/features/orgs/projects/common/components/ApplicationErrored';
+import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
+import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
+import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
+import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
+import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ApplicationStatus } from '@/types/application';
 import { NextSeo } from 'next-seo';
-// import { useRouter } from 'next/router';
+import { useRouter } from 'next/router';
+import { useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
@@ -18,84 +27,65 @@ export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
 
 function ProjectLayoutContent({
   children,
-  mainContainerProps: {
-    className: mainContainerClassName,
-    ...mainContainerProps
-  } = {},
+  mainContainerProps = {},
 }: ProjectLayoutProps) {
-  const { project, loading, error } = useProject();
+  const {
+    query: { appSlug },
+  } = useRouter();
 
-  // const router = useRouter();
-  // const shouldDisplayNav = useNavigationVisible();
   const isPlatform = useIsPlatform();
+  const { state } = useAppState();
+  const { project, loading, error } = useProject({ poll: true });
 
-  // const pathWithoutWorkspaceAndProject = router.asPath.replace(
-  //   /^\/[\w\-_[\]]+\/[\w\-_[\]]+/i,
-  //   '',
-  // );
+  // Render application state based on the current state
+  const projectPageContent = useMemo(() => {
+    if (!appSlug || state === undefined) {
+      return children;
+    }
 
-  // const isRestrictedPath =
-  //   !isPlatform &&
-  //   nhostRoutes.some((route) =>
-  //     pathWithoutWorkspaceAndProject.startsWith(
-  //       route.relativeMainPath || route.relativePath,
-  //     ),
-  //   );
+    switch (state) {
+      case ApplicationStatus.Empty:
+      case ApplicationStatus.Provisioning:
+        return <ApplicationProvisioning />;
+      case ApplicationStatus.Errored:
+        return <ApplicationErrored />;
+      case ApplicationStatus.Pausing:
+      case ApplicationStatus.Paused:
+        return <ApplicationPaused />;
+      case ApplicationStatus.Unpausing:
+        return <ApplicationUnpausing />;
+      case ApplicationStatus.Restoring:
+        return <ApplicationRestoring />;
+      case ApplicationStatus.Updating:
+      case ApplicationStatus.Live:
+      case ApplicationStatus.Migrating:
+        return children;
+      default:
+        return <ApplicationUnknown />;
+    }
+  }, [state, children, appSlug]);
 
-  // useNotFoundRedirect();
-
-  // useEffect(() => {
-  //   if (isPlatform || !router.isReady) {
-  //     return;
-  //   }
-
-  //   TODO // Double check what restricted path means here
-  //   if (isRestrictedPath) {
-  //     router.push('/local/local');
-  //   }
-  // }, [isPlatform, isRestrictedPath, router]);
-
-  // if (isRestrictedPath || loading) {
-  //   return <LoadingScreen />;
-  // }
-
+  // Handle loading state
   if (loading) {
     return <LoadingScreen />;
   }
 
+  // Handle error state
   if (error) {
     throw error;
-  }
-
-  if (!isPlatform) {
-    return (
-      <Box
-        component="main"
-        className={twMerge(
-          'relative flex-auto overflow-y-auto',
-          mainContainerClassName,
-        )}
-        {...mainContainerProps}
-      >
-        {children}
-
-        <NextSeo title="Local App" />
-      </Box>
-    );
   }
 
   return (
     <Box
       component="main"
       className={twMerge(
-        'relative flex-auto overflow-y-auto',
-        mainContainerClassName,
+        'relative h-full flex-auto overflow-y-auto',
+        mainContainerProps.className,
       )}
       {...mainContainerProps}
     >
-      {children}
-
-      <NextSeo title={project?.name} />
+      {projectPageContent}
+      <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
     </Box>
   );
 }

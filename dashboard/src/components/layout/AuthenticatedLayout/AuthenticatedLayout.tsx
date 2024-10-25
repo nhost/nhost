@@ -25,6 +25,7 @@ import {
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
+import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -62,10 +63,7 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    if (
-      router.query.orgSlug === 'local' &&
-      router.query.appSubdomain === 'local'
-    ) {
+    if (router.query.orgSlug === 'local' && router.query.appSlug === 'local') {
       return;
     }
 

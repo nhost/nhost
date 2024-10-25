@@ -4,16 +4,16 @@ import { Modal } from '@/components/ui/v1/Modal';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import Image from 'next/image';
 import { useState } from 'react';
 
 export default function ApplicationUnknown() {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const isOwner = useIsCurrentUserOwner();
 
@@ -25,13 +25,13 @@ export default function ApplicationUnknown() {
       >
         <RemoveApplicationModal
           close={() => setShowDeleteModal(false)}
-          title={`Remove project ${currentProject.name}?`}
-          description={`The project ${currentProject.name} will be removed. All data will be lost and there will be no way to
+          title={`Remove project ${project.name}?`}
+          description={`The project ${project.name} will be removed. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
         />
       </Modal>
-      <Container className="mx-auto mt-8 grid max-w-sm grid-flow-row gap-4 text-center">
-        <div className="mx-auto flex w-centImage flex-col text-center">
+      <Container className="grid max-w-sm grid-flow-row gap-4 mx-auto mt-8 text-center">
+        <div className="flex flex-col mx-auto text-center w-centImage">
           <Image
             src="/assets/ProvisioningFailed.svg"
             alt="Danger sign"
@@ -51,7 +51,7 @@ export default function ApplicationUnknown() {
           </Text>
         </div>
 
-        <div className="mx-auto grid grid-flow-row gap-2">
+        <div className="grid grid-flow-row gap-2 mx-auto">
           <Dropdown.Root>
             <Dropdown.Trigger
               hideChevron

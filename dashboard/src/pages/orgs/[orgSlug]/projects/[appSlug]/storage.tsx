@@ -40,11 +40,5 @@ export default function StoragePage() {
 }
 
 StoragePage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{ sx: { backgroundColor: 'background.default' } }}
-    >
-      {page}
-    </ProjectLayout>
-  );
+  return <ProjectLayout>{page}</ProjectLayout>;
 };
