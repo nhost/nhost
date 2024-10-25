@@ -108,7 +108,6 @@ export default function OverviewTopBar() {
 
       <div className="flex flex-col gap-2 sm:flex-row">
         {isPro && isOwner && <MigrateProjectToOrg />}
-        <MigrateProjectToOrg />
         <Link
           href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/general`}
           passHref
