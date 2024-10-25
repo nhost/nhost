@@ -10,12 +10,12 @@ function StatusBanner({
   description,
 }: {
   title: string;
-  description: React.ReactNode; 
+  description: React.ReactNode;
 }) {
   return (
-    <div className="p-4 text-white bg-destructive m-4 rounded-lg">
+    <div className="m-4 rounded-lg bg-destructive p-4 text-white">
       <div className="flex items-center gap-2">
-        <TriangleAlert className="w-4 h-4" />
+        <TriangleAlert className="h-4 w-4" />
         <h3 className="font-medium">{title}</h3>
       </div>
       <p>{description}</p>
@@ -57,8 +57,13 @@ export default function OrgStatus() {
         title="Subscription is cancelled after multiple failed billing attempts"
         description={
           <span>
-            Please open a {' '}
-            <Link href="https://app.nhost.io/support" target="_blank" rel="noopener noreferrer" className="underline font-bold">
+            Please open a{' '}
+            <Link
+              href="https://app.nhost.io/support"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold underline"
+            >
               support ticket
             </Link>{' '}
             if you need to restore access to this organization.
