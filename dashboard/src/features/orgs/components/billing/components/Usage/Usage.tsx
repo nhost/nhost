@@ -54,7 +54,7 @@ export default function Usage() {
                 </span>
                 <span className="text-muted-foreground">{billingCycleEnd}</span>
               </div>
-              <Progress value={progress} className="h-2 max-w-xl" />
+              <Progress value={progress} className="h-3 max-w-xl" />
             </div>
           </div>
           {!!amountDue && (
@@ -87,9 +87,9 @@ export default function Usage() {
               <SpendingWarnings />
             </>
           )}
-          <div className="flex flex-col gap-4 p-4">
+          <div className="flex flex-col gap-4 border-t">
             {loading && (
-              <div className="flex h-32 place-content-center">
+              <div className="flex h-32 place-content-center p-4">
                 <ActivityIndicator
                   label="Loading usage stats..."
                   className="justify-center text-sm"
@@ -99,7 +99,7 @@ export default function Usage() {
 
             {!loading && data && (
               <Collapsible>
-                <CollapsibleTrigger className="flex flex-1 flex-row items-center justify-between gap-2 py-2">
+                <CollapsibleTrigger className="flex flex-1 flex-row items-center justify-between gap-2 px-4 py-2">
                   <Button
                     variant="ghost"
                     size="sm"

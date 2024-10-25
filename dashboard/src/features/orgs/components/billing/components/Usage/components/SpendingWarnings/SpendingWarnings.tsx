@@ -1,12 +1,21 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/form/Form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { Input } from '@/components/ui/v2/Input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import { Input } from '@/components/ui/v3/input';
+
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import { Progress } from '@/components/ui/v3/progress';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -19,10 +28,11 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, type ChangeEvent } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
+  enabled: Yup.boolean().required(),
   threshold: Yup.number()
     .test(
       'is-valid-threshold',
@@ -62,9 +72,6 @@ export default function SpendingWarnings() {
 
   const amountDue = nextInvoiceData?.billingGetNextInvoice?.AmountDue ?? null;
 
-  const showAmountDue =
-    typeof amountDue === 'number' && !Number.isNaN(amountDue);
-
   const isPlatform = useIsPlatform();
 
   const isAdmin = useIsOrgAdmin();
@@ -80,6 +87,7 @@ export default function SpendingWarnings() {
   const form = useForm<SpendingWarningsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
+      enabled: false,
       threshold: threshold ?? 0,
     },
     resolver: yupResolver(validationSchema),
@@ -88,14 +96,24 @@ export default function SpendingWarnings() {
     },
   });
 
-  const {
-    formState: { errors, isDirty, isSubmitting },
-    watch,
-    setValue,
-    trigger: triggerValidation,
-  } = form;
+  const { watch, setValue, trigger: triggerValidation } = form;
 
+  const handleEnabledChange = (checked: boolean) => {
+    setValue('enabled', checked, { shouldDirty: true });
+    if (!checked) {
+      setValue('threshold', 0, { shouldDirty: true });
+    }
+  };
+
+  const enabled = watch('enabled');
   const currentThreshold = watch('threshold');
+
+  const showAmountDue =
+    enabled ||
+    (typeof amountDue === 'number' &&
+      !Number.isNaN(amountDue) &&
+      enabled &&
+      currentThreshold !== 0);
 
   const progress = useMemo(() => {
     if (!showAmountDue || currentThreshold <= 0) {
@@ -105,8 +123,6 @@ export default function SpendingWarnings() {
     const percent = (amountDue / currentThreshold) * 100;
     return Math.min(Math.max(percent, 0), 100);
   }, [amountDue, showAmountDue, currentThreshold]);
-
-  const submitDisabled = !isDirty || isSubmitting;
 
   const handleThresholdChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.value === '') {
@@ -120,12 +136,13 @@ export default function SpendingWarnings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
+        enabled: !!threshold,
         threshold,
       });
     }
   }, [loading, threshold, form]);
 
-  const handleSubmit = async (values: SpendingWarningsFormValues) => {
+  const onSubmit = async (values: SpendingWarningsFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
         id: org?.id,
@@ -151,10 +168,11 @@ export default function SpendingWarnings() {
         }
       },
       {
-        loadingMessage: 'Spending warnings are being updated...',
-        successMessage: 'Spending warnings have been updated successfully.',
+        loadingMessage: 'Spending notifications are being updated...',
+        successMessage:
+          'Spending notifications have been updated successfully.',
         errorMessage:
-          'An error occurred while trying to update spending warnings.',
+          'An error occurred while trying to update spending notifications.',
       },
     );
   };
@@ -175,62 +193,100 @@ export default function SpendingWarnings() {
   }
 
   return (
-    <div className="flex flex-col p-4">
-      <div className="flex w-full flex-col">
-        <div className="flex flex-row items-center gap-2">
-          <span className="text-muted-foreground">Spending Notifications</span>
-          <Tooltip
-            placement="right"
-            title={
-              <span>
-                You&apos;ll receive email alerts when your usage reaches 75%,
-                90%, and 100% of your configured value. These are notifications
-                only - your service will continue running normally.
+    <Form {...form}>
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="flex flex-col">
+          <div className="flex w-full flex-col p-4">
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-muted-foreground">
+                Spending Notifications: ${threshold}
               </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
-          </Tooltip>
+              <Tooltip
+                placement="right"
+                title={
+                  <span>
+                    You&apos;ll receive email alerts when your usage reaches
+                    75%, 90%, and 100% of your configured value. These are
+                    notifications only - your service will continue running
+                    normally.
+                  </span>
+                }
+              >
+                <InfoIcon
+                  aria-label="Info"
+                  className="h-4 w-4"
+                  color="primary"
+                />
+              </Tooltip>
+              <Switch
+                id="enabled"
+                checked={enabled}
+                onCheckedChange={handleEnabledChange}
+              />
+            </div>
+          </div>
+          {isAdmin && (
+            <div className="">
+              <FormField
+                control={form.control}
+                name="threshold"
+                render={({ field }) => (
+                  <FormItem className="p-4">
+                    <FormLabel>Notification Threshold</FormLabel>
+                    <FormControl>
+                      <Input
+                        prefix="$"
+                        className="max-w-32"
+                        type="number"
+                        placeholder="0"
+                        disabled={!enabled}
+                        {...field}
+                        onChange={handleThresholdChange}
+                        value={currentThreshold}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex flex-col gap-4 px-4 pb-4">
+                {showAmountDue && (
+                  <div className="flex flex-1 flex-row gap-1">
+                    <div className="flex max-w-xl flex-1 flex-col">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          ${amountDue}
+                        </span>
+                        <span className="text-muted-foreground">
+                          ${currentThreshold} (threshold)
+                        </span>
+                      </div>
+                      <Progress value={progress} className="h-3" />
+                    </div>
+                    <span className="-mb-1 self-end">
+                      {progress ? `${Math.round(progress)}%` : '\u00A0'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end gap-2 border-t">
+                <div className="p-4">
+                  <Button type="submit" disabled={!form.formState.isDirty}>
+                    {form.formState.isSubmitting ? (
+                      <ActivityIndicator />
+                    ) : (
+                      'Save'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <span className="">${threshold}</span>
-      </div>
-      <div className="flex flex-col gap-4">
-        {showAmountDue && (
-          <>
-            <p>
-              Spent ${amountDue} of ${currentThreshold} (notification threshold)
-            </p>
-            <div className="flex flex-row items-center gap-1">
-              <Progress value={progress} className="h-2 max-w-xl" />
-              <span>{progress ? `${Math.round(progress)}%` : '\u00A0'}</span>
-            </div>
-          </>
-        )}
-      </div>
-      {isAdmin && (
-        <FormProvider {...form}>
-          <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              onChange={handleThresholdChange}
-              value={currentThreshold}
-              id="threshold"
-              name="threshold"
-              label="Notification Threshold"
-              type="number"
-              placeholder="0"
-              hideEmptyHelperText
-              fullWidth
-              error={!!errors.threshold}
-              helperText={errors.threshold?.message}
-            />
-            <div className="grid grid-flow-col items-center justify-end pt-3.5">
-              <Button type="submit" className="h-fit" disabled={submitDisabled}>
-                Save
-              </Button>
-            </div>
-          </Form>
-        </FormProvider>
-      )}
-    </div>
+      </form>
+    </Form>
   );
 }
