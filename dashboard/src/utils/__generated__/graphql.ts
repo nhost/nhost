@@ -26619,7 +26619,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, status: Organization_Status_Enum, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -26688,6 +26688,13 @@ export type OrganizationMemberInvitesQueryVariables = Exact<{
 
 
 export type OrganizationMemberInvitesQuery = { __typename?: 'query_root', organizationMemberInvites: Array<{ __typename?: 'organization_member_invites', id: any, email: any, role: Organization_Members_Role_Enum, createdAt: any, updateAt: any, organization: { __typename?: 'organizations', name: string, slug: string } }> };
+
+export type OrganizationNewRequestsQueryVariables = Exact<{
+  userID: Scalars['uuid'];
+}>;
+
+
+export type OrganizationNewRequestsQuery = { __typename?: 'query_root', organizationNewRequests: Array<{ __typename?: 'organization_new_request', id: any, sessionID: string }> };
 
 export type PostOrganizationRequestMutationVariables = Exact<{
   sessionID: Scalars['String'];
@@ -31340,6 +31347,45 @@ export type OrganizationMemberInvitesLazyQueryHookResult = ReturnType<typeof use
 export type OrganizationMemberInvitesQueryResult = Apollo.QueryResult<OrganizationMemberInvitesQuery, OrganizationMemberInvitesQueryVariables>;
 export function refetchOrganizationMemberInvitesQuery(variables: OrganizationMemberInvitesQueryVariables) {
       return { query: OrganizationMemberInvitesDocument, variables: variables }
+    }
+export const OrganizationNewRequestsDocument = gql`
+    query organizationNewRequests($userID: uuid!) {
+  organizationNewRequests(where: {userID: {_eq: $userID}}) {
+    id
+    sessionID
+  }
+}
+    `;
+
+/**
+ * __useOrganizationNewRequestsQuery__
+ *
+ * To run a query within a React component, call `useOrganizationNewRequestsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOrganizationNewRequestsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOrganizationNewRequestsQuery({
+ *   variables: {
+ *      userID: // value for 'userID'
+ *   },
+ * });
+ */
+export function useOrganizationNewRequestsQuery(baseOptions: Apollo.QueryHookOptions<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>(OrganizationNewRequestsDocument, options);
+      }
+export function useOrganizationNewRequestsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>(OrganizationNewRequestsDocument, options);
+        }
+export type OrganizationNewRequestsQueryHookResult = ReturnType<typeof useOrganizationNewRequestsQuery>;
+export type OrganizationNewRequestsLazyQueryHookResult = ReturnType<typeof useOrganizationNewRequestsLazyQuery>;
+export type OrganizationNewRequestsQueryResult = Apollo.QueryResult<OrganizationNewRequestsQuery, OrganizationNewRequestsQueryVariables>;
+export function refetchOrganizationNewRequestsQuery(variables: OrganizationNewRequestsQueryVariables) {
+      return { query: OrganizationNewRequestsDocument, variables: variables }
     }
 export const PostOrganizationRequestDocument = gql`
     mutation postOrganizationRequest($sessionID: String!) {
