@@ -39,7 +39,7 @@ function ProjectLayoutContent({
 
   // Render application state based on the current state
   const projectPageContent = useMemo(() => {
-    if (!appSlug) {
+    if (!appSlug || state === undefined) {
       return children;
     }
 

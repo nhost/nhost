@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
 import { Box, Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -30,7 +30,7 @@ export default function ProjectsComboBox() {
     push,
   } = useRouter();
 
-  const { org: { slug, apps = [] } = {} } = useCurrentOrg();
+  const { currentOrg: { slug, apps = [] } = {} } = useOrgs();
   const selectedProjectFromUrl = apps.find((item) => item.slug === appSlug);
   const [selectedProject, setSelectedProject] = useState<Option | null>(null);
 
