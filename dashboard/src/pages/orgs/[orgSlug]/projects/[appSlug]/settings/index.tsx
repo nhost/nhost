@@ -11,7 +11,7 @@ import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -40,7 +40,7 @@ export type ProjectNameValidationSchema = Yup.InferType<
 >;
 
 export default function SettingsGeneralPage() {
-  const { org } = useCurrentOrg();
+  const { currentOrg: org } = useOrgs();
   const { project, loading, refetch: refetchProject } = useProject();
 
   const isOwner = useIsCurrentUserOwner();
@@ -151,7 +151,7 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await pauseApplication();
-        await router.push('/');
+        await router.push(`/orgs/${org.slug}/projects/${project.slug}`);
       },
       {
         loadingMessage: `Pausing ${project.name}...`,
@@ -200,31 +200,29 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      {org?.plan?.isFree && (
-        <SettingsContainer
-          title="Pause Project"
-          description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-          submitButtonText="Pause"
-          slotProps={{
-            submitButton: {
-              type: 'button',
-              color: 'primary',
-              variant: 'contained',
-              disabled: maintenanceActive,
-              onClick: () => {
-                openAlertDialog({
-                  title: 'Pause Project?',
-                  payload:
-                    'Are you sure you want to pause this project? It will not be accessible until you unpause it.',
-                  props: {
-                    onPrimaryAction: handlePauseApplication,
-                  },
-                });
-              },
+      <SettingsContainer
+        title="Pause Project"
+        description="While your project is paused, it will not be accessible. You can wake it up anytime after."
+        submitButtonText="Pause"
+        slotProps={{
+          submitButton: {
+            type: 'button',
+            color: 'primary',
+            variant: 'contained',
+            disabled: maintenanceActive,
+            onClick: () => {
+              openAlertDialog({
+                title: 'Pause Project?',
+                payload:
+                  'Are you sure you want to pause this project? It will not be accessible until you unpause it.',
+                props: {
+                  onPrimaryAction: handlePauseApplication,
+                },
+              });
             },
-          }}
-        />
-      )}
+          },
+        }}
+      />
 
       <TransferProject />
 
