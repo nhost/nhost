@@ -1,12 +1,14 @@
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/v3/dialog';
 
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   Form,
   FormControl,
@@ -15,11 +17,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
-import { Badge } from '@/components/ui/v3/badge';
 import {
   Select,
   SelectContent,
@@ -27,46 +24,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { useBillingMigrateProjectToOrganizationMutation } from '@/utils/__generated__/graphql';
+import { useBillingTransferAppMutation } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { DialogDescription } from '@radix-ui/react-dialog';
-import { CornerRightUp } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const migrateFormSchema = z.object({
+interface TransferProjectDialogProps {
+  open: boolean;
+  setOpen: (value: boolean) => void;
+}
+
+const transferProjectFormSchema = z.object({
   organization: z.string(),
 });
 
-export default function MigrateProjectToOrg() {
-  const { push } = useRouter();
+export default function TransferProjectDialog({
+  open,
+  setOpen,
+}: TransferProjectDialogProps) {
   const { orgs } = useOrgs();
-  const [open, setOpen] = useState(false);
-  const { currentProject } = useCurrentWorkspaceAndProject();
-  const [migrateProjectToOrg] =
-    useBillingMigrateProjectToOrganizationMutation();
+  const { org: currentOrg } = useCurrentOrg();
+  const { project } = useProject();
+  const { push } = useRouter();
+  const [transferProject] = useBillingTransferAppMutation();
 
-  const form = useForm<z.infer<typeof migrateFormSchema>>({
-    resolver: zodResolver(migrateFormSchema),
+  const form = useForm<z.infer<typeof transferProjectFormSchema>>({
+    resolver: zodResolver(transferProjectFormSchema),
     defaultValues: {
       organization: '',
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof migrateFormSchema>) => {
+  const onSubmit = async (
+    values: z.infer<typeof transferProjectFormSchema>,
+  ) => {
     const { organization } = values;
 
     await execPromiseWithErrorToast(
       async () => {
-        await migrateProjectToOrg({
+        await transferProject({
           variables: {
-            appID: currentProject?.id,
+            appID: project?.id,
             organizationID: organization,
           },
         });
@@ -75,43 +79,21 @@ export default function MigrateProjectToOrg() {
         await push(`/orgs/${targetOrg.slug}/projects`);
       },
       {
-        loadingMessage: 'Migrating project',
-        successMessage: 'Success',
-        errorMessage: 'An error occurred while migrating project!',
+        loadingMessage: 'Transferring project...',
+        successMessage: 'Project transferred successfully!',
+        errorMessage: 'Error transferring project. Please try again.',
       },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="flex items-center gap-2 py-1 text-base">
-          Migrate to an Organization
-          <CornerRightUp className="w-5 h-5" />
-        </Button>
-      </DialogTrigger>
       <DialogContent className="text-foreground sm:max-w-xl">
-        <DialogHeader className="gap-2">
-          <DialogTitle>Migrate project to an Organization</DialogTitle>
-          <DialogDescription className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <p>
-              Any remaining usage credits in your current workspace will be
-              transferred and credited to the target organization.
-            </p>
-            <div className="flex items-center justify-start gap-1">
-              <span>For more information read the</span>
-              <Link
-                href="https://nhost.io/blog/organization-billing"
-                target="_blank"
-                rel="noopener noreferrer"
-                underline="hover"
-                className="font-medium"
-              >
-                announcement
-                <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
-              </Link>
-            </div>
-          </DialogDescription>
+        <DialogHeader>
+          <DialogTitle>
+            Move the current project to a different organization.
+          </DialogTitle>
+          <DialogDescription />
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -135,7 +117,7 @@ export default function MigrateProjectToOrg() {
                         <SelectItem
                           key={org.id}
                           value={org.id}
-                          disabled={org.plan.isFree}
+                          disabled={org.plan.isFree || org.id === currentOrg.id}
                         >
                           {org.name}
                           <Badge
@@ -169,7 +151,7 @@ export default function MigrateProjectToOrg() {
                 {form.formState.isSubmitting ? (
                   <ActivityIndicator />
                 ) : (
-                  'Migrate'
+                  'Transfer'
                 )}
               </Button>
             </div>

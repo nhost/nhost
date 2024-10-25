@@ -18,7 +18,7 @@ import { UpgradeNotification } from '@/features/orgs/projects/common/components/
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetGraphiteAutoEmbeddingsConfigurationsQuery,
@@ -37,7 +37,7 @@ export default function AutoEmbeddingsPage() {
   const router = useRouter();
   const { openDrawer } = useDialog();
   const isPlatform = useIsPlatform();
-  const { org } = useCurrentOrg();
+  const { currentOrg: org } = useOrgs();
   const { project } = useProject();
 
   const { adminClient } = useAdminApolloClient();

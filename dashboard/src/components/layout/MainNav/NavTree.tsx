@@ -12,8 +12,8 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { type Org } from '@/features/orgs/projects/hooks/useOrgs';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -154,7 +154,7 @@ const projectSettingsPages = [
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ];
 
-const createOrganization = (org: Org) => {
+const createOrganization = (org: Org, isPlatform: boolean) => {
   const result = {};
 
   result[org.slug] = {
@@ -174,6 +174,7 @@ const createOrganization = (org: Org) => {
       isFree: org.plan.isFree,
       plan: org.plan.name,
       targetUrl: `/orgs/${org.slug}/projects`, // default to projects
+      disabled: false,
     },
     canRename: false,
   };
@@ -189,6 +190,7 @@ const createOrganization = (org: Org) => {
     data: {
       name: 'Projects',
       targetUrl: `/orgs/${org.slug}/projects`,
+      disabled: false,
     },
     canRename: false,
   };
@@ -203,6 +205,7 @@ const createOrganization = (org: Org) => {
       slug: 'new',
       icon: <Plus className="w-4 h-4 mr-1 font-bold" strokeWidth={3} />,
       targetUrl: `/orgs/${org.slug}/projects/new`,
+      disabled: !isPlatform,
     },
   };
 
@@ -241,6 +244,10 @@ const createOrganization = (org: Org) => {
           icon: _page.icon,
           isProjectPage: true,
           targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/${_page.route}`,
+          disabled:
+            ['deployments', 'backups', 'logs', 'metrics'].includes(
+              _page.slug,
+            ) && !isPlatform,
         },
         canRename: false,
       };
@@ -273,6 +280,7 @@ const createOrganization = (org: Org) => {
     data: {
       name: 'Settings',
       targetUrl: `/orgs/${org.slug}/settings`,
+      disabled: !isPlatform,
     },
     canRename: false,
   };
@@ -285,6 +293,7 @@ const createOrganization = (org: Org) => {
     data: {
       name: 'Members',
       targetUrl: `/orgs/${org.slug}/members`,
+      disabled: !isPlatform,
     },
     canRename: false,
   };
@@ -297,6 +306,7 @@ const createOrganization = (org: Org) => {
     data: {
       name: 'Billing',
       targetUrl: `/orgs/${org.slug}/billing`,
+      disabled: !isPlatform,
     },
     canRename: false,
   };
@@ -312,10 +322,12 @@ type NavItem = {
   plan?: string;
   icon?: ReactElement;
   targetUrl?: string;
+  disabled?: boolean;
 };
 
 const buildNavTreeData = (
   org: Org,
+  isPlatform: boolean,
 ): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
   if (!org) {
     return {
@@ -347,7 +359,7 @@ const buildNavTreeData = (
         data: { name: 'root' },
         canRename: false,
       },
-      ...createOrganization(org),
+      ...createOrganization(org, isPlatform),
     },
   };
 
@@ -355,8 +367,12 @@ const buildNavTreeData = (
 };
 
 export default function NavTree() {
-  const { org } = useCurrentOrg();
-  const navTree = useMemo(() => buildNavTreeData(org), [org]);
+  const { currentOrg: org } = useOrgs();
+  const isPlatform = useIsPlatform();
+  const navTree = useMemo(
+    () => buildNavTreeData(org, isPlatform),
+    [org, isPlatform],
+  );
   const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
     useTreeNavState();
 
@@ -413,7 +429,10 @@ export default function NavTree() {
                   context.focusItem();
                 }
               }}
-              className="flex flex-row justify-start w-full h-8 gap-1 px-1"
+              className={cn(
+                'flex h-8 w-full flex-row justify-start gap-1 px-1',
+                item.data.disabled ? 'pointer-events-none opacity-50' : '',
+              )}
             >
               <Link
                 href={item.data.targetUrl || '/'}

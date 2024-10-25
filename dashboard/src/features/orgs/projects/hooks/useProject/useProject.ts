@@ -1,3 +1,4 @@
+import { localApplication } from '@/features/orgs/utils/local-dashboard';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetProjectDocument,
@@ -53,7 +54,7 @@ export default function useProject({
     variables: { slug: appSlug as string },
     skip: !shouldFetchProject && target === 'console-next',
     fetchPolicy: 'cache-and-network',
-    pollInterval: poll ? 5000 : 0,
+    pollInterval: poll ? 5000 * 2 : 0, // every 10s
   });
 
   // Fetch project data for 'user-project' target using client.graphql
@@ -90,10 +91,19 @@ export default function useProject({
   const refetch =
     target === 'console-next' ? refetchConsole : refetchUserProject;
 
+  if (isPlatform) {
+    return {
+      project,
+      loading,
+      error,
+      refetch,
+    };
+  }
+
   return {
-    project,
-    loading,
-    error,
+    project: localApplication,
+    loading: false,
+    error: null,
     refetch,
   };
 }

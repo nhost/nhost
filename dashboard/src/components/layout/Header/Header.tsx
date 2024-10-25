@@ -10,12 +10,10 @@ import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { DevAssistant } from '@/features/ai/DevAssistant';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { ApplicationStatus } from '@/types/application';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
-import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 import BreadcrumbNav from './BreadcrumbNav';
@@ -30,33 +28,11 @@ export default function Header({ className, ...props }: HeaderProps) {
 
   const { openDrawer } = useDialog();
 
-  const { currentProject, refetch: refetchProject } =
-    useCurrentWorkspaceAndProject();
-
-  const isProjectUpdating =
-    currentProject?.appStates[0]?.stateId === ApplicationStatus.Updating;
-
-  const isProjectMigratingDatabase =
-    currentProject?.appStates[0]?.stateId === ApplicationStatus.Migrating;
-
-  // Poll for project updates
-  useEffect(() => {
-    if (!isProjectUpdating && !isProjectMigratingDatabase) {
-      return () => {};
-    }
-
-    const interval = setInterval(async () => {
-      await refetchProject();
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isProjectUpdating, isProjectMigratingDatabase, refetchProject]);
+  const { project } = useProject();
 
   const openDevAssistant = () => {
     // The dev assistant can be only answer questions related to a particular project
-    if (!currentProject) {
+    if (!project) {
       toast.error('You need to be inside a project to open the Assistant', {
         style: getToastStyleProps().style,
         ...getToastStyleProps().error,

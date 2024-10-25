@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
@@ -31,6 +32,7 @@ type Option = {
 
 export default function OrgsComboBox() {
   const { orgs } = useOrgs();
+  const isPlatform = useIsPlatform();
   const { workspaces } = useWorkspaces();
   const [, setLastSlug] = useSSRLocalStorage('slug', null);
 
@@ -76,20 +78,26 @@ export default function OrgsComboBox() {
 
   const [open, setOpen] = useState(false);
 
-  const renderBadge = (plan: string) => (
-    <Badge
-      variant={plan === 'Starter' ? 'outline' : 'default'}
-      className={cn(
-        plan === 'Starter' ? 'bg-muted' : '',
-        plan === 'Legacy'
-          ? 'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500'
-          : '',
-        'hover:none ml-2 h-5 px-[6px] text-[10px]',
-      )}
-    >
-      {plan}
-    </Badge>
-  );
+  const renderBadge = (plan: string) => {
+    if (!isPlatform) {
+      return null;
+    }
+
+    return (
+      <Badge
+        variant={plan === 'Starter' ? 'outline' : 'default'}
+        className={cn(
+          plan === 'Starter' ? 'bg-muted' : '',
+          plan === 'Legacy'
+            ? 'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500'
+            : '',
+          'hover:none ml-2 h-5 px-[6px] text-[10px]',
+        )}
+      >
+        {plan}
+      </Badge>
+    );
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -97,7 +105,7 @@ export default function OrgsComboBox() {
         <Button
           size="sm"
           variant="ghost"
-          className="w-full justify-between gap-2 text-foreground"
+          className="justify-between w-full gap-2 text-foreground"
         >
           {selectedItem ? (
             <div className="flex flex-row items-center justify-center">
@@ -107,7 +115,7 @@ export default function OrgsComboBox() {
           ) : (
             'Select organization / workspace'
           )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
+          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -144,7 +152,7 @@ export default function OrgsComboBox() {
                           : 'opacity-0',
                       )}
                     />
-                    <span className="max-w-52 truncate">{option.label}</span>
+                    <span className="truncate max-w-52">{option.label}</span>
                   </div>
                   {renderBadge(option.plan)}
                 </CommandItem>
@@ -182,7 +190,7 @@ export default function OrgsComboBox() {
                           : 'opacity-0',
                       )}
                     />
-                    <span className="max-w-52 truncate">{option.label}</span>
+                    <span className="truncate max-w-52">{option.label}</span>
                   </div>
                   {renderBadge(option.plan)}
                 </CommandItem>
