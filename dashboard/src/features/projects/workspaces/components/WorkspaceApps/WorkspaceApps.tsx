@@ -1,10 +1,8 @@
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
-import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -27,7 +25,7 @@ function AllWorkspaceApps() {
 
   if (currentWorkspace?.projects?.length === 0) {
     return (
-      <Box className="flex flex-row border-y py-4">
+      <Box className="flex flex-row py-4 border-y">
         <Text className="text-xs" color="secondary">
           No projects on this workspace.
         </Text>
@@ -48,10 +46,10 @@ function AllWorkspaceApps() {
               className="w-full"
               legacyBehavior
             >
-              <ListItem.Button className="grid grid-flow-col items-center justify-between gap-2">
-                <div className="grid grid-flow-col items-center justify-start gap-2">
+              <ListItem.Button className="grid items-center justify-between grid-flow-col gap-2">
+                <div className="grid items-center justify-start grid-flow-col gap-2">
                   <ListItem.Avatar>
-                    <div className="h-8 w-8 overflow-hidden rounded-lg">
+                    <div className="w-8 h-8 overflow-hidden rounded-lg">
                       <Image
                         src="/logos/new.svg"
                         alt="Nhost Logo"
@@ -97,31 +95,11 @@ function AllWorkspaceApps() {
 }
 
 export default function WorkspaceApps() {
-  const { currentWorkspace, loading } = useCurrentWorkspaceAndProject();
-
   return (
     <div className="mt-9">
-      <div className="mx-auto max-w-3xl font-display">
-        <div className="mb-4 grid grid-flow-col items-center justify-between gap-2">
+      <div className="max-w-3xl mx-auto font-display">
+        <div className="grid items-center justify-between grid-flow-col gap-2 mb-4">
           <Text className="text-lg font-medium">Projects</Text>
-
-          {!loading && (
-            <NavLink
-              href={{
-                pathname: '/new',
-                query: { workspace: currentWorkspace?.slug },
-              }}
-              legacyBehavior
-            >
-              <Button
-                variant="outlined"
-                color="secondary"
-                startIcon={<PlusCircleIcon />}
-              >
-                New Project
-              </Button>
-            </NavLink>
-          )}
         </div>
 
         <RetryableErrorBoundary errorMessageProps={{ className: 'px-0' }}>

@@ -18,6 +18,7 @@ import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { CheckPendingOrgs } from '@/features/orgs/components/CheckPendingOrgs';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
+import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import {
@@ -49,6 +50,8 @@ export default function AuthenticatedLayout({
   const isHealthy = useIsHealthy();
   const [mainNavContainer, setMainNavContainer] = useState(null);
   const { mainNavPinned } = useTreeNavState();
+
+  useNotFoundRedirect();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
