@@ -15,10 +15,8 @@ export default function PinnedMainNav() {
     query: { workspaceSlug, orgSlug },
   } = useRouter();
 
-  const { workspaces } = useWorkspaces();
-
   const scrollContainerRef = useRef();
-
+  const { workspaces } = useWorkspaces();
   const { mainNavPinned, setMainNavPinned } = useTreeNavState();
 
   useEffect(() => {
