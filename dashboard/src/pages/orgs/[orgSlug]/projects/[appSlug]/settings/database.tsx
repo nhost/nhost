@@ -39,7 +39,7 @@ export default function DatabaseSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <DatabaseServiceVersionSettings />
@@ -57,11 +57,7 @@ export default function DatabaseSettingsPage() {
 
 DatabaseSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
+    <ProjectLayout>
       <SettingsLayout>
         <Container
           sx={{ backgroundColor: 'background.default' }}

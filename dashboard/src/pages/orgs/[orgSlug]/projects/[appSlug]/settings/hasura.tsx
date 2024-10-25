@@ -66,11 +66,7 @@ export default function HasuraSettingsPage() {
 
 HasuraSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
+    <ProjectLayout>
       <SettingsLayout>
         <Container
           sx={{ backgroundColor: 'background.default' }}

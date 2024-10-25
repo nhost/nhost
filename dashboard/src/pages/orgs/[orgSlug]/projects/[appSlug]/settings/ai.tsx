@@ -32,14 +32,6 @@ export default function AISettingsPage() {
         />
       </Container>
     );
-    // return (
-    //   <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
-    //     <UpgradeNotification
-    //       title="Upgrade to Pro."
-    //       message="Graphite is an addon to the Pro plan. To unlock it, please upgrade to Pro first."
-    //     />
-    //   </Box>
-    // );
   }
 
   if (error) {
@@ -48,7 +40,7 @@ export default function AISettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <AISettings />
@@ -60,7 +52,7 @@ AISettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{
-        className: 'flex h-full',
+        className: 'flex h-full overflow-auto',
       }}
     >
       <SettingsLayout>

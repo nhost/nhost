@@ -10,7 +10,7 @@ TOMLEditorPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{
-        className: 'flex flex-col h-full',
+        className: 'flex flex-col h-full overflow-auto',
       }}
     >
       {page}

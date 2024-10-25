@@ -51,7 +51,7 @@ RolesAndPermissionsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{
-        className: 'flex h-full',
+        className: 'flex h-full overflow-auto',
       }}
     >
       <SettingsLayout>

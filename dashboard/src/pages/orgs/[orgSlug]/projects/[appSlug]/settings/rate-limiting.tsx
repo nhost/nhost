@@ -29,7 +29,7 @@ export default function RateLimiting() {
       className="grid max-w-5xl grid-flow-row gap-6 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <Box className="flex flex-row items-center gap-4 p-4 overflow-hidden rounded-lg border-1">
+      <Box className="flex flex-row items-center gap-4 overflow-hidden rounded-lg border-1 p-4">
         <div className="flex flex-col space-y-2">
           <Text className="text-lg font-semibold">Rate Limiting</Text>
 
@@ -43,7 +43,7 @@ export default function RateLimiting() {
               className="ml-1 font-medium"
             >
               Rate Limiting
-              <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
             </Link>
           </Text>
         </div>
@@ -92,7 +92,7 @@ RateLimiting.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{
-        className: 'flex h-full',
+        className: 'flex h-full overflow-auto',
       }}
     >
       <SettingsLayout>

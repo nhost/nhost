@@ -9,7 +9,7 @@ import type { ReactElement } from 'react';
 export default function GitSettingsPage() {
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <GitConnectionSettings />
@@ -23,7 +23,7 @@ GitSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{
-        className: 'flex h-full',
+        className: 'flex h-full overflow-auto',
       }}
     >
       <SettingsLayout>
