@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 
+import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
@@ -148,6 +149,7 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
 }
 
 export default function CreateOrgDialog() {
+  const { maintenanceActive } = useUI();
   const user = useUserData();
   const isPlatform = useIsPlatform();
   const [open, setOpen] = useState(false);
@@ -200,6 +202,7 @@ export default function CreateOrgDialog() {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
+          disabled={maintenanceActive}
           className="flex flex-row justify-start w-full h-8 gap-3 px-2"
           onClick={() => setStripeClientSecret('')}
         >
