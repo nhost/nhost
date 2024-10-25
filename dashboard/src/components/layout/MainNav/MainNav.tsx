@@ -8,6 +8,7 @@ import {
   SheetTitle,
 } from '@/components/ui/v3/sheet';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
+import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { Menu, Pin, PinOff, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
@@ -21,6 +22,7 @@ interface MainNavProps {
 
 export default function MainNav({ container }: MainNavProps) {
   const { asPath } = useRouter();
+  const { workspaces } = useWorkspaces();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
 
@@ -93,10 +95,14 @@ export default function MainNav({ container }: MainNavProps) {
             <NavTree />
             <CreateOrgDialog />
           </div>
-          <Separator className="mx-auto my-2" />
-          <div className="px-2">
-            <WorkspacesNavTree />
-          </div>
+          {workspaces.length > 0 && (
+            <>
+              <Separator className="mx-auto my-2" />
+              <div className="px-2">
+                <WorkspacesNavTree />
+              </div>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>
