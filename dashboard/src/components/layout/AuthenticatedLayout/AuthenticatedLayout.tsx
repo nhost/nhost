@@ -15,6 +15,7 @@ import { useAuthenticationStatus } from '@nhost/nextjs';
 
 import { useMediaQuery } from '@/components/common/useMediaQuery';
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
+import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import Image from 'next/image';
@@ -25,8 +26,6 @@ import {
   type DetailedHTMLProps,
   type HTMLProps,
 } from 'react';
-
-import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
