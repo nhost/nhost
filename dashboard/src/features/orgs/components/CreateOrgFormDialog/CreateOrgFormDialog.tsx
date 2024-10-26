@@ -174,8 +174,7 @@ export default function CreateOrgDialog() {
           variables: {
             organizationName: name,
             planID: plan,
-            // redirectURL: `${window.location.origin}/orgs/verify`,
-            redirectURL: `https://staging.app.nhost.io/orgs/verify`,
+            redirectURL: `${window.location.origin}/orgs/verify`,
           },
         });
 
@@ -201,9 +200,11 @@ export default function CreateOrgDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="ghost"
           disabled={maintenanceActive}
-          className="flex flex-row justify-start w-full h-8 gap-3 px-2"
+          className={cn(
+            'flex h-8 w-full flex-row justify-start gap-3 px-2',
+            'bg-background text-foreground hover:bg-accent dark:hover:bg-muted',
+          )}
           onClick={() => setStripeClientSecret('')}
         >
           <Plus className="w-4 h-4 font-bold" strokeWidth={3} />

@@ -30,73 +30,73 @@ import { useTreeNavState } from './TreeNavStateContext';
 const projectPages = [
   {
     name: 'Overview',
-    icon: <HomeIcon className="h-4 w-4" />,
+    icon: <HomeIcon className="w-4 h-4" />,
     route: '',
     slug: 'overview',
   },
   {
     name: 'Database',
-    icon: <DatabaseIcon className="h-4 w-4" />,
+    icon: <DatabaseIcon className="w-4 h-4" />,
     route: 'database/browser/default',
     slug: 'database',
   },
   {
     name: 'GraphQL',
-    icon: <GraphQLIcon className="h-4 w-4" />,
+    icon: <GraphQLIcon className="w-4 h-4" />,
     route: 'graphql',
     slug: 'graphql',
   },
   {
     name: 'Hasura',
-    icon: <HasuraIcon className="h-4 w-4" />,
+    icon: <HasuraIcon className="w-4 h-4" />,
     route: 'hasura',
     slug: 'hasura',
   },
   {
     name: 'Auth',
-    icon: <UserIcon className="h-4 w-4" />,
+    icon: <UserIcon className="w-4 h-4" />,
     route: 'users',
     slug: 'users',
   },
   {
     name: 'Storage',
-    icon: <StorageIcon className="h-4 w-4" />,
+    icon: <StorageIcon className="w-4 h-4" />,
     route: 'storage',
     slug: 'storage',
   },
   {
     name: 'Run',
-    icon: <ServicesIcon className="h-4 w-4" />,
+    icon: <ServicesIcon className="w-4 h-4" />,
     route: 'run',
     slug: 'run',
   },
   {
     name: 'AI',
-    icon: <AIIcon className="h-4 w-4" />,
+    icon: <AIIcon className="w-4 h-4" />,
     route: 'ai/auto-embeddings',
     slug: 'ai',
   },
   {
     name: 'Deployments',
-    icon: <RocketIcon className="h-4 w-4" />,
+    icon: <RocketIcon className="w-4 h-4" />,
     route: 'deployments',
     slug: 'deployments',
   },
   {
     name: 'Backups',
-    icon: <CloudIcon className="h-4 w-4" />,
+    icon: <CloudIcon className="w-4 h-4" />,
     route: 'backups',
     slug: 'backups',
   },
   {
     name: 'Logs',
-    icon: <FileTextIcon className="h-4 w-4" />,
+    icon: <FileTextIcon className="w-4 h-4" />,
     route: 'logs',
     slug: 'logs',
   },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="h-4 w-4" />,
+    icon: <GaugeIcon className="w-4 h-4" />,
     route: 'metrics',
     slug: 'metrics',
   },
@@ -203,7 +203,7 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
     data: {
       name: 'New project',
       slug: 'new',
-      icon: <Plus className="mr-1 h-4 w-4 font-bold" strokeWidth={3} />,
+      icon: <Plus className="w-4 h-4 mr-1 font-bold" strokeWidth={3} />,
       targetUrl: `/orgs/${org.slug}/projects/new`,
       disabled: !isPlatform,
     },
@@ -218,7 +218,7 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
       data: {
         name: app.name,
         slug: app.subdomain,
-        icon: <Box className="h-4 w-4" />,
+        icon: <Box className="w-4 h-4" />,
         targetUrl: `/orgs/${org.slug}/projects/${app.subdomain}`,
       },
       children: projectPages.map(
@@ -397,9 +397,9 @@ export default function NavTree() {
             className="h-8 px-1"
           >
             {context.isExpanded ? (
-              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
+              <ChevronDown className="w-4 h-4 font-bold" strokeWidth={3} />
             ) : (
-              <ChevronRight className="h-4 w-4" strokeWidth={3} />
+              <ChevronRight className="w-4 h-4" strokeWidth={3} />
             )}
           </Button>
         );
@@ -413,7 +413,6 @@ export default function NavTree() {
             {arrow}
             <Button
               asChild
-              variant={context.isFocused ? 'secondary' : 'ghost'}
               onClick={() => {
                 // do not focus an item if we already there
                 // this will prevent the case where clikcing on the project name
@@ -430,8 +429,10 @@ export default function NavTree() {
                 }
               }}
               className={cn(
-                'flex h-8 w-full flex-row justify-start gap-1 px-1',
-                item.data.disabled ? 'pointer-events-none opacity-50' : '',
+                'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent dark:hover:bg-muted',
+                context.isFocused &&
+                  'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
+                item.data.disabled && 'pointer-events-none opacity-50',
               )}
             >
               <Link
@@ -490,9 +491,9 @@ export default function NavTree() {
         }
 
         return (
-          <div className="flex w-full flex-row">
+          <div className="flex flex-row w-full">
             <div className="flex justify-center px-[12px] pb-3">
-              <div className="h-full w-0 border-r border-dashed" />
+              <div className="w-0 h-full border-r border-dashed" />
             </div>
             <ul {...containerProps} className="w-full">
               {children}

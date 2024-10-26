@@ -45,7 +45,7 @@ export default function MainNav({ container }: MainNavProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <div
-        className="min- absolute left-0 z-50 flex h-full w-6 justify-center border-r-[1.5px] bg-background pt-1 hover:bg-accent"
+        className="min- absolute left-0 z-50 flex h-full w-6 justify-center border-r-[1px] bg-background pt-1 hover:bg-accent"
         onMouseEnter={() => setOpen(true)}
       >
         <Menu className="w-4 h-4" />

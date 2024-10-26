@@ -118,14 +118,14 @@ export default function ProjectSettingsPagesComboBox() {
         <Button
           variant="ghost"
           size="sm"
-          className="justify-start gap-2 text-foreground"
+          className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
           {selectedSettingsPage ? (
             <div>{selectedSettingsPage.label}</div>
           ) : (
             <>Select a page</>
           )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
+          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -155,7 +155,7 @@ export default function ProjectSettingsPagesComboBox() {
                     )}
                   />
                   <div className="flex flex-row items-center gap-2">
-                    <span className="max-w-52 truncate">{option.label}</span>
+                    <span className="truncate max-w-52">{option.label}</span>
                   </div>
                 </CommandItem>
               ))}

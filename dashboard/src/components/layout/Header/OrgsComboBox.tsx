@@ -105,7 +105,7 @@ export default function OrgsComboBox() {
         <Button
           size="sm"
           variant="ghost"
-          className="justify-between w-full gap-2 text-foreground"
+          className="justify-between w-full gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
           {selectedItem ? (
             <div className="flex flex-row items-center justify-center">
@@ -128,7 +128,7 @@ export default function OrgsComboBox() {
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between bg-background text-foreground dark:hover:bg-muted"
                   onSelect={() => {
                     setSelectedItem(option);
                     setOpen(false);
@@ -143,7 +143,7 @@ export default function OrgsComboBox() {
                     }
                   }}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center font-normal">
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',
@@ -168,7 +168,7 @@ export default function OrgsComboBox() {
                     <CommandItem
                       key={option.value}
                       value={option.label}
-                      className="flex items-center justify-between"
+                      className="flex items-center justify-between bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
                       onSelect={() => {
                         setSelectedItem(option);
                         setOpen(false);
