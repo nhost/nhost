@@ -25877,7 +25877,7 @@ export type GetAppPlanAndGlobalPlansPlanFragment = { __typename?: 'plans', id: a
 
 export type GetAppPlanAndGlobalPlansQueryVariables = Exact<{
   workspaceSlug: Scalars['String'];
-  appSlug: Scalars['String'];
+  appSubdomain: Scalars['String'];
 }>;
 
 
@@ -25948,6 +25948,14 @@ export type GetWorkspaceAndProjectQueryVariables = Exact<{
 
 
 export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+
+export type GetWorkspacesAppPlansAndGlobalPlansQueryVariables = Exact<{
+  workspaceSlug: Scalars['String'];
+  slug: Scalars['String'];
+}>;
+
+
+export type GetWorkspacesAppPlansAndGlobalPlansQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, subdomain: string, workspace?: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> } | null, legacyPlan?: { __typename?: 'plans', id: any, name: string } | null }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number }> };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -26343,7 +26351,7 @@ export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }
 export type GetOrganizationPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }> };
 
 export type GetProjectQueryVariables = Exact<{
-  slug: Scalars['String'];
+  subdomain: Scalars['String'];
 }>;
 
 
@@ -26354,7 +26362,7 @@ export type GetProjectsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type InsertOrganizationMemberInviteMutationVariables = Exact<{
   organizationMemberInvite: Organization_Member_Invites_Insert_Input;
@@ -27915,8 +27923,10 @@ export function refetchGetAllWorkspacesAndProjectsQuery(variables?: GetAllWorksp
       return { query: GetAllWorkspacesAndProjectsDocument, variables: variables }
     }
 export const GetAppPlanAndGlobalPlansDocument = gql`
-    query getAppPlanAndGlobalPlans($workspaceSlug: String!, $appSlug: String!) {
-  apps(where: {workspace: {slug: {_eq: $workspaceSlug}}, slug: {_eq: $appSlug}}) {
+    query getAppPlanAndGlobalPlans($workspaceSlug: String!, $appSubdomain: String!) {
+  apps(
+    where: {workspace: {slug: {_eq: $workspaceSlug}}, slug: {_eq: $appSubdomain}}
+  ) {
     ...getAppPlanAndGlobalPlansApp
   }
   plans {
@@ -27939,7 +27949,7 @@ ${GetAppPlanAndGlobalPlansPlanFragmentDoc}`;
  * const { data, loading, error } = useGetAppPlanAndGlobalPlansQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
- *      appSlug: // value for 'appSlug'
+ *      appSubdomain: // value for 'appSubdomain'
  *   },
  * });
  */
@@ -28380,6 +28390,49 @@ export type GetWorkspaceAndProjectLazyQueryHookResult = ReturnType<typeof useGet
 export type GetWorkspaceAndProjectQueryResult = Apollo.QueryResult<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>;
 export function refetchGetWorkspaceAndProjectQuery(variables: GetWorkspaceAndProjectQueryVariables) {
       return { query: GetWorkspaceAndProjectDocument, variables: variables }
+    }
+export const GetWorkspacesAppPlansAndGlobalPlansDocument = gql`
+    query getWorkspacesAppPlansAndGlobalPlans($workspaceSlug: String!, $slug: String!) {
+  apps(where: {workspace: {slug: {_eq: $workspaceSlug}}, slug: {_eq: $slug}}) {
+    ...getAppPlanAndGlobalPlansApp
+  }
+  plans {
+    ...getAppPlanAndGlobalPlansPlan
+  }
+}
+    ${GetAppPlanAndGlobalPlansAppFragmentDoc}
+${GetAppPlanAndGlobalPlansPlanFragmentDoc}`;
+
+/**
+ * __useGetWorkspacesAppPlansAndGlobalPlansQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspacesAppPlansAndGlobalPlansQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspacesAppPlansAndGlobalPlansQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspacesAppPlansAndGlobalPlansQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      slug: // value for 'slug'
+ *   },
+ * });
+ */
+export function useGetWorkspacesAppPlansAndGlobalPlansQuery(baseOptions: Apollo.QueryHookOptions<GetWorkspacesAppPlansAndGlobalPlansQuery, GetWorkspacesAppPlansAndGlobalPlansQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetWorkspacesAppPlansAndGlobalPlansQuery, GetWorkspacesAppPlansAndGlobalPlansQueryVariables>(GetWorkspacesAppPlansAndGlobalPlansDocument, options);
+      }
+export function useGetWorkspacesAppPlansAndGlobalPlansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWorkspacesAppPlansAndGlobalPlansQuery, GetWorkspacesAppPlansAndGlobalPlansQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetWorkspacesAppPlansAndGlobalPlansQuery, GetWorkspacesAppPlansAndGlobalPlansQueryVariables>(GetWorkspacesAppPlansAndGlobalPlansDocument, options);
+        }
+export type GetWorkspacesAppPlansAndGlobalPlansQueryHookResult = ReturnType<typeof useGetWorkspacesAppPlansAndGlobalPlansQuery>;
+export type GetWorkspacesAppPlansAndGlobalPlansLazyQueryHookResult = ReturnType<typeof useGetWorkspacesAppPlansAndGlobalPlansLazyQuery>;
+export type GetWorkspacesAppPlansAndGlobalPlansQueryResult = Apollo.QueryResult<GetWorkspacesAppPlansAndGlobalPlansQuery, GetWorkspacesAppPlansAndGlobalPlansQueryVariables>;
+export function refetchGetWorkspacesAppPlansAndGlobalPlansQuery(variables: GetWorkspacesAppPlansAndGlobalPlansQueryVariables) {
+      return { query: GetWorkspacesAppPlansAndGlobalPlansDocument, variables: variables }
     }
 export const InsertApplicationDocument = gql`
     mutation insertApplication($app: apps_insert_input!) {
@@ -30578,8 +30631,8 @@ export function refetchGetOrganizationPlansQuery(variables?: GetOrganizationPlan
       return { query: GetOrganizationPlansDocument, variables: variables }
     }
 export const GetProjectDocument = gql`
-    query getProject($slug: String!) {
-  apps(where: {slug: {_eq: $slug}}) {
+    query getProject($subdomain: String!) {
+  apps(where: {subdomain: {_eq: $subdomain}}) {
     id
     slug
     name
@@ -30665,7 +30718,7 @@ export const GetProjectDocument = gql`
  * @example
  * const { data, loading, error } = useGetProjectQuery({
  *   variables: {
- *      slug: // value for 'slug'
+ *      subdomain: // value for 'subdomain'
  *   },
  * });
  */
@@ -30690,6 +30743,7 @@ export const GetProjectsDocument = gql`
     name
     slug
     createdAt
+    subdomain
     deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
       id
       commitSHA

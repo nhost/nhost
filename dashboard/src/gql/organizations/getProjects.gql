@@ -4,6 +4,7 @@ query getProjects($orgSlug: String!) {
     name
     slug
     createdAt
+    subdomain
     deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
       id
       commitSHA

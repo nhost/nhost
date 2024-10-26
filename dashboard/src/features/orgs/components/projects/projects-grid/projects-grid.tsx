@@ -21,12 +21,12 @@ function ProjectCard({ project }: { project: Project }) {
 
   return (
     <Link
-      href={`/orgs/${org?.slug}/projects/${project.slug}`}
-      className="flex flex-col gap-4 p-4 border rounded-lg cursor-pointer bg-background hover:shadow-sm"
+      href={`/orgs/${org?.slug}/projects/${project.subdomain}`}
+      className="flex cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm"
     >
       <div className="flex items-start gap-2">
         <div className="flex flex-row items-center space-x-2">
-          <Box className="w-6 h-6" />
+          <Box className="h-6 w-6" />
           <h2 className="text-lg font-semibold">{project.name}</h2>
         </div>
       </div>
@@ -38,7 +38,7 @@ function ProjectCard({ project }: { project: Project }) {
         />
       </div>
 
-      <div className="flex justify-end w-full">
+      <div className="flex w-full justify-end">
         <ArrowRight />
       </div>
     </Link>
@@ -76,15 +76,15 @@ export default function ProjectsGrid() {
   }
 
   return (
-    <div className="h-full mx-auto overflow-auto bg-accent">
-      <div className="flex flex-row items-center justify-between flex-shrink-0 w-full gap-2 p-2 border-b bg-background">
+    <div className="mx-auto h-full overflow-auto bg-accent">
+      <div className="flex w-full flex-shrink-0 flex-row items-center justify-between gap-2 border-b bg-background p-2">
         <Input
           placeholder="Find Project"
           fullWidth
           className="max-w-lg"
           startAdornment={
-            <div className="flex items-center justify-center w-8">
-              <SearchIcon className="w-4 h-5 text-muted-foreground" />
+            <div className="flex w-8 items-center justify-center">
+              <SearchIcon className="h-5 w-4 text-muted-foreground" />
             </div>
           }
           onChange={handleQueryChange}
@@ -92,8 +92,8 @@ export default function ProjectsGrid() {
 
         <Button asChild>
           <Link href={`/orgs/${org?.slug}/projects/new`}>
-            <div className="flex flex-row items-center justify-center space-x-2 h-fit">
-              <Plus className="w-5 h-5" strokeWidth={2} />
+            <div className="flex h-fit flex-row items-center justify-center space-x-2">
+              <Plus className="h-5 w-5" strokeWidth={2} />
               <span>Create project</span>
             </div>
           </Link>

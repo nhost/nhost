@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { type Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useDeleteAssistantMutation } from '@/utils/__generated__/graphite.graphql';
-import { type Assistant } from 'pages/orgs/[orgSlug]/projects/[appSlug]/ai/assistants';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 

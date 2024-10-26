@@ -65,7 +65,10 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    if (router.query.orgSlug === 'local' && router.query.appSlug === 'local') {
+    if (
+      router.query.orgSlug === 'local' &&
+      router.query.appSubdomain === 'local'
+    ) {
       return;
     }
 

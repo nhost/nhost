@@ -10,14 +10,14 @@ vi.mock('next/router', () => ({
   useRouter: vi.fn().mockReturnValue({
     basePath: '',
     pathname: '/orgs/xyz/projects/test-project',
-    route: '/orgs/[orgSlug]/projects/[appSlug]',
+    route: '/orgs/[orgSlug]/projects/[appSubdomain]',
     asPath: '/orgs/xyz/projects/test-project',
     isLocaleDomain: false,
     isReady: true,
     isPreview: false,
     query: {
       orgSlug: 'xyz',
-      appSlug: 'test-project',
+      appSubdomain: 'test-project',
     },
     push: vi.fn(),
     replace: vi.fn(),

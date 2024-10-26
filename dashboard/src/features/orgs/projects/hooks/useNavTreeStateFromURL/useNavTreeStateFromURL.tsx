@@ -9,10 +9,10 @@ type TreeState = {
 const useNavTreeStateFromURL = (): TreeState => {
   const router = useRouter();
 
-  // Extract orgSlug and appSlug from router.query
-  const { orgSlug, appSlug } = router.query as {
+  // Extract orgSlug and appSubdomain from router.query
+  const { orgSlug, appSubdomain } = router.query as {
     orgSlug?: string;
-    appSlug?: string;
+    appSubdomain?: string;
   };
 
   // Extract path segments from the URL
@@ -38,7 +38,7 @@ const useNavTreeStateFromURL = (): TreeState => {
     // Expand organization-level items
     expandedItems.push('organizations', orgSlug);
 
-    if (!appSlug) {
+    if (!appSubdomain) {
       if (newProject) {
         expandedItems.push(`${orgSlug}-projects`);
         focusedItem = `${orgSlug}-new-project`;
@@ -49,28 +49,28 @@ const useNavTreeStateFromURL = (): TreeState => {
     }
 
     // Expand project-level items
-    expandedItems.push(`${orgSlug}-projects`, `${orgSlug}-${appSlug}`);
+    expandedItems.push(`${orgSlug}-projects`, `${orgSlug}-${appSubdomain}`);
 
     if (!projectPage) {
       // overview page is the default when hitting /orgs/[orgSlug]/projects/[projectSlug]
-      focusedItem = `${orgSlug}-${appSlug}-overview`;
+      focusedItem = `${orgSlug}-${appSubdomain}-overview`;
     } else {
-      focusedItem = `${orgSlug}-${appSlug}-${projectPage}`;
+      focusedItem = `${orgSlug}-${appSubdomain}-${projectPage}`;
     }
 
     if (isSettingsPage) {
-      expandedItems.push(`${orgSlug}-${appSlug}-settings`);
+      expandedItems.push(`${orgSlug}-${appSubdomain}-settings`);
       if (!settingsPage) {
-        focusedItem = `${orgSlug}-${appSlug}-settings-general`;
+        focusedItem = `${orgSlug}-${appSubdomain}-settings-general`;
       } else {
-        focusedItem = `${orgSlug}-${appSlug}-settings-${settingsPage}`;
+        focusedItem = `${orgSlug}-${appSubdomain}-settings-${settingsPage}`;
       }
     }
 
     return { expandedItems, focusedItem };
   }, [
     orgSlug,
-    appSlug,
+    appSubdomain,
     orgPage,
     projectPage,
     settingsPage,

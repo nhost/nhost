@@ -30,19 +30,19 @@ function OverviewDeploymentsTopBar() {
   const isGitHubConnected = !!project?.githubRepository;
 
   return (
-    <div className="grid items-center grid-flow-col gap-2 pb-4 place-content-between">
+    <div className="grid grid-flow-col place-content-between items-center gap-2 pb-4">
       <Text variant="h3" className="font-medium">
         Deployments
       </Text>
 
       <NavLink
-        href={`/orgs/${org?.slug}/projects/${project?.slug}/deployments`}
+        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
         passHref
         legacyBehavior
       >
         <Button variant="borderless" disabled={!isGitHubConnected}>
           View all
-          <ChevronRightIcon className="inline-block w-4 h-4 ml-1" />
+          <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
         </Button>
       </NavLink>
     </div>
@@ -82,14 +82,14 @@ function OverviewDeploymentList() {
 
   if (!deployments?.length) {
     return (
-      <Box className="grid items-center grid-flow-row gap-5 px-4 py-12 overflow-hidden rounded-lg shadow-sm justify-items-center border-1">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 px-4 py-12 shadow-sm">
         <RocketIcon
           strokeWidth={1}
-          className="w-10 h-10"
+          className="h-10 w-10"
           sx={{ color: 'text.primary' }}
         />
         <div className="grid grid-flow-row gap-2">
-          <Text className="font-medium text-center" variant="h3">
+          <Text className="text-center font-medium" variant="h3">
             No Deployments
           </Text>
           <Text variant="subtitle1" className="max-w-md text-center">
@@ -99,21 +99,21 @@ function OverviewDeploymentList() {
         </div>
 
         <Box
-          className="flex flex-row w-full max-w-sm px-2 py-2 mt-6 rounded-lg place-content-between"
+          className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg px-2 py-2"
           sx={{ backgroundColor: 'grey.200' }}
         >
           <Box
             className="ml-2 grid grid-flow-col gap-1.5"
             sx={{ backgroundColor: 'transparent' }}
           >
-            <GitHubIcon className="self-center w-4 h-4" />
+            <GitHubIcon className="h-4 w-4 self-center" />
             <Text variant="body1" className="self-center font-normal">
               {project?.githubRepository?.fullName}
             </Text>
           </Box>
 
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.slug}/settings/git`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
             passHref
             legacyBehavior
           >
@@ -135,7 +135,7 @@ function OverviewDeploymentList() {
 
   return (
     <List
-      className="flex flex-col overflow-hidden rounded-lg rounded-x-lg"
+      className="rounded-x-lg flex flex-col overflow-hidden rounded-lg"
       sx={{ borderColor: 'grey.300', borderWidth: 1 }}
     >
       {deployments?.map((deployment, index) => (
@@ -182,11 +182,11 @@ export default function OverviewDeployments() {
     <div className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <Box className="grid items-center grid-flow-row gap-5 px-4 py-12 rounded-lg shadow-sm justify-items-center border-1">
-        <RocketIcon strokeWidth={1} className="w-10 h-10" />
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 px-4 py-12 shadow-sm">
+        <RocketIcon strokeWidth={1} className="h-10 w-10" />
 
         <div className="grid grid-flow-row gap-1">
-          <Text className="font-medium text-center" variant="h3">
+          <Text className="text-center font-medium" variant="h3">
             No Deployments
           </Text>
           <Text variant="subtitle1" className="max-w-sm text-center">

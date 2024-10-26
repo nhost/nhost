@@ -77,7 +77,7 @@ const projectSettingsPages = [
 
 export default function ProjectSettingsPagesComboBox() {
   const {
-    query: { orgSlug, appSlug },
+    query: { orgSlug, appSubdomain },
     push,
     asPath,
   } = useRouter();
@@ -142,7 +142,7 @@ export default function ProjectSettingsPagesComboBox() {
                     setSelectedSettingsPage(option);
                     setOpen(false);
                     push(
-                      `/orgs/${orgSlug}/projects/${appSlug}/settings/${option.route}/`,
+                      `/orgs/${orgSlug}/projects/${appSubdomain}/settings/${option.route}/`,
                     );
                   }}
                 >

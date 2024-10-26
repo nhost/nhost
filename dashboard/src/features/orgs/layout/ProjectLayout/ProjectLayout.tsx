@@ -30,7 +30,7 @@ function ProjectLayoutContent({
   mainContainerProps = {},
 }: ProjectLayoutProps) {
   const {
-    query: { appSlug },
+    query: { appSubdomain },
   } = useRouter();
 
   const isPlatform = useIsPlatform();
@@ -39,7 +39,7 @@ function ProjectLayoutContent({
 
   // Render application state based on the current state
   const projectPageContent = useMemo(() => {
-    if (!appSlug || state === undefined) {
+    if (!appSubdomain || state === undefined) {
       return children;
     }
 
@@ -63,7 +63,7 @@ function ProjectLayoutContent({
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSlug]);
+  }, [state, children, appSubdomain]);
 
   // Handle loading state
   if (loading) {

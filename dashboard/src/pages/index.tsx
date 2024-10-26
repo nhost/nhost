@@ -11,7 +11,6 @@ import { useEffect, type ReactElement } from 'react';
 
 export default function IndexPage() {
   const { push } = useRouter();
-
   const isPlatform = useIsPlatform();
   const { orgs, loading: loadingOrgs } = useOrgs();
   const { workspaces, loading: loadingWorkspaces } = useWorkspaces();

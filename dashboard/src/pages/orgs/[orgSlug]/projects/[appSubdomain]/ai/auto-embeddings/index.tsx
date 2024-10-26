@@ -109,12 +109,12 @@ export default function AutoEmbeddingsPage() {
         className="w-full p-4"
         sx={{ backgroundColor: 'background.default' }}
       >
-        <Alert className="grid items-center w-full grid-flow-col gap-2 place-content-between">
+        <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <Text className="grid grid-flow-row justify-items-start gap-0.5">
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
-                href={`/orgs/${org?.slug}/projects/${project?.slug}/settings/ai`}
+                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/ai`}
                 rel="noopener noreferrer"
                 underline="hover"
               >
@@ -134,23 +134,23 @@ export default function AutoEmbeddingsPage() {
         className="w-full p-6"
         sx={{ backgroundColor: 'background.default' }}
       >
-        <Box className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm">
-          <EmbeddingsIcon className="w-10 h-10" />
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+          <EmbeddingsIcon className="h-10 w-10" />
           <div className="flex flex-col space-y-1">
-            <Text className="font-medium text-center" variant="h3">
+            <Text className="text-center font-medium" variant="h3">
               No Auto-Embeddings are configured
             </Text>
             <Text variant="subtitle1" className="text-center">
               All your configurations will be listed here.
             </Text>
           </div>
-          <div className="flex flex-row rounded-lg place-content-between">
+          <div className="flex flex-row place-content-between rounded-lg">
             <Button
               variant="contained"
               color="primary"
               className="w-full"
               onClick={openCreateAutoEmbeddingsConfiguration}
-              startIcon={<PlusIcon className="w-4 h-4" />}
+              startIcon={<PlusIcon className="h-4 w-4" />}
             >
               Add a new Auto-Embeddings Configuration
             </Button>
@@ -161,13 +161,13 @@ export default function AutoEmbeddingsPage() {
   }
 
   return (
-    <Box className="flex flex-col w-full overflow-hidden">
-      <Box className="flex flex-row p-4 place-content-end border-b-1">
+    <Box className="flex w-full flex-col overflow-hidden">
+      <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"
           color="primary"
           onClick={openCreateAutoEmbeddingsConfiguration}
-          startIcon={<PlusIcon className="w-4 h-4" />}
+          startIcon={<PlusIcon className="h-4 w-4" />}
         >
           New
         </Button>

@@ -21,14 +21,14 @@ fragment getAppPlanAndGlobalPlansPlan on plans {
   featureMaxDbSize
 }
 
-query getAppPlanAndGlobalPlans(
+query getWorkspacesAppPlansAndGlobalPlans(
   $workspaceSlug: String!
-  $appSubdomain: String!
+  $slug: String!
 ) {
   apps(
     where: {
       workspace: { slug: { _eq: $workspaceSlug } }
-      slug: { _eq: $appSubdomain }
+      slug: { _eq: $slug }
     }
   ) {
     ...getAppPlanAndGlobalPlansApp

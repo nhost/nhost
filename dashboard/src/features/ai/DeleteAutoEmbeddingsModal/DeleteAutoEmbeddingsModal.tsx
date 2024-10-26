@@ -6,6 +6,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+// eslint-disable-next-line import/extensions
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { type AutoEmbeddingsConfiguration } from 'pages/[workspaceSlug]/[appSlug]/ai/auto-embeddings';

@@ -17,8 +17,8 @@ import ProjectSettingsPagesComboBox from './ProjectSettingsPagesComboBox';
 export default function BreadcrumbNav() {
   const { query, asPath, route } = useRouter();
 
-  // Extract orgSlug and appSlug from router.query
-  const { appSlug, workspaceSlug } = query;
+  // Extract orgSlug and appSubdomain from router.query
+  const { appSubdomain, workspaceSlug } = query;
 
   // Extract path segments from the URL
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
@@ -31,7 +31,7 @@ export default function BreadcrumbNav() {
     !workspaceSlug && !['/', '/orgs/verify'].includes(route);
 
   return (
-    <Breadcrumb className="flex flex-row w-full mt-2 overflow-x-auto flex-nowrap lg:mt-0 lg:overflow-visible">
+    <Breadcrumb className="mt-2 flex w-full flex-row flex-nowrap overflow-x-auto lg:mt-0 lg:overflow-visible">
       <BreadcrumbList className="flex-nowrap">
         <BreadcrumbSeparator>
           <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
@@ -51,7 +51,7 @@ export default function BreadcrumbNav() {
           </>
         )}
 
-        {showBreadcrumbs && appSlug && (
+        {showBreadcrumbs && appSubdomain && (
           <>
             <BreadcrumbSeparator>
               <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
