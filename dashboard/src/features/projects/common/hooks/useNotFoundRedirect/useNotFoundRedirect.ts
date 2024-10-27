@@ -26,6 +26,7 @@ export default function useNotFoundRedirect() {
       // If we're already on the 404 page, we don't want to redirect to 404
       router.pathname === '/404' ||
       router.pathname === '/' ||
+      router.pathname === '/account' ||
       orgSlug ||
       (orgSlug && appSubdomain) ||
       // If we are on a valid workspace and project, we don't want to redirect to 404
