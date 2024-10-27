@@ -12,7 +12,7 @@ function SupportPage() {
   return (
     <Box className="h-screen pb-4 overflow-auto">
       <Box className="flex justify-start w-full px-4 py-3 border-b-1">
-        <Logo className="cursor-pointer" />
+        <Logo className="w-6 cursor-pointer" />
       </Box>
 
       <div className="flex flex-col items-center justify-center">
