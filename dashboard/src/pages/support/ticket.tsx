@@ -144,14 +144,14 @@ function TicketPage() {
       className="flex flex-col items-center justify-center py-10"
       sx={{ backgroundColor: 'background.default' }}
     >
-      <div className="flex w-full max-w-3xl flex-col">
-        <div className="mb-4 flex flex-col items-center">
+      <div className="flex flex-col w-full max-w-3xl">
+        <div className="flex flex-col items-center mb-4">
           <Text variant="h4" className="font-bold">
             Nhost Support
           </Text>
           <Text variant="h4">How can we help you?</Text>
         </div>
-        <Box className="w-full rounded-md border p-10">
+        <Box className="w-full p-10 border rounded-md">
           <Box className="grid grid-flow-row gap-4">
             <Box className="flex flex-col gap-4">
               <FormProvider {...form}>
@@ -172,7 +172,7 @@ function TicketPage() {
                     error={!!errors.workspace}
                     helperText={errors.workspace?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
+                      <span className="inline-grid items-center grid-flow-col gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -199,7 +199,7 @@ function TicketPage() {
                     error={!!errors.project}
                     helperText={errors.project?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
+                      <span className="inline-grid items-center grid-flow-col gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -253,7 +253,7 @@ function TicketPage() {
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
+                      <span className="inline-grid items-center grid-flow-col gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -336,13 +336,13 @@ function TicketPage() {
                     helperText={errors.ccs?.message}
                   />
 
-                  <Box className="ml-auto flex w-80 flex-col gap-4">
-                    <Text color="secondary" className="text-right text-sm">
+                  <Box className="flex flex-col gap-4 ml-auto w-80">
+                    <Text color="secondary" className="text-sm text-right">
                       We will contact you at <strong>{user?.email}</strong>
                     </Text>
                     <Button
                       variant="outlined"
-                      className=" hover:!bg-white hover:!bg-opacity-10 focus:ring-0"
+                      className="hover:!bg-white hover:!bg-opacity-10 focus:ring-0"
                       size="large"
                       type="submit"
                       startIcon={<EnvelopeIcon />}
