@@ -16,7 +16,6 @@ export default function OverviewTopBar() {
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const isOwner = useIsCurrentUserOwner();
   const isStarter = currentProject?.legacyPlan?.name === 'Starter';
-  const isPro = currentProject?.legacyPlan?.name === 'Pro';
   const { maintenanceActive } = useUI();
 
   if (!isPlatform) {
@@ -107,7 +106,7 @@ export default function OverviewTopBar() {
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
-        {isPro && isOwner && <MigrateProjectToOrg />}
+        {isOwner && <MigrateProjectToOrg />}
         <Link
           href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/general`}
           passHref
