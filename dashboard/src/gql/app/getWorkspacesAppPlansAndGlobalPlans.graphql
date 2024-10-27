@@ -1,0 +1,39 @@
+fragment getAppPlanAndGlobalPlansApp on apps {
+  id
+  subdomain
+  workspace {
+    id
+    paymentMethods {
+      id
+    }
+  }
+  legacyPlan {
+    id
+    name
+  }
+}
+
+fragment getAppPlanAndGlobalPlansPlan on plans {
+  id
+  name
+  isFree
+  price
+  featureMaxDbSize
+}
+
+query getWorkspacesAppPlansAndGlobalPlans(
+  $workspaceSlug: String!
+  $slug: String!
+) {
+  apps(
+    where: {
+      workspace: { slug: { _eq: $workspaceSlug } }
+      slug: { _eq: $slug }
+    }
+  ) {
+    ...getAppPlanAndGlobalPlansApp
+  }
+  plans {
+    ...getAppPlanAndGlobalPlansPlan
+  }
+}

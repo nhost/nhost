@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/v2/Button';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
-import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
+import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
+import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
+import { useState } from 'react';
 
 import Image from 'next/image';
 import { type ReactNode } from 'react';
@@ -20,22 +21,24 @@ export default function UpgradeToProBanner({
   title,
   description,
 }: UpgradeToProBannerProps) {
-  const { openDialog, openAlertDialog } = useDialog();
   const isOwner = useIsCurrentUserOwner();
+  const { openAlertDialog } = useDialog();
+  const [transferProjectDialogOpen, setTransferProjectDialogOpen] =
+    useState(false);
 
   return (
     <Box
       sx={{ backgroundColor: 'primary.light' }}
-      className="flex flex-col justify-between p-4 space-y-4 rounded-md lg:flex-row lg:items-center lg:space-y-0"
+      className="flex flex-col justify-between space-y-4 rounded-md p-4 lg:flex-row lg:items-center lg:space-y-0"
     >
       <div className="flex flex-col justify-between space-y-4">
         <div className="space-y-2">
-          <div className="flex flex-col space-y-2 xs:flex-row xs:space-y-0 xs:space-x-2">
+          <div className="flex flex-col space-y-2 xs:flex-row xs:space-x-2 xs:space-y-0">
             <Text>Available with</Text>
             <div className="flex flex-row space-x-2">
               <NhostIcon />
               <Text sx={{ color: 'primary.main' }} className="font-semibold">
-                Nhost Pro
+                Nhost Pro & Team
               </Text>
             </div>
           </div>
@@ -47,47 +50,48 @@ export default function UpgradeToProBanner({
           )}
         </div>
 
-        <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-2">
+        <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-2 gap-2">
           <Button
-            className="rounded-md"
+            className="lg:w-auto max-w-xs"
             onClick={() => {
               if (isOwner) {
-                openDialog({
-                  component: <ChangePlanModal />,
-                  props: {
-                    PaperProps: { className: 'p-0 max-w-xl w-full' },
-                  },
-                });
+                setTransferProjectDialogOpen(true);
               } else {
                 openAlertDialog({
-                  title: "You can't upgrade this project",
+                  title: "You can't migrate this project",
                   payload: (
                     <Text variant="subtitle1" component="span">
-                      Ask an owner of this workspace to upgrade the project.
+                      Ask an owner of this organization to migrate the project.
                     </Text>
                   ),
                   props: {
                     secondaryButtonText: 'I understand',
                     hidePrimaryAction: true,
                   },
+
+
                 });
               }
             }}
           >
-            Upgrade to Pro
+            Transfer Project
           </Button>
+          <TransferProjectDialog
+            open={transferProjectDialogOpen}
+            setOpen={setTransferProjectDialogOpen}
+          />
           <Link
             href="https://nhost.io/pricing"
             target="_blank"
             rel="noopener noreferrer"
             underline="hover"
-            className="font-medium text-center"
+            className="text-center font-medium"
             sx={{
               color: 'text.secondary',
             }}
           >
             See all features
-            <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+            <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
           </Link>
         </div>
       </div>
@@ -97,7 +101,7 @@ export default function UpgradeToProBanner({
         width={300}
         height={140}
         objectFit="contain"
-        alt='Upgrade to Pro illustration'
+        alt="Upgrade to Pro illustration"
       />
     </Box>
   );

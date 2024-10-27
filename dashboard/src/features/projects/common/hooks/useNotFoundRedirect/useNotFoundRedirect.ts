@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 export default function useNotFoundRedirect() {
   const router = useRouter();
   const {
-    query: { workspaceSlug, appSlug, updating },
+    query: { orgSlug, workspaceSlug, appSubdomain, updating, appSlug },
     isReady,
   } = router;
 
@@ -25,6 +25,9 @@ export default function useNotFoundRedirect() {
       loading ||
       // If we're already on the 404 page, we don't want to redirect to 404
       router.pathname === '/404' ||
+      router.pathname === '/' ||
+      orgSlug ||
+      (orgSlug && appSubdomain) ||
       // If we are on a valid workspace and project, we don't want to redirect to 404
       (workspaceSlug && currentWorkspace && appSlug && currentProject) ||
       // If we are on a valid workspace and no project is selected, we don't want to redirect to 404
@@ -39,9 +42,11 @@ export default function useNotFoundRedirect() {
     currentWorkspace,
     isReady,
     loading,
+    appSubdomain,
     appSlug,
     router,
     updating,
     workspaceSlug,
+    orgSlug,
   ]);
 }

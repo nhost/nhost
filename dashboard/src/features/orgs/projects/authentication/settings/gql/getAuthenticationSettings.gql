@@ -1,0 +1,59 @@
+query GetAuthenticationSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    auth {
+      id: __typename
+      __typename
+      redirections {
+        clientUrl
+        allowedUrls
+      }
+      totp {
+        enabled
+        issuer
+      }
+      signUp {
+        enabled
+      }
+      session {
+        accessToken {
+          expiresIn
+        }
+        refreshToken {
+          expiresIn
+        }
+      }
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
+      user {
+        email {
+          allowed
+          blocked
+        }
+        emailDomains {
+          allowed
+          blocked
+        }
+        gravatar {
+          enabled
+          default
+          rating
+        }
+        locale {
+          allowed
+          default
+        }
+      }
+      misc {
+        concealErrors
+      }
+      version
+    }
+  }
+}

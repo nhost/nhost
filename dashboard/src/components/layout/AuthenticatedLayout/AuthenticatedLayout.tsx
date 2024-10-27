@@ -3,19 +3,29 @@ import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
+import { MainNav } from '@/components/layout/MainNav';
+import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useAuthenticationStatus } from '@nhost/nextjs';
+
+import { useMediaQuery } from '@/components/common/useMediaQuery';
+import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
+import { OrgStatus } from '@/features/orgs/components/OrgStatus';
+import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
+import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { useEffect } from 'react';
-import { twMerge } from 'tailwind-merge';
+import {
+  useEffect,
+  useState,
+  type DetailedHTMLProps,
+  type HTMLProps,
+} from 'react';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -29,16 +39,18 @@ export interface AuthenticatedLayoutProps extends BaseLayoutProps {
 
 export default function AuthenticatedLayout({
   children,
-  contentContainerProps: {
-    className: contentContainerClassName,
-    ...contentContainerProps
-  } = {},
   ...props
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
+  const isMdOrLarger = useMediaQuery('md');
+
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const isHealthy = useIsHealthy();
+  const [mainNavContainer, setMainNavContainer] = useState(null);
+  const { mainNavPinned } = useTreeNavState();
+
+  useNotFoundRedirect();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -54,13 +66,13 @@ export default function AuthenticatedLayout({
     }
 
     if (
-      router.query.workspaceSlug === 'local' &&
-      router.query.appSlug === 'local'
+      router.query.orgSlug === 'local' &&
+      router.query.appSubdomain === 'local'
     ) {
       return;
     }
 
-    router.push('/local/local');
+    router.push('/orgs/local/projects/local');
   }, [isPlatform, router]);
 
   if (isPlatform && isLoading) {
@@ -116,21 +128,35 @@ export default function AuthenticatedLayout({
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <Header className="flex max-h-[59px] flex-auto" />
+      <Header className="flex py-1" />
 
-      <InviteNotification />
+      <div
+        className="relative flex h-full flex-row overflow-x-hidden"
+        ref={setMainNavContainer}
+      >
+        {mainNavPinned && isMdOrLarger && <PinnedMainNav />}
 
-      <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
-        <div
-          className={twMerge(
-            'relative flex flex-auto overflow-x-hidden',
-            contentContainerClassName,
+        <div className="relative flex h-full w-full flex-row overflow-hidden bg-accent">
+          {(!mainNavPinned || !isMdOrLarger) && (
+            <div className="flex h-full w-6 justify-center">
+              <MainNav container={mainNavContainer} />
+            </div>
           )}
-          {...contentContainerProps}
-        >
-          {children}
+
+          <RetryableErrorBoundary
+            errorMessageProps={{
+              className: 'flex flex-col items-center',
+            }}
+          >
+            <div className="flex h-full w-full flex-col">
+              <OrgStatus />
+              {children}
+            </div>
+          </RetryableErrorBoundary>
+
+          <InviteNotification />
         </div>
-      </RetryableErrorBoundary>
+      </div>
     </BaseLayout>
   );
 }

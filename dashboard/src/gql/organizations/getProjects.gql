@@ -1,0 +1,24 @@
+query getProjects($orgSlug: String!) {
+  apps(where: { organization: { slug: { _eq: $orgSlug } } }) {
+    id
+    name
+    slug
+    createdAt
+    subdomain
+    deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
+      id
+      commitSHA
+      commitMessage
+      commitUserName
+      deploymentStartedAt
+      deploymentEndedAt
+      commitUserAvatarUrl
+      deploymentStatus
+    }
+    creator {
+      id
+      email
+      displayName
+    }
+  }
+}

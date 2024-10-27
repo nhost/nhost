@@ -1,0 +1,9 @@
+mutation billingMigrateProjectToOrganization(
+  $appID: uuid!
+  $organizationID: uuid!
+) {
+  billingMigrateProjectToOrganization(
+    appID: $appID
+    organizationID: $organizationID
+  )
+}

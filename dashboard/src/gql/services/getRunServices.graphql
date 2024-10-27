@@ -2,6 +2,7 @@ fragment RunServiceConfig on ConfigRunServiceConfig {
   name
   image {
     image
+    pullCredentials
   }
   command
   resources {

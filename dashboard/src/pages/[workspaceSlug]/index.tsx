@@ -1,6 +1,6 @@
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import { WorkspaceApps } from '@/features/projects/workspaces/components/WorkspaceApps';
@@ -33,5 +33,5 @@ export default function WorkspaceDetailsPage() {
 }
 
 WorkspaceDetailsPage.getLayout = function getLayout(page: ReactElement) {
-  return <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

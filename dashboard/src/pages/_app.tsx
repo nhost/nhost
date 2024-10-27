@@ -1,7 +1,9 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
+import { TreeNavStateProvider } from '@/components/layout/MainNav/TreeNavStateContext';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
+import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 // eslint-disable-next-line import/extensions
 import '@/styles/fonts.css';
@@ -29,6 +31,7 @@ import { NhostApolloProvider } from '@nhost/react-apollo';
 import * as snippet from '@segment/snippet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { NextPage } from 'next';
+import { PagesProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { DefaultSeo } from 'next-seo';
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
@@ -112,9 +115,18 @@ function MyApp({
               >
                 <RetryableErrorBoundary>
                   <RecoilRoot>
-                    <DialogProvider>
-                      {getLayout(<Component {...pageProps} />)}
-                    </DialogProvider>
+                    <TooltipProvider>
+                      <DialogProvider>
+                        <ProgressBar
+                          height="2px"
+                          color="#0052cd"
+                          options={{ showSpinner: false }}
+                        />
+                        <TreeNavStateProvider>
+                          {getLayout(<Component {...pageProps} />)}
+                        </TreeNavStateProvider>
+                      </DialogProvider>
+                    </TooltipProvider>
                   </RecoilRoot>
                 </RetryableErrorBoundary>
               </ThemeProvider>

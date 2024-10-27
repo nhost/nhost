@@ -1,0 +1,20 @@
+query GetPostgresSettings($appId: uuid!) {
+  systemConfig(appID: $appId) {
+    postgres {
+      database
+    }
+  }
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    postgres {
+      version
+      resources {
+        storage {
+          capacity
+        }
+        enablePublicAccess
+      }
+    }
+  }
+}

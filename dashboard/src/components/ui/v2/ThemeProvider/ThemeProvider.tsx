@@ -5,14 +5,21 @@ import CssBaseline from '@mui/material/CssBaseline';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
 import Head from 'next/head';
-import type { PropsWithChildren } from 'react';
+import { useEffect, type PropsWithChildren } from 'react';
 
 function ThemeProviderContent({
   children,
   color: manualColor,
 }: PropsWithChildren<{ color?: 'light' | 'dark' }>) {
-  const { color } = useColorPreference();
-  const theme = createTheme(manualColor || color);
+  const { color: preferredColor } = useColorPreference();
+  const theme = createTheme(manualColor || preferredColor);
+
+  // Use effect to set the class on the root html tag
+  useEffect(() => {
+    const rootElement = document.documentElement;
+    rootElement.classList.remove('light', 'dark'); // Remove previous classes
+    rootElement.classList.add(preferredColor); // Add the current class
+  }, [preferredColor]);
 
   return (
     <MaterialThemeProvider theme={theme}>
@@ -22,13 +29,14 @@ function ThemeProviderContent({
           'html, body': {
             backgroundColor: `${theme.palette.background.default} !important`,
           },
+          html: {
+            class: `${preferredColor}`,
+          },
         }}
       />
-
       <Head>
         <meta name="theme-color" content={theme.palette.background.paper} />
       </Head>
-
       {children}
     </MaterialThemeProvider>
   );
@@ -36,9 +44,9 @@ function ThemeProviderContent({
 
 export interface ThemeProviderProps extends PropsWithChildren<unknown> {
   /**
-   * The key used to store the color preference in the local storage.
+   * The key used to store the color preference in local storage.
    *
-   * @default 'color-mode'
+   * @default 'color-preference'
    */
   colorPreferenceStorageKey?: string;
   /**

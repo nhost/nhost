@@ -11,8 +11,8 @@ import { planDescriptions } from '@/features/projects/common/utils/planDescripti
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import {
   refetchGetApplicationPlanQuery,
-  useGetAppPlanAndGlobalPlansQuery,
   useGetPaymentMethodsQuery,
+  useGetWorkspacesAppPlansAndGlobalPlansQuery,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
@@ -80,7 +80,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const paymentMethodAvailable = data?.paymentMethods.length > 0;
 
-  const currentPlan = plans.find((plan) => plan.id === app.plan.id);
+  const currentPlan = plans.find((plan) => plan.id === app.legacyPlan);
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId);
   const higherPlans = plans.filter((plan) => plan.price > currentPlan.price);
 
@@ -123,7 +123,6 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
           variables: {
             appId: app.id,
             app: {
-              planId: selectedPlan.id,
               desiredState: 5,
             },
           },
@@ -295,10 +294,10 @@ export default function ChangePlanModal({ onCancel }: ChangePlanModalProps) {
     query: { workspaceSlug, appSlug },
   } = useRouter();
 
-  const { data, loading, error } = useGetAppPlanAndGlobalPlansQuery({
+  const { data, loading, error } = useGetWorkspacesAppPlansAndGlobalPlansQuery({
     variables: {
       workspaceSlug: workspaceSlug as string,
-      appSlug: appSlug as string,
+      slug: appSlug as string,
     },
     fetchPolicy: 'cache-first',
   });

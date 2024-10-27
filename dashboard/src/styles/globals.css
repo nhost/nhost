@@ -1,5 +1,6 @@
 @tailwind base;
 @tailwind components;
+@tailwind utilities;
 
 .sb-show-main {
   overflow: auto;
@@ -69,7 +70,7 @@ body {
 }
 
 .graphiql-container .graphiql-doc-explorer {
-  @apply h-full overflow-y-auto border-l-0 py-3 px-3 !important;
+  @apply h-full overflow-y-auto border-l-0 px-3 py-3 !important;
 }
 
 .graphiql-container .graphiql-plugin {
@@ -98,7 +99,8 @@ body {
   position: fixed;
   z-index: 10;
   background: #f4f7f9;
-  box-shadow: 0px 1px 3px rgba(33, 50, 75, 0.15),
+  box-shadow:
+    0px 1px 3px rgba(33, 50, 75, 0.15),
     0px 4px 16px rgba(33, 50, 75, 0.05);
   border-radius: 4px;
 }
@@ -166,7 +168,8 @@ body {
     #0052cd;
   /* Raised/Raised 2 */
 
-  box-shadow: 0px 1px 4px rgba(14, 24, 39, 0.1),
+  box-shadow:
+    0px 1px 4px rgba(14, 24, 39, 0.1),
     0px 8px 24px rgba(14, 24, 39, 0.1);
   border-radius: 8px;
 }
@@ -176,7 +179,8 @@ body {
 }
 
 .box-drop {
-  box-shadow: 0px 1px 4px rgba(14, 24, 39, 0.1),
+  box-shadow:
+    0px 1px 4px rgba(14, 24, 39, 0.1),
     0px 8px 24px rgba(14, 24, 39, 0.1);
 }
 
@@ -202,7 +206,9 @@ body {
       #f4f7f9 75%,
       #f4f7f9
     );
-  background-position: 0 0, 28px 28px;
+  background-position:
+    0 0,
+    28px 28px;
   background-size: 56px 56px;
 }
 
@@ -218,4 +224,76 @@ body {
   justify-content: initial;
 }
 
-@tailwind utilities;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 216 100% 40%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 204 29% 97%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 0 0% 98%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 204 29% 97%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 349 87% 57%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 216 100% 40%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 216 25% 12%;
+    --foreground: 210 40% 98%;
+    --card: 216 25% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 216 25% 12%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 216 100% 61%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217 24% 11%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 349 87% 57%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 210 13% 21%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 216 100% 61%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+::-webkit-scrollbar {
+  @apply h-2 w-2;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full border-[1px] border-solid border-transparent bg-muted-foreground/50 bg-clip-padding;
+}

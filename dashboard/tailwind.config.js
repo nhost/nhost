@@ -3,6 +3,7 @@ const plugin = require('tailwindcss/plugin');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx}',
     './src/features/**/*.{js,ts,jsx,tsx}',
@@ -24,6 +25,47 @@ module.exports = {
         'primary-main': '#0052cd',
         'primary-light': '#ebf3ff',
         'primary-dark': '#063799',
+        'theme-grey-200': '#21262d',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        chart: {
+          1: 'hsl(var(--chart-1))',
+          2: 'hsl(var(--chart-2))',
+          3: 'hsl(var(--chart-3))',
+          4: 'hsl(var(--chart-4))',
+          5: 'hsl(var(--chart-5))',
+        },
       },
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
@@ -43,25 +85,25 @@ module.exports = {
         login: '61.6px',
       },
       margin: {
-        14.5: '61px',
         18: '72px',
+        14.5: '61px',
         loader: '500px',
       },
       spacing: {
-        4.5: '1.2rem',
         13: '3.25rem',
         17: '4.25rem',
         18: '4.5rem',
         25: '6.25rem',
         27: '6.75rem',
+        4.5: '1.2rem',
       },
       height: {
+        120: '30rem',
         3.3: '0.86rem',
         3.7: '15px',
         4.5: '18px',
         5.5: '22px',
         13.5: '52px',
-        120: '30rem',
         modal: '361px',
         modal2: '330px',
         import: '348px',
@@ -70,8 +112,12 @@ module.exports = {
       },
       borderRadius: {
         'sm+': '4px',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       width: {
+        98: '400px',
         3.3: '0.85rem',
         3.7: '15px',
         4.5: '18px',
@@ -81,7 +127,6 @@ module.exports = {
         drop: '280px',
         input: '344px',
         settings: '388px',
-        98: '400px',
         selector2: '460px',
         'modal-': '430px',
         modal: '480px',
@@ -144,8 +189,8 @@ module.exports = {
         features: '579px',
       },
       maxHeight: {
-        'near-screen': '96vh',
         120: '30rem',
+        'near-screen': '96vh',
       },
       fontFamily: {
         display: ['Inter var', ...defaultTheme.fontFamily.sans],
@@ -168,11 +213,17 @@ module.exports = {
           '0%': { transform: 'scale(1)', opacity: 1 },
           '100%': { transform: 'scale(0.9)', opacity: 0 },
         },
+        progress: {
+          '0%': { transform: 'translateX(0) scaleX(0)' },
+          '40%': { transform: 'translateX(0) scaleX(0.4)' },
+          '100%': { transform: 'translateX(100%) scaleX(0.5)' },
+        },
       },
       animation: {
         blinking: 'blinking 1s infinite',
         toastenter: 'enter 200ms ease-out',
         toastleave: 'leave 150ms ease-in forwards',
+        progress: 'progress 1s infinite linear',
       },
     },
   },
@@ -193,5 +244,6 @@ module.exports = {
         { values: theme('transitionDelay') },
       );
     }),
+    require('tailwindcss-animate'),
   ],
 };
