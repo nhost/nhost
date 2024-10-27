@@ -27,6 +27,7 @@ export default function useNotFoundRedirect() {
       router.pathname === '/404' ||
       router.pathname === '/' ||
       router.pathname === '/account' ||
+      router.pathname === '/support/ticket' ||
       orgSlug ||
       (orgSlug && appSubdomain) ||
       // If we are on a valid workspace and project, we don't want to redirect to 404
