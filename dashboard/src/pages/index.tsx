@@ -2,6 +2,7 @@ import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { MaintenanceAlert } from '@/components/presentational/MaintenanceAlert';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
@@ -10,7 +11,7 @@ import { useEffect, type ReactElement } from 'react';
 
 export default function IndexPage() {
   const { push } = useRouter();
-
+  const isPlatform = useIsPlatform();
   const { orgs, loading: loadingOrgs } = useOrgs();
   const { workspaces, loading: loadingWorkspaces } = useWorkspaces();
 
@@ -46,8 +47,18 @@ export default function IndexPage() {
       }
     };
 
-    navigateToSlug();
-  }, [orgs, lastSlug, push, workspaces, loadingOrgs, loadingWorkspaces]);
+    if (isPlatform) {
+      navigateToSlug();
+    }
+  }, [
+    orgs,
+    lastSlug,
+    push,
+    workspaces,
+    loadingOrgs,
+    loadingWorkspaces,
+    isPlatform,
+  ]);
 
   return <LoadingScreen />;
 }
