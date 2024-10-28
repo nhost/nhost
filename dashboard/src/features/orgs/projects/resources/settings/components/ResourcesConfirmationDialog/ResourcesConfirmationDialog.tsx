@@ -124,8 +124,8 @@ export default function ResourcesConfirmationDialog({
         </Text>
       ) : (
         <Text className="text-center">
-          By confirming this you will go back to the original amount of
-          resources of the {proPlan.name} plan.
+          By confirming this you will go back to the original shared resources
+          included in the {proPlan.name} plan.
         </Text>
       )}
 
@@ -220,10 +220,12 @@ export default function ResourcesConfirmationDialog({
 
           <Text>{enabled ? `$${updatedPrice.toFixed(2)}/mo` : `$0/mo`}</Text>
         </Box>
-        <Text className="text-xs text-gray-400">
-          Note: Your organization&apos;s $15 worth of credits cover for both
-          shared and dedicated compute.
-        </Text>
+        {enabled && (
+          <Text className="text-xs text-gray-400">
+            Note: Your organization&apos;s $15 worth of credits cover for both
+            shared and dedicated compute.
+          </Text>
+        )}
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
