@@ -69,6 +69,7 @@ const projectSettingsPages = [
   },
   { name: 'AI', slug: 'ai', route: 'ai' },
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
+  { name: 'Observability', slug: 'metrics', route: 'metrics' },
 ].map((item) => ({
   label: item.name,
   value: item.slug,
@@ -125,7 +126,7 @@ export default function ProjectSettingsPagesComboBox() {
           ) : (
             <>Select a page</>
           )}
-          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -155,7 +156,7 @@ export default function ProjectSettingsPagesComboBox() {
                     )}
                   />
                   <div className="flex flex-row items-center gap-2">
-                    <span className="truncate max-w-52">{option.label}</span>
+                    <span className="max-w-52 truncate">{option.label}</span>
                   </div>
                 </CommandItem>
               ))}

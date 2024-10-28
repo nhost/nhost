@@ -231,6 +231,13 @@ export default function SettingsSidebar({
             <SettingsNavLink href="/ai" exact={false} onClick={handleSelect}>
               AI
             </SettingsNavLink>
+            <SettingsNavLink
+              href="/metrics"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Observability
+            </SettingsNavLink>
           </List>
         </nav>
         <Box className="border-t">
