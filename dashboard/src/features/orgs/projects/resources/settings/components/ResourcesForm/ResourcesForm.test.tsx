@@ -133,9 +133,7 @@ test('should update the price when the top slider is changed', async () => {
     9 * RESOURCE_VCPU_MULTIPLIER,
   );
 
-  expect(screen.getByText(/\$425\.00\/mo/i)).toBeInTheDocument();
-  // we display the final price in two places
-  expect(screen.getAllByText(/\$475\.00\/mo/i)).toHaveLength(2);
+  expect(screen.getAllByText(/\$450\.00\/mo/i)).toHaveLength(2);
 });
 
 test('should show a validation error when the form is submitted when not everything is allocated', async () => {
@@ -238,7 +236,7 @@ test('should show a confirmation dialog when the form is submitted', async () =>
     within(screen.getByRole('dialog')).getByText(/storage/i).parentElement,
   ).toHaveTextContent(/3 vcpu \+ 5120 mib/i);
   expect(
-    within(screen.getByRole('dialog')).getByText(/\$475\.00\/mo/i),
+    within(screen.getByRole('dialog')).getByText(/\$450\.00\/mo/i),
   ).toBeInTheDocument();
 
   // we need to mock the query again because the mutation updated the resources
@@ -271,9 +269,6 @@ test('should display a red button when custom resources are disabled', async () 
   await user.click(screen.getAllByRole('checkbox')[0]);
 
   expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
-  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-    /approximate cost: \$25\.00\/mo/i,
-  );
 
   await user.click(screen.getByRole('button', { name: /save/i }));
 
@@ -344,7 +339,7 @@ test('should change pricing based on selected replicas', async () => {
   ).toBeInTheDocument();
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-    /approximate cost: \$425\.00\/mo/i,
+    /approximate cost: \$400\.00\/mo/i,
   );
 
   const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
@@ -359,7 +354,7 @@ test('should change pricing based on selected replicas', async () => {
 
   await waitFor(() =>
     expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-      /approximate cost: \$525\.00\/mo/i,
+      /approximate cost: \$500\.00\/mo/i,
     ),
   );
 
@@ -369,7 +364,7 @@ test('should change pricing based on selected replicas', async () => {
 
   await waitFor(() => {
     expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-      /approximate cost: \$425\.00\/mo/i,
+      /approximate cost: \$400\.00\/mo/i,
     );
   });
 });
@@ -522,5 +517,5 @@ test('should take replicas into account when confirming the resources', async ()
   );
 
   expect(within(dialog).getByText(/\$0.0270\/min/i)).toBeInTheDocument();
-  expect(within(dialog).getByText(/\$1150\.00\/mo/i)).toBeInTheDocument();
+  expect(within(dialog).getByText(/\$1125\.00\/mo/i)).toBeInTheDocument();
 });
