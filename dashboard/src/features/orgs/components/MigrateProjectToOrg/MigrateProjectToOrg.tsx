@@ -31,8 +31,8 @@ import {
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { cn } from '@/lib/utils';
-import { useBillingMigrateProjectToOrganizationMutation } from '@/utils/__generated__/graphql';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { useBillingMigrateProjectToOrganizationMutation } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { CornerRightUp } from 'lucide-react';
@@ -103,18 +103,21 @@ export default function MigrateProjectToOrg() {
         <DialogHeader className="gap-2">
           <DialogTitle>Migrate project to an Organization</DialogTitle>
           <DialogDescription className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <span className="font-medium mt-4">Please read the following information before migrating:</span>
-            <ul className="list-disc pl-4 space-y-2">
+            <span className="mt-4 font-medium">
+              Please read the following information before migrating:
+            </span>
+            <ul className="pl-4 space-y-2 list-disc">
               <li>
-                A project can only be migrated to an organization in the same
-                or higher plan as the project you are migrating. 
+                A project can only be migrated to an organization in the same or
+                higher plan as the project you are migrating.
               </li>
               <li className="mt-4">
                 Any remaining usage credits in your current workspace will be
                 transferred and credited to the target organization.
               </li>
               <li className="mt-4">
-                While there is no downtime for stateless services, Postgres requires a restart so plan for 1-2 minutes of downtime.
+                While there is no downtime for stateless services, Postgres
+                requires a restart so plan for 1-2 minutes of downtime.
               </li>
             </ul>
             <div className="flex items-center justify-start gap-1 mt-4">
@@ -135,80 +138,81 @@ export default function MigrateProjectToOrg() {
         {noValidOrg && (
           <>
             <span className="text-sm">
-              We couldn't find a {currentProject.legacyPlan.name} organization, please create one first.
-          </span>
-          <CreateOrgDialog />
+              We couldn&apos;t find a {currentProject.legacyPlan.name}{' '}
+              organization, please create one first.
+            </span>
+            <CreateOrgDialog />
           </>
         )}
         {!noValidOrg && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="organization"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Organization</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Organization" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {orgs.map((org) => (
-                        <SelectItem
-                          key={org.id}
-                          value={org.id}
-                          disabled={org.plan.isFree}
-                        >
-                          {org.name}
-                          <Badge
-                            variant={org.plan.isFree ? 'outline' : 'default'}
-                            className={cn(
-                              org.plan.isFree ? 'bg-muted' : '',
-                              'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                            )}
+              <FormField
+                control={form.control}
+                name="organization"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Organization</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Organization" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {orgs.map((org) => (
+                          <SelectItem
+                            key={org.id}
+                            value={org.id}
+                            disabled={org.plan.isFree}
                           >
-                            {org.plan.name}
-                          </Badge>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="secondary"
-                type="button"
-                disabled={form.formState.isSubmitting}
-                onClick={() => {
-                  form.reset();
-                  setOpen(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  form.formState.isSubmitting || !form.formState.isDirty
-                }
-              >
-                {form.formState.isSubmitting ? (
-                  <ActivityIndicator />
-                ) : (
-                  'Migrate'
+                            {org.name}
+                            <Badge
+                              variant={org.plan.isFree ? 'outline' : 'default'}
+                              className={cn(
+                                org.plan.isFree ? 'bg-muted' : '',
+                                'hover:none ml-2 h-5 px-[6px] text-[10px]',
+                              )}
+                            >
+                              {org.plan.name}
+                            </Badge>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </Button>
-            </div>
+              />
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="secondary"
+                  type="button"
+                  disabled={form.formState.isSubmitting}
+                  onClick={() => {
+                    form.reset();
+                    setOpen(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    form.formState.isSubmitting || !form.formState.isDirty
+                  }
+                >
+                  {form.formState.isSubmitting ? (
+                    <ActivityIndicator />
+                  ) : (
+                    'Migrate'
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
         )}
