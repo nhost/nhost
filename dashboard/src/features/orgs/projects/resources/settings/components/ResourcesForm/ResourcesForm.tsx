@@ -173,7 +173,6 @@ export default function ResourcesForm() {
   );
 
   const initialPrice = isPlatform
-    // ? proPlan.price +
     ? (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
     : 0;
 

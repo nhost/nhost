@@ -72,12 +72,10 @@ export default function ResourcesFormFooter() {
     }
 
     if (enabled) {
-      return (
-        Math.max(
-          priceForTotalAvailableVCPU,
-          (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
-            RESOURCE_VCPU_PRICE,
-        )
+      return Math.max(
+        priceForTotalAvailableVCPU,
+        (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
+          RESOURCE_VCPU_PRICE,
       );
     }
 
@@ -103,7 +101,7 @@ export default function ResourcesFormFooter() {
         </Link>
       </Text>
 
-      {(enabled) && (
+      {(enabled || isDirty) && (
         <Box className="grid items-center justify-between grid-flow-col gap-4">
           {enabled && (
             <Box className="grid grid-flow-col items-center gap-1.5">
@@ -126,8 +124,8 @@ export default function ResourcesFormFooter() {
 
           <Button
             type="submit"
-            variant='outlined'
-            color='secondary'
+            variant={isDirty ? 'contained' : 'outlined'}
+            color={isDirty ? 'primary' : 'secondary'}
             disabled={!isDirty}
           >
             Save
