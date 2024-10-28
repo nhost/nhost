@@ -291,13 +291,13 @@ export interface ChangePlanModalProps {
 
 export default function ChangePlanModal({ onCancel }: ChangePlanModalProps) {
   const {
-    query: { workspaceSlug, appSlug },
+    query: { workspaceSlug, appSubdomain },
   } = useRouter();
 
   const { data, loading, error } = useGetAppPlanAndGlobalPlansQuery({
     variables: {
       workspaceSlug: workspaceSlug as string,
-      appSlug: appSlug as string,
+      appSubdomain: appSubdomain as string,
     },
     fetchPolicy: 'cache-first',
   });

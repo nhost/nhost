@@ -1,4 +1,5 @@
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
@@ -10,6 +11,7 @@ import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
+import { Link } from '@/components/ui/v2/Link';
 import { Button } from '@/components/ui/v3/button';
 import {
   HoverCard,
@@ -21,7 +23,7 @@ import { type Workspace } from '@/features/orgs/projects/hooks/useWorkspaces/use
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { type ReactElement } from 'react';
 
 import {
@@ -35,73 +37,73 @@ import { useTreeNavState } from './TreeNavStateContext';
 const projectPages = [
   {
     name: 'Overview',
-    icon: <HomeIcon className="h-4 w-4" />,
+    icon: <HomeIcon className="w-4 h-4" />,
     route: '',
     slug: 'overview',
   },
   {
     name: 'Database',
-    icon: <DatabaseIcon className="h-4 w-4" />,
+    icon: <DatabaseIcon className="w-4 h-4" />,
     route: 'database/browser/default',
     slug: 'database',
   },
   {
     name: 'GraphQL',
-    icon: <GraphQLIcon className="h-4 w-4" />,
+    icon: <GraphQLIcon className="w-4 h-4" />,
     route: 'graphql',
     slug: 'graphql',
   },
   {
     name: 'Hasura',
-    icon: <HasuraIcon className="h-4 w-4" />,
+    icon: <HasuraIcon className="w-4 h-4" />,
     route: 'hasura',
     slug: 'hasura',
   },
   {
     name: 'Auth',
-    icon: <UserIcon className="h-4 w-4" />,
+    icon: <UserIcon className="w-4 h-4" />,
     route: 'users',
     slug: 'users',
   },
   {
     name: 'Storage',
-    icon: <StorageIcon className="h-4 w-4" />,
+    icon: <StorageIcon className="w-4 h-4" />,
     route: 'storage',
     slug: 'storage',
   },
   {
     name: 'Run',
-    icon: <ServicesIcon className="h-4 w-4" />,
+    icon: <ServicesIcon className="w-4 h-4" />,
     route: 'services',
     slug: 'services',
   },
   {
     name: 'AI',
-    icon: <AIIcon className="h-4 w-4" />,
+    icon: <AIIcon className="w-4 h-4" />,
     route: 'ai/auto-embeddings',
     slug: 'ai',
   },
   {
     name: 'Deployments',
-    icon: <RocketIcon className="h-4 w-4" />,
+    icon: <RocketIcon className="w-4 h-4" />,
     route: 'deployments',
     slug: 'deployments',
   },
   {
     name: 'Backups',
-    icon: <CloudIcon className="h-4 w-4" />,
+    icon: <CloudIcon className="w-4 h-4" />,
     route: 'backups',
     slug: 'backups',
   },
   {
     name: 'Logs',
-    icon: <FileTextIcon className="h-4 w-4" />,
+    icon: <FileTextIcon className="w-4 h-4" />,
     route: 'logs',
     slug: 'logs',
   },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="h-4 w-4" />,
+    icon: <GaugeIcon className="w-4 h-4" />,
     route: 'metrics',
     slug: 'metrics',
   },
@@ -208,7 +210,7 @@ const createWorkspace = (workspace: Workspace) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="h-4 w-4" />,
+        icon: <Box className="w-4 h-4" />,
         targetUrl: `/${workspace.slug}/${app.slug}`,
       },
       children: projectPages.map(
@@ -312,7 +314,7 @@ export default function WorkspacesNavTree() {
           <span
             className={cn(
               'flex items-start',
-              context.isFocused ? 'text-primary-main' : '',
+              context.isFocused ? 'text-primary' : '',
             )}
           >
             {item.data.icon}
@@ -321,7 +323,7 @@ export default function WorkspacesNavTree() {
         <span
           className={cn(
             item?.index === 'workspaces' && 'font-bold',
-            context.isFocused ? 'font-bold text-primary-main' : '',
+            context.isFocused ? 'font-bold text-primary' : '',
             'max-w-52 truncate',
           )}
         >
@@ -340,7 +342,16 @@ export default function WorkspacesNavTree() {
             </HoverCardTrigger>
             <HoverCardContent className="w-64" side="top">
               <div className="whitespace-normal">
-                <p>These are your legacy workspaces. Read the announcement.</p>
+                <span>For more information read the </span>
+                <Link
+                  href="https://nhost.io/blog/organization-billing"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium"
+                >
+                  announcement
+                  <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
+                </Link>
               </div>
             </HoverCardContent>
           </HoverCard>
@@ -357,7 +368,6 @@ export default function WorkspacesNavTree() {
           {arrow}
           <Button
             asChild
-            variant={context.isFocused ? 'secondary' : 'ghost'}
             onClick={() => {
               if (item.data.type !== 'workspace') {
                 context.focusItem();
@@ -366,15 +376,20 @@ export default function WorkspacesNavTree() {
                 setLastSlug(item.data.slug);
               }
             }}
-            className="flex h-8 w-full flex-row justify-start gap-1 px-1"
+            className={cn(
+              'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent dark:hover:bg-muted',
+              context.isFocused &&
+                'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
+              item.data.disabled && 'pointer-events-none opacity-50',
+            )}
           >
             {item.data.targetUrl ? (
-              <Link
+              <NextLink
                 href={item.data.targetUrl || '/'}
                 onClick={() => setOpen(false)}
               >
                 {navItemContent()}
-              </Link>
+              </NextLink>
             ) : (
               <div className="cursor-pointer">{navItemContent()}</div>
             )}
@@ -406,9 +421,9 @@ export default function WorkspacesNavTree() {
             className="h-8 px-1"
           >
             {context.isExpanded ? (
-              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
+              <ChevronDown className="w-4 h-4 font-bold" strokeWidth={3} />
             ) : (
-              <ChevronRight className="h-4 w-4" strokeWidth={3} />
+              <ChevronRight className="w-4 h-4" strokeWidth={3} />
             )}
           </Button>
         );
@@ -429,9 +444,9 @@ export default function WorkspacesNavTree() {
         }
 
         return (
-          <div className="flex w-full flex-row">
+          <div className="flex flex-row w-full">
             <div className="flex justify-center px-[12px] pb-3">
-              <div className="h-full w-0 border-r border-dashed" />
+              <div className="w-0 h-full border-r border-dashed" />
             </div>
             <ul {...containerProps} className="w-full">
               {children}

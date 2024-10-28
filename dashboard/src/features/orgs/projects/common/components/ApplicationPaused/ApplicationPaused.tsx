@@ -1,19 +1,19 @@
-import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
 import { Modal } from '@/components/ui/v1/Modal';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { ApplicationLockedReason } from '@/features/orgs/projects/common/components/ApplicationLockedReason';
 import { ApplicationPausedReason } from '@/features/orgs/projects/common/components/ApplicationPausedReason';
 import { ApplicationPausedSymbol } from '@/features/orgs/projects/common/components/ApplicationPausedSymbol';
-import { ChangePlanModal } from '@/features/orgs/projects/common/components/ChangePlanModal';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   GetAllWorkspacesAndProjectsDocument,
@@ -23,9 +23,11 @@ import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useState } from 'react';
 
 export default function ApplicationPaused() {
-  const { openDialog } = useDialog();
+  const { org } = useCurrentOrg();
   const { project, refetch: refetchProject } = useProject();
   const isOwner = useIsCurrentUserOwner();
+  const [transferProjectDialogOpen, setTransferProjectDialogOpen] =
+    useState(false);
 
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
@@ -74,7 +76,7 @@ export default function ApplicationPaused() {
         />
       </Modal>
 
-      <Container className="grid max-w-lg grid-flow-row gap-6 mx-auto mt-20 text-center">
+      <Container className="grid max-w-lg grid-flow-row gap-6 mx-auto text-center">
         <div className="flex flex-col mx-auto text-center w-centImage">
           <ApplicationPausedSymbol isLocked={isLocked} />
         </div>
@@ -93,21 +95,19 @@ export default function ApplicationPaused() {
                 }
               />
               <div className="grid grid-flow-row gap-4">
-                {isOwner && (
-                  <Button
-                    className="w-full max-w-xs mx-auto"
-                    onClick={() => {
-                      openDialog({
-                        component: <ChangePlanModal />,
-                        props: {
-                          PaperProps: { className: 'p-0' },
-                          maxWidth: 'lg',
-                        },
-                      });
-                    }}
-                  >
-                    Upgrade to Pro
-                  </Button>
+                {org && (
+                  <>
+                    <Button
+                      className="w-full max-w-xs mx-auto"
+                      onClick={() => setTransferProjectDialogOpen(true)}
+                    >
+                      Transfer
+                    </Button>
+                    <TransferProjectDialog
+                      open={transferProjectDialogOpen}
+                      setOpen={setTransferProjectDialogOpen}
+                    />
+                  </>
                 )}
                 <Button
                   variant="borderless"

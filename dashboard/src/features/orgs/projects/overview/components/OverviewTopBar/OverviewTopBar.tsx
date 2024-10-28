@@ -17,10 +17,10 @@ export default function OverviewTopBar() {
 
   if (!isPlatform) {
     return (
-      <div className="flex flex-row items-center py-5 place-content-between">
+      <div className="flex flex-row place-content-between items-center py-5">
         <div className="flex flex-row items-center space-x-2">
           <div className="grid grid-flow-col gap-2">
-            <div className="w-10 h-10 overflow-hidden rounded-lg">
+            <div className="h-10 w-10 overflow-hidden rounded-lg">
               <Image
                 src="/logos/new.svg"
                 alt="Nhost Logo"
@@ -41,8 +41,8 @@ export default function OverviewTopBar() {
   return (
     <div className="grid items-center gap-4 pb-5 md:grid-flow-col md:place-content-between md:py-5">
       <div className="grid items-center gap-4 md:grid-flow-col">
-        <div className="grid items-center justify-start grid-flow-col gap-2">
-          <div className="w-10 h-10 overflow-hidden rounded-lg">
+        <div className="grid grid-flow-col items-center justify-start gap-2">
+          <div className="h-10 w-10 overflow-hidden rounded-lg">
             <Image
               src="/logos/new.svg"
               alt="Nhost Logo"
@@ -52,11 +52,11 @@ export default function OverviewTopBar() {
           </div>
 
           <div className="grid grid-flow-row">
-            <div className="grid items-center justify-start grid-flow-row md:grid-flow-col md:gap-3">
+            <div className="grid grid-flow-row items-center justify-start md:grid-flow-col md:gap-3">
               <Text
                 variant="h2"
                 component="h1"
-                className="grid items-center grid-flow-col gap-3"
+                className="grid grid-flow-col items-center gap-3"
               >
                 {project.name}
               </Text>
@@ -89,12 +89,12 @@ export default function OverviewTopBar() {
       </div>
 
       <Link
-        href={`/orgs/${org?.slug}/projects/${project?.slug}/settings`}
+        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
         passHref
         legacyBehavior
       >
         <Button
-          endIcon={<CogIcon className="w-4 h-4" />}
+          endIcon={<CogIcon className="h-4 w-4" />}
           variant="outlined"
           color="secondary"
           disabled={maintenanceActive}

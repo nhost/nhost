@@ -19,10 +19,12 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 
+import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import { cn } from '@/lib/utils';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -174,7 +176,9 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
 }
 
 export default function CreateOrgDialog() {
+  const { maintenanceActive } = useUI();
   const user = useUserData();
+  const isPlatform = useIsPlatform();
   const [open, setOpen] = useState(false);
   const { data, loading, error } = usePrefetchNewAppQuery({
     skip: !user,
@@ -197,8 +201,7 @@ export default function CreateOrgDialog() {
           variables: {
             organizationName: name,
             planID: plan,
-            // redirectURL: `${window.location.origin}/orgs/verify`,
-            redirectURL: `https://staging.app.nhost.io/orgs/verify`,
+            redirectURL: `${window.location.origin}/orgs/verify`,
           },
         });
 
@@ -216,12 +219,19 @@ export default function CreateOrgDialog() {
     throw error;
   }
 
+  if (!isPlatform) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="ghost"
-          className="flex flex-row justify-start w-full h-8 gap-3 px-2"
+          disabled={maintenanceActive}
+          className={cn(
+            'flex h-8 w-full flex-row justify-start gap-3 px-2',
+            'bg-background text-foreground hover:bg-accent dark:hover:bg-muted',
+          )}
           onClick={() => setStripeClientSecret('')}
         >
           <Plus className="w-4 h-4 font-bold" strokeWidth={3} />

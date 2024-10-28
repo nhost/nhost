@@ -39,6 +39,7 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 
+import { useUI } from '@/components/common/UIProvider';
 import { Input } from '@/components/ui/v3/input';
 import {
   Select,
@@ -74,6 +75,7 @@ const updateMemberRoleFormSchema = z.object({
 });
 
 export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
+  const { maintenanceActive } = useUI();
   const { id } = useUserData();
   const { push } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
@@ -188,7 +190,11 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
 
           <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
             <DropdownMenuTrigger
-              disabled={(!isAdmin && id !== member.user.id) || isFree}
+              disabled={
+                (!isAdmin && id !== member.user.id) ||
+                isFree ||
+                maintenanceActive
+              }
               asChild
               className="h-fit"
             >

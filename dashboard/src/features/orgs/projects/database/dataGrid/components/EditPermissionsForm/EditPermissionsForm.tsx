@@ -204,11 +204,11 @@ export default function EditPermissionsForm({
 
   return (
     <Box
-      className="flex flex-col content-between flex-auto overflow-hidden border-t-1"
+      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
       sx={{ backgroundColor: 'background.default' }}
     >
       <div className="flex-auto">
-        <Box className="grid content-start grid-flow-row gap-6 p-6 overflow-y-auto border-b-1">
+        <Box className="grid grid-flow-row content-start gap-6 overflow-y-auto border-b-1 p-6">
           <div className="grid grid-flow-row gap-2">
             <Text component="h2" className="!font-bold">
               Roles & Actions overview
@@ -220,24 +220,24 @@ export default function EditPermissionsForm({
             </Text>
           </div>
 
-          <div className="grid items-center justify-start grid-flow-col gap-4">
+          <div className="grid grid-flow-col items-center justify-start gap-4">
             <Text
               variant="subtitle2"
-              className="grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               full access <FullPermissionIcon />
             </Text>
 
             <Text
               variant="subtitle2"
-              className="grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               partial access <PartialPermissionIcon />
             </Text>
 
             <Text
               variant="subtitle2"
-              className="grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               no access <NoPermissionIcon />
             </Text>
@@ -246,22 +246,22 @@ export default function EditPermissionsForm({
           <TableContainer sx={{ backgroundColor: 'background.paper' }}>
             <Table>
               <TableHead className="block">
-                <TableRow className="grid items-center grid-cols-5">
-                  <TableCell className="p-2 border-b-0">Role</TableCell>
+                <TableRow className="grid grid-cols-5 items-center">
+                  <TableCell className="border-b-0 p-2">Role</TableCell>
 
-                  <TableCell className="p-2 text-center border-b-0">
+                  <TableCell className="border-b-0 p-2 text-center">
                     Insert
                   </TableCell>
 
-                  <TableCell className="p-2 text-center border-b-0">
+                  <TableCell className="border-b-0 p-2 text-center">
                     Select
                   </TableCell>
 
-                  <TableCell className="p-2 text-center border-b-0">
+                  <TableCell className="border-b-0 p-2 text-center">
                     Update
                   </TableCell>
 
-                  <TableCell className="p-2 text-center border-b-0">
+                  <TableCell className="border-b-0 p-2 text-center">
                     Delete
                   </TableCell>
                 </TableRow>
@@ -331,7 +331,7 @@ export default function EditPermissionsForm({
           <Alert className="text-left">
             Please go to the{' '}
             <NavLink
-              href={`/orgs/${org?.slug}/projects/${project?.slug}/settings/roles-and-permissions`}
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
               passHref
               legacyBehavior
             >
@@ -348,7 +348,7 @@ export default function EditPermissionsForm({
         </Box>
       </div>
 
-      <Box className="grid justify-between flex-shrink-0 grid-flow-col gap-3 p-2 border-t-1">
+      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button variant="borderless" color="secondary" onClick={onCancel}>
           Cancel
         </Button>

@@ -125,13 +125,15 @@ const projectPages = [
 
 export default function ProjectPagesComboBox() {
   const {
-    query: { orgSlug, appSlug },
+    query: { orgSlug, appSubdomain },
     push,
     asPath,
   } = useRouter();
 
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
-  const projectPageFromUrl = appSlug ? pathSegments[5] || 'overview' : null;
+  const projectPageFromUrl = appSubdomain
+    ? pathSegments[5] || 'overview'
+    : null;
   const selectedProjectPageFromUrl = projectPages.find(
     (item) => item.value === projectPageFromUrl,
   );
@@ -163,7 +165,7 @@ export default function ProjectPagesComboBox() {
         <Button
           variant="ghost"
           size="sm"
-          className="justify-start gap-2 text-foreground"
+          className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
           {selectedProjectPage ? (
             <div className="flex flex-row items-center justify-center gap-2">
@@ -190,7 +192,7 @@ export default function ProjectPagesComboBox() {
                     setSelectedProjectPage(option);
                     setOpen(false);
                     push(
-                      `/orgs/${orgSlug}/projects/${appSlug}/${option.value}`,
+                      `/orgs/${orgSlug}/projects/${appSubdomain}/${option.value}`,
                     );
                   }}
                 >

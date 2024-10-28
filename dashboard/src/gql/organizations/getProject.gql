@@ -1,5 +1,5 @@
-query getProject($slug: String!) {
-  apps(where: { slug: { _eq: $slug } }) {
+query getProject($subdomain: String!) {
+  apps(where: { subdomain: { _eq: $subdomain } }) {
     id
     slug
     name

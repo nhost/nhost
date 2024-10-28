@@ -93,24 +93,24 @@ export default function DeploymentListItem({
   return (
     <ListItem.Root>
       <ListItem.Button
-        className="grid items-center justify-between grid-flow-col gap-2 p-2 rounded-none"
+        className="grid grid-flow-col items-center justify-between gap-2 rounded-none p-2"
         component={NavLink}
-        href={`/orgs/${org?.slug}/projects/${project?.slug}/deployments/${deployment.id}`}
+        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
         aria-label={commitMessage || 'No commit message'}
       >
-        <div className="grid items-center self-center justify-center grid-flow-col gap-2">
+        <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
           <ListItem.Avatar>
             <Avatar
               name={deployment.commitUserName}
               avatarUrl={deployment.commitUserAvatarUrl}
-              className="w-8 h-8 shrink-0"
+              className="h-8 w-8 shrink-0"
             />
           </ListItem.Avatar>
 
           <ListItem.Text
             primary={
               commitMessage?.trim() || (
-                <span className="pr-1 italic font-normal truncate">
+                <span className="truncate pr-1 font-normal italic">
                   No commit message
                 </span>
               )
@@ -119,7 +119,7 @@ export default function DeploymentListItem({
           />
         </div>
 
-        <div className="grid items-center justify-end grid-flow-col gap-2">
+        <div className="grid grid-flow-col items-center justify-end gap-2">
           {showRedeploy && (
             <Tooltip
               title={
@@ -139,7 +139,7 @@ export default function DeploymentListItem({
                 startIcon={
                   <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
                 }
-                className="px-2 py-1 text-xs rounded-full"
+                className="rounded-full px-2 py-1 text-xs"
                 aria-label="Redeploy"
               >
                 Redeploy
@@ -148,16 +148,16 @@ export default function DeploymentListItem({
           )}
 
           {isLive && (
-            <div className="justify-end hidden w-12 sm:flex">
+            <div className="hidden w-12 justify-end sm:flex">
               <Chip size="small" color="success" label="Live" />
             </div>
           )}
 
-          <div className="hidden w-16 font-mono font-medium text-right text-sm- sm:block">
+          <div className="hidden w-16 text-right font-mono text-sm- font-medium sm:block">
             {deployment.commitSHA.substring(0, 7)}
           </div>
 
-          <div className="font-mono font-medium text-right text-sm- sm:w-20">
+          <div className="text-right font-mono text-sm- font-medium sm:w-20">
             <DeploymentDurationLabel
               startedAt={deployment.deploymentStartedAt}
               endedAt={deployment.deploymentEndedAt}
@@ -168,7 +168,7 @@ export default function DeploymentListItem({
             status={deployment.deploymentStatus as DeploymentStatus}
           />
 
-          <ChevronRightIcon className="w-4 h-4" />
+          <ChevronRightIcon className="h-4 w-4" />
         </div>
       </ListItem.Button>
     </ListItem.Root>

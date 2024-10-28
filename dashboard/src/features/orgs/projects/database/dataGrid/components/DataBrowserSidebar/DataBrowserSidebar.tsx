@@ -88,7 +88,7 @@ function DataBrowserSidebarContent({
 
   const {
     asPath,
-    query: { orgSlug, appSlug, dataSourceSlug, schemaSlug, tableSlug },
+    query: { orgSlug, appSubdomain, dataSourceSlug, schemaSlug, tableSlug },
   } = router;
 
   const { data, status, error, refetch } = useDatabaseQuery([
@@ -111,7 +111,7 @@ function DataBrowserSidebarContent({
    */
   const [sidebarMenuTable, setSidebarMenuTable] = useState<string>();
 
-  const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSlug}/database/browser/default/editor`;
+  const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/editor`;
 
   useEffect(() => {
     if (selectedSchema) {
@@ -198,7 +198,7 @@ function DataBrowserSidebarContent({
       // browser's main screen
       if (!nextTable) {
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSlug}/database/browser/${dataSourceSlug}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
         );
 
         return;
@@ -206,7 +206,7 @@ function DataBrowserSidebarContent({
 
       if (schema === schemaSlug && table === tableSlug) {
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSlug}/database/browser/${dataSourceSlug}/${nextTable.table_schema}/${nextTable.table_name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextTable.table_schema}/${nextTable.table_name}`,
         );
       }
     } catch {
@@ -489,7 +489,7 @@ function DataBrowserSidebarContent({
                           '2.25rem !important',
                       }}
                       component={NavLink}
-                      href={`/orgs/${orgSlug}/projects/${appSlug}/database/browser/default/${table.table_schema}/${table.table_name}`}
+                      href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${table.table_schema}/${table.table_name}`}
                       onClick={() => {
                         if (onSidebarItemClick) {
                           onSidebarItemClick(`default.${tablePath}`);
