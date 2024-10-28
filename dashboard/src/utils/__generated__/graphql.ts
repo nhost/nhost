@@ -26639,6 +26639,13 @@ export type GetOrganizationProjectsQueryVariables = Exact<{
 
 export type GetOrganizationProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
+export type GetOrganizationSpendingWarningQueryVariables = Exact<{
+  orgId: Scalars['uuid'];
+}>;
+
+
+export type GetOrganizationSpendingWarningQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', threshold: number }> };
+
 export type GetOrganizationsQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
@@ -26730,6 +26737,14 @@ export type UpdateOrganizationMemberMutationVariables = Exact<{
 
 
 export type UpdateOrganizationMemberMutation = { __typename?: 'mutation_root', updateOrganizationMember?: { __typename?: 'organization_members', id: any } | null };
+
+export type UpdateOrganizationSpendingWarningMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  threshold: Scalars['Int'];
+}>;
+
+
+export type UpdateOrganizationSpendingWarningMutation = { __typename?: 'mutation_root', updateOrganization?: { __typename?: 'organizations', threshold: number } | null };
 
 export type DeletePaymentMethodMutationVariables = Exact<{
   paymentMethodId: Scalars['uuid'];
@@ -30837,6 +30852,44 @@ export type GetOrganizationProjectsQueryResult = Apollo.QueryResult<GetOrganizat
 export function refetchGetOrganizationProjectsQuery(variables: GetOrganizationProjectsQueryVariables) {
       return { query: GetOrganizationProjectsDocument, variables: variables }
     }
+export const GetOrganizationSpendingWarningDocument = gql`
+    query getOrganizationSpendingWarning($orgId: uuid!) {
+  organizations(where: {id: {_eq: $orgId}}) {
+    threshold
+  }
+}
+    `;
+
+/**
+ * __useGetOrganizationSpendingWarningQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationSpendingWarningQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationSpendingWarningQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationSpendingWarningQuery({
+ *   variables: {
+ *      orgId: // value for 'orgId'
+ *   },
+ * });
+ */
+export function useGetOrganizationSpendingWarningQuery(baseOptions: Apollo.QueryHookOptions<GetOrganizationSpendingWarningQuery, GetOrganizationSpendingWarningQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOrganizationSpendingWarningQuery, GetOrganizationSpendingWarningQueryVariables>(GetOrganizationSpendingWarningDocument, options);
+      }
+export function useGetOrganizationSpendingWarningLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationSpendingWarningQuery, GetOrganizationSpendingWarningQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOrganizationSpendingWarningQuery, GetOrganizationSpendingWarningQueryVariables>(GetOrganizationSpendingWarningDocument, options);
+        }
+export type GetOrganizationSpendingWarningQueryHookResult = ReturnType<typeof useGetOrganizationSpendingWarningQuery>;
+export type GetOrganizationSpendingWarningLazyQueryHookResult = ReturnType<typeof useGetOrganizationSpendingWarningLazyQuery>;
+export type GetOrganizationSpendingWarningQueryResult = Apollo.QueryResult<GetOrganizationSpendingWarningQuery, GetOrganizationSpendingWarningQueryVariables>;
+export function refetchGetOrganizationSpendingWarningQuery(variables: GetOrganizationSpendingWarningQueryVariables) {
+      return { query: GetOrganizationSpendingWarningDocument, variables: variables }
+    }
 export const GetOrganizationsDocument = gql`
     query getOrganizations($userId: uuid!) {
   organizations(order_by: {name: asc}, where: {members: {userID: {_eq: $userId}}}) {
@@ -31440,6 +31493,40 @@ export function useUpdateOrganizationMemberMutation(baseOptions?: Apollo.Mutatio
 export type UpdateOrganizationMemberMutationHookResult = ReturnType<typeof useUpdateOrganizationMemberMutation>;
 export type UpdateOrganizationMemberMutationResult = Apollo.MutationResult<UpdateOrganizationMemberMutation>;
 export type UpdateOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>;
+export const UpdateOrganizationSpendingWarningDocument = gql`
+    mutation updateOrganizationSpendingWarning($id: uuid!, $threshold: Int!) {
+  updateOrganization(pk_columns: {id: $id}, _set: {threshold: $threshold}) {
+    threshold
+  }
+}
+    `;
+export type UpdateOrganizationSpendingWarningMutationFn = Apollo.MutationFunction<UpdateOrganizationSpendingWarningMutation, UpdateOrganizationSpendingWarningMutationVariables>;
+
+/**
+ * __useUpdateOrganizationSpendingWarningMutation__
+ *
+ * To run a mutation, you first call `useUpdateOrganizationSpendingWarningMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateOrganizationSpendingWarningMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateOrganizationSpendingWarningMutation, { data, loading, error }] = useUpdateOrganizationSpendingWarningMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      threshold: // value for 'threshold'
+ *   },
+ * });
+ */
+export function useUpdateOrganizationSpendingWarningMutation(baseOptions?: Apollo.MutationHookOptions<UpdateOrganizationSpendingWarningMutation, UpdateOrganizationSpendingWarningMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateOrganizationSpendingWarningMutation, UpdateOrganizationSpendingWarningMutationVariables>(UpdateOrganizationSpendingWarningDocument, options);
+      }
+export type UpdateOrganizationSpendingWarningMutationHookResult = ReturnType<typeof useUpdateOrganizationSpendingWarningMutation>;
+export type UpdateOrganizationSpendingWarningMutationResult = Apollo.MutationResult<UpdateOrganizationSpendingWarningMutation>;
+export type UpdateOrganizationSpendingWarningMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationSpendingWarningMutation, UpdateOrganizationSpendingWarningMutationVariables>;
 export const DeletePaymentMethodDocument = gql`
     mutation deletePaymentMethod($paymentMethodId: uuid!) {
   deletePaymentMethod(id: $paymentMethodId) {
