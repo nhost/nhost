@@ -9,13 +9,13 @@ import { EnvelopeIcon } from '@/components/ui/v2/icons/EnvelopeIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetAllWorkspacesAndProjectsQuery,
   useGetOrganizationsQuery,
   type GetAllWorkspacesAndProjectsQuery,
-  type GetOrganizationsQuery
+  type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { useUserData } from '@nhost/nextjs';
@@ -91,14 +91,23 @@ function TicketPage() {
   });
 
   const workspaces: Workspace[] = data?.workspaces || [];
-  const organizations: Organization[] =
-    organizationsData?.organizations || [];
+  const organizations: Organization[] = organizationsData?.organizations || [];
 
-  const availableProjects = selectedOrganization
-    ? organizations.find((org) => org.id === selectedOrganization)?.apps || []
-    : selectedWorkspace
-    ? workspaces.find((w) => w.id === selectedWorkspace)?.projects || []
-    : [];
+  const getAvailableProjects = () => {
+    if (selectedOrganization) {
+      return (
+        organizations.find((org) => org.id === selectedOrganization)?.apps || []
+      );
+    }
+    if (selectedWorkspace) {
+      return (
+        workspaces.find((workspace) => workspace.id === selectedWorkspace)
+          ?.projects || []
+      );
+    }
+
+    return [];
+  };
 
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const { project, services, priority, subject, description, ccs } =
@@ -166,14 +175,14 @@ function TicketPage() {
       className="flex flex-col items-center justify-center py-10"
       sx={{ backgroundColor: 'background.default' }}
     >
-      <div className="flex w-full max-w-3xl flex-col">
-        <div className="mb-4 flex flex-col items-center">
+      <div className="flex flex-col w-full max-w-3xl">
+        <div className="flex flex-col items-center mb-4">
           <Text variant="h4" className="font-bold">
             Nhost Support
           </Text>
           <Text variant="h4">How can we help you?</Text>
         </div>
-        <Box className="w-full rounded-md border p-10">
+        <Box className="w-full p-10 border rounded-md">
           <Box className="grid grid-flow-row gap-4">
             <Box className="flex flex-col gap-4">
               <FormProvider {...form}>
@@ -196,13 +205,12 @@ function TicketPage() {
                       helperText={errors.organization?.message}
                       disabled={!!selectedWorkspace}
                       renderValue={(option) => (
-                        <span className="inline-grid grid-flow-col items-center gap-2">
+                        <span className="inline-grid items-center grid-flow-col gap-2">
                           {option?.label}
                         </span>
                       )}
                     >
-                      <Option value="" label="">
-                      </Option>
+                      <Option value="" label="" />
                       {organizations.map((organization) => (
                         <Option
                           key={organization.name}
@@ -214,7 +222,9 @@ function TicketPage() {
                       ))}
                     </ControlledSelect>
 
-                    <Text className="text-center font-medium mt-[34px]">or</Text>
+                    <Text className="mt-[34px] text-center font-medium">
+                      or
+                    </Text>
 
                     <ControlledSelect
                       id="workspace"
@@ -228,13 +238,12 @@ function TicketPage() {
                       helperText={errors.workspace?.message}
                       disabled={!!selectedOrganization}
                       renderValue={(option) => (
-                        <span className="inline-grid grid-flow-col items-center gap-2">
+                        <span className="inline-grid items-center grid-flow-col gap-2">
                           {option?.label}
                         </span>
                       )}
                     >
-                      <Option value="" label="">
-                      </Option>
+                      <Option value="" label="" />
                       {workspaces.map((workspace) => (
                         <Option
                           key={workspace.name}
@@ -258,12 +267,12 @@ function TicketPage() {
                     error={!!errors.project}
                     helperText={errors.project?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
+                      <span className="inline-grid items-center grid-flow-col gap-2">
                         {option?.label}
                       </span>
                     )}
                   >
-                    {availableProjects.map((proj) => (
+                    {getAvailableProjects().map((proj) => (
                       <Option
                         key={proj.subdomain}
                         value={proj.subdomain}
@@ -309,7 +318,7 @@ function TicketPage() {
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
+                      <span className="inline-grid items-center grid-flow-col gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -392,8 +401,8 @@ function TicketPage() {
                     helperText={errors.ccs?.message}
                   />
 
-                  <Box className="ml-auto flex w-80 flex-col gap-4">
-                    <Text color="secondary" className="text-right text-sm">
+                  <Box className="flex flex-col gap-4 ml-auto w-80">
+                    <Text color="secondary" className="text-sm text-right">
                       We will contact you at <strong>{user?.email}</strong>
                     </Text>
                     <Button
