@@ -1,8 +1,5 @@
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
-import type { ReactElement } from 'react';
-
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -11,6 +8,8 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ContactPointsSettings } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings';
 import { MetricsAlertingSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsAlertingSettings';
 import { MetricsSMTPSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSMTPSettings';
+import { useGetStorageSettingsQuery } from '@/generated/graphql';
+import type { ReactElement } from 'react';
 
 export default function MetricsSettingsPage() {
   const isPlatform = useIsPlatform();
