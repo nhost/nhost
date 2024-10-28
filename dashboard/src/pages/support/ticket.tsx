@@ -9,11 +9,13 @@ import { EnvelopeIcon } from '@/components/ui/v2/icons/EnvelopeIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetAllWorkspacesAndProjectsQuery,
+  useGetOrganizationsQuery,
   type GetAllWorkspacesAndProjectsQuery,
+  type GetOrganizationsQuery
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { useUserData } from '@nhost/nextjs';
@@ -26,8 +28,14 @@ type Workspace = Omit<
   '__typename'
 >;
 
+type Organization = Omit<
+  GetOrganizationsQuery['organizations'][0],
+  '__typename'
+>;
+
 const validationSchema = Yup.object({
-  workspace: Yup.string().label('Project').required(),
+  organization: Yup.string().label('Organization'),
+  workspace: Yup.string().label('Workspace'),
   project: Yup.string().label('Project').required(),
   services: Yup.array()
     .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
@@ -70,13 +78,27 @@ function TicketPage() {
   } = form;
 
   const selectedWorkspace = watch('workspace');
+  const selectedOrganization = watch('organization');
   const user = useUserData();
 
   const { data } = useGetAllWorkspacesAndProjectsQuery({
     skip: !user,
   });
+  const { data: organizationsData } = useGetOrganizationsQuery({
+    variables: {
+      userId: user?.id,
+    },
+  });
 
   const workspaces: Workspace[] = data?.workspaces || [];
+  const organizations: Organization[] =
+    organizationsData?.organizations || [];
+
+  const availableProjects = selectedOrganization
+    ? organizations.find((org) => org.id === selectedOrganization)?.apps || []
+    : selectedWorkspace
+    ? workspaces.find((w) => w.id === selectedWorkspace)?.projects || []
+    : [];
 
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const { project, services, priority, subject, description, ccs } =
@@ -144,14 +166,14 @@ function TicketPage() {
       className="flex flex-col items-center justify-center py-10"
       sx={{ backgroundColor: 'background.default' }}
     >
-      <div className="flex flex-col w-full max-w-3xl">
-        <div className="flex flex-col items-center mb-4">
+      <div className="flex w-full max-w-3xl flex-col">
+        <div className="mb-4 flex flex-col items-center">
           <Text variant="h4" className="font-bold">
             Nhost Support
           </Text>
           <Text variant="h4">How can we help you?</Text>
         </div>
-        <Box className="w-full p-10 border rounded-md">
+        <Box className="w-full rounded-md border p-10">
           <Box className="grid grid-flow-row gap-4">
             <Box className="flex flex-col gap-4">
               <FormProvider {...form}>
@@ -161,32 +183,69 @@ function TicketPage() {
                 >
                   <Text className="font-bold">Which project is affected ?</Text>
 
-                  <ControlledSelect
-                    id="workspace"
-                    name="workspace"
-                    label="Workspace"
-                    placeholder="Workspace"
-                    slotProps={{
-                      root: { className: 'grid grid-flow-col gap-1' },
-                    }}
-                    error={!!errors.workspace}
-                    helperText={errors.workspace?.message}
-                    renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
-                        {option?.label}
-                      </span>
-                    )}
-                  >
-                    {workspaces.map((workspace) => (
-                      <Option
-                        key={workspace.name}
-                        value={workspace.id}
-                        label={workspace.name}
-                      >
-                        {workspace.name}
+                  <Box className="grid grid-cols-[1fr,auto,1fr] items-start gap-4">
+                    <ControlledSelect
+                      id="organization"
+                      name="organization"
+                      label="Organization"
+                      placeholder="Organization"
+                      slotProps={{
+                        root: { className: 'grid grid-flow-col gap-1' },
+                      }}
+                      error={!!errors.organization}
+                      helperText={errors.organization?.message}
+                      disabled={!!selectedWorkspace}
+                      renderValue={(option) => (
+                        <span className="inline-grid grid-flow-col items-center gap-2">
+                          {option?.label}
+                        </span>
+                      )}
+                    >
+                      <Option value="" label="">
                       </Option>
-                    ))}
-                  </ControlledSelect>
+                      {organizations.map((organization) => (
+                        <Option
+                          key={organization.name}
+                          value={organization.id}
+                          label={organization.name}
+                        >
+                          {organization.name}
+                        </Option>
+                      ))}
+                    </ControlledSelect>
+
+                    <Text className="text-center font-medium mt-[34px]">or</Text>
+
+                    <ControlledSelect
+                      id="workspace"
+                      name="workspace"
+                      label="Workspace"
+                      placeholder="Workspace"
+                      slotProps={{
+                        root: { className: 'grid grid-flow-col gap-1' },
+                      }}
+                      error={!!errors.workspace}
+                      helperText={errors.workspace?.message}
+                      disabled={!!selectedOrganization}
+                      renderValue={(option) => (
+                        <span className="inline-grid grid-flow-col items-center gap-2">
+                          {option?.label}
+                        </span>
+                      )}
+                    >
+                      <Option value="" label="">
+                      </Option>
+                      {workspaces.map((workspace) => (
+                        <Option
+                          key={workspace.name}
+                          value={workspace.id}
+                          label={workspace.name}
+                        >
+                          {workspace.name}
+                        </Option>
+                      ))}
+                    </ControlledSelect>
+                  </Box>
 
                   <ControlledSelect
                     id="project"
@@ -199,15 +258,12 @@ function TicketPage() {
                     error={!!errors.project}
                     helperText={errors.project?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
                   >
-                    {(
-                      workspaces.find((w) => w.id === selectedWorkspace)
-                        ?.projects || []
-                    ).map((proj) => (
+                    {availableProjects.map((proj) => (
                       <Option
                         key={proj.subdomain}
                         value={proj.subdomain}
@@ -253,7 +309,7 @@ function TicketPage() {
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -336,8 +392,8 @@ function TicketPage() {
                     helperText={errors.ccs?.message}
                   />
 
-                  <Box className="flex flex-col gap-4 ml-auto w-80">
-                    <Text color="secondary" className="text-sm text-right">
+                  <Box className="ml-auto flex w-80 flex-col gap-4">
+                    <Text color="secondary" className="text-right text-sm">
                       We will contact you at <strong>{user?.email}</strong>
                     </Text>
                     <Button
