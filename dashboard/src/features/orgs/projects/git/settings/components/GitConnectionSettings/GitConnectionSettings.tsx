@@ -23,7 +23,7 @@ export default function GitConnectionSettings() {
       payload: (
         <p>
           Are you sure you want to disconnect{' '}
-          <b>{project.githubRepository.fullName}</b>?
+          <b>{project?.githubRepository.fullName}</b>?
         </p>
       ),
       props: {
@@ -55,7 +55,7 @@ export default function GitConnectionSettings() {
       slotProps={{ submitButton: { className: 'hidden' } }}
       className="grid grid-cols-5"
     >
-      {!project.githubRepository ? (
+      {!project?.githubRepository ? (
         <Button
           onClick={openGitHubModal}
           className="col-span-5 grid grid-flow-col gap-1.5 xs:col-span-3 lg:col-span-2"
@@ -69,7 +69,7 @@ export default function GitConnectionSettings() {
           <div className="flex flex-row ml-2">
             <GitHubIcon className="mr-1.5 h-7 w-7 self-center" />
             <Text className="self-center font-normal">
-              {project.githubRepository.fullName}
+              {project?.githubRepository.fullName}
             </Text>
           </div>
           <Button

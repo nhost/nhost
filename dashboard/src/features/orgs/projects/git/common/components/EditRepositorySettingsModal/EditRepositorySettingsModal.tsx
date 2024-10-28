@@ -38,7 +38,7 @@ export default function EditRepositorySettingsModal({
     data: EditRepositorySettingsFormData,
   ) => {
     try {
-      if (!project.githubRepository || selectedRepoId) {
+      if (!project?.githubRepository || selectedRepoId) {
         await updateApp({
           variables: {
             appId: project.id,
@@ -80,15 +80,15 @@ export default function EditRepositorySettingsModal({
   return (
     <div className="px-1">
       <div className="flex flex-col">
-        <div className="mx-auto h-8 w-8">
-          <GitHubIcon className="h-8 w-8" />
+        <div className="w-8 h-8 mx-auto">
+          <GitHubIcon className="w-8 h-8" />
         </div>
         <Text className="mt-1.5 text-center text-lg font-medium">
           {selectedRepoId
             ? 'Configure your GitHub integration'
             : 'Edit your GitHub integration'}
         </Text>
-        <Text className="text-center text-xs">
+        <Text className="text-xs text-center">
           We&apos;ll deploy changes automatically when you push to the
           deployment branch.
         </Text>
@@ -100,7 +100,7 @@ export default function EditRepositorySettingsModal({
             >
               <EditRepositoryAndBranchSettings />
 
-              <div className="mt-2 flex flex-col">
+              <div className="flex flex-col mt-2">
                 <Button
                   type="submit"
                   color="primary"
@@ -113,7 +113,7 @@ export default function EditRepositorySettingsModal({
                 </Button>
               </div>
             </form>
-            <div className="mt-2 flex flex-col">
+            <div className="flex flex-col mt-2">
               <Button
                 type="button"
                 variant="outlined"
