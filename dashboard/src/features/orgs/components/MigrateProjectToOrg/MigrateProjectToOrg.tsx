@@ -83,7 +83,13 @@ export default function MigrateProjectToOrg() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        form.reset();
+        setOpen(value);
+      }}
+    >
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2 py-1 text-base">
           Migrate to an Organization
@@ -161,11 +167,19 @@ export default function MigrateProjectToOrg() {
                 variant="secondary"
                 type="button"
                 disabled={form.formState.isSubmitting}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  form.reset();
+                  setOpen(false);
+                }}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                disabled={
+                  form.formState.isSubmitting || !form.formState.isDirty
+                }
+              >
                 {form.formState.isSubmitting ? (
                   <ActivityIndicator />
                 ) : (

@@ -8,30 +8,26 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Link } from '@/components/ui/v2/Link';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-
 import { useProPlan } from '@/features/orgs/projects/common/hooks/useProPlan';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ResourcesConfirmationDialog } from '@/features/orgs/projects/resources/settings/components/ResourcesConfirmationDialog';
 import { ServiceResourcesFormFragment } from '@/features/orgs/projects/resources/settings/components/ServiceResourcesFormFragment';
 import { TotalResourcesFormFragment } from '@/features/orgs/projects/resources/settings/components/TotalResourcesFormFragment';
 import { calculateBillableResources } from '@/features/orgs/projects/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
 } from '@/utils/constants/common';
-
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {
   GetResourcesDocument,
   useGetResourcesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -41,12 +37,14 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, replicas } = data?.config?.[service]?.resources || {};
+  const { compute, replicas, autoscaler } =
+    data?.config?.[service]?.resources || {};
 
   return {
     replicas,
     vcpu: compute?.cpu || 0,
     memory: compute?.memory || 0,
+    autoscale: autoscaler || null,
   };
 }
 
@@ -104,21 +102,29 @@ export default function ResourcesForm() {
         replicas: initialDatabaseResources.replicas || 1,
         vcpu: initialDatabaseResources.vcpu || 1000,
         memory: initialDatabaseResources.memory || 2048,
+        autoscale: !!initialDatabaseResources.autoscale || false,
+        maxReplicas: initialDatabaseResources.autoscale?.maxReplicas || 10,
       },
       hasura: {
         replicas: initialHasuraResources.replicas || 1,
         vcpu: initialHasuraResources.vcpu || 500,
         memory: initialHasuraResources.memory || 1536,
+        autoscale: !!initialHasuraResources.autoscale || false,
+        maxReplicas: initialHasuraResources.autoscale?.maxReplicas || 10,
       },
       auth: {
         replicas: initialAuthResources.replicas || 1,
         vcpu: initialAuthResources.vcpu || 250,
         memory: initialAuthResources.memory || 256,
+        autoscale: !!initialAuthResources.autoscale || false,
+        maxReplicas: initialAuthResources.autoscale?.maxReplicas || 10,
       },
       storage: {
         replicas: initialStorageResources.replicas || 1,
         vcpu: initialStorageResources.vcpu || 250,
         memory: initialStorageResources.memory || 256,
+        autoscale: !!initialStorageResources.autoscale || false,
+        maxReplicas: initialStorageResources.autoscale?.maxReplicas || 10,
       },
     },
     resolver: yupResolver(resourceSettingsValidationSchema),
@@ -168,7 +174,6 @@ export default function ResourcesForm() {
   );
 
   const initialPrice = isPlatform
-    // ? proPlan.price +
     ? (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
     : 0;
 
@@ -185,6 +190,11 @@ export default function ResourcesForm() {
                     memory: formValues.database.memory,
                   },
                   replicas: formValues.database.replicas,
+                  autoscaler: formValues.database.autoscale
+                    ? {
+                        maxReplicas: formValues.database.maxReplicas,
+                      }
+                    : null,
                 }
               : null,
           },
@@ -196,6 +206,11 @@ export default function ResourcesForm() {
                     memory: formValues.hasura.memory,
                   },
                   replicas: formValues.hasura.replicas,
+                  autoscaler: formValues.hasura.autoscale
+                    ? {
+                        maxReplicas: formValues.hasura.maxReplicas,
+                      }
+                    : null,
                 }
               : null,
           },
@@ -207,6 +222,11 @@ export default function ResourcesForm() {
                     memory: formValues.auth.memory,
                   },
                   replicas: formValues.auth.replicas,
+                  autoscaler: formValues.auth.autoscale
+                    ? {
+                        maxReplicas: formValues.auth.maxReplicas,
+                      }
+                    : null,
                 }
               : null,
           },
@@ -218,6 +238,11 @@ export default function ResourcesForm() {
                     memory: formValues.storage.memory,
                   },
                   replicas: formValues.storage.replicas,
+                  autoscaler: formValues.storage.autoscale
+                    ? {
+                        maxReplicas: formValues.storage.maxReplicas,
+                      }
+                    : null,
                 }
               : null,
           },
@@ -257,21 +282,29 @@ export default function ResourcesForm() {
           totalAvailableMemory: 4096,
           database: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 1000,
             memory: 2048,
           },
           hasura: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 500,
             memory: 1536,
           },
           auth: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 250,
             memory: 256,
           },
           storage: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 250,
             memory: 256,
           },

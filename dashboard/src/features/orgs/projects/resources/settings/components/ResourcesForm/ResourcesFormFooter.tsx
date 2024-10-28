@@ -72,12 +72,10 @@ export default function ResourcesFormFooter() {
     }
 
     if (enabled) {
-      return (
-        Math.max(
-          priceForTotalAvailableVCPU,
-          (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
-            RESOURCE_VCPU_PRICE,
-        )
+      return Math.max(
+        priceForTotalAvailableVCPU,
+        (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
+          RESOURCE_VCPU_PRICE,
       );
     }
 
@@ -103,25 +101,31 @@ export default function ResourcesFormFooter() {
         </Link>
       </Text>
 
-      {(enabled) && (
+      {(enabled || isDirty) && (
         <Box className="grid items-center justify-between grid-flow-col gap-4">
-          <Box className="grid grid-flow-col items-center gap-1.5">
-            <Text>
-              Approximate cost:{' '}
-              <span className="font-medium">
-                ${computeUpdatedPrice().toFixed(2)}/mo
-              </span>
-            </Text>
+          {enabled && (
+            <Box className="grid grid-flow-col items-center gap-1.5">
+              <Text>
+                Approximate cost:{' '}
+                <span className="font-medium">
+                  ${computeUpdatedPrice().toFixed(2)}/mo
+                </span>
+              </Text>
 
-            <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
-              <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
-            </Tooltip>
-          </Box>
+              <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
+                <InfoIcon
+                  aria-label="Info"
+                  className="w-4 h-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+          )}
 
           <Button
             type="submit"
-            variant='outlined'
-            color='secondary'
+            variant={isDirty ? 'contained' : 'outlined'}
+            color={isDirty ? 'primary' : 'secondary'}
             disabled={!isDirty}
           >
             Save

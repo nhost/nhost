@@ -1,23 +1,29 @@
+import { ControlledSwitch } from '@/components/form/ControlledSwitch';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
+import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
+import { Input } from '@/components/ui/v2/Input';
+import { Link } from '@/components/ui/v2/Link';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/orgs/projects/resources/settings/utils/prettifyVCPU';
-import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   MAX_SERVICE_MEMORY,
-  MAX_SERVICE_REPLICAS,
   MAX_SERVICE_VCPU,
   MIN_SERVICE_MEMORY,
-  MIN_SERVICE_REPLICAS,
   MIN_SERVICE_VCPU,
-} from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+} from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
+  RESOURCE_MEMORY_LOCKED_STEP,
   RESOURCE_MEMORY_STEP,
   RESOURCE_VCPU_STEP,
 } from '@/utils/constants/common';
+import debounce from 'lodash.debounce';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface ServiceResourcesFormFragmentProps {
@@ -52,9 +58,15 @@ export default function ServiceResourcesFormFragment({
     setValue,
     trigger: triggerValidation,
     formState,
+    register,
   } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
   const serviceValues = formValues[serviceKey];
+
+  const isRatioLocked = serviceValues.replicas > 1 || serviceValues.autoscale;
+  const resourceMemoryStep = isRatioLocked
+    ? RESOURCE_MEMORY_LOCKED_STEP
+    : RESOURCE_MEMORY_STEP;
 
   // Total allocated CPU for all resources
   const totalAllocatedVCPU = Object.keys(formValues)
@@ -83,16 +95,28 @@ export default function ServiceResourcesFormFragment({
     formValues.totalAvailableMemory - totalAllocatedMemory;
   const allowedMemory = remainingMemory + serviceValues.memory;
 
-  function handleReplicaChange(value: string) {
+  // Debounce revalidation to prevent excessive re-renders
+  const handleReplicaChange = debounce((value: string) => {
     const updatedReplicas = parseInt(value, 10);
-
-    if (updatedReplicas < MIN_SERVICE_REPLICAS) {
-      return;
-    }
 
     setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
     triggerValidation(`${serviceKey}.replicas`);
-  }
+    triggerValidation(`${serviceKey}.memory`);
+  }, 500);
+
+  const handleMaxReplicasChange = debounce((value: string) => {
+    const updatedMaxReplicas = parseInt(value, 10);
+
+    setValue(`${serviceKey}.maxReplicas`, updatedMaxReplicas, {
+      shouldDirty: true,
+    });
+    triggerValidation(`${serviceKey}.maxReplicas`);
+    triggerValidation(`${serviceKey}.memory`);
+  }, 500);
+
+  const handleSwitchChange = () => {
+    triggerValidation(`${serviceKey}.memory`);
+  };
 
   function handleVCPUChange(value: string) {
     const updatedVCPU = parseFloat(value);
@@ -103,9 +127,15 @@ export default function ServiceResourcesFormFragment({
 
     setValue(`${serviceKey}.vcpu`, updatedVCPU, { shouldDirty: true });
 
+    if (isRatioLocked) {
+      setValue(`${serviceKey}.memory`, updatedVCPU * 2.048, {
+        shouldDirty: true,
+      });
+    }
+
     // trigger validation for "replicas" field
     if (!disableReplicas) {
-      triggerValidation(`${serviceKey}.replicas`);
+      triggerValidation(`${serviceKey}.memory`);
     }
   }
 
@@ -118,9 +148,15 @@ export default function ServiceResourcesFormFragment({
 
     setValue(`${serviceKey}.memory`, updatedMemory, { shouldDirty: true });
 
+    if (isRatioLocked) {
+      setValue(`${serviceKey}.vcpu`, updatedMemory / 2.048, {
+        shouldDirty: true,
+      });
+    }
+
     // trigger validation for "replicas" field
     if (!disableReplicas) {
-      triggerValidation(`${serviceKey}.replicas`);
+      triggerValidation(`${serviceKey}.memory`);
     }
   }
 
@@ -187,52 +223,109 @@ export default function ServiceResourcesFormFragment({
           value={serviceValues.memory}
           onChange={(_event, value) => handleMemoryChange(value.toString())}
           max={MAX_SERVICE_MEMORY}
-          step={RESOURCE_MEMORY_STEP}
+          step={resourceMemoryStep}
           allowed={allowedMemory}
           aria-label={`${title} Memory`}
           marks
         />
+        {formState.errors[serviceKey]?.memory?.message ? (
+          <Alert severity="error">
+            {formState.errors[serviceKey]?.memory?.message}
+          </Alert>
+        ) : null}
       </Box>
 
       {!disableReplicas && (
-        <Box className="grid grid-flow-row gap-2">
-          <Box className="grid items-center justify-start grid-flow-col gap-2">
-            <Text
-              color={
-                formState.errors?.[serviceKey]?.replicas?.message
-                  ? 'error'
-                  : 'primary'
-              }
-              aria-errormessage={`${serviceKey}-replicas-error-tooltip`}
-            >
-              Replicas:{' '}
-              <span className="font-medium">{serviceValues.replicas}</span>
-            </Text>
-
-            {formState.errors?.[serviceKey]?.replicas?.message ? (
-              <Tooltip
-                title={formState.errors[serviceKey].replicas.message}
-                id={`${serviceKey}-replicas-error-tooltip`}
-              >
-                <ExclamationIcon
-                  color="error"
-                  className="w-4 h-4"
-                  aria-hidden="false"
-                />
-              </Tooltip>
-            ) : null}
+        <Box className="flex flex-col justify-between gap-4 lg:flex-row">
+          <Box className="flex flex-col gap-4 lg:flex-row lg:gap-8">
+            <Box className="flex flex-row items-center gap-2">
+              {formState.errors?.[serviceKey]?.replicas?.message ? (
+                <Tooltip
+                  title={formState.errors[serviceKey]?.replicas?.message}
+                  id={`${serviceKey}-replicas-error-tooltip`}
+                >
+                  <ExclamationIcon
+                    color="error"
+                    className="w-4 h-4"
+                    aria-hidden="false"
+                  />
+                </Tooltip>
+              ) : null}
+              <Text className="w-28 lg:w-auto">Replicas</Text>
+              <Input
+                {...register(`${serviceKey}.replicas`)}
+                onChange={(event) => handleReplicaChange(event.target.value)}
+                type="number"
+                id={`${serviceKey}.replicas`}
+                data-testid={`${serviceKey}.replicas`}
+                placeholder="Replicas"
+                className="max-w-28"
+                hideEmptyHelperText
+                error={!!formState.errors?.[serviceKey]?.replicas}
+                fullWidth
+                autoComplete="off"
+              />
+            </Box>
+            <Box className="flex flex-row items-center gap-2">
+              {formState.errors?.[serviceKey]?.maxReplicas?.message ? (
+                <Tooltip
+                  title={formState.errors[serviceKey]?.maxReplicas?.message}
+                  id={`${serviceKey}-maxReplicas-error-tooltip`}
+                >
+                  <ExclamationIcon
+                    color="error"
+                    className="w-4 h-4"
+                    aria-hidden="false"
+                  />
+                </Tooltip>
+              ) : null}
+              <Text className="w-28 text-nowrap lg:w-auto">Max Replicas</Text>
+              <Input
+                {...register(`${serviceKey}.maxReplicas`)}
+                onChange={(event) =>
+                  handleMaxReplicasChange(event.target.value)
+                }
+                type="number"
+                id={`${serviceKey}.maxReplicas`}
+                placeholder="10"
+                disabled={!formValues[serviceKey].autoscale}
+                className="max-w-28"
+                hideEmptyHelperText
+                error={!!formState.errors?.[serviceKey]?.maxReplicas}
+                fullWidth
+                autoComplete="off"
+              />
+            </Box>
           </Box>
-
-          <Slider
-            value={serviceValues.replicas}
-            onChange={(_event, value) => handleReplicaChange(value.toString())}
-            min={0}
-            max={MAX_SERVICE_REPLICAS}
-            step={1}
-            aria-label={`${title} Replicas`}
-            marks
-          />
+          <Box className="flex flex-row items-center gap-3">
+            <ControlledSwitch
+              {...register(`${serviceKey}.autoscale`)}
+              onChange={handleSwitchChange}
+            />
+            <Text>Autoscaler</Text>
+            <Tooltip
+              title={`Enable autoscaler to automatically provision extra ${title} replicas when needed.`}
+            >
+              <InfoOutlinedIcon className="w-4 h-4 text-black" />
+            </Tooltip>
+          </Box>
         </Box>
+      )}
+
+      {!disableReplicas && (
+        <Text>
+          Learn more about{' '}
+          <Link
+            href="https://docs.nhost.io/platform/service-replicas"
+            target="_blank"
+            rel="noopener noreferrer"
+            underline="hover"
+            className="font-medium"
+          >
+            Service Replicas
+            <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+          </Link>
+        </Text>
       )}
     </Box>
   );
