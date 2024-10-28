@@ -107,6 +107,9 @@ export default function MigrateProjectToOrg() {
                 Any remaining usage credits in your current workspace will be
                 transferred and credited to the target organization.
               </li>
+              <li className="mt-4">
+                While there is no downtime for stateless services, Postgres requires a restart so plan for 1-2 minutes of downtime.
+              </li>
             </ul>
             <div className="flex items-center justify-start gap-1 mt-4">
               <span>For more information read the</span>
