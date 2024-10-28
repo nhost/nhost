@@ -54,7 +54,7 @@ export default function OverviewRepository() {
           </Box>
 
           <NavLink
-            href={`/orgs/${org?.slug}/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
             passHref
             legacyBehavior
           >
