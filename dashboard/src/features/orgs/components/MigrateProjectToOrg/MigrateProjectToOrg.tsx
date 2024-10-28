@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
+import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 
 import {
   Form,
@@ -30,8 +31,8 @@ import {
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { cn } from '@/lib/utils';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useBillingMigrateProjectToOrganizationMutation } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { CornerRightUp } from 'lucide-react';
@@ -58,6 +59,8 @@ export default function MigrateProjectToOrg() {
       organization: '',
     },
   });
+
+  const noValidOrg = orgs.every((o) => o.plan.isFree);
 
   const onSubmit = async (values: z.infer<typeof migrateFormSchema>) => {
     const { organization } = values;
@@ -94,11 +97,18 @@ export default function MigrateProjectToOrg() {
         <DialogHeader className="gap-2">
           <DialogTitle>Migrate project to an Organization</DialogTitle>
           <DialogDescription className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <p>
-              Any remaining usage credits in your current workspace will be
-              transferred and credited to the target organization.
-            </p>
-            <div className="flex items-center justify-start gap-1">
+            <span className="font-medium mt-4">Please read the following information before migrating:</span>
+            <ul className="list-disc pl-4 space-y-2">
+              <li>
+                A project can only be migrated to an organization in the same
+                or higher plan as the project you are migrating. 
+              </li>
+              <li className="mt-4">
+                Any remaining usage credits in your current workspace will be
+                transferred and credited to the target organization.
+              </li>
+            </ul>
+            <div className="flex items-center justify-start gap-1 mt-4">
               <span>For more information read the</span>
               <Link
                 href="https://nhost.io/blog/organization-billing"
@@ -113,8 +123,17 @@ export default function MigrateProjectToOrg() {
             </div>
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {noValidOrg && (
+          <>
+            <span className="text-sm">
+              We couldn't find a {currentProject.legacyPlan.name} organization, please create one first.
+          </span>
+          <CreateOrgDialog />
+          </>
+        )}
+        {!noValidOrg && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="organization"
@@ -173,8 +192,9 @@ export default function MigrateProjectToOrg() {
                 )}
               </Button>
             </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );
