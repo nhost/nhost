@@ -18,6 +18,7 @@ import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import {
@@ -90,7 +91,7 @@ export default function AuthenticatedLayout({
 
         <Container
           rootClassName="h-full"
-          className="grid justify-center max-w-md grid-flow-row gap-2 my-12 text-center"
+          className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
         >
           <div className="mx-auto">
             <Image
@@ -127,18 +128,20 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <BaseLayout className="flex flex-col h-full" {...props}>
+    <BaseLayout className="flex h-full flex-col" {...props}>
       <Header className="flex py-1" />
 
-      <div
-        className="relative flex flex-row h-full overflow-x-hidden"
-        ref={setMainNavContainer}
-      >
+      <div className="relative flex h-full flex-row" ref={setMainNavContainer}>
         {mainNavPinned && isMdOrLarger && <PinnedMainNav />}
 
-        <div className="relative flex flex-row w-full h-full overflow-x-auto bg-accent">
+        <div
+          className={cn(
+            'relative flex h-full w-full flex-row bg-accent',
+            mainNavPinned && isMdOrLarger ? 'overflow-x-auto' : '',
+          )}
+        >
           {(!mainNavPinned || !isMdOrLarger) && (
-            <div className="flex justify-center w-6 h-full">
+            <div className="flex h-full w-6 justify-center">
               <MainNav container={mainNavContainer} />
             </div>
           )}
@@ -148,7 +151,7 @@ export default function AuthenticatedLayout({
               className: 'flex flex-col items-center',
             }}
           >
-            <div className="flex flex-col w-full h-full">
+            <div className="flex h-full w-full flex-col overflow-auto">
               <OrgStatus />
               {children}
             </div>
