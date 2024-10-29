@@ -53,11 +53,13 @@ function ProjectLayoutContent({
         if (isOnOverviewPage) {
           return (
             <>
-              <Alert severity="error" className="mx-auto mt-4 max-w-7xl">
-                Error deploying the project most likely due to invalid
-                configuration. Please review your project&apos;s configuration
-                and logs for more information.
-              </Alert>
+              <div className="w-full p-4">
+                <Alert severity="error" className="mx-auto max-w-7xl">
+                  Error deploying the project most likely due to invalid
+                  configuration. Please review your project&apos;s configuration
+                  and logs for more information.
+                </Alert>
+              </div>
               {children}
             </>
           );
