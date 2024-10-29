@@ -9,7 +9,7 @@ import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import { PortTypes } from '@/features/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import { type ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
@@ -19,7 +19,7 @@ import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 export default function PortsFormSection() {
   const form = useFormContext<ServiceFormValues>();
 
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
 
   const {
     register,
@@ -38,12 +38,13 @@ export default function PortsFormSection() {
 
   const showURL = (index: number) =>
     formValues.subdomain &&
-    formValues.ports[index]?.type === PortTypes.HTTP &&
+    (formValues.ports[index]?.type === PortTypes.HTTP ||
+      formValues.ports[index]?.type === PortTypes.GRPC) &&
     formValues.ports[index]?.publish;
 
   return (
     <Box className="p-4 space-y-4 rounded border-1">
-      <Box className="flex flex-row items-center justify-between ">
+      <Box className="flex flex-row items-center justify-between">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
             Ports
@@ -106,7 +107,7 @@ export default function PortsFormSection() {
                   },
                 }}
               >
-                {['http', 'tcp', 'udp']?.map((portType) => (
+                {['http', 'tcp', 'udp', 'grpc']?.map((portType) => (
                   <Option key={portType} value={portType}>
                     {portType}
                   </Option>
@@ -137,8 +138,8 @@ export default function PortsFormSection() {
                 title="URL"
                 value={getRunServicePortURL(
                   formValues?.subdomain,
-                  currentProject?.region.name,
-                  currentProject?.region.domain,
+                  project?.region.name,
+                  project?.region.domain,
                   formValues.ports[index],
                 )}
               />

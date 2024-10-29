@@ -75,6 +75,7 @@ export default function ServiceForm({
         memory: 128,
       },
       replicas: 1,
+      autoscaler: null,
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
@@ -166,6 +167,11 @@ export default function ServiceForm({
           capacity: item.capacity,
         })),
         replicas: sanitizedValues.replicas,
+        autoscaler: sanitizedValues.autoscaler
+          ? {
+              maxReplicas: sanitizedValues.autoscaler?.maxReplicas,
+            }
+          : null,
       },
       environment: sanitizedValues.environment.map((item) => ({
         name: item.name,
