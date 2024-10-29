@@ -17,7 +17,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <Box
       sx={{ backgroundColor: 'background.default' }}
-      className="flex flex-col flex-auto w-full overflow-x-hidden overflow-y-auto"
+      className="flex flex-col flex-auto w-full h-full overflow-x-hidden overflow-y-auto"
     >
       <Box
         sx={{ backgroundColor: 'background.default' }}
