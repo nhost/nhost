@@ -1,9 +1,9 @@
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { Alert } from '@/components/ui/v2/Alert';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { ApplicationErrored } from '@/features/orgs/projects/common/components/ApplicationErrored';
 import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
@@ -30,12 +30,14 @@ function ProjectLayoutContent({
   mainContainerProps = {},
 }: ProjectLayoutProps) {
   const {
+    route,
     query: { appSubdomain },
   } = useRouter();
 
   const isPlatform = useIsPlatform();
   const { state } = useAppState();
   const { project, loading, error } = useProject({ poll: true });
+  const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
 
   // Render application state based on the current state
   const projectPageContent = useMemo(() => {
@@ -48,7 +50,21 @@ function ProjectLayoutContent({
       case ApplicationStatus.Provisioning:
         return <ApplicationProvisioning />;
       case ApplicationStatus.Errored:
-        return <ApplicationErrored />;
+        if (isOnOverviewPage) {
+          return (
+            <>
+              <div className="w-full p-4">
+                <Alert severity="error" className="mx-auto max-w-7xl">
+                  Error deploying the project most likely due to invalid
+                  configuration. Please review your project&apos;s configuration
+                  and logs for more information.
+                </Alert>
+              </div>
+              {children}
+            </>
+          );
+        }
+        return children;
       case ApplicationStatus.Pausing:
       case ApplicationStatus.Paused:
         return <ApplicationPaused />;
@@ -63,7 +79,7 @@ function ProjectLayoutContent({
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSubdomain]);
+  }, [state, children, appSubdomain, isOnOverviewPage]);
 
   // Handle loading state
   if (loading) {
