@@ -30,7 +30,7 @@ export default function StoragePage() {
             : project.config?.hasura.adminSecret,
       }}
     >
-      <div className="h-full pb-25 xs+:pb-[53px]">
+      <div className="h-full max-w-full pb-25 xs+:pb-[53px]">
         <RetryableErrorBoundary>
           <FilesDataGrid />
         </RetryableErrorBoundary>
