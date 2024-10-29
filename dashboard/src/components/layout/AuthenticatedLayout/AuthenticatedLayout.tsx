@@ -131,7 +131,10 @@ export default function AuthenticatedLayout({
     <BaseLayout className="flex h-full flex-col" {...props}>
       <Header className="flex py-1" />
 
-      <div className="relative flex h-full flex-row" ref={setMainNavContainer}>
+      <div
+        className="relative flex h-full flex-row overflow-hidden"
+        ref={setMainNavContainer}
+      >
         {mainNavPinned && isMdOrLarger && <PinnedMainNav />}
 
         <div
