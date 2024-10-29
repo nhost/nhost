@@ -1,10 +1,11 @@
-import type { DataGridProps } from '@/components/dataGrid/DataGrid';
-import { DataGrid } from '@/components/dataGrid/DataGrid';
-import { DataGridBooleanCell } from '@/components/dataGrid/DataGridBooleanCell';
-import { DataGridDateCell } from '@/components/dataGrid/DataGridDateCell';
-import type { PreviewProps } from '@/components/dataGrid/DataGridPreviewCell';
-import { DataGridPreviewCell } from '@/components/dataGrid/DataGridPreviewCell';
-import { DataGridTextCell } from '@/components/dataGrid/DataGridTextCell';
+import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
+import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
+import type { PreviewProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
+import { DataGridPreviewCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
+import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
+
 import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
