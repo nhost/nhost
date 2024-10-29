@@ -58,10 +58,6 @@ export default function SelectWorkspaceAndProject() {
     })),
   );
 
-  console.log({
-    orgProjects,
-  });
-
   const projects = [...orgProjects, ...workspaceProjects];
 
   const [filter, setFilter] = useState('');
