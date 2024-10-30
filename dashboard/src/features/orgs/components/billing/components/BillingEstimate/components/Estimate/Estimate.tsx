@@ -13,22 +13,26 @@ export default function Estimate() {
 
   const amountDue = data?.billingGetNextInvoice?.AmountDue ?? null;
 
+  const amountDueText = amountDue
+    ? amountDue?.toLocaleString('en', { minimumFractionDigits: 2 })
+    : 'N/A';
+
   if (loading || !amountDue) {
     return null;
   }
 
   return (
-    <div className="flex flex-col gap-2 border-b p-4">
-      <div className="flex w-full flex-col">
-        <div className="flex flex-row items-center gap-2">
-          <span className="text-muted-foreground">Estimate</span>
-          <span>
-            This estimate reflects your estimated next invoice based on current
-            usage. Please note that usage data may have a processing delay of a
-            few hours.
-          </span>
-        </div>
-        <span className="text-xl font-bold">${amountDue}</span>
+    <div className="flex w-full flex-row justify-between gap-8 p-4 pb-5">
+      <div className="flex basis-1/2 flex-col">
+        <span className="font-medium">Estimate</span>
+        <span className="text-xl font-semibold">${amountDueText}</span>
+      </div>
+      <div className="flex flex-1 flex-col gap-2">
+        <p className="max-w-prose">
+          This estimate reflects your estimated next invoice based on current
+          usage. Please note that usage data may have a processing delay of a
+          few hours.
+        </p>
       </div>
     </div>
   );

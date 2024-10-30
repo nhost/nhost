@@ -1,6 +1,7 @@
 import { Divider } from '@/components/ui/v2/Divider';
 import { BillingCycle } from './components/BillingCycle';
 import { BillingDetails } from './components/BillingDetails';
+import { Estimate } from './components/Estimate';
 import { SpendingWarnings } from './components/SpendingWarnings';
 
 export default function BillingEstimate() {
@@ -13,6 +14,8 @@ export default function BillingEstimate() {
         <div className="flex flex-col">
           <Divider />
           <BillingCycle />
+          <Divider />
+          <Estimate />
           <Divider />
           <SpendingWarnings />
           <Divider />
