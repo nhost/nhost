@@ -1,5 +1,3 @@
-import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
-import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   Form,
@@ -14,7 +12,6 @@ import { Input } from '@/components/ui/v3/input';
 import { Button } from '@/components/ui/v3/button';
 import { Progress } from '@/components/ui/v3/progress';
 import { Switch } from '@/components/ui/v3/switch';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -67,13 +64,9 @@ export default function SpendingNotifications() {
 
   const amountDue = nextInvoiceData?.billingGetNextInvoice?.AmountDue ?? null;
 
-  const isPlatform = useIsPlatform();
-
   const [updateConfig] = useUpdateOrganizationSpendingWarningMutation({
     refetchQueries: [GetOrganizationSpendingWarningDocument],
   });
-
-  const { openDialog } = useDialog();
 
   const { threshold } = data?.organizations[0] ?? {};
 
@@ -139,18 +132,6 @@ export default function SpendingNotifications() {
       async () => {
         await updateConfigPromise;
         form.reset(values);
-
-        if (!isPlatform) {
-          openDialog({
-            title: 'Apply your changes',
-            component: <ApplyLocalSettingsDialog />,
-            props: {
-              PaperProps: {
-                className: 'max-w-2xl',
-              },
-            },
-          });
-        }
       },
       {
         loadingMessage: 'Spending notifications are being updated...',
