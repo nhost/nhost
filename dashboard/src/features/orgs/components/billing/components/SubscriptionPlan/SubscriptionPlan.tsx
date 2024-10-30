@@ -1,5 +1,4 @@
 import { useUI } from '@/components/common/UIProvider';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Button } from '@/components/ui/v3/button';
@@ -41,11 +40,11 @@ const changeOrgPlanForm = z.object({
 
 export default function SubscriptionPlan() {
   const { maintenanceActive } = useUI();
-  const [open, setOpen] = useState(false);
   const { org, refetch: refetchOrg } = useCurrentOrg();
+  const [open, setOpen] = useState(false);
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
-  const [fetchOrganizationCustomePortalLink, { loading }] =
+  const [fetchOrganizationCustomePortalLink] =
     useBillingOrganizationCustomePortalLazyQuery();
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
@@ -101,11 +100,7 @@ export default function SubscriptionPlan() {
           });
 
         if (billingOrganizationCustomePortal) {
-          const newWindow = window.open(billingOrganizationCustomePortal);
-
-          if (!newWindow) {
-            window.location.href = billingOrganizationCustomePortal;
-          }
+          window.open(billingOrganizationCustomePortal);
         } else {
           throw new Error('Could not fetch customer portal link');
         }
@@ -127,17 +122,17 @@ export default function SubscriptionPlan() {
             <h4 className="font-medium">Subscription plan</h4>
           </div>
           <div className="flex flex-col border-b md:flex-row">
-            <div className="flex w-full flex-col gap-4 p-4">
+            <div className="flex w-full basis-1/2 flex-col gap-4 p-4">
               <span className="font-medium">Organization name</span>
               <span className="font-medium">{org?.name}</span>
             </div>
-            <div className="flex w-full flex-col gap-2 p-4">
+            <div className="flex w-full basis-1/4 flex-col gap-2 p-4">
               <span className="font-medium">Current plan</span>
-              <span className="text-xl font-bold text-primary">
+              <span className="text-xl font-bold text-primary-main">
                 {org?.plan?.name}
               </span>
             </div>
-            <div className="flex w-full flex-col items-start justify-start gap-4 p-4 md:items-end md:justify-end">
+            <div className="flex w-full basis-1/4 flex-col items-start justify-start gap-4 p-4 md:items-end md:justify-end">
               <div className="flex items-center gap-2">
                 <span className="text-xl font-semibold">
                   ${org?.plan?.price}
@@ -161,7 +156,7 @@ export default function SubscriptionPlan() {
                 className="font-medium"
               >
                 pricing
-                <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
+                <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
               </Link>
             </div>
             <div className="flex flex-row items-center justify-end gap-2">
@@ -169,9 +164,9 @@ export default function SubscriptionPlan() {
                 className="h-fit"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
-                disabled={org?.plan?.isFree || maintenanceActive || loading}
+                disabled={org?.plan?.isFree || maintenanceActive}
               >
-                {loading ? <ActivityIndicator /> : 'Stripe Customer Portal'}
+                Stripe Customer Portal
               </Button>
               <Button
                 disabled={org?.plan?.isFree || maintenanceActive}

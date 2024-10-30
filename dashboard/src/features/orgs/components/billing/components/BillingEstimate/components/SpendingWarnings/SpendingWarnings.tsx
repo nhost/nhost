@@ -1,7 +1,6 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import {
   Form,
   FormControl,
@@ -12,7 +11,6 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import { Progress } from '@/components/ui/v3/progress';
 import { Switch } from '@/components/ui/v3/switch';
@@ -73,6 +71,7 @@ export default function SpendingWarnings() {
   const isPlatform = useIsPlatform();
 
   const isAdmin = useIsOrgAdmin();
+  // TODO: Add a check if is Admin?
 
   const [updateConfig] = useUpdateOrganizationSpendingWarningMutation({
     refetchQueries: [GetOrganizationSpendingWarningDocument],
@@ -186,60 +185,46 @@ export default function SpendingWarnings() {
   return (
     <Form {...form}>
       <form
-        className="flex flex-col gap-2"
+        className="flex flex-col gap-2 p-4"
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <div className="flex flex-col">
-          {isAdmin && (
-            <div>
-              <FormField
-                control={form.control}
-                name="threshold"
-                render={({ field }) => (
-                  <FormItem className="p-4">
-                    <FormLabel className="flex flex-row items-center gap-2">
-                      <span>Spending Notifications</span>
-                      <Tooltip
-                        placement="right"
-                        title={
-                          <span>
-                            You&apos;ll receive email alerts when your usage
-                            reaches 75%, 90%, and 100% of your configured value.
-                            These are notifications only - your service will
-                            continue running normally.
-                          </span>
-                        }
-                      >
-                        <InfoIcon
-                          aria-label="Info"
-                          className="h-4 w-4"
-                          color="primary"
-                        />
-                      </Tooltip>
-                      <Switch
-                        id="enabled"
-                        checked={enabled}
-                        onCheckedChange={handleEnabledChange}
-                      />
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        prefix="$"
-                        className="max-w-32"
-                        type="number"
-                        placeholder="0"
-                        disabled={!enabled}
-                        {...field}
-                        onChange={handleThresholdChange}
-                        value={currentThreshold}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          )}
+          <span>
+            You&apos;ll receive email alerts when your usage reaches 75%, 90%,
+            and 100% of your configured value. These are notifications only -
+            your service will continue running normally.
+          </span>
+          <div>
+            <FormField
+              control={form.control}
+              name="threshold"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex flex-row items-center gap-2">
+                    <span>Spending Notifications</span>
+                    <Switch
+                      id="enabled"
+                      checked={enabled}
+                      onCheckedChange={handleEnabledChange}
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      prefix="$"
+                      className="max-w-32"
+                      type="number"
+                      placeholder="0"
+                      disabled={!enabled}
+                      {...field}
+                      onChange={handleThresholdChange}
+                      value={currentThreshold}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {enabled && (
             <div className="flex flex-col gap-4 px-4 pb-4">
