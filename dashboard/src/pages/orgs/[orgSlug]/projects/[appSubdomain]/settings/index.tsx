@@ -15,7 +15,6 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetAllWorkspacesAndProjectsDocument,
   useBillingDeleteAppMutation,
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
@@ -40,21 +39,20 @@ export type ProjectNameValidationSchema = Yup.InferType<
 >;
 
 export default function SettingsGeneralPage() {
-  const { currentOrg: org } = useOrgs();
-  const { project, loading, refetch: refetchProject } = useProject();
+  const router = useRouter();
+  const isPlatform = useIsPlatform();
+  const { maintenanceActive } = useUI();
+  const { openDialog, openAlertDialog, closeDialog } = useDialog();
 
   const isOwner = useIsCurrentUserOwner();
-  const { openDialog, openAlertDialog, closeDialog } = useDialog();
+  const { currentOrg: org } = useOrgs();
+  const { project, loading } = useProject();
+
   const [updateApp] = useUpdateApplicationMutation();
+  const [deleteApplication] = useBillingDeleteAppMutation();
   const [pauseApplication] = usePauseApplicationMutation({
     variables: { appId: project?.id },
-    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
-  const [deleteApplication] = useBillingDeleteAppMutation();
-  const router = useRouter();
-  const { maintenanceActive } = useUI();
-
-  const isPlatform = useIsPlatform();
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -70,14 +68,6 @@ export default function SettingsGeneralPage() {
   const { register, formState } = form;
 
   async function handleProjectNameChange(data: ProjectNameValidationSchema) {
-    // In this bit of code we spread the props of the current path (e.g. /workspace/...) and add one key-value pair: `updating: true`.
-    // We want to indicate that the currently we're in the process of running a mutation state that will affect the routing behaviour of the website
-    // i.e. redirecting to 404 if there's no workspace/project with that slug.
-    await router.replace({
-      pathname: router.pathname,
-      query: { ...router.query, updating: true },
-    });
-
     const newProjectSlug = slugifyString(data.name);
 
     if (newProjectSlug.length < 1 || newProjectSlug.length > 32) {
@@ -118,11 +108,6 @@ export default function SettingsGeneralPage() {
       }
 
       form.reset(undefined, { keepValues: true, keepDirty: false });
-
-      await refetchProject();
-      await router.replace(
-        `/orgs/${org?.slug}/projects/${updateAppResult?.slug}/settings`,
-      );
     } catch {
       // Note: The toast will handle the error.
     }
@@ -209,7 +194,7 @@ export default function SettingsGeneralPage() {
             type: 'button',
             color: 'primary',
             variant: 'contained',
-            disabled: maintenanceActive,
+            disabled: maintenanceActive || !isPlatform,
             onClick: () => {
               openAlertDialog({
                 title: 'Pause Project?',
