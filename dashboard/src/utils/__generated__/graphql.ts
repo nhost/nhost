@@ -12546,6 +12546,10 @@ export type Mutation_Root = {
   delete_countries?: Maybe<Countries_Mutation_Response>;
   /** delete single row from the table: "countries" */
   delete_countries_by_pk?: Maybe<Countries>;
+  /** delete data from the table: "organization_costs_thresholds" */
+  delete_organization_costs_thresholds?: Maybe<Organization_Costs_Thresholds_Mutation_Response>;
+  /** delete single row from the table: "organization_costs_thresholds" */
+  delete_organization_costs_thresholds_by_pk?: Maybe<Organization_Costs_Thresholds>;
   /** delete data from the table: "organization_members_role" */
   delete_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
   /** delete single row from the table: "organization_members_role" */
@@ -12745,6 +12749,10 @@ export type Mutation_Root = {
   insert_countries?: Maybe<Countries_Mutation_Response>;
   /** insert a single row into the table: "countries" */
   insert_countries_one?: Maybe<Countries>;
+  /** insert data into the table: "organization_costs_thresholds" */
+  insert_organization_costs_thresholds?: Maybe<Organization_Costs_Thresholds_Mutation_Response>;
+  /** insert a single row into the table: "organization_costs_thresholds" */
+  insert_organization_costs_thresholds_one?: Maybe<Organization_Costs_Thresholds>;
   /** insert data into the table: "organization_members_role" */
   insert_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
   /** insert a single row into the table: "organization_members_role" */
@@ -12770,6 +12778,9 @@ export type Mutation_Root = {
   replaceRunServiceConfig: ConfigRunServiceConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
+  sendEmailInvite: Scalars['Boolean'];
+  sendEmailOrganizationStatusChange: Scalars['Boolean'];
+  sendEmailOrganizationThreshold: Scalars['Boolean'];
   sendEmailTemplate: Scalars['Boolean'];
   /** update single row of the table: "apps" */
   updateApp?: Maybe<Apps>;
@@ -13029,6 +13040,12 @@ export type Mutation_Root = {
   update_githubRepositories_many?: Maybe<Array<Maybe<GithubRepositories_Mutation_Response>>>;
   /** update multiples rows of table: "billing.subscriptions" */
   update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
+  /** update data of the table: "organization_costs_thresholds" */
+  update_organization_costs_thresholds?: Maybe<Organization_Costs_Thresholds_Mutation_Response>;
+  /** update single row of the table: "organization_costs_thresholds" */
+  update_organization_costs_thresholds_by_pk?: Maybe<Organization_Costs_Thresholds>;
+  /** update multiples rows of table: "organization_costs_thresholds" */
+  update_organization_costs_thresholds_many?: Maybe<Array<Maybe<Organization_Costs_Thresholds_Mutation_Response>>>;
   /** update data of the table: "organization_members_role" */
   update_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
   /** update single row of the table: "organization_members_role" */
@@ -13749,6 +13766,18 @@ export type Mutation_RootDelete_Countries_By_PkArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_Organization_Costs_ThresholdsArgs = {
+  where: Organization_Costs_Thresholds_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Organization_Costs_Thresholds_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDelete_Organization_Members_RoleArgs = {
   where: Organization_Members_Role_Bool_Exp;
 };
@@ -14451,6 +14480,20 @@ export type Mutation_RootInsert_Countries_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsert_Organization_Costs_ThresholdsArgs = {
+  objects: Array<Organization_Costs_Thresholds_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Costs_Thresholds_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Organization_Costs_Thresholds_OneArgs = {
+  object: Organization_Costs_Thresholds_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Costs_Thresholds_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsert_Organization_Members_RoleArgs = {
   objects: Array<Organization_Members_Role_Insert_Input>;
   on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
@@ -14550,6 +14593,27 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootSendEmailInviteArgs = {
+  inviteID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootSendEmailOrganizationStatusChangeArgs = {
+  newStatus: Scalars['String'];
+  oldStatus: Scalars['String'];
+  organizationID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootSendEmailOrganizationThresholdArgs = {
+  organizationID: Scalars['uuid'];
+  threshold: Scalars['String'];
 };
 
 
@@ -15526,6 +15590,26 @@ export type Mutation_RootUpdate_Many_Billing_SubscriptionsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_Organization_Costs_ThresholdsArgs = {
+  _set?: InputMaybe<Organization_Costs_Thresholds_Set_Input>;
+  where: Organization_Costs_Thresholds_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Costs_Thresholds_By_PkArgs = {
+  _set?: InputMaybe<Organization_Costs_Thresholds_Set_Input>;
+  pk_columns: Organization_Costs_Thresholds_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Costs_Thresholds_ManyArgs = {
+  updates: Array<Organization_Costs_Thresholds_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_Organization_Members_RoleArgs = {
   _set?: InputMaybe<Organization_Members_Role_Set_Input>;
   where: Organization_Members_Role_Bool_Exp;
@@ -15670,6 +15754,160 @@ export enum Order_By {
 
 export type OrganizationMemberInviteAccept_Args = {
   id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** columns and relationships of "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds = {
+  __typename?: 'organization_costs_thresholds';
+  comment?: Maybe<Scalars['String']>;
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Aggregate = {
+  __typename?: 'organization_costs_thresholds_aggregate';
+  aggregate?: Maybe<Organization_Costs_Thresholds_Aggregate_Fields>;
+  nodes: Array<Organization_Costs_Thresholds>;
+};
+
+/** aggregate fields of "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Aggregate_Fields = {
+  __typename?: 'organization_costs_thresholds_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Organization_Costs_Thresholds_Max_Fields>;
+  min?: Maybe<Organization_Costs_Thresholds_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "organization_costs_thresholds". All fields are combined with a logical 'AND'. */
+export type Organization_Costs_Thresholds_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Costs_Thresholds_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Costs_Thresholds_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_costs_thresholds" */
+export enum Organization_Costs_Thresholds_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  OrganizationCostsThresholdsPkey = 'organization_costs_thresholds_pkey'
+}
+
+export enum Organization_Costs_Thresholds_Enum {
+  /** No threshold reached */
+  None = 'NONE',
+  /** 75% of cost usage reached */
+  Percent_075 = 'PERCENT_075',
+  /** 90% of cost usage reached */
+  Percent_090 = 'PERCENT_090',
+  /** 100% of cost usage reached */
+  Percent_100 = 'PERCENT_100'
+}
+
+/** Boolean expression to compare columns of type "organization_costs_thresholds_enum". All fields are combined with logical 'AND'. */
+export type Organization_Costs_Thresholds_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Organization_Costs_Thresholds_Enum>;
+  _in?: InputMaybe<Array<Organization_Costs_Thresholds_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Organization_Costs_Thresholds_Enum>;
+  _nin?: InputMaybe<Array<Organization_Costs_Thresholds_Enum>>;
+};
+
+/** input type for inserting data into table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Organization_Costs_Thresholds_Max_Fields = {
+  __typename?: 'organization_costs_thresholds_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Organization_Costs_Thresholds_Min_Fields = {
+  __typename?: 'organization_costs_thresholds_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Mutation_Response = {
+  __typename?: 'organization_costs_thresholds_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organization_Costs_Thresholds>;
+};
+
+/** on_conflict condition type for table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_On_Conflict = {
+  constraint: Organization_Costs_Thresholds_Constraint;
+  update_columns?: Array<Organization_Costs_Thresholds_Update_Column>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_costs_thresholds". */
+export type Organization_Costs_Thresholds_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organization_costs_thresholds */
+export type Organization_Costs_Thresholds_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "organization_costs_thresholds" */
+export enum Organization_Costs_Thresholds_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organization_Costs_Thresholds_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organization_Costs_Thresholds_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "organization_costs_thresholds" */
+export enum Organization_Costs_Thresholds_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type Organization_Costs_Thresholds_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organization_Costs_Thresholds_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organization_Costs_Thresholds_Bool_Exp;
 };
 
 /** columns and relationships of "organization_member_invites" */
@@ -16666,7 +16904,7 @@ export type Organizations = {
   /** An aggregate relationship */
   apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
-  current_threshold: Scalars['String'];
+  current_threshold: Organization_Costs_Thresholds_Enum;
   id: Scalars['uuid'];
   /** An array relationship */
   invites: Array<Organization_Member_Invites>;
@@ -16853,7 +17091,7 @@ export type Organizations_Bool_Exp = {
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  current_threshold?: InputMaybe<String_Comparison_Exp>;
+  current_threshold?: InputMaybe<Organization_Costs_Thresholds_Enum_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   invites?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
   invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp>;
@@ -16889,7 +17127,7 @@ export type Organizations_Insert_Input = {
   allowedPrivateRegions?: InputMaybe<Regions_Allowed_Organization_Arr_Rel_Insert_Input>;
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  current_threshold?: InputMaybe<Scalars['String']>;
+  current_threshold?: InputMaybe<Organization_Costs_Thresholds_Enum>;
   id?: InputMaybe<Scalars['uuid']>;
   invites?: InputMaybe<Organization_Member_Invites_Arr_Rel_Insert_Input>;
   members?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
@@ -16909,7 +17147,6 @@ export type Organizations_Insert_Input = {
 export type Organizations_Max_Fields = {
   __typename?: 'organizations_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
-  current_threshold?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   planID?: Maybe<Scalars['uuid']>;
@@ -16924,7 +17161,6 @@ export type Organizations_Max_Fields = {
 /** order by max() on columns of table "organizations" */
 export type Organizations_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
-  current_threshold?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   planID?: InputMaybe<Order_By>;
@@ -16940,7 +17176,6 @@ export type Organizations_Max_Order_By = {
 export type Organizations_Min_Fields = {
   __typename?: 'organizations_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
-  current_threshold?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
   planID?: Maybe<Scalars['uuid']>;
@@ -16955,7 +17190,6 @@ export type Organizations_Min_Fields = {
 /** order by min() on columns of table "organizations" */
 export type Organizations_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
-  current_threshold?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   planID?: InputMaybe<Order_By>;
@@ -17047,7 +17281,7 @@ export enum Organizations_Select_Column {
 /** input type for updating data in table "organizations" */
 export type Organizations_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  current_threshold?: InputMaybe<Scalars['String']>;
+  current_threshold?: InputMaybe<Organization_Costs_Thresholds_Enum>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
@@ -17104,7 +17338,7 @@ export type Organizations_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Organizations_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  current_threshold?: InputMaybe<Scalars['String']>;
+  current_threshold?: InputMaybe<Organization_Costs_Thresholds_Enum>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
@@ -18538,6 +18772,12 @@ export type Query_Root = {
   organizationNewRequests: Array<Organization_New_Request>;
   /** fetch aggregated fields from the table: "organization_new_request" */
   organizationNewRequestsAggregate: Organization_New_Request_Aggregate;
+  /** fetch data from the table: "organization_costs_thresholds" */
+  organization_costs_thresholds: Array<Organization_Costs_Thresholds>;
+  /** fetch aggregated fields from the table: "organization_costs_thresholds" */
+  organization_costs_thresholds_aggregate: Organization_Costs_Thresholds_Aggregate;
+  /** fetch data from the table: "organization_costs_thresholds" using primary key columns */
+  organization_costs_thresholds_by_pk?: Maybe<Organization_Costs_Thresholds>;
   /** fetch data from the table: "organization_members_role" */
   organization_members_role: Array<Organization_Members_Role>;
   /** fetch aggregated fields from the table: "organization_members_role" */
@@ -19544,6 +19784,29 @@ export type Query_RootOrganizationNewRequestsAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
   where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Costs_ThresholdsArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Costs_Thresholds_Order_By>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Costs_Thresholds_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Costs_Thresholds_Order_By>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Costs_Thresholds_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
@@ -21989,6 +22252,14 @@ export type Subscription_Root = {
   organizationNewRequestsAggregate: Organization_New_Request_Aggregate;
   /** fetch data from the table in a streaming manner: "organization_new_request" */
   organizationNewRequestsStream: Array<Organization_New_Request>;
+  /** fetch data from the table: "organization_costs_thresholds" */
+  organization_costs_thresholds: Array<Organization_Costs_Thresholds>;
+  /** fetch aggregated fields from the table: "organization_costs_thresholds" */
+  organization_costs_thresholds_aggregate: Organization_Costs_Thresholds_Aggregate;
+  /** fetch data from the table: "organization_costs_thresholds" using primary key columns */
+  organization_costs_thresholds_by_pk?: Maybe<Organization_Costs_Thresholds>;
+  /** fetch data from the table in a streaming manner: "organization_costs_thresholds" */
+  organization_costs_thresholds_stream: Array<Organization_Costs_Thresholds>;
   /** fetch data from the table: "organization_members_role" */
   organization_members_role: Array<Organization_Members_Role>;
   /** fetch aggregated fields from the table: "organization_members_role" */
@@ -23118,6 +23389,36 @@ export type Subscription_RootOrganizationNewRequestsStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Organization_New_Request_Stream_Cursor_Input>>;
   where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Costs_ThresholdsArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Costs_Thresholds_Order_By>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Costs_Thresholds_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Costs_Thresholds_Order_By>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Costs_Thresholds_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootOrganization_Costs_Thresholds_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organization_Costs_Thresholds_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
 };
 
 
@@ -26116,7 +26417,7 @@ export type UpdateApplicationMutationVariables = Exact<{
 }>;
 
 
-export type UpdateApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', name: string, id: any, slug: string } | null };
+export type UpdateApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', name: string, id: any, slug: string, subdomain: string } | null };
 
 export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -29406,6 +29707,7 @@ export const UpdateApplicationDocument = gql`
     name
     id
     slug
+    subdomain
   }
 }
     `;
