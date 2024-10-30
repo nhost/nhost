@@ -14,12 +14,12 @@ func getRemoteAppInfo(
 	ctx context.Context,
 	ce *CliEnv,
 	subdomain string,
-) (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {
+) (*graphql.AppSummaryFragment, error) {
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
-	workspaces, err := cl.GetWorkspacesApps(
+	workspaces, err := cl.GetOrganizationsAndWorkspacesApps(
 		ctx,
 	)
 	if err != nil {
@@ -40,12 +40,12 @@ func getRemoteAppInfo(
 func (ce *CliEnv) GetAppInfo(
 	ctx context.Context,
 	subdomain string,
-) (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {
+) (*graphql.AppSummaryFragment, error) {
 	if subdomain != "" {
 		return getRemoteAppInfo(ctx, ce, subdomain)
 	}
 
-	var project *graphql.GetWorkspacesApps_Workspaces_Apps
+	var project *graphql.AppSummaryFragment
 	if err := UnmarshalFile(ce.Path.ProjectFile(), &project, json.Unmarshal); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			project, err = ce.Link(ctx)

@@ -1313,6 +1313,12 @@ type Metrics struct {
 	Value string `json:"value"`
 }
 
+type PostOrganizationRequestResponse struct {
+	ClientSecret *string        `json:"ClientSecret,omitempty"`
+	Slug         string         `json:"Slug"`
+	Status       CheckoutStatus `json:"Status"`
+}
+
 type ProjectStatusResponse struct {
 	Services []*ServiceStatus `json:"services"`
 }
@@ -1360,6 +1366,15 @@ type StringComparisonExp struct {
 	Regex *string `json:"_regex,omitempty"`
 	// does the column match the given SQL regular expression
 	Similar *string `json:"_similar,omitempty"`
+}
+
+type UsageSummary struct {
+	Egress               string `json:"Egress"`
+	FunctionsInvocations string `json:"FunctionsInvocations"`
+	ID                   string `json:"ID"`
+	LambdaUsageSeconds   string `json:"LambdaUsageSeconds"`
+	PostgresVolumeUsage  string `json:"PostgresVolumeUsage"`
+	TotalRequests        string `json:"TotalRequests"`
 }
 
 // columns and relationships of "announcements"
@@ -1555,16 +1570,19 @@ type Apps struct {
 	// An array relationship
 	FeatureFlags []*FeatureFlags `json:"featureFlags"`
 	// An object relationship
-	GithubRepository   *GithubRepositories    `json:"githubRepository,omitempty"`
-	GithubRepositoryID *string                `json:"githubRepositoryId,omitempty"`
-	ID                 string                 `json:"id"`
-	IsLocked           *bool                  `json:"isLocked,omitempty"`
-	IsLockedReason     *string                `json:"isLockedReason,omitempty"`
-	MetadataFunctions  map[string]interface{} `json:"metadataFunctions"`
-	Name               string                 `json:"name"`
-	NhostBaseFolder    string                 `json:"nhostBaseFolder"`
+	GithubRepository   *GithubRepositories `json:"githubRepository,omitempty"`
+	GithubRepositoryID *string             `json:"githubRepositoryId,omitempty"`
+	ID                 string              `json:"id"`
+	IsLocked           *bool               `json:"isLocked,omitempty"`
+	IsLockedReason     *string             `json:"isLockedReason,omitempty"`
 	// An object relationship
-	Plan *Plans `json:"plan"`
+	LegacyPlan        *Plans                 `json:"legacyPlan,omitempty"`
+	MetadataFunctions map[string]interface{} `json:"metadataFunctions"`
+	Name              string                 `json:"name"`
+	NhostBaseFolder   string                 `json:"nhostBaseFolder"`
+	// An object relationship
+	Organization   *Organizations `json:"organization,omitempty"`
+	OrganizationID *string        `json:"organizationID,omitempty"`
 	// An object relationship
 	Region                     *Regions `json:"region"`
 	RepositoryProductionBranch string   `json:"repositoryProductionBranch"`
@@ -1577,8 +1595,8 @@ type Apps struct {
 	SystemConfig         *ConfigSystemConfig  `json:"systemConfig,omitempty"`
 	UpdatedAt            time.Time            `json:"updatedAt"`
 	// An object relationship
-	Workspace   *Workspaces `json:"workspace"`
-	WorkspaceID string      `json:"workspaceId"`
+	Workspace   *Workspaces `json:"workspace,omitempty"`
+	WorkspaceID *string     `json:"workspaceId,omitempty"`
 }
 
 // order by aggregate values of table "apps"
@@ -1626,10 +1644,12 @@ type AppsBoolExp struct {
 	ID                         *UUIDComparisonExp          `json:"id,omitempty"`
 	IsLocked                   *BooleanComparisonExp       `json:"isLocked,omitempty"`
 	IsLockedReason             *StringComparisonExp        `json:"isLockedReason,omitempty"`
+	LegacyPlan                 *PlansBoolExp               `json:"legacyPlan,omitempty"`
 	MetadataFunctions          *JsonbComparisonExp         `json:"metadataFunctions,omitempty"`
 	Name                       *StringComparisonExp        `json:"name,omitempty"`
 	NhostBaseFolder            *StringComparisonExp        `json:"nhostBaseFolder,omitempty"`
-	Plan                       *PlansBoolExp               `json:"plan,omitempty"`
+	Organization               *OrganizationsBoolExp       `json:"organization,omitempty"`
+	OrganizationID             *UUIDComparisonExp          `json:"organizationID,omitempty"`
 	Region                     *RegionsBoolExp             `json:"region,omitempty"`
 	RepositoryProductionBranch *StringComparisonExp        `json:"repositoryProductionBranch,omitempty"`
 	RunServices                *RunServiceBoolExp          `json:"runServices,omitempty"`
@@ -1648,15 +1668,14 @@ type AppsIncInput struct {
 
 // input type for inserting data into table "apps"
 type AppsInsertInput struct {
-	Deployments  *DeploymentsArrRelInsertInput  `json:"deployments,omitempty"`
-	FeatureFlags *FeatureFlagsArrRelInsertInput `json:"featureFlags,omitempty"`
-	Name         *string                        `json:"name,omitempty"`
-	PlanID       *string                        `json:"planId,omitempty"`
-	RegionID     *string                        `json:"regionId,omitempty"`
-	RunServices  *RunServiceArrRelInsertInput   `json:"runServices,omitempty"`
-	Slug         *string                        `json:"slug,omitempty"`
-	Workspace    *WorkspacesObjRelInsertInput   `json:"workspace,omitempty"`
-	WorkspaceID  *string                        `json:"workspaceId,omitempty"`
+	Deployments    *DeploymentsArrRelInsertInput  `json:"deployments,omitempty"`
+	FeatureFlags   *FeatureFlagsArrRelInsertInput `json:"featureFlags,omitempty"`
+	Name           *string                        `json:"name,omitempty"`
+	OrganizationID *string                        `json:"organizationID,omitempty"`
+	RegionID       *string                        `json:"regionId,omitempty"`
+	RunServices    *RunServiceArrRelInsertInput   `json:"runServices,omitempty"`
+	Slug           *string                        `json:"slug,omitempty"`
+	Workspace      *WorkspacesObjRelInsertInput   `json:"workspace,omitempty"`
 }
 
 // order by max() on columns of table "apps"
@@ -1669,6 +1688,7 @@ type AppsMaxOrderBy struct {
 	IsLockedReason             *OrderBy `json:"isLockedReason,omitempty"`
 	Name                       *OrderBy `json:"name,omitempty"`
 	NhostBaseFolder            *OrderBy `json:"nhostBaseFolder,omitempty"`
+	OrganizationID             *OrderBy `json:"organizationID,omitempty"`
 	RepositoryProductionBranch *OrderBy `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *OrderBy `json:"slug,omitempty"`
 	Subdomain                  *OrderBy `json:"subdomain,omitempty"`
@@ -1686,6 +1706,7 @@ type AppsMinOrderBy struct {
 	IsLockedReason             *OrderBy `json:"isLockedReason,omitempty"`
 	Name                       *OrderBy `json:"name,omitempty"`
 	NhostBaseFolder            *OrderBy `json:"nhostBaseFolder,omitempty"`
+	OrganizationID             *OrderBy `json:"organizationID,omitempty"`
 	RepositoryProductionBranch *OrderBy `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *OrderBy `json:"slug,omitempty"`
 	Subdomain                  *OrderBy `json:"subdomain,omitempty"`
@@ -1730,10 +1751,12 @@ type AppsOrderBy struct {
 	ID                         *OrderBy                         `json:"id,omitempty"`
 	IsLocked                   *OrderBy                         `json:"isLocked,omitempty"`
 	IsLockedReason             *OrderBy                         `json:"isLockedReason,omitempty"`
+	LegacyPlan                 *PlansOrderBy                    `json:"legacyPlan,omitempty"`
 	MetadataFunctions          *OrderBy                         `json:"metadataFunctions,omitempty"`
 	Name                       *OrderBy                         `json:"name,omitempty"`
 	NhostBaseFolder            *OrderBy                         `json:"nhostBaseFolder,omitempty"`
-	Plan                       *PlansOrderBy                    `json:"plan,omitempty"`
+	Organization               *OrganizationsOrderBy            `json:"organization,omitempty"`
+	OrganizationID             *OrderBy                         `json:"organizationID,omitempty"`
 	Region                     *RegionsOrderBy                  `json:"region,omitempty"`
 	RepositoryProductionBranch *OrderBy                         `json:"repositoryProductionBranch,omitempty"`
 	RunServicesAggregate       *RunServiceAggregateOrderBy      `json:"runServices_aggregate,omitempty"`
@@ -1755,7 +1778,6 @@ type AppsSetInput struct {
 	GithubRepositoryID         *string `json:"githubRepositoryId,omitempty"`
 	Name                       *string `json:"name,omitempty"`
 	NhostBaseFolder            *string `json:"nhostBaseFolder,omitempty"`
-	PlanID                     *string `json:"planId,omitempty"`
 	RepositoryProductionBranch *string `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *string `json:"slug,omitempty"`
 }
@@ -1795,6 +1817,7 @@ type AppsStreamCursorValueInput struct {
 	MetadataFunctions          map[string]interface{} `json:"metadataFunctions,omitempty"`
 	Name                       *string                `json:"name,omitempty"`
 	NhostBaseFolder            *string                `json:"nhostBaseFolder,omitempty"`
+	OrganizationID             *string                `json:"organizationID,omitempty"`
 	RepositoryProductionBranch *string                `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *string                `json:"slug,omitempty"`
 	Subdomain                  *string                `json:"subdomain,omitempty"`
@@ -2994,6 +3017,521 @@ type JsonbComparisonExp struct {
 type MutationRoot struct {
 }
 
+type OrganizationMemberInviteAcceptArgs struct {
+	ID *string `json:"id,omitempty"`
+}
+
+// Boolean expression to compare columns of type "organization_costs_thresholds_enum". All fields are combined with logical 'AND'.
+type OrganizationCostsThresholdsEnumComparisonExp struct {
+	Eq     *OrganizationCostsThresholdsEnum  `json:"_eq,omitempty"`
+	In     []OrganizationCostsThresholdsEnum `json:"_in,omitempty"`
+	IsNull *bool                             `json:"_is_null,omitempty"`
+	Neq    *OrganizationCostsThresholdsEnum  `json:"_neq,omitempty"`
+	Nin    []OrganizationCostsThresholdsEnum `json:"_nin,omitempty"`
+}
+
+// columns and relationships of "organization_member_invites"
+type OrganizationMemberInvites struct {
+	CreatedAt time.Time `json:"createdAt"`
+	Email     string    `json:"email"`
+	ID        string    `json:"id"`
+	// An object relationship
+	Organization   *Organizations              `json:"organization"`
+	OrganizationID string                      `json:"organizationID"`
+	Role           OrganizationMembersRoleEnum `json:"role"`
+	UpdateAt       time.Time                   `json:"updateAt"`
+	// An object relationship
+	User *Users `json:"user"`
+}
+
+// order by aggregate values of table "organization_member_invites"
+type OrganizationMemberInvitesAggregateOrderBy struct {
+	Count *OrderBy                             `json:"count,omitempty"`
+	Max   *OrganizationMemberInvitesMaxOrderBy `json:"max,omitempty"`
+	Min   *OrganizationMemberInvitesMinOrderBy `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "organization_member_invites". All fields are combined with a logical 'AND'.
+type OrganizationMemberInvitesBoolExp struct {
+	And            []*OrganizationMemberInvitesBoolExp       `json:"_and,omitempty"`
+	Not            *OrganizationMemberInvitesBoolExp         `json:"_not,omitempty"`
+	Or             []*OrganizationMemberInvitesBoolExp       `json:"_or,omitempty"`
+	CreatedAt      *TimestamptzComparisonExp                 `json:"createdAt,omitempty"`
+	Email          *CitextComparisonExp                      `json:"email,omitempty"`
+	ID             *UUIDComparisonExp                        `json:"id,omitempty"`
+	Organization   *OrganizationsBoolExp                     `json:"organization,omitempty"`
+	OrganizationID *UUIDComparisonExp                        `json:"organizationID,omitempty"`
+	Role           *OrganizationMembersRoleEnumComparisonExp `json:"role,omitempty"`
+	UpdateAt       *TimestamptzComparisonExp                 `json:"updateAt,omitempty"`
+	User           *UsersBoolExp                             `json:"user,omitempty"`
+}
+
+// input type for inserting data into table "organization_member_invites"
+type OrganizationMemberInvitesInsertInput struct {
+	Email          *string                      `json:"email,omitempty"`
+	OrganizationID *string                      `json:"organizationID,omitempty"`
+	Role           *OrganizationMembersRoleEnum `json:"role,omitempty"`
+}
+
+// order by max() on columns of table "organization_member_invites"
+type OrganizationMemberInvitesMaxOrderBy struct {
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	Email          *OrderBy `json:"email,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	OrganizationID *OrderBy `json:"organizationID,omitempty"`
+	UpdateAt       *OrderBy `json:"updateAt,omitempty"`
+}
+
+// order by min() on columns of table "organization_member_invites"
+type OrganizationMemberInvitesMinOrderBy struct {
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	Email          *OrderBy `json:"email,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	OrganizationID *OrderBy `json:"organizationID,omitempty"`
+	UpdateAt       *OrderBy `json:"updateAt,omitempty"`
+}
+
+// response of any mutation on the table "organization_member_invites"
+type OrganizationMemberInvitesMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*OrganizationMemberInvites `json:"returning"`
+}
+
+// on_conflict condition type for table "organization_member_invites"
+type OrganizationMemberInvitesOnConflict struct {
+	Constraint    OrganizationMemberInvitesConstraint     `json:"constraint"`
+	UpdateColumns []OrganizationMemberInvitesUpdateColumn `json:"update_columns"`
+	Where         *OrganizationMemberInvitesBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "organization_member_invites".
+type OrganizationMemberInvitesOrderBy struct {
+	CreatedAt      *OrderBy              `json:"createdAt,omitempty"`
+	Email          *OrderBy              `json:"email,omitempty"`
+	ID             *OrderBy              `json:"id,omitempty"`
+	Organization   *OrganizationsOrderBy `json:"organization,omitempty"`
+	OrganizationID *OrderBy              `json:"organizationID,omitempty"`
+	Role           *OrderBy              `json:"role,omitempty"`
+	UpdateAt       *OrderBy              `json:"updateAt,omitempty"`
+	User           *UsersOrderBy         `json:"user,omitempty"`
+}
+
+// primary key columns input for table: organization_member_invites
+type OrganizationMemberInvitesPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// input type for updating data in table "organization_member_invites"
+type OrganizationMemberInvitesSetInput struct {
+	Role *OrganizationMembersRoleEnum `json:"role,omitempty"`
+}
+
+// Streaming cursor of the table "organization_member_invites"
+type OrganizationMemberInvitesStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *OrganizationMemberInvitesStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type OrganizationMemberInvitesStreamCursorValueInput struct {
+	CreatedAt      *time.Time                   `json:"createdAt,omitempty"`
+	Email          *string                      `json:"email,omitempty"`
+	ID             *string                      `json:"id,omitempty"`
+	OrganizationID *string                      `json:"organizationID,omitempty"`
+	Role           *OrganizationMembersRoleEnum `json:"role,omitempty"`
+	UpdateAt       *time.Time                   `json:"updateAt,omitempty"`
+}
+
+type OrganizationMemberInvitesUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *OrganizationMemberInvitesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *OrganizationMemberInvitesBoolExp `json:"where"`
+}
+
+// columns and relationships of "organization_members"
+type OrganizationMembers struct {
+	CreatedAt time.Time `json:"createdAt"`
+	ID        string    `json:"id"`
+	// An object relationship
+	Organization  *Organizations              `json:"organization"`
+	OrganizatonID string                      `json:"organizatonID"`
+	Role          OrganizationMembersRoleEnum `json:"role"`
+	UpdatedAt     time.Time                   `json:"updatedAt"`
+	// An object relationship
+	User   *Users `json:"user"`
+	UserID string `json:"userID"`
+}
+
+// order by aggregate values of table "organization_members"
+type OrganizationMembersAggregateOrderBy struct {
+	Count *OrderBy                       `json:"count,omitempty"`
+	Max   *OrganizationMembersMaxOrderBy `json:"max,omitempty"`
+	Min   *OrganizationMembersMinOrderBy `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "organization_members". All fields are combined with a logical 'AND'.
+type OrganizationMembersBoolExp struct {
+	And           []*OrganizationMembersBoolExp             `json:"_and,omitempty"`
+	Not           *OrganizationMembersBoolExp               `json:"_not,omitempty"`
+	Or            []*OrganizationMembersBoolExp             `json:"_or,omitempty"`
+	CreatedAt     *TimestamptzComparisonExp                 `json:"createdAt,omitempty"`
+	ID            *UUIDComparisonExp                        `json:"id,omitempty"`
+	Organization  *OrganizationsBoolExp                     `json:"organization,omitempty"`
+	OrganizatonID *UUIDComparisonExp                        `json:"organizatonID,omitempty"`
+	Role          *OrganizationMembersRoleEnumComparisonExp `json:"role,omitempty"`
+	UpdatedAt     *TimestamptzComparisonExp                 `json:"updatedAt,omitempty"`
+	User          *UsersBoolExp                             `json:"user,omitempty"`
+	UserID        *UUIDComparisonExp                        `json:"userID,omitempty"`
+}
+
+// order by max() on columns of table "organization_members"
+type OrganizationMembersMaxOrderBy struct {
+	CreatedAt     *OrderBy `json:"createdAt,omitempty"`
+	ID            *OrderBy `json:"id,omitempty"`
+	OrganizatonID *OrderBy `json:"organizatonID,omitempty"`
+	UpdatedAt     *OrderBy `json:"updatedAt,omitempty"`
+	UserID        *OrderBy `json:"userID,omitempty"`
+}
+
+// order by min() on columns of table "organization_members"
+type OrganizationMembersMinOrderBy struct {
+	CreatedAt     *OrderBy `json:"createdAt,omitempty"`
+	ID            *OrderBy `json:"id,omitempty"`
+	OrganizatonID *OrderBy `json:"organizatonID,omitempty"`
+	UpdatedAt     *OrderBy `json:"updatedAt,omitempty"`
+	UserID        *OrderBy `json:"userID,omitempty"`
+}
+
+// response of any mutation on the table "organization_members"
+type OrganizationMembersMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*OrganizationMembers `json:"returning"`
+}
+
+// Ordering options when selecting data from "organization_members".
+type OrganizationMembersOrderBy struct {
+	CreatedAt     *OrderBy              `json:"createdAt,omitempty"`
+	ID            *OrderBy              `json:"id,omitempty"`
+	Organization  *OrganizationsOrderBy `json:"organization,omitempty"`
+	OrganizatonID *OrderBy              `json:"organizatonID,omitempty"`
+	Role          *OrderBy              `json:"role,omitempty"`
+	UpdatedAt     *OrderBy              `json:"updatedAt,omitempty"`
+	User          *UsersOrderBy         `json:"user,omitempty"`
+	UserID        *OrderBy              `json:"userID,omitempty"`
+}
+
+// primary key columns input for table: organization_members
+type OrganizationMembersPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// Boolean expression to compare columns of type "organization_members_role_enum". All fields are combined with logical 'AND'.
+type OrganizationMembersRoleEnumComparisonExp struct {
+	Eq     *OrganizationMembersRoleEnum  `json:"_eq,omitempty"`
+	In     []OrganizationMembersRoleEnum `json:"_in,omitempty"`
+	IsNull *bool                         `json:"_is_null,omitempty"`
+	Neq    *OrganizationMembersRoleEnum  `json:"_neq,omitempty"`
+	Nin    []OrganizationMembersRoleEnum `json:"_nin,omitempty"`
+}
+
+// input type for updating data in table "organization_members"
+type OrganizationMembersSetInput struct {
+	Role *OrganizationMembersRoleEnum `json:"role,omitempty"`
+}
+
+// Streaming cursor of the table "organization_members"
+type OrganizationMembersStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *OrganizationMembersStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type OrganizationMembersStreamCursorValueInput struct {
+	CreatedAt     *time.Time                   `json:"createdAt,omitempty"`
+	ID            *string                      `json:"id,omitempty"`
+	OrganizatonID *string                      `json:"organizatonID,omitempty"`
+	Role          *OrganizationMembersRoleEnum `json:"role,omitempty"`
+	UpdatedAt     *time.Time                   `json:"updatedAt,omitempty"`
+	UserID        *string                      `json:"userID,omitempty"`
+}
+
+type OrganizationMembersUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *OrganizationMembersSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *OrganizationMembersBoolExp `json:"where"`
+}
+
+// columns and relationships of "organization_new_request"
+type OrganizationNewRequest struct {
+	CreatedAt time.Time `json:"createdAt"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	// An object relationship
+	Plan      *Plans `json:"plan"`
+	PlanID    string `json:"planID"`
+	SessionID string `json:"sessionID"`
+	// An object relationship
+	User   *Users `json:"user"`
+	UserID string `json:"userID"`
+}
+
+// Boolean expression to filter rows from the table "organization_new_request". All fields are combined with a logical 'AND'.
+type OrganizationNewRequestBoolExp struct {
+	And       []*OrganizationNewRequestBoolExp `json:"_and,omitempty"`
+	Not       *OrganizationNewRequestBoolExp   `json:"_not,omitempty"`
+	Or        []*OrganizationNewRequestBoolExp `json:"_or,omitempty"`
+	CreatedAt *TimestamptzComparisonExp        `json:"createdAt,omitempty"`
+	ID        *UUIDComparisonExp               `json:"id,omitempty"`
+	Name      *StringComparisonExp             `json:"name,omitempty"`
+	Plan      *PlansBoolExp                    `json:"plan,omitempty"`
+	PlanID    *UUIDComparisonExp               `json:"planID,omitempty"`
+	SessionID *StringComparisonExp             `json:"sessionID,omitempty"`
+	User      *UsersBoolExp                    `json:"user,omitempty"`
+	UserID    *UUIDComparisonExp               `json:"userID,omitempty"`
+}
+
+// Ordering options when selecting data from "organization_new_request".
+type OrganizationNewRequestOrderBy struct {
+	CreatedAt *OrderBy      `json:"createdAt,omitempty"`
+	ID        *OrderBy      `json:"id,omitempty"`
+	Name      *OrderBy      `json:"name,omitempty"`
+	Plan      *PlansOrderBy `json:"plan,omitempty"`
+	PlanID    *OrderBy      `json:"planID,omitempty"`
+	SessionID *OrderBy      `json:"sessionID,omitempty"`
+	User      *UsersOrderBy `json:"user,omitempty"`
+	UserID    *OrderBy      `json:"userID,omitempty"`
+}
+
+// Streaming cursor of the table "organization_new_request"
+type OrganizationNewRequestStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *OrganizationNewRequestStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type OrganizationNewRequestStreamCursorValueInput struct {
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+	PlanID    *string    `json:"planID,omitempty"`
+	SessionID *string    `json:"sessionID,omitempty"`
+	UserID    *string    `json:"userID,omitempty"`
+}
+
+// Boolean expression to compare columns of type "organization_status_enum". All fields are combined with logical 'AND'.
+type OrganizationStatusEnumComparisonExp struct {
+	Eq     *OrganizationStatusEnum  `json:"_eq,omitempty"`
+	In     []OrganizationStatusEnum `json:"_in,omitempty"`
+	IsNull *bool                    `json:"_is_null,omitempty"`
+	Neq    *OrganizationStatusEnum  `json:"_neq,omitempty"`
+	Nin    []OrganizationStatusEnum `json:"_nin,omitempty"`
+}
+
+// columns and relationships of "organizations"
+type Organizations struct {
+	// An array relationship
+	AllowedPrivateRegions []*RegionsAllowedOrganization `json:"allowedPrivateRegions"`
+	// An array relationship
+	Apps             []*Apps                         `json:"apps"`
+	CreatedAt        time.Time                       `json:"createdAt"`
+	CurrentThreshold OrganizationCostsThresholdsEnum `json:"current_threshold"`
+	ID               string                          `json:"id"`
+	// An array relationship
+	Invites []*OrganizationMemberInvites `json:"invites"`
+	// An array relationship
+	Members []*OrganizationMembers `json:"members"`
+	Name    string                 `json:"name"`
+	// An object relationship
+	Plan      *Plans                 `json:"plan"`
+	PlanID    string                 `json:"planID"`
+	Slug      string                 `json:"slug"`
+	Status    OrganizationStatusEnum `json:"status"`
+	Threshold int64                  `json:"threshold"`
+	UpdatedAt time.Time              `json:"updatedAt"`
+}
+
+// order by aggregate values of table "organizations"
+type OrganizationsAggregateOrderBy struct {
+	Avg        *OrganizationsAvgOrderBy        `json:"avg,omitempty"`
+	Count      *OrderBy                        `json:"count,omitempty"`
+	Max        *OrganizationsMaxOrderBy        `json:"max,omitempty"`
+	Min        *OrganizationsMinOrderBy        `json:"min,omitempty"`
+	Stddev     *OrganizationsStddevOrderBy     `json:"stddev,omitempty"`
+	StddevPop  *OrganizationsStddevPopOrderBy  `json:"stddev_pop,omitempty"`
+	StddevSamp *OrganizationsStddevSampOrderBy `json:"stddev_samp,omitempty"`
+	Sum        *OrganizationsSumOrderBy        `json:"sum,omitempty"`
+	VarPop     *OrganizationsVarPopOrderBy     `json:"var_pop,omitempty"`
+	VarSamp    *OrganizationsVarSampOrderBy    `json:"var_samp,omitempty"`
+	Variance   *OrganizationsVarianceOrderBy   `json:"variance,omitempty"`
+}
+
+// order by avg() on columns of table "organizations"
+type OrganizationsAvgOrderBy struct {
+	Threshold *OrderBy `json:"threshold,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "organizations". All fields are combined with a logical 'AND'.
+type OrganizationsBoolExp struct {
+	And                   []*OrganizationsBoolExp                       `json:"_and,omitempty"`
+	Not                   *OrganizationsBoolExp                         `json:"_not,omitempty"`
+	Or                    []*OrganizationsBoolExp                       `json:"_or,omitempty"`
+	AllowedPrivateRegions *RegionsAllowedOrganizationBoolExp            `json:"allowedPrivateRegions,omitempty"`
+	Apps                  *AppsBoolExp                                  `json:"apps,omitempty"`
+	CreatedAt             *TimestamptzComparisonExp                     `json:"createdAt,omitempty"`
+	CurrentThreshold      *OrganizationCostsThresholdsEnumComparisonExp `json:"current_threshold,omitempty"`
+	ID                    *UUIDComparisonExp                            `json:"id,omitempty"`
+	Invites               *OrganizationMemberInvitesBoolExp             `json:"invites,omitempty"`
+	Members               *OrganizationMembersBoolExp                   `json:"members,omitempty"`
+	Name                  *StringComparisonExp                          `json:"name,omitempty"`
+	Plan                  *PlansBoolExp                                 `json:"plan,omitempty"`
+	PlanID                *UUIDComparisonExp                            `json:"planID,omitempty"`
+	Slug                  *StringComparisonExp                          `json:"slug,omitempty"`
+	Status                *OrganizationStatusEnumComparisonExp          `json:"status,omitempty"`
+	Threshold             *IntComparisonExp                             `json:"threshold,omitempty"`
+	UpdatedAt             *TimestamptzComparisonExp                     `json:"updatedAt,omitempty"`
+}
+
+// input type for incrementing numeric columns in table "organizations"
+type OrganizationsIncInput struct {
+	Threshold *int64 `json:"threshold,omitempty"`
+}
+
+// order by max() on columns of table "organizations"
+type OrganizationsMaxOrderBy struct {
+	CreatedAt *OrderBy `json:"createdAt,omitempty"`
+	ID        *OrderBy `json:"id,omitempty"`
+	Name      *OrderBy `json:"name,omitempty"`
+	PlanID    *OrderBy `json:"planID,omitempty"`
+	Slug      *OrderBy `json:"slug,omitempty"`
+	Threshold *OrderBy `json:"threshold,omitempty"`
+	UpdatedAt *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// order by min() on columns of table "organizations"
+type OrganizationsMinOrderBy struct {
+	CreatedAt *OrderBy `json:"createdAt,omitempty"`
+	ID        *OrderBy `json:"id,omitempty"`
+	Name      *OrderBy `json:"name,omitempty"`
+	PlanID    *OrderBy `json:"planID,omitempty"`
+	Slug      *OrderBy `json:"slug,omitempty"`
+	Threshold *OrderBy `json:"threshold,omitempty"`
+	UpdatedAt *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// response of any mutation on the table "organizations"
+type OrganizationsMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*Organizations `json:"returning"`
+}
+
+// Ordering options when selecting data from "organizations".
+type OrganizationsOrderBy struct {
+	AllowedPrivateRegionsAggregate *RegionsAllowedOrganizationAggregateOrderBy `json:"allowedPrivateRegions_aggregate,omitempty"`
+	AppsAggregate                  *AppsAggregateOrderBy                       `json:"apps_aggregate,omitempty"`
+	CreatedAt                      *OrderBy                                    `json:"createdAt,omitempty"`
+	CurrentThreshold               *OrderBy                                    `json:"current_threshold,omitempty"`
+	ID                             *OrderBy                                    `json:"id,omitempty"`
+	InvitesAggregate               *OrganizationMemberInvitesAggregateOrderBy  `json:"invites_aggregate,omitempty"`
+	MembersAggregate               *OrganizationMembersAggregateOrderBy        `json:"members_aggregate,omitempty"`
+	Name                           *OrderBy                                    `json:"name,omitempty"`
+	Plan                           *PlansOrderBy                               `json:"plan,omitempty"`
+	PlanID                         *OrderBy                                    `json:"planID,omitempty"`
+	Slug                           *OrderBy                                    `json:"slug,omitempty"`
+	Status                         *OrderBy                                    `json:"status,omitempty"`
+	Threshold                      *OrderBy                                    `json:"threshold,omitempty"`
+	UpdatedAt                      *OrderBy                                    `json:"updatedAt,omitempty"`
+}
+
+// primary key columns input for table: organizations
+type OrganizationsPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// input type for updating data in table "organizations"
+type OrganizationsSetInput struct {
+	Name      *string `json:"name,omitempty"`
+	Threshold *int64  `json:"threshold,omitempty"`
+}
+
+// order by stddev() on columns of table "organizations"
+type OrganizationsStddevOrderBy struct {
+	Threshold *OrderBy `json:"threshold,omitempty"`
+}
+
+// order by stddev_pop() on columns of table "organizations"
+type OrganizationsStddevPopOrderBy struct {
+	Threshold *OrderBy `json:"threshold,omitempty"`
+}
+
+// order by stddev_samp() on columns of table "organizations"
+type OrganizationsStddevSampOrderBy struct {
+	Threshold *OrderBy `json:"threshold,omitempty"`
+}
+
+// Streaming cursor of the table "organizations"
+type OrganizationsStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *OrganizationsStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type OrganizationsStreamCursorValueInput struct {
+	CreatedAt        *time.Time                       `json:"createdAt,omitempty"`
+	CurrentThreshold *OrganizationCostsThresholdsEnum `json:"current_threshold,omitempty"`
+	ID               *string                          `json:"id,omitempty"`
+	Name             *string                          `json:"name,omitempty"`
+	PlanID           *string                          `json:"planID,omitempty"`
+	Slug             *string                          `json:"slug,omitempty"`
+	Status           *OrganizationStatusEnum          `json:"status,omitempty"`
+	Threshold        *int64                           `json:"threshold,omitempty"`
+	UpdatedAt        *time.Time                       `json:"updatedAt,omitempty"`
+}
+
+// order by sum() on columns of table "organizations"
+type OrganizationsSumOrderBy struct {
+	Threshold *OrderBy `json:"threshold,omitempty"`
+}
+
+type OrganizationsUpdates struct {
+	// increments the numeric columns with given value of the filtered values
+	Inc *OrganizationsIncInput `json:"_inc,omitempty"`
+	// sets the columns of the filtered rows to the given values
+	Set *OrganizationsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *OrganizationsBoolExp `json:"where"`
+}
+
+// order by var_pop() on columns of table "organizations"
+type OrganizationsVarPopOrderBy struct {
+	Threshold *OrderBy `json:"threshold,omitempty"`
+}
+
+// order by var_samp() on columns of table "organizations"
+type OrganizationsVarSampOrderBy struct {
+	Threshold *OrderBy `json:"threshold,omitempty"`
+}
+
+// order by variance() on columns of table "organizations"
+type OrganizationsVarianceOrderBy struct {
+	Threshold *OrderBy `json:"threshold,omitempty"`
+}
+
 // columns and relationships of "payment_methods"
 type PaymentMethods struct {
 	AddedByUserID         string    `json:"addedByUserId"`
@@ -3230,10 +3768,13 @@ type Plans struct {
 	Individual                         bool      `json:"individual"`
 	IsDefault                          bool      `json:"isDefault"`
 	IsFree                             bool      `json:"isFree"`
+	IsPublic                           bool      `json:"isPublic"`
 	Name                               string    `json:"name"`
-	Price                              int64     `json:"price"`
-	Sort                               int64     `json:"sort"`
-	UpatedAt                           time.Time `json:"upatedAt"`
+	// An array relationship
+	Organizations []*Organizations `json:"organizations"`
+	Price         int64            `json:"price"`
+	Sort          int64            `json:"sort"`
+	UpatedAt      time.Time        `json:"upatedAt"`
 }
 
 // Boolean expression to filter rows from the table "plans". All fields are combined with a logical 'AND'.
@@ -3252,7 +3793,9 @@ type PlansBoolExp struct {
 	Individual                         *BooleanComparisonExp     `json:"individual,omitempty"`
 	IsDefault                          *BooleanComparisonExp     `json:"isDefault,omitempty"`
 	IsFree                             *BooleanComparisonExp     `json:"isFree,omitempty"`
+	IsPublic                           *BooleanComparisonExp     `json:"isPublic,omitempty"`
 	Name                               *StringComparisonExp      `json:"name,omitempty"`
+	Organizations                      *OrganizationsBoolExp     `json:"organizations,omitempty"`
 	Price                              *IntComparisonExp         `json:"price,omitempty"`
 	Sort                               *IntComparisonExp         `json:"sort,omitempty"`
 	UpatedAt                           *TimestamptzComparisonExp `json:"upatedAt,omitempty"`
@@ -3260,21 +3803,23 @@ type PlansBoolExp struct {
 
 // Ordering options when selecting data from "plans".
 type PlansOrderBy struct {
-	AppsAggregate                      *AppsAggregateOrderBy `json:"apps_aggregate,omitempty"`
-	CreatedAt                          *OrderBy              `json:"createdAt,omitempty"`
-	Deprecated                         *OrderBy              `json:"deprecated,omitempty"`
-	FeatureBackupEnabled               *OrderBy              `json:"featureBackupEnabled,omitempty"`
-	FeatureCustomDomainsEnabled        *OrderBy              `json:"featureCustomDomainsEnabled,omitempty"`
-	FeatureCustomEmailTemplatesEnabled *OrderBy              `json:"featureCustomEmailTemplatesEnabled,omitempty"`
-	FeatureMaxDbSize                   *OrderBy              `json:"featureMaxDbSize,omitempty"`
-	ID                                 *OrderBy              `json:"id,omitempty"`
-	Individual                         *OrderBy              `json:"individual,omitempty"`
-	IsDefault                          *OrderBy              `json:"isDefault,omitempty"`
-	IsFree                             *OrderBy              `json:"isFree,omitempty"`
-	Name                               *OrderBy              `json:"name,omitempty"`
-	Price                              *OrderBy              `json:"price,omitempty"`
-	Sort                               *OrderBy              `json:"sort,omitempty"`
-	UpatedAt                           *OrderBy              `json:"upatedAt,omitempty"`
+	AppsAggregate                      *AppsAggregateOrderBy          `json:"apps_aggregate,omitempty"`
+	CreatedAt                          *OrderBy                       `json:"createdAt,omitempty"`
+	Deprecated                         *OrderBy                       `json:"deprecated,omitempty"`
+	FeatureBackupEnabled               *OrderBy                       `json:"featureBackupEnabled,omitempty"`
+	FeatureCustomDomainsEnabled        *OrderBy                       `json:"featureCustomDomainsEnabled,omitempty"`
+	FeatureCustomEmailTemplatesEnabled *OrderBy                       `json:"featureCustomEmailTemplatesEnabled,omitempty"`
+	FeatureMaxDbSize                   *OrderBy                       `json:"featureMaxDbSize,omitempty"`
+	ID                                 *OrderBy                       `json:"id,omitempty"`
+	Individual                         *OrderBy                       `json:"individual,omitempty"`
+	IsDefault                          *OrderBy                       `json:"isDefault,omitempty"`
+	IsFree                             *OrderBy                       `json:"isFree,omitempty"`
+	IsPublic                           *OrderBy                       `json:"isPublic,omitempty"`
+	Name                               *OrderBy                       `json:"name,omitempty"`
+	OrganizationsAggregate             *OrganizationsAggregateOrderBy `json:"organizations_aggregate,omitempty"`
+	Price                              *OrderBy                       `json:"price,omitempty"`
+	Sort                               *OrderBy                       `json:"sort,omitempty"`
+	UpatedAt                           *OrderBy                       `json:"upatedAt,omitempty"`
 }
 
 // Streaming cursor of the table "plans"
@@ -3297,6 +3842,7 @@ type PlansStreamCursorValueInput struct {
 	Individual                         *bool      `json:"individual,omitempty"`
 	IsDefault                          *bool      `json:"isDefault,omitempty"`
 	IsFree                             *bool      `json:"isFree,omitempty"`
+	IsPublic                           *bool      `json:"isPublic,omitempty"`
 	Name                               *string    `json:"name,omitempty"`
 	Price                              *int64     `json:"price,omitempty"`
 	Sort                               *int64     `json:"sort,omitempty"`
@@ -3318,6 +3864,8 @@ type RegionTypeEnumComparisonExp struct {
 // columns and relationships of "regions"
 type Regions struct {
 	Active bool `json:"active"`
+	// An array relationship
+	AllowedOrganizations []*RegionsAllowedOrganization `json:"allowedOrganizations"`
 	// An object relationship
 	AllowedWorkspaces *RegionsAllowedWorkspace `json:"allowedWorkspaces,omitempty"`
 	// An array relationship
@@ -3342,6 +3890,92 @@ type RegionsAggregateOrderBy struct {
 	Count *OrderBy           `json:"count,omitempty"`
 	Max   *RegionsMaxOrderBy `json:"max,omitempty"`
 	Min   *RegionsMinOrderBy `json:"min,omitempty"`
+}
+
+// columns and relationships of "regions_allowed_organization"
+type RegionsAllowedOrganization struct {
+	CreatedAt   time.Time `json:"createdAt"`
+	Description string    `json:"description"`
+	ID          string    `json:"id"`
+	// An object relationship
+	Organization   *Organizations `json:"organization"`
+	OrganizationID string         `json:"organizationID"`
+	// An object relationship
+	Region    *Regions  `json:"region"`
+	RegionID  string    `json:"regionID"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// order by aggregate values of table "regions_allowed_organization"
+type RegionsAllowedOrganizationAggregateOrderBy struct {
+	Count *OrderBy                              `json:"count,omitempty"`
+	Max   *RegionsAllowedOrganizationMaxOrderBy `json:"max,omitempty"`
+	Min   *RegionsAllowedOrganizationMinOrderBy `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "regions_allowed_organization". All fields are combined with a logical 'AND'.
+type RegionsAllowedOrganizationBoolExp struct {
+	And            []*RegionsAllowedOrganizationBoolExp `json:"_and,omitempty"`
+	Not            *RegionsAllowedOrganizationBoolExp   `json:"_not,omitempty"`
+	Or             []*RegionsAllowedOrganizationBoolExp `json:"_or,omitempty"`
+	CreatedAt      *TimestamptzComparisonExp            `json:"createdAt,omitempty"`
+	Description    *StringComparisonExp                 `json:"description,omitempty"`
+	ID             *UUIDComparisonExp                   `json:"id,omitempty"`
+	Organization   *OrganizationsBoolExp                `json:"organization,omitempty"`
+	OrganizationID *UUIDComparisonExp                   `json:"organizationID,omitempty"`
+	Region         *RegionsBoolExp                      `json:"region,omitempty"`
+	RegionID       *UUIDComparisonExp                   `json:"regionID,omitempty"`
+	UpdatedAt      *TimestamptzComparisonExp            `json:"updatedAt,omitempty"`
+}
+
+// order by max() on columns of table "regions_allowed_organization"
+type RegionsAllowedOrganizationMaxOrderBy struct {
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	Description    *OrderBy `json:"description,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	OrganizationID *OrderBy `json:"organizationID,omitempty"`
+	RegionID       *OrderBy `json:"regionID,omitempty"`
+	UpdatedAt      *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// order by min() on columns of table "regions_allowed_organization"
+type RegionsAllowedOrganizationMinOrderBy struct {
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	Description    *OrderBy `json:"description,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	OrganizationID *OrderBy `json:"organizationID,omitempty"`
+	RegionID       *OrderBy `json:"regionID,omitempty"`
+	UpdatedAt      *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// Ordering options when selecting data from "regions_allowed_organization".
+type RegionsAllowedOrganizationOrderBy struct {
+	CreatedAt      *OrderBy              `json:"createdAt,omitempty"`
+	Description    *OrderBy              `json:"description,omitempty"`
+	ID             *OrderBy              `json:"id,omitempty"`
+	Organization   *OrganizationsOrderBy `json:"organization,omitempty"`
+	OrganizationID *OrderBy              `json:"organizationID,omitempty"`
+	Region         *RegionsOrderBy       `json:"region,omitempty"`
+	RegionID       *OrderBy              `json:"regionID,omitempty"`
+	UpdatedAt      *OrderBy              `json:"updatedAt,omitempty"`
+}
+
+// Streaming cursor of the table "regions_allowed_organization"
+type RegionsAllowedOrganizationStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *RegionsAllowedOrganizationStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type RegionsAllowedOrganizationStreamCursorValueInput struct {
+	CreatedAt      *time.Time `json:"createdAt,omitempty"`
+	Description    *string    `json:"description,omitempty"`
+	ID             *string    `json:"id,omitempty"`
+	OrganizationID *string    `json:"organizationID,omitempty"`
+	RegionID       *string    `json:"regionID,omitempty"`
+	UpdatedAt      *time.Time `json:"updatedAt,omitempty"`
 }
 
 // columns and relationships of "regions_allowed_workspace"
@@ -3432,23 +4066,24 @@ type RegionsAllowedWorkspaceStreamCursorValueInput struct {
 
 // Boolean expression to filter rows from the table "regions". All fields are combined with a logical 'AND'.
 type RegionsBoolExp struct {
-	And                      []*RegionsBoolExp               `json:"_and,omitempty"`
-	Not                      *RegionsBoolExp                 `json:"_not,omitempty"`
-	Or                       []*RegionsBoolExp               `json:"_or,omitempty"`
-	Active                   *BooleanComparisonExp           `json:"active,omitempty"`
-	AllowedWorkspaces        *RegionsAllowedWorkspaceBoolExp `json:"allowedWorkspaces,omitempty"`
-	Apps                     *AppsBoolExp                    `json:"apps,omitempty"`
-	AwsName                  *StringComparisonExp            `json:"awsName,omitempty"`
-	City                     *StringComparisonExp            `json:"city,omitempty"`
-	Country                  *CountriesBoolExp               `json:"country,omitempty"`
-	CountryCode              *StringComparisonExp            `json:"countryCode,omitempty"`
-	Description              *StringComparisonExp            `json:"description,omitempty"`
-	Domain                   *StringComparisonExp            `json:"domain,omitempty"`
-	ID                       *UUIDComparisonExp              `json:"id,omitempty"`
-	IsGdprCompliant          *BooleanComparisonExp           `json:"isGdprCompliant,omitempty"`
-	Name                     *StringComparisonExp            `json:"name,omitempty"`
-	RegionsAllowedWorkspaces *RegionsAllowedWorkspaceBoolExp `json:"regions_allowed_workspaces,omitempty"`
-	Type                     *RegionTypeEnumComparisonExp    `json:"type,omitempty"`
+	And                      []*RegionsBoolExp                  `json:"_and,omitempty"`
+	Not                      *RegionsBoolExp                    `json:"_not,omitempty"`
+	Or                       []*RegionsBoolExp                  `json:"_or,omitempty"`
+	Active                   *BooleanComparisonExp              `json:"active,omitempty"`
+	AllowedOrganizations     *RegionsAllowedOrganizationBoolExp `json:"allowedOrganizations,omitempty"`
+	AllowedWorkspaces        *RegionsAllowedWorkspaceBoolExp    `json:"allowedWorkspaces,omitempty"`
+	Apps                     *AppsBoolExp                       `json:"apps,omitempty"`
+	AwsName                  *StringComparisonExp               `json:"awsName,omitempty"`
+	City                     *StringComparisonExp               `json:"city,omitempty"`
+	Country                  *CountriesBoolExp                  `json:"country,omitempty"`
+	CountryCode              *StringComparisonExp               `json:"countryCode,omitempty"`
+	Description              *StringComparisonExp               `json:"description,omitempty"`
+	Domain                   *StringComparisonExp               `json:"domain,omitempty"`
+	ID                       *UUIDComparisonExp                 `json:"id,omitempty"`
+	IsGdprCompliant          *BooleanComparisonExp              `json:"isGdprCompliant,omitempty"`
+	Name                     *StringComparisonExp               `json:"name,omitempty"`
+	RegionsAllowedWorkspaces *RegionsAllowedWorkspaceBoolExp    `json:"regions_allowed_workspaces,omitempty"`
+	Type                     *RegionTypeEnumComparisonExp       `json:"type,omitempty"`
 }
 
 // order by max() on columns of table "regions"
@@ -3475,20 +4110,21 @@ type RegionsMinOrderBy struct {
 
 // Ordering options when selecting data from "regions".
 type RegionsOrderBy struct {
-	Active                            *OrderBy                                 `json:"active,omitempty"`
-	AllowedWorkspaces                 *RegionsAllowedWorkspaceOrderBy          `json:"allowedWorkspaces,omitempty"`
-	AppsAggregate                     *AppsAggregateOrderBy                    `json:"apps_aggregate,omitempty"`
-	AwsName                           *OrderBy                                 `json:"awsName,omitempty"`
-	City                              *OrderBy                                 `json:"city,omitempty"`
-	Country                           *CountriesOrderBy                        `json:"country,omitempty"`
-	CountryCode                       *OrderBy                                 `json:"countryCode,omitempty"`
-	Description                       *OrderBy                                 `json:"description,omitempty"`
-	Domain                            *OrderBy                                 `json:"domain,omitempty"`
-	ID                                *OrderBy                                 `json:"id,omitempty"`
-	IsGdprCompliant                   *OrderBy                                 `json:"isGdprCompliant,omitempty"`
-	Name                              *OrderBy                                 `json:"name,omitempty"`
-	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateOrderBy `json:"regions_allowed_workspaces_aggregate,omitempty"`
-	Type                              *OrderBy                                 `json:"type,omitempty"`
+	Active                            *OrderBy                                    `json:"active,omitempty"`
+	AllowedOrganizationsAggregate     *RegionsAllowedOrganizationAggregateOrderBy `json:"allowedOrganizations_aggregate,omitempty"`
+	AllowedWorkspaces                 *RegionsAllowedWorkspaceOrderBy             `json:"allowedWorkspaces,omitempty"`
+	AppsAggregate                     *AppsAggregateOrderBy                       `json:"apps_aggregate,omitempty"`
+	AwsName                           *OrderBy                                    `json:"awsName,omitempty"`
+	City                              *OrderBy                                    `json:"city,omitempty"`
+	Country                           *CountriesOrderBy                           `json:"country,omitempty"`
+	CountryCode                       *OrderBy                                    `json:"countryCode,omitempty"`
+	Description                       *OrderBy                                    `json:"description,omitempty"`
+	Domain                            *OrderBy                                    `json:"domain,omitempty"`
+	ID                                *OrderBy                                    `json:"id,omitempty"`
+	IsGdprCompliant                   *OrderBy                                    `json:"isGdprCompliant,omitempty"`
+	Name                              *OrderBy                                    `json:"name,omitempty"`
+	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateOrderBy    `json:"regions_allowed_workspaces_aggregate,omitempty"`
+	Type                              *OrderBy                                    `json:"type,omitempty"`
 }
 
 // Streaming cursor of the table "regions"
@@ -3585,6 +4221,7 @@ type RunServiceBoolExp struct {
 type RunServiceInsertInput struct {
 	App   *AppsObjRelInsertInput `json:"app,omitempty"`
 	AppID *string                `json:"appID,omitempty"`
+	ID    *string                `json:"id,omitempty"`
 }
 
 // aggregate max on columns
@@ -3805,6 +4442,30 @@ type SubscriptionRoot struct {
 	GithubRepositoriesStream []*GithubRepositories `json:"githubRepositories_stream"`
 	// fetch data from the table: "github_repositories" using primary key columns
 	GithubRepository *GithubRepositories `json:"githubRepository,omitempty"`
+	// fetch data from the table: "organizations" using primary key columns
+	Organization *Organizations `json:"organization,omitempty"`
+	// fetch data from the table: "organization_members" using primary key columns
+	OrganizationMember *OrganizationMembers `json:"organizationMember,omitempty"`
+	// fetch data from the table: "organization_member_invites" using primary key columns
+	OrganizationMemberInvite *OrganizationMemberInvites `json:"organizationMemberInvite,omitempty"`
+	// fetch data from the table: "organization_member_invites"
+	OrganizationMemberInvites []*OrganizationMemberInvites `json:"organizationMemberInvites"`
+	// fetch data from the table in a streaming manner: "organization_member_invites"
+	OrganizationMemberInvitesStream []*OrganizationMemberInvites `json:"organizationMemberInvitesStream"`
+	// fetch data from the table: "organization_members"
+	OrganizationMembers []*OrganizationMembers `json:"organizationMembers"`
+	// fetch data from the table in a streaming manner: "organization_members"
+	OrganizationMembersStream []*OrganizationMembers `json:"organizationMembersStream"`
+	// fetch data from the table: "organization_new_request" using primary key columns
+	OrganizationNewRequest *OrganizationNewRequest `json:"organizationNewRequest,omitempty"`
+	// fetch data from the table: "organization_new_request"
+	OrganizationNewRequests []*OrganizationNewRequest `json:"organizationNewRequests"`
+	// fetch data from the table in a streaming manner: "organization_new_request"
+	OrganizationNewRequestsStream []*OrganizationNewRequest `json:"organizationNewRequestsStream"`
+	// An array relationship
+	Organizations []*Organizations `json:"organizations"`
+	// fetch data from the table in a streaming manner: "organizations"
+	OrganizationsSteam []*Organizations `json:"organizationsSteam"`
 	// fetch data from the table: "payment_methods" using primary key columns
 	PaymentMethod *PaymentMethods `json:"paymentMethod,omitempty"`
 	// An array relationship
@@ -3819,6 +4480,12 @@ type SubscriptionRoot struct {
 	PlansStream []*Plans `json:"plans_stream"`
 	// fetch data from the table: "regions"
 	Regions []*Regions `json:"regions"`
+	// fetch data from the table: "regions_allowed_organization" using primary key columns
+	RegionsAllowedOrganization *RegionsAllowedOrganization `json:"regionsAllowedOrganization,omitempty"`
+	// fetch data from the table: "regions_allowed_organization"
+	RegionsAllowedOrganizations []*RegionsAllowedOrganization `json:"regionsAllowedOrganizations"`
+	// fetch data from the table in a streaming manner: "regions_allowed_organization"
+	RegionsAllowedOrganizationsStream []*RegionsAllowedOrganization `json:"regionsAllowedOrganizationsStream"`
 	// fetch data from the table in a streaming manner: "regions_allowed_workspace"
 	RegionsAllowedWorkspaceStream []*RegionsAllowedWorkspace `json:"regions_allowed_workspace_stream"`
 	// fetch data from the table: "regions" using primary key columns
@@ -3847,14 +4514,8 @@ type SubscriptionRoot struct {
 	User *Users `json:"user,omitempty"`
 	// fetch data from the table: "auth.users"
 	Users []*Users `json:"users"`
-	// fetch data from the table: "users_usage" using primary key columns
-	UsersUsage *UsersUsage `json:"usersUsage,omitempty"`
-	// fetch data from the table: "users_usage"
-	UsersUsages []*UsersUsage `json:"usersUsages"`
 	// fetch data from the table in a streaming manner: "auth.users"
 	UsersStream []*Users `json:"users_stream"`
-	// fetch data from the table in a streaming manner: "users_usage"
-	UsersUsageStream []*UsersUsage `json:"users_usage_stream"`
 	// fetch data from the table: "workspaces" using primary key columns
 	Workspace *Workspaces `json:"workspace,omitempty"`
 	// fetch data from the table: "workspace_members" using primary key columns
@@ -3903,6 +4564,8 @@ type Users struct {
 	GithubAppInstallations []*GithubAppInstallations `json:"github_app_installations"`
 	ID                     string                    `json:"id"`
 	// An array relationship
+	OrganizationMembership []*OrganizationMembers `json:"organizationMembership"`
+	// An array relationship
 	PaymentMethods []*PaymentMethods `json:"payment_methods"`
 	// An array relationship
 	RefreshTokens []*AuthRefreshTokens `json:"refreshTokens"`
@@ -3933,6 +4596,7 @@ type UsersBoolExp struct {
 	Email                                   *CitextComparisonExp           `json:"email,omitempty"`
 	GithubAppInstallations                  *GithubAppInstallationsBoolExp `json:"github_app_installations,omitempty"`
 	ID                                      *UUIDComparisonExp             `json:"id,omitempty"`
+	OrganizationMembership                  *OrganizationMembersBoolExp    `json:"organizationMembership,omitempty"`
 	PaymentMethods                          *PaymentMethodsBoolExp         `json:"payment_methods,omitempty"`
 	RefreshTokens                           *AuthRefreshTokensBoolExp      `json:"refreshTokens,omitempty"`
 	RunServices                             *RunServiceBoolExp             `json:"runServices,omitempty"`
@@ -3961,6 +4625,7 @@ type UsersOrderBy struct {
 	Email                                            *OrderBy                                `json:"email,omitempty"`
 	GithubAppInstallationsAggregate                  *GithubAppInstallationsAggregateOrderBy `json:"github_app_installations_aggregate,omitempty"`
 	ID                                               *OrderBy                                `json:"id,omitempty"`
+	OrganizationMembershipAggregate                  *OrganizationMembersAggregateOrderBy    `json:"organizationMembership_aggregate,omitempty"`
 	PaymentMethodsAggregate                          *PaymentMethodsAggregateOrderBy         `json:"payment_methods_aggregate,omitempty"`
 	RefreshTokensAggregate                           *AuthRefreshTokensAggregateOrderBy      `json:"refreshTokens_aggregate,omitempty"`
 	RunServicesAggregate                             *RunServiceAggregateOrderBy             `json:"runServices_aggregate,omitempty"`
@@ -4001,53 +4666,6 @@ type UsersUpdates struct {
 	Set *UsersSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
 	Where *UsersBoolExp `json:"where"`
-}
-
-// columns and relationships of "users_usage"
-type UsersUsage struct {
-	CreatedAt             time.Time `json:"created_at"`
-	FreeAllowanceExceeded bool      `json:"free_allowance_exceeded"`
-	ID                    string    `json:"id"`
-	UpdatedAt             time.Time `json:"updated_at"`
-	UserID                string    `json:"user_id"`
-}
-
-// Boolean expression to filter rows from the table "users_usage". All fields are combined with a logical 'AND'.
-type UsersUsageBoolExp struct {
-	And                   []*UsersUsageBoolExp      `json:"_and,omitempty"`
-	Not                   *UsersUsageBoolExp        `json:"_not,omitempty"`
-	Or                    []*UsersUsageBoolExp      `json:"_or,omitempty"`
-	CreatedAt             *TimestamptzComparisonExp `json:"created_at,omitempty"`
-	FreeAllowanceExceeded *BooleanComparisonExp     `json:"free_allowance_exceeded,omitempty"`
-	ID                    *UUIDComparisonExp        `json:"id,omitempty"`
-	UpdatedAt             *TimestamptzComparisonExp `json:"updated_at,omitempty"`
-	UserID                *UUIDComparisonExp        `json:"user_id,omitempty"`
-}
-
-// Ordering options when selecting data from "users_usage".
-type UsersUsageOrderBy struct {
-	CreatedAt             *OrderBy `json:"created_at,omitempty"`
-	FreeAllowanceExceeded *OrderBy `json:"free_allowance_exceeded,omitempty"`
-	ID                    *OrderBy `json:"id,omitempty"`
-	UpdatedAt             *OrderBy `json:"updated_at,omitempty"`
-	UserID                *OrderBy `json:"user_id,omitempty"`
-}
-
-// Streaming cursor of the table "users_usage"
-type UsersUsageStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *UsersUsageStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type UsersUsageStreamCursorValueInput struct {
-	CreatedAt             *time.Time `json:"created_at,omitempty"`
-	FreeAllowanceExceeded *bool      `json:"free_allowance_exceeded,omitempty"`
-	ID                    *string    `json:"id,omitempty"`
-	UpdatedAt             *time.Time `json:"updated_at,omitempty"`
-	UserID                *string    `json:"user_id,omitempty"`
 }
 
 // Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
@@ -4618,6 +5236,49 @@ type WorkspacesUpdates struct {
 	Where *WorkspacesBoolExp `json:"where"`
 }
 
+type CheckoutStatus string
+
+const (
+	CheckoutStatusCompleted CheckoutStatus = "COMPLETED"
+	CheckoutStatusExpired   CheckoutStatus = "EXPIRED"
+	CheckoutStatusOpen      CheckoutStatus = "OPEN"
+)
+
+var AllCheckoutStatus = []CheckoutStatus{
+	CheckoutStatusCompleted,
+	CheckoutStatusExpired,
+	CheckoutStatusOpen,
+}
+
+func (e CheckoutStatus) IsValid() bool {
+	switch e {
+	case CheckoutStatusCompleted, CheckoutStatusExpired, CheckoutStatusOpen:
+		return true
+	}
+	return false
+}
+
+func (e CheckoutStatus) String() string {
+	return string(e)
+}
+
+func (e *CheckoutStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CheckoutStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CheckoutStatus", str)
+	}
+	return nil
+}
+
+func (e CheckoutStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ServiceState string
 
 const (
@@ -4846,6 +5507,8 @@ const (
 	// column name
 	AppsSelectColumnNhostBaseFolder AppsSelectColumn = "nhostBaseFolder"
 	// column name
+	AppsSelectColumnOrganizationID AppsSelectColumn = "organizationID"
+	// column name
 	AppsSelectColumnRepositoryProductionBranch AppsSelectColumn = "repositoryProductionBranch"
 	// column name
 	AppsSelectColumnSlug AppsSelectColumn = "slug"
@@ -4868,6 +5531,7 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 	AppsSelectColumnMetadataFunctions,
 	AppsSelectColumnName,
 	AppsSelectColumnNhostBaseFolder,
+	AppsSelectColumnOrganizationID,
 	AppsSelectColumnRepositoryProductionBranch,
 	AppsSelectColumnSlug,
 	AppsSelectColumnSubdomain,
@@ -4877,7 +5541,7 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 
 func (e AppsSelectColumn) IsValid() bool {
 	switch e {
-	case AppsSelectColumnCreatedAt, AppsSelectColumnCreatorUserID, AppsSelectColumnDesiredState, AppsSelectColumnGithubRepositoryID, AppsSelectColumnID, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnMetadataFunctions, AppsSelectColumnName, AppsSelectColumnNhostBaseFolder, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnSlug, AppsSelectColumnSubdomain, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID:
+	case AppsSelectColumnCreatedAt, AppsSelectColumnCreatorUserID, AppsSelectColumnDesiredState, AppsSelectColumnGithubRepositoryID, AppsSelectColumnID, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnMetadataFunctions, AppsSelectColumnName, AppsSelectColumnNhostBaseFolder, AppsSelectColumnOrganizationID, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnSlug, AppsSelectColumnSubdomain, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID:
 		return true
 	}
 	return false
@@ -4917,8 +5581,6 @@ const (
 	// column name
 	AppsUpdateColumnNhostBaseFolder AppsUpdateColumn = "nhostBaseFolder"
 	// column name
-	AppsUpdateColumnPlanID AppsUpdateColumn = "planId"
-	// column name
 	AppsUpdateColumnRepositoryProductionBranch AppsUpdateColumn = "repositoryProductionBranch"
 	// column name
 	AppsUpdateColumnSlug AppsUpdateColumn = "slug"
@@ -4929,14 +5591,13 @@ var AllAppsUpdateColumn = []AppsUpdateColumn{
 	AppsUpdateColumnGithubRepositoryID,
 	AppsUpdateColumnName,
 	AppsUpdateColumnNhostBaseFolder,
-	AppsUpdateColumnPlanID,
 	AppsUpdateColumnRepositoryProductionBranch,
 	AppsUpdateColumnSlug,
 }
 
 func (e AppsUpdateColumn) IsValid() bool {
 	switch e {
-	case AppsUpdateColumnDesiredState, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnName, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnPlanID, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnSlug:
+	case AppsUpdateColumnDesiredState, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnName, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnSlug:
 		return true
 	}
 	return false
@@ -5956,6 +6617,468 @@ func (e OrderBy) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type OrganizationCostsThresholdsEnum string
+
+const (
+	// No threshold reached
+	OrganizationCostsThresholdsEnumNone OrganizationCostsThresholdsEnum = "NONE"
+	// 75% of cost usage reached
+	OrganizationCostsThresholdsEnumPercent075 OrganizationCostsThresholdsEnum = "PERCENT_075"
+	// 90% of cost usage reached
+	OrganizationCostsThresholdsEnumPercent090 OrganizationCostsThresholdsEnum = "PERCENT_090"
+	// 100% of cost usage reached
+	OrganizationCostsThresholdsEnumPercent100 OrganizationCostsThresholdsEnum = "PERCENT_100"
+)
+
+var AllOrganizationCostsThresholdsEnum = []OrganizationCostsThresholdsEnum{
+	OrganizationCostsThresholdsEnumNone,
+	OrganizationCostsThresholdsEnumPercent075,
+	OrganizationCostsThresholdsEnumPercent090,
+	OrganizationCostsThresholdsEnumPercent100,
+}
+
+func (e OrganizationCostsThresholdsEnum) IsValid() bool {
+	switch e {
+	case OrganizationCostsThresholdsEnumNone, OrganizationCostsThresholdsEnumPercent075, OrganizationCostsThresholdsEnumPercent090, OrganizationCostsThresholdsEnumPercent100:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationCostsThresholdsEnum) String() string {
+	return string(e)
+}
+
+func (e *OrganizationCostsThresholdsEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationCostsThresholdsEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organization_costs_thresholds_enum", str)
+	}
+	return nil
+}
+
+func (e OrganizationCostsThresholdsEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// unique or primary key constraints on table "organization_member_invites"
+type OrganizationMemberInvitesConstraint string
+
+const (
+	// unique or primary key constraint on columns "email", "organization_id"
+	OrganizationMemberInvitesConstraintOrganizationMemberInvitesOrganizationIDEmailKey OrganizationMemberInvitesConstraint = "organization_member_invites_organization_id_email_key"
+	// unique or primary key constraint on columns "id"
+	OrganizationMemberInvitesConstraintOrganizationMemberInvitesPkey OrganizationMemberInvitesConstraint = "organization_member_invites_pkey"
+)
+
+var AllOrganizationMemberInvitesConstraint = []OrganizationMemberInvitesConstraint{
+	OrganizationMemberInvitesConstraintOrganizationMemberInvitesOrganizationIDEmailKey,
+	OrganizationMemberInvitesConstraintOrganizationMemberInvitesPkey,
+}
+
+func (e OrganizationMemberInvitesConstraint) IsValid() bool {
+	switch e {
+	case OrganizationMemberInvitesConstraintOrganizationMemberInvitesOrganizationIDEmailKey, OrganizationMemberInvitesConstraintOrganizationMemberInvitesPkey:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationMemberInvitesConstraint) String() string {
+	return string(e)
+}
+
+func (e *OrganizationMemberInvitesConstraint) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationMemberInvitesConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organization_member_invites_constraint", str)
+	}
+	return nil
+}
+
+func (e OrganizationMemberInvitesConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "organization_member_invites"
+type OrganizationMemberInvitesSelectColumn string
+
+const (
+	// column name
+	OrganizationMemberInvitesSelectColumnCreatedAt OrganizationMemberInvitesSelectColumn = "createdAt"
+	// column name
+	OrganizationMemberInvitesSelectColumnEmail OrganizationMemberInvitesSelectColumn = "email"
+	// column name
+	OrganizationMemberInvitesSelectColumnID OrganizationMemberInvitesSelectColumn = "id"
+	// column name
+	OrganizationMemberInvitesSelectColumnOrganizationID OrganizationMemberInvitesSelectColumn = "organizationID"
+	// column name
+	OrganizationMemberInvitesSelectColumnRole OrganizationMemberInvitesSelectColumn = "role"
+	// column name
+	OrganizationMemberInvitesSelectColumnUpdateAt OrganizationMemberInvitesSelectColumn = "updateAt"
+)
+
+var AllOrganizationMemberInvitesSelectColumn = []OrganizationMemberInvitesSelectColumn{
+	OrganizationMemberInvitesSelectColumnCreatedAt,
+	OrganizationMemberInvitesSelectColumnEmail,
+	OrganizationMemberInvitesSelectColumnID,
+	OrganizationMemberInvitesSelectColumnOrganizationID,
+	OrganizationMemberInvitesSelectColumnRole,
+	OrganizationMemberInvitesSelectColumnUpdateAt,
+}
+
+func (e OrganizationMemberInvitesSelectColumn) IsValid() bool {
+	switch e {
+	case OrganizationMemberInvitesSelectColumnCreatedAt, OrganizationMemberInvitesSelectColumnEmail, OrganizationMemberInvitesSelectColumnID, OrganizationMemberInvitesSelectColumnOrganizationID, OrganizationMemberInvitesSelectColumnRole, OrganizationMemberInvitesSelectColumnUpdateAt:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationMemberInvitesSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *OrganizationMemberInvitesSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationMemberInvitesSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organization_member_invites_select_column", str)
+	}
+	return nil
+}
+
+func (e OrganizationMemberInvitesSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// update columns of table "organization_member_invites"
+type OrganizationMemberInvitesUpdateColumn string
+
+const (
+	// column name
+	OrganizationMemberInvitesUpdateColumnRole OrganizationMemberInvitesUpdateColumn = "role"
+)
+
+var AllOrganizationMemberInvitesUpdateColumn = []OrganizationMemberInvitesUpdateColumn{
+	OrganizationMemberInvitesUpdateColumnRole,
+}
+
+func (e OrganizationMemberInvitesUpdateColumn) IsValid() bool {
+	switch e {
+	case OrganizationMemberInvitesUpdateColumnRole:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationMemberInvitesUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *OrganizationMemberInvitesUpdateColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationMemberInvitesUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organization_member_invites_update_column", str)
+	}
+	return nil
+}
+
+func (e OrganizationMemberInvitesUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OrganizationMembersRoleEnum string
+
+const (
+	// Administrator
+	OrganizationMembersRoleEnumAdmin OrganizationMembersRoleEnum = "ADMIN"
+	// User
+	OrganizationMembersRoleEnumUser OrganizationMembersRoleEnum = "USER"
+)
+
+var AllOrganizationMembersRoleEnum = []OrganizationMembersRoleEnum{
+	OrganizationMembersRoleEnumAdmin,
+	OrganizationMembersRoleEnumUser,
+}
+
+func (e OrganizationMembersRoleEnum) IsValid() bool {
+	switch e {
+	case OrganizationMembersRoleEnumAdmin, OrganizationMembersRoleEnumUser:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationMembersRoleEnum) String() string {
+	return string(e)
+}
+
+func (e *OrganizationMembersRoleEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationMembersRoleEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organization_members_role_enum", str)
+	}
+	return nil
+}
+
+func (e OrganizationMembersRoleEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "organization_members"
+type OrganizationMembersSelectColumn string
+
+const (
+	// column name
+	OrganizationMembersSelectColumnCreatedAt OrganizationMembersSelectColumn = "createdAt"
+	// column name
+	OrganizationMembersSelectColumnID OrganizationMembersSelectColumn = "id"
+	// column name
+	OrganizationMembersSelectColumnOrganizatonID OrganizationMembersSelectColumn = "organizatonID"
+	// column name
+	OrganizationMembersSelectColumnRole OrganizationMembersSelectColumn = "role"
+	// column name
+	OrganizationMembersSelectColumnUpdatedAt OrganizationMembersSelectColumn = "updatedAt"
+	// column name
+	OrganizationMembersSelectColumnUserID OrganizationMembersSelectColumn = "userID"
+)
+
+var AllOrganizationMembersSelectColumn = []OrganizationMembersSelectColumn{
+	OrganizationMembersSelectColumnCreatedAt,
+	OrganizationMembersSelectColumnID,
+	OrganizationMembersSelectColumnOrganizatonID,
+	OrganizationMembersSelectColumnRole,
+	OrganizationMembersSelectColumnUpdatedAt,
+	OrganizationMembersSelectColumnUserID,
+}
+
+func (e OrganizationMembersSelectColumn) IsValid() bool {
+	switch e {
+	case OrganizationMembersSelectColumnCreatedAt, OrganizationMembersSelectColumnID, OrganizationMembersSelectColumnOrganizatonID, OrganizationMembersSelectColumnRole, OrganizationMembersSelectColumnUpdatedAt, OrganizationMembersSelectColumnUserID:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationMembersSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *OrganizationMembersSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationMembersSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organization_members_select_column", str)
+	}
+	return nil
+}
+
+func (e OrganizationMembersSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "organization_new_request"
+type OrganizationNewRequestSelectColumn string
+
+const (
+	// column name
+	OrganizationNewRequestSelectColumnCreatedAt OrganizationNewRequestSelectColumn = "createdAt"
+	// column name
+	OrganizationNewRequestSelectColumnID OrganizationNewRequestSelectColumn = "id"
+	// column name
+	OrganizationNewRequestSelectColumnName OrganizationNewRequestSelectColumn = "name"
+	// column name
+	OrganizationNewRequestSelectColumnPlanID OrganizationNewRequestSelectColumn = "planID"
+	// column name
+	OrganizationNewRequestSelectColumnSessionID OrganizationNewRequestSelectColumn = "sessionID"
+	// column name
+	OrganizationNewRequestSelectColumnUserID OrganizationNewRequestSelectColumn = "userID"
+)
+
+var AllOrganizationNewRequestSelectColumn = []OrganizationNewRequestSelectColumn{
+	OrganizationNewRequestSelectColumnCreatedAt,
+	OrganizationNewRequestSelectColumnID,
+	OrganizationNewRequestSelectColumnName,
+	OrganizationNewRequestSelectColumnPlanID,
+	OrganizationNewRequestSelectColumnSessionID,
+	OrganizationNewRequestSelectColumnUserID,
+}
+
+func (e OrganizationNewRequestSelectColumn) IsValid() bool {
+	switch e {
+	case OrganizationNewRequestSelectColumnCreatedAt, OrganizationNewRequestSelectColumnID, OrganizationNewRequestSelectColumnName, OrganizationNewRequestSelectColumnPlanID, OrganizationNewRequestSelectColumnSessionID, OrganizationNewRequestSelectColumnUserID:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationNewRequestSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *OrganizationNewRequestSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationNewRequestSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organization_new_request_select_column", str)
+	}
+	return nil
+}
+
+func (e OrganizationNewRequestSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OrganizationStatusEnum string
+
+const (
+	// Allowance for the organization has been exceeded. Allowance will be reset at the end of the month.
+	OrganizationStatusEnumAllowanceExceeded OrganizationStatusEnum = "ALLOWANCE_EXCEEDED"
+	// Organization is cancelled. Contact support.
+	OrganizationStatusEnumCancelled OrganizationStatusEnum = "CANCELLED"
+	// Organization is disabled and all resources have been suspended
+	OrganizationStatusEnumDisabled OrganizationStatusEnum = "DISABLED"
+	// Organization is locked and changes to resources are not allowed
+	OrganizationStatusEnumLocked OrganizationStatusEnum = "LOCKED"
+	// Organization is healthy
+	OrganizationStatusEnumOk OrganizationStatusEnum = "OK"
+)
+
+var AllOrganizationStatusEnum = []OrganizationStatusEnum{
+	OrganizationStatusEnumAllowanceExceeded,
+	OrganizationStatusEnumCancelled,
+	OrganizationStatusEnumDisabled,
+	OrganizationStatusEnumLocked,
+	OrganizationStatusEnumOk,
+}
+
+func (e OrganizationStatusEnum) IsValid() bool {
+	switch e {
+	case OrganizationStatusEnumAllowanceExceeded, OrganizationStatusEnumCancelled, OrganizationStatusEnumDisabled, OrganizationStatusEnumLocked, OrganizationStatusEnumOk:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationStatusEnum) String() string {
+	return string(e)
+}
+
+func (e *OrganizationStatusEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationStatusEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organization_status_enum", str)
+	}
+	return nil
+}
+
+func (e OrganizationStatusEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "organizations"
+type OrganizationsSelectColumn string
+
+const (
+	// column name
+	OrganizationsSelectColumnCreatedAt OrganizationsSelectColumn = "createdAt"
+	// column name
+	OrganizationsSelectColumnCurrentThreshold OrganizationsSelectColumn = "current_threshold"
+	// column name
+	OrganizationsSelectColumnID OrganizationsSelectColumn = "id"
+	// column name
+	OrganizationsSelectColumnName OrganizationsSelectColumn = "name"
+	// column name
+	OrganizationsSelectColumnPlanID OrganizationsSelectColumn = "planID"
+	// column name
+	OrganizationsSelectColumnSlug OrganizationsSelectColumn = "slug"
+	// column name
+	OrganizationsSelectColumnStatus OrganizationsSelectColumn = "status"
+	// column name
+	OrganizationsSelectColumnThreshold OrganizationsSelectColumn = "threshold"
+	// column name
+	OrganizationsSelectColumnUpdatedAt OrganizationsSelectColumn = "updatedAt"
+)
+
+var AllOrganizationsSelectColumn = []OrganizationsSelectColumn{
+	OrganizationsSelectColumnCreatedAt,
+	OrganizationsSelectColumnCurrentThreshold,
+	OrganizationsSelectColumnID,
+	OrganizationsSelectColumnName,
+	OrganizationsSelectColumnPlanID,
+	OrganizationsSelectColumnSlug,
+	OrganizationsSelectColumnStatus,
+	OrganizationsSelectColumnThreshold,
+	OrganizationsSelectColumnUpdatedAt,
+}
+
+func (e OrganizationsSelectColumn) IsValid() bool {
+	switch e {
+	case OrganizationsSelectColumnCreatedAt, OrganizationsSelectColumnCurrentThreshold, OrganizationsSelectColumnID, OrganizationsSelectColumnName, OrganizationsSelectColumnPlanID, OrganizationsSelectColumnSlug, OrganizationsSelectColumnStatus, OrganizationsSelectColumnThreshold, OrganizationsSelectColumnUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e OrganizationsSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *OrganizationsSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrganizationsSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid organizations_select_column", str)
+	}
+	return nil
+}
+
+func (e OrganizationsSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // unique or primary key constraints on table "payment_methods"
 type PaymentMethodsConstraint string
 
@@ -6131,6 +7254,8 @@ const (
 	// column name
 	PlansSelectColumnIsFree PlansSelectColumn = "isFree"
 	// column name
+	PlansSelectColumnIsPublic PlansSelectColumn = "isPublic"
+	// column name
 	PlansSelectColumnName PlansSelectColumn = "name"
 	// column name
 	PlansSelectColumnPrice PlansSelectColumn = "price"
@@ -6151,6 +7276,7 @@ var AllPlansSelectColumn = []PlansSelectColumn{
 	PlansSelectColumnIndividual,
 	PlansSelectColumnIsDefault,
 	PlansSelectColumnIsFree,
+	PlansSelectColumnIsPublic,
 	PlansSelectColumnName,
 	PlansSelectColumnPrice,
 	PlansSelectColumnSort,
@@ -6159,7 +7285,7 @@ var AllPlansSelectColumn = []PlansSelectColumn{
 
 func (e PlansSelectColumn) IsValid() bool {
 	switch e {
-	case PlansSelectColumnCreatedAt, PlansSelectColumnDeprecated, PlansSelectColumnFeatureBackupEnabled, PlansSelectColumnFeatureCustomDomainsEnabled, PlansSelectColumnFeatureCustomEmailTemplatesEnabled, PlansSelectColumnFeatureMaxDbSize, PlansSelectColumnID, PlansSelectColumnIndividual, PlansSelectColumnIsDefault, PlansSelectColumnIsFree, PlansSelectColumnName, PlansSelectColumnPrice, PlansSelectColumnSort, PlansSelectColumnUpatedAt:
+	case PlansSelectColumnCreatedAt, PlansSelectColumnDeprecated, PlansSelectColumnFeatureBackupEnabled, PlansSelectColumnFeatureCustomDomainsEnabled, PlansSelectColumnFeatureCustomEmailTemplatesEnabled, PlansSelectColumnFeatureMaxDbSize, PlansSelectColumnID, PlansSelectColumnIndividual, PlansSelectColumnIsDefault, PlansSelectColumnIsFree, PlansSelectColumnIsPublic, PlansSelectColumnName, PlansSelectColumnPrice, PlansSelectColumnSort, PlansSelectColumnUpatedAt:
 		return true
 	}
 	return false
@@ -6226,6 +7352,62 @@ func (e *RegionTypeEnum) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RegionTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "regions_allowed_organization"
+type RegionsAllowedOrganizationSelectColumn string
+
+const (
+	// column name
+	RegionsAllowedOrganizationSelectColumnCreatedAt RegionsAllowedOrganizationSelectColumn = "createdAt"
+	// column name
+	RegionsAllowedOrganizationSelectColumnDescription RegionsAllowedOrganizationSelectColumn = "description"
+	// column name
+	RegionsAllowedOrganizationSelectColumnID RegionsAllowedOrganizationSelectColumn = "id"
+	// column name
+	RegionsAllowedOrganizationSelectColumnOrganizationID RegionsAllowedOrganizationSelectColumn = "organizationID"
+	// column name
+	RegionsAllowedOrganizationSelectColumnRegionID RegionsAllowedOrganizationSelectColumn = "regionID"
+	// column name
+	RegionsAllowedOrganizationSelectColumnUpdatedAt RegionsAllowedOrganizationSelectColumn = "updatedAt"
+)
+
+var AllRegionsAllowedOrganizationSelectColumn = []RegionsAllowedOrganizationSelectColumn{
+	RegionsAllowedOrganizationSelectColumnCreatedAt,
+	RegionsAllowedOrganizationSelectColumnDescription,
+	RegionsAllowedOrganizationSelectColumnID,
+	RegionsAllowedOrganizationSelectColumnOrganizationID,
+	RegionsAllowedOrganizationSelectColumnRegionID,
+	RegionsAllowedOrganizationSelectColumnUpdatedAt,
+}
+
+func (e RegionsAllowedOrganizationSelectColumn) IsValid() bool {
+	switch e {
+	case RegionsAllowedOrganizationSelectColumnCreatedAt, RegionsAllowedOrganizationSelectColumnDescription, RegionsAllowedOrganizationSelectColumnID, RegionsAllowedOrganizationSelectColumnOrganizationID, RegionsAllowedOrganizationSelectColumnRegionID, RegionsAllowedOrganizationSelectColumnUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e RegionsAllowedOrganizationSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *RegionsAllowedOrganizationSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegionsAllowedOrganizationSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid regions_allowed_organization_select_column", str)
+	}
+	return nil
+}
+
+func (e RegionsAllowedOrganizationSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -6640,59 +7822,6 @@ func (e *UsersSelectColumn) UnmarshalGQL(v interface{}) error {
 }
 
 func (e UsersSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// select columns of table "users_usage"
-type UsersUsageSelectColumn string
-
-const (
-	// column name
-	UsersUsageSelectColumnCreatedAt UsersUsageSelectColumn = "created_at"
-	// column name
-	UsersUsageSelectColumnFreeAllowanceExceeded UsersUsageSelectColumn = "free_allowance_exceeded"
-	// column name
-	UsersUsageSelectColumnID UsersUsageSelectColumn = "id"
-	// column name
-	UsersUsageSelectColumnUpdatedAt UsersUsageSelectColumn = "updated_at"
-	// column name
-	UsersUsageSelectColumnUserID UsersUsageSelectColumn = "user_id"
-)
-
-var AllUsersUsageSelectColumn = []UsersUsageSelectColumn{
-	UsersUsageSelectColumnCreatedAt,
-	UsersUsageSelectColumnFreeAllowanceExceeded,
-	UsersUsageSelectColumnID,
-	UsersUsageSelectColumnUpdatedAt,
-	UsersUsageSelectColumnUserID,
-}
-
-func (e UsersUsageSelectColumn) IsValid() bool {
-	switch e {
-	case UsersUsageSelectColumnCreatedAt, UsersUsageSelectColumnFreeAllowanceExceeded, UsersUsageSelectColumnID, UsersUsageSelectColumnUpdatedAt, UsersUsageSelectColumnUserID:
-		return true
-	}
-	return false
-}
-
-func (e UsersUsageSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *UsersUsageSelectColumn) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = UsersUsageSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid users_usage_select_column", str)
-	}
-	return nil
-}
-
-func (e UsersUsageSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

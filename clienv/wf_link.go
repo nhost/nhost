@@ -11,9 +11,9 @@ import (
 	"github.com/nhost/cli/nhostclient/graphql"
 )
 
-func printlist(ce *CliEnv, workspaces []*graphql.GetWorkspacesApps_Workspaces) error {
-	if len(workspaces) == 0 {
-		return errors.New("no workspaces found") //nolint:goerr113
+func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) error {
+	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
+		return errors.New("no apps found") //nolint:goerr113
 	}
 
 	num := Column{
@@ -28,8 +28,8 @@ func printlist(ce *CliEnv, workspaces []*graphql.GetWorkspacesApps_Workspaces) e
 		Header: "Project",
 		Rows:   make([]string, 0),
 	}
-	workspace := Column{
-		Header: "Workspace",
+	organization := Column{
+		Header: "Organization/Workspace",
 		Rows:   make([]string, 0),
 	}
 	region := Column{
@@ -37,22 +37,33 @@ func printlist(ce *CliEnv, workspaces []*graphql.GetWorkspacesApps_Workspaces) e
 		Rows:   make([]string, 0),
 	}
 
-	for _, ws := range workspaces {
-		for _, app := range ws.Apps {
+	for _, org := range orgs.GetOrganizations() {
+		for _, app := range org.Apps {
 			num.Rows = append(num.Rows, strconv.Itoa(len(num.Rows)+1))
 			subdomain.Rows = append(subdomain.Rows, app.Subdomain)
 			project.Rows = append(project.Rows, app.Name)
-			workspace.Rows = append(workspace.Rows, ws.Name)
+			organization.Rows = append(organization.Rows, org.Name)
 			region.Rows = append(region.Rows, app.Region.Name)
 		}
 	}
 
-	ce.Println("%s", Table(num, subdomain, project, workspace, region))
+	for _, ws := range orgs.GetWorkspaces() {
+		for _, app := range ws.Apps {
+			num.Rows = append(num.Rows, strconv.Itoa(len(num.Rows)+1))
+			subdomain.Rows = append(subdomain.Rows, app.Subdomain)
+			project.Rows = append(project.Rows, app.Name)
+			organization.Rows = append(organization.Rows, ws.Name+"*")
+			region.Rows = append(region.Rows, app.Region.Name)
+		}
+	}
+
+	ce.Println("%s", Table(num, subdomain, project, organization, region))
+	ce.Println("* Legacy Workspace")
 
 	return nil
 }
 
-func confirmApp(ce *CliEnv, app *graphql.GetWorkspacesApps_Workspaces_Apps) error {
+func confirmApp(ce *CliEnv, app *graphql.AppSummaryFragment) error {
 	ce.PromptMessage("Enter project subdomain to confirm: ")
 	confirm, err := ce.PromptInput(false)
 	if err != nil {
@@ -67,18 +78,34 @@ func confirmApp(ce *CliEnv, app *graphql.GetWorkspacesApps_Workspaces_Apps) erro
 }
 
 func getApp(
-	workspaces []*graphql.GetWorkspacesApps_Workspaces,
+	orgs *graphql.GetOrganizationsAndWorkspacesApps,
 	idx string,
-) (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {
+) (*graphql.AppSummaryFragment, error) {
 	x := 1
-	var app *graphql.GetWorkspacesApps_Workspaces_Apps
+	var app *graphql.AppSummaryFragment
 OUTER:
-	for _, ws := range workspaces {
-		for _, a := range ws.GetApps() {
+	for _, orgs := range orgs.GetOrganizations() {
+		for _, a := range orgs.GetApps() {
 			if strconv.Itoa(x) == idx {
 				a := a
 				app = a
 				break OUTER
+			}
+			x++
+		}
+	}
+
+	if app != nil {
+		return app, nil
+	}
+
+OUTER2:
+	for _, ws := range orgs.GetWorkspaces() {
+		for _, a := range ws.GetApps() {
+			if strconv.Itoa(x) == idx {
+				a := a
+				app = a
+				break OUTER2
 			}
 			x++
 		}
@@ -91,21 +118,21 @@ OUTER:
 	return app, nil
 }
 
-func (ce *CliEnv) Link(ctx context.Context) (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {
+func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error) {
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
-	workspaces, err := cl.GetWorkspacesApps(ctx)
+	orgs, err := cl.GetOrganizationsAndWorkspacesApps(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspaces: %w", err)
 	}
 
-	if len(workspaces.GetWorkspaces()) == 0 {
-		return nil, errors.New("no workspaces found") //nolint:goerr113
+	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
+		return nil, errors.New("no apps found") //nolint:goerr113
 	}
 
-	if err := printlist(ce, workspaces.GetWorkspaces()); err != nil {
+	if err := Printlist(ce, orgs); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +142,7 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.GetWorkspacesApps_Workspac
 		return nil, fmt.Errorf("failed to read workspace: %w", err)
 	}
 
-	app, err := getApp(workspaces.GetWorkspaces(), idx)
+	app, err := getApp(orgs, idx)
 	if err != nil {
 		return nil, err
 	}

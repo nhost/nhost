@@ -17,63 +17,103 @@ func NewClient(cli *http.Client, baseURL string, options *clientv2.Options, inte
 	return &Client{Client: clientv2.NewClient(cli, baseURL, options, interceptors...)}
 }
 
-type GetWorkspacesApps_Workspaces_Apps_Region struct {
-	Name string "json:\"name\" graphql:\"name\""
+type AppSummaryFragment struct {
+	ID        string                    "json:\"id\" graphql:\"id\""
+	Name      string                    "json:\"name\" graphql:\"name\""
+	Subdomain string                    "json:\"subdomain\" graphql:\"subdomain\""
+	Region    AppSummaryFragment_Region "json:\"region\" graphql:\"region\""
 }
 
-func (t *GetWorkspacesApps_Workspaces_Apps_Region) GetName() string {
+func (t *AppSummaryFragment) GetID() string {
 	if t == nil {
-		t = &GetWorkspacesApps_Workspaces_Apps_Region{}
-	}
-	return t.Name
-}
-
-type GetWorkspacesApps_Workspaces_Apps struct {
-	ID        string                                   "json:\"id\" graphql:\"id\""
-	Name      string                                   "json:\"name\" graphql:\"name\""
-	Subdomain string                                   "json:\"subdomain\" graphql:\"subdomain\""
-	Region    GetWorkspacesApps_Workspaces_Apps_Region "json:\"region\" graphql:\"region\""
-}
-
-func (t *GetWorkspacesApps_Workspaces_Apps) GetID() string {
-	if t == nil {
-		t = &GetWorkspacesApps_Workspaces_Apps{}
+		t = &AppSummaryFragment{}
 	}
 	return t.ID
 }
-func (t *GetWorkspacesApps_Workspaces_Apps) GetName() string {
+func (t *AppSummaryFragment) GetName() string {
 	if t == nil {
-		t = &GetWorkspacesApps_Workspaces_Apps{}
+		t = &AppSummaryFragment{}
 	}
 	return t.Name
 }
-func (t *GetWorkspacesApps_Workspaces_Apps) GetSubdomain() string {
+func (t *AppSummaryFragment) GetSubdomain() string {
 	if t == nil {
-		t = &GetWorkspacesApps_Workspaces_Apps{}
+		t = &AppSummaryFragment{}
 	}
 	return t.Subdomain
 }
-func (t *GetWorkspacesApps_Workspaces_Apps) GetRegion() *GetWorkspacesApps_Workspaces_Apps_Region {
+func (t *AppSummaryFragment) GetRegion() *AppSummaryFragment_Region {
 	if t == nil {
-		t = &GetWorkspacesApps_Workspaces_Apps{}
+		t = &AppSummaryFragment{}
 	}
 	return &t.Region
 }
 
-type GetWorkspacesApps_Workspaces struct {
-	Name string                               "json:\"name\" graphql:\"name\""
-	Apps []*GetWorkspacesApps_Workspaces_Apps "json:\"apps\" graphql:\"apps\""
+type AppSummaryFragment_Region struct {
+	Name string "json:\"name\" graphql:\"name\""
 }
 
-func (t *GetWorkspacesApps_Workspaces) GetName() string {
+func (t *AppSummaryFragment_Region) GetName() string {
 	if t == nil {
-		t = &GetWorkspacesApps_Workspaces{}
+		t = &AppSummaryFragment_Region{}
 	}
 	return t.Name
 }
-func (t *GetWorkspacesApps_Workspaces) GetApps() []*GetWorkspacesApps_Workspaces_Apps {
+
+type GetOrganizationsAndWorkspacesApps_Organizations_Apps_AppSummaryFragment_Region struct {
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetOrganizationsAndWorkspacesApps_Organizations_Apps_AppSummaryFragment_Region) GetName() string {
 	if t == nil {
-		t = &GetWorkspacesApps_Workspaces{}
+		t = &GetOrganizationsAndWorkspacesApps_Organizations_Apps_AppSummaryFragment_Region{}
+	}
+	return t.Name
+}
+
+type GetOrganizationsAndWorkspacesApps_Organizations struct {
+	Name string                "json:\"name\" graphql:\"name\""
+	Apps []*AppSummaryFragment "json:\"apps\" graphql:\"apps\""
+}
+
+func (t *GetOrganizationsAndWorkspacesApps_Organizations) GetName() string {
+	if t == nil {
+		t = &GetOrganizationsAndWorkspacesApps_Organizations{}
+	}
+	return t.Name
+}
+func (t *GetOrganizationsAndWorkspacesApps_Organizations) GetApps() []*AppSummaryFragment {
+	if t == nil {
+		t = &GetOrganizationsAndWorkspacesApps_Organizations{}
+	}
+	return t.Apps
+}
+
+type GetOrganizationsAndWorkspacesApps_Workspaces_Apps_AppSummaryFragment_Region struct {
+	Name string "json:\"name\" graphql:\"name\""
+}
+
+func (t *GetOrganizationsAndWorkspacesApps_Workspaces_Apps_AppSummaryFragment_Region) GetName() string {
+	if t == nil {
+		t = &GetOrganizationsAndWorkspacesApps_Workspaces_Apps_AppSummaryFragment_Region{}
+	}
+	return t.Name
+}
+
+type GetOrganizationsAndWorkspacesApps_Workspaces struct {
+	Name string                "json:\"name\" graphql:\"name\""
+	Apps []*AppSummaryFragment "json:\"apps\" graphql:\"apps\""
+}
+
+func (t *GetOrganizationsAndWorkspacesApps_Workspaces) GetName() string {
+	if t == nil {
+		t = &GetOrganizationsAndWorkspacesApps_Workspaces{}
+	}
+	return t.Name
+}
+func (t *GetOrganizationsAndWorkspacesApps_Workspaces) GetApps() []*AppSummaryFragment {
+	if t == nil {
+		t = &GetOrganizationsAndWorkspacesApps_Workspaces{}
 	}
 	return t.Apps
 }
@@ -263,13 +303,20 @@ func (t *GetSoftwareVersions_SoftwareVersions) GetVersion() string {
 	return t.Version
 }
 
-type GetWorkspacesApps struct {
-	Workspaces []*GetWorkspacesApps_Workspaces "json:\"workspaces\" graphql:\"workspaces\""
+type GetOrganizationsAndWorkspacesApps struct {
+	Organizations []*GetOrganizationsAndWorkspacesApps_Organizations "json:\"organizations\" graphql:\"organizations\""
+	Workspaces    []*GetOrganizationsAndWorkspacesApps_Workspaces    "json:\"workspaces\" graphql:\"workspaces\""
 }
 
-func (t *GetWorkspacesApps) GetWorkspaces() []*GetWorkspacesApps_Workspaces {
+func (t *GetOrganizationsAndWorkspacesApps) GetOrganizations() []*GetOrganizationsAndWorkspacesApps_Organizations {
 	if t == nil {
-		t = &GetWorkspacesApps{}
+		t = &GetOrganizationsAndWorkspacesApps{}
+	}
+	return t.Organizations
+}
+func (t *GetOrganizationsAndWorkspacesApps) GetWorkspaces() []*GetOrganizationsAndWorkspacesApps_Workspaces {
+	if t == nil {
+		t = &GetOrganizationsAndWorkspacesApps{}
 	}
 	return t.Workspaces
 }
@@ -406,26 +453,35 @@ func (t *GetSoftwareVersions) GetSoftwareVersions() []*GetSoftwareVersions_Softw
 	return t.SoftwareVersions
 }
 
-const GetWorkspacesAppsDocument = `query GetWorkspacesApps {
+const GetOrganizationsAndWorkspacesAppsDocument = `query GetOrganizationsAndWorkspacesApps {
+	organizations {
+		name
+		apps {
+			... AppSummaryFragment
+		}
+	}
 	workspaces {
 		name
 		apps {
-			id
-			name
-			subdomain
-			region {
-				name
-			}
+			... AppSummaryFragment
 		}
+	}
+}
+fragment AppSummaryFragment on apps {
+	id
+	name
+	subdomain
+	region {
+		name
 	}
 }
 `
 
-func (c *Client) GetWorkspacesApps(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetWorkspacesApps, error) {
+func (c *Client) GetOrganizationsAndWorkspacesApps(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetOrganizationsAndWorkspacesApps, error) {
 	vars := map[string]any{}
 
-	var res GetWorkspacesApps
-	if err := c.Client.Post(ctx, "GetWorkspacesApps", GetWorkspacesAppsDocument, &res, vars, interceptors...); err != nil {
+	var res GetOrganizationsAndWorkspacesApps
+	if err := c.Client.Post(ctx, "GetOrganizationsAndWorkspacesApps", GetOrganizationsAndWorkspacesAppsDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -742,17 +798,17 @@ func (c *Client) GetSoftwareVersions(ctx context.Context, interceptors ...client
 }
 
 var DocumentOperationNames = map[string]string{
-	GetWorkspacesAppsDocument:          "GetWorkspacesApps",
-	GetHasuraAdminSecretDocument:       "GetHasuraAdminSecret",
-	GetConfigRawJSONDocument:           "GetConfigRawJSON",
-	DeleteRefreshTokenDocument:         "DeleteRefreshToken",
-	GetSecretsDocument:                 "GetSecrets",
-	CreateSecretDocument:               "CreateSecret",
-	DeleteSecretDocument:               "DeleteSecret",
-	UpdateSecretDocument:               "UpdateSecret",
-	UpdateRunServiceConfigDocument:     "UpdateRunServiceConfig",
-	ReplaceRunServiceConfigDocument:    "ReplaceRunServiceConfig",
-	GetRunServiceInfoDocument:          "GetRunServiceInfo",
-	GetRunServiceConfigRawJSONDocument: "GetRunServiceConfigRawJSON",
-	GetSoftwareVersionsDocument:        "GetSoftwareVersions",
+	GetOrganizationsAndWorkspacesAppsDocument: "GetOrganizationsAndWorkspacesApps",
+	GetHasuraAdminSecretDocument:              "GetHasuraAdminSecret",
+	GetConfigRawJSONDocument:                  "GetConfigRawJSON",
+	DeleteRefreshTokenDocument:                "DeleteRefreshToken",
+	GetSecretsDocument:                        "GetSecrets",
+	CreateSecretDocument:                      "CreateSecret",
+	DeleteSecretDocument:                      "DeleteSecret",
+	UpdateSecretDocument:                      "UpdateSecret",
+	UpdateRunServiceConfigDocument:            "UpdateRunServiceConfig",
+	ReplaceRunServiceConfigDocument:           "ReplaceRunServiceConfig",
+	GetRunServiceInfoDocument:                 "GetRunServiceInfo",
+	GetRunServiceConfigRawJSONDocument:        "GetRunServiceConfigRawJSON",
+	GetSoftwareVersionsDocument:               "GetSoftwareVersions",
 }

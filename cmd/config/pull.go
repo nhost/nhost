@@ -116,7 +116,7 @@ func respToSecrets(env []*graphql.GetSecrets_AppSecrets, anonymize bool) model.S
 func pullSecrets(
 	ctx context.Context,
 	ce *clienv.CliEnv,
-	proj *graphql.GetWorkspacesApps_Workspaces_Apps,
+	proj *graphql.AppSummaryFragment,
 ) error {
 	ce.Infoln("Getting secrets list from Nhost...")
 	cl, err := ce.GetNhostClient(ctx)
@@ -147,7 +147,7 @@ func pullSecrets(
 func Pull(
 	ctx context.Context,
 	ce *clienv.CliEnv,
-	proj *graphql.GetWorkspacesApps_Workspaces_Apps,
+	proj *graphql.AppSummaryFragment,
 	writeSecrts bool,
 ) (*model.ConfigConfig, error) {
 	ce.Infoln("Pulling config from Nhost...")

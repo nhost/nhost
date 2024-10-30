@@ -1,14 +1,24 @@
-query GetWorkspacesApps {
+query GetOrganizationsAndWorkspacesApps {
+  organizations {
+    name
+    apps {
+      ...AppSummaryFragment
+    }
+  }
   workspaces {
     name
     apps {
-      id
-      name
-      subdomain
-      region {
-        name
-      }
+      ...AppSummaryFragment
     }
+  }
+}
+
+fragment AppSummaryFragment on apps {
+  id
+  name
+  subdomain
+  region {
+    name
   }
 }
 

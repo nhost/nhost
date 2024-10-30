@@ -1,4 +1,4 @@
-// disabled temporarily go:generate gqlgenc
+//go:generate gqlgenc
 package graphql
 
 import (
