@@ -13,14 +13,11 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import type {
-  GetOrganizationsQuery,
-  PrefetchNewAppRegionsFragment,
-} from '@/utils/__generated__/graphql';
 import {
-  GetAllWorkspacesAndProjectsDocument,
-  useInsertApplicationMutation,
+  useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
+  type GetOrganizationsQuery,
+  type PrefetchNewAppRegionsFragment,
 } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -64,9 +61,7 @@ export function NewProjectPageContent({
 
   const { submitState, setSubmitState } = useSubmitState();
 
-  const [insertApp] = useInsertApplicationMutation({
-    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
-  });
+  const [insertApp] = useInsertOrgApplicationMutation();
 
   // options
   const orgOptions = orgs.map((org) => ({
@@ -105,18 +100,21 @@ export function NewProjectPageContent({
 
     await execPromiseWithErrorToast(
       async () => {
-        await insertApp({
-          variables: {
-            app: {
-              name,
-              slug,
-              organizationID: selectedOrg.id,
-              regionId: selectedRegion.id,
+        const { data: { insertApp: { subdomain } = {} } = {} } =
+          await insertApp({
+            variables: {
+              app: {
+                name,
+                slug,
+                organizationID: selectedOrg.id,
+                regionId: selectedRegion.id,
+              },
             },
-          },
-        });
+          });
 
-        await router.push(`/orgs/${selectedOrg.slug}/projects/${slug}`);
+        if (subdomain) {
+          await router.push(`/orgs/${selectedOrg.slug}/projects/${subdomain}`);
+        }
       },
       {
         loadingMessage: 'Creating the project...',

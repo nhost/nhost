@@ -3,13 +3,11 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Text } from '@/components/ui/v2/Text';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-import {
-  GetAllWorkspacesAndProjectsDocument,
-  useDeleteApplicationMutation,
-} from '@/utils/__generated__/graphql';
+import { useBillingDeleteAppMutation } from '@/utils/__generated__/graphql';
 import router from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -44,14 +42,14 @@ export default function RemoveApplicationModal({
   description,
   className,
 }: RemoveApplicationModalProps) {
-  const [deleteApplication] = useDeleteApplicationMutation({
-    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
-  });
-  const [loadingRemove, setLoadingRemove] = useState(false);
   const { project } = useProject();
+  const { currentOrg: org } = useOrgs();
+  const [loadingRemove, setLoadingRemove] = useState(false);
+  const [deleteApplication] = useBillingDeleteAppMutation();
 
   const [remove, setRemove] = useState(false);
   const [remove2, setRemove2] = useState(false);
+
   const appName = project?.name;
 
   async function handleClick() {
@@ -69,14 +67,14 @@ export default function RemoveApplicationModal({
     try {
       await deleteApplication({
         variables: {
-          appId: project.id,
+          appID: project?.id,
         },
       });
     } catch (error) {
       await discordAnnounce(`Error trying to delete project: ${appName}`);
     }
     close();
-    await router.push('/');
+    await router.push(`/orgs/${org?.slug}/projects`);
     triggerToast(`${project.name} deleted`);
   }
 

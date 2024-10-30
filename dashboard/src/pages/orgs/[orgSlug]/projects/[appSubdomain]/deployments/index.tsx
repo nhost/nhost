@@ -18,8 +18,8 @@ export default function DeploymentsPage() {
 
   if (!project?.githubRepository) {
     return (
-      <Container className="grid max-w-3xl grid-flow-row gap-4 mt-12 antialiased text-center">
-        <div className="flex flex-col mx-auto text-center w-centImage">
+      <Container className="mt-12 grid max-w-3xl grid-flow-row gap-4 text-center antialiased">
+        <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
             src="/assets/githubRepo.svg"
             width={72}
@@ -38,7 +38,7 @@ export default function DeploymentsPage() {
         </div>
 
         <NavLink
-          href={`/orgs/${org?.slug}/projects/${project?.slug}/settings/git`}
+          href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
           passHref
           legacyBehavior
         >
@@ -55,8 +55,8 @@ export default function DeploymentsPage() {
   }
 
   return (
-    <Container className="flex flex-col max-w-5xl mx-auto space-y-2">
-      <div className="flex flex-row mt-4 place-content-between">
+    <Container className="mx-auto flex max-w-5xl flex-col space-y-2">
+      <div className="mt-4 flex flex-row place-content-between">
         <Text variant="h2" component="h1">
           Deployments
         </Text>

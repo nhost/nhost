@@ -26665,6 +26665,13 @@ export type GetProjectsQueryVariables = Exact<{
 
 export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
+export type InsertOrgApplicationMutationVariables = Exact<{
+  app: Apps_Insert_Input;
+}>;
+
+
+export type InsertOrgApplicationMutation = { __typename?: 'mutation_root', insertApp?: { __typename?: 'apps', id: any, name: string, slug: string, subdomain: string } | null };
+
 export type InsertOrganizationMemberInviteMutationVariables = Exact<{
   organizationMemberInvite: Organization_Member_Invites_Insert_Input;
 }>;
@@ -31095,6 +31102,42 @@ export type GetProjectsQueryResult = Apollo.QueryResult<GetProjectsQuery, GetPro
 export function refetchGetProjectsQuery(variables: GetProjectsQueryVariables) {
       return { query: GetProjectsDocument, variables: variables }
     }
+export const InsertOrgApplicationDocument = gql`
+    mutation insertOrgApplication($app: apps_insert_input!) {
+  insertApp(object: $app) {
+    id
+    name
+    slug
+    subdomain
+  }
+}
+    `;
+export type InsertOrgApplicationMutationFn = Apollo.MutationFunction<InsertOrgApplicationMutation, InsertOrgApplicationMutationVariables>;
+
+/**
+ * __useInsertOrgApplicationMutation__
+ *
+ * To run a mutation, you first call `useInsertOrgApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertOrgApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertOrgApplicationMutation, { data, loading, error }] = useInsertOrgApplicationMutation({
+ *   variables: {
+ *      app: // value for 'app'
+ *   },
+ * });
+ */
+export function useInsertOrgApplicationMutation(baseOptions?: Apollo.MutationHookOptions<InsertOrgApplicationMutation, InsertOrgApplicationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertOrgApplicationMutation, InsertOrgApplicationMutationVariables>(InsertOrgApplicationDocument, options);
+      }
+export type InsertOrgApplicationMutationHookResult = ReturnType<typeof useInsertOrgApplicationMutation>;
+export type InsertOrgApplicationMutationResult = Apollo.MutationResult<InsertOrgApplicationMutation>;
+export type InsertOrgApplicationMutationOptions = Apollo.BaseMutationOptions<InsertOrgApplicationMutation, InsertOrgApplicationMutationVariables>;
 export const InsertOrganizationMemberInviteDocument = gql`
     mutation insertOrganizationMemberInvite($organizationMemberInvite: organization_member_invites_insert_input!) {
   insertOrganizationMemberInvite(object: $organizationMemberInvite) {
