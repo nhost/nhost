@@ -1,10 +1,10 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v3/button';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/v3/collapsible';
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/v3/accordion';
 import {
   Table,
   TableBody,
@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/v3/table';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useBillingGetNextInvoiceQuery } from '@/utils/__generated__/graphql';
-import { ChevronsUpDown } from 'lucide-react';
 
 export default function BillingDetails() {
   const { org } = useCurrentOrg();
@@ -47,53 +46,46 @@ export default function BillingDetails() {
   }
 
   return (
-    <Collapsible>
-      <CollapsibleTrigger className="flex flex-1 flex-row items-center justify-between gap-2 px-4 py-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex flex-row gap-1 pl-0 pr-4 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-        >
-          <span>Details</span>
-          <ChevronsUpDown className="h-5 w-5" />
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader className="w-full bg-accent">
-              <TableRow>
-                <TableHead colSpan={3} className="w-full rounded-tl-md">
-                  Item
-                </TableHead>
-                <TableHead className="rounded-tr-md text-right">
-                  Amount
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {billingItems.map((billingItem) => (
-                <TableRow key={billingItem.Description}>
-                  <TableCell colSpan={3}>{billingItem.Description}</TableCell>
-                  <TableCell colSpan={3} className="text-right">
-                    ${billingItem.Amount}
+    <Accordion type="single" collapsible>
+      <AccordionItem value="details" className="border-none">
+        <AccordionTrigger className="p-4">Details</AccordionTrigger>
+        <AccordionContent className="border-t-1 pb-0">
+          <div className="rounded-md">
+            <Table>
+              <TableHeader className="w-full bg-accent">
+                <TableRow>
+                  <TableHead colSpan={3} className="w-full rounded-tl-md">
+                    Item
+                  </TableHead>
+                  <TableHead className="rounded-tr-md text-right">
+                    Amount
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {billingItems.map((billingItem) => (
+                  <TableRow key={billingItem.Description}>
+                    <TableCell colSpan={3}>{billingItem.Description}</TableCell>
+                    <TableCell colSpan={3} className="text-right">
+                      ${billingItem.Amount}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter className="bg-accent">
+                <TableRow>
+                  <TableCell colSpan={3} className="rounded-bl-md">
+                    Total
+                  </TableCell>
+                  <TableCell className="rounded-br-md text-right">
+                    ${amountDue}
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter className="bg-accent">
-              <TableRow>
-                <TableCell colSpan={3} className="rounded-bl-md">
-                  Total
-                </TableCell>
-                <TableCell className="rounded-br-md text-right">
-                  ${amountDue}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+              </TableFooter>
+            </Table>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }

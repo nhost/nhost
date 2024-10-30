@@ -218,12 +218,22 @@ module.exports = {
           '40%': { transform: 'translateX(0) scaleX(0.4)' },
           '100%': { transform: 'translateX(100%) scaleX(0.5)' },
         },
+		"accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
       },
       animation: {
         blinking: 'blinking 1s infinite',
         toastenter: 'enter 200ms ease-out',
         toastleave: 'leave 150ms ease-in forwards',
         progress: 'progress 1s infinite linear',
+		"accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
