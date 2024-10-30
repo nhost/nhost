@@ -26644,7 +26644,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -30857,6 +30857,16 @@ export const GetOrganizationsDocument = gql`
       name
       subdomain
       slug
+    }
+    members {
+      id
+      role
+      user {
+        id
+        email
+        displayName
+        avatarUrl
+      }
     }
   }
 }

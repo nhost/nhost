@@ -24,13 +24,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
-import { useBillingTransferAppMutation } from '@/utils/__generated__/graphql';
+import {
+  Organization_Members_Role_Enum,
+  useBillingTransferAppMutation,
+} from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useUserId } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -48,10 +51,10 @@ export default function TransferProjectDialog({
   open,
   setOpen,
 }: TransferProjectDialogProps) {
-  const { orgs } = useOrgs();
-  const { org: currentOrg } = useCurrentOrg();
-  const { project } = useProject();
   const { push } = useRouter();
+  const currentUserId = useUserId();
+  const { project } = useProject();
+  const { orgs, currentOrg } = useOrgs();
   const [transferProject] = useBillingTransferAppMutation();
 
   const form = useForm<z.infer<typeof transferProjectFormSchema>>({
@@ -86,6 +89,14 @@ export default function TransferProjectDialog({
     );
   };
 
+  const isUserAdminOfOrg = (org: Org, userId: string) => {
+    return org.members.some(
+      (member) =>
+        member.role === Organization_Members_Role_Enum.Admin &&
+        member.user.id === userId,
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="text-foreground sm:max-w-xl">
@@ -94,8 +105,8 @@ export default function TransferProjectDialog({
             Move the current project to a different organization.
           </DialogTitle>
           <DialogDescription>
-            To transfer a project between two organizations, you must be ADMIN
-            in both.
+            To transfer a project between organizations, you must be an{' '}
+            <span className="font-bold">ADMIN</span> in both.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -120,7 +131,11 @@ export default function TransferProjectDialog({
                         <SelectItem
                           key={org.id}
                           value={org.id}
-                          disabled={org.plan.isFree || org.id === currentOrg.id}
+                          disabled={
+                            org.plan.isFree || // disable the personal org
+                            org.id === currentOrg.id || // disable the current org as it can't be a destination org
+                            !isUserAdminOfOrg(org, currentUserId) // disable orgs that the current user is not admin of
+                          }
                         >
                           {org.name}
                           <Badge
