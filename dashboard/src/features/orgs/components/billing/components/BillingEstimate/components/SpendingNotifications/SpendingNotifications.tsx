@@ -1,4 +1,5 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Button } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -8,17 +9,21 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-
-import { Button } from '@/components/ui/v3/button';
 import { Progress } from '@/components/ui/v3/progress';
 import { Switch } from '@/components/ui/v3/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetOrganizationSpendingWarningDocument,
+  GetOrganizationSpendingNotificationDocument,
   useBillingGetNextInvoiceQuery,
-  useGetOrganizationSpendingWarningQuery,
-  useUpdateOrganizationSpendingWarningMutation,
+  useGetOrganizationSpendingNotificationQuery,
+  useUpdateOrganizationSpendingNotificationMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, type ChangeEvent } from 'react';
@@ -43,11 +48,14 @@ const validationSchema = Yup.object({
   ),
 });
 
-type SpendingWarningsFormValues = Yup.InferType<typeof validationSchema>;
+type SpendingNotificationsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function SpendingNotifications() {
   const { org } = useCurrentOrg();
-  const { data, loading } = useGetOrganizationSpendingWarningQuery({
+
+  const isAdmin = useIsOrgAdmin();
+
+  const { data, loading } = useGetOrganizationSpendingNotificationQuery({
     fetchPolicy: 'cache-first',
     variables: { orgId: org?.id },
     skip: !org,
@@ -64,13 +72,13 @@ export default function SpendingNotifications() {
 
   const amountDue = nextInvoiceData?.billingGetNextInvoice?.AmountDue ?? null;
 
-  const [updateConfig] = useUpdateOrganizationSpendingWarningMutation({
-    refetchQueries: [GetOrganizationSpendingWarningDocument],
+  const [updateConfig] = useUpdateOrganizationSpendingNotificationMutation({
+    refetchQueries: [GetOrganizationSpendingNotificationDocument],
   });
 
   const { threshold } = data?.organizations[0] ?? {};
 
-  const form = useForm<SpendingWarningsFormValues>({
+  const form = useForm<SpendingNotificationsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
       enabled: false,
@@ -120,7 +128,7 @@ export default function SpendingNotifications() {
     }
   }, [loading, threshold, form]);
 
-  const onSubmit = async (values: SpendingWarningsFormValues) => {
+  const onSubmit = async (values: SpendingNotificationsFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
         id: org?.id,
@@ -203,16 +211,36 @@ export default function SpendingNotifications() {
                         <span>Amount</span>
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          prefix="$"
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          disabled={!enabled}
-                          {...field}
-                          onChange={handleThresholdChange}
-                          value={currentThreshold}
-                        />
+                        {!isAdmin ? (
+                          <Input
+                            prefix="$"
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            disabled={!enabled}
+                            {...field}
+                            onChange={handleThresholdChange}
+                            value={currentThreshold}
+                          />
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger type="button">
+                              <Input
+                                prefix="$"
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                disabled
+                                {...field}
+                                onChange={handleThresholdChange}
+                                value={currentThreshold}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Only an organization admin can change this value.
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -261,8 +289,8 @@ export default function SpendingNotifications() {
             <div className="flex flex-1 flex-col justify-end">
               <Button
                 type="submit"
-                className="h-fit"
-                disabled={!form.formState.isDirty}
+                className="h-fit self-end"
+                disabled={!form.formState.isDirty || isAdmin}
               >
                 {form.formState.isSubmitting ? (
                   <ActivityIndicator className="text-sm" />

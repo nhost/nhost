@@ -1,4 +1,4 @@
-mutation updateOrganizationSpendingWarning($id: uuid!, $threshold: Int!) {
+mutation updateOrganizationSpendingNotification($id: uuid!, $threshold: Int!) {
   updateOrganization(pk_columns: { id: $id }, _set: { threshold: $threshold }) {
     threshold
   }
