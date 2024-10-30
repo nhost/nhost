@@ -211,7 +211,7 @@ export default function SpendingNotifications() {
                         <span>Amount</span>
                       </FormLabel>
                       <FormControl>
-                        {!isAdmin ? (
+                        {isAdmin ? (
                           <Input
                             prefix="$"
                             type="number"
@@ -290,7 +290,7 @@ export default function SpendingNotifications() {
               <Button
                 type="submit"
                 className="h-fit self-end"
-                disabled={!form.formState.isDirty || isAdmin}
+                disabled={!form.formState.isDirty || !isAdmin}
               >
                 {form.formState.isSubmitting ? (
                   <ActivityIndicator className="text-sm" />
