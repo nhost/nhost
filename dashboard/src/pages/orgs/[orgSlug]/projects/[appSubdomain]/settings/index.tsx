@@ -136,7 +136,9 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await pauseApplication();
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        });
         await refetchProject();
       },
       {

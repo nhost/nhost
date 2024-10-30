@@ -42,7 +42,9 @@ export default function ApplicationPaused() {
     await execPromiseWithErrorToast(
       async () => {
         await unpauseApplication({ variables: { appId: project.id } });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        });
         await refetchProject();
       },
       {

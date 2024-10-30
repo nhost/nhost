@@ -14,10 +14,10 @@ import { useSubmitState } from '@/hooks/useSubmitState';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import {
-  GetOrganizationsQuery,
-  PrefetchNewAppRegionsFragment,
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
+  type GetOrganizationsQuery,
+  type PrefetchNewAppRegionsFragment,
 } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
