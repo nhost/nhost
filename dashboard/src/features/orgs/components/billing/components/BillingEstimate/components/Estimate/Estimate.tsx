@@ -1,5 +1,6 @@
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useBillingGetNextInvoiceQuery } from '@/utils/__generated__/graphql';
+import { useMemo } from 'react';
 
 export default function Estimate() {
   const { org } = useCurrentOrg();
@@ -11,13 +12,21 @@ export default function Estimate() {
     skip: !org,
   });
 
-  const amountDue = data?.billingGetNextInvoice?.AmountDue ?? null;
+  const amountDue = useMemo(() => {
+    const amount = data?.billingGetNextInvoice?.AmountDue;
+    if (!amount) {
+      return 'N/A';
+    }
+    if (typeof amount !== 'number') {
+      return 'N/A';
+    }
+    return amount.toLocaleString('en', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }, [data]);
 
-  const amountDueText = amountDue
-    ? amountDue?.toLocaleString('en', { minimumFractionDigits: 2 })
-    : 'N/A';
-
-  if (loading || !amountDue) {
+  if (loading) {
     return null;
   }
 
@@ -25,7 +34,7 @@ export default function Estimate() {
     <div className="flex w-full flex-row justify-between gap-8 p-4 pb-5">
       <div className="flex basis-1/2 flex-col">
         <span className="font-medium">Estimate</span>
-        <span className="text-xl font-semibold">${amountDueText}</span>
+        <span className="text-xl font-semibold">${amountDue}</span>
       </div>
       <div className="flex flex-1 flex-col gap-2">
         <p className="max-w-prose">

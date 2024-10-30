@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/v3/input';
 import { Button } from '@/components/ui/v3/button';
 import { Progress } from '@/components/ui/v3/progress';
 import { Switch } from '@/components/ui/v3/switch';
-import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -49,7 +48,7 @@ const validationSchema = Yup.object({
 
 type SpendingWarningsFormValues = Yup.InferType<typeof validationSchema>;
 
-export default function SpendingWarnings() {
+export default function SpendingNotifications() {
   const { org } = useCurrentOrg();
   const { data, loading } = useGetOrganizationSpendingWarningQuery({
     fetchPolicy: 'cache-first',
@@ -69,9 +68,6 @@ export default function SpendingWarnings() {
   const amountDue = nextInvoiceData?.billingGetNextInvoice?.AmountDue ?? null;
 
   const isPlatform = useIsPlatform();
-
-  const isAdmin = useIsOrgAdmin();
-  // TODO: Add a check if is Admin?
 
   const [updateConfig] = useUpdateOrganizationSpendingWarningMutation({
     refetchQueries: [GetOrganizationSpendingWarningDocument],
@@ -93,7 +89,7 @@ export default function SpendingWarnings() {
     },
   });
 
-  const { watch, setValue, trigger: triggerValidation } = form;
+  const { watch, setValue } = form;
 
   const handleEnabledChange = (checked: boolean) => {
     setValue('enabled', checked, { shouldDirty: true });
@@ -119,7 +115,6 @@ export default function SpendingWarnings() {
       setValue('threshold', undefined, { shouldDirty: true });
     } else {
       setValue('threshold', Number(event.target.value), { shouldDirty: true });
-      triggerValidation('threshold');
     }
   };
 
@@ -167,13 +162,21 @@ export default function SpendingWarnings() {
     );
   };
 
+  const calculateNotificationPercentage = (factor: number) => {
+    if (!currentThreshold || currentThreshold <= 0) {
+      return 'N/A';
+    }
+    const amount = currentThreshold * factor;
+    return `${Math.round(amount)}`;
+  };
+
   if (loading || loadingInvoice) {
     return (
       <div className="flex flex-col">
         <div className="flex flex-col gap-4 p-4">
           <div className="flex h-32 place-content-center">
             <ActivityIndicator
-              label="Loading spending warnings..."
+              label="Loading spending notifications..."
               className="justify-center text-sm"
             />
           </div>
@@ -184,74 +187,106 @@ export default function SpendingWarnings() {
 
   return (
     <Form {...form}>
-      <form
-        className="flex flex-col gap-2 p-4"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
-        <div className="flex flex-col">
-          <span>
-            You&apos;ll receive email alerts when your usage reaches 75%, 90%,
-            and 100% of your configured value. These are notifications only -
-            your service will continue running normally.
-          </span>
-          <div>
-            <FormField
-              control={form.control}
-              name="threshold"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex flex-row items-center gap-2">
-                    <span>Spending Notifications</span>
-                    <Switch
-                      id="enabled"
-                      checked={enabled}
-                      onCheckedChange={handleEnabledChange}
-                    />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      prefix="$"
-                      className="max-w-32"
-                      type="number"
-                      placeholder="0"
-                      disabled={!enabled}
-                      {...field}
-                      onChange={handleThresholdChange}
-                      value={currentThreshold}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <form className="flex gap-2 p-4" onSubmit={form.handleSubmit(onSubmit)}>
+        {/* <div className="flex flex-row justify-between w-full gap-8 p-4 pb-5">
+      <div className="flex flex-col basis-1/2">
+        <span className="font-medium">Estimate</span>
+        <span className="text-xl font-semibold">${amountDueText}</span>
+      </div> */}
+        <div className="flex w-full flex-row justify-between gap-8">
+          <div className="flex basis-1/2 flex-col">
+            <span className="font-medium">Spending Notifications</span>
+            <p className="max-w-prose">
+              Specify a spending threshold to receive email notifications when
+              your usage approaches the designated amount.
+            </p>
           </div>
-
-          {enabled && (
-            <div className="flex flex-col gap-4 px-4 pb-4">
-              <div className="flex flex-1 flex-row gap-1">
-                <div className="flex max-w-xl flex-1 flex-col">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">${amountDue}</span>
-                    <span className="text-muted-foreground">
-                      ${currentThreshold} (threshold)
-                    </span>
+          <div className="flex flex-1 flex-col">
+            <Switch
+              className="self-end"
+              id="enabled"
+              checked={enabled}
+              onCheckedChange={handleEnabledChange}
+            />
+            {enabled && (
+              <div className="flex flex-col gap-4">
+                <FormField
+                  control={form.control}
+                  name="threshold"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-1 flex-col">
+                      <FormLabel className="flex flex-1 flex-row items-center gap-2">
+                        <span>Amount</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          prefix="$"
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          disabled={!enabled}
+                          {...field}
+                          onChange={handleThresholdChange}
+                          value={currentThreshold}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex flex-1 flex-col gap-2">
+                  <div className="flex flex-1">
+                    <div className="basis-3/4" />
+                    <div className="flex flex-1 justify-between gap-2">
+                      <span className="basis-2/3 text-muted-foreground">
+                        75%
+                      </span>
+                      <span className="basis-1/3 text-muted-foreground">
+                        90%
+                      </span>
+                      <span className="self-end text-muted-foreground">
+                        100%
+                      </span>
+                    </div>
                   </div>
                   <Progress value={progress} className="h-3" />
+                  <div className="flex flex-1">
+                    <div className="basis-3/4" />
+                    <div className="flex flex-1 justify-between gap-2">
+                      <span className="basis-2/3 text-muted-foreground">
+                        ${calculateNotificationPercentage(0.75)}
+                      </span>
+                      <span className="basis-1/3 text-muted-foreground">
+                        ${calculateNotificationPercentage(0.9)}
+                      </span>
+                      <span className="self-end text-muted-foreground">
+                        ${currentThreshold}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <span className="-mb-1 self-end">
-                  {progress ? `${Math.round(progress)}%` : '\u00A0'}
-                </span>
+
+                <p className="max-w-prose">
+                  You&apos;ll receive email alerts when your usage reaches 75%,
+                  90%, and 100% of your configured value. These are
+                  notifications only - your service will continue running
+                  normally.
+                </p>
+                <div className="self-end pb-4">
+                  <Button
+                    className="h-fit"
+                    type="submit"
+                    disabled={!form.formState.isDirty}
+                  >
+                    {form.formState.isSubmitting ? (
+                      <ActivityIndicator />
+                    ) : (
+                      'Save'
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-          <div className="px-4 pb-4">
-            <Button
-              className="h-fit"
-              type="submit"
-              disabled={!form.formState.isDirty}
-            >
-              {form.formState.isSubmitting ? <ActivityIndicator /> : 'Save'}
-            </Button>
+            )}
           </div>
         </div>
       </form>

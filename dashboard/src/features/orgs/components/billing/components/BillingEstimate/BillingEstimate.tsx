@@ -2,7 +2,7 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { BillingCycle } from './components/BillingCycle';
 import { BillingDetails } from './components/BillingDetails';
 import { Estimate } from './components/Estimate';
-import { SpendingWarnings } from './components/SpendingWarnings';
+import { SpendingNotifications } from './components/SpendingNotifications';
 
 export default function BillingEstimate() {
   return (
@@ -17,7 +17,7 @@ export default function BillingEstimate() {
           <Divider />
           <Estimate />
           <Divider />
-          <SpendingWarnings />
+          <SpendingNotifications />
           <Divider />
           <BillingDetails />
         </div>
