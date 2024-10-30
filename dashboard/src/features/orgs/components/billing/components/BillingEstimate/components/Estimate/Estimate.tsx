@@ -31,7 +31,7 @@ export default function Estimate() {
   }
 
   return (
-    <div className="flex w-full flex-row justify-between gap-8 p-4 pb-5">
+    <div className="flex w-full flex-col justify-between gap-2 p-4 md:flex-row md:gap-8">
       <div className="flex basis-1/2 flex-col">
         <span className="font-medium">Estimate</span>
         <span className="text-xl font-semibold">${amountDue}</span>

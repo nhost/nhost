@@ -6,7 +6,7 @@ import { SpendingNotifications } from './components/SpendingNotifications';
 
 export default function BillingEstimate() {
   return (
-    <div className="font-medium">
+    <div className="">
       <div className="flex w-full flex-col rounded-md border bg-background">
         <div className="flex w-full flex-col gap-1 p-4">
           <span className="text-xl font-medium">Billing Estimate</span>

@@ -131,7 +131,10 @@ export default function SpendingNotifications() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        form.reset(values);
+        form.reset({
+          enabled: !!values.threshold,
+          threshold: values.threshold,
+        });
       },
       {
         loadingMessage: 'Spending notifications are being updated...',
@@ -143,7 +146,7 @@ export default function SpendingNotifications() {
     );
   };
 
-  const calculateNotificationPercentage = (factor: number) => {
+  const getNotificationPercentage = (factor: number) => {
     if (!currentThreshold || currentThreshold <= 0) {
       return 'N/A';
     }
@@ -168,29 +171,29 @@ export default function SpendingNotifications() {
 
   return (
     <Form {...form}>
-      <form className="flex gap-2 p-4" onSubmit={form.handleSubmit(onSubmit)}>
-        {/* <div className="flex flex-row justify-between w-full gap-8 p-4 pb-5">
-      <div className="flex flex-col basis-1/2">
-        <span className="font-medium">Estimate</span>
-        <span className="text-xl font-semibold">${amountDueText}</span>
-      </div> */}
-        <div className="flex w-full flex-row justify-between gap-8">
-          <div className="flex basis-1/2 flex-col">
-            <span className="font-medium">Spending Notifications</span>
+      <form
+        className="flex flex-col gap-4 p-4"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="flex flex-1 flex-row items-end justify-between gap-8">
+          <span className="font-medium">Spending Notifications</span>
+          <Switch
+            className="self-end"
+            id="enabled"
+            checked={enabled}
+            onCheckedChange={handleEnabledChange}
+          />
+        </div>
+        <div className="flex w-full flex-col justify-between gap-8 md:flex-row">
+          <div className="flex basis-1/2 flex-col gap-2">
             <p className="max-w-prose">
               Specify a spending threshold to receive email notifications when
               your usage approaches the designated amount.
             </p>
           </div>
-          <div className="flex flex-1 flex-col">
-            <Switch
-              className="self-end"
-              id="enabled"
-              checked={enabled}
-              onCheckedChange={handleEnabledChange}
-            />
+          <div className="flex flex-1 flex-col gap-4">
             {enabled && (
-              <div className="flex flex-col gap-4">
+              <>
                 <FormField
                   control={form.control}
                   name="threshold"
@@ -235,13 +238,13 @@ export default function SpendingNotifications() {
                     <div className="basis-3/4" />
                     <div className="flex flex-1 justify-between gap-2">
                       <span className="basis-2/3 text-muted-foreground">
-                        ${calculateNotificationPercentage(0.75)}
+                        ${getNotificationPercentage(0.75)}
                       </span>
                       <span className="basis-1/3 text-muted-foreground">
-                        ${calculateNotificationPercentage(0.9)}
+                        ${getNotificationPercentage(0.9)}
                       </span>
                       <span className="self-end text-muted-foreground">
-                        ${currentThreshold}
+                        ${getNotificationPercentage(1)}
                       </span>
                     </div>
                   </div>
@@ -253,21 +256,21 @@ export default function SpendingNotifications() {
                   notifications only - your service will continue running
                   normally.
                 </p>
-                <div className="self-end pb-4">
-                  <Button
-                    className="h-fit"
-                    type="submit"
-                    disabled={!form.formState.isDirty}
-                  >
-                    {form.formState.isSubmitting ? (
-                      <ActivityIndicator />
-                    ) : (
-                      'Save'
-                    )}
-                  </Button>
-                </div>
-              </div>
+              </>
             )}
+            <div className="flex flex-1 flex-col justify-end">
+              <Button
+                type="submit"
+                className="h-fit"
+                disabled={!form.formState.isDirty}
+              >
+                {form.formState.isSubmitting ? (
+                  <ActivityIndicator className="text-sm" />
+                ) : (
+                  'Save'
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </form>
