@@ -110,7 +110,7 @@ func CommandUp() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:1.27.0",
+				Value:   "nhost/dashboard:2.0.7",
 				EnvVars: []string{"NHOST_DASHBOARD_VERSION"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
