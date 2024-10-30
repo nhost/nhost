@@ -42,6 +42,7 @@ export default function ApplicationPaused() {
     await execPromiseWithErrorToast(
       async () => {
         await unpauseApplication({ variables: { appId: project.id } });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         await refetchProject();
       },
       {
@@ -62,17 +63,19 @@ export default function ApplicationPaused() {
       <Modal
         showModal={showDeletingModal}
         close={() => setShowDeletingModal(false)}
+        className="flex h-screen items-center justify-center"
       >
         <RemoveApplicationModal
           close={() => setShowDeletingModal(false)}
           title={`Remove project ${project.name}?`}
           description={`The project ${project.name} will be removed. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
+          className="z-50"
         />
       </Modal>
 
-      <Container className="grid max-w-lg grid-flow-row gap-6 mx-auto text-center">
-        <div className="flex flex-col mx-auto text-center w-centImage">
+      <Container className="mx-auto grid max-w-lg grid-flow-row gap-6 text-center">
+        <div className="mx-auto flex w-centImage flex-col text-center">
           <ApplicationPausedSymbol isLocked={isLocked} />
         </div>
 
@@ -93,7 +96,7 @@ export default function ApplicationPaused() {
                 {org && (
                   <>
                     <Button
-                      className="w-full max-w-xs mx-auto"
+                      className="mx-auto w-full max-w-xs"
                       onClick={() => setTransferProjectDialogOpen(true)}
                     >
                       Transfer
@@ -106,7 +109,7 @@ export default function ApplicationPaused() {
                 )}
                 <Button
                   variant="borderless"
-                  className="w-full max-w-xs mx-auto"
+                  className="mx-auto w-full max-w-xs"
                   loading={changingApplicationStateLoading}
                   disabled={
                     changingApplicationStateLoading ||
@@ -121,7 +124,7 @@ export default function ApplicationPaused() {
                   <Button
                     color="error"
                     variant="outlined"
-                    className="w-full max-w-xs mx-auto"
+                    className="mx-auto w-full max-w-xs"
                     onClick={() => setShowDeletingModal(true)}
                   >
                     Delete Project

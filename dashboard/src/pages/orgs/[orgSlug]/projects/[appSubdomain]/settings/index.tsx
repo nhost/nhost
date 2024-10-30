@@ -46,7 +46,7 @@ export default function SettingsGeneralPage() {
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
-  const { project, loading } = useProject();
+  const { project, loading, refetch: refetchProject } = useProject();
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();
@@ -136,7 +136,8 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await pauseApplication();
-        await router.push(`/orgs/${org.slug}/projects/${project.slug}`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await refetchProject();
       },
       {
         loadingMessage: `Pausing ${project.name}...`,

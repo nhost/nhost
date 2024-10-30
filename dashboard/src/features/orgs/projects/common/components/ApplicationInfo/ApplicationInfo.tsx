@@ -2,11 +2,9 @@ import { Button } from '@/components/ui/v2/Button';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  GetAllWorkspacesAndProjectsDocument,
-  useDeleteApplicationMutation,
-} from '@/generated/graphql';
+import { useBillingDeleteAppMutation } from '@/generated/graphql';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getApplicationStatusString } from '@/utils/helpers';
@@ -14,17 +12,22 @@ import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 
 export default function ApplicationInfo() {
-  const { project } = useProject();
-  const [deleteApplication] = useDeleteApplicationMutation({
-    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
-  });
   const router = useRouter();
+  const { project } = useProject();
+  const { currentOrg: org } = useOrgs();
+
+  const [deleteApplication] = useBillingDeleteAppMutation();
 
   async function handleClickRemove() {
     await execPromiseWithErrorToast(
       async () => {
-        await deleteApplication({ variables: { appId: project.id } });
-        await router.push('/');
+        await deleteApplication({
+          variables: {
+            appID: project?.id,
+          },
+        });
+
+        await router.push(`/orgs/${org?.slug}/projects`);
       },
       {
         loadingMessage: 'Deleting project...',
@@ -40,7 +43,7 @@ export default function ApplicationInfo() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-4 mt-4">
+    <div className="mt-4 grid grid-flow-row gap-4">
       <div className="grid grid-flow-row justify-center gap-0.5">
         <Text variant="subtitle2">Application ID:</Text>
 
@@ -88,7 +91,7 @@ export default function ApplicationInfo() {
           href={`https://staging.nhost.run/console/data/default/schema/public/tables/app_state_history/browse?filter=app_id%3B%24eq%3B${project.id}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="grid items-center justify-center grid-flow-col gap-1 p-2"
+          className="grid grid-flow-col items-center justify-center gap-1 p-2"
           underline="hover"
         >
           App State History <ArrowRightIcon />
