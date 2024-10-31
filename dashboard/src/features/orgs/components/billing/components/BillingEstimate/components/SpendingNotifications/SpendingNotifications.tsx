@@ -162,6 +162,11 @@ export default function SpendingNotifications() {
     return `${Math.round(amount)}`;
   };
 
+  const inputMin = useMemo(
+    () => Math.ceil(1.1 * (amountDue ?? 0)),
+    [amountDue],
+  );
+
   if (loading || loadingInvoice) {
     return (
       <div className="flex flex-col">
@@ -215,7 +220,7 @@ export default function SpendingNotifications() {
                           <Input
                             prefix="$"
                             type="number"
-                            min="0"
+                            min={inputMin}
                             placeholder="0"
                             disabled={!enabled}
                             {...field}
