@@ -104,7 +104,7 @@ export default function SpendingNotifications() {
   const currentThreshold = watch('threshold');
 
   const progress = useMemo(() => {
-    if (!enabled || currentThreshold <= 0) {
+    if (!enabled || currentThreshold <= 0 || !amountDue) {
       return 0;
     }
 
