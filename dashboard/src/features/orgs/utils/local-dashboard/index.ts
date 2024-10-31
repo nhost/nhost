@@ -1,7 +1,7 @@
-import { ApplicationStatus } from "@/types/application";
-import { getHasuraAdminSecret } from "@/utils/env";
-import { type GetProjectQuery } from "@/utils/__generated__/graphql";
-import { type Org } from "@/features/orgs/projects/hooks/useOrgs";
+import { type Org } from '@/features/orgs/projects/hooks/useOrgs';
+import { ApplicationStatus } from '@/types/application';
+import { getHasuraAdminSecret } from '@/utils/env';
+import { type GetProjectQuery } from '@/utils/__generated__/graphql';
 
 export const localApplication: GetProjectQuery['apps'][0] = {
   id: '00000000-0000-0000-0000-000000000000',
@@ -56,4 +56,5 @@ export const localOrganization: Org = {
     featureMaxDbSize: 1,
   },
   apps: [localApplication],
+  members: [],
 };

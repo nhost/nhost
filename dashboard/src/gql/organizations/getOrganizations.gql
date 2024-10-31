@@ -21,5 +21,15 @@ query getOrganizations($userId: uuid!) {
       subdomain
       slug
     }
+    members {
+      id
+      role
+      user {
+        id
+        email
+        displayName
+        avatarUrl
+      }
+    }
   }
 }
