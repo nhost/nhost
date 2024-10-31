@@ -1,4 +1,5 @@
 import { useUI } from '@/components/common/UIProvider';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Button } from '@/components/ui/v3/button';
@@ -40,12 +41,16 @@ const changeOrgPlanForm = z.object({
 
 export default function SubscriptionPlan() {
   const { maintenanceActive } = useUI();
-  const { org, refetch: refetchOrg } = useCurrentOrg();
   const [open, setOpen] = useState(false);
+  const { org, refetch: refetchOrg } = useCurrentOrg();
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
-  const [fetchOrganizationCustomePortalLink] =
-    useBillingOrganizationCustomePortalLazyQuery();
+  const [
+    fetchOrganizationCustomePortalLink,
+    { data: { billingOrganizationCustomePortal = null } = {}, loading },
+  ] = useBillingOrganizationCustomePortalLazyQuery();
+
+  const [showStripeLink, setShowStripeLink] = useState(false);
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
     resolver: zodResolver(changeOrgPlanForm),
@@ -101,6 +106,7 @@ export default function SubscriptionPlan() {
 
         if (billingOrganizationCustomePortal) {
           window.open(billingOrganizationCustomePortal);
+          setShowStripeLink(true);
         } else {
           throw new Error('Could not fetch customer portal link');
         }
@@ -117,35 +123,35 @@ export default function SubscriptionPlan() {
   return (
     <>
       <div>
-        <div className="flex flex-col w-full border rounded-md bg-background">
-          <div className="flex flex-col w-full gap-1 p-4 border-b">
+        <div className="flex w-full flex-col rounded-md border bg-background">
+          <div className="flex w-full flex-col gap-1 border-b p-4">
             <h4 className="font-medium">Subscription plan</h4>
           </div>
           <div className="flex flex-col border-b md:flex-row">
-            <div className="flex flex-col w-full gap-4 p-4">
+            <div className="flex w-full flex-col gap-4 p-4">
               <span className="font-medium">Organization name</span>
               <span className="font-medium">{org?.name}</span>
             </div>
-            <div className="flex flex-col w-full gap-2 p-4">
+            <div className="flex w-full flex-col gap-2 p-4">
               <span className="font-medium">Current plan</span>
-              <span className="text-xl font-bold text-primary-main">
+              <span className="text-xl font-bold text-primary">
                 {org?.plan?.name}
               </span>
             </div>
-            <div className="flex flex-col items-start justify-start w-full gap-4 p-4 md:items-end md:justify-end">
+            <div className="flex w-full flex-col items-start justify-start gap-4 p-4 md:items-end md:justify-end">
               <div className="flex items-center gap-2">
                 <span className="text-xl font-semibold">
                   ${org?.plan?.price}
                 </span>
                 <Slash
-                  className="w-5 h-5 text-muted-foreground/40"
+                  className="h-5 w-5 text-muted-foreground/40"
                   strokeWidth={2.5}
                 />
                 <span className="text-xl font-semibold">month</span>
               </div>
             </div>
           </div>
-          <div className="flex flex-col-reverse items-end justify-between w-full gap-2 p-4 md:flex-row md:items-center md:gap-0">
+          <div className="flex w-full flex-col-reverse items-end justify-between gap-2 p-4 md:flex-row md:items-center md:gap-0">
             <div>
               <span>For a complete list of features, visit our </span>
               <Link
@@ -156,7 +162,7 @@ export default function SubscriptionPlan() {
                 className="font-medium"
               >
                 pricing
-                <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+                <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
               </Link>
             </div>
             <div className="flex flex-row items-center justify-end gap-2">
@@ -164,9 +170,9 @@ export default function SubscriptionPlan() {
                 className="h-fit"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
-                disabled={org?.plan?.isFree || maintenanceActive}
+                disabled={org?.plan?.isFree || maintenanceActive || loading}
               >
-                Stripe Customer Portal
+                {loading ? <ActivityIndicator /> : 'Stripe Customer Portal'}
               </Button>
               <Button
                 disabled={org?.plan?.isFree || maintenanceActive}
@@ -177,6 +183,25 @@ export default function SubscriptionPlan() {
               </Button>
             </div>
           </div>
+
+          {showStripeLink && (
+            <div className="flex w-full justify-end gap-2 border-t p-4">
+              <div>
+                <span>Click</span>
+                <Link
+                  href={billingOrganizationCustomePortal}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  underline="hover"
+                  className="mx-[3px] font-medium"
+                >
+                  here
+                  <ArrowSquareOutIcon className="mb-[3px] ml-[1px] h-4 w-4" />
+                </Link>
+                if a new window didn't open
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -205,13 +230,13 @@ export default function SubscriptionPlan() {
                       >
                         {plans.map((plan) => (
                           <FormItem key={plan.id}>
-                            <FormLabel className="flex flex-row items-center justify-between w-full p-3 space-y-0 border rounded-md cursor-pointer">
+                            <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
                               <div className="flex flex-row items-center space-x-3">
                                 <FormControl>
                                   <RadioGroupItem value={plan.id} />
                                 </FormControl>
                                 <div className="flex flex-col space-y-2">
-                                  <div className="font-semibold text-md">
+                                  <div className="text-md font-semibold">
                                     {plan.name}
                                   </div>
                                   <FormDescription className="w-2/3 text-xs">
@@ -220,7 +245,7 @@ export default function SubscriptionPlan() {
                                 </div>
                               </div>
 
-                              <div className="flex items-center h-full mt-0 text-xl font-semibold">
+                              <div className="mt-0 flex h-full items-center text-xl font-semibold">
                                 {plan.isFree ? 'Free' : `${plan.price}/mo`}
                               </div>
                             </FormLabel>
@@ -228,10 +253,10 @@ export default function SubscriptionPlan() {
                         ))}
 
                         <div>
-                          <div className="flex flex-row items-center justify-between w-full p-3 space-y-0 border rounded-md cursor-pointer">
+                          <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
                             <div className="flex flex-row items-center space-x-3">
                               <div className="flex flex-col space-y-2">
-                                <div className="font-semibold text-md">
+                                <div className="text-md font-semibold">
                                   Enterprise
                                 </div>
                                 <div className="w-2/3 text-xs">
@@ -248,7 +273,7 @@ export default function SubscriptionPlan() {
                               className="font-medium"
                             >
                               Contact us
-                              <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+                              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
                             </Link>
                           </div>
                         </div>
