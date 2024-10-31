@@ -155,12 +155,12 @@ export default function SpendingNotifications() {
     );
   };
 
-  const getNotificationPercentage = (factor: number) => {
+  const getNotificationPercentageAmount = (factor: number) => {
     if (!currentThreshold || currentThreshold <= 0) {
-      return 'N/A';
+      return '\u00A0';
     }
     const amount = currentThreshold * factor;
-    return `${Math.round(amount)}`;
+    return `$${Math.round(amount)}`;
   };
 
   const inputMin = useMemo(
@@ -256,30 +256,36 @@ export default function SpendingNotifications() {
                   <div className="flex flex-1">
                     <div className="basis-3/4" />
                     <div className="flex flex-1 justify-between gap-2">
-                      <span className="basis-2/3 text-muted-foreground">
-                        75%
-                      </span>
-                      <span className="basis-1/3 text-muted-foreground">
-                        90%
-                      </span>
-                      <span className="self-end text-muted-foreground">
-                        100%
-                      </span>
+                      <div className="flex basis-2/3 text-muted-foreground">
+                        <span className="w-13 text-center">75%</span>
+                      </div>
+                      <div className="flex basis-1/3 text-muted-foreground">
+                        <span className="w-13 text-center">90%</span>
+                      </div>
+                      <div className="flex basis-1/3 text-muted-foreground">
+                        <span className="w-13 text-center">100%</span>
+                      </div>
                     </div>
                   </div>
                   <Progress value={progress} className="h-3" />
                   <div className="flex flex-1">
                     <div className="basis-3/4" />
                     <div className="flex flex-1 justify-between gap-2">
-                      <span className="basis-2/3 text-muted-foreground">
-                        ${getNotificationPercentage(0.75)}
-                      </span>
-                      <span className="basis-1/3 text-muted-foreground">
-                        ${getNotificationPercentage(0.9)}
-                      </span>
-                      <span className="self-end text-muted-foreground">
-                        ${getNotificationPercentage(1)}
-                      </span>
+                      <div className="flex basis-2/3 text-muted-foreground">
+                        <span className="w-13 overflow-hidden text-ellipsis text-center">
+                          {getNotificationPercentageAmount(0.75) || '\u00A0'}
+                        </span>
+                      </div>
+                      <div className="flex basis-1/3 text-muted-foreground">
+                        <span className="w-13 overflow-hidden text-ellipsis text-center">
+                          {getNotificationPercentageAmount(0.9) || '\u00A0'}
+                        </span>
+                      </div>
+                      <div className="flex basis-1/3 text-muted-foreground">
+                        <span className="w-13 overflow-hidden text-ellipsis text-center">
+                          {getNotificationPercentageAmount(1) || '\u00A0'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -46,7 +46,7 @@ export default function BillingDetails() {
   }
 
   return (
-    <Accordion type="single" collapsible>
+    <Accordion type="single" defaultValue="details" collapsible>
       <AccordionItem value="details" className="border-none">
         <AccordionTrigger className="p-4">Details</AccordionTrigger>
         <AccordionContent className="border-t-1 pb-0">
