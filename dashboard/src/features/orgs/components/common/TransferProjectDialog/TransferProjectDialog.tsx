@@ -97,7 +97,13 @@ export default function TransferProjectDialog({
     );
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        form.reset();
+        setOpen(value);
+      }}
+    >
       <DialogContent className="text-foreground sm:max-w-xl">
         <DialogHeader className="flex gap-2">
           <DialogTitle>
@@ -160,11 +166,19 @@ export default function TransferProjectDialog({
                 variant="secondary"
                 type="button"
                 disabled={form.formState.isSubmitting}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  form.reset();
+                  setOpen(false);
+                }}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                disabled={
+                  form.formState.isSubmitting || !form.formState.isDirty
+                }
+              >
                 {form.formState.isSubmitting ? (
                   <ActivityIndicator />
                 ) : (
