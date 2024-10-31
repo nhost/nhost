@@ -45,17 +45,8 @@ export default function SubscriptionPlan() {
   const { org, refetch: refetchOrg } = useCurrentOrg();
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
-  const [
-    fetchOrganizationCustomePortalLink,
-    {
-      data: {
-        billingOrganizationCustomePortal: stripeCustomerPortalLink = null,
-      } = {},
-      loading,
-    },
-  ] = useBillingOrganizationCustomePortalLazyQuery();
-
-  const [showStripeLink, setShowStripeLink] = useState(false);
+  const [fetchOrganizationCustomePortalLink, { loading }] =
+    useBillingOrganizationCustomePortalLazyQuery();
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
     resolver: zodResolver(changeOrgPlanForm),
@@ -110,8 +101,11 @@ export default function SubscriptionPlan() {
           });
 
         if (billingOrganizationCustomePortal) {
-          window.open(billingOrganizationCustomePortal);
-          setShowStripeLink(true);
+          const newWindow = window.open(billingOrganizationCustomePortal);
+
+          if (!newWindow) {
+            window.location.href = billingOrganizationCustomePortal;
+          }
         } else {
           throw new Error('Could not fetch customer portal link');
         }
@@ -188,25 +182,6 @@ export default function SubscriptionPlan() {
               </Button>
             </div>
           </div>
-
-          {showStripeLink && (
-            <div className="flex w-full justify-end gap-2 border-t p-4">
-              <div>
-                <span>Click</span>
-                <Link
-                  href={stripeCustomerPortalLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  underline="hover"
-                  className="mx-[3px] font-medium"
-                >
-                  here
-                  <ArrowSquareOutIcon className="mb-[3px] ml-[1px] h-4 w-4" />
-                </Link>
-                if a new window didn&apos;t open
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
