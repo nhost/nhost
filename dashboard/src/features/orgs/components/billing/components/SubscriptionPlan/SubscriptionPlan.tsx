@@ -167,14 +167,18 @@ export default function SubscriptionPlan() {
                 <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
               </Link>
             </div>
-            <div className="flex flex-row items-center justify-end gap-2">
+            <div className="flex w-full flex-row items-center justify-end gap-2">
               <Button
-                className="h-fit"
+                className="h-fit truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
                 disabled={org?.plan?.isFree || maintenanceActive || loading}
               >
-                {loading ? <ActivityIndicator /> : 'Stripe Customer Portal'}
+                {loading ? (
+                  <ActivityIndicator />
+                ) : (
+                  <span className="truncate">Stripe Customer Portal</span>
+                )}
               </Button>
               <Button
                 disabled={org?.plan?.isFree || maintenanceActive}
