@@ -92,6 +92,8 @@ export default function SpendingNotifications() {
 
   const { watch, setValue } = form;
 
+  const currentThreshold = watch('threshold');
+
   const handleEnabledChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { checked } = event.target;
     setValue('enabled', checked, { shouldDirty: true });
@@ -101,16 +103,15 @@ export default function SpendingNotifications() {
   };
 
   const enabled = watch('enabled');
-  const currentThreshold = watch('threshold');
 
   const progress = useMemo(() => {
-    if (!enabled || currentThreshold <= 0 || !amountDue) {
+    if (!enabled || threshold <= 0 || !amountDue) {
       return 0;
     }
 
-    const percent = (amountDue / currentThreshold) * 100;
+    const percent = (amountDue / threshold) * 100;
     return Math.min(Math.max(percent, 0), 100);
-  }, [amountDue, enabled, currentThreshold]);
+  }, [amountDue, enabled, threshold]);
 
   const handleThresholdChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.value === '') {
@@ -156,10 +157,10 @@ export default function SpendingNotifications() {
   };
 
   const getNotificationPercentageAmount = (factor: number) => {
-    if (!currentThreshold || currentThreshold <= 0) {
+    if (!threshold || threshold <= 0) {
       return '\u00A0';
     }
-    const amount = currentThreshold * factor;
+    const amount = threshold * factor;
     return `$${Math.round(amount)}`;
   };
 
