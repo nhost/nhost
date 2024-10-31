@@ -8,16 +8,17 @@ import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { MessagesList } from '@/features/ai/DevAssistant/components/MessagesList';
+import { MessagesList } from '@/features/orgs/projects/ai/DevAssistant/components/MessagesList';
 import {
   messagesState,
   projectMessagesState,
   sessionIDState,
-} from '@/features/ai/DevAssistant/state';
-import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+} from '@/features/orgs/projects/ai/DevAssistant/state';
+import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useSendDevMessageMutation,
   useStartDevSessionMutation,
@@ -36,12 +37,13 @@ export type Message = Omit<
 
 export default function DevAssistant() {
   const isPlatform = useIsPlatform();
-  const { currentProject, currentWorkspace } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
+  const { currentOrg } = useOrgs();
 
   const [loading, setLoading] = useState(false);
   const [userInput, setUserInput] = useState('');
   const setMessages = useSetRecoilState(messagesState);
-  const messages = useRecoilValue(projectMessagesState(currentProject.id));
+  const messages = useRecoilValue(projectMessagesState(project?.id));
   const [storedSessionID, setStoredSessionID] = useRecoilState(sessionIDState);
 
   const { adminClient } = useAdminApolloClient();
@@ -74,7 +76,7 @@ export default function DevAssistant() {
           message: userInput,
           createdAt: null,
           role: 'user',
-          projectId: currentProject.id,
+          projectId: project?.id,
         },
       ];
 
@@ -113,7 +115,7 @@ export default function DevAssistant() {
           .filter((item) => item.message)
 
           // add the currentProject.id to the new messages
-          .map((item) => ({ ...item, projectId: currentProject.id })),
+          .map((item) => ({ ...item, projectId: project?.id })),
       ];
 
       if (thread.length > MAX_THREAD_LENGTH) {
@@ -152,36 +154,29 @@ export default function DevAssistant() {
     }
   };
 
-  if (isPlatform && currentProject?.legacyPlan?.isFree) {
+  if (isPlatform && currentOrg?.plan?.isFree) {
     return (
       <Box className="p-4">
         <UpgradeToProBanner
-          title="Upgrade to Nhost Pro."
-          description={
-            <Text>
-              Graphite is an addon to the Pro plan. To unlock it, please upgrade
-              to Pro first.
-            </Text>
-          }
+          title="To unlock the DevAssistant, transfer this project to a Pro or Team organization."
+          description=""
         />
       </Box>
     );
   }
 
   if (
-    (isPlatform &&
-      !currentProject?.legacyPlan?.isFree &&
-      !currentProject?.config?.ai) ||
+    (isPlatform && !currentOrg?.plan?.isFree && !project?.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
       <Box className="p-4">
-        <Alert className="grid items-center w-full grid-flow-col gap-2 place-content-between">
+        <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <Text className="grid grid-flow-row justify-items-start gap-0.5">
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
-                href={`/${currentWorkspace?.slug}/${currentProject?.slug}/settings/ai`}
+                href={`/orgs/${currentOrg?.slug}/projects/${project?.subdomain}/settings/ai`}
                 target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"
@@ -197,11 +192,11 @@ export default function DevAssistant() {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-auto">
+    <div className="flex h-full flex-col overflow-auto">
       <MessagesList loading={loading} />
 
       <form onSubmit={handleSubmit}>
-        <Box className="relative flex flex-row justify-between w-full p-2">
+        <Box className="relative flex w-full flex-row justify-between p-2">
           <Input
             value={userInput}
             onChange={(event) => {
@@ -224,7 +219,7 @@ export default function DevAssistant() {
             color="primary"
             aria-label="Send"
             type="submit"
-            className="absolute self-end w-12 h-10 right-2 rounded-xl"
+            className="absolute right-2 h-10 w-12 self-end rounded-xl"
           >
             {loading ? <ActivityIndicator /> : <ArrowUpIcon />}
           </IconButton>

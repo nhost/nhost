@@ -104,7 +104,7 @@ export default function TransferProjectDialog({
         setOpen(value);
       }}
     >
-      <DialogContent className="text-foreground sm:max-w-xl">
+      <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
         <DialogHeader className="flex gap-2">
           <DialogTitle>
             Move the current project to a different organization.

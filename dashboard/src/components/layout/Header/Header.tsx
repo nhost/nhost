@@ -7,10 +7,13 @@ import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
-import { DevAssistant } from '@/features/ai/DevAssistant';
+import { DevAssistant as WorkspaceProjectDevAssistant } from '@/features/ai/DevAssistant';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
+import { DevAssistant } from '@/features/orgs/projects/ai/DevAssistant';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
@@ -25,14 +28,19 @@ export interface HeaderProps
 
 export default function Header({ className, ...props }: HeaderProps) {
   const isPlatform = useIsPlatform();
-
   const { openDrawer } = useDialog();
-
   const { project } = useProject();
+  const { currentProject: workspaceProject } = useCurrentWorkspaceAndProject();
+  const { currentOrg: org } = useOrgs();
+
+  console.log({
+    project,
+    workspaceProject,
+  });
 
   const openDevAssistant = () => {
     // The dev assistant can be only answer questions related to a particular project
-    if (!project) {
+    if (!project && !workspaceProject) {
       toast.error('You need to be inside a project to open the Assistant', {
         style: getToastStyleProps().style,
         ...getToastStyleProps().error,
@@ -41,10 +49,17 @@ export default function Header({ className, ...props }: HeaderProps) {
       return;
     }
 
-    openDrawer({
-      title: <GraphiteIcon />,
-      component: <DevAssistant />,
-    });
+    if (org && project) {
+      openDrawer({
+        title: <GraphiteIcon />,
+        component: <DevAssistant />,
+      });
+    } else {
+      openDrawer({
+        title: <GraphiteIcon />,
+        component: <WorkspaceProjectDevAssistant />,
+      });
+    }
   };
 
   return (
@@ -57,15 +72,15 @@ export default function Header({ className, ...props }: HeaderProps) {
       sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
-      <div className="w-6 h-6 mr-2">
-        <Logo className="w-6 h-6 mx-auto cursor-pointer" />
+      <div className="mr-2 h-6 w-6">
+        <Logo className="mx-auto h-6 w-6 cursor-pointer" />
       </div>
 
       <BreadcrumbNav />
 
-      <div className="items-center hidden grid-flow-col gap-1 sm:grid">
+      <div className="hidden grid-flow-col items-center gap-1 sm:grid">
         <Button className="rounded-full" onClick={openDevAssistant}>
-          <GraphiteIcon className="w-4 h-4" />
+          <GraphiteIcon className="h-4 w-4" />
         </Button>
 
         <NotificationsTray />
