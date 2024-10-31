@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
@@ -89,13 +89,12 @@ export default function TransferProjectDialog({
     );
   };
 
-  const isUserAdminOfOrg = (org: Org, userId: string) => {
-    return org.members.some(
+  const isUserAdminOfOrg = (org: Org, userId: string) =>
+    org.members.some(
       (member) =>
         member.role === Organization_Members_Role_Enum.Admin &&
         member.user.id === userId,
     );
-  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
