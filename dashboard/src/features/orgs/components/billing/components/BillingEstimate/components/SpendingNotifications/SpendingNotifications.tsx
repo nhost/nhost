@@ -1,4 +1,5 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Switch } from '@/components/ui/v2/Switch';
 import { Button } from '@/components/ui/v3/button';
 import {
   Form,
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { Progress } from '@/components/ui/v3/progress';
-import { Switch } from '@/components/ui/v3/switch';
 import {
   Tooltip,
   TooltipContent,
@@ -92,7 +92,8 @@ export default function SpendingNotifications() {
 
   const { watch, setValue } = form;
 
-  const handleEnabledChange = (checked: boolean) => {
+  const handleEnabledChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { checked } = event.target;
     setValue('enabled', checked, { shouldDirty: true });
     if (!checked) {
       setValue('threshold', 0, { shouldDirty: true });
@@ -194,7 +195,7 @@ export default function SpendingNotifications() {
             className="self-end"
             id="enabled"
             checked={enabled}
-            onCheckedChange={handleEnabledChange}
+            onChange={handleEnabledChange}
           />
         </div>
         <div className="flex w-full flex-col justify-between gap-8 md:flex-row">
