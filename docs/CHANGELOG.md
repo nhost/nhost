@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.20.0
+
+### Minor Changes
+
+- e5f1c6c: fix: copy to clipboard commands in nhost cli getting started
+
 ## 2.19.0
 
 ### Minor Changes
