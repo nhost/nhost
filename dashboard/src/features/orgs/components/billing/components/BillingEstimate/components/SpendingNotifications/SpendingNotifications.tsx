@@ -34,7 +34,7 @@ const validationSchema = Yup.object({
   enabled: Yup.boolean().required(),
   threshold: Yup.number().test(
     'is-valid-threshold',
-    `Threshold must be either 0 (disabled) or greater than 110% of your plan's price`,
+    `Threshold must be greater than 110% of your plan's price`,
     (value: number, { options }) => {
       const planPrice = options?.context?.planPrice || 0;
       if (value === 0) {
