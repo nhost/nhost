@@ -47,7 +47,12 @@ export default function SubscriptionPlan() {
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
   const [
     fetchOrganizationCustomePortalLink,
-    { data: { billingOrganizationCustomePortal = null } = {}, loading },
+    {
+      data: {
+        billingOrganizationCustomePortal: stripeCustomerPortalLink = null,
+      } = {},
+      loading,
+    },
   ] = useBillingOrganizationCustomePortalLazyQuery();
 
   const [showStripeLink, setShowStripeLink] = useState(false);
@@ -189,7 +194,7 @@ export default function SubscriptionPlan() {
               <div>
                 <span>Click</span>
                 <Link
-                  href={billingOrganizationCustomePortal}
+                  href={stripeCustomerPortalLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   underline="hover"
@@ -198,7 +203,7 @@ export default function SubscriptionPlan() {
                   here
                   <ArrowSquareOutIcon className="mb-[3px] ml-[1px] h-4 w-4" />
                 </Link>
-                if a new window didn't open
+                if a new window didn&apos;t open
               </div>
             </div>
           )}
