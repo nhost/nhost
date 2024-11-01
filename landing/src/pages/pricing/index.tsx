@@ -184,9 +184,9 @@ const PricingTabs = ({ onTabChange }: { onTabChange: (tab: string) => void }) =>
 
   return (
     <div className="flex justify-center w-full mb-12">
-      <div 
-        role="tablist" 
-        aria-orientation="horizontal" 
+      <div
+        role="tablist"
+        aria-orientation="horizontal"
         className="inline-flex items-center justify-center rounded-lg p-2 h-12 border dark:border-gray-700 md:w-auto"
       >
         <button
@@ -325,7 +325,7 @@ export default function PricingPage() {
               />
 
               <Button
-                href="https://app.nhost.io/new"
+                href="https://app.nhost.io"
                 rel="noopener noreferrer"
                 target="_blank"
                 className="col-span-2 w-full justify-center text-center"
@@ -398,7 +398,7 @@ export default function PricingPage() {
 
                 <Button
                   className="w-full justify-center text-center"
-                  href="https://app.nhost.io/new"
+                  href="https://app.nhost.io"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -458,7 +458,7 @@ export default function PricingPage() {
               />
 
               <Button
-                href="https://app.nhost.io/new"
+                href="https://app.nhost.io"
                 rel="noopener noreferrer"
                 target="_blank"
                 className="col-span-2 w-full justify-center text-center"
@@ -601,7 +601,7 @@ export default function PricingPage() {
               />
 
               <Button
-                href="https://app.nhost.io/new"
+                href="https://app.nhost.io"
                 rel="noopener noreferrer"
                 target="_blank"
               >
@@ -623,7 +623,7 @@ export default function PricingPage() {
               <Button
                 variant="borderless"
                 className="justify-center text-center"
-                href="https://app.nhost.io/new"
+                href="https://app.nhost.io"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -645,7 +645,7 @@ export default function PricingPage() {
               <Button
                 variant="borderless"
                 className="justify-center text-center"
-                href="https://app.nhost.io/new"
+                href="https://app.nhost.io"
                 target="_blank"
                 rel="noopener noreferrer"
               >
