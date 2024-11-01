@@ -33,11 +33,6 @@ export default function Header({ className, ...props }: HeaderProps) {
   const { currentProject: workspaceProject } = useCurrentWorkspaceAndProject();
   const { currentOrg: org } = useOrgs();
 
-  console.log({
-    project,
-    workspaceProject,
-  });
-
   const openDevAssistant = () => {
     // The dev assistant can be only answer questions related to a particular project
     if (!project && !workspaceProject) {
