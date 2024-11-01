@@ -85,7 +85,6 @@ export default function ApplicationErrored() {
           app: {
             name: currentProject.name,
             slug: currentProject.slug,
-            planId: currentProject.plan.id,
             workspaceId: currentWorkspace.id,
             regionId: currentProject.region.id,
           },

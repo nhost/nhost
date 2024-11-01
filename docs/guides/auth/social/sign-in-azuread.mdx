@@ -1,0 +1,47 @@
+---
+title: Sign In with Azure
+description: Follow this guide to sign in users with Azure.
+icon: microsoft
+---
+
+## Set up Azure AD
+
+1. Visit the Azure Portal and create an account if needed.
+2. Navigate to "Microsoft Entra ID".
+3. Under "Manage", select "App Registrations".
+4. Click "+ New Registration" and fill out the form:
+   * Name: Choose a descriptive name
+   * Supported Account Type: Select based on your needs
+   * Redirect URI: Choose "Web" and enter your Auth service's callback URL (e.g., https://&lt;subdomain&gt;.auth.&lt;region&gt;.nhost.run/v1/signin/provider/azuread/callback)
+   * Click "Register"
+
+<Note>
+Find the Redirect URL in your project settings -> Sign In Methods after enabling Azure AD.
+</Note>
+
+5. Copy the "Application (client) ID" for later use.
+6. Create a new client secret:
+   * Click "Add a certificate or secret"
+   * Select "New client secret"
+   * Set a description and expiration time
+   * Copy the secret's "Value" (not the ID)
+
+## Configure Nhost
+
+1. Go to your project's settings -> Sign In Methods.
+2. Find Azure AD, enable it, and enter the client ID and secret.
+3. Save your changes.
+
+## User Sign-In
+
+Use the [Nhost JavaScript client](/reference/javascript) to sign in users:
+
+```js
+nhost.auth.signIn({
+  provider: 'azuread'
+})
+```
+
+<Note>
+To use your own domain for the callback URL refer to the [custom domains](/platform/custom-domains) documentation.
+</Note>

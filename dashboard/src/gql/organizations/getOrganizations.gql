@@ -1,0 +1,35 @@
+query getOrganizations($userId: uuid!) {
+  organizations(
+    order_by: { name: asc }
+    where: { members: { userID: { _eq: $userId } } }
+  ) {
+    id
+    name
+    slug
+    plan {
+      id
+      name
+      price
+      deprecated
+      individual
+      isFree
+      featureMaxDbSize
+    }
+    apps(order_by: { name: asc }) {
+      id
+      name
+      subdomain
+      slug
+    }
+    members {
+      id
+      role
+      user {
+        id
+        email
+        displayName
+        avatarUrl
+      }
+    }
+  }
+}

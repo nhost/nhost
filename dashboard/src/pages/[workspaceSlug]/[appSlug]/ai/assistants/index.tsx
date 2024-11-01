@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import AILayout from '@/components/layout/AILayout/AILayout';
+import { AISidebar } from '@/components/layout/AISidebar';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -10,6 +11,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/ai/AssistantForm';
 import { AssistantsList } from '@/features/ai/AssistantsList';
 import { useIsFileStoreSupported } from '@/features/ai/common/hooks/useIsFileStoreSupported';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
@@ -65,9 +67,12 @@ export default function AssistantsPage() {
     });
   };
 
-  if (isPlatform && currentProject?.plan?.isFree) {
+  if (isPlatform && currentProject?.legacyPlan?.isFree) {
     return (
-      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+      <Box
+        className="w-full p-4"
+        sx={{ backgroundColor: 'background.default' }}
+      >
         <UpgradeToProBanner
           title="Upgrade to Nhost Pro."
           description={
@@ -83,18 +88,21 @@ export default function AssistantsPage() {
 
   if (
     (isPlatform &&
-      !currentProject?.plan?.isFree &&
-      !currentProject.config?.ai) ||
+      !currentProject?.legacyPlan?.isFree &&
+      !currentProject?.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
-      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+      <Box
+        className="w-full p-4"
+        sx={{ backgroundColor: 'background.default' }}
+      >
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <Text className="grid grid-flow-row justify-items-start gap-0.5">
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
-                href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/ai`}
+                href={`/${currentWorkspace?.slug}/${currentProject?.subdomain}/settings/ai`}
                 target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"
@@ -115,7 +123,10 @@ export default function AssistantsPage() {
 
   if (assistants.length === 0) {
     return (
-      <Box className="p-6" sx={{ backgroundColor: 'background.default' }}>
+      <Box
+        className="w-full p-6"
+        sx={{ backgroundColor: 'background.default' }}
+      >
         <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <span className="text-6xl">🤖</span>
           <div className="flex flex-col space-y-1">
@@ -126,7 +137,7 @@ export default function AssistantsPage() {
               All your assistants will be listed here.
             </Text>
           </div>
-          <div className="flex flex-row place-content-between rounded-lg ">
+          <div className="flex flex-row place-content-between rounded-lg">
             <Button
               variant="contained"
               color="primary"
@@ -143,7 +154,7 @@ export default function AssistantsPage() {
   }
 
   return (
-    <Box className="flex flex-col overflow-hidden">
+    <Box className="flex w-full flex-col overflow-hidden">
       <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"
@@ -165,5 +176,12 @@ export default function AssistantsPage() {
 }
 
 AssistantsPage.getLayout = function getLayout(page: ReactElement) {
-  return <AILayout>{page}</AILayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
+    >
+      <AISidebar className="w-full max-w-sidebar" />
+      <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+    </ProjectLayout>
+  );
 };

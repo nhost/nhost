@@ -81,7 +81,8 @@
         "platform/secrets",
         "platform/deployments",
         "platform/custom-domains",
-        "platform/rate-limits"
+        "platform/rate-limits",
+        "platform/tls"
       ]
     },
     {
@@ -139,6 +140,7 @@
           "icon": "at",
           "pages": [
             "guides/auth/social/sign-in-apple",
+            "guides/auth/social/sign-in-azuread",
             "guides/auth/social/sign-in-discord",
             "guides/auth/social/sign-in-facebook",
             "guides/auth/social/sign-in-github",
@@ -155,6 +157,7 @@
         "guides/auth/sign-in-phone-number",
         "guides/auth/sign-in-webauthn",
         "guides/auth/elevated-permissions",
+        "guides/auth/bot-protection",
         "guides/auth/email-templates",
         "guides/auth/custom-jwts"
       ]

@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+// eslint-disable-next-line import/extensions
 import { useDeleteAssistantMutation } from '@/utils/__generated__/graphite.graphql';
 import { type Assistant } from 'pages/[workspaceSlug]/[appSlug]/ai/assistants';
 import { useState } from 'react';

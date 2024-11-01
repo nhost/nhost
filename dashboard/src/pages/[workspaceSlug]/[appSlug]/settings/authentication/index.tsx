@@ -11,6 +11,7 @@ import { DisableNewUsersSettings } from '@/features/authentication/settings/comp
 import { GravatarSettings } from '@/features/authentication/settings/components/GravatarSettings';
 import { MFASettings } from '@/features/authentication/settings/components/MFASettings';
 import { SessionSettings } from '@/features/authentication/settings/components/SessionSettings';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
@@ -62,5 +63,17 @@ export default function SettingsAuthenticationPage() {
 }
 
 SettingsAuthenticationPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container sx={{ backgroundColor: 'background.default' }}>
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
+  );
 };

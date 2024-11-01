@@ -7,7 +7,7 @@ fragment getAppPlanAndGlobalPlansApp on apps {
       id
     }
   }
-  plan {
+  legacyPlan {
     id
     name
   }
@@ -21,11 +21,14 @@ fragment getAppPlanAndGlobalPlansPlan on plans {
   featureMaxDbSize
 }
 
-query getAppPlanAndGlobalPlans($workspaceSlug: String!, $appSlug: String!) {
+query getAppPlanAndGlobalPlans(
+  $workspaceSlug: String!
+  $appSubdomain: String!
+) {
   apps(
     where: {
       workspace: { slug: { _eq: $workspaceSlug } }
-      slug: { _eq: $appSlug }
+      slug: { _eq: $appSubdomain }
     }
   ) {
     ...getAppPlanAndGlobalPlansApp

@@ -1,6 +1,7 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ResourcesForm } from '@/features/projects/resources/settings/components/ResourcesForm';
@@ -13,7 +14,7 @@ export default function ResourceSettingsPage() {
     return <ActivityIndicator delay={1000} label="Loading project..." />;
   }
 
-  if (currentProject?.plan?.isFree) {
+  if (currentProject?.legacyPlan?.isFree) {
     return (
       <UpgradeNotification message="Unlock Compute settings by upgrading your project to the Pro plan." />
     );
@@ -24,13 +25,16 @@ export default function ResourceSettingsPage() {
 
 ResourceSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <SettingsLayout>
-      <Container
-        className="grid max-w-5xl grid-flow-row gap-8 bg-transparent"
-        rootClassName="bg-transparent"
-      >
-        {page}
-      </Container>
-    </SettingsLayout>
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex h-full',
+      }}
+    >
+      <SettingsLayout>
+        <Container sx={{ backgroundColor: 'background.default' }}>
+          {page}
+        </Container>
+      </SettingsLayout>
+    </ProjectLayout>
   );
 };

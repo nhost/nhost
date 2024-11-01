@@ -3,5 +3,6 @@ mutation updateApplication($appId: uuid!, $app: apps_set_input!) {
     name
     id
     slug
+    subdomain
   }
 }

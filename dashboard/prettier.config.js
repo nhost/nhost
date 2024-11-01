@@ -9,7 +9,7 @@ module.exports = {
   endOfLine: 'auto',
   semi: true,
   plugins: [
-    require('prettier-plugin-organize-imports'),
-    require('prettier-plugin-tailwindcss'),
+    'prettier-plugin-organize-imports',
+    'prettier-plugin-tailwindcss'
   ],
 };

@@ -1,6 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
-import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -9,43 +8,57 @@ import { Input } from '@/components/ui/v2/Input';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Badge } from '@/components/ui/v3/badge';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
-import {
-  useGetAllWorkspacesAndProjectsQuery,
-  type GetAllWorkspacesAndProjectsQuery,
-} from '@/utils/__generated__/graphql';
+import { cn } from '@/lib/utils';
 import { Divider } from '@mui/material';
-import { useUserData } from '@nhost/nextjs';
 import debounce from 'lodash.debounce';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 
-type Workspace = Omit<
-  GetAllWorkspacesAndProjectsQuery['workspaces'][0],
-  '__typename'
->;
+interface ProjectSelectorOption {
+  type: 'workspace-project' | 'org-project';
+  projectName: string;
+  projectPathDescriptor: string;
+  route: string;
+  isFree: boolean;
+  plan: string;
+}
 
 export default function SelectWorkspaceAndProject() {
-  const user = useUserData();
   const router = useRouter();
   const { openAlertDialog } = useDialog();
+  const { orgs, loading: loadingOrgs } = useOrgs();
+  const { workspaces, loading: loadingWorkspaces } = useWorkspaces();
 
-  const { data, loading } = useGetAllWorkspacesAndProjectsQuery({
-    skip: !user,
-  });
+  const workspaceProjects: ProjectSelectorOption[] = workspaces.flatMap(
+    (workspace) =>
+      workspace.projects.map((project) => ({
+        type: 'workspace-project',
+        projectName: project.name,
+        projectPathDescriptor: `${workspace.name}/${project.name}`,
+        route: `${workspace.slug}/${project.slug}/services`,
+        isFree: project.legacyPlan.isFree,
+        plan: project.legacyPlan.name,
+      })),
+  );
 
-  const workspaces: Workspace[] = data?.workspaces || [];
-
-  const projects = workspaces.flatMap((workspace) =>
-    workspace.projects.map((project) => ({
-      workspaceName: workspace.name,
+  const orgProjects: ProjectSelectorOption[] = orgs.flatMap((org) =>
+    org.apps.map((project) => ({
+      type: 'org-project',
       projectName: project.name,
-      value: `${workspace.slug}/${project.slug}`,
-      isFree: project.plan.isFree,
+      projectPathDescriptor: `${org.name}/${project.name}`,
+      route: `/orgs/${org.slug}/projects/${project.subdomain}/run`,
+      isFree: org.plan.isFree,
+      plan: org.plan.name,
     })),
   );
+
+  const projects = [...orgProjects, ...workspaceProjects];
 
   const [filter, setFilter] = useState('');
 
@@ -89,17 +102,12 @@ export default function SelectWorkspaceAndProject() {
     }
   }, [checkConfigFromQuery, router.query]);
 
-  const goToServices = async (project: {
-    workspaceName: string;
-    projectName: string;
-    value: string;
-    isFree: boolean;
-  }) => {
+  const goToServices = async (project: ProjectSelectorOption) => {
     if (!project) {
       openAlertDialog({
-        title: 'Please select a workspace and a project',
+        title: 'Please select a project',
         payload:
-          'You must select a workspace and a project before proceeding to create the run service',
+          'You must select a project before proceeding to create the run service',
         props: {
           primaryButtonText: 'Ok',
           hideSecondaryAction: true,
@@ -111,8 +119,8 @@ export default function SelectWorkspaceAndProject() {
 
     if (project.isFree) {
       openAlertDialog({
-        title: 'The project must have a pro plan',
-        payload: 'Creating run services is only availabel for pro projects',
+        title: 'Cannot proceed',
+        payload: 'Creating run services is only available on a Pro plan',
         props: {
           primaryButtonText: 'Ok',
           hideSecondaryAction: true,
@@ -122,11 +130,7 @@ export default function SelectWorkspaceAndProject() {
       return;
     }
 
-    await router.push({
-      pathname: `/${project.value}/services`,
-      // Keep the same query params that got us here
-      query: router.query,
-    });
+    await router.push({ pathname: project.route, query: router.query });
   };
 
   const projectsToDisplay = filter
@@ -135,26 +139,21 @@ export default function SelectWorkspaceAndProject() {
       )
     : projects;
 
-  if (loading) {
+  if (loadingWorkspaces || loadingOrgs) {
     return (
       <div className="flex justify-center w-full">
-        <ActivityIndicator
-          delay={500}
-          label="Loading workspaces and projects..."
-        />
+        <ActivityIndicator delay={500} label="Loading projects..." />
       </div>
     );
   }
 
   return (
-    <Container>
-      <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
-        <Text variant="h2" component="h1" className="">
-          New Run Service
-        </Text>
+    <div className="flex flex-col items-start w-full h-full px-5 py-4 mx-auto bg-background">
+      <div className="mx-auto flex h-full w-full max-w-[760px] flex-col gap-4 py-6 sm:py-14">
+        <h1 className="text-2xl font-medium">New Run Service</h1>
 
         <InfoCard
-          title="Please select the workspace and the project where you want to create the service"
+          title="Please select the project where you want to create the service"
           disableCopy
           value=""
         />
@@ -174,11 +173,11 @@ export default function SelectWorkspaceAndProject() {
                 <Text variant="subtitle2">No results found.</Text>
               </Box>
             ) : (
-              <List className="overflow-y-auto h-import">
+              <List className="flex flex-col gap-2 overflow-y-auto h-import">
                 {projectsToDisplay.map((project, index) => (
-                  <Fragment key={project.value}>
+                  <Fragment key={project.projectPathDescriptor}>
                     <ListItem.Root
-                      className="grid grid-flow-col justify-start gap-2  py-2.5"
+                      className="flex flex-row items-center justify-center gap-4"
                       secondaryAction={
                         <Button
                           variant="borderless"
@@ -189,19 +188,35 @@ export default function SelectWorkspaceAndProject() {
                         </Button>
                       }
                     >
-                      <ListItem.Avatar>
-                        <span className="inline-block w-6 h-6 overflow-hidden rounded-md">
-                          <Image
-                            src="/logos/new.svg"
-                            alt="Nhost Logo"
-                            width={24}
-                            height={24}
-                          />
-                        </span>
+                      <ListItem.Avatar className="flex items-center justify-center h-full">
+                        <Image
+                          src="/logos/new.svg"
+                          alt="Nhost Logo"
+                          className="w-10 h-10 rounded-md"
+                          width={38}
+                          height={38}
+                        />
                       </ListItem.Avatar>
                       <ListItem.Text
-                        primary={project.projectName}
-                        secondary={`${project.workspaceName} / ${project.projectName}`}
+                        primary={
+                          <div className="flex items-center">
+                            <span>{project.projectName}</span>
+                            <Badge
+                              variant={project.isFree ? 'outline' : 'default'}
+                              className={cn(
+                                'hover:none ml-2 h-5 px-[6px] text-[10px]',
+                                project.isFree && 'bg-muted',
+                                project.type === 'workspace-project' &&
+                                  'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500',
+                              )}
+                            >
+                              {project.type === 'workspace-project'
+                                ? 'Legacy'
+                                : project.plan}
+                            </Badge>
+                          </div>
+                        }
+                        secondary={project.projectPathDescriptor}
                       />
                     </ListItem.Root>
 
@@ -213,7 +228,7 @@ export default function SelectWorkspaceAndProject() {
           </RetryableErrorBoundary>
         </div>
       </div>
-    </Container>
+    </div>
   );
 }
 

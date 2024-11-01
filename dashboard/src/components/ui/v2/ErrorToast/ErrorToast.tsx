@@ -112,18 +112,24 @@ export default function ErrorToast({
             bounce: 0.1,
           }}
         >
-          <div className="flex w-full flex-row items-center justify-between space-x-4">
-            <button onClick={close} type="button" aria-label="Close">
+          <div className="flex w-full flex-row items-center justify-between gap-4">
+            <button
+              className="flex-shrink-0"
+              onClick={close}
+              type="button"
+              aria-label="Close"
+            >
               <XIcon className="h-4 w-4 text-white" />
             </button>
-            <span>
+            <span className="flex-grow overflow-hidden break-words">
               {msg ?? 'An unkown error has occured, please try again later!'}
             </span>
 
             <button
               type="button"
               onClick={() => setShowInfo(!showInfo)}
-              className="flex flex-row items-center justify-center space-x-2 text-white"
+              className="flex flex-shrink-0 flex-row items-center justify-center space-x-2 text-white"
+              aria-label="Show error details"
             >
               <span>Info</span>
               {showInfo ? (

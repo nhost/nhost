@@ -1,10 +1,8 @@
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
-import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -45,8 +43,9 @@ function AllWorkspaceApps() {
             <NavLink
               href={`${currentWorkspace?.slug}/${project.slug}`}
               passHref
-              className='w-full'
-              legacyBehavior>
+              className="w-full"
+              legacyBehavior
+            >
               <ListItem.Button className="grid items-center justify-between grid-flow-col gap-2">
                 <div className="grid items-center justify-start grid-flow-col gap-2">
                   <ListItem.Avatar>
@@ -81,8 +80,8 @@ function AllWorkspaceApps() {
 
                 <Chip
                   size="small"
-                  label={project.plan.name}
-                  color={project.plan.isFree ? 'default' : 'primary'}
+                  label={project.legacyPlan.name}
+                  color={project.legacyPlan.isFree ? 'default' : 'primary'}
                 />
               </ListItem.Button>
             </NavLink>
@@ -96,30 +95,11 @@ function AllWorkspaceApps() {
 }
 
 export default function WorkspaceApps() {
-  const { currentWorkspace, loading } = useCurrentWorkspaceAndProject();
-
   return (
     <div className="mt-9">
       <div className="max-w-3xl mx-auto font-display">
         <div className="grid items-center justify-between grid-flow-col gap-2 mb-4">
           <Text className="text-lg font-medium">Projects</Text>
-
-          {!loading && (
-            <NavLink
-              href={{
-                pathname: '/new',
-                query: { workspace: currentWorkspace?.slug },
-              }}
-              legacyBehavior>
-              <Button
-                variant="outlined"
-                color="secondary"
-                startIcon={<PlusCircleIcon />}
-              >
-                New Project
-              </Button>
-            </NavLink>
-          )}
         </div>
 
         <RetryableErrorBoundary errorMessageProps={{ className: 'px-0' }}>

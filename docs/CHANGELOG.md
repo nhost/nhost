@@ -1,5 +1,32 @@
 # @nhost/docs
 
+## 2.20.0
+
+### Minor Changes
+
+- e5f1c6c: fix: copy to clipboard commands in nhost cli getting started
+
+## 2.19.0
+
+### Minor Changes
+
+- fb7be36: feat: added azuread's guide
+- 2e42eac: feat: added autoscaler docs
+
+### Patch Changes
+
+- d197507: chore: added pg's ip4r extension documentation
+
+## 2.18.0
+
+### Minor Changes
+
+- c4aa159: feat: added advanced TLS document
+
+### Patch Changes
+
+- 91f0465: feat: added turnstile guide
+
 ## 2.17.2
 
 ### Patch Changes

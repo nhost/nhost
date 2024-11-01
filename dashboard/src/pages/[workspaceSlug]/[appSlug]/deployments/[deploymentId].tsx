@@ -1,5 +1,4 @@
 import { Container } from '@/components/layout/Container';
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v1/Avatar';
@@ -7,6 +6,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
@@ -105,7 +105,7 @@ export default function DeploymentDetailsPage() {
             <Text color="secondary">{relativeDateOfDeployment}</Text>
           </div>
         </div>
-        <div className="flex items-center ">
+        <div className="flex items-center">
           <Link
             className="self-center font-mono font-medium"
             target="_blank"
@@ -139,7 +139,7 @@ export default function DeploymentDetailsPage() {
 
           {deployment.deploymentLogs.map((log) => (
             <div key={log.id} className="flex font-mono">
-              <div className="mr-2 flex-shrink-0 ">
+              <div className="mr-2 flex-shrink-0">
                 {format(parseISO(log.createdAt), 'HH:mm:ss')}:
               </div>
               <div className="break-all">{log.message}</div>

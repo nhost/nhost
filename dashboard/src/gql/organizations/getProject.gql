@@ -1,0 +1,73 @@
+query getProject($subdomain: String!) {
+  apps(where: { subdomain: { _eq: $subdomain } }) {
+    id
+    slug
+    name
+    repositoryProductionBranch
+    subdomain
+    createdAt
+    desiredState
+    nhostBaseFolder
+    config(resolve: true) {
+      observability {
+        grafana {
+          adminPassword
+        }
+      }
+      hasura {
+        adminSecret
+        settings {
+          enableConsole
+        }
+      }
+      ai {
+        version
+      }
+    }
+    featureFlags {
+      description
+      id
+      name
+      value
+    }
+    appStates(order_by: { createdAt: desc }, limit: 1) {
+      id
+      appId
+      message
+      stateId
+      createdAt
+    }
+    region {
+      id
+      countryCode
+      name
+      domain
+      city
+    }
+    legacyPlan {
+      id
+      name
+      price
+      isFree
+      featureMaxDbSize
+    }
+    githubRepository {
+      fullName
+    }
+    deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
+      id
+      commitSHA
+      commitMessage
+      commitUserName
+      deploymentStartedAt
+      deploymentEndedAt
+      commitUserAvatarUrl
+      deploymentStatus
+    }
+    creator {
+      id
+      email
+      displayName
+    }
+  }
+}

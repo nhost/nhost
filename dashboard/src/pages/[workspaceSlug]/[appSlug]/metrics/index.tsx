@@ -1,5 +1,4 @@
 import { Container } from '@/components/layout/Container';
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -8,6 +7,7 @@ import { IconButton } from '@/components/ui/v2/IconButton';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
@@ -28,7 +28,7 @@ export default function MetricsPage() {
     );
   }
 
-  if (currentProject.plan.isFree) {
+  if (currentProject.legacyPlan.isFree) {
     return (
       <Container>
         <UpgradeNotification message="Unlock metrics by upgrading your project to the Pro plan." />

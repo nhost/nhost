@@ -2,6 +2,7 @@ fragment RunServiceConfig on ConfigRunServiceConfig {
   name
   image {
     image
+    pullCredentials
   }
   command
   resources {
@@ -15,6 +16,9 @@ fragment RunServiceConfig on ConfigRunServiceConfig {
       capacity
     }
     replicas
+    autoscaler {
+      maxReplicas
+    }
   }
   environment {
     name

@@ -37,12 +37,14 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, replicas } = data?.config?.[service]?.resources || {};
+  const { compute, replicas, autoscaler } =
+    data?.config?.[service]?.resources || {};
 
   return {
     replicas,
     vcpu: compute?.cpu || 0,
     memory: compute?.memory || 0,
+    autoscale: autoscaler || null,
   };
 }
 
@@ -100,21 +102,29 @@ export default function ResourcesForm() {
         replicas: initialDatabaseResources.replicas || 1,
         vcpu: initialDatabaseResources.vcpu || 1000,
         memory: initialDatabaseResources.memory || 2048,
+        autoscale: !!initialDatabaseResources.autoscale || false,
+        maxReplicas: initialDatabaseResources.autoscale?.maxReplicas || 10,
       },
       hasura: {
         replicas: initialHasuraResources.replicas || 1,
         vcpu: initialHasuraResources.vcpu || 500,
         memory: initialHasuraResources.memory || 1536,
+        autoscale: !!initialHasuraResources.autoscale || false,
+        maxReplicas: initialHasuraResources.autoscale?.maxReplicas || 10,
       },
       auth: {
         replicas: initialAuthResources.replicas || 1,
         vcpu: initialAuthResources.vcpu || 250,
         memory: initialAuthResources.memory || 256,
+        autoscale: !!initialAuthResources.autoscale || false,
+        maxReplicas: initialAuthResources.autoscale?.maxReplicas || 10,
       },
       storage: {
         replicas: initialStorageResources.replicas || 1,
         vcpu: initialStorageResources.vcpu || 250,
         memory: initialStorageResources.memory || 256,
+        autoscale: !!initialStorageResources.autoscale || false,
+        maxReplicas: initialStorageResources.autoscale?.maxReplicas || 10,
       },
     },
     resolver: yupResolver(resourceSettingsValidationSchema),
@@ -181,6 +191,11 @@ export default function ResourcesForm() {
                     memory: formValues.database.memory,
                   },
                   replicas: formValues.database.replicas,
+                  autoscaler: formValues.database.autoscale
+                    ? {
+                        maxReplicas: formValues.database.maxReplicas,
+                      }
+                    : null,
                 }
               : null,
           },
@@ -192,6 +207,11 @@ export default function ResourcesForm() {
                     memory: formValues.hasura.memory,
                   },
                   replicas: formValues.hasura.replicas,
+                  autoscaler: formValues.hasura.autoscale
+                    ? {
+                        maxReplicas: formValues.hasura.maxReplicas,
+                      }
+                    : null,
                 }
               : null,
           },
@@ -203,6 +223,11 @@ export default function ResourcesForm() {
                     memory: formValues.auth.memory,
                   },
                   replicas: formValues.auth.replicas,
+                  autoscaler: formValues.auth.autoscale
+                    ? {
+                        maxReplicas: formValues.auth.maxReplicas,
+                      }
+                    : null,
                 }
               : null,
           },
@@ -214,6 +239,11 @@ export default function ResourcesForm() {
                     memory: formValues.storage.memory,
                   },
                   replicas: formValues.storage.replicas,
+                  autoscaler: formValues.storage.autoscale
+                    ? {
+                        maxReplicas: formValues.storage.maxReplicas,
+                      }
+                    : null,
                 }
               : null,
           },
@@ -253,21 +283,29 @@ export default function ResourcesForm() {
           totalAvailableMemory: 4096,
           database: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 1000,
             memory: 2048,
           },
           hasura: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 500,
             memory: 1536,
           },
           auth: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 250,
             memory: 256,
           },
           storage: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 250,
             memory: 256,
           },

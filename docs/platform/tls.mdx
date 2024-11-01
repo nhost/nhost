@@ -1,0 +1,185 @@
+---
+title: TLS Configuration
+description: Advanced TLS settings
+icon: file-certificate
+---
+
+Below you can find some advanced TLS functionality you can enable.
+
+<Warning>
+Advanced TLS settings are only available with [custom domains](/platform/custom-domains)
+</Warning>
+
+## TLS Client Authentication
+
+With TLS Client Authentication you can configure our platform to require clients to include a client certificate signed by a CA of your choosing. If the client doesn't provide a certificate or the certificate isn't signed by the correct CA the request will be denied. If the request includes a valid certificate the request will be forwarded to your service and will include information about the TLS configuration.
+
+To configure TLS client authentication you can use the configuration below:
+
+```toml
+[[functions.resources.ingress]]
+fqdn = ["func.acme.com"]
+
+[functions.resources.networking.ingresses.tls]
+clientCA = "{{ secrets.client_ca }}"
+```
+
+### Headers
+
+The following headers will be added to all successful requests:
+
+- `ssl-client-cert`: The client cetificate that was used
+- `ssl-client-issuer-dn`: Client certificate's issuer DN
+- `ssl-client-subject-dn`: Client certificate;s distinguished name
+- `ssl-client-verify`: Result of the operation. As we only forward requests on success the value should always be `SUCCESS`.
+
+
+### Guide
+
+Here is a quick guide on how to enable TLS client authentication for the functions service using self-signed certificates.
+
+#### Creating the CA
+
+First we need to create a CA that will be used to sign and validate the client certificates.
+
+<Steps>
+    <Step title="Generate the CA private key">
+
+First, we need to create a private key for our Certificate Authority. We'll use a 4096-bit RSA key for strong security.
+
+```
+openssl genrsa -aes256 -out ca.key 4096
+```
+
+This command will prompt you to enter a passphrase to protect the CA private key. Make sure to choose a strong passphrase and keep it safe.
+
+    </Step>
+
+    <Step title="Create the CA certificate">
+Now that we have the private key, let's create a self-signed CA certificate:
+
+```
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt
+```
+
+This command will prompt you for various details to include in the certificate. The most important field is the Common Name (CN), which should be a descriptive name for your CA.
+    </Step>
+</Steps>
+
+The resulting `ca.key` file will be needed later to sign client certificates while the result `ca.crt` will be needed to validate them.
+
+
+#### Creating client certificates
+
+Now we can proceed to create client certificats. You can repeat the steps below to create as many as you need.
+
+
+<Steps>
+
+<Step title="Generate a private key for the client">
+First, we'll create a private key for the client certificate:
+
+```
+openssl genrsa -out client.key 2048
+```
+</Step>
+
+<Step title="Create a Certificate Signing Request (CSR) for the client">
+
+Now, we'll create a CSR for the client certificate:
+
+```
+openssl req -new -key client.key -out client.csr
+```
+
+Fill in the prompted information. The Common Name (CN) should typically be the name of the client or user.
+
+</Step>
+
+<Step title="Create a configuration file for the client certificate">
+
+Create a file named `client.ext` with the following content:
+
+```
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage = clientAuth
+```
+
+This configuration specifies that the certificate is for client authentication.
+
+</Step>
+
+<Step title="Generate the client certificate">
+
+Now, we'll use our CA to sign the client certificate:
+
+```
+openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 365 -sha256 -extfile client.ext
+```
+
+This command will prompt you for the CA private key passphrase you set earlier.
+</Step>
+
+The resulting `client.key` and `client.crt` files will be needed by the user to authenticate requests.
+
+</Steps>
+
+#### Configure your service
+
+With everything in place you can configure your service. Imagine we have an already deployed project and we want to enable this for all functions. First we will head to the dashboard -> project -> settings -> secrets and create a new secret named `CLIENT_CA` with the contents of the `ca.crt` file. Afterwards we will deploy the following configuration:
+
+```toml
+[[functions.resources.networking.ingresses]]
+fqdn = [ "functions.acme.com" ]
+
+[functions.resources.networking.ingresses.tls]
+clientCA = "{{ secrets.CLIENT_CA }}"
+```
+#### Profit
+
+Our project has a function that echoes back request parameters, including headers. We will use this to inspect the TLS headers added to the request and that you can use for further validation if you need it. First, we can query the function without passing any client certificate:
+
+```
+$ curl  https://functions.acme.com/v1/echo
+<html>
+<head><title>400 No required SSL certificate was sent</title></head>
+<body>
+<center><h1>400 Bad Request</h1></center>
+<center>No required SSL certificate was sent</center>
+<hr><center>nginx</center>
+</body>
+</html>
+```
+
+As you can see the request was rejected. Now we can add a valid client certificate and the corresponding key to the request:
+
+
+```
+$ curl --cert client.crt --key client.key https://functions.acme.com/v1/echo | jq
+{
+  "headers": {
+    "accept": "*/*",
+    "ssl-client-cert": "-----BEGIN%20CERTIFICATE-----...ommitted for brevity...-----END%20CERTIFICATE-----%0A",
+    "ssl-client-issuer-dn": "OU=IT,O=Acme Org.,L=Stockholm,ST=Stockholm,C=SE",
+    "ssl-client-subject-dn": "emailAddress=jane@acme.org,OU=IT,O=Acme Org.,L=Sausalito,ST=California,C=US",
+    "ssl-client-verify": "SUCCESS",
+    "user-agent": "curl/8.7.1",
+    "x-forwarded-for": "2001:8b1:8ac9:4100:46b1:3412:1342:9319",
+    "x-forwarded-host": "functions.acme.com",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https",
+    "x-forwarded-scheme": "https",
+    "x-real-ip": "2001:8b1:8ac9:4100:46b1:3412:1342:9319",
+    "x-request-id": "8f80c26ee873bfc9db7ce9073eecd17a",
+    "x-scheme": "https",
+    "content-length": 0
+  },
+  "query": {},
+  "node": "v20.17.0",
+  "arch": "arm64"
+}
+```
+
+With a valid certificate you can see the request went through and it includes the `ssl-client-*` headers providing additional information about it.

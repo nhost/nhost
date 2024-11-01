@@ -116,7 +116,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
       featureFlags: [],
       repositoryProductionBranch: null,
       nhostBaseFolder: null,
-      plan: null,
+      legacyPlan: null,
       config: {
         observability: {
           grafana: {
