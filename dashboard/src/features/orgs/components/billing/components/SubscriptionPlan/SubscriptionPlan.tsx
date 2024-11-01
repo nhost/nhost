@@ -41,8 +41,8 @@ const changeOrgPlanForm = z.object({
 
 export default function SubscriptionPlan() {
   const { maintenanceActive } = useUI();
-  const [open, setOpen] = useState(false);
   const { org, refetch: refetchOrg } = useCurrentOrg();
+  const [open, setOpen] = useState(false);
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
   const [fetchOrganizationCustomePortalLink, { loading }] =
@@ -102,7 +102,6 @@ export default function SubscriptionPlan() {
 
         if (billingOrganizationCustomePortal) {
           const newWindow = window.open(billingOrganizationCustomePortal);
-
           if (!newWindow) {
             window.location.href = billingOrganizationCustomePortal;
           }
@@ -126,30 +125,34 @@ export default function SubscriptionPlan() {
           <div className="flex w-full flex-col gap-1 border-b p-4">
             <h4 className="font-medium">Subscription plan</h4>
           </div>
-          <div className="flex flex-col border-b md:flex-row">
-            <div className="flex w-full flex-col gap-4 p-4">
+          <div className="flex w-full flex-col justify-between gap-8 border-b p-4 md:flex-row">
+            <div className="flex basis-1/2 flex-col gap-4">
               <span className="font-medium">Organization name</span>
               <span className="font-medium">{org?.name}</span>
             </div>
-            <div className="flex w-full flex-col gap-2 p-4">
-              <span className="font-medium">Current plan</span>
-              <span className="text-xl font-bold text-primary">
-                {org?.plan?.name}
-              </span>
-            </div>
-            <div className="flex w-full flex-col items-start justify-start gap-4 p-4 md:items-end md:justify-end">
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-semibold">
-                  ${org?.plan?.price}
+            <div className="flex flex-1 flex-col gap-8 md:flex-row">
+              <div className="flex flex-1 flex-col gap-2">
+                <span className="font-medium">Current plan</span>
+                <span className="text-xl font-bold text-primary">
+                  {org?.plan?.name}
                 </span>
-                <Slash
-                  className="h-5 w-5 text-muted-foreground/40"
-                  strokeWidth={2.5}
-                />
-                <span className="text-xl font-semibold">month</span>
+              </div>
+
+              <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-semibold">
+                    ${org?.plan?.price}
+                  </span>
+                  <Slash
+                    className="h-5 w-5 text-muted-foreground/40"
+                    strokeWidth={2.5}
+                  />
+                  <span className="text-xl font-semibold">month</span>
+                </div>
               </div>
             </div>
           </div>
+
           <div className="flex w-full flex-col-reverse items-end justify-between gap-2 p-4 md:flex-row md:items-center md:gap-0">
             <div>
               <span>For a complete list of features, visit our </span>
@@ -164,14 +167,18 @@ export default function SubscriptionPlan() {
                 <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
               </Link>
             </div>
-            <div className="flex flex-row items-center justify-end gap-2">
+            <div className="flex w-full flex-row items-center justify-end gap-2">
               <Button
-                className="h-fit"
+                className="h-fit truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
                 disabled={org?.plan?.isFree || maintenanceActive || loading}
               >
-                {loading ? <ActivityIndicator /> : 'Stripe Customer Portal'}
+                {loading ? (
+                  <ActivityIndicator />
+                ) : (
+                  <span className="truncate">Stripe Customer Portal</span>
+                )}
               </Button>
               <Button
                 disabled={org?.plan?.isFree || maintenanceActive}

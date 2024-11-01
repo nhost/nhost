@@ -1,0 +1,5 @@
+query getOrganizationSpendingNotification($orgId: uuid!) {
+  organizations(where: { id: { _eq: $orgId } }) {
+    threshold
+  }
+}
