@@ -103,11 +103,24 @@ export default function MigrateProjectToOrg() {
         <DialogHeader className="gap-2">
           <DialogTitle>Migrate project to an Organization</DialogTitle>
           <DialogDescription className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <p>
-              Any remaining usage credits in your current workspace will be
-              transferred and credited to the target organization.
-            </p>
-            <div className="flex items-center justify-start gap-1">
+            <span className="mt-4 font-medium">
+              Please read the following information before migrating:
+            </span>
+            <ul className="pl-4 space-y-2 list-disc">
+              <li>
+                A project can only be migrated to an organization in the same or
+                higher plan as the project you are migrating.
+              </li>
+              <li className="mt-4">
+                Any remaining usage credits in your current workspace will be
+                transferred and credited to the target organization.
+              </li>
+              <li className="mt-4">
+                While there is no downtime for stateless services, Postgres
+                requires a restart so plan for 1-2 minutes of downtime.
+              </li>
+            </ul>
+            <div className="flex items-center justify-start gap-1 mt-4">
               <span>For more information read the</span>
               <Link
                 href="https://nhost.io/blog/organization-billing"

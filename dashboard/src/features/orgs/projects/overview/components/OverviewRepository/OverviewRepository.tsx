@@ -20,8 +20,8 @@ export default function OverviewRepository() {
           ? 'Connect your project with a GitHub repository to create your first deployment.'
           : 'GitHub is connected.'}
       </Text>
-      {!project.githubRepository ? (
-        <div className="mt-6 flex flex-row place-content-between rounded-lg">
+      {!project?.githubRepository ? (
+        <div className="flex flex-row mt-6 rounded-lg place-content-between">
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
             passHref
@@ -40,21 +40,21 @@ export default function OverviewRepository() {
         </div>
       ) : (
         <Box
-          className="mt-6 flex flex-row place-content-between rounded-lg p-2"
+          className="flex flex-row p-2 mt-6 rounded-lg place-content-between"
           sx={{ backgroundColor: 'grey.200' }}
         >
           <Box
             className="ml-2 grid grid-flow-col gap-1.5"
             sx={{ backgroundColor: 'transparent' }}
           >
-            <GitHubIcon className="h-4 w-4 self-center" />
+            <GitHubIcon className="self-center w-4 h-4" />
             <Text variant="body1" className="self-center font-normal">
               {project?.githubRepository.fullName}
             </Text>
           </Box>
 
           <NavLink
-            href={`/orgs/${org?.slug}/${project?.subdomain}/settings/git`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/git`}
             passHref
             legacyBehavior
           >

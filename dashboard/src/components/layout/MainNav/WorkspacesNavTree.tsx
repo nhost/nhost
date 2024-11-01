@@ -37,73 +37,73 @@ import { useTreeNavState } from './TreeNavStateContext';
 const projectPages = [
   {
     name: 'Overview',
-    icon: <HomeIcon className="w-4 h-4" />,
+    icon: <HomeIcon className="h-4 w-4" />,
     route: '',
     slug: 'overview',
   },
   {
     name: 'Database',
-    icon: <DatabaseIcon className="w-4 h-4" />,
+    icon: <DatabaseIcon className="h-4 w-4" />,
     route: 'database/browser/default',
     slug: 'database',
   },
   {
     name: 'GraphQL',
-    icon: <GraphQLIcon className="w-4 h-4" />,
+    icon: <GraphQLIcon className="h-4 w-4" />,
     route: 'graphql',
     slug: 'graphql',
   },
   {
     name: 'Hasura',
-    icon: <HasuraIcon className="w-4 h-4" />,
+    icon: <HasuraIcon className="h-4 w-4" />,
     route: 'hasura',
     slug: 'hasura',
   },
   {
     name: 'Auth',
-    icon: <UserIcon className="w-4 h-4" />,
+    icon: <UserIcon className="h-4 w-4" />,
     route: 'users',
     slug: 'users',
   },
   {
     name: 'Storage',
-    icon: <StorageIcon className="w-4 h-4" />,
+    icon: <StorageIcon className="h-4 w-4" />,
     route: 'storage',
     slug: 'storage',
   },
   {
     name: 'Run',
-    icon: <ServicesIcon className="w-4 h-4" />,
+    icon: <ServicesIcon className="h-4 w-4" />,
     route: 'services',
     slug: 'services',
   },
   {
     name: 'AI',
-    icon: <AIIcon className="w-4 h-4" />,
+    icon: <AIIcon className="h-4 w-4" />,
     route: 'ai/auto-embeddings',
     slug: 'ai',
   },
   {
     name: 'Deployments',
-    icon: <RocketIcon className="w-4 h-4" />,
+    icon: <RocketIcon className="h-4 w-4" />,
     route: 'deployments',
     slug: 'deployments',
   },
   {
     name: 'Backups',
-    icon: <CloudIcon className="w-4 h-4" />,
+    icon: <CloudIcon className="h-4 w-4" />,
     route: 'backups',
     slug: 'backups',
   },
   {
     name: 'Logs',
-    icon: <FileTextIcon className="w-4 h-4" />,
+    icon: <FileTextIcon className="h-4 w-4" />,
     route: 'logs',
     slug: 'logs',
   },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="w-4 h-4" />,
+    icon: <GaugeIcon className="h-4 w-4" />,
     route: 'metrics',
     slug: 'metrics',
   },
@@ -210,7 +210,7 @@ const createWorkspace = (workspace: Workspace) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="w-4 h-4" />,
+        icon: <Box className="h-4 w-4" />,
         targetUrl: `/${workspace.slug}/${app.slug}`,
       },
       children: projectPages.map(
@@ -324,7 +324,7 @@ export default function WorkspacesNavTree() {
           className={cn(
             item?.index === 'workspaces' && 'font-bold',
             context.isFocused ? 'font-bold text-primary' : '',
-            'max-w-52 truncate',
+            'max-w-40 truncate',
           )}
         >
           {item.data.name}
@@ -350,7 +350,7 @@ export default function WorkspacesNavTree() {
                   className="font-medium"
                 >
                   announcement
-                  <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
+                  <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
                 </Link>
               </div>
             </HoverCardContent>
@@ -421,9 +421,9 @@ export default function WorkspacesNavTree() {
             className="h-8 px-1"
           >
             {context.isExpanded ? (
-              <ChevronDown className="w-4 h-4 font-bold" strokeWidth={3} />
+              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
             ) : (
-              <ChevronRight className="w-4 h-4" strokeWidth={3} />
+              <ChevronRight className="h-4 w-4" strokeWidth={3} />
             )}
           </Button>
         );
@@ -444,9 +444,9 @@ export default function WorkspacesNavTree() {
         }
 
         return (
-          <div className="flex flex-row w-full">
+          <div className="flex w-full flex-row">
             <div className="flex justify-center px-[12px] pb-3">
-              <div className="w-0 h-full border-r border-dashed" />
+              <div className="h-full w-0 border-r border-dashed" />
             </div>
             <ul {...containerProps} className="w-full">
               {children}

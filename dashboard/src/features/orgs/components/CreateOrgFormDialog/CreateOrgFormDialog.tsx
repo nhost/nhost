@@ -100,13 +100,13 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                 >
                   {plans.map((plan) => (
                     <FormItem key={plan.id}>
-                      <FormLabel className="flex flex-row items-center justify-between w-full p-3 space-y-0 border rounded-md cursor-pointer">
+                      <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
                         <div className="flex flex-row items-center space-x-3">
                           <FormControl>
                             <RadioGroupItem value={plan.id} />
                           </FormControl>
                           <div className="flex flex-col space-y-2">
-                            <div className="font-semibold text-md">
+                            <div className="text-md font-semibold">
                               {plan.name}
                             </div>
                             <FormDescription className="w-2/3 text-xs">
@@ -115,8 +115,8 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                           </div>
                         </div>
 
-                        <div className="flex items-center h-full mt-0 text-xl font-semibold">
-                          {plan.isFree ? 'Free' : `${plan.price}/mo`}
+                        <div className="mt-0 flex h-full items-center text-xl font-semibold">
+                          {plan.isFree ? 'Free' : `$${plan.price}/mo`}
                         </div>
                       </FormLabel>
                     </FormItem>
@@ -234,7 +234,7 @@ export default function CreateOrgDialog() {
           )}
           onClick={() => setStripeClientSecret('')}
         >
-          <Plus className="w-4 h-4 font-bold" strokeWidth={3} />
+          <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
           New Organization
         </Button>
       </DialogTrigger>
@@ -252,7 +252,7 @@ export default function CreateOrgDialog() {
         </DialogHeader>
 
         {loading && (
-          <div className="flex items-center justify-center h-52">
+          <div className="flex h-52 items-center justify-center">
             <ActivityIndicator
               circularProgressProps={{
                 className: 'w-5 h-5',

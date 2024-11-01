@@ -34,8 +34,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 export default function NotificationsTray() {
-  const { refetch: refetchOrgs } = useOrgs();
-  const { asPath, route } = useRouter();
   const userData = useUserData();
   const { asPath, route } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
@@ -53,11 +51,6 @@ export default function NotificationsTray() {
       data: { organizationMemberInvites: invites = [] } = {},
     },
   ] = useOrganizationMemberInvitesLazyQuery();
-
-  const [stripeFormDialogOpen, setStripeFormDialogOpen] = useState(false);
-
-  const [pendingOrgRequest, setPendingOrgRequest] =
-    useState<PostOrganizationRequestResponse | null>(null);
   const [getOrganizationNewRequests] = useOrganizationNewRequestsLazyQuery();
   const [postOrganizationRequest] = usePostOrganizationRequestMutation();
 
@@ -163,12 +156,11 @@ export default function NotificationsTray() {
     <>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="ghost" className="relative px-3 py-1 h-fit">
+          <Button variant="ghost" className="relative h-fit px-3 py-1">
             <Bell className="mt-[2px] h-[1.15rem] w-[1.15rem]" />
-            {invites.length > 0 ||
-              (pendingOrgRequest && (
-                <div className="absolute w-2 h-2 bg-red-500 rounded-full right-3 top-2" />
-              ))}
+            {(pendingOrgRequest || Boolean(invites.length)) && (
+              <div className="absolute right-3 top-2 h-2 w-2 rounded-full bg-red-500" />
+            )}
           </Button>
         </SheetTrigger>
         <SheetContent className="h-full w-full bg-background p-0 text-foreground sm:max-w-[310px]">
@@ -178,14 +170,14 @@ export default function NotificationsTray() {
               List of pending invites and create organization requests
             </SheetDescription>
           </SheetHeader>
-          <div className="flex flex-col w-full h-full">
-            <div className="flex items-center h-12 px-2 border-b">
+          <div className="flex h-full w-full flex-col">
+            <div className="flex h-12 items-center border-b px-2">
               <h3 className="font-medium">
                 Notifications {invites.length > 0 && `(${invites.length})`}
               </h3>
             </div>
 
-            <div className="p-2">
+            <div className="flex h-full flex-col gap-2 overflow-auto p-2">
               {!loading && invites.length === 0 && !pendingOrgRequest && (
                 <span className="text-muted-foreground">
                   No new notifications
@@ -193,9 +185,9 @@ export default function NotificationsTray() {
               )}
 
               {pendingOrgRequest && (
-                <div className="flex flex-col gap-2 p-2 border rounded-md">
+                <div className="flex flex-col gap-2 rounded-md border p-2">
                   <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <Badge className="h-5 px-[6px] text-[10px]">
                         New Organization pending
                       </Badge>
@@ -220,10 +212,10 @@ export default function NotificationsTray() {
               {invites.map((invite) => (
                 <div
                   key={invite.id}
-                  className="flex flex-col gap-2 p-2 border rounded-md"
+                  className="flex flex-col gap-2 rounded-md border p-2"
                 >
                   <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <Badge className="h-5 px-[6px] text-[10px]">
                         Invitation
                       </Badge>
@@ -273,7 +265,7 @@ export default function NotificationsTray() {
         onOpenChange={setStripeFormDialogOpen}
       >
         <DialogContent
-          className="text-black bg-white sm:max-w-xl"
+          className="bg-white text-black sm:max-w-xl"
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >

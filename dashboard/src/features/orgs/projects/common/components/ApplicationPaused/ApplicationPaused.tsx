@@ -76,8 +76,8 @@ export default function ApplicationPaused() {
         />
       </Modal>
 
-      <Container className="grid max-w-lg grid-flow-row gap-6 mx-auto text-center">
-        <div className="flex flex-col mx-auto text-center w-centImage">
+      <Container className="mx-auto grid max-w-lg grid-flow-row gap-6 text-center">
+        <div className="mx-auto flex w-centImage flex-col text-center">
           <ApplicationPausedSymbol isLocked={isLocked} />
         </div>
 
@@ -98,7 +98,7 @@ export default function ApplicationPaused() {
                 {org && (
                   <>
                     <Button
-                      className="w-full max-w-xs mx-auto"
+                      className="mx-auto w-full max-w-xs"
                       onClick={() => setTransferProjectDialogOpen(true)}
                     >
                       Transfer

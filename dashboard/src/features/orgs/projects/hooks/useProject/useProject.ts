@@ -104,6 +104,6 @@ export default function useProject({
     project: localApplication,
     loading: false,
     error: null,
-    refetch,
+    refetch: () => Promise.resolve(),
   };
 }
