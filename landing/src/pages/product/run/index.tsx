@@ -371,7 +371,7 @@ export default function NhostRunPage() {
               slotProps={{ title: { component: 'h3' } }}
             />
 
-            <Button href="https://app.nhost.io/uploadFile" className="mt-6">
+            <Button href="https://app.nhost.io" className="mt-6">
               Start building <ArrowRightIcon />
             </Button>
           </Card>
