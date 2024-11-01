@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-fix: hasura settings disable new users fix, and add disable sign ups"
+fix: configuring "Disable New Users" modifies the wrong hasura setting, add disable sign ups setting"
