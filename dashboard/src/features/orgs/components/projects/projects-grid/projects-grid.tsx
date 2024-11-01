@@ -25,9 +25,9 @@ function ProjectCard({ project }: { project: Project }) {
       className="flex cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm"
     >
       <div className="flex items-start gap-2">
-        <div className="flex flex-row items-center space-x-2">
-          <Box className="h-6 w-6" />
-          <h2 className="text-lg font-semibold">{project.name}</h2>
+        <div className="flex w-full flex-row items-center space-x-2">
+          <Box className="h-6 w-6 flex-shrink-0" />
+          <p className="truncate text-lg font-bold">{project.name}</p>
         </div>
       </div>
 

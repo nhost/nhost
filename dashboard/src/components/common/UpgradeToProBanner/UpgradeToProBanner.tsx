@@ -50,9 +50,9 @@ export default function UpgradeToProBanner({
           )}
         </div>
 
-        <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-2 gap-2">
+        <div className="flex flex-col gap-2 space-y-2 lg:flex-row lg:items-center lg:space-x-2 lg:space-y-0">
           <Button
-            className="lg:w-auto max-w-xs"
+            className="max-w-xs lg:w-auto"
             onClick={() => {
               if (isOwner) {
                 setTransferProjectDialogOpen(true);
@@ -68,8 +68,6 @@ export default function UpgradeToProBanner({
                     secondaryButtonText: 'I understand',
                     hidePrimaryAction: true,
                   },
-
-
                 });
               }
             }}
@@ -101,6 +99,7 @@ export default function UpgradeToProBanner({
         width={300}
         height={140}
         objectFit="contain"
+        className=""
         alt="Upgrade to Pro illustration"
       />
     </Box>

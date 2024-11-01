@@ -105,7 +105,7 @@ export default function OrgsComboBox() {
         <Button
           size="sm"
           variant="ghost"
-          className="justify-between w-full gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+          className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
           {selectedItem ? (
             <div className="flex flex-row items-center justify-center">
@@ -115,7 +115,7 @@ export default function OrgsComboBox() {
           ) : (
             'Select organization / workspace'
           )}
-          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -126,8 +126,9 @@ export default function OrgsComboBox() {
             <CommandGroup heading="Organizations">
               {orgsOptions.map((option) => (
                 <CommandItem
+                  keywords={[option.label]}
                   key={option.value}
-                  value={option.label}
+                  value={option.value}
                   className="flex items-center justify-between bg-background text-foreground dark:hover:bg-muted"
                   onSelect={() => {
                     setSelectedItem(option);
@@ -152,7 +153,7 @@ export default function OrgsComboBox() {
                           : 'opacity-0',
                       )}
                     />
-                    <span className="truncate max-w-52">{option.label}</span>
+                    <span className="max-w-52 truncate">{option.label}</span>
                   </div>
                   {renderBadge(option.plan)}
                 </CommandItem>
@@ -166,8 +167,9 @@ export default function OrgsComboBox() {
                 <CommandGroup heading="Workspaces">
                   {workspacesOptions.map((option) => (
                     <CommandItem
+                      keywords={[option.label]}
                       key={option.value}
-                      value={option.label}
+                      value={option.value}
                       className="flex items-center justify-between bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
                       onSelect={() => {
                         setSelectedItem(option);
@@ -192,7 +194,7 @@ export default function OrgsComboBox() {
                               : 'opacity-0',
                           )}
                         />
-                        <span className="truncate max-w-52">
+                        <span className="max-w-52 truncate">
                           {option.label}
                         </span>
                       </div>
