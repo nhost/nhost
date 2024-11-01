@@ -2,7 +2,7 @@
 name: "gen: update depenendencies"
 on:
   schedule:
-    - cron: '0 2 1 * *'
+    - cron: '0 2 1 2,5,8,11 *'
 
 jobs:
   run:
