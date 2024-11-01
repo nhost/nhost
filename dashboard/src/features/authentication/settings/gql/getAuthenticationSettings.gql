@@ -15,6 +15,7 @@ query GetAuthenticationSettings($appId: uuid!) {
       }
       signUp {
         enabled
+        disableNewUsers
       }
       session {
         accessToken {

@@ -5,6 +5,7 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
+  GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
@@ -21,16 +22,16 @@ const validationSchema = Yup.object({
   disabled: Yup.boolean(),
 });
 
-export type DisableNewUsersFormValues = Yup.InferType<typeof validationSchema>;
+export type DisableSignUpsFormValues = Yup.InferType<typeof validationSchema>;
 
-export default function DisableNewUsersSettings() {
-  const { project } = useProject();
+export default function DisableSignUpsSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-
+  const { project } = useProject();
   const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -39,17 +40,17 @@ export default function DisableNewUsersSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const form = useForm<DisableNewUsersFormValues>({
+  const form = useForm<DisableSignUpsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      disabled: !data?.config?.auth?.signUp?.disableNewUsers,
+      disabled: !data?.config?.auth?.signUp?.enabled,
     },
   });
 
   useEffect(() => {
     if (!loading) {
       form.reset({
-        disabled: !data?.config?.auth?.signUp?.disableNewUsers,
+        disabled: !data?.config?.auth?.signUp?.enabled,
       });
     }
   }, [loading, data, form]);
@@ -58,7 +59,7 @@ export default function DisableNewUsersSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading disabled new users settings..."
+        label="Loading disabled sign up settings..."
         className="justify-center"
       />
     );
@@ -70,8 +71,8 @@ export default function DisableNewUsersSettings() {
 
   const { formState } = form;
 
-  const handleDisableNewUsersChange = async (
-    values: DisableNewUsersFormValues,
+  const handleDisableSignUpsChange = async (
+    values: DisableSignUpsFormValues,
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
@@ -79,7 +80,7 @@ export default function DisableNewUsersSettings() {
         config: {
           auth: {
             signUp: {
-              disableNewUsers: !values.disabled,
+              enabled: !values.disabled,
             },
           },
         },
@@ -104,21 +105,21 @@ export default function DisableNewUsersSettings() {
         }
       },
       {
-        loadingMessage: 'Disabling new user sign ins...',
-        successMessage: 'New user sign ins have been disabled successfully.',
+        loadingMessage: 'Disabling new user sign ups...',
+        successMessage: 'New user sign ups have been disabled successfully.',
         errorMessage:
-          'An error occurred while trying to disable new user sign ins.',
+          'An error occurred while trying to disable new user sign ups.',
       },
     );
   };
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleDisableNewUsersChange}>
+      <Form onSubmit={handleDisableSignUpsChange}>
         <SettingsContainer
-          title="Disable New Users"
-          description="If set, newly registered users are disabled and won't be able to sign in."
-          docsLink="https://docs.nhost.io/guides/auth/overview#disable-new-users"
+          title="Disable Sign Ups"
+          description="If set, new users won't be able to sign up."
+          docsLink="https://docs.nhost.io/guides/auth/overview#disable-sign-ups"
           switchId="disabled"
           showSwitch
           slotProps={{

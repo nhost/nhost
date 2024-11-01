@@ -8126,7 +8126,10 @@ export type Billing_Reports_Resources = {
   pending: Scalars['Boolean'];
   report_ends: Scalars['timestamptz'];
   report_starts: Scalars['timestamptz'];
+<<<<<<< HEAD
   stripeSubscriptionID: Scalars['String'];
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   type: Billing_Report_Resource_Type_Enum;
   updated_at: Scalars['timestamptz'];
   value: Scalars['Int'];
@@ -8180,7 +8183,10 @@ export type Billing_Reports_Resources_Bool_Exp = {
   pending?: InputMaybe<Boolean_Comparison_Exp>;
   report_ends?: InputMaybe<Timestamptz_Comparison_Exp>;
   report_starts?: InputMaybe<Timestamptz_Comparison_Exp>;
+<<<<<<< HEAD
   stripeSubscriptionID?: InputMaybe<String_Comparison_Exp>;
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   type?: InputMaybe<Billing_Report_Resource_Type_Enum_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   value?: InputMaybe<Int_Comparison_Exp>;
@@ -8206,7 +8212,10 @@ export type Billing_Reports_Resources_Insert_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   report_ends?: InputMaybe<Scalars['timestamptz']>;
   report_starts?: InputMaybe<Scalars['timestamptz']>;
+<<<<<<< HEAD
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   type?: InputMaybe<Billing_Report_Resource_Type_Enum>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8221,7 +8230,10 @@ export type Billing_Reports_Resources_Max_Fields = {
   organization_id?: Maybe<Scalars['uuid']>;
   report_ends?: Maybe<Scalars['timestamptz']>;
   report_starts?: Maybe<Scalars['timestamptz']>;
+<<<<<<< HEAD
   stripeSubscriptionID?: Maybe<Scalars['String']>;
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   updated_at?: Maybe<Scalars['timestamptz']>;
   value?: Maybe<Scalars['Int']>;
 };
@@ -8235,7 +8247,10 @@ export type Billing_Reports_Resources_Min_Fields = {
   organization_id?: Maybe<Scalars['uuid']>;
   report_ends?: Maybe<Scalars['timestamptz']>;
   report_starts?: Maybe<Scalars['timestamptz']>;
+<<<<<<< HEAD
   stripeSubscriptionID?: Maybe<Scalars['String']>;
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   updated_at?: Maybe<Scalars['timestamptz']>;
   value?: Maybe<Scalars['Int']>;
 };
@@ -8265,7 +8280,10 @@ export type Billing_Reports_Resources_Order_By = {
   pending?: InputMaybe<Order_By>;
   report_ends?: InputMaybe<Order_By>;
   report_starts?: InputMaybe<Order_By>;
+<<<<<<< HEAD
   stripeSubscriptionID?: InputMaybe<Order_By>;
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   type?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
@@ -8293,8 +8311,11 @@ export enum Billing_Reports_Resources_Select_Column {
   /** column name */
   ReportStarts = 'report_starts',
   /** column name */
+<<<<<<< HEAD
   StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   Type = 'type',
   /** column name */
   UpdatedAt = 'updated_at',
@@ -8311,7 +8332,10 @@ export type Billing_Reports_Resources_Set_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   report_ends?: InputMaybe<Scalars['timestamptz']>;
   report_starts?: InputMaybe<Scalars['timestamptz']>;
+<<<<<<< HEAD
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   type?: InputMaybe<Billing_Report_Resource_Type_Enum>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8352,7 +8376,10 @@ export type Billing_Reports_Resources_Stream_Cursor_Value_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   report_ends?: InputMaybe<Scalars['timestamptz']>;
   report_starts?: InputMaybe<Scalars['timestamptz']>;
+<<<<<<< HEAD
   stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   type?: InputMaybe<Billing_Report_Resource_Type_Enum>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8381,8 +8408,11 @@ export enum Billing_Reports_Resources_Update_Column {
   /** column name */
   ReportStarts = 'report_starts',
   /** column name */
+<<<<<<< HEAD
   StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
+=======
+>>>>>>> 90680f221 (feat: add disable sign ups, fix disable new users)
   Type = 'type',
   /** column name */
   UpdatedAt = 'updated_at',
@@ -26835,7 +26865,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null, disableNewUsers?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
 
 export type GetPostgresSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -28485,6 +28515,7 @@ export const GetAuthenticationSettingsDocument = gql`
       }
       signUp {
         enabled
+        disableNewUsers
       }
       session {
         accessToken {
