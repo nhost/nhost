@@ -5,7 +5,6 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
 import {
-  GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
@@ -28,21 +27,21 @@ const validationSchema = yup
 export type PostmarkFormValues = yup.InferType<typeof validationSchema>;
 
 export default function PostmarkSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
 
-  const { data } = useGetSmtpSettingsQuery({
+  const { data, refetch } = useGetSmtpSettingsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { sender, password } = data?.config?.provider?.smtp || {};
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSmtpSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -81,6 +80,8 @@ export default function PostmarkSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        form.reset({ ...values });
+        await refetch();
 
         if (!isPlatform) {
           openDialog({
