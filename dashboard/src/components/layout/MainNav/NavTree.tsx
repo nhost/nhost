@@ -152,6 +152,7 @@ const projectSettingsPages = [
   },
   { name: 'AI', slug: 'ai', route: 'ai' },
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
+  { name: 'Observability', slug: 'metrics', route: 'metrics' },
 ];
 
 const createOrganization = (org: Org, isPlatform: boolean) => {
