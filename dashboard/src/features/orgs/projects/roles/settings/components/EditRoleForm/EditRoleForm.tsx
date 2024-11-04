@@ -12,7 +12,6 @@ import type {
 } from '@/features/projects/roles/settings/components/BaseRoleForm';
 import type { Role } from '@/types/application';
 import {
-  GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
@@ -41,12 +40,14 @@ export default function EditRoleForm({
   onSubmit,
   ...props
 }: EditRoleFormProps) {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+
   const { data, loading, error } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -62,7 +63,6 @@ export default function EditRoleForm({
   });
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetRolesPermissionsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

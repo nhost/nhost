@@ -20,6 +20,7 @@ export default function RolesAndPermissionsPage() {
     variables: {
       appId: project?.id,
     },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
