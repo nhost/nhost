@@ -3,7 +3,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -26,11 +26,12 @@ export default function DisableAIServiceConfirmationDialog({
   onCancel,
   onServiceDisabled,
 }: DisableAIServiceConfirmationDialogProps) {
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog, closeDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
   const [loading, setLoading] = useState(false);
-  const { currentProject } = useCurrentWorkspaceAndProject();
+
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -42,7 +43,7 @@ export default function DisableAIServiceConfirmationDialog({
       async () => {
         await updateConfig({
           variables: {
-            appId: currentProject.id,
+            appId: project?.id,
             config: {
               ai: null,
             },
