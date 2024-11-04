@@ -12,9 +12,9 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function StorageSettingsPage() {
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
 
   const { loading, error } = useGetStorageSettingsQuery({
     variables: { appId: project?.id },

@@ -5,7 +5,6 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
-  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -26,13 +25,13 @@ const validationSchema = Yup.object({
 export type WebAuthnFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WebAuthnSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
-  const { project } = useProject();
+  const localMimirClient = useLocalMimirClient();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSignInMethodsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

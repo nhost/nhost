@@ -6,7 +6,6 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import {
-  GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -27,13 +26,13 @@ const validationSchema = Yup.object({
 export type ClientURLFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function ClientURLSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetAuthenticationSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

@@ -10,7 +10,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetHasuraSettingsDocument,
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -36,7 +35,6 @@ export default function HasuraAllowListSettings() {
   const { project, refetch: refetchProject } = useProject();
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetHasuraSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

@@ -7,7 +7,6 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
-  GetHasuraSettingsDocument,
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -38,11 +37,11 @@ const AVAILABLE_HASURA_LOG_LEVELS = ['debug', 'info', 'warn', 'error'];
 export default function HasuraLogLevelSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetHasuraSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -161,7 +160,7 @@ export default function HasuraLogLevelSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="logLevel"

@@ -5,7 +5,6 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
-  GetHasuraSettingsDocument,
   useGetStorageSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -31,8 +30,8 @@ export default function HasuraStorageAVSettings() {
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetHasuraSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

@@ -27,6 +27,7 @@ export default function SettingsAuthenticationPage() {
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     skip: !project,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -47,7 +48,7 @@ export default function SettingsAuthenticationPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <AuthServiceVersionSettings />
