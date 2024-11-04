@@ -9,7 +9,6 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -25,13 +24,13 @@ const validationSchema = Yup.object({
 export type AnonymousSignInFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AnonymousSignInSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSignInMethodsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

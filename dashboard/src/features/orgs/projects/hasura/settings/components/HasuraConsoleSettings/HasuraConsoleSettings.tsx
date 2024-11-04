@@ -11,7 +11,6 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetHasuraSettingsDocument,
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -32,8 +31,8 @@ export default function HasuraConsoleSettings() {
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetHasuraSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

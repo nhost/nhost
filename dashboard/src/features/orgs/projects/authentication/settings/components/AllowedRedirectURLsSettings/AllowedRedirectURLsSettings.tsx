@@ -6,7 +6,6 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import {
-  GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -29,13 +28,13 @@ export type AllowedRedirectURLFormValues = Yup.InferType<
 >;
 
 export default function AllowedRedirectURLsSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
-  const { project } = useProject();
+  const localMimirClient = useLocalMimirClient();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetAuthenticationSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

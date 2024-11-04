@@ -19,6 +19,7 @@ export default function EnvironmentVariablesPage() {
 
   const { loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

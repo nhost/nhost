@@ -19,7 +19,6 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -30,13 +29,13 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
 export default function DiscordProviderSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSignInMethodsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -184,7 +183,7 @@ export default function DiscordProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

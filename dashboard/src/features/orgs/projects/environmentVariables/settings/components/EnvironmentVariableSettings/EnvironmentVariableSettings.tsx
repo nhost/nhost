@@ -2,7 +2,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -17,7 +16,6 @@ import { CreateEnvironmentVariableForm } from '@/features/orgs/projects/environm
 import { EditEnvironmentVariableForm } from '@/features/orgs/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
 import type { EnvironmentVariable } from '@/types/application';
 import {
-  GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
@@ -43,8 +41,9 @@ export default function EnvironmentVariableSettings() {
   const localMimirClient = useLocalMimirClient();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error, refetch } = useGetEnvironmentVariablesQuery({
+  const { data, error, refetch } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -63,18 +62,8 @@ export default function EnvironmentVariableSettings() {
   });
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetEnvironmentVariablesDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading environment variables..."
-      />
-    );
-  }
 
   if (error) {
     throw error;
@@ -100,6 +89,7 @@ export default function EnvironmentVariableSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        await refetch();
 
         if (!isPlatform) {
           openDialog({

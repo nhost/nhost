@@ -14,7 +14,6 @@ import {
   baseProviderValidationSchema,
 } from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
 import {
-  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -33,13 +32,13 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 
 export default function TwitchProviderSettings() {
   const theme = useTheme();
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
-  const { project } = useProject();
+  const localMimirClient = useLocalMimirClient();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSignInMethodsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -191,7 +190,7 @@ export default function TwitchProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

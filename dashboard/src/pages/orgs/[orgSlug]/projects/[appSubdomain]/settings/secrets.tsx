@@ -19,10 +19,10 @@ import { CreateSecretForm } from '@/features/orgs/projects/secrets/settings/comp
 import { EditSecretForm } from '@/features/orgs/projects/secrets/settings/components/EditSecretForm';
 import type { Secret } from '@/types/application';
 import {
-  GetSecretsDocument,
   useDeleteSecretMutation,
   useGetSecretsQuery,
 } from '@/utils/__generated__/graphql';
+import { NetworkStatus } from '@apollo/client';
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -41,17 +41,18 @@ export default function SecretsPage() {
   const localMimirClient = useLocalMimirClient();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error, refetch } = useGetSecretsQuery({
+  const { data, error, refetch, networkStatus } = useGetSecretsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
+    notifyOnNetworkStatusChange: true,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const [deleteSecret] = useDeleteSecretMutation({
-    refetchQueries: [GetSecretsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading) {
+  if (networkStatus === NetworkStatus.loading) {
     return <ActivityIndicator delay={1000} label="Loading secrets..." />;
   }
 
@@ -158,7 +159,7 @@ export default function SecretsPage() {
           footer: { className: 'hidden' },
         }}
       >
-        <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
+        <Box className="grid grid-cols-2 gap-2 px-4 py-3 border-b-1">
           <Text className="font-medium">Secret Name</Text>
         </Box>
 
@@ -174,7 +175,7 @@ export default function SecretsPage() {
                         <Dropdown.Trigger
                           asChild
                           hideChevron
-                          className="absolute right-4 top-1/2 -translate-y-1/2"
+                          className="absolute -translate-y-1/2 right-4 top-1/2"
                         >
                           <IconButton
                             variant="borderless"

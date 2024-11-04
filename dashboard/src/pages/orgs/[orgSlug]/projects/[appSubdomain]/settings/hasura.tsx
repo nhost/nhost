@@ -21,12 +21,13 @@ import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function HasuraSettingsPage() {
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
 
   const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     skip: !project,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });

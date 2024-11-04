@@ -15,7 +15,6 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -51,13 +50,13 @@ const validationSchema = Yup.object({
 export type AzureADProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AzureADProviderSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
-  const { project } = useProject();
+  const localMimirClient = useLocalMimirClient();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSignInMethodsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -214,7 +213,7 @@ export default function AzureADProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

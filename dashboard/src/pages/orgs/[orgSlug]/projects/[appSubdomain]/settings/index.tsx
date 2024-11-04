@@ -19,7 +19,6 @@ import {
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
@@ -89,28 +88,17 @@ export default function SettingsGeneralPage() {
       },
     });
 
-    try {
-      const { data: updateAppData } = await execPromiseWithErrorToast(
-        async () => updateAppMutation,
-        {
-          loadingMessage: `Project name is being updated...`,
-          successMessage: `Project name has been updated successfully.`,
-          errorMessage: `An error occurred while trying to update project name.`,
-        },
-      );
-
-      const updateAppResult = updateAppData?.updateApp;
-
-      if (!updateAppResult) {
-        await discordAnnounce('Failed to update project name.');
-
-        return;
-      }
-
-      form.reset(undefined, { keepValues: true, keepDirty: false });
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateAppMutation;
+        form.reset({ name: data.name });
+      },
+      {
+        loadingMessage: `Project name is being updated...`,
+        successMessage: `Project name has been updated successfully.`,
+        errorMessage: `An error occurred while trying to update project name.`,
+      },
+    );
   }
 
   async function handleDeleteApplication() {

@@ -6,7 +6,6 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
-  GetAuthenticationSettingsDocument,
   Software_Type_Enum,
   useGetAuthenticationSettingsQuery,
   useGetSoftwareVersionsQuery,
@@ -34,13 +33,13 @@ export type AuthServiceVersionFormValues = Yup.InferType<
 >;
 
 export default function AuthServiceVersionSettings() {
-  const { openDialog } = useDialog();
-  const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
-  const { maintenanceActive } = useUI();
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
+  const { openDialog } = useDialog();
+  const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetAuthenticationSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -154,7 +153,7 @@ export default function AuthServiceVersionSettings() {
           }}
           docsLink="https://github.com/nhost/hasura-auth/releases"
           docsTitle="the latest releases"
-          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="version"

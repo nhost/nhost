@@ -11,7 +11,6 @@ import {
 } from '@/features/orgs/projects/permissions/settings/components/BasePermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import {
-  GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
@@ -35,12 +34,14 @@ export default function CreatePermissionVariableForm({
   onSubmit,
   ...props
 }: CreatePermissionVariableFormProps) {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+
   const { data, error, loading } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -57,7 +58,6 @@ export default function CreatePermissionVariableForm({
   });
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetRolesPermissionsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
