@@ -5,9 +5,7 @@ import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { ContactPointsSettings } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings';
-import { MetricsAlertingSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsAlertingSettings';
-import { MetricsSMTPSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSMTPSettings';
+import { MetricsSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSettings';
 import { useGetObservabilitySettingsQuery } from '@/generated/graphql';
 import type { ReactElement } from 'react';
 
@@ -40,9 +38,7 @@ export default function MetricsSettingsPage() {
       className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
       rootClassName="bg-transparent"
     >
-      <MetricsAlertingSettings />
-      <MetricsSMTPSettings />
-      <ContactPointsSettings />
+      <MetricsSettings />
     </Container>
   );
 }
