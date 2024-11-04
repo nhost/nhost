@@ -8,7 +8,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ContactPointsSettings } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings';
 import { MetricsAlertingSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsAlertingSettings';
 import { MetricsSMTPSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSMTPSettings';
-import { useGetStorageSettingsQuery } from '@/generated/graphql';
+import { useGetObservabilitySettingsQuery } from '@/generated/graphql';
 import type { ReactElement } from 'react';
 
 export default function MetricsSettingsPage() {
@@ -16,9 +16,8 @@ export default function MetricsSettingsPage() {
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
-  const { loading, error } = useGetStorageSettingsQuery({
+  const { loading, error } = useGetObservabilitySettingsQuery({
     variables: { appId: project?.id },
-    skip: !project,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -38,7 +37,7 @@ export default function MetricsSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
+      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
       rootClassName="bg-transparent"
     >
       <MetricsAlertingSettings />
