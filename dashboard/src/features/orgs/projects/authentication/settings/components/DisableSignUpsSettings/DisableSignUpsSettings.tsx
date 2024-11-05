@@ -105,10 +105,10 @@ export default function DisableSignUpsSettings() {
         }
       },
       {
-        loadingMessage: 'Disabling new user sign ups...',
-        successMessage: 'New user sign ups have been disabled successfully.',
+        loadingMessage: 'Disabling new users sign ups...',
+        successMessage: 'New users sign ups have been disabled successfully.',
         errorMessage:
-          'An error occurred while trying to disable new user sign ups.',
+          'An error occurred while trying to disable new users sign ups.',
       },
     );
   };

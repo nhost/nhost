@@ -104,10 +104,10 @@ export default function DisableNewUsersSettings() {
         }
       },
       {
-        loadingMessage: 'Disabling new user sign ins...',
-        successMessage: 'New user sign ins have been disabled successfully.',
+        loadingMessage: 'Disabling new users sign ins...',
+        successMessage: 'New users sign ins have been disabled successfully.',
         errorMessage:
-          'An error occurred while trying to disable new user sign ins.',
+          'An error occurred while trying to disable new users sign ins.',
       },
     );
   };
