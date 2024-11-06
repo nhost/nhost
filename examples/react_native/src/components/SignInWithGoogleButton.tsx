@@ -14,31 +14,48 @@ import {
   type OneTapUser,
 } from '@react-native-google-signin/google-signin';
 
+import {sha256, sha256Bytes} from 'react-native-sha256';
+
 GoogleOneTapSignIn.configure({
-  webClientId: 'xxx.apps.googleusercontent.com',
+  webClientId:
+    '936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com',
 });
 
 export default function SignInWithGoogleButton() {
   const [response, setResponse] = useState<OneTapUser | null>(null);
 
-  const generateNonce = async () => {
-    return new Promise((resolve, reject) => {
-      RNRandomBytes.randomBytes(16, (err: any, bytes: any) => {
-        if (err) {
-          return reject(err);
-        }
-
-        return resolve(bytes);
+  const generateNonce = async (): Promise<{
+    nonce: string;
+    hashedNonce: string;
+  }> => {
+    try {
+      const bytes = await new Promise<string>((resolve, reject) => {
+        RNRandomBytes.randomBytes(16, (err: Error | null, bytes: string) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(bytes);
+          }
+        });
       });
-    });
+
+      const hashedNonce = await sha256(bytes);
+
+      return {
+        nonce: bytes,
+        hashedNonce,
+      };
+    } catch (error) {
+      throw new Error(`Failed to generate nonce: ${(error as Error).message}`);
+    }
   };
 
   const handleSignInWithGoogle = async () => {
-    const nonce = (await generateNonce()) as string;
+    // const {nonce, hashedNonce} = await generateNonce();
 
     try {
       await GoogleOneTapSignIn.checkPlayServices();
-      const response = await GoogleOneTapSignIn.signIn({nonce});
+      const response = await GoogleOneTapSignIn.signIn();
 
       if (isSuccessResponse(response)) {
         // read user's info
