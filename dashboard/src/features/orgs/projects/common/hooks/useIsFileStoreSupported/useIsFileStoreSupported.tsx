@@ -35,8 +35,7 @@ export default function useIsFileStoreSupported() {
   }, [data, loading]);
 
   return {
-    // isFileStoreSupported,
-    isFileStoreSupported: true,
+    isFileStoreSupported,
     version: data?.config?.ai?.version,
     loading,
     error,
