@@ -151,8 +151,8 @@ const projectSettingsPages = [
     route: 'rate-limiting',
   },
   { name: 'AI', slug: 'ai', route: 'ai' },
-  { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
   { name: 'Observability', slug: 'metrics', route: 'metrics' },
+  { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ];
 
 const createOrganization = (org: Org, isPlatform: boolean) => {
