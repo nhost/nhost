@@ -7882,6 +7882,7 @@ export type Billing_Reports = {
   pending: Scalars['Boolean'];
   reportEnds: Scalars['timestamptz'];
   reportStarts: Scalars['timestamptz'];
+  stripeSubscriptionID: Scalars['String'];
   type: Billing_Report_Type_Enum;
   updatedAt: Scalars['timestamptz'];
   value: Scalars['Int'];
@@ -7989,6 +7990,7 @@ export type Billing_Reports_Bool_Exp = {
   pending?: InputMaybe<Boolean_Comparison_Exp>;
   reportEnds?: InputMaybe<Timestamptz_Comparison_Exp>;
   reportStarts?: InputMaybe<Timestamptz_Comparison_Exp>;
+  stripeSubscriptionID?: InputMaybe<String_Comparison_Exp>;
   type?: InputMaybe<Billing_Report_Type_Enum_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   value?: InputMaybe<Int_Comparison_Exp>;
@@ -8018,6 +8020,7 @@ export type Billing_Reports_Insert_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
   type?: InputMaybe<Billing_Report_Type_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8032,6 +8035,7 @@ export type Billing_Reports_Max_Fields = {
   organizationID?: Maybe<Scalars['uuid']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   value?: Maybe<Scalars['Int']>;
 };
@@ -8044,6 +8048,7 @@ export type Billing_Reports_Max_Order_By = {
   organizationID?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
+  stripeSubscriptionID?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
@@ -8057,6 +8062,7 @@ export type Billing_Reports_Min_Fields = {
   organizationID?: Maybe<Scalars['uuid']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   value?: Maybe<Scalars['Int']>;
 };
@@ -8069,6 +8075,7 @@ export type Billing_Reports_Min_Order_By = {
   organizationID?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
+  stripeSubscriptionID?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
@@ -8098,6 +8105,7 @@ export type Billing_Reports_Order_By = {
   pending?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
+  stripeSubscriptionID?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
@@ -8118,6 +8126,7 @@ export type Billing_Reports_Resources = {
   pending: Scalars['Boolean'];
   report_ends: Scalars['timestamptz'];
   report_starts: Scalars['timestamptz'];
+  stripeSubscriptionID: Scalars['String'];
   type: Billing_Report_Resource_Type_Enum;
   updated_at: Scalars['timestamptz'];
   value: Scalars['Int'];
@@ -8171,6 +8180,7 @@ export type Billing_Reports_Resources_Bool_Exp = {
   pending?: InputMaybe<Boolean_Comparison_Exp>;
   report_ends?: InputMaybe<Timestamptz_Comparison_Exp>;
   report_starts?: InputMaybe<Timestamptz_Comparison_Exp>;
+  stripeSubscriptionID?: InputMaybe<String_Comparison_Exp>;
   type?: InputMaybe<Billing_Report_Resource_Type_Enum_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   value?: InputMaybe<Int_Comparison_Exp>;
@@ -8196,6 +8206,7 @@ export type Billing_Reports_Resources_Insert_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   report_ends?: InputMaybe<Scalars['timestamptz']>;
   report_starts?: InputMaybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
   type?: InputMaybe<Billing_Report_Resource_Type_Enum>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8210,6 +8221,7 @@ export type Billing_Reports_Resources_Max_Fields = {
   organization_id?: Maybe<Scalars['uuid']>;
   report_ends?: Maybe<Scalars['timestamptz']>;
   report_starts?: Maybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: Maybe<Scalars['String']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
   value?: Maybe<Scalars['Int']>;
 };
@@ -8223,6 +8235,7 @@ export type Billing_Reports_Resources_Min_Fields = {
   organization_id?: Maybe<Scalars['uuid']>;
   report_ends?: Maybe<Scalars['timestamptz']>;
   report_starts?: Maybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: Maybe<Scalars['String']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
   value?: Maybe<Scalars['Int']>;
 };
@@ -8252,6 +8265,7 @@ export type Billing_Reports_Resources_Order_By = {
   pending?: InputMaybe<Order_By>;
   report_ends?: InputMaybe<Order_By>;
   report_starts?: InputMaybe<Order_By>;
+  stripeSubscriptionID?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
@@ -8279,6 +8293,8 @@ export enum Billing_Reports_Resources_Select_Column {
   /** column name */
   ReportStarts = 'report_starts',
   /** column name */
+  StripeSubscriptionId = 'stripeSubscriptionID',
+  /** column name */
   Type = 'type',
   /** column name */
   UpdatedAt = 'updated_at',
@@ -8295,6 +8311,7 @@ export type Billing_Reports_Resources_Set_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   report_ends?: InputMaybe<Scalars['timestamptz']>;
   report_starts?: InputMaybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
   type?: InputMaybe<Billing_Report_Resource_Type_Enum>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8335,6 +8352,7 @@ export type Billing_Reports_Resources_Stream_Cursor_Value_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   report_ends?: InputMaybe<Scalars['timestamptz']>;
   report_starts?: InputMaybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
   type?: InputMaybe<Billing_Report_Resource_Type_Enum>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8362,6 +8380,8 @@ export enum Billing_Reports_Resources_Update_Column {
   ReportEnds = 'report_ends',
   /** column name */
   ReportStarts = 'report_starts',
+  /** column name */
+  StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
   Type = 'type',
   /** column name */
@@ -8414,6 +8434,8 @@ export enum Billing_Reports_Select_Column {
   /** column name */
   ReportStarts = 'reportStarts',
   /** column name */
+  StripeSubscriptionId = 'stripeSubscriptionID',
+  /** column name */
   Type = 'type',
   /** column name */
   UpdatedAt = 'updatedAt',
@@ -8442,6 +8464,7 @@ export type Billing_Reports_Set_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
   type?: InputMaybe<Billing_Report_Type_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8497,6 +8520,7 @@ export type Billing_Reports_Stream_Cursor_Value_Input = {
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
   type?: InputMaybe<Billing_Report_Type_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   value?: InputMaybe<Scalars['Int']>;
@@ -8529,6 +8553,8 @@ export enum Billing_Reports_Update_Column {
   ReportEnds = 'reportEnds',
   /** column name */
   ReportStarts = 'reportStarts',
+  /** column name */
+  StripeSubscriptionId = 'stripeSubscriptionID',
   /** column name */
   Type = 'type',
   /** column name */

@@ -12,14 +12,12 @@ import { AssistantForm } from '@/features/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/ai/DeleteAssistantModal';
 import { copy } from '@/utils/copy';
 import { type Assistant } from 'pages/[workspaceSlug]/[appSlug]/ai/assistants';
-import { type GraphiteFileStore } from 'pages/[workspaceSlug]/[appSlug]/ai/file-stores';
 
 interface AssistantsListProps {
   /**
    * The list of assistants.
    */
   assistants: Assistant[];
-  fileStores?: GraphiteFileStore[];
 
   /**
    * Function to be called after a submitting the form for either creating or updating an assistant.
@@ -37,7 +35,6 @@ interface AssistantsListProps {
 
 export default function AssistantsList({
   assistants,
-  fileStores,
   onCreateOrUpdate,
   onDelete,
 }: AssistantsListProps) {
@@ -52,7 +49,6 @@ export default function AssistantsList({
           initialData={{
             ...assistant,
           }}
-          fileStores={fileStores}
           onSubmit={() => onCreateOrUpdate()}
         />
       ),

@@ -11,16 +11,22 @@ import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/orgs/projects/ai/DeleteAssistantModal';
 import { type Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
+import { type GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { copy } from '@/utils/copy';
 
 interface AssistantsListProps {
   /**
-   * The run services fetched from entering the users page.
+   * The list of assistants 
    */
   assistants: Assistant[];
 
   /**
-   * Function to be called after a submitting the form for either creating or updating a service.
+   * The list of file stores
+   */
+  fileStores: GraphiteFileStore[];
+
+  /**
+   * Function to be called after a submitting the form for either creating or updating an assistant.
    *
    * @example onDelete={() => refetch()}
    */
@@ -35,6 +41,7 @@ interface AssistantsListProps {
 
 export default function AssistantsList({
   assistants,
+  fileStores,
   onCreateOrUpdate,
   onDelete,
 }: AssistantsListProps) {
@@ -49,6 +56,7 @@ export default function AssistantsList({
           initialData={{
             ...assistant,
           }}
+          fileStores={fileStores}
           onSubmit={() => onCreateOrUpdate()}
         />
       ),

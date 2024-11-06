@@ -10,7 +10,8 @@ export default function useIsGraphiteEnabled() {
   });
 
   return {
-    isGraphiteEnabled: !error,
+    // isGraphiteEnabled: !error,
+    isGraphiteEnabled: true,
     loading,
   };
 }

@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useDeleteFileStoreMutation } from '@/utils/__generated__/graphite.graphql';
-import { type GraphiteFileStore } from 'pages/[workspaceSlug]/[appSlug]/ai/file-stores';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { type GraphiteFileStore } from '@pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 

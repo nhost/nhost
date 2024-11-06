@@ -122,13 +122,6 @@ export default function AISidebar({ className, ...props }: AISidebarProps) {
             <AINavLink href="/assistants" exact={false} onClick={handleSelect}>
               Assistants
             </AINavLink>
-              <AINavLink
-                href="/file-stores"
-                exact={false}
-                onClick={handleSelect}
-              >
-                File Stores
-              </AINavLink>
           </List>
         </nav>
       </Box>

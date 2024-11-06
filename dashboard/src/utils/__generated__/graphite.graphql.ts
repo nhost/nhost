@@ -4716,8 +4716,6 @@ export type Apps = {
   /** An object relationship */
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** An object relationship */
-  billingDedicatedComputeReports?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** An object relationship */
   billingSubscriptions?: Maybe<Billing_Subscriptions>;
   config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
@@ -4742,6 +4740,10 @@ export type Apps = {
   id: Scalars['uuid'];
   isLocked?: Maybe<Scalars['Boolean']>;
   isLockedReason?: Maybe<Scalars['String']>;
+  /** An object relationship */
+  legacyPlan?: Maybe<Plans>;
+  legacyPlanID?: Maybe<Scalars['uuid']>;
+  legacyStripeSubscriptionId?: Maybe<Scalars['String']>;
   metadataFunctions: Scalars['jsonb'];
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
@@ -4749,8 +4751,8 @@ export type Apps = {
   name: Scalars['String'];
   nhostBaseFolder: Scalars['String'];
   /** An object relationship */
-  plan: Plans;
-  planId: Scalars['uuid'];
+  organization?: Maybe<Organizations>;
+  organizationID?: Maybe<Scalars['uuid']>;
   /** An object relationship */
   region: Regions;
   regionId: Scalars['uuid'];
@@ -4761,13 +4763,12 @@ export type Apps = {
   runServices_aggregate: Run_Service_Aggregate;
   slug: Scalars['String'];
   stateMatch?: Maybe<Scalars['Boolean']>;
-  stripeSubscriptionId?: Maybe<Scalars['String']>;
   subdomain: Scalars['String'];
   systemConfig?: Maybe<ConfigSystemConfig>;
   updatedAt: Scalars['timestamptz'];
   /** An object relationship */
-  workspace: Workspaces;
-  workspaceId: Scalars['uuid'];
+  workspace?: Maybe<Workspaces>;
+  workspaceId?: Maybe<Scalars['uuid']>;
 };
 
 
@@ -4989,7 +4990,6 @@ export type Apps_Bool_Exp = {
   backups?: InputMaybe<Backups_Bool_Exp>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Bool_Exp>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
-  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
   billingSubscriptions?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creator?: InputMaybe<Users_Bool_Exp>;
@@ -5006,14 +5006,17 @@ export type Apps_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isLocked?: InputMaybe<Boolean_Comparison_Exp>;
   isLockedReason?: InputMaybe<String_Comparison_Exp>;
+  legacyPlan?: InputMaybe<Plans_Bool_Exp>;
+  legacyPlanID?: InputMaybe<Uuid_Comparison_Exp>;
+  legacyStripeSubscriptionId?: InputMaybe<String_Comparison_Exp>;
   metadataFunctions?: InputMaybe<Jsonb_Comparison_Exp>;
   mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
   mimirSecretsEnc?: InputMaybe<String_Comparison_Exp>;
   mimirSystemConfigEnc?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   nhostBaseFolder?: InputMaybe<String_Comparison_Exp>;
-  plan?: InputMaybe<Plans_Bool_Exp>;
-  planId?: InputMaybe<Uuid_Comparison_Exp>;
+  organization?: InputMaybe<Organizations_Bool_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   region?: InputMaybe<Regions_Bool_Exp>;
   regionId?: InputMaybe<Uuid_Comparison_Exp>;
   repositoryProductionBranch?: InputMaybe<String_Comparison_Exp>;
@@ -5021,7 +5024,6 @@ export type Apps_Bool_Exp = {
   runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Bool_Exp>;
   slug?: InputMaybe<String_Comparison_Exp>;
   stateMatch?: InputMaybe<Boolean_Comparison_Exp>;
-  stripeSubscriptionId?: InputMaybe<String_Comparison_Exp>;
   subdomain?: InputMaybe<String_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   workspace?: InputMaybe<Workspaces_Bool_Exp>;
@@ -5064,7 +5066,6 @@ export type Apps_Insert_Input = {
   appStates?: InputMaybe<AppStateHistory_Arr_Rel_Insert_Input>;
   backups?: InputMaybe<Backups_Arr_Rel_Insert_Input>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Obj_Rel_Insert_Input>;
-  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Obj_Rel_Insert_Input>;
   billingSubscriptions?: InputMaybe<Billing_Subscriptions_Obj_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
@@ -5079,20 +5080,22 @@ export type Apps_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   isLocked?: InputMaybe<Scalars['Boolean']>;
   isLockedReason?: InputMaybe<Scalars['String']>;
+  legacyPlan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
+  legacyPlanID?: InputMaybe<Scalars['uuid']>;
+  legacyStripeSubscriptionId?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
-  planId?: InputMaybe<Scalars['uuid']>;
+  organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   runServices?: InputMaybe<Run_Service_Arr_Rel_Insert_Input>;
   slug?: InputMaybe<Scalars['String']>;
-  stripeSubscriptionId?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   workspace?: InputMaybe<Workspaces_Obj_Rel_Insert_Input>;
@@ -5109,16 +5112,17 @@ export type Apps_Max_Fields = {
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   isLockedReason?: Maybe<Scalars['String']>;
+  legacyPlanID?: Maybe<Scalars['uuid']>;
+  legacyStripeSubscriptionId?: Maybe<Scalars['String']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
-  planId?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
-  stripeSubscriptionId?: Maybe<Scalars['String']>;
   subdomain?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   workspaceId?: Maybe<Scalars['uuid']>;
@@ -5133,16 +5137,17 @@ export type Apps_Max_Order_By = {
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
+  legacyPlanID?: InputMaybe<Order_By>;
+  legacyStripeSubscriptionId?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
-  planId?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
-  stripeSubscriptionId?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   workspaceId?: InputMaybe<Order_By>;
@@ -5158,16 +5163,17 @@ export type Apps_Min_Fields = {
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   isLockedReason?: Maybe<Scalars['String']>;
+  legacyPlanID?: Maybe<Scalars['uuid']>;
+  legacyStripeSubscriptionId?: Maybe<Scalars['String']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
-  planId?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
-  stripeSubscriptionId?: Maybe<Scalars['String']>;
   subdomain?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   workspaceId?: Maybe<Scalars['uuid']>;
@@ -5182,16 +5188,17 @@ export type Apps_Min_Order_By = {
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
+  legacyPlanID?: InputMaybe<Order_By>;
+  legacyStripeSubscriptionId?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
-  planId?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
-  stripeSubscriptionId?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   workspaceId?: InputMaybe<Order_By>;
@@ -5225,7 +5232,6 @@ export type Apps_Order_By = {
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Order_By>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Order_By>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Order_By>;
-  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Order_By>;
   billingSubscriptions?: InputMaybe<Billing_Subscriptions_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   creator?: InputMaybe<Users_Order_By>;
@@ -5240,21 +5246,23 @@ export type Apps_Order_By = {
   id?: InputMaybe<Order_By>;
   isLocked?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
+  legacyPlan?: InputMaybe<Plans_Order_By>;
+  legacyPlanID?: InputMaybe<Order_By>;
+  legacyStripeSubscriptionId?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
-  plan?: InputMaybe<Plans_Order_By>;
-  planId?: InputMaybe<Order_By>;
+  organization?: InputMaybe<Organizations_Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   region?: InputMaybe<Regions_Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Order_By>;
   slug?: InputMaybe<Order_By>;
   stateMatch?: InputMaybe<Order_By>;
-  stripeSubscriptionId?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   workspace?: InputMaybe<Workspaces_Order_By>;
@@ -5290,6 +5298,10 @@ export enum Apps_Select_Column {
   /** column name */
   IsLockedReason = 'isLockedReason',
   /** column name */
+  LegacyPlanId = 'legacyPlanID',
+  /** column name */
+  LegacyStripeSubscriptionId = 'legacyStripeSubscriptionId',
+  /** column name */
   MetadataFunctions = 'metadataFunctions',
   /** column name */
   MimirConfigEnc = 'mimirConfigEnc',
@@ -5302,7 +5314,7 @@ export enum Apps_Select_Column {
   /** column name */
   NhostBaseFolder = 'nhostBaseFolder',
   /** column name */
-  PlanId = 'planId',
+  OrganizationId = 'organizationID',
   /** column name */
   RegionId = 'regionId',
   /** column name */
@@ -5311,8 +5323,6 @@ export enum Apps_Select_Column {
   Slug = 'slug',
   /** column name */
   StateMatch = 'stateMatch',
-  /** column name */
-  StripeSubscriptionId = 'stripeSubscriptionId',
   /** column name */
   Subdomain = 'subdomain',
   /** column name */
@@ -5347,17 +5357,18 @@ export type Apps_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   isLocked?: InputMaybe<Scalars['Boolean']>;
   isLockedReason?: InputMaybe<Scalars['String']>;
+  legacyPlanID?: InputMaybe<Scalars['uuid']>;
+  legacyStripeSubscriptionId?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  planId?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
-  stripeSubscriptionId?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   workspaceId?: InputMaybe<Scalars['uuid']>;
@@ -5420,18 +5431,19 @@ export type Apps_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   isLocked?: InputMaybe<Scalars['Boolean']>;
   isLockedReason?: InputMaybe<Scalars['String']>;
+  legacyPlanID?: InputMaybe<Scalars['uuid']>;
+  legacyStripeSubscriptionId?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  planId?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
   stateMatch?: InputMaybe<Scalars['Boolean']>;
-  stripeSubscriptionId?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   workspaceId?: InputMaybe<Scalars['uuid']>;
@@ -5469,6 +5481,10 @@ export enum Apps_Update_Column {
   /** column name */
   IsLockedReason = 'isLockedReason',
   /** column name */
+  LegacyPlanId = 'legacyPlanID',
+  /** column name */
+  LegacyStripeSubscriptionId = 'legacyStripeSubscriptionId',
+  /** column name */
   MetadataFunctions = 'metadataFunctions',
   /** column name */
   MimirConfigEnc = 'mimirConfigEnc',
@@ -5481,15 +5497,13 @@ export enum Apps_Update_Column {
   /** column name */
   NhostBaseFolder = 'nhostBaseFolder',
   /** column name */
-  PlanId = 'planId',
+  OrganizationId = 'organizationID',
   /** column name */
   RegionId = 'regionId',
   /** column name */
   RepositoryProductionBranch = 'repositoryProductionBranch',
   /** column name */
   Slug = 'slug',
-  /** column name */
-  StripeSubscriptionId = 'stripeSubscriptionId',
   /** column name */
   Subdomain = 'subdomain',
   /** column name */
@@ -7950,6 +7964,7 @@ export type Billing_Dedicated_Compute = {
   appID: Scalars['uuid'];
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
@@ -7999,6 +8014,7 @@ export type Billing_Dedicated_Compute_Bool_Exp = {
   appID?: InputMaybe<Uuid_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   totalMillicores?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -8022,6 +8038,7 @@ export type Billing_Dedicated_Compute_Insert_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -8032,6 +8049,7 @@ export type Billing_Dedicated_Compute_Max_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -8042,6 +8060,7 @@ export type Billing_Dedicated_Compute_Min_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   totalMillicores?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -8075,6 +8094,7 @@ export type Billing_Dedicated_Compute_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   totalMillicores?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -8082,285 +8102,6 @@ export type Billing_Dedicated_Compute_Order_By = {
 /** primary key columns input for table: billing.dedicated_compute */
 export type Billing_Dedicated_Compute_Pk_Columns_Input = {
   id: Scalars['uuid'];
-};
-
-/** columns and relationships of "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports = {
-  __typename?: 'billing_dedicated_compute_reports';
-  /** An object relationship */
-  app?: Maybe<Apps>;
-  app_id: Scalars['uuid'];
-  created_at: Scalars['timestamptz'];
-  id: Scalars['uuid'];
-  pending: Scalars['Boolean'];
-  report_ends: Scalars['timestamptz'];
-  report_starts: Scalars['timestamptz'];
-  total_millicores: Scalars['Int'];
-  updated_at: Scalars['timestamptz'];
-};
-
-/** aggregated selection of "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Aggregate = {
-  __typename?: 'billing_dedicated_compute_reports_aggregate';
-  aggregate?: Maybe<Billing_Dedicated_Compute_Reports_Aggregate_Fields>;
-  nodes: Array<Billing_Dedicated_Compute_Reports>;
-};
-
-/** aggregate fields of "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Aggregate_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_aggregate_fields';
-  avg?: Maybe<Billing_Dedicated_Compute_Reports_Avg_Fields>;
-  count: Scalars['Int'];
-  max?: Maybe<Billing_Dedicated_Compute_Reports_Max_Fields>;
-  min?: Maybe<Billing_Dedicated_Compute_Reports_Min_Fields>;
-  stddev?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Fields>;
-  stddev_pop?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Samp_Fields>;
-  sum?: Maybe<Billing_Dedicated_Compute_Reports_Sum_Fields>;
-  var_pop?: Maybe<Billing_Dedicated_Compute_Reports_Var_Pop_Fields>;
-  var_samp?: Maybe<Billing_Dedicated_Compute_Reports_Var_Samp_Fields>;
-  variance?: Maybe<Billing_Dedicated_Compute_Reports_Variance_Fields>;
-};
-
-
-/** aggregate fields of "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** aggregate avg on columns */
-export type Billing_Dedicated_Compute_Reports_Avg_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_avg_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** Boolean expression to filter rows from the table "billing.dedicated_compute_reports". All fields are combined with a logical 'AND'. */
-export type Billing_Dedicated_Compute_Reports_Bool_Exp = {
-  _and?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Bool_Exp>>;
-  _not?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-  _or?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Bool_Exp>>;
-  app?: InputMaybe<Apps_Bool_Exp>;
-  app_id?: InputMaybe<Uuid_Comparison_Exp>;
-  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  pending?: InputMaybe<Boolean_Comparison_Exp>;
-  report_ends?: InputMaybe<Timestamptz_Comparison_Exp>;
-  report_starts?: InputMaybe<Timestamptz_Comparison_Exp>;
-  total_millicores?: InputMaybe<Int_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "billing.dedicated_compute_reports" */
-export enum Billing_Dedicated_Compute_Reports_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  DedicatedComputeReportsPkey = 'dedicated_compute_reports_pkey'
-}
-
-/** input type for incrementing numeric columns in table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Inc_Input = {
-  total_millicores?: InputMaybe<Scalars['Int']>;
-};
-
-/** input type for inserting data into table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Insert_Input = {
-  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  pending?: InputMaybe<Scalars['Boolean']>;
-  report_ends?: InputMaybe<Scalars['timestamptz']>;
-  report_starts?: InputMaybe<Scalars['timestamptz']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate max on columns */
-export type Billing_Dedicated_Compute_Reports_Max_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_max_fields';
-  app_id?: Maybe<Scalars['uuid']>;
-  created_at?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  report_ends?: Maybe<Scalars['timestamptz']>;
-  report_starts?: Maybe<Scalars['timestamptz']>;
-  total_millicores?: Maybe<Scalars['Int']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-};
-
-/** aggregate min on columns */
-export type Billing_Dedicated_Compute_Reports_Min_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_min_fields';
-  app_id?: Maybe<Scalars['uuid']>;
-  created_at?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  report_ends?: Maybe<Scalars['timestamptz']>;
-  report_starts?: Maybe<Scalars['timestamptz']>;
-  total_millicores?: Maybe<Scalars['Int']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-};
-
-/** response of any mutation on the table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Mutation_Response = {
-  __typename?: 'billing_dedicated_compute_reports_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Billing_Dedicated_Compute_Reports>;
-};
-
-/** input type for inserting object relation for remote table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Obj_Rel_Insert_Input = {
-  data: Billing_Dedicated_Compute_Reports_Insert_Input;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
-};
-
-/** on_conflict condition type for table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_On_Conflict = {
-  constraint: Billing_Dedicated_Compute_Reports_Constraint;
-  update_columns?: Array<Billing_Dedicated_Compute_Reports_Update_Column>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "billing.dedicated_compute_reports". */
-export type Billing_Dedicated_Compute_Reports_Order_By = {
-  app?: InputMaybe<Apps_Order_By>;
-  app_id?: InputMaybe<Order_By>;
-  created_at?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  pending?: InputMaybe<Order_By>;
-  report_ends?: InputMaybe<Order_By>;
-  report_starts?: InputMaybe<Order_By>;
-  total_millicores?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: billing.dedicated_compute_reports */
-export type Billing_Dedicated_Compute_Reports_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "billing.dedicated_compute_reports" */
-export enum Billing_Dedicated_Compute_Reports_Select_Column {
-  /** column name */
-  AppId = 'app_id',
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Pending = 'pending',
-  /** column name */
-  ReportEnds = 'report_ends',
-  /** column name */
-  ReportStarts = 'report_starts',
-  /** column name */
-  TotalMillicores = 'total_millicores',
-  /** column name */
-  UpdatedAt = 'updated_at'
-}
-
-/** input type for updating data in table "billing.dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Set_Input = {
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  pending?: InputMaybe<Scalars['Boolean']>;
-  report_ends?: InputMaybe<Scalars['timestamptz']>;
-  report_starts?: InputMaybe<Scalars['timestamptz']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate stddev on columns */
-export type Billing_Dedicated_Compute_Reports_Stddev_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_stddev_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_pop on columns */
-export type Billing_Dedicated_Compute_Reports_Stddev_Pop_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_stddev_pop_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_samp on columns */
-export type Billing_Dedicated_Compute_Reports_Stddev_Samp_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_stddev_samp_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** Streaming cursor of the table "billing_dedicated_compute_reports" */
-export type Billing_Dedicated_Compute_Reports_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Billing_Dedicated_Compute_Reports_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Billing_Dedicated_Compute_Reports_Stream_Cursor_Value_Input = {
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  pending?: InputMaybe<Scalars['Boolean']>;
-  report_ends?: InputMaybe<Scalars['timestamptz']>;
-  report_starts?: InputMaybe<Scalars['timestamptz']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate sum on columns */
-export type Billing_Dedicated_Compute_Reports_Sum_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_sum_fields';
-  total_millicores?: Maybe<Scalars['Int']>;
-};
-
-/** update columns of table "billing.dedicated_compute_reports" */
-export enum Billing_Dedicated_Compute_Reports_Update_Column {
-  /** column name */
-  AppId = 'app_id',
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Pending = 'pending',
-  /** column name */
-  ReportEnds = 'report_ends',
-  /** column name */
-  ReportStarts = 'report_starts',
-  /** column name */
-  TotalMillicores = 'total_millicores',
-  /** column name */
-  UpdatedAt = 'updated_at'
-}
-
-export type Billing_Dedicated_Compute_Reports_Updates = {
-  /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
-};
-
-/** aggregate var_pop on columns */
-export type Billing_Dedicated_Compute_Reports_Var_Pop_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_var_pop_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate var_samp on columns */
-export type Billing_Dedicated_Compute_Reports_Var_Samp_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_var_samp_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate variance on columns */
-export type Billing_Dedicated_Compute_Reports_Variance_Fields = {
-  __typename?: 'billing_dedicated_compute_reports_variance_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
 };
 
 /** select columns of table "billing.dedicated_compute" */
@@ -8372,6 +8113,8 @@ export enum Billing_Dedicated_Compute_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
   TotalMillicores = 'totalMillicores',
   /** column name */
   UpdatedAt = 'updatedAt'
@@ -8382,6 +8125,7 @@ export type Billing_Dedicated_Compute_Set_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -8417,6 +8161,7 @@ export type Billing_Dedicated_Compute_Stream_Cursor_Value_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   totalMillicores?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -8435,6 +8180,8 @@ export enum Billing_Dedicated_Compute_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   TotalMillicores = 'totalMillicores',
   /** column name */
@@ -8626,6 +8373,7 @@ export type Billing_Reports = {
   appID: Scalars['uuid'];
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
+  organizationID?: Maybe<Scalars['uuid']>;
   pending: Scalars['Boolean'];
   reportEnds: Scalars['timestamptz'];
   reportStarts: Scalars['timestamptz'];
@@ -8732,6 +8480,7 @@ export type Billing_Reports_Bool_Exp = {
   appID?: InputMaybe<Uuid_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   pending?: InputMaybe<Boolean_Comparison_Exp>;
   reportEnds?: InputMaybe<Timestamptz_Comparison_Exp>;
   reportStarts?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -8746,6 +8495,10 @@ export enum Billing_Reports_Constraint {
   ReportsPkey = 'reports_pkey'
 }
 
+export type Billing_Reports_Delete_Older_Than_Days_Args = {
+  days?: InputMaybe<Scalars['Int']>;
+};
+
 /** input type for incrementing numeric columns in table "billing.reports" */
 export type Billing_Reports_Inc_Input = {
   value?: InputMaybe<Scalars['Int']>;
@@ -8756,6 +8509,7 @@ export type Billing_Reports_Insert_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
@@ -8770,6 +8524,7 @@ export type Billing_Reports_Max_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
@@ -8781,6 +8536,7 @@ export type Billing_Reports_Max_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
@@ -8793,6 +8549,7 @@ export type Billing_Reports_Min_Fields = {
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
@@ -8804,6 +8561,7 @@ export type Billing_Reports_Min_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
@@ -8831,6 +8589,7 @@ export type Billing_Reports_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   pending?: InputMaybe<Order_By>;
   reportEnds?: InputMaybe<Order_By>;
   reportStarts?: InputMaybe<Order_By>;
@@ -8852,6 +8611,8 @@ export enum Billing_Reports_Select_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   Pending = 'pending',
   /** column name */
@@ -8883,6 +8644,7 @@ export type Billing_Reports_Set_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
@@ -8937,6 +8699,7 @@ export type Billing_Reports_Stream_Cursor_Value_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   pending?: InputMaybe<Scalars['Boolean']>;
   reportEnds?: InputMaybe<Scalars['timestamptz']>;
   reportStarts?: InputMaybe<Scalars['timestamptz']>;
@@ -8964,6 +8727,8 @@ export enum Billing_Reports_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   Pending = 'pending',
   /** column name */
@@ -9028,6 +8793,7 @@ export type Billing_Resources = {
   customDomains: Scalars['Int'];
   functionsAmount: Scalars['Int'];
   id: Scalars['uuid'];
+  organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
@@ -9080,6 +8846,7 @@ export type Billing_Resources_Bool_Exp = {
   customDomains?: InputMaybe<Int_Comparison_Exp>;
   functionsAmount?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   persistentVolume?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -9106,6 +8873,7 @@ export type Billing_Resources_Insert_Input = {
   customDomains?: InputMaybe<Scalars['Int']>;
   functionsAmount?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9118,6 +8886,7 @@ export type Billing_Resources_Max_Fields = {
   customDomains?: Maybe<Scalars['Int']>;
   functionsAmount?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -9130,6 +8899,7 @@ export type Billing_Resources_Min_Fields = {
   customDomains?: Maybe<Scalars['Int']>;
   functionsAmount?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -9164,6 +8934,7 @@ export type Billing_Resources_Order_By = {
   customDomains?: InputMaybe<Order_By>;
   functionsAmount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
   persistentVolume?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -9186,6 +8957,8 @@ export enum Billing_Resources_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
   UpdatedAt = 'updatedAt'
@@ -9198,6 +8971,7 @@ export type Billing_Resources_Set_Input = {
   customDomains?: InputMaybe<Scalars['Int']>;
   functionsAmount?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9241,6 +9015,7 @@ export type Billing_Resources_Stream_Cursor_Value_Input = {
   customDomains?: InputMaybe<Scalars['Int']>;
   functionsAmount?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9265,6 +9040,8 @@ export enum Billing_Resources_Update_Column {
   FunctionsAmount = 'functionsAmount',
   /** column name */
   Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
@@ -9302,6 +9079,236 @@ export type Billing_Resources_Variance_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+};
+
+/** columns and relationships of "billing.subscription_items" */
+export type Billing_Subscription_Items = {
+  __typename?: 'billing_subscription_items';
+  created_at: Scalars['timestamptz'];
+  custom_domains: Scalars['String'];
+  dedicated_compute: Scalars['String'];
+  egress: Scalars['String'];
+  functions_amount: Scalars['String'];
+  functions_usage_seconds: Scalars['String'];
+  id: Scalars['uuid'];
+  persistent_volume: Scalars['String'];
+  subscription: Scalars['String'];
+  updated_at: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "billing.subscription_items" */
+export type Billing_Subscription_Items_Aggregate = {
+  __typename?: 'billing_subscription_items_aggregate';
+  aggregate?: Maybe<Billing_Subscription_Items_Aggregate_Fields>;
+  nodes: Array<Billing_Subscription_Items>;
+};
+
+/** aggregate fields of "billing.subscription_items" */
+export type Billing_Subscription_Items_Aggregate_Fields = {
+  __typename?: 'billing_subscription_items_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Billing_Subscription_Items_Max_Fields>;
+  min?: Maybe<Billing_Subscription_Items_Min_Fields>;
+};
+
+
+/** aggregate fields of "billing.subscription_items" */
+export type Billing_Subscription_Items_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "billing.subscription_items". All fields are combined with a logical 'AND'. */
+export type Billing_Subscription_Items_Bool_Exp = {
+  _and?: InputMaybe<Array<Billing_Subscription_Items_Bool_Exp>>;
+  _not?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+  _or?: InputMaybe<Array<Billing_Subscription_Items_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  custom_domains?: InputMaybe<String_Comparison_Exp>;
+  dedicated_compute?: InputMaybe<String_Comparison_Exp>;
+  egress?: InputMaybe<String_Comparison_Exp>;
+  functions_amount?: InputMaybe<String_Comparison_Exp>;
+  functions_usage_seconds?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  persistent_volume?: InputMaybe<String_Comparison_Exp>;
+  subscription?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "billing.subscription_items" */
+export enum Billing_Subscription_Items_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SubscriptionItemsPkey = 'subscription_items_pkey'
+}
+
+/** input type for inserting data into table "billing.subscription_items" */
+export type Billing_Subscription_Items_Insert_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  custom_domains?: InputMaybe<Scalars['String']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions_amount?: InputMaybe<Scalars['String']>;
+  functions_usage_seconds?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistent_volume?: InputMaybe<Scalars['String']>;
+  subscription?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Billing_Subscription_Items_Max_Fields = {
+  __typename?: 'billing_subscription_items_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  custom_domains?: Maybe<Scalars['String']>;
+  dedicated_compute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions_amount?: Maybe<Scalars['String']>;
+  functions_usage_seconds?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  persistent_volume?: Maybe<Scalars['String']>;
+  subscription?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Billing_Subscription_Items_Min_Fields = {
+  __typename?: 'billing_subscription_items_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  custom_domains?: Maybe<Scalars['String']>;
+  dedicated_compute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions_amount?: Maybe<Scalars['String']>;
+  functions_usage_seconds?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  persistent_volume?: Maybe<Scalars['String']>;
+  subscription?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "billing.subscription_items" */
+export type Billing_Subscription_Items_Mutation_Response = {
+  __typename?: 'billing_subscription_items_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Billing_Subscription_Items>;
+};
+
+/** on_conflict condition type for table "billing.subscription_items" */
+export type Billing_Subscription_Items_On_Conflict = {
+  constraint: Billing_Subscription_Items_Constraint;
+  update_columns?: Array<Billing_Subscription_Items_Update_Column>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "billing.subscription_items". */
+export type Billing_Subscription_Items_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  custom_domains?: InputMaybe<Order_By>;
+  dedicated_compute?: InputMaybe<Order_By>;
+  egress?: InputMaybe<Order_By>;
+  functions_amount?: InputMaybe<Order_By>;
+  functions_usage_seconds?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  persistent_volume?: InputMaybe<Order_By>;
+  subscription?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: billing.subscription_items */
+export type Billing_Subscription_Items_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "billing.subscription_items" */
+export enum Billing_Subscription_Items_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  CustomDomains = 'custom_domains',
+  /** column name */
+  DedicatedCompute = 'dedicated_compute',
+  /** column name */
+  Egress = 'egress',
+  /** column name */
+  FunctionsAmount = 'functions_amount',
+  /** column name */
+  FunctionsUsageSeconds = 'functions_usage_seconds',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  PersistentVolume = 'persistent_volume',
+  /** column name */
+  Subscription = 'subscription',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+/** input type for updating data in table "billing.subscription_items" */
+export type Billing_Subscription_Items_Set_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  custom_domains?: InputMaybe<Scalars['String']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions_amount?: InputMaybe<Scalars['String']>;
+  functions_usage_seconds?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistent_volume?: InputMaybe<Scalars['String']>;
+  subscription?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "billing_subscription_items" */
+export type Billing_Subscription_Items_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Billing_Subscription_Items_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Billing_Subscription_Items_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  custom_domains?: InputMaybe<Scalars['String']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions_amount?: InputMaybe<Scalars['String']>;
+  functions_usage_seconds?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistent_volume?: InputMaybe<Scalars['String']>;
+  subscription?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "billing.subscription_items" */
+export enum Billing_Subscription_Items_Update_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  CustomDomains = 'custom_domains',
+  /** column name */
+  DedicatedCompute = 'dedicated_compute',
+  /** column name */
+  Egress = 'egress',
+  /** column name */
+  FunctionsAmount = 'functions_amount',
+  /** column name */
+  FunctionsUsageSeconds = 'functions_usage_seconds',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  PersistentVolume = 'persistent_volume',
+  /** column name */
+  Subscription = 'subscription',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+export type Billing_Subscription_Items_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Billing_Subscription_Items_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Billing_Subscription_Items_Bool_Exp;
 };
 
 /** columns and relationships of "billing.subscriptions" */
@@ -13775,6 +13782,8 @@ export type Mutation_Root = {
   billingUpdatePersistentVolume: Scalars['Boolean'];
   billingUpdateReports: Scalars['Boolean'];
   billingUploadReports: Scalars['Boolean'];
+  /** execute VOLATILE function "billing.reports_delete_older_than_days" which returns "billing.reports" */
+  billing_reports_delete_older_than_days: Array<Billing_Reports>;
   changeDatabaseVersion: Scalars['Boolean'];
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
@@ -13877,6 +13886,22 @@ export type Mutation_Root = {
   deleteGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** delete data from the table: "graphite.auto_embeddings_configuration" */
   deleteGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
+  /** delete single row from the table: "organizations" */
+  deleteOrganization?: Maybe<Organizations>;
+  /** delete single row from the table: "organization_members" */
+  deleteOrganizationMember?: Maybe<Organization_Members>;
+  /** delete single row from the table: "organization_member_invites" */
+  deleteOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  /** delete data from the table: "organization_member_invites" */
+  deleteOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
+  /** delete data from the table: "organization_members" */
+  deleteOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
+  /** delete single row from the table: "organization_new_request" */
+  deleteOrganizationNewRequest?: Maybe<Organization_New_Request>;
+  /** delete data from the table: "organization_new_request" */
+  deleteOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
+  /** delete data from the table: "organizations" */
+  deleteOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** delete single row from the table: "payment_methods" */
   deletePaymentMethod?: Maybe<PaymentMethods>;
   /** delete data from the table: "payment_methods" */
@@ -13885,6 +13910,10 @@ export type Mutation_Root = {
   deletePlan?: Maybe<Plans>;
   /** delete data from the table: "plans" */
   deletePlans?: Maybe<Plans_Mutation_Response>;
+  /** delete single row from the table: "regions_allowed_organization" */
+  deleteRegionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
+  /** delete data from the table: "regions_allowed_organization" */
+  deleteRegionsAllowedOrganizations?: Maybe<Regions_Allowed_Organization_Mutation_Response>;
   /** delete single row from the table: "regions_allowed_workspace" */
   deleteRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** delete data from the table: "regions_allowed_workspace" */
@@ -13907,10 +13936,6 @@ export type Mutation_Root = {
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
   deleteUsers?: Maybe<Users_Mutation_Response>;
-  /** delete single row from the table: "users_usage" */
-  deleteUsersUsage?: Maybe<Users_Usage>;
-  /** delete data from the table: "users_usage" */
-  deleteUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** delete single row from the table: "workspaces" */
   deleteWorkspace?: Maybe<Workspaces>;
   /** delete single row from the table: "workspace_members" */
@@ -13935,6 +13960,10 @@ export type Mutation_Root = {
   delete_billing_report_type?: Maybe<Billing_Report_Type_Mutation_Response>;
   /** delete single row from the table: "billing.report_type" */
   delete_billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
+  /** delete data from the table: "billing.subscription_items" */
+  delete_billing_subscription_items?: Maybe<Billing_Subscription_Items_Mutation_Response>;
+  /** delete single row from the table: "billing.subscription_items" */
+  delete_billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
   /** delete data from the table: "continents" */
   delete_continents?: Maybe<Continents_Mutation_Response>;
   /** delete single row from the table: "continents" */
@@ -13943,6 +13972,18 @@ export type Mutation_Root = {
   delete_countries?: Maybe<Countries_Mutation_Response>;
   /** delete single row from the table: "countries" */
   delete_countries_by_pk?: Maybe<Countries>;
+  /** delete data from the table: "organization_costs_thresholds" */
+  delete_organization_costs_thresholds?: Maybe<Organization_Costs_Thresholds_Mutation_Response>;
+  /** delete single row from the table: "organization_costs_thresholds" */
+  delete_organization_costs_thresholds_by_pk?: Maybe<Organization_Costs_Thresholds>;
+  /** delete data from the table: "organization_members_role" */
+  delete_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
+  /** delete single row from the table: "organization_members_role" */
+  delete_organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  /** delete data from the table: "organization_status" */
+  delete_organization_status?: Maybe<Organization_Status_Mutation_Response>;
+  /** delete single row from the table: "organization_status" */
+  delete_organization_status_by_pk?: Maybe<Organization_Status>;
   /** delete data from the table: "region_type" */
   delete_region_type?: Maybe<Region_Type_Mutation_Response>;
   /** delete single row from the table: "region_type" */
@@ -14053,6 +14094,22 @@ export type Mutation_Root = {
   insertGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** insert data into the table: "graphite.auto_embeddings_configuration" */
   insertGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
+  /** insert a single row into the table: "organizations" */
+  insertOrganization?: Maybe<Organizations>;
+  /** insert a single row into the table: "organization_members" */
+  insertOrganizationMember?: Maybe<Organization_Members>;
+  /** insert a single row into the table: "organization_member_invites" */
+  insertOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  /** insert data into the table: "organization_member_invites" */
+  insertOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
+  /** insert data into the table: "organization_members" */
+  insertOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
+  /** insert a single row into the table: "organization_new_request" */
+  insertOrganizationNewRequest?: Maybe<Organization_New_Request>;
+  /** insert data into the table: "organization_new_request" */
+  insertOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
+  /** insert data into the table: "organizations" */
+  insertOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** insert a single row into the table: "payment_methods" */
   insertPaymentMethod?: Maybe<PaymentMethods>;
   /** insert data into the table: "payment_methods" */
@@ -14061,6 +14118,10 @@ export type Mutation_Root = {
   insertPlan?: Maybe<Plans>;
   /** insert data into the table: "plans" */
   insertPlans?: Maybe<Plans_Mutation_Response>;
+  /** insert a single row into the table: "regions_allowed_organization" */
+  insertRegionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
+  /** insert data into the table: "regions_allowed_organization" */
+  insertRegionsAllowedOrganizations?: Maybe<Regions_Allowed_Organization_Mutation_Response>;
   /** insert a single row into the table: "regions_allowed_workspace" */
   insertRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** insert data into the table: "regions_allowed_workspace" */
@@ -14083,10 +14144,6 @@ export type Mutation_Root = {
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
   insertUsers?: Maybe<Users_Mutation_Response>;
-  /** insert a single row into the table: "users_usage" */
-  insertUsersUsage?: Maybe<Users_Usage>;
-  /** insert data into the table: "users_usage" */
-  insertUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** insert a single row into the table: "workspaces" */
   insertWorkspace?: Maybe<Workspaces>;
   /** insert a single row into the table: "workspace_members" */
@@ -14111,6 +14168,10 @@ export type Mutation_Root = {
   insert_billing_report_type?: Maybe<Billing_Report_Type_Mutation_Response>;
   /** insert a single row into the table: "billing.report_type" */
   insert_billing_report_type_one?: Maybe<Billing_Report_Type>;
+  /** insert data into the table: "billing.subscription_items" */
+  insert_billing_subscription_items?: Maybe<Billing_Subscription_Items_Mutation_Response>;
+  /** insert a single row into the table: "billing.subscription_items" */
+  insert_billing_subscription_items_one?: Maybe<Billing_Subscription_Items>;
   /** insert data into the table: "continents" */
   insert_continents?: Maybe<Continents_Mutation_Response>;
   /** insert a single row into the table: "continents" */
@@ -14119,6 +14180,18 @@ export type Mutation_Root = {
   insert_countries?: Maybe<Countries_Mutation_Response>;
   /** insert a single row into the table: "countries" */
   insert_countries_one?: Maybe<Countries>;
+  /** insert data into the table: "organization_costs_thresholds" */
+  insert_organization_costs_thresholds?: Maybe<Organization_Costs_Thresholds_Mutation_Response>;
+  /** insert a single row into the table: "organization_costs_thresholds" */
+  insert_organization_costs_thresholds_one?: Maybe<Organization_Costs_Thresholds>;
+  /** insert data into the table: "organization_members_role" */
+  insert_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
+  /** insert a single row into the table: "organization_members_role" */
+  insert_organization_members_role_one?: Maybe<Organization_Members_Role>;
+  /** insert data into the table: "organization_status" */
+  insert_organization_status?: Maybe<Organization_Status_Mutation_Response>;
+  /** insert a single row into the table: "organization_status" */
+  insert_organization_status_one?: Maybe<Organization_Status>;
   /** insert data into the table: "region_type" */
   insert_region_type?: Maybe<Region_Type_Mutation_Response>;
   /** insert a single row into the table: "region_type" */
@@ -14127,6 +14200,8 @@ export type Mutation_Root = {
   insert_regions?: Maybe<Regions_Mutation_Response>;
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
+  /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
+  organizationMemberInviteAccept: Array<Organization_Members>;
   pauseAppsExceedUsage: Array<Scalars['String']>;
   pauseInactiveApps: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
@@ -14246,6 +14321,30 @@ export type Mutation_Root = {
   updateManySoftwareType?: Maybe<Array<Maybe<Software_Type_Mutation_Response>>>;
   /** update multiples rows of table: "software_versions" */
   updateManySoftwareVersions?: Maybe<Array<Maybe<Software_Versions_Mutation_Response>>>;
+  /** update single row of the table: "organizations" */
+  updateOrganization?: Maybe<Organizations>;
+  /** update single row of the table: "organization_members" */
+  updateOrganizationMember?: Maybe<Organization_Members>;
+  /** update single row of the table: "organization_member_invites" */
+  updateOrganizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  /** update data of the table: "organization_member_invites" */
+  updateOrganizationMemberInvites?: Maybe<Organization_Member_Invites_Mutation_Response>;
+  /** update multiples rows of table: "organization_member_invites" */
+  updateOrganizationMemberInvitesMany?: Maybe<Array<Maybe<Organization_Member_Invites_Mutation_Response>>>;
+  /** update data of the table: "organization_members" */
+  updateOrganizationMembers?: Maybe<Organization_Members_Mutation_Response>;
+  /** update multiples rows of table: "organization_members" */
+  updateOrganizationMembersMany?: Maybe<Array<Maybe<Organization_Members_Mutation_Response>>>;
+  /** update single row of the table: "organization_new_request" */
+  updateOrganizationNewRequest?: Maybe<Organization_New_Request>;
+  /** update data of the table: "organization_new_request" */
+  updateOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
+  /** update multiples rows of table: "organization_new_request" */
+  updateOrganizationNewRequestsMany?: Maybe<Array<Maybe<Organization_New_Request_Mutation_Response>>>;
+  /** update data of the table: "organizations" */
+  updateOrganizations?: Maybe<Organizations_Mutation_Response>;
+  /** update multiples rows of table: "organizations" */
+  updateOrganizationsMany?: Maybe<Array<Maybe<Organizations_Mutation_Response>>>;
   /** update single row of the table: "payment_methods" */
   updatePaymentMethod?: Maybe<PaymentMethods>;
   /** update data of the table: "payment_methods" */
@@ -14254,6 +14353,12 @@ export type Mutation_Root = {
   updatePlan?: Maybe<Plans>;
   /** update data of the table: "plans" */
   updatePlans?: Maybe<Plans_Mutation_Response>;
+  /** update single row of the table: "regions_allowed_organization" */
+  updateRegionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
+  /** update data of the table: "regions_allowed_organization" */
+  updateRegionsAllowedOrganizations?: Maybe<Regions_Allowed_Organization_Mutation_Response>;
+  /** update multiples rows of table: "regions_allowed_organization" */
+  updateRegionsAllowedOrganizationsMany?: Maybe<Array<Maybe<Regions_Allowed_Organization_Mutation_Response>>>;
   /** update single row of the table: "regions_allowed_workspace" */
   updateRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** update data of the table: "regions_allowed_workspace" */
@@ -14277,10 +14382,6 @@ export type Mutation_Root = {
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
   updateUsers?: Maybe<Users_Mutation_Response>;
-  /** update single row of the table: "users_usage" */
-  updateUsersUsage?: Maybe<Users_Usage>;
-  /** update data of the table: "users_usage" */
-  updateUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** update single row of the table: "workspaces" */
   updateWorkspace?: Maybe<Workspaces>;
   /** update single row of the table: "workspace_members" */
@@ -14337,6 +14438,12 @@ export type Mutation_Root = {
   update_billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
   /** update multiples rows of table: "billing.report_type" */
   update_billing_report_type_many?: Maybe<Array<Maybe<Billing_Report_Type_Mutation_Response>>>;
+  /** update data of the table: "billing.subscription_items" */
+  update_billing_subscription_items?: Maybe<Billing_Subscription_Items_Mutation_Response>;
+  /** update single row of the table: "billing.subscription_items" */
+  update_billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
+  /** update multiples rows of table: "billing.subscription_items" */
+  update_billing_subscription_items_many?: Maybe<Array<Maybe<Billing_Subscription_Items_Mutation_Response>>>;
   /** update multiples rows of table: "storage.buckets" */
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "cli_tokens" */
@@ -14367,6 +14474,24 @@ export type Mutation_Root = {
   update_githubRepositories_many?: Maybe<Array<Maybe<GithubRepositories_Mutation_Response>>>;
   /** update multiples rows of table: "billing.subscriptions" */
   update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
+  /** update data of the table: "organization_costs_thresholds" */
+  update_organization_costs_thresholds?: Maybe<Organization_Costs_Thresholds_Mutation_Response>;
+  /** update single row of the table: "organization_costs_thresholds" */
+  update_organization_costs_thresholds_by_pk?: Maybe<Organization_Costs_Thresholds>;
+  /** update multiples rows of table: "organization_costs_thresholds" */
+  update_organization_costs_thresholds_many?: Maybe<Array<Maybe<Organization_Costs_Thresholds_Mutation_Response>>>;
+  /** update data of the table: "organization_members_role" */
+  update_organization_members_role?: Maybe<Organization_Members_Role_Mutation_Response>;
+  /** update single row of the table: "organization_members_role" */
+  update_organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  /** update multiples rows of table: "organization_members_role" */
+  update_organization_members_role_many?: Maybe<Array<Maybe<Organization_Members_Role_Mutation_Response>>>;
+  /** update data of the table: "organization_status" */
+  update_organization_status?: Maybe<Organization_Status_Mutation_Response>;
+  /** update single row of the table: "organization_status" */
+  update_organization_status_by_pk?: Maybe<Organization_Status>;
+  /** update multiples rows of table: "organization_status" */
+  update_organization_status_many?: Maybe<Array<Maybe<Organization_Status_Mutation_Response>>>;
   /** update multiples rows of table: "payment_methods" */
   update_paymentMethods_many?: Maybe<Array<Maybe<PaymentMethods_Mutation_Response>>>;
   /** update multiples rows of table: "plans" */
@@ -14389,28 +14514,12 @@ export type Mutation_Root = {
   update_run_service_many?: Maybe<Array<Maybe<Run_Service_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
-  /** update multiples rows of table: "users_usage" */
-  update_users_usage_many?: Maybe<Array<Maybe<Users_Usage_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_member_invites" */
   update_workspaceMemberInvites_many?: Maybe<Array<Maybe<WorkspaceMemberInvites_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_members" */
   update_workspaceMembers_many?: Maybe<Array<Maybe<WorkspaceMembers_Mutation_Response>>>;
   /** update multiples rows of table: "workspaces" */
   update_workspaces_many?: Maybe<Array<Maybe<Workspaces_Mutation_Response>>>;
-  /** delete single row from the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_delete_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** delete data from the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_delete_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** insert a single row into the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_insert_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** insert data into the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_insert_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** update single row of the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_update_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** update data of the table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_update_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** update multiples rows of table: "billing.dedicated_compute_reports" */
-  zzzDONOTUSE_update_many_billing_dedicated_compute_reports?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>>>;
 };
 
 
@@ -14760,6 +14869,17 @@ export type Mutation_RootBillingUpdateReportsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootBilling_Reports_Delete_Older_Than_DaysArgs = {
+  args: Billing_Reports_Delete_Older_Than_Days_Args;
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+
+/** mutation root */
 export type Mutation_RootChangeDatabaseVersionArgs = {
   appID: Scalars['uuid'];
   force?: InputMaybe<Scalars['Boolean']>;
@@ -15074,6 +15194,54 @@ export type Mutation_RootDeleteGraphiteAutoEmbeddingsConfigurationsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeleteOrganizationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteOrganizationMemberArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteOrganizationMemberInviteArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteOrganizationMemberInvitesArgs = {
+  where: Organization_Member_Invites_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteOrganizationMembersArgs = {
+  where: Organization_Members_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteOrganizationNewRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteOrganizationNewRequestsArgs = {
+  where: Organization_New_Request_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteOrganizationsArgs = {
+  where: Organizations_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootDeletePaymentMethodArgs = {
   id: Scalars['uuid'];
 };
@@ -15094,6 +15262,18 @@ export type Mutation_RootDeletePlanArgs = {
 /** mutation root */
 export type Mutation_RootDeletePlansArgs = {
   where: Plans_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteRegionsAllowedOrganizationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteRegionsAllowedOrganizationsArgs = {
+  where: Regions_Allowed_Organization_Bool_Exp;
 };
 
 
@@ -15172,18 +15352,6 @@ export type Mutation_RootDeleteUsersArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDeleteUsersUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteUsersUsagesArgs = {
-  where: Users_Usage_Bool_Exp;
-};
-
-
-/** mutation root */
 export type Mutation_RootDeleteWorkspaceArgs = {
   id: Scalars['uuid'];
 };
@@ -15256,6 +15424,18 @@ export type Mutation_RootDelete_Billing_Report_Type_By_PkArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_Billing_Subscription_ItemsArgs = {
+  where: Billing_Subscription_Items_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Billing_Subscription_Items_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDelete_ContinentsArgs = {
   where: Continents_Bool_Exp;
 };
@@ -15276,6 +15456,42 @@ export type Mutation_RootDelete_CountriesArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Countries_By_PkArgs = {
   code: Scalars['bpchar'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Organization_Costs_ThresholdsArgs = {
+  where: Organization_Costs_Thresholds_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Organization_Costs_Thresholds_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Organization_Members_RoleArgs = {
+  where: Organization_Members_Role_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Organization_Members_Role_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Organization_StatusArgs = {
+  where: Organization_Status_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Organization_Status_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
@@ -15663,6 +15879,62 @@ export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertOrganizationArgs = {
+  object: Organizations_Insert_Input;
+  on_conflict?: InputMaybe<Organizations_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertOrganizationMemberArgs = {
+  object: Organization_Members_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertOrganizationMemberInviteArgs = {
+  object: Organization_Member_Invites_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertOrganizationMemberInvitesArgs = {
+  objects: Array<Organization_Member_Invites_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertOrganizationMembersArgs = {
+  objects: Array<Organization_Members_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertOrganizationNewRequestArgs = {
+  object: Organization_New_Request_Insert_Input;
+  on_conflict?: InputMaybe<Organization_New_Request_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertOrganizationNewRequestsArgs = {
+  objects: Array<Organization_New_Request_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_New_Request_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertOrganizationsArgs = {
+  objects: Array<Organizations_Insert_Input>;
+  on_conflict?: InputMaybe<Organizations_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertPaymentMethodArgs = {
   object: PaymentMethods_Insert_Input;
   on_conflict?: InputMaybe<PaymentMethods_On_Conflict>;
@@ -15687,6 +15959,20 @@ export type Mutation_RootInsertPlanArgs = {
 export type Mutation_RootInsertPlansArgs = {
   objects: Array<Plans_Insert_Input>;
   on_conflict?: InputMaybe<Plans_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertRegionsAllowedOrganizationArgs = {
+  object: Regions_Allowed_Organization_Insert_Input;
+  on_conflict?: InputMaybe<Regions_Allowed_Organization_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertRegionsAllowedOrganizationsArgs = {
+  objects: Array<Regions_Allowed_Organization_Insert_Input>;
+  on_conflict?: InputMaybe<Regions_Allowed_Organization_On_Conflict>;
 };
 
 
@@ -15776,20 +16062,6 @@ export type Mutation_RootInsertUsersArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsertUsersUsageArgs = {
-  object: Users_Usage_Insert_Input;
-  on_conflict?: InputMaybe<Users_Usage_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertUsersUsagesArgs = {
-  objects: Array<Users_Usage_Insert_Input>;
-  on_conflict?: InputMaybe<Users_Usage_On_Conflict>;
-};
-
-
-/** mutation root */
 export type Mutation_RootInsertWorkspaceArgs = {
   object: Workspaces_Insert_Input;
   on_conflict?: InputMaybe<Workspaces_On_Conflict>;
@@ -15874,6 +16146,20 @@ export type Mutation_RootInsert_Billing_Report_Type_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsert_Billing_Subscription_ItemsArgs = {
+  objects: Array<Billing_Subscription_Items_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Subscription_Items_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Billing_Subscription_Items_OneArgs = {
+  object: Billing_Subscription_Items_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Subscription_Items_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsert_ContinentsArgs = {
   objects: Array<Continents_Insert_Input>;
   on_conflict?: InputMaybe<Continents_On_Conflict>;
@@ -15902,6 +16188,48 @@ export type Mutation_RootInsert_Countries_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsert_Organization_Costs_ThresholdsArgs = {
+  objects: Array<Organization_Costs_Thresholds_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Costs_Thresholds_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Organization_Costs_Thresholds_OneArgs = {
+  object: Organization_Costs_Thresholds_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Costs_Thresholds_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Organization_Members_RoleArgs = {
+  objects: Array<Organization_Members_Role_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Organization_Members_Role_OneArgs = {
+  object: Organization_Members_Role_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Members_Role_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Organization_StatusArgs = {
+  objects: Array<Organization_Status_Insert_Input>;
+  on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Organization_Status_OneArgs = {
+  object: Organization_Status_Insert_Input;
+  on_conflict?: InputMaybe<Organization_Status_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsert_Region_TypeArgs = {
   objects: Array<Region_Type_Insert_Input>;
   on_conflict?: InputMaybe<Region_Type_On_Conflict>;
@@ -15926,6 +16254,17 @@ export type Mutation_RootInsert_RegionsArgs = {
 export type Mutation_RootInsert_Regions_OneArgs = {
   object: Regions_Insert_Input;
   on_conflict?: InputMaybe<Regions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootOrganizationMemberInviteAcceptArgs = {
+  args: OrganizationMemberInviteAccept_Args;
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
@@ -16424,6 +16763,88 @@ export type Mutation_RootUpdateManySoftwareVersionsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateOrganizationArgs = {
+  _inc?: InputMaybe<Organizations_Inc_Input>;
+  _set?: InputMaybe<Organizations_Set_Input>;
+  pk_columns: Organizations_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationMemberArgs = {
+  _set?: InputMaybe<Organization_Members_Set_Input>;
+  pk_columns: Organization_Members_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationMemberInviteArgs = {
+  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
+  pk_columns: Organization_Member_Invites_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationMemberInvitesArgs = {
+  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
+  where: Organization_Member_Invites_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationMemberInvitesManyArgs = {
+  updates: Array<Organization_Member_Invites_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationMembersArgs = {
+  _set?: InputMaybe<Organization_Members_Set_Input>;
+  where: Organization_Members_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationMembersManyArgs = {
+  updates: Array<Organization_Members_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationNewRequestArgs = {
+  _set?: InputMaybe<Organization_New_Request_Set_Input>;
+  pk_columns: Organization_New_Request_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationNewRequestsArgs = {
+  _set?: InputMaybe<Organization_New_Request_Set_Input>;
+  where: Organization_New_Request_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationNewRequestsManyArgs = {
+  updates: Array<Organization_New_Request_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationsArgs = {
+  _inc?: InputMaybe<Organizations_Inc_Input>;
+  _set?: InputMaybe<Organizations_Set_Input>;
+  where: Organizations_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateOrganizationsManyArgs = {
+  updates: Array<Organizations_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdatePaymentMethodArgs = {
   _inc?: InputMaybe<PaymentMethods_Inc_Input>;
   _set?: InputMaybe<PaymentMethods_Set_Input>;
@@ -16452,6 +16873,26 @@ export type Mutation_RootUpdatePlansArgs = {
   _inc?: InputMaybe<Plans_Inc_Input>;
   _set?: InputMaybe<Plans_Set_Input>;
   where: Plans_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateRegionsAllowedOrganizationArgs = {
+  _set?: InputMaybe<Regions_Allowed_Organization_Set_Input>;
+  pk_columns: Regions_Allowed_Organization_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateRegionsAllowedOrganizationsArgs = {
+  _set?: InputMaybe<Regions_Allowed_Organization_Set_Input>;
+  where: Regions_Allowed_Organization_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateRegionsAllowedOrganizationsManyArgs = {
+  updates: Array<Regions_Allowed_Organization_Updates>;
 };
 
 
@@ -16554,20 +16995,6 @@ export type Mutation_RootUpdateUsersArgs = {
   _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateUsersUsageArgs = {
-  _set?: InputMaybe<Users_Usage_Set_Input>;
-  pk_columns: Users_Usage_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateUsersUsagesArgs = {
-  _set?: InputMaybe<Users_Usage_Set_Input>;
-  where: Users_Usage_Bool_Exp;
 };
 
 
@@ -16754,6 +17181,26 @@ export type Mutation_RootUpdate_Billing_Report_Type_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_Billing_Subscription_ItemsArgs = {
+  _set?: InputMaybe<Billing_Subscription_Items_Set_Input>;
+  where: Billing_Subscription_Items_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Billing_Subscription_Items_By_PkArgs = {
+  _set?: InputMaybe<Billing_Subscription_Items_Set_Input>;
+  pk_columns: Billing_Subscription_Items_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Billing_Subscription_Items_ManyArgs = {
+  updates: Array<Billing_Subscription_Items_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_Buckets_ManyArgs = {
   updates: Array<Buckets_Updates>;
 };
@@ -16850,6 +17297,66 @@ export type Mutation_RootUpdate_Many_Billing_SubscriptionsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_Organization_Costs_ThresholdsArgs = {
+  _set?: InputMaybe<Organization_Costs_Thresholds_Set_Input>;
+  where: Organization_Costs_Thresholds_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Costs_Thresholds_By_PkArgs = {
+  _set?: InputMaybe<Organization_Costs_Thresholds_Set_Input>;
+  pk_columns: Organization_Costs_Thresholds_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Costs_Thresholds_ManyArgs = {
+  updates: Array<Organization_Costs_Thresholds_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Members_RoleArgs = {
+  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
+  where: Organization_Members_Role_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Members_Role_By_PkArgs = {
+  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
+  pk_columns: Organization_Members_Role_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Members_Role_ManyArgs = {
+  updates: Array<Organization_Members_Role_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_StatusArgs = {
+  _set?: InputMaybe<Organization_Status_Set_Input>;
+  where: Organization_Status_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Status_By_PkArgs = {
+  _set?: InputMaybe<Organization_Status_Set_Input>;
+  pk_columns: Organization_Status_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Organization_Status_ManyArgs = {
+  updates: Array<Organization_Status_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_PaymentMethods_ManyArgs = {
   updates: Array<PaymentMethods_Updates>;
 };
@@ -16920,12 +17427,6 @@ export type Mutation_RootUpdate_Users_ManyArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Users_Usage_ManyArgs = {
-  updates: Array<Users_Usage_Updates>;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdate_WorkspaceMemberInvites_ManyArgs = {
   updates: Array<WorkspaceMemberInvites_Updates>;
 };
@@ -16940,54 +17441,6 @@ export type Mutation_RootUpdate_WorkspaceMembers_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Workspaces_ManyArgs = {
   updates: Array<Workspaces_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportsArgs = {
-  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_Compute_ReportArgs = {
-  object: Billing_Dedicated_Compute_Reports_Insert_Input;
-  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_Compute_ReportsArgs = {
-  objects: Array<Billing_Dedicated_Compute_Reports_Insert_Input>;
-  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_Compute_ReportArgs = {
-  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
-  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
-  pk_columns: Billing_Dedicated_Compute_Reports_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_Compute_ReportsArgs = {
-  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
-  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
-  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Many_Billing_Dedicated_Compute_ReportsArgs = {
-  updates: Array<Billing_Dedicated_Compute_Reports_Updates>;
 };
 
 /** column ordering options */
@@ -17005,6 +17458,1686 @@ export enum Order_By {
   /** in descending order, nulls last */
   DescNullsLast = 'desc_nulls_last'
 }
+
+export type OrganizationMemberInviteAccept_Args = {
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** columns and relationships of "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds = {
+  __typename?: 'organization_costs_thresholds';
+  comment?: Maybe<Scalars['String']>;
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Aggregate = {
+  __typename?: 'organization_costs_thresholds_aggregate';
+  aggregate?: Maybe<Organization_Costs_Thresholds_Aggregate_Fields>;
+  nodes: Array<Organization_Costs_Thresholds>;
+};
+
+/** aggregate fields of "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Aggregate_Fields = {
+  __typename?: 'organization_costs_thresholds_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Organization_Costs_Thresholds_Max_Fields>;
+  min?: Maybe<Organization_Costs_Thresholds_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "organization_costs_thresholds". All fields are combined with a logical 'AND'. */
+export type Organization_Costs_Thresholds_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Costs_Thresholds_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Costs_Thresholds_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_costs_thresholds" */
+export enum Organization_Costs_Thresholds_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  OrganizationCostsThresholdsPkey = 'organization_costs_thresholds_pkey'
+}
+
+export enum Organization_Costs_Thresholds_Enum {
+  /** No threshold reached */
+  None = 'NONE',
+  /** 75% of cost usage reached */
+  Percent_075 = 'PERCENT_075',
+  /** 90% of cost usage reached */
+  Percent_090 = 'PERCENT_090',
+  /** 100% of cost usage reached */
+  Percent_100 = 'PERCENT_100'
+}
+
+/** Boolean expression to compare columns of type "organization_costs_thresholds_enum". All fields are combined with logical 'AND'. */
+export type Organization_Costs_Thresholds_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Organization_Costs_Thresholds_Enum>;
+  _in?: InputMaybe<Array<Organization_Costs_Thresholds_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Organization_Costs_Thresholds_Enum>;
+  _nin?: InputMaybe<Array<Organization_Costs_Thresholds_Enum>>;
+};
+
+/** input type for inserting data into table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Organization_Costs_Thresholds_Max_Fields = {
+  __typename?: 'organization_costs_thresholds_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Organization_Costs_Thresholds_Min_Fields = {
+  __typename?: 'organization_costs_thresholds_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Mutation_Response = {
+  __typename?: 'organization_costs_thresholds_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organization_Costs_Thresholds>;
+};
+
+/** on_conflict condition type for table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_On_Conflict = {
+  constraint: Organization_Costs_Thresholds_Constraint;
+  update_columns?: Array<Organization_Costs_Thresholds_Update_Column>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_costs_thresholds". */
+export type Organization_Costs_Thresholds_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organization_costs_thresholds */
+export type Organization_Costs_Thresholds_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "organization_costs_thresholds" */
+export enum Organization_Costs_Thresholds_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "organization_costs_thresholds" */
+export type Organization_Costs_Thresholds_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organization_Costs_Thresholds_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organization_Costs_Thresholds_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "organization_costs_thresholds" */
+export enum Organization_Costs_Thresholds_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type Organization_Costs_Thresholds_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organization_Costs_Thresholds_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organization_Costs_Thresholds_Bool_Exp;
+};
+
+/** columns and relationships of "organization_member_invites" */
+export type Organization_Member_Invites = {
+  __typename?: 'organization_member_invites';
+  createdAt: Scalars['timestamptz'];
+  email: Scalars['citext'];
+  id: Scalars['uuid'];
+  /** An object relationship */
+  organization: Organizations;
+  organizationID: Scalars['uuid'];
+  role: Organization_Members_Role_Enum;
+  updateAt: Scalars['timestamptz'];
+  /** An object relationship */
+  user: Users;
+};
+
+/** aggregated selection of "organization_member_invites" */
+export type Organization_Member_Invites_Aggregate = {
+  __typename?: 'organization_member_invites_aggregate';
+  aggregate?: Maybe<Organization_Member_Invites_Aggregate_Fields>;
+  nodes: Array<Organization_Member_Invites>;
+};
+
+export type Organization_Member_Invites_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp_Count>;
+};
+
+export type Organization_Member_Invites_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "organization_member_invites" */
+export type Organization_Member_Invites_Aggregate_Fields = {
+  __typename?: 'organization_member_invites_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Organization_Member_Invites_Max_Fields>;
+  min?: Maybe<Organization_Member_Invites_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_member_invites" */
+export type Organization_Member_Invites_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "organization_member_invites" */
+export type Organization_Member_Invites_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Organization_Member_Invites_Max_Order_By>;
+  min?: InputMaybe<Organization_Member_Invites_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "organization_member_invites" */
+export type Organization_Member_Invites_Arr_Rel_Insert_Input = {
+  data: Array<Organization_Member_Invites_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Organization_Member_Invites_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "organization_member_invites". All fields are combined with a logical 'AND'. */
+export type Organization_Member_Invites_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Member_Invites_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Member_Invites_Bool_Exp>>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  email?: InputMaybe<Citext_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  organization?: InputMaybe<Organizations_Bool_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
+  role?: InputMaybe<Organization_Members_Role_Enum_Comparison_Exp>;
+  updateAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_member_invites" */
+export enum Organization_Member_Invites_Constraint {
+  /** unique or primary key constraint on columns "email", "organization_id" */
+  OrganizationMemberInvitesOrganizationIdEmailKey = 'organization_member_invites_organization_id_email_key',
+  /** unique or primary key constraint on columns "id" */
+  OrganizationMemberInvitesPkey = 'organization_member_invites_pkey'
+}
+
+/** input type for inserting data into table "organization_member_invites" */
+export type Organization_Member_Invites_Insert_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  email?: InputMaybe<Scalars['citext']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
+  updateAt?: InputMaybe<Scalars['timestamptz']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+};
+
+/** aggregate max on columns */
+export type Organization_Member_Invites_Max_Fields = {
+  __typename?: 'organization_member_invites_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  email?: Maybe<Scalars['citext']>;
+  id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
+  updateAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by max() on columns of table "organization_member_invites" */
+export type Organization_Member_Invites_Max_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
+  updateAt?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Organization_Member_Invites_Min_Fields = {
+  __typename?: 'organization_member_invites_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  email?: Maybe<Scalars['citext']>;
+  id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
+  updateAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by min() on columns of table "organization_member_invites" */
+export type Organization_Member_Invites_Min_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
+  updateAt?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "organization_member_invites" */
+export type Organization_Member_Invites_Mutation_Response = {
+  __typename?: 'organization_member_invites_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organization_Member_Invites>;
+};
+
+/** on_conflict condition type for table "organization_member_invites" */
+export type Organization_Member_Invites_On_Conflict = {
+  constraint: Organization_Member_Invites_Constraint;
+  update_columns?: Array<Organization_Member_Invites_Update_Column>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_member_invites". */
+export type Organization_Member_Invites_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organization?: InputMaybe<Organizations_Order_By>;
+  organizationID?: InputMaybe<Order_By>;
+  role?: InputMaybe<Order_By>;
+  updateAt?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+};
+
+/** primary key columns input for table: organization_member_invites */
+export type Organization_Member_Invites_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "organization_member_invites" */
+export enum Organization_Member_Invites_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Email = 'email',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
+  Role = 'role',
+  /** column name */
+  UpdateAt = 'updateAt'
+}
+
+/** input type for updating data in table "organization_member_invites" */
+export type Organization_Member_Invites_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  email?: InputMaybe<Scalars['citext']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
+  updateAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "organization_member_invites" */
+export type Organization_Member_Invites_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organization_Member_Invites_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organization_Member_Invites_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  email?: InputMaybe<Scalars['citext']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
+  updateAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "organization_member_invites" */
+export enum Organization_Member_Invites_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Email = 'email',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
+  Role = 'role',
+  /** column name */
+  UpdateAt = 'updateAt'
+}
+
+export type Organization_Member_Invites_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organization_Member_Invites_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organization_Member_Invites_Bool_Exp;
+};
+
+/** columns and relationships of "organization_members" */
+export type Organization_Members = {
+  __typename?: 'organization_members';
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  /** An object relationship */
+  organization: Organizations;
+  organizatonID: Scalars['uuid'];
+  role: Organization_Members_Role_Enum;
+  updatedAt: Scalars['timestamptz'];
+  /** An object relationship */
+  user: Users;
+  userID: Scalars['uuid'];
+};
+
+/** aggregated selection of "organization_members" */
+export type Organization_Members_Aggregate = {
+  __typename?: 'organization_members_aggregate';
+  aggregate?: Maybe<Organization_Members_Aggregate_Fields>;
+  nodes: Array<Organization_Members>;
+};
+
+export type Organization_Members_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Organization_Members_Aggregate_Bool_Exp_Count>;
+};
+
+export type Organization_Members_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Organization_Members_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "organization_members" */
+export type Organization_Members_Aggregate_Fields = {
+  __typename?: 'organization_members_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Organization_Members_Max_Fields>;
+  min?: Maybe<Organization_Members_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_members" */
+export type Organization_Members_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "organization_members" */
+export type Organization_Members_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Organization_Members_Max_Order_By>;
+  min?: InputMaybe<Organization_Members_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "organization_members" */
+export type Organization_Members_Arr_Rel_Insert_Input = {
+  data: Array<Organization_Members_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Organization_Members_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "organization_members". All fields are combined with a logical 'AND'. */
+export type Organization_Members_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Members_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Members_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Members_Bool_Exp>>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  organization?: InputMaybe<Organizations_Bool_Exp>;
+  organizatonID?: InputMaybe<Uuid_Comparison_Exp>;
+  role?: InputMaybe<Organization_Members_Role_Enum_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  userID?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_members" */
+export enum Organization_Members_Constraint {
+  /** unique or primary key constraint on columns "user_id", "organization_id" */
+  OrganizationMembersOrganizationIdUserIdKey = 'organization_members_organization_id_user_id_key',
+  /** unique or primary key constraint on columns "id" */
+  OrganizationMembersPkey = 'organization_members_pkey'
+}
+
+/** input type for inserting data into table "organization_members" */
+export type Organization_Members_Insert_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
+  organizatonID?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Organization_Members_Max_Fields = {
+  __typename?: 'organization_members_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  organizatonID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "organization_members" */
+export type Organization_Members_Max_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organizatonID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  userID?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Organization_Members_Min_Fields = {
+  __typename?: 'organization_members_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  organizatonID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "organization_members" */
+export type Organization_Members_Min_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organizatonID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  userID?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "organization_members" */
+export type Organization_Members_Mutation_Response = {
+  __typename?: 'organization_members_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organization_Members>;
+};
+
+/** on_conflict condition type for table "organization_members" */
+export type Organization_Members_On_Conflict = {
+  constraint: Organization_Members_Constraint;
+  update_columns?: Array<Organization_Members_Update_Column>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_members". */
+export type Organization_Members_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organization?: InputMaybe<Organizations_Order_By>;
+  organizatonID?: InputMaybe<Order_By>;
+  role?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  userID?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organization_members */
+export type Organization_Members_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** columns and relationships of "organization_members_role" */
+export type Organization_Members_Role = {
+  __typename?: 'organization_members_role';
+  comment: Scalars['String'];
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "organization_members_role" */
+export type Organization_Members_Role_Aggregate = {
+  __typename?: 'organization_members_role_aggregate';
+  aggregate?: Maybe<Organization_Members_Role_Aggregate_Fields>;
+  nodes: Array<Organization_Members_Role>;
+};
+
+/** aggregate fields of "organization_members_role" */
+export type Organization_Members_Role_Aggregate_Fields = {
+  __typename?: 'organization_members_role_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Organization_Members_Role_Max_Fields>;
+  min?: Maybe<Organization_Members_Role_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_members_role" */
+export type Organization_Members_Role_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "organization_members_role". All fields are combined with a logical 'AND'. */
+export type Organization_Members_Role_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Members_Role_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Members_Role_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_members_role" */
+export enum Organization_Members_Role_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  OrganizationMembersRolePkey = 'organization_members_role_pkey'
+}
+
+export enum Organization_Members_Role_Enum {
+  /** Administrator */
+  Admin = 'ADMIN',
+  /** User */
+  User = 'USER'
+}
+
+/** Boolean expression to compare columns of type "organization_members_role_enum". All fields are combined with logical 'AND'. */
+export type Organization_Members_Role_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Organization_Members_Role_Enum>;
+  _in?: InputMaybe<Array<Organization_Members_Role_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Organization_Members_Role_Enum>;
+  _nin?: InputMaybe<Array<Organization_Members_Role_Enum>>;
+};
+
+/** input type for inserting data into table "organization_members_role" */
+export type Organization_Members_Role_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Organization_Members_Role_Max_Fields = {
+  __typename?: 'organization_members_role_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Organization_Members_Role_Min_Fields = {
+  __typename?: 'organization_members_role_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "organization_members_role" */
+export type Organization_Members_Role_Mutation_Response = {
+  __typename?: 'organization_members_role_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organization_Members_Role>;
+};
+
+/** on_conflict condition type for table "organization_members_role" */
+export type Organization_Members_Role_On_Conflict = {
+  constraint: Organization_Members_Role_Constraint;
+  update_columns?: Array<Organization_Members_Role_Update_Column>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_members_role". */
+export type Organization_Members_Role_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organization_members_role */
+export type Organization_Members_Role_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "organization_members_role" */
+export enum Organization_Members_Role_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "organization_members_role" */
+export type Organization_Members_Role_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "organization_members_role" */
+export type Organization_Members_Role_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organization_Members_Role_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organization_Members_Role_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "organization_members_role" */
+export enum Organization_Members_Role_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type Organization_Members_Role_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organization_Members_Role_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organization_Members_Role_Bool_Exp;
+};
+
+/** select columns of table "organization_members" */
+export enum Organization_Members_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  OrganizatonId = 'organizatonID',
+  /** column name */
+  Role = 'role',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID'
+}
+
+/** input type for updating data in table "organization_members" */
+export type Organization_Members_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organizatonID?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "organization_members" */
+export type Organization_Members_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organization_Members_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organization_Members_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organizatonID?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Organization_Members_Role_Enum>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "organization_members" */
+export enum Organization_Members_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  OrganizatonId = 'organizatonID',
+  /** column name */
+  Role = 'role',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID'
+}
+
+export type Organization_Members_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organization_Members_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organization_Members_Bool_Exp;
+};
+
+/** columns and relationships of "organization_new_request" */
+export type Organization_New_Request = {
+  __typename?: 'organization_new_request';
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  name: Scalars['String'];
+  /** An object relationship */
+  plan: Plans;
+  planID: Scalars['uuid'];
+  sessionID: Scalars['String'];
+  slug: Scalars['String'];
+  /** An object relationship */
+  user: Users;
+  userID: Scalars['uuid'];
+};
+
+/** aggregated selection of "organization_new_request" */
+export type Organization_New_Request_Aggregate = {
+  __typename?: 'organization_new_request_aggregate';
+  aggregate?: Maybe<Organization_New_Request_Aggregate_Fields>;
+  nodes: Array<Organization_New_Request>;
+};
+
+/** aggregate fields of "organization_new_request" */
+export type Organization_New_Request_Aggregate_Fields = {
+  __typename?: 'organization_new_request_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Organization_New_Request_Max_Fields>;
+  min?: Maybe<Organization_New_Request_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_new_request" */
+export type Organization_New_Request_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "organization_new_request". All fields are combined with a logical 'AND'. */
+export type Organization_New_Request_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_New_Request_Bool_Exp>>;
+  _not?: InputMaybe<Organization_New_Request_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_New_Request_Bool_Exp>>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  plan?: InputMaybe<Plans_Bool_Exp>;
+  planID?: InputMaybe<Uuid_Comparison_Exp>;
+  sessionID?: InputMaybe<String_Comparison_Exp>;
+  slug?: InputMaybe<String_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  userID?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_new_request" */
+export enum Organization_New_Request_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  OrganizationNewRequestPkey = 'organization_new_request_pkey',
+  /** unique or primary key constraint on columns "session_id" */
+  OrganizationNewRequestSessionIdKey = 'organization_new_request_session_id_key'
+}
+
+/** input type for inserting data into table "organization_new_request" */
+export type Organization_New_Request_Insert_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
+  planID?: InputMaybe<Scalars['uuid']>;
+  sessionID?: InputMaybe<Scalars['String']>;
+  slug?: InputMaybe<Scalars['String']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Organization_New_Request_Max_Fields = {
+  __typename?: 'organization_new_request_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  planID?: Maybe<Scalars['uuid']>;
+  sessionID?: Maybe<Scalars['String']>;
+  slug?: Maybe<Scalars['String']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Organization_New_Request_Min_Fields = {
+  __typename?: 'organization_new_request_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  planID?: Maybe<Scalars['uuid']>;
+  sessionID?: Maybe<Scalars['String']>;
+  slug?: Maybe<Scalars['String']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "organization_new_request" */
+export type Organization_New_Request_Mutation_Response = {
+  __typename?: 'organization_new_request_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organization_New_Request>;
+};
+
+/** on_conflict condition type for table "organization_new_request" */
+export type Organization_New_Request_On_Conflict = {
+  constraint: Organization_New_Request_Constraint;
+  update_columns?: Array<Organization_New_Request_Update_Column>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_new_request". */
+export type Organization_New_Request_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  plan?: InputMaybe<Plans_Order_By>;
+  planID?: InputMaybe<Order_By>;
+  sessionID?: InputMaybe<Order_By>;
+  slug?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  userID?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organization_new_request */
+export type Organization_New_Request_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "organization_new_request" */
+export enum Organization_New_Request_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  PlanId = 'planID',
+  /** column name */
+  SessionId = 'sessionID',
+  /** column name */
+  Slug = 'slug',
+  /** column name */
+  UserId = 'userID'
+}
+
+/** input type for updating data in table "organization_new_request" */
+export type Organization_New_Request_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  planID?: InputMaybe<Scalars['uuid']>;
+  sessionID?: InputMaybe<Scalars['String']>;
+  slug?: InputMaybe<Scalars['String']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "organization_new_request" */
+export type Organization_New_Request_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organization_New_Request_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organization_New_Request_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  planID?: InputMaybe<Scalars['uuid']>;
+  sessionID?: InputMaybe<Scalars['String']>;
+  slug?: InputMaybe<Scalars['String']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "organization_new_request" */
+export enum Organization_New_Request_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  PlanId = 'planID',
+  /** column name */
+  SessionId = 'sessionID',
+  /** column name */
+  Slug = 'slug',
+  /** column name */
+  UserId = 'userID'
+}
+
+export type Organization_New_Request_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organization_New_Request_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organization_New_Request_Bool_Exp;
+};
+
+/** columns and relationships of "organization_status" */
+export type Organization_Status = {
+  __typename?: 'organization_status';
+  comment: Scalars['String'];
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "organization_status" */
+export type Organization_Status_Aggregate = {
+  __typename?: 'organization_status_aggregate';
+  aggregate?: Maybe<Organization_Status_Aggregate_Fields>;
+  nodes: Array<Organization_Status>;
+};
+
+/** aggregate fields of "organization_status" */
+export type Organization_Status_Aggregate_Fields = {
+  __typename?: 'organization_status_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Organization_Status_Max_Fields>;
+  min?: Maybe<Organization_Status_Min_Fields>;
+};
+
+
+/** aggregate fields of "organization_status" */
+export type Organization_Status_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "organization_status". All fields are combined with a logical 'AND'. */
+export type Organization_Status_Bool_Exp = {
+  _and?: InputMaybe<Array<Organization_Status_Bool_Exp>>;
+  _not?: InputMaybe<Organization_Status_Bool_Exp>;
+  _or?: InputMaybe<Array<Organization_Status_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organization_status" */
+export enum Organization_Status_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  OrganizationStatusPkey = 'organization_status_pkey'
+}
+
+export enum Organization_Status_Enum {
+  /** Allowance for the organization has been exceeded. Allowance will be reset at the end of the month. */
+  AllowanceExceeded = 'ALLOWANCE_EXCEEDED',
+  /** Organization is cancelled. Contact support. */
+  Cancelled = 'CANCELLED',
+  /** Organization is disabled and all resources have been suspended */
+  Disabled = 'DISABLED',
+  /** Organization is locked and changes to resources are not allowed */
+  Locked = 'LOCKED',
+  /** Organization is healthy */
+  Ok = 'OK'
+}
+
+/** Boolean expression to compare columns of type "organization_status_enum". All fields are combined with logical 'AND'. */
+export type Organization_Status_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Organization_Status_Enum>;
+  _in?: InputMaybe<Array<Organization_Status_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Organization_Status_Enum>;
+  _nin?: InputMaybe<Array<Organization_Status_Enum>>;
+};
+
+/** input type for inserting data into table "organization_status" */
+export type Organization_Status_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Organization_Status_Max_Fields = {
+  __typename?: 'organization_status_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Organization_Status_Min_Fields = {
+  __typename?: 'organization_status_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "organization_status" */
+export type Organization_Status_Mutation_Response = {
+  __typename?: 'organization_status_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organization_Status>;
+};
+
+/** on_conflict condition type for table "organization_status" */
+export type Organization_Status_On_Conflict = {
+  constraint: Organization_Status_Constraint;
+  update_columns?: Array<Organization_Status_Update_Column>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organization_status". */
+export type Organization_Status_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organization_status */
+export type Organization_Status_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "organization_status" */
+export enum Organization_Status_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "organization_status" */
+export type Organization_Status_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "organization_status" */
+export type Organization_Status_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organization_Status_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organization_Status_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "organization_status" */
+export enum Organization_Status_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type Organization_Status_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organization_Status_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organization_Status_Bool_Exp;
+};
+
+/** columns and relationships of "organizations" */
+export type Organizations = {
+  __typename?: 'organizations';
+  /** An array relationship */
+  allowedPrivateRegions: Array<Regions_Allowed_Organization>;
+  /** An aggregate relationship */
+  allowedPrivateRegions_aggregate: Regions_Allowed_Organization_Aggregate;
+  /** An array relationship */
+  apps: Array<Apps>;
+  /** An aggregate relationship */
+  apps_aggregate: Apps_Aggregate;
+  createdAt: Scalars['timestamptz'];
+  current_threshold: Organization_Costs_Thresholds_Enum;
+  id: Scalars['uuid'];
+  /** An array relationship */
+  invites: Array<Organization_Member_Invites>;
+  /** An aggregate relationship */
+  invites_aggregate: Organization_Member_Invites_Aggregate;
+  /** An array relationship */
+  members: Array<Organization_Members>;
+  /** An aggregate relationship */
+  members_aggregate: Organization_Members_Aggregate;
+  name: Scalars['String'];
+  /** An object relationship */
+  plan: Plans;
+  planID: Scalars['uuid'];
+  slug: Scalars['String'];
+  status: Organization_Status_Enum;
+  status_comment?: Maybe<Scalars['String']>;
+  stripeCustomerID?: Maybe<Scalars['String']>;
+  stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold: Scalars['Int'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsAllowedPrivateRegionsArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsAllowedPrivateRegions_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsAppsArgs = {
+  distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Apps_Order_By>>;
+  where?: InputMaybe<Apps_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsApps_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Apps_Order_By>>;
+  where?: InputMaybe<Apps_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsInvitesArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsInvites_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsMembersArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsMembers_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+/** aggregated selection of "organizations" */
+export type Organizations_Aggregate = {
+  __typename?: 'organizations_aggregate';
+  aggregate?: Maybe<Organizations_Aggregate_Fields>;
+  nodes: Array<Organizations>;
+};
+
+export type Organizations_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Organizations_Aggregate_Bool_Exp_Count>;
+};
+
+export type Organizations_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Organizations_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Organizations_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "organizations" */
+export type Organizations_Aggregate_Fields = {
+  __typename?: 'organizations_aggregate_fields';
+  avg?: Maybe<Organizations_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Organizations_Max_Fields>;
+  min?: Maybe<Organizations_Min_Fields>;
+  stddev?: Maybe<Organizations_Stddev_Fields>;
+  stddev_pop?: Maybe<Organizations_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Organizations_Stddev_Samp_Fields>;
+  sum?: Maybe<Organizations_Sum_Fields>;
+  var_pop?: Maybe<Organizations_Var_Pop_Fields>;
+  var_samp?: Maybe<Organizations_Var_Samp_Fields>;
+  variance?: Maybe<Organizations_Variance_Fields>;
+};
+
+
+/** aggregate fields of "organizations" */
+export type Organizations_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Organizations_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "organizations" */
+export type Organizations_Aggregate_Order_By = {
+  avg?: InputMaybe<Organizations_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Organizations_Max_Order_By>;
+  min?: InputMaybe<Organizations_Min_Order_By>;
+  stddev?: InputMaybe<Organizations_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Organizations_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Organizations_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Organizations_Sum_Order_By>;
+  var_pop?: InputMaybe<Organizations_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Organizations_Var_Samp_Order_By>;
+  variance?: InputMaybe<Organizations_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "organizations" */
+export type Organizations_Arr_Rel_Insert_Input = {
+  data: Array<Organizations_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Organizations_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Organizations_Avg_Fields = {
+  __typename?: 'organizations_avg_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by avg() on columns of table "organizations" */
+export type Organizations_Avg_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "organizations". All fields are combined with a logical 'AND'. */
+export type Organizations_Bool_Exp = {
+  _and?: InputMaybe<Array<Organizations_Bool_Exp>>;
+  _not?: InputMaybe<Organizations_Bool_Exp>;
+  _or?: InputMaybe<Array<Organizations_Bool_Exp>>;
+  allowedPrivateRegions?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+  allowedPrivateRegions_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Bool_Exp>;
+  apps?: InputMaybe<Apps_Bool_Exp>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  current_threshold?: InputMaybe<Organization_Costs_Thresholds_Enum_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  invites?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+  invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Bool_Exp>;
+  members?: InputMaybe<Organization_Members_Bool_Exp>;
+  members_aggregate?: InputMaybe<Organization_Members_Aggregate_Bool_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  plan?: InputMaybe<Plans_Bool_Exp>;
+  planID?: InputMaybe<Uuid_Comparison_Exp>;
+  slug?: InputMaybe<String_Comparison_Exp>;
+  status?: InputMaybe<Organization_Status_Enum_Comparison_Exp>;
+  status_comment?: InputMaybe<String_Comparison_Exp>;
+  stripeCustomerID?: InputMaybe<String_Comparison_Exp>;
+  stripeSubscriptionID?: InputMaybe<String_Comparison_Exp>;
+  threshold?: InputMaybe<Int_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "organizations" */
+export enum Organizations_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  OrganizationsPkey = 'organizations_pkey',
+  /** unique or primary key constraint on columns "slug" */
+  OrganizationsSlugKey = 'organizations_slug_key'
+}
+
+/** input type for incrementing numeric columns in table "organizations" */
+export type Organizations_Inc_Input = {
+  threshold?: InputMaybe<Scalars['Int']>;
+};
+
+/** input type for inserting data into table "organizations" */
+export type Organizations_Insert_Input = {
+  allowedPrivateRegions?: InputMaybe<Regions_Allowed_Organization_Arr_Rel_Insert_Input>;
+  apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Organization_Costs_Thresholds_Enum>;
+  id?: InputMaybe<Scalars['uuid']>;
+  invites?: InputMaybe<Organization_Member_Invites_Arr_Rel_Insert_Input>;
+  members?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
+  name?: InputMaybe<Scalars['String']>;
+  plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
+  planID?: InputMaybe<Scalars['uuid']>;
+  slug?: InputMaybe<Scalars['String']>;
+  status?: InputMaybe<Organization_Status_Enum>;
+  status_comment?: InputMaybe<Scalars['String']>;
+  stripeCustomerID?: InputMaybe<Scalars['String']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Organizations_Max_Fields = {
+  __typename?: 'organizations_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  planID?: Maybe<Scalars['uuid']>;
+  slug?: Maybe<Scalars['String']>;
+  status_comment?: Maybe<Scalars['String']>;
+  stripeCustomerID?: Maybe<Scalars['String']>;
+  stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold?: Maybe<Scalars['Int']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by max() on columns of table "organizations" */
+export type Organizations_Max_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  planID?: InputMaybe<Order_By>;
+  slug?: InputMaybe<Order_By>;
+  status_comment?: InputMaybe<Order_By>;
+  stripeCustomerID?: InputMaybe<Order_By>;
+  stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Organizations_Min_Fields = {
+  __typename?: 'organizations_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  planID?: Maybe<Scalars['uuid']>;
+  slug?: Maybe<Scalars['String']>;
+  status_comment?: Maybe<Scalars['String']>;
+  stripeCustomerID?: Maybe<Scalars['String']>;
+  stripeSubscriptionID?: Maybe<Scalars['String']>;
+  threshold?: Maybe<Scalars['Int']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by min() on columns of table "organizations" */
+export type Organizations_Min_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  planID?: InputMaybe<Order_By>;
+  slug?: InputMaybe<Order_By>;
+  status_comment?: InputMaybe<Order_By>;
+  stripeCustomerID?: InputMaybe<Order_By>;
+  stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "organizations" */
+export type Organizations_Mutation_Response = {
+  __typename?: 'organizations_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Organizations>;
+};
+
+/** input type for inserting object relation for remote table "organizations" */
+export type Organizations_Obj_Rel_Insert_Input = {
+  data: Organizations_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Organizations_On_Conflict>;
+};
+
+/** on_conflict condition type for table "organizations" */
+export type Organizations_On_Conflict = {
+  constraint: Organizations_Constraint;
+  update_columns?: Array<Organizations_Update_Column>;
+  where?: InputMaybe<Organizations_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "organizations". */
+export type Organizations_Order_By = {
+  allowedPrivateRegions_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Order_By>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  current_threshold?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Order_By>;
+  members_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
+  name?: InputMaybe<Order_By>;
+  plan?: InputMaybe<Plans_Order_By>;
+  planID?: InputMaybe<Order_By>;
+  slug?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  status_comment?: InputMaybe<Order_By>;
+  stripeCustomerID?: InputMaybe<Order_By>;
+  stripeSubscriptionID?: InputMaybe<Order_By>;
+  threshold?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: organizations */
+export type Organizations_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "organizations" */
+export enum Organizations_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CurrentThreshold = 'current_threshold',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  PlanId = 'planID',
+  /** column name */
+  Slug = 'slug',
+  /** column name */
+  Status = 'status',
+  /** column name */
+  StatusComment = 'status_comment',
+  /** column name */
+  StripeCustomerId = 'stripeCustomerID',
+  /** column name */
+  StripeSubscriptionId = 'stripeSubscriptionID',
+  /** column name */
+  Threshold = 'threshold',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "organizations" */
+export type Organizations_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Organization_Costs_Thresholds_Enum>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  planID?: InputMaybe<Scalars['uuid']>;
+  slug?: InputMaybe<Scalars['String']>;
+  status?: InputMaybe<Organization_Status_Enum>;
+  status_comment?: InputMaybe<Scalars['String']>;
+  stripeCustomerID?: InputMaybe<Scalars['String']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate stddev on columns */
+export type Organizations_Stddev_Fields = {
+  __typename?: 'organizations_stddev_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev() on columns of table "organizations" */
+export type Organizations_Stddev_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Organizations_Stddev_Pop_Fields = {
+  __typename?: 'organizations_stddev_pop_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev_pop() on columns of table "organizations" */
+export type Organizations_Stddev_Pop_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Organizations_Stddev_Samp_Fields = {
+  __typename?: 'organizations_stddev_samp_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev_samp() on columns of table "organizations" */
+export type Organizations_Stddev_Samp_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "organizations" */
+export type Organizations_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Organizations_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Organizations_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  current_threshold?: InputMaybe<Organization_Costs_Thresholds_Enum>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  planID?: InputMaybe<Scalars['uuid']>;
+  slug?: InputMaybe<Scalars['String']>;
+  status?: InputMaybe<Organization_Status_Enum>;
+  status_comment?: InputMaybe<Scalars['String']>;
+  stripeCustomerID?: InputMaybe<Scalars['String']>;
+  stripeSubscriptionID?: InputMaybe<Scalars['String']>;
+  threshold?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate sum on columns */
+export type Organizations_Sum_Fields = {
+  __typename?: 'organizations_sum_fields';
+  threshold?: Maybe<Scalars['Int']>;
+};
+
+/** order by sum() on columns of table "organizations" */
+export type Organizations_Sum_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "organizations" */
+export enum Organizations_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CurrentThreshold = 'current_threshold',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  PlanId = 'planID',
+  /** column name */
+  Slug = 'slug',
+  /** column name */
+  Status = 'status',
+  /** column name */
+  StatusComment = 'status_comment',
+  /** column name */
+  StripeCustomerId = 'stripeCustomerID',
+  /** column name */
+  StripeSubscriptionId = 'stripeSubscriptionID',
+  /** column name */
+  Threshold = 'threshold',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type Organizations_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Organizations_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Organizations_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Organizations_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Organizations_Var_Pop_Fields = {
+  __typename?: 'organizations_var_pop_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by var_pop() on columns of table "organizations" */
+export type Organizations_Var_Pop_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Organizations_Var_Samp_Fields = {
+  __typename?: 'organizations_var_samp_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by var_samp() on columns of table "organizations" */
+export type Organizations_Var_Samp_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Organizations_Variance_Fields = {
+  __typename?: 'organizations_variance_fields';
+  threshold?: Maybe<Scalars['Float']>;
+};
+
+/** order by variance() on columns of table "organizations" */
+export type Organizations_Variance_Order_By = {
+  threshold?: InputMaybe<Order_By>;
+};
 
 /** columns and relationships of "payment_methods" */
 export type PaymentMethods = {
@@ -17487,6 +19620,10 @@ export type Plans = {
   isFree: Scalars['Boolean'];
   isPublic: Scalars['Boolean'];
   name: Scalars['String'];
+  /** An array relationship */
+  organizations: Array<Organizations>;
+  /** An aggregate relationship */
+  organizations_aggregate: Organizations_Aggregate;
   price: Scalars['Int'];
   sort: Scalars['Int'];
   stripePriceIDCustomDomains: Scalars['String'];
@@ -17517,6 +19654,26 @@ export type PlansApps_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
+};
+
+
+/** columns and relationships of "plans" */
+export type PlansOrganizationsArgs = {
+  distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organizations_Order_By>>;
+  where?: InputMaybe<Organizations_Bool_Exp>;
+};
+
+
+/** columns and relationships of "plans" */
+export type PlansOrganizations_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organizations_Order_By>>;
+  where?: InputMaybe<Organizations_Bool_Exp>;
 };
 
 /** aggregated selection of "plans" */
@@ -17589,6 +19746,8 @@ export type Plans_Bool_Exp = {
   isFree?: InputMaybe<Boolean_Comparison_Exp>;
   isPublic?: InputMaybe<Boolean_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
+  organizations?: InputMaybe<Organizations_Bool_Exp>;
+  organizations_aggregate?: InputMaybe<Organizations_Aggregate_Bool_Exp>;
   price?: InputMaybe<Int_Comparison_Exp>;
   sort?: InputMaybe<Int_Comparison_Exp>;
   stripePriceIDCustomDomains?: InputMaybe<String_Comparison_Exp>;
@@ -17645,6 +19804,7 @@ export type Plans_Insert_Input = {
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
+  organizations?: InputMaybe<Organizations_Arr_Rel_Insert_Input>;
   price?: InputMaybe<Scalars['Int']>;
   sort?: InputMaybe<Scalars['Int']>;
   stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
@@ -17752,6 +19912,7 @@ export type Plans_Order_By = {
   isFree?: InputMaybe<Order_By>;
   isPublic?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  organizations_aggregate?: InputMaybe<Organizations_Aggregate_Order_By>;
   price?: InputMaybe<Order_By>;
   sort?: InputMaybe<Order_By>;
   stripePriceIDCustomDomains?: InputMaybe<Order_By>;
@@ -18208,12 +20369,6 @@ export type Query_Root = {
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** fetch aggregated fields from the table: "billing.dedicated_compute" */
   billingDedicatedComputeAggregate: Billing_Dedicated_Compute_Aggregate;
-  /** fetch data from the table: "billing.dedicated_compute_reports" using primary key columns */
-  billingDedicatedComputeReport?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** fetch data from the table: "billing.dedicated_compute_reports" */
-  billingDedicatedComputeReports: Array<Billing_Dedicated_Compute_Reports>;
-  /** fetch aggregated fields from the table: "billing.dedicated_compute_reports" */
-  billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
   /** fetch data from the table: "billing.dedicated_compute" */
   billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
   billingGetNextInvoice?: Maybe<InvoiceSummary>;
@@ -18241,6 +20396,12 @@ export type Query_Root = {
   billing_report_type_aggregate: Billing_Report_Type_Aggregate;
   /** fetch data from the table: "billing.report_type" using primary key columns */
   billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
+  /** fetch data from the table: "billing.subscription_items" */
+  billing_subscription_items: Array<Billing_Subscription_Items>;
+  /** fetch aggregated fields from the table: "billing.subscription_items" */
+  billing_subscription_items_aggregate: Billing_Subscription_Items_Aggregate;
+  /** fetch data from the table: "billing.subscription_items" using primary key columns */
+  billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
   bucket?: Maybe<Buckets>;
   /** fetch data from the table: "storage.buckets" */
@@ -18338,6 +20499,48 @@ export type Query_Root = {
    * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
    */
   logs: Array<Log>;
+  /** fetch data from the table: "organizations" using primary key columns */
+  organization?: Maybe<Organizations>;
+  /** fetch data from the table: "organization_members" using primary key columns */
+  organizationMember?: Maybe<Organization_Members>;
+  /** fetch data from the table: "organization_member_invites" using primary key columns */
+  organizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  /** fetch data from the table: "organization_member_invites" */
+  organizationMemberInvites: Array<Organization_Member_Invites>;
+  /** fetch aggregated fields from the table: "organization_member_invites" */
+  organizationMemberInvitesAggregate: Organization_Member_Invites_Aggregate;
+  /** fetch data from the table: "organization_members" */
+  organizationMembers: Array<Organization_Members>;
+  /** fetch aggregated fields from the table: "organization_members" */
+  organizationMembersAggregate: Organization_Members_Aggregate;
+  /** fetch data from the table: "organization_new_request" using primary key columns */
+  organizationNewRequest?: Maybe<Organization_New_Request>;
+  /** fetch data from the table: "organization_new_request" */
+  organizationNewRequests: Array<Organization_New_Request>;
+  /** fetch aggregated fields from the table: "organization_new_request" */
+  organizationNewRequestsAggregate: Organization_New_Request_Aggregate;
+  /** fetch data from the table: "organization_costs_thresholds" */
+  organization_costs_thresholds: Array<Organization_Costs_Thresholds>;
+  /** fetch aggregated fields from the table: "organization_costs_thresholds" */
+  organization_costs_thresholds_aggregate: Organization_Costs_Thresholds_Aggregate;
+  /** fetch data from the table: "organization_costs_thresholds" using primary key columns */
+  organization_costs_thresholds_by_pk?: Maybe<Organization_Costs_Thresholds>;
+  /** fetch data from the table: "organization_members_role" */
+  organization_members_role: Array<Organization_Members_Role>;
+  /** fetch aggregated fields from the table: "organization_members_role" */
+  organization_members_role_aggregate: Organization_Members_Role_Aggregate;
+  /** fetch data from the table: "organization_members_role" using primary key columns */
+  organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  /** fetch data from the table: "organization_status" */
+  organization_status: Array<Organization_Status>;
+  /** fetch aggregated fields from the table: "organization_status" */
+  organization_status_aggregate: Organization_Status_Aggregate;
+  /** fetch data from the table: "organization_status" using primary key columns */
+  organization_status_by_pk?: Maybe<Organization_Status>;
+  /** An array relationship */
+  organizations: Array<Organizations>;
+  /** fetch aggregated fields from the table: "organizations" */
+  organizationsAggregate: Organizations_Aggregate;
   /** fetch data from the table: "payment_methods" using primary key columns */
   paymentMethod?: Maybe<PaymentMethods>;
   /** An array relationship */
@@ -18358,6 +20561,12 @@ export type Query_Root = {
   region_type_by_pk?: Maybe<Region_Type>;
   /** An array relationship */
   regions: Array<Regions>;
+  /** fetch data from the table: "regions_allowed_organization" using primary key columns */
+  regionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
+  /** fetch data from the table: "regions_allowed_organization" */
+  regionsAllowedOrganizations: Array<Regions_Allowed_Organization>;
+  /** fetch aggregated fields from the table: "regions_allowed_organization" */
+  regionsAllowedOrganizationsAggregate: Regions_Allowed_Organization_Aggregate;
   /** An aggregate relationship */
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
@@ -18407,12 +20616,6 @@ export type Query_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
-  /** fetch data from the table: "users_usage" using primary key columns */
-  usersUsage?: Maybe<Users_Usage>;
-  /** fetch data from the table: "users_usage" */
-  usersUsages: Array<Users_Usage>;
-  /** fetch aggregated fields from the table: "users_usage" */
-  usersUsagesAggregate: Users_Usage_Aggregate;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
   /** fetch data from the table: "workspace_members" using primary key columns */
@@ -18915,29 +21118,6 @@ export type Query_RootBillingDedicatedComputeAggregateArgs = {
 };
 
 
-export type Query_RootBillingDedicatedComputeReportArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootBillingDedicatedComputeReportsArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
-export type Query_RootBillingDedicatedComputeReportsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
 export type Query_RootBillingDedicatedComputesArgs = {
   distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -19041,6 +21221,29 @@ export type Query_RootBilling_Report_Type_AggregateArgs = {
 
 export type Query_RootBilling_Report_Type_By_PkArgs = {
   value: Scalars['String'];
+};
+
+
+export type Query_RootBilling_Subscription_ItemsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscription_Items_Order_By>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+
+export type Query_RootBilling_Subscription_Items_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscription_Items_Order_By>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+
+export type Query_RootBilling_Subscription_Items_By_PkArgs = {
+  id: Scalars['uuid'];
 };
 
 
@@ -19407,6 +21610,167 @@ export type Query_RootLogsArgs = {
 };
 
 
+export type Query_RootOrganizationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootOrganizationMemberArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootOrganizationMemberInviteArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootOrganizationMemberInvitesArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationMemberInvitesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationMembersArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationMembersAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationNewRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootOrganizationNewRequestsArgs = {
+  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationNewRequestsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Costs_ThresholdsArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Costs_Thresholds_Order_By>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Costs_Thresholds_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Costs_Thresholds_Order_By>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Costs_Thresholds_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Query_RootOrganization_Members_RoleArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Members_Role_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Members_Role_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Query_RootOrganization_StatusArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Status_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Query_RootOrganization_Status_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Query_RootOrganizationsArgs = {
+  distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organizations_Order_By>>;
+  where?: InputMaybe<Organizations_Bool_Exp>;
+};
+
+
+export type Query_RootOrganizationsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organizations_Order_By>>;
+  where?: InputMaybe<Organizations_Bool_Exp>;
+};
+
+
 export type Query_RootPaymentMethodArgs = {
   id: Scalars['uuid'];
 };
@@ -19482,6 +21846,29 @@ export type Query_RootRegionsArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Regions_Order_By>>;
   where?: InputMaybe<Regions_Bool_Exp>;
+};
+
+
+export type Query_RootRegionsAllowedOrganizationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootRegionsAllowedOrganizationsArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+};
+
+
+export type Query_RootRegionsAllowedOrganizationsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
 
 
@@ -19661,29 +22048,6 @@ export type Query_RootUsersAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Users_Order_By>>;
   where?: InputMaybe<Users_Bool_Exp>;
-};
-
-
-export type Query_RootUsersUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootUsersUsagesArgs = {
-  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
-  where?: InputMaybe<Users_Usage_Bool_Exp>;
-};
-
-
-export type Query_RootUsersUsagesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
-  where?: InputMaybe<Users_Usage_Bool_Exp>;
 };
 
 
@@ -19944,6 +22308,10 @@ export type Region_Type_Updates = {
 export type Regions = {
   __typename?: 'regions';
   active: Scalars['Boolean'];
+  /** An array relationship */
+  allowedOrganizations: Array<Regions_Allowed_Organization>;
+  /** An aggregate relationship */
+  allowedOrganizations_aggregate: Regions_Allowed_Organization_Aggregate;
   /** An object relationship */
   allowedWorkspaces?: Maybe<Regions_Allowed_Workspace>;
   /** An array relationship */
@@ -19969,6 +22337,26 @@ export type Regions = {
   regions_allowed_workspaces_aggregate: Regions_Allowed_Workspace_Aggregate;
   type: Region_Type_Enum;
   updatedAt: Scalars['timestamptz'];
+};
+
+
+/** columns and relationships of "regions" */
+export type RegionsAllowedOrganizationsArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+};
+
+
+/** columns and relationships of "regions" */
+export type RegionsAllowedOrganizations_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
 
 
@@ -20065,6 +22453,245 @@ export type Regions_Aggregate_Order_By = {
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Regions_Max_Order_By>;
   min?: InputMaybe<Regions_Min_Order_By>;
+};
+
+/** columns and relationships of "regions_allowed_organization" */
+export type Regions_Allowed_Organization = {
+  __typename?: 'regions_allowed_organization';
+  createdAt: Scalars['timestamptz'];
+  description: Scalars['String'];
+  id: Scalars['uuid'];
+  /** An object relationship */
+  organization: Organizations;
+  organizationID: Scalars['uuid'];
+  /** An object relationship */
+  region: Regions;
+  regionID: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Aggregate = {
+  __typename?: 'regions_allowed_organization_aggregate';
+  aggregate?: Maybe<Regions_Allowed_Organization_Aggregate_Fields>;
+  nodes: Array<Regions_Allowed_Organization>;
+};
+
+export type Regions_Allowed_Organization_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Regions_Allowed_Organization_Aggregate_Bool_Exp_Count>;
+};
+
+export type Regions_Allowed_Organization_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Aggregate_Fields = {
+  __typename?: 'regions_allowed_organization_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Regions_Allowed_Organization_Max_Fields>;
+  min?: Maybe<Regions_Allowed_Organization_Min_Fields>;
+};
+
+
+/** aggregate fields of "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Regions_Allowed_Organization_Max_Order_By>;
+  min?: InputMaybe<Regions_Allowed_Organization_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Arr_Rel_Insert_Input = {
+  data: Array<Regions_Allowed_Organization_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Regions_Allowed_Organization_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "regions_allowed_organization". All fields are combined with a logical 'AND'. */
+export type Regions_Allowed_Organization_Bool_Exp = {
+  _and?: InputMaybe<Array<Regions_Allowed_Organization_Bool_Exp>>;
+  _not?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+  _or?: InputMaybe<Array<Regions_Allowed_Organization_Bool_Exp>>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  description?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  organization?: InputMaybe<Organizations_Bool_Exp>;
+  organizationID?: InputMaybe<Uuid_Comparison_Exp>;
+  region?: InputMaybe<Regions_Bool_Exp>;
+  regionID?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "regions_allowed_organization" */
+export enum Regions_Allowed_Organization_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  RegionsAllowedOrganizationPkey = 'regions_allowed_organization_pkey',
+  /** unique or primary key constraint on columns "region_id", "organization_id" */
+  RegionsAllowedOrganizationRegionIdOrganizationIdKey = 'regions_allowed_organization_region_id_organization_id_key'
+}
+
+/** input type for inserting data into table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Insert_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organization?: InputMaybe<Organizations_Obj_Rel_Insert_Input>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
+  region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
+  regionID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Regions_Allowed_Organization_Max_Fields = {
+  __typename?: 'regions_allowed_organization_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
+  regionID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by max() on columns of table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Max_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
+  regionID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Regions_Allowed_Organization_Min_Fields = {
+  __typename?: 'regions_allowed_organization_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  organizationID?: Maybe<Scalars['uuid']>;
+  regionID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by min() on columns of table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Min_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organizationID?: InputMaybe<Order_By>;
+  regionID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Mutation_Response = {
+  __typename?: 'regions_allowed_organization_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Regions_Allowed_Organization>;
+};
+
+/** on_conflict condition type for table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_On_Conflict = {
+  constraint: Regions_Allowed_Organization_Constraint;
+  update_columns?: Array<Regions_Allowed_Organization_Update_Column>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "regions_allowed_organization". */
+export type Regions_Allowed_Organization_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  organization?: InputMaybe<Organizations_Order_By>;
+  organizationID?: InputMaybe<Order_By>;
+  region?: InputMaybe<Regions_Order_By>;
+  regionID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: regions_allowed_organization */
+export type Regions_Allowed_Organization_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "regions_allowed_organization" */
+export enum Regions_Allowed_Organization_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
+  RegionId = 'regionID',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
+  regionID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "regions_allowed_organization" */
+export type Regions_Allowed_Organization_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Regions_Allowed_Organization_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Regions_Allowed_Organization_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  organizationID?: InputMaybe<Scalars['uuid']>;
+  regionID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "regions_allowed_organization" */
+export enum Regions_Allowed_Organization_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  OrganizationId = 'organizationID',
+  /** column name */
+  RegionId = 'regionID',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type Regions_Allowed_Organization_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Regions_Allowed_Organization_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Regions_Allowed_Organization_Bool_Exp;
 };
 
 /** columns and relationships of "regions_allowed_workspace" */
@@ -20326,6 +22953,8 @@ export type Regions_Bool_Exp = {
   _not?: InputMaybe<Regions_Bool_Exp>;
   _or?: InputMaybe<Array<Regions_Bool_Exp>>;
   active?: InputMaybe<Boolean_Comparison_Exp>;
+  allowedOrganizations?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+  allowedOrganizations_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Bool_Exp>;
   allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
@@ -20355,6 +22984,7 @@ export enum Regions_Constraint {
 /** input type for inserting data into table "regions" */
 export type Regions_Insert_Input = {
   active?: InputMaybe<Scalars['Boolean']>;
+  allowedOrganizations?: InputMaybe<Regions_Allowed_Organization_Arr_Rel_Insert_Input>;
   allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Obj_Rel_Insert_Input>;
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   awsName?: InputMaybe<Scalars['String']>;
@@ -20453,6 +23083,7 @@ export type Regions_On_Conflict = {
 /** Ordering options when selecting data from "regions". */
 export type Regions_Order_By = {
   active?: InputMaybe<Order_By>;
+  allowedOrganizations_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Order_By>;
   allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Order_By>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   awsName?: InputMaybe<Order_By>;
@@ -21409,12 +24040,6 @@ export type Subscription_Root = {
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
   /** fetch aggregated fields from the table: "billing.dedicated_compute" */
   billingDedicatedComputeAggregate: Billing_Dedicated_Compute_Aggregate;
-  /** fetch data from the table: "billing.dedicated_compute_reports" using primary key columns */
-  billingDedicatedComputeReport?: Maybe<Billing_Dedicated_Compute_Reports>;
-  /** fetch data from the table: "billing.dedicated_compute_reports" */
-  billingDedicatedComputeReports: Array<Billing_Dedicated_Compute_Reports>;
-  /** fetch aggregated fields from the table: "billing.dedicated_compute_reports" */
-  billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
   /** fetch data from the table: "billing.dedicated_compute" */
   billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
   /** fetch data from the table: "billing.reports" using primary key columns */
@@ -21439,8 +24064,6 @@ export type Subscription_Root = {
   billingSubscriptions: Array<Billing_Subscriptions>;
   /** fetch aggregated fields from the table: "billing.subscriptions" */
   billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
-  /** fetch data from the table in a streaming manner: "billing.dedicated_compute_reports" */
-  billing_dedicated_compute_reports_stream: Array<Billing_Dedicated_Compute_Reports>;
   /** fetch data from the table in a streaming manner: "billing.dedicated_compute" */
   billing_dedicated_compute_stream: Array<Billing_Dedicated_Compute>;
   /** fetch data from the table: "billing.report_type" */
@@ -21451,6 +24074,14 @@ export type Subscription_Root = {
   billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
   /** fetch data from the table in a streaming manner: "billing.report_type" */
   billing_report_type_stream: Array<Billing_Report_Type>;
+  /** fetch data from the table: "billing.subscription_items" */
+  billing_subscription_items: Array<Billing_Subscription_Items>;
+  /** fetch aggregated fields from the table: "billing.subscription_items" */
+  billing_subscription_items_aggregate: Billing_Subscription_Items_Aggregate;
+  /** fetch data from the table: "billing.subscription_items" using primary key columns */
+  billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
+  /** fetch data from the table in a streaming manner: "billing.subscription_items" */
+  billing_subscription_items_stream: Array<Billing_Subscription_Items>;
   /** fetch data from the table in a streaming manner: "billing.subscriptions" */
   billing_subscriptions_stream: Array<Billing_Subscriptions>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
@@ -21546,6 +24177,62 @@ export type Subscription_Root = {
    * If `from` is not provided, it defaults to an hour ago.
    */
   logs: Array<Log>;
+  /** fetch data from the table: "organizations" using primary key columns */
+  organization?: Maybe<Organizations>;
+  /** fetch data from the table: "organization_members" using primary key columns */
+  organizationMember?: Maybe<Organization_Members>;
+  /** fetch data from the table: "organization_member_invites" using primary key columns */
+  organizationMemberInvite?: Maybe<Organization_Member_Invites>;
+  /** fetch data from the table: "organization_member_invites" */
+  organizationMemberInvites: Array<Organization_Member_Invites>;
+  /** fetch aggregated fields from the table: "organization_member_invites" */
+  organizationMemberInvitesAggregate: Organization_Member_Invites_Aggregate;
+  /** fetch data from the table in a streaming manner: "organization_member_invites" */
+  organizationMemberInvitesStream: Array<Organization_Member_Invites>;
+  /** fetch data from the table: "organization_members" */
+  organizationMembers: Array<Organization_Members>;
+  /** fetch aggregated fields from the table: "organization_members" */
+  organizationMembersAggregate: Organization_Members_Aggregate;
+  /** fetch data from the table in a streaming manner: "organization_members" */
+  organizationMembersStream: Array<Organization_Members>;
+  /** fetch data from the table: "organization_new_request" using primary key columns */
+  organizationNewRequest?: Maybe<Organization_New_Request>;
+  /** fetch data from the table: "organization_new_request" */
+  organizationNewRequests: Array<Organization_New_Request>;
+  /** fetch aggregated fields from the table: "organization_new_request" */
+  organizationNewRequestsAggregate: Organization_New_Request_Aggregate;
+  /** fetch data from the table in a streaming manner: "organization_new_request" */
+  organizationNewRequestsStream: Array<Organization_New_Request>;
+  /** fetch data from the table: "organization_costs_thresholds" */
+  organization_costs_thresholds: Array<Organization_Costs_Thresholds>;
+  /** fetch aggregated fields from the table: "organization_costs_thresholds" */
+  organization_costs_thresholds_aggregate: Organization_Costs_Thresholds_Aggregate;
+  /** fetch data from the table: "organization_costs_thresholds" using primary key columns */
+  organization_costs_thresholds_by_pk?: Maybe<Organization_Costs_Thresholds>;
+  /** fetch data from the table in a streaming manner: "organization_costs_thresholds" */
+  organization_costs_thresholds_stream: Array<Organization_Costs_Thresholds>;
+  /** fetch data from the table: "organization_members_role" */
+  organization_members_role: Array<Organization_Members_Role>;
+  /** fetch aggregated fields from the table: "organization_members_role" */
+  organization_members_role_aggregate: Organization_Members_Role_Aggregate;
+  /** fetch data from the table: "organization_members_role" using primary key columns */
+  organization_members_role_by_pk?: Maybe<Organization_Members_Role>;
+  /** fetch data from the table in a streaming manner: "organization_members_role" */
+  organization_members_role_stream: Array<Organization_Members_Role>;
+  /** fetch data from the table: "organization_status" */
+  organization_status: Array<Organization_Status>;
+  /** fetch aggregated fields from the table: "organization_status" */
+  organization_status_aggregate: Organization_Status_Aggregate;
+  /** fetch data from the table: "organization_status" using primary key columns */
+  organization_status_by_pk?: Maybe<Organization_Status>;
+  /** fetch data from the table in a streaming manner: "organization_status" */
+  organization_status_stream: Array<Organization_Status>;
+  /** An array relationship */
+  organizations: Array<Organizations>;
+  /** fetch aggregated fields from the table: "organizations" */
+  organizationsAggregate: Organizations_Aggregate;
+  /** fetch data from the table in a streaming manner: "organizations" */
+  organizationsSteam: Array<Organizations>;
   /** fetch data from the table: "payment_methods" using primary key columns */
   paymentMethod?: Maybe<PaymentMethods>;
   /** An array relationship */
@@ -21572,6 +24259,14 @@ export type Subscription_Root = {
   region_type_stream: Array<Region_Type>;
   /** An array relationship */
   regions: Array<Regions>;
+  /** fetch data from the table: "regions_allowed_organization" using primary key columns */
+  regionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
+  /** fetch data from the table: "regions_allowed_organization" */
+  regionsAllowedOrganizations: Array<Regions_Allowed_Organization>;
+  /** fetch aggregated fields from the table: "regions_allowed_organization" */
+  regionsAllowedOrganizationsAggregate: Regions_Allowed_Organization_Aggregate;
+  /** fetch data from the table in a streaming manner: "regions_allowed_organization" */
+  regionsAllowedOrganizationsStream: Array<Regions_Allowed_Organization>;
   /** An aggregate relationship */
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table in a streaming manner: "regions_allowed_workspace" */
@@ -21616,16 +24311,8 @@ export type Subscription_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
-  /** fetch data from the table: "users_usage" using primary key columns */
-  usersUsage?: Maybe<Users_Usage>;
-  /** fetch data from the table: "users_usage" */
-  usersUsages: Array<Users_Usage>;
-  /** fetch aggregated fields from the table: "users_usage" */
-  usersUsagesAggregate: Users_Usage_Aggregate;
   /** fetch data from the table in a streaming manner: "auth.users" */
   users_stream: Array<Users>;
-  /** fetch data from the table in a streaming manner: "users_usage" */
-  users_usage_stream: Array<Users_Usage>;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
   /** fetch data from the table: "workspace_members" using primary key columns */
@@ -22269,29 +24956,6 @@ export type Subscription_RootBillingDedicatedComputeAggregateArgs = {
 };
 
 
-export type Subscription_RootBillingDedicatedComputeReportArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootBillingDedicatedComputeReportsArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
-export type Subscription_RootBillingDedicatedComputeReportsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
 export type Subscription_RootBillingDedicatedComputesArgs = {
   distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -22384,13 +25048,6 @@ export type Subscription_RootBillingSubscriptionsAggregateArgs = {
 };
 
 
-export type Subscription_RootBilling_Dedicated_Compute_Reports_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Billing_Dedicated_Compute_Reports_Stream_Cursor_Input>>;
-  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
-};
-
-
 export type Subscription_RootBilling_Dedicated_Compute_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Dedicated_Compute_Stream_Cursor_Input>>;
@@ -22425,6 +25082,36 @@ export type Subscription_RootBilling_Report_Type_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Report_Type_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Subscription_ItemsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscription_Items_Order_By>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Subscription_Items_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscription_Items_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscription_Items_Order_By>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Subscription_Items_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootBilling_Subscription_Items_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Billing_Subscription_Items_Stream_Cursor_Input>>;
+  where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
 };
 
 
@@ -22773,6 +25460,216 @@ export type Subscription_RootLogsArgs = {
 };
 
 
+export type Subscription_RootOrganizationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootOrganizationMemberArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootOrganizationMemberInviteArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootOrganizationMemberInvitesArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationMemberInvitesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Member_Invites_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Member_Invites_Order_By>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationMemberInvitesStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organization_Member_Invites_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationMembersArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationMembersAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationMembersStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organization_Members_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationNewRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootOrganizationNewRequestsArgs = {
+  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationNewRequestsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_New_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_New_Request_Order_By>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationNewRequestsStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organization_New_Request_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_New_Request_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Costs_ThresholdsArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Costs_Thresholds_Order_By>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Costs_Thresholds_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Costs_Thresholds_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Costs_Thresholds_Order_By>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Costs_Thresholds_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootOrganization_Costs_Thresholds_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organization_Costs_Thresholds_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Costs_Thresholds_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Members_RoleArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Members_Role_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Role_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Role_Order_By>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Members_Role_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootOrganization_Members_Role_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organization_Members_Role_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Members_Role_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_StatusArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Status_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Status_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Status_Order_By>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganization_Status_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootOrganization_Status_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organization_Status_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organization_Status_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationsArgs = {
+  distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organizations_Order_By>>;
+  where?: InputMaybe<Organizations_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organizations_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organizations_Order_By>>;
+  where?: InputMaybe<Organizations_Bool_Exp>;
+};
+
+
+export type Subscription_RootOrganizationsSteamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Organizations_Stream_Cursor_Input>>;
+  where?: InputMaybe<Organizations_Bool_Exp>;
+};
+
+
 export type Subscription_RootPaymentMethodArgs = {
   id: Scalars['uuid'];
 };
@@ -22869,6 +25766,36 @@ export type Subscription_RootRegionsArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Regions_Order_By>>;
   where?: InputMaybe<Regions_Bool_Exp>;
+};
+
+
+export type Subscription_RootRegionsAllowedOrganizationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootRegionsAllowedOrganizationsArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+};
+
+
+export type Subscription_RootRegionsAllowedOrganizationsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Organization_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+};
+
+
+export type Subscription_RootRegionsAllowedOrganizationsStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Regions_Allowed_Organization_Stream_Cursor_Input>>;
+  where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
 };
 
 
@@ -23036,40 +25963,10 @@ export type Subscription_RootUsersAggregateArgs = {
 };
 
 
-export type Subscription_RootUsersUsageArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootUsersUsagesArgs = {
-  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
-  where?: InputMaybe<Users_Usage_Bool_Exp>;
-};
-
-
-export type Subscription_RootUsersUsagesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
-  where?: InputMaybe<Users_Usage_Bool_Exp>;
-};
-
-
 export type Subscription_RootUsers_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
-};
-
-
-export type Subscription_RootUsers_Usage_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Users_Usage_Stream_Cursor_Input>>;
-  where?: InputMaybe<Users_Usage_Bool_Exp>;
 };
 
 
@@ -23224,6 +26121,10 @@ export type Users = {
   locale: Scalars['String'];
   metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
+  /** An array relationship */
+  organizationMembership: Array<Organization_Members>;
+  /** An aggregate relationship */
+  organizationMembership_aggregate: Organization_Members_Aggregate;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt: Scalars['timestamptz'];
   otpMethodLastUsed?: Maybe<Scalars['String']>;
@@ -23358,6 +26259,26 @@ export type UsersGithub_App_Installations_AggregateArgs = {
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOrganizationMembershipArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOrganizationMembership_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Organization_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Organization_Members_Order_By>>;
+  where?: InputMaybe<Organization_Members_Bool_Exp>;
 };
 
 
@@ -23637,6 +26558,8 @@ export type Users_Bool_Exp = {
   locale?: InputMaybe<String_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   newEmail?: InputMaybe<Citext_Comparison_Exp>;
+  organizationMembership?: InputMaybe<Organization_Members_Bool_Exp>;
+  organizationMembership_aggregate?: InputMaybe<Organization_Members_Aggregate_Bool_Exp>;
   otpHash?: InputMaybe<String_Comparison_Exp>;
   otpHashExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   otpMethodLastUsed?: InputMaybe<String_Comparison_Exp>;
@@ -23715,6 +26638,7 @@ export type Users_Insert_Input = {
   locale?: InputMaybe<Scalars['String']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   newEmail?: InputMaybe<Scalars['citext']>;
+  organizationMembership?: InputMaybe<Organization_Members_Arr_Rel_Insert_Input>;
   otpHash?: InputMaybe<Scalars['String']>;
   otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
   otpMethodLastUsed?: InputMaybe<Scalars['String']>;
@@ -23880,6 +26804,7 @@ export type Users_Order_By = {
   locale?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
+  organizationMembership_aggregate?: InputMaybe<Organization_Members_Aggregate_Order_By>;
   otpHash?: InputMaybe<Order_By>;
   otpHashExpiresAt?: InputMaybe<Order_By>;
   otpMethodLastUsed?: InputMaybe<Order_By>;
@@ -24125,176 +27050,6 @@ export type Users_Updates = {
   _set?: InputMaybe<Users_Set_Input>;
   /** filter the rows which have to be updated */
   where: Users_Bool_Exp;
-};
-
-/** columns and relationships of "users_usage" */
-export type Users_Usage = {
-  __typename?: 'users_usage';
-  created_at: Scalars['timestamptz'];
-  free_allowance_exceeded: Scalars['Boolean'];
-  id: Scalars['uuid'];
-  updated_at: Scalars['timestamptz'];
-  user_id: Scalars['uuid'];
-};
-
-/** aggregated selection of "users_usage" */
-export type Users_Usage_Aggregate = {
-  __typename?: 'users_usage_aggregate';
-  aggregate?: Maybe<Users_Usage_Aggregate_Fields>;
-  nodes: Array<Users_Usage>;
-};
-
-/** aggregate fields of "users_usage" */
-export type Users_Usage_Aggregate_Fields = {
-  __typename?: 'users_usage_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Users_Usage_Max_Fields>;
-  min?: Maybe<Users_Usage_Min_Fields>;
-};
-
-
-/** aggregate fields of "users_usage" */
-export type Users_Usage_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Users_Usage_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** Boolean expression to filter rows from the table "users_usage". All fields are combined with a logical 'AND'. */
-export type Users_Usage_Bool_Exp = {
-  _and?: InputMaybe<Array<Users_Usage_Bool_Exp>>;
-  _not?: InputMaybe<Users_Usage_Bool_Exp>;
-  _or?: InputMaybe<Array<Users_Usage_Bool_Exp>>;
-  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  free_allowance_exceeded?: InputMaybe<Boolean_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  user_id?: InputMaybe<Uuid_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "users_usage" */
-export enum Users_Usage_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  UsersUsagePkey = 'users_usage_pkey',
-  /** unique or primary key constraint on columns "user_id" */
-  UsersUsageUserIdKey = 'users_usage_user_id_key'
-}
-
-/** input type for inserting data into table "users_usage" */
-export type Users_Usage_Insert_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate max on columns */
-export type Users_Usage_Max_Fields = {
-  __typename?: 'users_usage_max_fields';
-  created_at?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-  user_id?: Maybe<Scalars['uuid']>;
-};
-
-/** aggregate min on columns */
-export type Users_Usage_Min_Fields = {
-  __typename?: 'users_usage_min_fields';
-  created_at?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-  user_id?: Maybe<Scalars['uuid']>;
-};
-
-/** response of any mutation on the table "users_usage" */
-export type Users_Usage_Mutation_Response = {
-  __typename?: 'users_usage_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Users_Usage>;
-};
-
-/** on_conflict condition type for table "users_usage" */
-export type Users_Usage_On_Conflict = {
-  constraint: Users_Usage_Constraint;
-  update_columns?: Array<Users_Usage_Update_Column>;
-  where?: InputMaybe<Users_Usage_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "users_usage". */
-export type Users_Usage_Order_By = {
-  created_at?: InputMaybe<Order_By>;
-  free_allowance_exceeded?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-  user_id?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: users_usage */
-export type Users_Usage_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "users_usage" */
-export enum Users_Usage_Select_Column {
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  FreeAllowanceExceeded = 'free_allowance_exceeded',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  UpdatedAt = 'updated_at',
-  /** column name */
-  UserId = 'user_id'
-}
-
-/** input type for updating data in table "users_usage" */
-export type Users_Usage_Set_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** Streaming cursor of the table "users_usage" */
-export type Users_Usage_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Users_Usage_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Users_Usage_Stream_Cursor_Value_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** update columns of table "users_usage" */
-export enum Users_Usage_Update_Column {
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  FreeAllowanceExceeded = 'free_allowance_exceeded',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  UpdatedAt = 'updated_at',
-  /** column name */
-  UserId = 'user_id'
-}
-
-export type Users_Usage_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Users_Usage_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Users_Usage_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'. */

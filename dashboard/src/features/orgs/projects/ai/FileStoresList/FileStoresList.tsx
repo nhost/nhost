@@ -9,10 +9,10 @@ import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { DeleteFileStoreModal } from '@/features/ai/DeleteFileStoreModal';
-import { FileStoreForm } from '@/features/ai/FileStoreForm';
+import { DeleteFileStoreModal } from '@/features/orgs/projects/ai/DeleteFileStoreModal';
+import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
+import { type GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { copy } from '@/utils/copy';
-import { type GraphiteFileStore } from 'pages/[workspaceSlug]/[appSlug]/ai/file-stores';
 
 interface FileStoresListProps {
   /**

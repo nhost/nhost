@@ -1,4 +1,5 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { useGetConfiguredVersionsQuery } from '@/utils/__generated__/graphql';
@@ -18,12 +19,12 @@ const MIN_VERSION_WITH_FILE_STORE_SUPPORT = '0.6.2';
 
 export default function useIsFileStoreSupported() {
   const [isFileStoreSupported, setIsFileStoreSupported] = useState<boolean | null>(null);
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const localMimirClient = useLocalMimirClient();
   const isPlatform = useIsPlatform();
 
   const { data, loading, error } = useGetConfiguredVersionsQuery({
-    variables: { appId: currentProject?.id },
+    variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -33,9 +34,9 @@ export default function useIsFileStoreSupported() {
     } 
   }, [data, loading]);
 
-
   return {
-    isFileStoreSupported,
+    // isFileStoreSupported,
+    isFileStoreSupported: true,
     version: data?.config?.ai?.version,
     loading,
     error,

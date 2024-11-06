@@ -10,15 +10,13 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/ai/AssistantForm';
 import { AssistantsList } from '@/features/ai/AssistantsList';
-import { useIsFileStoreSupported } from '@/features/ai/common/hooks/useIsFileStoreSupported';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
-  useGetAssistantsQuery,
-  useGetGraphiteFileStoresQuery,
+  useGetAssistantsQuery
 } from '@/utils/__generated__/graphite.graphql';
 import { useMemo, type ReactElement } from 'react';
 
@@ -29,40 +27,24 @@ export default function AssistantsPage() {
   const { adminClient } = useAdminApolloClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
 
-  const { isFileStoreSupported, loading: fileStoreLoading } = useIsFileStoreSupported();
-
   const {
-    data: assistantsData,
-    loading: assistantsLoading,
-    refetch: assistantsRefetch,
+    data,
+    loading,
+    refetch,
   } = useGetAssistantsQuery({
     client: adminClient,
-    variables: {
-      isFileStoresSupported: isFileStoreSupported ?? false,
-    },
-    skip: isFileStoreSupported === null || fileStoreLoading,
   });
-  const { data: fileStoresData } = useGetGraphiteFileStoresQuery({
-    client: adminClient,
-  });
-
+  
   const assistants = useMemo(
-    () => assistantsData?.graphite?.assistants || [],
-    [assistantsData],
-  );
-  const fileStores = useMemo(
-    () => fileStoresData?.graphite?.fileStores || [],
-    [fileStoresData],
+    () => data?.graphite?.assistants || [],
+    [data],
   );
 
   const openCreateAssistantForm = () => {
     openDrawer({
       title: 'Create a new Assistant',
       component: (
-        <AssistantForm 
-          onSubmit={assistantsRefetch} 
-          fileStores={isFileStoreSupported ? fileStores : undefined}
-        />
+        <AssistantForm onSubmit={refetch} />
       ),
     });
   };
@@ -117,7 +99,7 @@ export default function AssistantsPage() {
     );
   }
 
-  if (assistantsLoading) {
+  if (loading) {
     return <Box className="p-4">Loading...</Box>;
   }
 
@@ -167,9 +149,8 @@ export default function AssistantsPage() {
       </Box>
       <AssistantsList
         assistants={assistants}
-        fileStores={isFileStoreSupported ? fileStores : undefined}
-        onDelete={() => assistantsRefetch()}
-        onCreateOrUpdate={() => assistantsRefetch()}
+        onDelete={() => refetch()}
+        onCreateOrUpdate={() => refetch()}
       />
     </Box>
   );

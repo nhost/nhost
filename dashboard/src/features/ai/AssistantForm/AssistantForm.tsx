@@ -7,7 +7,6 @@ import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
@@ -21,13 +20,9 @@ import {
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { type GraphiteFileStore } from 'pages/[workspaceSlug]/[appSlug]/ai/file-stores';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { useIsFileStoreSupported } from '@/features/ai/common/hooks/useIsFileStoreSupported';
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
@@ -78,10 +73,7 @@ export interface AssistantFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AssistantFormValues & {
-    fileStores?: string[];
-  };
-  fileStores?: GraphiteFileStore[];
+  initialData?: AssistantFormValues
 
   /**
    * Function to be called when the operation is cancelled.
@@ -96,7 +88,6 @@ export interface AssistantFormProps extends DialogFormProps {
 export default function AssistantForm({
   assistantId,
   initialData,
-  fileStores,
   onSubmit,
   onCancel,
   location,
@@ -113,27 +104,8 @@ export default function AssistantForm({
     client: adminClient,
   });
 
-  const { isFileStoreSupported } = useIsFileStoreSupported();
-  
-  const fileStoresOptions = fileStores
-    ? fileStores.map((fileStore: GraphiteFileStore) => ({
-        label: fileStore.name,
-        value: fileStore.name,
-        id: fileStore.id,
-      }))
-    : [];
-
-  const assistantFileStore = initialData?.fileStores
-    ? fileStores?.find((fileStore: GraphiteFileStore) =>
-      fileStore.id === initialData?.fileStores[0]
-      )
-    : null;
-
-  const formDefaultValues = { ...initialData, fileStores: [] };
-  formDefaultValues.fileStore = assistantFileStore ? assistantFileStore.id : '';
-
   const form = useForm<AssistantFormValues>({
-    defaultValues: formDefaultValues,
+    defaultValues: initialData,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
@@ -164,15 +136,7 @@ export default function AssistantForm({
       delete payload.graphql;
     }
 
-    if (isFileStoreSupported && values.fileStore) {
-      payload.fileStores = [values.fileStore];
-    }
-    if (!isFileStoreSupported) {
-      delete payload.fileStores;
-    }
-
     delete payload.assistantID;
-    delete payload.fileStore;
 
     // If the assistantId is set then we do an update
     if (assistantId) {
@@ -189,7 +153,7 @@ export default function AssistantForm({
     await insertAssistantMutation({
       variables: {
         data: {
-          ...payload,
+          ...values,
         },
       },
     });
@@ -213,10 +177,6 @@ export default function AssistantForm({
       },
     );
   };
-
-  const fileStoreTooltip = isFileStoreSupported
-    ? "File Store available to the assistant. All data in the file store will be available to the assistant."
-    : "Please upgrade Graphite to its latest version in order to use file stores.";
 
   return (
     <FormProvider {...form}>
@@ -329,37 +289,6 @@ export default function AssistantForm({
 
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
-
-          <ControlledSelect
-            slotProps={{
-              popper: { disablePortal: false, className: 'z-[10000]' },
-            }}
-            id="fileStore"
-            name="fileStore"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>File Store</Text>
-                <Tooltip title={fileStoreTooltip}>
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
-            fullWidth
-            error={!!errors?.model?.message}
-            helperText={errors?.model?.message}
-            disabled={!isFileStoreSupported}
-          >
-            <Option value=""></Option>
-            {fileStoresOptions.map((fileStore) => (
-              <Option key={fileStore.id} value={fileStore.id}>
-                {fileStore.label}
-              </Option>
-            ))}
-          </ControlledSelect>
         </div>
 
         <Box className="flex w-full flex-row justify-between rounded border-t p-4">

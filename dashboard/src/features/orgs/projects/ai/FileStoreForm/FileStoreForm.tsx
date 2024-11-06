@@ -12,13 +12,13 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import {
-  useInsertFileStoreMutation,
-  useUpdateFileStoreMutation,
+    useInsertFileStoreMutation,
+    useUpdateFileStoreMutation,
 } from '@/utils/__generated__/graphite.graphql';
 import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
