@@ -42,14 +42,14 @@ export default function DisableNewUsersSettings() {
   const form = useForm<DisableNewUsersFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      disabled: !data?.config?.auth?.signUp?.disableNewUsers,
+      disabled: data?.config?.auth?.signUp?.disableNewUsers,
     },
   });
 
   useEffect(() => {
     if (!loading) {
       form.reset({
-        disabled: !data?.config?.auth?.signUp?.disableNewUsers,
+        disabled: data?.config?.auth?.signUp?.disableNewUsers,
       });
     }
   }, [loading, data, form]);
@@ -79,7 +79,7 @@ export default function DisableNewUsersSettings() {
         config: {
           auth: {
             signUp: {
-              disableNewUsers: !values.disabled,
+              disableNewUsers: values.disabled,
             },
           },
         },
