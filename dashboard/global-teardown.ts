@@ -8,7 +8,7 @@ import { navigateToProject } from '@/e2e/utils';
 import { chromium } from '@playwright/test';
 
 async function globalTeardown() {
-  const browser = await chromium.launch({ slowMo: 1000, headless: false });
+  const browser = await chromium.launch({ slowMo: 1000 });
 
   const context = await browser.newContext({
     baseURL: TEST_DASHBOARD_URL,
