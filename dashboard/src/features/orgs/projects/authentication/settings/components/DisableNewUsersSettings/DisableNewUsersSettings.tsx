@@ -42,14 +42,14 @@ export default function DisableNewUsersSettings() {
   const form = useForm<DisableNewUsersFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      disabled: !data?.config?.auth?.signUp?.enabled,
+      disabled: data?.config?.auth?.signUp?.disableNewUsers,
     },
   });
 
   useEffect(() => {
     if (!loading) {
       form.reset({
-        disabled: !data?.config?.auth?.signUp?.enabled,
+        disabled: data?.config?.auth?.signUp?.disableNewUsers,
       });
     }
   }, [loading, data, form]);
@@ -58,7 +58,7 @@ export default function DisableNewUsersSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading disabled sign up settings..."
+        label="Loading disabled new users settings..."
         className="justify-center"
       />
     );
@@ -79,7 +79,7 @@ export default function DisableNewUsersSettings() {
         config: {
           auth: {
             signUp: {
-              enabled: !values.disabled,
+              disableNewUsers: values.disabled,
             },
           },
         },
@@ -104,10 +104,10 @@ export default function DisableNewUsersSettings() {
         }
       },
       {
-        loadingMessage: 'Disabling new user sign ups...',
-        successMessage: 'New user sign ups have been disabled successfully.',
+        loadingMessage: 'Disabling new users sign ins...',
+        successMessage: 'New users sign ins have been disabled successfully.',
         errorMessage:
-          'An error occurred while trying to disable new user sign ups.',
+          'An error occurred while trying to disable new users sign ins.',
       },
     );
   };
