@@ -18,7 +18,7 @@ test.beforeEach(async () => {
     projectSubdomain: TEST_PROJECT_SUBDOMAIN,
   });
 
-  const runRoute = `/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/run`;
+  const runRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/run`;
   await page.goto(runRoute);
   await page.waitForURL(runRoute);
 });
@@ -33,6 +33,10 @@ test('should create and delete a run service', async () => {
   await page.getByPlaceholder(/service name/i).click();
   await page.getByPlaceholder(/service name/i).fill('test');
 
+  await page.getByText('Nhost registry').click();
+  await page.getByPlaceholder('Replicas').click();
+  await page.getByPlaceholder('Replicas').fill('0');
+
   await page.getByRole('button', { name: /create/i }).click();
 
   await expect(
@@ -40,12 +44,6 @@ test('should create and delete a run service', async () => {
   ).toBeVisible();
 
   await page.getByRole('button', { name: /confirm/i }).click();
-
-  await expect(
-    page.getByRole('heading', { name: /service details/i }),
-  ).toBeVisible();
-
-  await page.getByRole('button', { name: /ok/i }).click();
 
   await expect(page.getByRole('heading', { name: /test/i })).toBeVisible();
 
