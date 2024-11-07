@@ -20,7 +20,7 @@ test.beforeEach(async () => {
     projectSubdomain: TEST_PROJECT_SUBDOMAIN,
   });
 
-  const databaseRoute = `/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database`;
+  const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
   await page.goto(databaseRoute);
   await page.waitForURL(databaseRoute);
 });
