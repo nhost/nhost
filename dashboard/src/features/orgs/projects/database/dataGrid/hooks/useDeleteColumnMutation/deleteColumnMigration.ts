@@ -1,13 +1,13 @@
-import { prepareCreateColumnQuery } from '@/features/database/dataGrid/hooks/useCreateColumnMutation';
+import { prepareCreateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateColumnMutation';
 import type {
   AffectedRowsResult,
   DataBrowserGridColumn,
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/features/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/database/dataGrid/utils/hasuraQueryHelpers';
-import { normalizeQueryError } from '@/features/database/dataGrid/utils/normalizeQueryError';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 
 export interface DeleteColumnMigrationVariables {

@@ -1,7 +1,7 @@
 import type {
   HasuraOperator,
   RuleGroup,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 function createNestedObject(pathParts: string[], value: any) {
   const [currentPath, ...restPath] = pathParts;

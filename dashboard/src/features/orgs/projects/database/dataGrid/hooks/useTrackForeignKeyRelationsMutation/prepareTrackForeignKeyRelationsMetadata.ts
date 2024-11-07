@@ -1,9 +1,9 @@
-import { fetchMetadata } from '@/features/database/dataGrid/hooks/useMetadataQuery';
+import { fetchMetadata } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
   MutationOrQueryBaseOptions,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { singular } from 'pluralize';
 
 export type ForeignKeyMetadataOperation =

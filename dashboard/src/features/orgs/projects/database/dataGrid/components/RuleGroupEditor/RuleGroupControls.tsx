@@ -1,7 +1,7 @@
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
-import type { RuleGroup } from '@/features/database/dataGrid/types/dataBrowser';
+import type { RuleGroup } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';

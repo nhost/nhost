@@ -1,4 +1,4 @@
-import type { HasuraMetadata } from '@/features/database/dataGrid/types/dataBrowser';
+import type { HasuraMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';

@@ -10,12 +10,12 @@ import { OptionBase } from '@/components/ui/v2/Option';
 import type {
   ColumnType,
   ForeignKeyRelation,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   identityTypes,
   postgresFunctions,
   postgresTypeGroups,
-} from '@/features/database/dataGrid/utils/postgresqlConstants';
+} from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import clsx from 'clsx';
 import type { PropsWithoutRef } from 'react';
 import { memo, useEffect, useState } from 'react';

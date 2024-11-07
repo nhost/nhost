@@ -3,12 +3,12 @@ import { Input } from '@/components/ui/v2/Input';
 import { Radio } from '@/components/ui/v2/Radio';
 import { RadioGroup } from '@/components/ui/v2/RadioGroup';
 import { Text } from '@/components/ui/v2/Text';
-import type { RolePermissionEditorFormValues } from '@/features/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
-import { RuleGroupEditor } from '@/features/database/dataGrid/components/RuleGroupEditor';
+import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
+import { RuleGroupEditor } from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor';
 import type {
   DatabaseAction,
   RuleGroup,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { FocusEvent } from 'react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';

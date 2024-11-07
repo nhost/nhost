@@ -11,8 +11,8 @@ import { List } from '@/components/ui/v2/List';
 import { OptionBase } from '@/components/ui/v2/Option';
 import { OptionGroupBase } from '@/components/ui/v2/OptionGroup';
 import { Text } from '@/components/ui/v2/Text';
-import { useMetadataQuery } from '@/features/database/dataGrid/hooks/useMetadataQuery';
-import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
+import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { getTruncatedText } from '@/utils/getTruncatedText';
 import type { AutocompleteGroupedOption } from '@mui/base/useAutocomplete';
 import { useAutocomplete } from '@mui/base/useAutocomplete';
@@ -210,7 +210,6 @@ function ColumnAutocomplete(
     ]);
   }
 
-
   const options = useColumnGroups({
     selectedSchema,
     selectedTable,
@@ -243,20 +242,20 @@ function ColumnAutocomplete(
     onChange: handleChange,
   });
 
-  
-  function handleInputValueChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const {value} = event.target
-    setInputValue(value)
+  function handleInputValueChange(
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
+    const { value } = event.target;
+    setInputValue(value);
 
-    setSelectedColumn(
-      {
-        value,
-        label: value,
-        metadata: selectedColumn?.metadata || {
-          table_schema: selectedSchema,
-          table_name: selectedTable,
-        }
-      });
+    setSelectedColumn({
+      value,
+      label: value,
+      metadata: selectedColumn?.metadata || {
+        table_schema: selectedSchema,
+        table_name: selectedTable,
+      },
+    });
 
     onChange?.(event, {
       value:
@@ -395,11 +394,11 @@ function ColumnAutocomplete(
                   );
                 }}
               >
-                <ArrowLeftIcon className="w-4 h-4" />
+                <ArrowLeftIcon className="h-4 w-4" />
               </IconButton>
             )}
 
-            <Text className="text-left truncate direction-rtl">
+            <Text className="direction-rtl truncate text-left">
               <Text component="span" color="disabled">
                 {defaultTable}
               </Text>
@@ -433,7 +432,7 @@ function ColumnAutocomplete(
             >
               {(
                 groupedOptions as AutocompleteGroupedOption<
-                  typeof options[number]
+                  (typeof options)[number]
                 >[]
               ).map((optionGroup) =>
                 renderGroup({

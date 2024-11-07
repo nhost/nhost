@@ -1,7 +1,7 @@
 import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import type { RuleGroup } from '@/features/database/dataGrid/types/dataBrowser';
+import type { RuleGroup } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';

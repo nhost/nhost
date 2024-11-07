@@ -1,4 +1,4 @@
-import type { DatabaseColumn } from '@/features/database/dataGrid/types/dataBrowser';
+import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import convertDataBrowserGridColumnToDatabaseColumn from './convertDataBrowserGridColumnToDatabaseColumn';
 
 test('should convert a data browser column to a database column', () => {

@@ -5,9 +5,9 @@ import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { Text } from '@/components/ui/v2/Text';
-import { CreateForeignKeyForm } from '@/features/database/dataGrid/components/CreateForeignKeyForm';
-import { EditForeignKeyForm } from '@/features/database/dataGrid/components/EditForeignKeyForm';
-import type { DatabaseColumn } from '@/features/database/dataGrid/types/dataBrowser';
+import { CreateForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/CreateForeignKeyForm';
+import { EditForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/EditForeignKeyForm';
+import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { ForwardedRef } from 'react';
 import { forwardRef, useRef } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -106,7 +106,7 @@ const ForeignKeyEditorInput = forwardRef(
               });
             }}
             variant="borderless"
-            className="min-w-[initial] py-1 px-2"
+            className="min-w-[initial] px-2 py-1"
           >
             Edit
           </Button>
@@ -114,7 +114,7 @@ const ForeignKeyEditorInput = forwardRef(
           <Button
             onClick={() => setValue('foreignKeyRelation', null)}
             variant="borderless"
-            className="min-w-[initial] py-1 px-2"
+            className="min-w-[initial] px-2 py-1"
           >
             Delete
           </Button>
