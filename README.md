@@ -149,3 +149,5 @@ Here are some ways of contributing to making Nhost better:
     <img width="720" src="https://contrib.rocks/image?repo=nhost/nhost" alt="A table of avatars from the project's contributors" />
   </p>
 </a>
+
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Nhost%20Guru-006BFF)](https://gurubase.io/g/nhost)
