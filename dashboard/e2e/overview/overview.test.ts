@@ -1,8 +1,4 @@
-import {
-  TEST_ORGANIZATION_SLUG,
-  TEST_PROJECT_NAME,
-  TEST_PROJECT_SUBDOMAIN,
-} from '@/e2e/env';
+import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import { navigateToProject } from '../utils';
@@ -25,49 +21,34 @@ test.afterAll(async () => {
   await page.close();
 });
 
-// test('should show a sidebar with menu items', async () => {
-//   const navLocator = page.getByRole('navigation', { name: /main navigation/i });
-//   await expect(navLocator).toBeVisible();
-//   await expect(navLocator.getByRole('list').getByRole('listitem')).toHaveCount(
-//     13,
-//   );
-//   await expect(
-//     navLocator.getByRole('link', { name: /overview/i }),
-//   ).toBeVisible();
-//   await expect(
-//     navLocator.getByRole('link', { name: /database/i }),
-//   ).toBeVisible();
-//   await expect(
-//     navLocator.getByRole('link', { name: /graphql/i }),
-//   ).toBeVisible();
-//   await expect(navLocator.getByRole('link', { name: /hasura/i })).toBeVisible();
-//   await expect(navLocator.getByRole('link', { name: /auth/i })).toBeVisible();
-//   await expect(
-//     navLocator.getByRole('link', { name: /storage/i }),
-//   ).toBeVisible();
-//   await expect(
-//     navLocator.getByRole('link', { name: /deployments/i }),
-//   ).toBeVisible();
-//   await expect(
-//     navLocator.getByRole('link', { name: /backups/i }),
-//   ).toBeVisible();
-//   await expect(navLocator.getByRole('link', { name: /logs/i })).toBeVisible();
-//   await expect(
-//     navLocator.getByRole('link', { name: /metrics/i }),
-//   ).toBeVisible();
-//   await expect(
-//     navLocator.getByRole('link', { name: /settings/i }),
-//   ).toBeVisible();
-// });
+test('should show the navtree with all links visible', async () => {
+  const navLocator = page.getByLabel('Navigation Tree');
+  await expect(navLocator).toBeVisible();
 
-test('should show a header with a logo, the workspace name, and the project name', async () => {
-  // await expect(
-  //   page.getByRole('banner').getByRole('link', { name: TEST_WORKSPACE_NAME }),
-  // ).toBeVisible();
+  const links = [
+    'Nhost Automation Test Project',
+    'Overview',
+    'Database',
+    'GraphQL',
+    'Hasura',
+    'Auth',
+    'Storage',
+    'Run',
+    'AI',
+    'Deployments',
+    'Backups',
+    'Logs',
+    'Metrics',
+    'Settings',
+  ];
 
-  await expect(
-    page.getByRole('banner').getByRole('link', { name: TEST_PROJECT_NAME }),
-  ).toBeVisible();
+  for (const linkName of links) {
+    const link =
+      linkName === 'Settings'
+        ? page.getByRole('link', { name: linkName }).first()
+        : page.getByRole('link', { name: linkName });
+    await expect(link).toBeVisible();
+  }
 });
 
 test("should show the project's region and subdomain", async () => {
