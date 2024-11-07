@@ -15,6 +15,8 @@
 <a href="https://twitter.com/nhost">Twitter</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/discord">Discord</a>
+<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+<a href="https://gurubase.io/g/nhost">Ask Nhost Guru</a>
 <br />
 
   <hr />
@@ -149,5 +151,3 @@ Here are some ways of contributing to making Nhost better:
     <img width="720" src="https://contrib.rocks/image?repo=nhost/nhost" alt="A table of avatars from the project's contributors" />
   </p>
 </a>
-
-[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Nhost%20Guru-006BFF)](https://gurubase.io/g/nhost)
