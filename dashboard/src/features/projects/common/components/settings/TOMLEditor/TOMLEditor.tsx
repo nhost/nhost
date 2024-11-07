@@ -159,9 +159,6 @@ export default function TOMLEditor() {
             height="100%"
             width="100%"
             theme={theme.palette.mode === 'light' ? bbedit : githubDark}
-            basicSetup={{
-              searchKeymap: false,
-            }}
             extensions={[StreamLanguage.define(toml)]}
             onChange={onChange}
           />

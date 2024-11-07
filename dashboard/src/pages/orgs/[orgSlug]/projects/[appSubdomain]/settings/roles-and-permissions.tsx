@@ -12,14 +12,15 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function RolesAndPermissionsPage() {
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
 
   const { loading, error } = useGetRolesPermissionsQuery({
     variables: {
       appId: project?.id,
     },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

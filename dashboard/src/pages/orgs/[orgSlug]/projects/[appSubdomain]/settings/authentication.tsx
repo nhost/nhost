@@ -16,6 +16,7 @@ import type { ReactElement } from 'react';
 
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { DisableSignUpsSettings } from '@/features/orgs/projects/authentication/settings/components/DisableSignUpsSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -27,6 +28,7 @@ export default function SettingsAuthenticationPage() {
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     skip: !project,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -47,7 +49,7 @@ export default function SettingsAuthenticationPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <AuthServiceVersionSettings />
@@ -59,6 +61,7 @@ export default function SettingsAuthenticationPage() {
       <SessionSettings />
       <GravatarSettings />
       <DisableNewUsersSettings />
+      <DisableSignUpsSettings />
       <ConcealErrorsSettings />
     </Container>
   );

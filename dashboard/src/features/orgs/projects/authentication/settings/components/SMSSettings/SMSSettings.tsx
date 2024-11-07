@@ -9,7 +9,6 @@ import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import {
-  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -50,17 +49,17 @@ const validationSchema = Yup.object({
 export type SMSSettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function SMSSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSignInMethodsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { data, error, loading } = useGetSignInMethodsQuery({
+  const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });

@@ -11,7 +11,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 import {
-  GetHasuraSettingsDocument,
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -42,8 +41,8 @@ export default function HasuraEnabledAPISettings() {
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project, refetch: refetchProject } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetHasuraSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -144,7 +143,7 @@ export default function HasuraEnabledAPISettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-6"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-6"
         >
           <ControlledAutocomplete
             id="enabledAPIs"

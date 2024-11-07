@@ -27,6 +27,7 @@ export default function SMTPSettingsPage() {
 
   const { data, loading, error } = useGetSmtpSettingsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

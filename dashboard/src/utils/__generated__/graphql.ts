@@ -26835,7 +26835,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null, disableNewUsers?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
 
 export type GetPostgresSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -26876,6 +26876,13 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
 
 
 export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
+
+export type GetObservabilitySettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetObservabilitySettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', alerting?: { __typename?: 'ConfigGrafanaAlerting', enabled?: boolean | null } | null, smtp?: { __typename?: 'ConfigGrafanaSmtp', host: string, password: string, port: any, sender: string, user: string } | null, contacts?: { __typename?: 'ConfigGrafanaContacts', emails?: Array<string> | null, discord?: Array<{ __typename?: 'ConfigGrafanacontactsDiscord', avatarUrl: string, url: string }> | null, pagerduty?: Array<{ __typename?: 'ConfigGrafanacontactsPagerduty', integrationKey: string, severity: string, class: string, component: string, group: string }> | null, slack?: Array<{ __typename?: 'ConfigGrafanacontactsSlack', recipient: string, token: string, username: string, iconEmoji: string, iconURL: string, mentionUsers: Array<string>, mentionGroups: Array<string>, mentionChannel: string, url: string, endpointURL: string }> | null, webhook?: Array<{ __typename?: 'ConfigGrafanacontactsWebhook', url: string, httpMethod: string, username: string, password: string, authorizationScheme: string, authorizationCredentials: string, maxAlerts: number }> | null } | null } } } | null };
 
 export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null };
 
@@ -27379,6 +27386,13 @@ export type GetOrganizationProjectsQueryVariables = Exact<{
 
 export type GetOrganizationProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
+export type GetOrganizationSpendingNotificationQueryVariables = Exact<{
+  orgId: Scalars['uuid'];
+}>;
+
+
+export type GetOrganizationSpendingNotificationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', threshold: number }> };
+
 export type GetOrganizationsQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
@@ -27470,6 +27484,14 @@ export type UpdateOrganizationMemberMutationVariables = Exact<{
 
 
 export type UpdateOrganizationMemberMutation = { __typename?: 'mutation_root', updateOrganizationMember?: { __typename?: 'organization_members', id: any } | null };
+
+export type UpdateOrganizationSpendingNotificationMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  threshold: Scalars['Int'];
+}>;
+
+
+export type UpdateOrganizationSpendingNotificationMutation = { __typename?: 'mutation_root', updateOrganization?: { __typename?: 'organizations', threshold: number } | null };
 
 export type DeletePaymentMethodMutationVariables = Exact<{
   paymentMethodId: Scalars['uuid'];
@@ -28463,6 +28485,7 @@ export const GetAuthenticationSettingsDocument = gql`
       }
       signUp {
         enabled
+        disableNewUsers
       }
       session {
         accessToken {
@@ -28770,6 +28793,94 @@ export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetB
 export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
 export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
       return { query: GetBackupPresignedUrlDocument, variables: variables }
+    }
+export const GetObservabilitySettingsDocument = gql`
+    query GetObservabilitySettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    observability {
+      grafana {
+        alerting {
+          enabled
+        }
+        smtp {
+          host
+          password
+          port
+          sender
+          user
+        }
+        contacts {
+          emails
+          discord {
+            avatarUrl
+            url
+          }
+          pagerduty {
+            integrationKey
+            severity
+            class
+            component
+            group
+          }
+          slack {
+            recipient
+            token
+            username
+            iconEmoji
+            iconURL
+            mentionUsers
+            mentionGroups
+            mentionChannel
+            url
+            endpointURL
+          }
+          webhook {
+            url
+            httpMethod
+            username
+            password
+            authorizationScheme
+            authorizationCredentials
+            maxAlerts
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetObservabilitySettingsQuery__
+ *
+ * To run a query within a React component, call `useGetObservabilitySettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetObservabilitySettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetObservabilitySettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetObservabilitySettingsQuery(baseOptions: Apollo.QueryHookOptions<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>(GetObservabilitySettingsDocument, options);
+      }
+export function useGetObservabilitySettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>(GetObservabilitySettingsDocument, options);
+        }
+export type GetObservabilitySettingsQueryHookResult = ReturnType<typeof useGetObservabilitySettingsQuery>;
+export type GetObservabilitySettingsLazyQueryHookResult = ReturnType<typeof useGetObservabilitySettingsLazyQuery>;
+export type GetObservabilitySettingsQueryResult = Apollo.QueryResult<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>;
+export function refetchGetObservabilitySettingsQuery(variables: GetObservabilitySettingsQueryVariables) {
+      return { query: GetObservabilitySettingsDocument, variables: variables }
     }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {
@@ -31577,6 +31688,44 @@ export type GetOrganizationProjectsQueryResult = Apollo.QueryResult<GetOrganizat
 export function refetchGetOrganizationProjectsQuery(variables: GetOrganizationProjectsQueryVariables) {
       return { query: GetOrganizationProjectsDocument, variables: variables }
     }
+export const GetOrganizationSpendingNotificationDocument = gql`
+    query getOrganizationSpendingNotification($orgId: uuid!) {
+  organizations(where: {id: {_eq: $orgId}}) {
+    threshold
+  }
+}
+    `;
+
+/**
+ * __useGetOrganizationSpendingNotificationQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationSpendingNotificationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationSpendingNotificationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationSpendingNotificationQuery({
+ *   variables: {
+ *      orgId: // value for 'orgId'
+ *   },
+ * });
+ */
+export function useGetOrganizationSpendingNotificationQuery(baseOptions: Apollo.QueryHookOptions<GetOrganizationSpendingNotificationQuery, GetOrganizationSpendingNotificationQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOrganizationSpendingNotificationQuery, GetOrganizationSpendingNotificationQueryVariables>(GetOrganizationSpendingNotificationDocument, options);
+      }
+export function useGetOrganizationSpendingNotificationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationSpendingNotificationQuery, GetOrganizationSpendingNotificationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOrganizationSpendingNotificationQuery, GetOrganizationSpendingNotificationQueryVariables>(GetOrganizationSpendingNotificationDocument, options);
+        }
+export type GetOrganizationSpendingNotificationQueryHookResult = ReturnType<typeof useGetOrganizationSpendingNotificationQuery>;
+export type GetOrganizationSpendingNotificationLazyQueryHookResult = ReturnType<typeof useGetOrganizationSpendingNotificationLazyQuery>;
+export type GetOrganizationSpendingNotificationQueryResult = Apollo.QueryResult<GetOrganizationSpendingNotificationQuery, GetOrganizationSpendingNotificationQueryVariables>;
+export function refetchGetOrganizationSpendingNotificationQuery(variables: GetOrganizationSpendingNotificationQueryVariables) {
+      return { query: GetOrganizationSpendingNotificationDocument, variables: variables }
+    }
 export const GetOrganizationsDocument = gql`
     query getOrganizations($userId: uuid!) {
   organizations(order_by: {name: asc}, where: {members: {userID: {_eq: $userId}}}) {
@@ -32180,6 +32329,40 @@ export function useUpdateOrganizationMemberMutation(baseOptions?: Apollo.Mutatio
 export type UpdateOrganizationMemberMutationHookResult = ReturnType<typeof useUpdateOrganizationMemberMutation>;
 export type UpdateOrganizationMemberMutationResult = Apollo.MutationResult<UpdateOrganizationMemberMutation>;
 export type UpdateOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationMemberMutation, UpdateOrganizationMemberMutationVariables>;
+export const UpdateOrganizationSpendingNotificationDocument = gql`
+    mutation updateOrganizationSpendingNotification($id: uuid!, $threshold: Int!) {
+  updateOrganization(pk_columns: {id: $id}, _set: {threshold: $threshold}) {
+    threshold
+  }
+}
+    `;
+export type UpdateOrganizationSpendingNotificationMutationFn = Apollo.MutationFunction<UpdateOrganizationSpendingNotificationMutation, UpdateOrganizationSpendingNotificationMutationVariables>;
+
+/**
+ * __useUpdateOrganizationSpendingNotificationMutation__
+ *
+ * To run a mutation, you first call `useUpdateOrganizationSpendingNotificationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateOrganizationSpendingNotificationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateOrganizationSpendingNotificationMutation, { data, loading, error }] = useUpdateOrganizationSpendingNotificationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      threshold: // value for 'threshold'
+ *   },
+ * });
+ */
+export function useUpdateOrganizationSpendingNotificationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateOrganizationSpendingNotificationMutation, UpdateOrganizationSpendingNotificationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateOrganizationSpendingNotificationMutation, UpdateOrganizationSpendingNotificationMutationVariables>(UpdateOrganizationSpendingNotificationDocument, options);
+      }
+export type UpdateOrganizationSpendingNotificationMutationHookResult = ReturnType<typeof useUpdateOrganizationSpendingNotificationMutation>;
+export type UpdateOrganizationSpendingNotificationMutationResult = Apollo.MutationResult<UpdateOrganizationSpendingNotificationMutation>;
+export type UpdateOrganizationSpendingNotificationMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationSpendingNotificationMutation, UpdateOrganizationSpendingNotificationMutationVariables>;
 export const DeletePaymentMethodDocument = gql`
     mutation deletePaymentMethod($paymentMethodId: uuid!) {
   deletePaymentMethod(id: $paymentMethodId) {

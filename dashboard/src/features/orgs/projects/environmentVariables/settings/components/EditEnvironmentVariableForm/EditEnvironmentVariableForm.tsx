@@ -11,7 +11,6 @@ import {
 } from '@/features/orgs/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
 import type { EnvironmentVariable } from '@/types/application';
 import {
-  GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
@@ -58,13 +57,13 @@ export default function EditEnvironmentVariableForm({
 
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const availableEnvironmentVariables = data?.config?.global?.environment || [];
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetEnvironmentVariablesDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

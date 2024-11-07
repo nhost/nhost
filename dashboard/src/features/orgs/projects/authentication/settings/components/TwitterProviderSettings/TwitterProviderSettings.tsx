@@ -9,7 +9,6 @@ import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import {
-  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -45,13 +44,13 @@ const validationSchema = Yup.object({
 export type TwitterProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function TwitterProviderSettings() {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSignInMethodsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -217,7 +216,7 @@ export default function TwitterProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

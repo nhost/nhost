@@ -6,7 +6,6 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import {
-  GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -29,18 +28,19 @@ const validationSchema = Yup.object({
 export type MFASettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function MFASettings() {
-  const { openDialog } = useDialog();
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetAuthenticationSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

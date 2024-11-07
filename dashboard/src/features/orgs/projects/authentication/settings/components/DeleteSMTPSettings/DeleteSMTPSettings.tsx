@@ -10,7 +10,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetSmtpSettingsDocument,
+  useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
@@ -52,16 +52,24 @@ function ConfirmDeleteSMTPSettingsModal({
 }
 
 export default function DeleteSMTPSettings() {
-  const { openDialog, closeDialog } = useDialog();
-
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
   const [loading, setLoading] = useState(false);
-  const { project } = useProject();
+  const { openDialog, closeDialog } = useDialog();
+  const localMimirClient = useLocalMimirClient();
+
+  const { data, refetch } = useGetSmtpSettingsQuery({
+    variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  const smtpSettings = data?.config?.provider?.smtp ?? {};
+
+  const isSMTPConfigured = Boolean(Object.keys(smtpSettings).length);
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetSmtpSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -111,7 +119,10 @@ export default function DeleteSMTPSettings() {
       component: (
         <ConfirmDeleteSMTPSettingsModal
           close={closeDialog}
-          onDelete={deleteSMTPSettings}
+          onDelete={async () => {
+            await deleteSMTPSettings();
+            await refetch();
+          }}
         />
       ),
     });
@@ -132,7 +143,7 @@ export default function DeleteSMTPSettings() {
           color="error"
           className="mx-4 mt-4 justify-self-end"
           onClick={confirmDeleteSMTPSettings}
-          disabled={loading || maintenanceActive}
+          disabled={loading || maintenanceActive || !isSMTPConfigured}
           loading={loading}
         >
           Delete

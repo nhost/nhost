@@ -17,18 +17,18 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <Box
       sx={{ backgroundColor: 'background.default' }}
-      className="flex w-full flex-auto flex-col overflow-y-auto overflow-x-hidden"
+      className="flex flex-col flex-auto w-full overflow-x-hidden overflow-y-auto"
     >
       <Box
         sx={{ backgroundColor: 'background.default' }}
-        className="flex h-full flex-col"
+        className="flex flex-col h-full"
       >
         <RetryableErrorBoundary>
           <div className="flex flex-col space-y-2">
             {hasGitRepo && (
               <Alert
                 severity="warning"
-                className="grid grid-flow-row place-content-center gap-2"
+                className="grid grid-flow-row gap-2 place-content-center"
               >
                 <Text color="warning" className="text-sm">
                   As you have a connected repository, make sure to synchronize
@@ -52,9 +52,9 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline"
-                    href="https://docs.nhost.io/cli/overlays"
+                    href="https://docs.nhost.io/guides/cli/configuration-overlays#configuration-overlays"
                   >
-                    docs.nhost.io/cli/overlays
+                    Configuration Overlays
                   </a>{' '}
                   for guidance.
                 </Text>

@@ -2,7 +2,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -22,7 +21,6 @@ import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/
 import type { PermissionVariable } from '@/types/application';
 
 import {
-  GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
@@ -35,14 +33,15 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function PermissionVariableSettings() {
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error, refetch } = useGetRolesPermissionsQuery({
+  const { data, error, refetch } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -50,15 +49,8 @@ export default function PermissionVariableSettings() {
     data?.config?.auth?.session?.accessToken || {};
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetRolesPermissionsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-
-  if (loading) {
-    return (
-      <ActivityIndicator delay={1000} label="Loading permission variables..." />
-    );
-  }
 
   if (error) {
     throw error;
@@ -102,6 +94,7 @@ export default function PermissionVariableSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        await refetch();
         showApplyChangesDialog();
       },
       {

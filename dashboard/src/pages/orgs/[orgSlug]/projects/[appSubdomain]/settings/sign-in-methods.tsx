@@ -27,13 +27,13 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function SettingsSignInMethodsPage() {
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
 
   const { loading, error } = useGetSignInMethodsQuery({
     variables: { appId: project?.id },
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

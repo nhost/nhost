@@ -8,10 +8,7 @@ import {
   BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/features/orgs/projects/secrets/settings/components/BaseSecretForm';
-import {
-  GetSecretsDocument,
-  useInsertSecretMutation,
-} from '@/utils/__generated__/graphql';
+import { useInsertSecretMutation } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -32,6 +29,7 @@ export default function CreateSecretForm({
   onSubmit,
   ...props
 }: CreateSecretFormProps) {
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -45,9 +43,7 @@ export default function CreateSecretForm({
     resolver: yupResolver(baseSecretFormValidationSchema),
   });
 
-  const { project } = useProject();
   const [insertSecret] = useInsertSecretMutation({
-    refetchQueries: [GetSecretsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

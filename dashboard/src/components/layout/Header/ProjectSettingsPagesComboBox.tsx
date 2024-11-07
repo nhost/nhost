@@ -68,6 +68,7 @@ const projectSettingsPages = [
     route: 'rate-limiting',
   },
   { name: 'AI', slug: 'ai', route: 'ai' },
+  { name: 'Observability', slug: 'metrics', route: 'metrics' },
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ].map((item) => ({
   label: item.name,

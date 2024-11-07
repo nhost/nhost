@@ -24,7 +24,6 @@ import {
 } from '@/utils/constants/common';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {
-  GetResourcesDocument,
   useGetResourcesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
@@ -49,10 +48,10 @@ function getInitialServiceResources(
 }
 
 export default function ResourcesForm() {
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { openDialog, closeDialog } = useDialog();
-  const { project } = useProject();
 
   const {
     data,
@@ -62,6 +61,7 @@ export default function ResourcesForm() {
     variables: {
       appId: project?.id,
     },
+    fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -72,7 +72,6 @@ export default function ResourcesForm() {
   } = useProPlan();
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetResourcesDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -254,6 +253,8 @@ export default function ResourcesForm() {
       await execPromiseWithErrorToast(
         async () => {
           await updateConfigPromise;
+          // await refetch();
+          form.reset({ ...formValues });
 
           if (!isPlatform) {
             openDialog({
