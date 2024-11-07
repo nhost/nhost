@@ -1,9 +1,5 @@
-import {
-  PRO_TEST_PROJECT_NAME,
-  PRO_TEST_PROJECT_SLUG,
-  TEST_WORKSPACE_SLUG,
-} from '@/e2e/env';
-import { deleteTable, openProject, prepareTable } from '@/e2e/utils';
+import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
+import { deleteTable, navigateToProject, prepareTable } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
@@ -18,17 +14,15 @@ test.beforeAll(async ({ browser }) => {
 test.beforeEach(async () => {
   await page.goto('/');
 
-  await openProject({
+  await navigateToProject({
     page,
-    projectName: PRO_TEST_PROJECT_NAME,
-    workspaceSlug: TEST_WORKSPACE_SLUG,
-    projectSlug: PRO_TEST_PROJECT_SLUG,
+    orgSlug: TEST_ORGANIZATION_SLUG,
+    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
   });
 
-  await page
-    .getByRole('navigation', { name: /main navigation/i })
-    .getByRole('link', { name: /database/i })
-    .click();
+  const databaseRoute = `/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database`;
+  await page.goto(databaseRoute);
+  await page.waitForURL(databaseRoute);
 });
 
 test.afterAll(async () => {
@@ -53,7 +47,7 @@ test('should delete a table', async () => {
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
   );
 
   await deleteTable({
@@ -63,7 +57,7 @@ test('should delete a table', async () => {
 
   // navigate to next URL
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/**`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/**`,
   );
 
   await expect(
@@ -91,7 +85,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${firstTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${firstTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -138,7 +132,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${secondTableName}`,
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${secondTableName}`,
   );
 
   await expect(

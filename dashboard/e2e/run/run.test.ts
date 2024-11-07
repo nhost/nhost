@@ -1,11 +1,7 @@
-import {
-  PRO_TEST_PROJECT_NAME,
-  PRO_TEST_PROJECT_SLUG,
-  TEST_WORKSPACE_SLUG,
-} from '@/e2e/env';
-import { openProject } from '@/e2e/utils';
+import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
+import { navigateToProject } from '../utils';
 
 let page: Page;
 
@@ -16,17 +12,15 @@ test.beforeAll(async ({ browser }) => {
 test.beforeEach(async () => {
   await page.goto('/');
 
-  await openProject({
+  await navigateToProject({
     page,
-    projectName: PRO_TEST_PROJECT_NAME,
-    workspaceSlug: TEST_WORKSPACE_SLUG,
-    projectSlug: PRO_TEST_PROJECT_SLUG,
+    orgSlug: TEST_ORGANIZATION_SLUG,
+    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
   });
 
-  await page
-    .getByRole('navigation', { name: /main navigation/i })
-    .getByRole('link', { name: /run/i })
-    .click();
+  const runRoute = `/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/run`;
+  await page.goto(runRoute);
+  await page.waitForURL(runRoute);
 });
 
 test.afterAll(async () => {
