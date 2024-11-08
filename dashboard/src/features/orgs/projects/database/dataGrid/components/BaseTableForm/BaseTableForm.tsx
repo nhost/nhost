@@ -4,11 +4,11 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
-import { baseColumnValidationSchema } from '@/features/database/dataGrid/components/BaseColumnForm';
+import { baseColumnValidationSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseColumnForm';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DialogFormProps } from '@/types/common';
 import { useEffect } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
@@ -152,17 +152,17 @@ export default function BaseTableForm({
       className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto pb-4">
-        <Box component="section" className="grid grid-cols-8 py-3 px-6">
+        <Box component="section" className="grid grid-cols-8 px-6 py-3">
           <NameInput />
         </Box>
 
         <Box
           component="section"
-          className="grid grid-cols-8 border-t-1 py-3 px-6"
+          className="grid grid-cols-8 border-t-1 px-6 py-3"
         >
           <Text
             variant="h2"
-            className="col-span-8 mt-3 mb-1.5 text-sm+ font-bold"
+            className="col-span-8 mb-1.5 mt-3 text-sm+ font-bold"
           >
             Columns
           </Text>

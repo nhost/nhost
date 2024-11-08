@@ -1,8 +1,8 @@
 import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
-} from '@/features/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/database/dataGrid/utils/hasuraQueryHelpers';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 
 export interface PrepareUpdateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {

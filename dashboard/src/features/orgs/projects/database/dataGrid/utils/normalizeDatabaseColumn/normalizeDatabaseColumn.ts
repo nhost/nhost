@@ -1,8 +1,8 @@
 import type {
   DatabaseColumn,
   NormalizedQueryDataRow,
-} from '@/features/database/dataGrid/types/dataBrowser';
-import { normalizeDefaultValue } from '@/features/database/dataGrid/utils/normalizeDefaultValue';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 
 /**
  * Converts a raw database column to a normalized database column.

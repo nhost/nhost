@@ -1,9 +1,5 @@
-import {
-  PRO_TEST_PROJECT_NAME,
-  PRO_TEST_PROJECT_SLUG,
-  TEST_WORKSPACE_SLUG,
-} from '@/e2e/env';
-import { openProject } from '@/e2e/utils';
+import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
+import { navigateToProject } from '@/e2e/utils';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
@@ -16,17 +12,15 @@ test.beforeAll(async ({ browser }) => {
 test.beforeEach(async () => {
   await page.goto('/');
 
-  await openProject({
+  await navigateToProject({
     page,
-    projectName: PRO_TEST_PROJECT_NAME,
-    workspaceSlug: TEST_WORKSPACE_SLUG,
-    projectSlug: PRO_TEST_PROJECT_SLUG,
+    orgSlug: TEST_ORGANIZATION_SLUG,
+    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
   });
 
-  await page
-    .getByRole('navigation', { name: /main navigation/i })
-    .getByRole('link', { name: /ai/i })
-    .click();
+  const AIRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/ai/auto-embeddings`;
+  await page.goto(AIRoute);
+  await page.waitForURL(AIRoute);
 });
 
 test.afterAll(async () => {

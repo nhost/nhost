@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/v2/Button';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
-} from '@/features/database/dataGrid/components/BaseForeignKeyForm';
+} from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import {
   BaseForeignKeyForm,
   baseForeignKeyValidationSchema,
-} from '@/features/database/dataGrid/components/BaseForeignKeyForm';
-import type { ForeignKeyRelation } from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

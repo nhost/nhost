@@ -1,4 +1,4 @@
-import type { MetadataError } from '@/features/database/dataGrid/types/dataBrowser';
+import type { MetadataError } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import normalizeMetadataError from './normalizeMetadataError';
 
 const baseMetadataError = {

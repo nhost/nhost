@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
 import { Text } from '@/components/ui/v2/Text';
-import type { ForeignKeyRelation } from '@/features/database/dataGrid/types/dataBrowser';
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useWatch } from 'react-hook-form';
 
 export interface ForeignKeyEditorRowProps {
@@ -50,7 +50,7 @@ export default function ForeignKeyEditorRow({
         <Button
           onClick={onEdit}
           variant="borderless"
-          className="min-w-[initial] py-1 px-2"
+          className="min-w-[initial] px-2 py-1"
         >
           Edit
         </Button>
@@ -58,7 +58,7 @@ export default function ForeignKeyEditorRow({
         <Button
           onClick={onDelete}
           variant="borderless"
-          className="min-w-[initial] py-1 px-2"
+          className="min-w-[initial] px-2 py-1"
         >
           Delete
         </Button>

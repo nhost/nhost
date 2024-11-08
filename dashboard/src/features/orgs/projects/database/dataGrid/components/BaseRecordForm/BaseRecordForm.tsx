@@ -2,11 +2,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { DatabaseRecordInputGroup } from '@/features/database/dataGrid/components/DatabaseRecordInputGroup';
+import { DatabaseRecordInputGroup } from '@/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup';
 import type {
   ColumnInsertOptions,
   DataBrowserGridColumn,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DialogFormProps } from '@/types/common';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';

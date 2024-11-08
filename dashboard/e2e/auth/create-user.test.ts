@@ -1,9 +1,5 @@
-import {
-  PRO_TEST_PROJECT_NAME,
-  PRO_TEST_PROJECT_SLUG,
-  TEST_WORKSPACE_SLUG,
-} from '@/e2e/env';
-import { createUser, generateTestEmail, openProject } from '@/e2e/utils';
+import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
+import { createUser, generateTestEmail } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import test, { expect } from '@playwright/test';
@@ -15,23 +11,9 @@ test.beforeAll(async ({ browser }) => {
 });
 
 test.beforeEach(async () => {
-  await page.goto('/');
-
-  await openProject({
-    page,
-    projectName: PRO_TEST_PROJECT_NAME,
-    workspaceSlug: TEST_WORKSPACE_SLUG,
-    projectSlug: PRO_TEST_PROJECT_SLUG,
-  });
-
-  await page
-    .getByRole('navigation', { name: /main navigation/i })
-    .getByRole('link', { name: /auth/i })
-    .click();
-
-  await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/users`,
-  );
+  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
+  await page.goto(authUrl);
+  await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
 });
 
 test.afterAll(async () => {

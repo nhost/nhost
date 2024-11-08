@@ -1,4 +1,4 @@
-import type { UseDeleteColumnMutationOptions } from '@/features/database/dataGrid/hooks/useDeleteColumnMutation';
+import type { UseDeleteColumnMutationOptions } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteColumnMutation';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';

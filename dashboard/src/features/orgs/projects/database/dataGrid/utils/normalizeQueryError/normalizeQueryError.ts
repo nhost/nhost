@@ -1,5 +1,5 @@
-import type { QueryError } from '@/features/database/dataGrid/types/dataBrowser';
-import { POSTGRESQL_ERROR_CODES } from '@/features/database/dataGrid/utils/postgresqlConstants';
+import type { QueryError } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
 /**
  * Returns a normalized error message from a query error.
