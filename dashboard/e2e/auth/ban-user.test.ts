@@ -1,20 +1,12 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { createUser, generateTestEmail, navigateToProject } from '@/e2e/utils';
+import { createUser, generateTestEmail } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import test, { expect } from '@playwright/test';
 
 test('should be able to ban and unban a user', async ({ page }) => {
-  await page.goto('/');
-
-  await navigateToProject({
-    page,
-    orgSlug: TEST_ORGANIZATION_SLUG,
-    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
-  });
-
   const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
   await page.goto(authUrl);
-  await page.waitForURL(authUrl);
+  await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
 
   const email = generateTestEmail();
   const password = faker.internet.password();

@@ -1,5 +1,5 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { createUser, generateTestEmail, navigateToProject } from '@/e2e/utils';
+import { createUser, generateTestEmail } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import test, { expect } from '@playwright/test';
@@ -11,17 +11,9 @@ test.beforeAll(async ({ browser }) => {
 });
 
 test.beforeEach(async () => {
-  await page.goto('/');
-
-  await navigateToProject({
-    page,
-    orgSlug: TEST_ORGANIZATION_SLUG,
-    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
-  });
-
   const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
   await page.goto(authUrl);
-  await page.waitForURL(authUrl);
+  await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
 });
 
 test.afterAll(async () => {
