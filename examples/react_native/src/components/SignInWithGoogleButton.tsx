@@ -26,15 +26,7 @@ export default function SignInWithGoogleButton() {
       const response = await GoogleSignin.signIn();
 
       if (isSuccessResponse(response)) {
-        const {isSuccess, isError} = await signInIdToken(
-          'google',
-          response?.data?.idToken as string,
-        );
-
-        console.log({
-          isError,
-          isSuccess,
-        });
+        await signInIdToken('google', response?.data?.idToken as string);
       } else if (isNoSavedCredentialFoundResponse(response)) {
         // Android and Apple only.
         // No saved credential found (user has not signed in yet, or they revoked access)
