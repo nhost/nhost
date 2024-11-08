@@ -1,4 +1,4 @@
-import type { MetadataError } from '@/features/database/dataGrid/types/dataBrowser';
+import type { MetadataError } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 /**
  * Returns a normalized error message from a metadata error.

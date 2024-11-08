@@ -4,8 +4,8 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/features/database/dataGrid/types/dataBrowser';
-import { normalizeQueryError } from '@/features/database/dataGrid/utils/normalizeQueryError';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import prepareCreateTableQuery from './prepareCreateTableQuery';
 
 export interface CreateTableVariables {

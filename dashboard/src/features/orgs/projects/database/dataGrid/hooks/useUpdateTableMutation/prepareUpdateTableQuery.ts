@@ -1,15 +1,15 @@
-import { prepareCreateColumnQuery } from '@/features/database/dataGrid/hooks/useCreateColumnMutation';
-import { prepareUpdateColumnQuery } from '@/features/database/dataGrid/hooks/useUpdateColumnMutation';
+import { prepareCreateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateColumnMutation';
+import { prepareUpdateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateColumnMutation';
 import type {
   DatabaseColumn,
   DatabaseTable,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
-} from '@/features/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/database/dataGrid/utils/hasuraQueryHelpers';
-import { prepareCreateForeignKeyRelationQuery } from '@/features/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
-import { prepareUpdateForeignKeyRelationQuery } from '@/features/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
+import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 
 export interface PrepareUpdateTableQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'table' | 'adminSecret'> {

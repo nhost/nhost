@@ -1,4 +1,4 @@
-import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
+import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import * as yup from 'yup';
 
 export interface ColumnDetails {

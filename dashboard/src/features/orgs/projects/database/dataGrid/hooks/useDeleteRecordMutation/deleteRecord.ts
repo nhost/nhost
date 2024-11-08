@@ -2,9 +2,9 @@ import type {
   AffectedRowsResult,
   MutationOrQueryBaseOptions,
   QueryError,
-} from '@/features/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/database/dataGrid/utils/hasuraQueryHelpers';
-import { normalizeQueryError } from '@/features/database/dataGrid/utils/normalizeQueryError';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { format } from 'node-pg-format';
 import type { Row } from 'react-table';
 

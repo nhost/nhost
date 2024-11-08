@@ -4,7 +4,7 @@ import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import type {
   Rule,
   RuleGroup,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 

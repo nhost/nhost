@@ -1,7 +1,7 @@
 import type {
   DatabaseColumn,
   NormalizedQueryDataRow,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import normalizeDatabaseColumn from './normalizeDatabaseColumn';
 
 const rawColumn: NormalizedQueryDataRow = {

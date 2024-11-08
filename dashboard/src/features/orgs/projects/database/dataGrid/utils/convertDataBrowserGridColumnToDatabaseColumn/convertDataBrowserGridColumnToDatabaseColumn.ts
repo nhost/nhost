@@ -2,7 +2,7 @@ import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type {
   DatabaseColumn,
   DataBrowserGridColumn,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 /**
  * Converts a data browser grid column to a normalized database column.

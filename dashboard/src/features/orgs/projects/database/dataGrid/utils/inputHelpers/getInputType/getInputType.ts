@@ -1,5 +1,5 @@
 import type { InputProps } from '@/components/ui/v2/Input';
-import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
+import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 /**
  * Get the input type based on the column type.

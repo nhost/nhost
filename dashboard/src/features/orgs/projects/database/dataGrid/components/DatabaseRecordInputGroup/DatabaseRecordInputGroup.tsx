@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
-import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
-import { getInputType } from '@/features/database/dataGrid/utils/inputHelpers';
-import { normalizeDefaultValue } from '@/features/database/dataGrid/utils/normalizeDefaultValue';
+import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
+import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import { Controller, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
@@ -82,7 +82,7 @@ export default function DatabaseRecordInputGroup({
   return (
     <Box component="section" className={twMerge('py-3', className)} {...props}>
       {title && (
-        <Text variant="h2" className="mt-3 mb-1.5 text-sm+ font-bold">
+        <Text variant="h2" className="mb-1.5 mt-3 text-sm+ font-bold">
           {title}
         </Text>
       )}

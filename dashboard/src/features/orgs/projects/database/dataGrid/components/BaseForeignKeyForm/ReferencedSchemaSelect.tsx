@@ -1,7 +1,7 @@
 import type { ControlledSelectProps } from '@/components/form/ControlledSelect';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
-import type { NormalizedQueryDataRow } from '@/features/database/dataGrid/types/dataBrowser';
+import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';

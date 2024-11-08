@@ -7,8 +7,8 @@ import type {
   NormalizedQueryDataRow,
   QueryError,
   QueryResult,
-} from '@/features/database/dataGrid/types/dataBrowser';
-import { normalizeQueryError } from '@/features/database/dataGrid/utils/normalizeQueryError';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 export interface UpdateTableVariables {
