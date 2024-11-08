@@ -1,65 +1,40 @@
 import React, {useState} from 'react';
 import Button from '@components/Button';
-import {StyleSheet, Text, View} from 'react-native';
+import {Alert, StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {NativeModules} from 'react-native';
 const {RNRandomBytes} = NativeModules;
-
 import {
-  GoogleOneTapSignIn,
+  GoogleSignin,
   isErrorWithCode,
   isNoSavedCredentialFoundResponse,
   isSuccessResponse,
   statusCodes,
-  type OneTapUser,
 } from '@react-native-google-signin/google-signin';
+import {useSignInIdToken} from '@nhost/react';
 
-import {sha256, sha256Bytes} from 'react-native-sha256';
-
-GoogleOneTapSignIn.configure({
-  webClientId:
-    '936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com',
+GoogleSignin.configure({
+  webClientId: process.env.GOOGLE_CLIENT_ID,
 });
 
 export default function SignInWithGoogleButton() {
-  const [response, setResponse] = useState<OneTapUser | null>(null);
-
-  const generateNonce = async (): Promise<{
-    nonce: string;
-    hashedNonce: string;
-  }> => {
-    try {
-      const bytes = await new Promise<string>((resolve, reject) => {
-        RNRandomBytes.randomBytes(16, (err: Error | null, bytes: string) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(bytes);
-          }
-        });
-      });
-
-      const hashedNonce = await sha256(bytes);
-
-      return {
-        nonce: bytes,
-        hashedNonce,
-      };
-    } catch (error) {
-      throw new Error(`Failed to generate nonce: ${(error as Error).message}`);
-    }
-  };
+  const {signInIdToken} = useSignInIdToken();
 
   const handleSignInWithGoogle = async () => {
-    // const {nonce, hashedNonce} = await generateNonce();
-
     try {
-      await GoogleOneTapSignIn.checkPlayServices();
-      const response = await GoogleOneTapSignIn.signIn();
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
 
       if (isSuccessResponse(response)) {
-        // read user's info
-        console.log(response.data);
+        const {isSuccess, isError} = await signInIdToken(
+          'google',
+          response?.data?.idToken as string,
+        );
+
+        console.log({
+          isError,
+          isSuccess,
+        });
       } else if (isNoSavedCredentialFoundResponse(response)) {
         // Android and Apple only.
         // No saved credential found (user has not signed in yet, or they revoked access)

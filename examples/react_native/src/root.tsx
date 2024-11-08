@@ -6,7 +6,8 @@ import Main from '@screens/Main';
 import {NhostApolloProvider} from '@nhost/react-apollo';
 
 const nhost = new NhostClient({
-  subdomain: 'local',
+  subdomain: '10-0-2-2',
+  region: 'local',
   clientStorageType: 'react-native',
   clientStorage: AsyncStorage,
 });

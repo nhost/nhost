@@ -19,6 +19,11 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    'done.invoke.authenticateWithIdToken': {
+      type: 'done.invoke.authenticateWithIdToken'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
     'done.invoke.authenticateWithPAT': {
       type: 'done.invoke.authenticateWithPAT'
       data: unknown
@@ -96,6 +101,10 @@ export interface Typegen0 {
       type: 'error.platform.authenticateUserWithSecurityKey'
       data: unknown
     }
+    'error.platform.authenticateWithIdToken': {
+      type: 'error.platform.authenticateWithIdToken'
+      data: unknown
+    }
     'error.platform.authenticateWithPAT': {
       type: 'error.platform.authenticateWithPAT'
       data: unknown
@@ -141,6 +150,7 @@ export interface Typegen0 {
     refreshToken: 'done.invoke.authenticateWithToken' | 'done.invoke.refreshToken'
     signInAnonymous: 'done.invoke.authenticateAnonymously'
     signInEmailOTP: 'done.invoke.signInEmailOTP'
+    signInIdToken: 'done.invoke.authenticateWithIdToken'
     signInMfaTotp: 'done.invoke.signInMfaTotp'
     signInPAT: 'done.invoke.authenticateWithPAT'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
@@ -163,6 +173,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithIdToken'
       | 'done.invoke.authenticateWithPAT'
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.importRefreshToken'
@@ -177,6 +188,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithIdToken'
       | 'done.invoke.authenticateWithPAT'
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.importRefreshToken'
@@ -195,6 +207,7 @@ export interface Typegen0 {
     destroyAccessToken:
       | 'SESSION_UPDATE'
       | 'SIGNIN_ANONYMOUS'
+      | 'SIGNIN_ID_TOKEN'
       | 'SIGNIN_MFA_TOTP'
       | 'SIGNIN_PASSWORD'
       | 'SIGNIN_PAT'
@@ -205,6 +218,7 @@ export interface Typegen0 {
     destroyRefreshToken:
       | 'SESSION_UPDATE'
       | 'SIGNIN_ANONYMOUS'
+      | 'SIGNIN_ID_TOKEN'
       | 'SIGNIN_MFA_TOTP'
       | 'SIGNIN_PASSWORD'
       | 'SIGNIN_PAT'
@@ -219,6 +233,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithIdToken'
       | 'done.invoke.authenticateWithPAT'
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.importRefreshToken'
@@ -239,6 +254,7 @@ export interface Typegen0 {
       | 'error.platform.authenticateAnonymously'
       | 'error.platform.authenticateUserWithPassword'
       | 'error.platform.authenticateUserWithSecurityKey'
+      | 'error.platform.authenticateWithIdToken'
       | 'error.platform.authenticateWithPAT'
       | 'error.platform.authenticateWithToken'
       | 'error.platform.importRefreshToken'
@@ -247,6 +263,7 @@ export interface Typegen0 {
     reportTokenChanged:
       | 'SESSION_UPDATE'
       | 'SIGNIN_ANONYMOUS'
+      | 'SIGNIN_ID_TOKEN'
       | 'SIGNIN_MFA_TOTP'
       | 'SIGNIN_PASSWORD'
       | 'SIGNIN_PAT'
@@ -254,6 +271,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithIdToken'
       | 'done.invoke.authenticateWithPAT'
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.importRefreshToken'
@@ -274,6 +292,7 @@ export interface Typegen0 {
       | 'SESSION_UPDATE'
       | 'SIGNIN_ANONYMOUS'
       | 'SIGNIN_EMAIL_OTP'
+      | 'SIGNIN_ID_TOKEN'
       | 'SIGNIN_MFA_TOTP'
       | 'SIGNIN_PASSWORD'
       | 'SIGNIN_PAT'
@@ -284,6 +303,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithIdToken'
       | 'done.invoke.authenticateWithPAT'
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.importRefreshToken'
@@ -297,6 +317,7 @@ export interface Typegen0 {
       | 'error.platform.authenticateAnonymously'
       | 'error.platform.authenticateUserWithPassword'
       | 'error.platform.authenticateUserWithSecurityKey'
+      | 'error.platform.authenticateWithIdToken'
       | 'error.platform.authenticateWithPAT'
       | 'error.platform.authenticateWithToken'
       | 'error.platform.importRefreshToken'
@@ -318,6 +339,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithIdToken'
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.importRefreshToken'
       | 'done.invoke.passwordlessSmsOtp'
@@ -371,6 +393,7 @@ export interface Typegen0 {
     refreshToken: '' | 'TRY_TOKEN'
     signInAnonymous: 'SIGNIN_ANONYMOUS'
     signInEmailOTP: 'SIGNIN_EMAIL_OTP'
+    signInIdToken: 'SIGNIN_ID_TOKEN'
     signInMfaTotp: 'SIGNIN_MFA_TOTP'
     signInPAT: 'SIGNIN_PAT'
     signInPassword: 'SIGNIN_PASSWORD'
@@ -384,6 +407,7 @@ export interface Typegen0 {
     | 'authentication'
     | 'authentication.authenticating'
     | 'authentication.authenticating.anonymous'
+    | 'authentication.authenticating.idToken'
     | 'authentication.authenticating.mfa'
     | 'authentication.authenticating.mfa.totp'
     | 'authentication.authenticating.password'
@@ -435,6 +459,7 @@ export interface Typegen0 {
           | {
               authenticating?:
                 | 'anonymous'
+                | 'idToken'
                 | 'mfa'
                 | 'password'
                 | 'pat'
