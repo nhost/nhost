@@ -16,7 +16,7 @@
     "@nhost/react-apollo": "workspace:^",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/cli-platform-android": "^13.6.6",
-    "@react-native-google-signin/google-signin": "^18.0.0",
+    "@react-native-google-signin/google-signin": "^13.1.0",
     "@react-navigation/drawer": "^6.6.15",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
