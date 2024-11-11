@@ -148,6 +148,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionPayload'
 
+  /signin/idtoken:
+    post:
+      summary: Sign in with in an id token
+      tags:
+        - signin
+        - idtoken
+        - apple
+        - google
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInIdTokenRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Successfully signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+
   /signup/email-password:
     post:
       requestBody:
@@ -832,3 +855,28 @@ components:
                 nickname:
                   example: https://my-app.com/catch-redirection
                   type: string
+
+    SignInIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        idToken:
+          type: string
+          description: Apple ID token
+        nonce:
+          type: string
+          description: Nonce used during sign in process
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - provider
+        - idToken
+
+    Provider:
+      type: string
+      additionalProperties: false
+      enum:
+        - apple
+        - google

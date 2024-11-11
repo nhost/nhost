@@ -58,35 +58,6 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameEmailVerify,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "verifyEmail:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostUserEmailSendVerificationEmailRequestObject{
 				Body: &api.PostUserEmailSendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -95,9 +66,38 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.PostUserEmailSendVerificationEmail200JSONResponse(api.OK),
 			jwtTokenFn:       nil,
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -132,35 +132,6 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameEmailVerify,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "verifyEmail:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostUserEmailSendVerificationEmailRequestObject{
 				Body: &api.PostUserEmailSendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -169,9 +140,38 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.PostUserEmailSendVerificationEmail200JSONResponse(api.OK),
 			jwtTokenFn:       nil,
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -206,35 +206,6 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameEmailVerify,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp.com%2Fverify&ticket=verifyEmail%3Ad108332c-1f95-43b3-ade2-6206316c8985&type=emailVerify", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "verifyEmail:xxx",
-							RedirectTo:  "https://myapp.com/verify",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostUserEmailSendVerificationEmailRequestObject{
 				Body: &api.PostUserEmailSendVerificationEmailJSONRequestBody{
 					Email: "jane@acme.com",
@@ -245,9 +216,38 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: api.PostUserEmailSendVerificationEmail200JSONResponse(api.OK),
 			jwtTokenFn:       nil,
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp.com%2Fverify&ticket=verifyEmail%3Ad108332c-1f95-43b3-ade2-6206316c8985&type=emailVerify", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:xxx",
+								RedirectTo:  "https://myapp.com/verify",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -259,10 +259,6 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			request: api.PostUserEmailSendVerificationEmailRequestObject{
@@ -278,10 +274,9 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Message: `The value of "options.redirectTo" is not allowed.`,
 				Status:  400,
 			},
-			jwtTokenFn:    nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -297,11 +292,6 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
 			request: api.PostUserEmailSendVerificationEmailRequestObject{
 				Body: &api.PostUserEmailSendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -313,10 +303,9 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Message: "Incorrect email or password",
 				Status:  401,
 			},
-			jwtTokenFn:    nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -339,11 +328,6 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
 			request: api.PostUserEmailSendVerificationEmailRequestObject{
 				Body: &api.PostUserEmailSendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -355,10 +339,9 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Message: "User is disabled",
 				Status:  401,
 			},
-			jwtTokenFn:    nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -380,11 +363,6 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
 			request: api.PostUserEmailSendVerificationEmailRequestObject{
 				Body: &api.PostUserEmailSendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -396,10 +374,9 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Message: "User's email is already verified",
 				Status:  400,
 			},
-			jwtTokenFn:    nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -415,11 +392,6 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
 			request: api.PostUserEmailSendVerificationEmailRequestObject{
 				Body: &api.PostUserEmailSendVerificationEmailJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -431,10 +403,9 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				Message: "Internal server error",
 				Status:  500,
 			},
-			jwtTokenFn:    nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -444,11 +415,7 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, _ := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: nil,
-				emailer:       tc.emailer,
-				hibp:          nil,
-			})
+			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			assertRequest(
 				context.Background(),

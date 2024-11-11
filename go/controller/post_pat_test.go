@@ -205,11 +205,7 @@ func TestPostPat(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 
-			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: nil,
-				emailer:       nil,
-				hibp:          nil,
-			})
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db)
 
 			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
 

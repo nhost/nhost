@@ -3,7 +3,6 @@ package controller
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -254,6 +253,35 @@ func (wf *Workflows) GetUserByEmail(
 	}
 	if err != nil {
 		logger.Error("error getting user by email", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	if err := wf.ValidateUser(user, logger); err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (wf *Workflows) GetUserByProviderUserID(
+	ctx context.Context,
+	providerID string,
+	providerUserID string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.GetUserByProviderID(
+		ctx,
+		sql.GetUserByProviderIDParams{
+			ProviderID:     providerID,
+			ProviderUserID: providerUserID,
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.Warn("user provider not found")
+		return sql.AuthUser{}, ErrUserProviderNotFound
+	}
+	if err != nil {
+		logger.Error("error getting user by provider id", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
@@ -634,175 +662,164 @@ func (wf *Workflows) SendEmail(
 	return nil
 }
 
-type SignUpFn func(input *sql.InsertUserParams) error
+type databaseWithSessionFn func(
+	refreshTokenHash pgtype.Text,
+	refreshTokenExpiresAt pgtype.Timestamptz,
+	metadata []byte,
+	gravatarURL string,
+) (uuid.UUID, uuid.UUID, error)
 
-func SignupUserWithID(id uuid.UUID) SignUpFn {
-	return func(input *sql.InsertUserParams) error {
-		input.ID = id
-		return nil
-	}
-}
+type databaseWithoutSessionFn func(
+	ticket pgtype.Text,
+	ticketExpiresAt pgtype.Timestamptz,
+	metadata []byte,
+	gravatarURL string,
+) error
 
-func SignupUserWithTicket(ticket string, expiresAt time.Time) SignUpFn {
-	return func(input *sql.InsertUserParams) error {
-		input.Ticket = sql.Text(ticket)
-		input.TicketExpiresAt = sql.TimestampTz(expiresAt)
-		return nil
-	}
-}
-
-func SignupUserWithPassword(password string) SignUpFn {
-	return func(input *sql.InsertUserParams) error {
-		hashedPassword, err := hashPassword(password)
-		if err != nil {
-			return fmt.Errorf("error hashing password: %w", err)
-		}
-
-		input.PasswordHash = sql.Text(hashedPassword)
-
-		return nil
-	}
-}
-
-func (wf *Workflows) SignUpUser( //nolint:funlen
+func (wf *Workflows) SignupUserWithFn(
 	ctx context.Context,
 	email string,
 	options *api.SignUpOptions,
+	sendConfirmationEmail bool,
+	databaseWithSession databaseWithSessionFn,
+	databaseWithoutSession databaseWithoutSessionFn,
 	logger *slog.Logger,
-	withInputFn ...SignUpFn,
-) (sql.AuthUser, *APIError) {
+) (*api.Session, *APIError) {
+	if wf.config.RequireEmailVerification || wf.config.DisableNewUsers {
+		return nil, wf.SignupUserWithouthSession(
+			ctx, email, options, sendConfirmationEmail, databaseWithoutSession, logger,
+		)
+	}
+
+	return wf.SignupUserWithSession(ctx, email, options, databaseWithSession, logger)
+}
+
+func (wf *Workflows) SignupUserWithSession( //nolint:funlen
+	ctx context.Context,
+	email string,
+	options *api.SignUpOptions,
+	databaseWithUserSession databaseWithSessionFn,
+	logger *slog.Logger,
+) (*api.Session, *APIError) {
 	if wf.config.DisableSignup {
 		logger.Warn("signup disabled")
-		return sql.AuthUser{}, ErrSignupDisabled
+		return nil, ErrSignupDisabled
 	}
+
+	refreshToken := uuid.New()
+	refreshTokenExpiresAt := time.Now().
+		Add(time.Duration(wf.config.RefreshTokenExpiresIn) * time.Second)
 
 	metadata, err := json.Marshal(options.Metadata)
 	if err != nil {
 		logger.Error("error marshaling metadata", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError
+		return nil, ErrInternalServerError
 	}
 
 	gravatarURL := wf.gravatarURL(email)
 
-	input := sql.InsertUserParams{
-		ID:              uuid.New(),
-		Disabled:        wf.config.DisableNewUsers,
-		DisplayName:     deptr(options.DisplayName),
-		AvatarUrl:       gravatarURL,
-		Email:           sql.Text(email),
-		PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-		Ticket:          pgtype.Text{}, //nolint:exhaustruct
-		TicketExpiresAt: sql.TimestampTz(time.Now()),
-		EmailVerified:   false,
-		Locale:          deptr(options.Locale),
-		DefaultRole:     deptr(options.DefaultRole),
-		Metadata:        metadata,
-		Roles:           deptr(options.AllowedRoles),
-	}
-
-	for _, fn := range withInputFn {
-		if err := fn(&input); err != nil {
-			logger.Error("error applying input function to user signup", logError(err))
-			return sql.AuthUser{}, ErrInternalServerError
-		}
-	}
-
-	insertedUser, err := wf.db.InsertUser(ctx, input)
+	userID, refreshTokenID, err := databaseWithUserSession(
+		sql.Text(hashRefreshToken([]byte(refreshToken.String()))),
+		sql.TimestampTz(refreshTokenExpiresAt),
+		metadata,
+		gravatarURL,
+	)
 	if err != nil {
-		return sql.AuthUser{}, sqlErrIsDuplicatedEmail(err, logger)
+		return nil, sqlErrIsDuplicatedEmail(err, logger)
 	}
 
 	if wf.config.DisableNewUsers {
 		logger.Warn("new user disabled")
-		return sql.AuthUser{}, ErrDisabledUser
+		return nil, ErrDisabledUser
 	}
 
-	return sql.AuthUser{ //nolint:exhaustruct
-		ID:                  insertedUser.UserID,
-		Disabled:            wf.config.DisableNewUsers,
-		DisplayName:         deptr(options.DisplayName),
-		AvatarUrl:           gravatarURL,
-		Locale:              deptr(options.Locale),
-		Email:               sql.Text(email),
-		EmailVerified:       false,
-		PhoneNumberVerified: false,
-		DefaultRole:         deptr(options.DefaultRole),
-		IsAnonymous:         false,
-		Metadata:            metadata,
+	accessToken, expiresIn, err := wf.jwtGetter.GetToken(
+		ctx, userID, false, deptr(options.AllowedRoles), *options.DefaultRole, logger,
+	)
+	if err != nil {
+		logger.Error("error getting jwt", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	return &api.Session{
+		AccessToken:          accessToken,
+		AccessTokenExpiresIn: expiresIn,
+		RefreshTokenId:       refreshTokenID.String(),
+		RefreshToken:         refreshToken.String(),
+		User: &api.User{
+			AvatarUrl:           gravatarURL,
+			CreatedAt:           time.Now(),
+			DefaultRole:         *options.DefaultRole,
+			DisplayName:         deptr(options.DisplayName),
+			Email:               ptr(types.Email(email)),
+			EmailVerified:       false,
+			Id:                  userID.String(),
+			IsAnonymous:         false,
+			Locale:              deptr(options.Locale),
+			Metadata:            deptr(options.Metadata),
+			PhoneNumber:         "",
+			PhoneNumberVerified: false,
+			Roles:               deptr(options.AllowedRoles),
+		},
 	}, nil
 }
 
-func (wf *Workflows) SignupUserWithRefreshToken( //nolint:funlen
+func (wf *Workflows) SignupUserWithouthSession(
 	ctx context.Context,
 	email string,
-	password string,
-	refreshToken uuid.UUID,
-	expiresAt time.Time,
 	options *api.SignUpOptions,
+	sendConfirmationEmail bool,
+	databaseWithoutSession databaseWithoutSessionFn,
 	logger *slog.Logger,
-) (*api.User, sql.InsertUserWithRefreshTokenRow, *APIError) {
+) *APIError {
 	if wf.config.DisableSignup {
 		logger.Warn("signup disabled")
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrSignupDisabled
+		return ErrSignupDisabled
 	}
 
 	metadata, err := json.Marshal(options.Metadata)
 	if err != nil {
 		logger.Error("error marshaling metadata", logError(err))
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrInternalServerError
+		return ErrInternalServerError
 	}
 
 	gravatarURL := wf.gravatarURL(email)
 
-	hashedPassword, err := hashPassword(password)
-	if err != nil {
-		logger.Error("error hashing password", logError(err))
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrInternalServerError
+	var ticket pgtype.Text
+	var ticketExpiresAt pgtype.Timestamptz
+	if sendConfirmationEmail {
+		ticket = sql.Text(generateTicket(TicketTypeVerifyEmail))
+		ticketExpiresAt = sql.TimestampTz(time.Now().Add(InAMonth))
 	}
 
-	resp, err := wf.db.InsertUserWithRefreshToken(
-		ctx, sql.InsertUserWithRefreshTokenParams{
-			Disabled:              wf.config.DisableNewUsers,
-			DisplayName:           deptr(options.DisplayName),
-			AvatarUrl:             gravatarURL,
-			Email:                 sql.Text(email),
-			PasswordHash:          sql.Text(hashedPassword),
-			Ticket:                pgtype.Text{}, //nolint:exhaustruct
-			TicketExpiresAt:       sql.TimestampTz(time.Now()),
-			EmailVerified:         false,
-			Locale:                deptr(options.Locale),
-			DefaultRole:           deptr(options.DefaultRole),
-			Metadata:              metadata,
-			Roles:                 deptr(options.AllowedRoles),
-			RefreshTokenHash:      sql.Text(hashRefreshToken([]byte(refreshToken.String()))),
-			RefreshTokenExpiresAt: sql.TimestampTz(expiresAt),
-		},
-	)
-	if err != nil {
-		return nil, sql.InsertUserWithRefreshTokenRow{},
-			sqlErrIsDuplicatedEmail(err, logger)
+	if err := databaseWithoutSession(ticket, ticketExpiresAt, metadata, gravatarURL); err != nil {
+		return sqlErrIsDuplicatedEmail(err, logger)
 	}
 
 	if wf.config.DisableNewUsers {
 		logger.Warn("new user disabled")
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrDisabledUser
+		return ErrDisabledUser
 	}
 
-	return &api.User{
-		AvatarUrl:           gravatarURL,
-		CreatedAt:           time.Now(),
-		DefaultRole:         *options.DefaultRole,
-		DisplayName:         deptr(options.DisplayName),
-		Email:               ptr(types.Email(email)),
-		EmailVerified:       false,
-		Id:                  resp.UserID.String(),
-		IsAnonymous:         false,
-		Locale:              deptr(options.Locale),
-		Metadata:            deptr(options.Metadata),
-		PhoneNumber:         "",
-		PhoneNumberVerified: false,
-		Roles:               deptr(options.AllowedRoles),
-	}, resp, nil
+	if sendConfirmationEmail {
+		if err := wf.SendEmail(
+			ctx,
+			email,
+			deptr(options.Locale),
+			LinkTypeEmailVerify,
+			ticket.String,
+			deptr(options.RedirectTo),
+			notifications.TemplateNameEmailVerify,
+			deptr(options.DisplayName),
+			email,
+			"",
+			logger,
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (wf *Workflows) DeanonymizeUser(
@@ -864,145 +881,4 @@ func (wf *Workflows) DeanonymizeUser(
 	}
 
 	return nil
-}
-
-func (wf *Workflows) SignupUserWithSecurityKeyAndRefreshToken( //nolint:funlen
-	ctx context.Context,
-	userID uuid.UUID,
-	email string,
-	refreshToken uuid.UUID,
-	expiresAt time.Time,
-	options *api.SignUpOptions,
-	credentialID []byte,
-	credentialPublicKey []byte,
-	nickname string,
-	logger *slog.Logger,
-) (*api.User, uuid.UUID, *APIError) {
-	if wf.config.DisableSignup {
-		logger.Warn("signup disabled")
-		return nil, uuid.UUID{}, ErrSignupDisabled
-	}
-
-	metadata, err := json.Marshal(options.Metadata)
-	if err != nil {
-		logger.Error("error marshaling metadata", logError(err))
-		return nil, uuid.UUID{}, ErrInternalServerError
-	}
-
-	gravatarURL := wf.gravatarURL(email)
-
-	resp, err := wf.db.InsertUserWithSecurityKeyAndRefreshToken(
-		ctx, sql.InsertUserWithSecurityKeyAndRefreshTokenParams{
-			ID:                    userID,
-			Disabled:              wf.config.DisableNewUsers,
-			DisplayName:           deptr(options.DisplayName),
-			AvatarUrl:             gravatarURL,
-			Email:                 sql.Text(email),
-			Ticket:                pgtype.Text{}, //nolint:exhaustruct
-			TicketExpiresAt:       sql.TimestampTz(time.Now()),
-			EmailVerified:         false,
-			Locale:                deptr(options.Locale),
-			DefaultRole:           deptr(options.DefaultRole),
-			Metadata:              metadata,
-			Roles:                 deptr(options.AllowedRoles),
-			RefreshTokenHash:      sql.Text(hashRefreshToken([]byte(refreshToken.String()))),
-			RefreshTokenExpiresAt: sql.TimestampTz(expiresAt),
-			CredentialID:          base64.RawURLEncoding.EncodeToString(credentialID),
-			CredentialPublicKey:   credentialPublicKey,
-			Nickname:              sql.Text(nickname),
-		},
-	)
-	if err != nil {
-		return nil, uuid.UUID{}, sqlErrIsDuplicatedEmail(err, logger)
-	}
-
-	if wf.config.DisableNewUsers {
-		logger.Warn("new user disabled")
-		return nil, uuid.UUID{}, ErrDisabledUser
-	}
-
-	return &api.User{
-		AvatarUrl:           gravatarURL,
-		CreatedAt:           time.Now(),
-		DefaultRole:         *options.DefaultRole,
-		DisplayName:         deptr(options.DisplayName),
-		Email:               ptr(types.Email(email)),
-		EmailVerified:       false,
-		Id:                  userID.String(),
-		IsAnonymous:         false,
-		Locale:              deptr(options.Locale),
-		Metadata:            deptr(options.Metadata),
-		PhoneNumber:         "",
-		PhoneNumberVerified: false,
-		Roles:               deptr(options.AllowedRoles),
-	}, resp.RefreshTokenID, nil
-}
-
-func (wf *Workflows) SignupUserWithSecurityKey( //nolint:funlen
-	ctx context.Context,
-	userID uuid.UUID,
-	email string,
-	ticket string,
-	ticketExpiresAt time.Time,
-	options *api.SignUpOptions,
-	credentialID []byte,
-	credentialPublicKey []byte,
-	nickname string,
-	logger *slog.Logger,
-) (*api.User, *APIError) {
-	if wf.config.DisableSignup {
-		logger.Warn("signup disabled")
-		return nil, ErrSignupDisabled
-	}
-
-	metadata, err := json.Marshal(options.Metadata)
-	if err != nil {
-		logger.Error("error marshaling metadata", logError(err))
-		return nil, ErrInternalServerError
-	}
-
-	gravatarURL := wf.gravatarURL(email)
-
-	if _, err := wf.db.InsertUserWithSecurityKey(
-		ctx, sql.InsertUserWithSecurityKeyParams{
-			ID:                  userID,
-			Disabled:            wf.config.DisableNewUsers,
-			DisplayName:         deptr(options.DisplayName),
-			AvatarUrl:           gravatarURL,
-			Email:               sql.Text(email),
-			Ticket:              sql.Text(ticket),
-			TicketExpiresAt:     sql.TimestampTz(ticketExpiresAt),
-			EmailVerified:       false,
-			Locale:              deptr(options.Locale),
-			DefaultRole:         deptr(options.DefaultRole),
-			Metadata:            metadata,
-			Roles:               deptr(options.AllowedRoles),
-			CredentialID:        base64.RawURLEncoding.EncodeToString(credentialID),
-			CredentialPublicKey: credentialPublicKey,
-			Nickname:            sql.Text(nickname),
-		},
-	); err != nil {
-		return nil, sqlErrIsDuplicatedEmail(err, logger)
-	}
-
-	if wf.config.DisableNewUsers {
-		logger.Warn("new user disabled")
-		return nil, ErrDisabledUser
-	}
-
-	return &api.User{
-		AvatarUrl:           gravatarURL,
-		CreatedAt:           time.Now(),
-		DefaultRole:         *options.DefaultRole,
-		DisplayName:         deptr(options.DisplayName),
-		Email:               ptr(types.Email(email)),
-		EmailVerified:       false,
-		Id:                  userID.String(),
-		IsAnonymous:         false,
-		Locale:              deptr(options.Locale),
-		Metadata:            deptr(options.Metadata),
-		PhoneNumber:         "",
-		PhoneNumberVerified: false,
-		Roles:               deptr(options.AllowedRoles),
-	}, nil
 }

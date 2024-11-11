@@ -2,15 +2,18 @@ package controller
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/middleware"
-	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/hasura-auth/go/sql"
 )
 
 func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest( //nolint:cyclop,funlen
@@ -99,108 +102,106 @@ func (ctrl *Controller) PostSignupWebauthnVerify( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if ctrl.config.RequireEmailVerification || ctrl.config.DisableNewUsers {
-		return ctrl.postSignupWebauthnVerifyWithEmailVerificationOrUserDisabled(
-			ctx, webauthnUser, credResult, options, nickname, logger,
-		)
-	}
-
-	return ctrl.postSignupWebauthnVerifyWithoutEmailVerificationOrUserDisabled(
-		ctx, webauthnUser, credResult, options, nickname, logger,
-	)
-}
-
-func (ctrl *Controller) postSignupWebauthnVerifyWithEmailVerificationOrUserDisabled( //nolint:ireturn
-	ctx context.Context,
-	webauthnUser WebauthnUser,
-	credResult *webauthn.Credential,
-	options *api.SignUpOptions,
-	nickname string,
-	logger *slog.Logger,
-) (api.PostSignupWebauthnVerifyResponseObject, error) {
-	ticket := generateTicket(TicketTypeVerifyEmail)
-	expireAt := time.Now().Add(InAMonth)
-
-	if _, err := ctrl.wf.SignupUserWithSecurityKey(
+	session, apiErr := ctrl.wf.SignupUserWithFn(
 		ctx,
-		webauthnUser.ID,
 		webauthnUser.Email,
-		ticket,
-		expireAt,
 		options,
-		credResult.ID,
-		credResult.PublicKey,
-		nickname,
-		logger,
-	); err != nil {
-		return ctrl.respondWithError(err), nil
-	}
-
-	if ctrl.config.DisableNewUsers {
-		return api.PostSignupWebauthnVerify200JSONResponse{Session: nil}, nil
-	}
-
-	if err := ctrl.wf.SendEmail(
-		ctx,
-		webauthnUser.Email,
-		deptr(options.Locale),
-		LinkTypeEmailVerify,
-		ticket,
-		deptr(options.RedirectTo),
-		notifications.TemplateNameEmailVerify,
-		deptr(options.DisplayName),
-		webauthnUser.Email,
-		"",
-		logger,
-	); err != nil {
-		return nil, err
-	}
-
-	return api.PostSignupWebauthnVerify200JSONResponse{Session: nil}, nil
-}
-
-func (ctrl *Controller) postSignupWebauthnVerifyWithoutEmailVerificationOrUserDisabled( //nolint:ireturn
-	ctx context.Context,
-	webauthnUser WebauthnUser,
-	credResult *webauthn.Credential,
-	options *api.SignUpOptions,
-	nickname string,
-	logger *slog.Logger,
-) (api.PostSignupWebauthnVerifyResponseObject, error) {
-	refreshToken := uuid.New()
-	expiresAt := time.Now().Add(time.Duration(ctrl.config.RefreshTokenExpiresIn) * time.Second)
-
-	user, refreshTokenID, apiErr := ctrl.wf.SignupUserWithSecurityKeyAndRefreshToken(
-		ctx,
-		webauthnUser.ID,
-		webauthnUser.Email,
-		refreshToken,
-		expiresAt,
-		options,
-		credResult.ID,
-		credResult.PublicKey,
-		nickname,
+		true,
+		ctrl.postSignupWebauthnVerifyWithSession(
+			ctx, webauthnUser, options, credResult, nickname,
+		),
+		ctrl.postSignupWebauthnVerifyWithoutSession(
+			ctx, webauthnUser, options, credResult, nickname,
+		),
 		logger,
 	)
+
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
-	accessToken, expiresIn, err := ctrl.wf.jwtGetter.GetToken(
-		ctx, webauthnUser.ID, false, deptr(options.AllowedRoles), *options.DefaultRole, logger,
-	)
-	if err != nil {
-		logger.Error("error getting jwt", logError(err))
-		return ctrl.sendError(ErrInternalServerError), nil
-	}
+	return api.PostSignupWebauthnVerify200JSONResponse{Session: session}, nil
+}
 
-	return api.PostSignupWebauthnVerify200JSONResponse{
-		Session: &api.Session{
-			AccessToken:          accessToken,
-			AccessTokenExpiresIn: expiresIn,
-			RefreshTokenId:       refreshTokenID.String(),
-			RefreshToken:         refreshToken.String(),
-			User:                 user,
-		},
-	}, nil
+func (ctrl *Controller) postSignupWebauthnVerifyWithSession(
+	ctx context.Context,
+	webauthnUser WebauthnUser,
+	options *api.SignUpOptions,
+	credResult *webauthn.Credential,
+	nickname string,
+) databaseWithSessionFn {
+	return func(
+		refreshTokenHash pgtype.Text,
+		refreshTokenExpiresAt pgtype.Timestamptz,
+		metadata []byte,
+		gravatarURL string,
+	) (uuid.UUID, uuid.UUID, error) {
+		resp, err := ctrl.wf.db.InsertUserWithSecurityKeyAndRefreshToken(
+			ctx, sql.InsertUserWithSecurityKeyAndRefreshTokenParams{
+				ID:                    webauthnUser.ID,
+				Disabled:              ctrl.config.DisableNewUsers,
+				DisplayName:           deptr(options.DisplayName),
+				AvatarUrl:             gravatarURL,
+				Email:                 sql.Text(webauthnUser.Email),
+				Ticket:                pgtype.Text{}, //nolint:exhaustruct
+				TicketExpiresAt:       sql.TimestampTz(time.Now()),
+				EmailVerified:         false,
+				Locale:                deptr(options.Locale),
+				DefaultRole:           deptr(options.DefaultRole),
+				Metadata:              metadata,
+				Roles:                 deptr(options.AllowedRoles),
+				RefreshTokenHash:      refreshTokenHash,
+				RefreshTokenExpiresAt: refreshTokenExpiresAt,
+				CredentialID:          base64.RawURLEncoding.EncodeToString(credResult.ID),
+				CredentialPublicKey:   credResult.PublicKey,
+				Nickname:              sql.Text(nickname),
+			},
+		)
+		if err != nil {
+			return uuid.Nil, uuid.Nil,
+				fmt.Errorf("error inserting user with security key and refresh token: %w", err)
+		}
+
+		return resp.ID, resp.RefreshTokenID, nil
+	}
+}
+
+func (ctrl *Controller) postSignupWebauthnVerifyWithoutSession(
+	ctx context.Context,
+	webauthnUser WebauthnUser,
+	options *api.SignUpOptions,
+	credResult *webauthn.Credential,
+	nickname string,
+) databaseWithoutSessionFn {
+	return func(
+		ticket pgtype.Text,
+		ticketExpiresAt pgtype.Timestamptz,
+		metadata []byte,
+		gravatarURL string,
+	) error {
+		_, err := ctrl.wf.db.InsertUserWithSecurityKey(
+			ctx, sql.InsertUserWithSecurityKeyParams{
+				ID:                  webauthnUser.ID,
+				Disabled:            ctrl.wf.config.DisableNewUsers,
+				DisplayName:         deptr(options.DisplayName),
+				AvatarUrl:           gravatarURL,
+				Email:               sql.Text(webauthnUser.Email),
+				Ticket:              ticket,
+				TicketExpiresAt:     ticketExpiresAt,
+				EmailVerified:       false,
+				Locale:              deptr(options.Locale),
+				DefaultRole:         deptr(options.DefaultRole),
+				Metadata:            metadata,
+				Roles:               deptr(options.AllowedRoles),
+				CredentialID:        base64.RawURLEncoding.EncodeToString(credResult.ID),
+				CredentialPublicKey: credResult.PublicKey,
+				Nickname:            sql.Text(nickname),
+			},
+		)
+		if err != nil {
+			return fmt.Errorf("error inserting user with security key: %w", err)
+		}
+
+		return nil
+	}
 }

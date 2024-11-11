@@ -46,6 +46,12 @@ const (
 	OK OKResponse = "OK"
 )
 
+// Defines values for Provider.
+const (
+	Apple  Provider = "apple"
+	Google Provider = "google"
+)
+
 // Defines values for UserDeanonymizeRequestSignInMethod.
 const (
 	EmailPassword UserDeanonymizeRequestSignInMethod = "email-password"
@@ -96,6 +102,9 @@ type OptionsRedirectTo struct {
 	RedirectTo *string `json:"redirectTo,omitempty"`
 }
 
+// Provider defines model for Provider.
+type Provider string
+
 // RefreshTokenRequest defines model for RefreshTokenRequest.
 type RefreshTokenRequest struct {
 	// RefreshToken Refresh Token
@@ -133,6 +142,17 @@ type SignInEmailPasswordRequest struct {
 type SignInEmailPasswordResponse struct {
 	Mfa     *MFAChallengePayload `json:"mfa,omitempty"`
 	Session *Session             `json:"session,omitempty"`
+}
+
+// SignInIdTokenRequest defines model for SignInIdTokenRequest.
+type SignInIdTokenRequest struct {
+	// IdToken Apple ID token
+	IdToken string `json:"idToken"`
+
+	// Nonce Nonce used during sign in process
+	Nonce    *string        `json:"nonce,omitempty"`
+	Options  *SignUpOptions `json:"options,omitempty"`
+	Provider Provider       `json:"provider"`
 }
 
 // SignInPATRequest defines model for SignInPATRequest.
@@ -275,6 +295,9 @@ type PostPatJSONRequestBody = CreatePATRequest
 
 // PostSigninEmailPasswordJSONRequestBody defines body for PostSigninEmailPassword for application/json ContentType.
 type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordRequest
+
+// PostSigninIdtokenJSONRequestBody defines body for PostSigninIdtoken for application/json ContentType.
+type PostSigninIdtokenJSONRequestBody = SignInIdTokenRequest
 
 // PostSigninPasswordlessEmailJSONRequestBody defines body for PostSigninPasswordlessEmail for application/json ContentType.
 type PostSigninPasswordlessEmailJSONRequestBody = SignInPasswordlessEmailRequest

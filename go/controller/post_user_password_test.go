@@ -85,11 +85,9 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 					Ticket:      ptr("passwordReset:ticket"),
 				},
 			},
-			expectedResponse: api.PostUserPassword200JSONResponse(api.OK),
-			emailer:          nil,
-			customClaimer:    nil,
-			expectedJWT:      nil,
-			hibp:             nil,
+			expectedResponse:  api.PostUserPassword200JSONResponse(api.OK),
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -119,10 +117,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "Invalid ticket",
 				Status:  401,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -154,10 +150,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "User is disabled",
 				Status:  401,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -189,10 +183,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "Forbidden, user is anonymous.",
 				Status:  403,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -223,10 +215,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "Password is too short",
 				Status:  400,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -266,11 +256,9 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 					Ticket:      nil,
 				},
 			},
-			expectedResponse: api.PostUserPassword200JSONResponse(api.OK),
-			emailer:          nil,
-			customClaimer:    nil,
-			expectedJWT:      nil,
-			hibp:             nil,
+			expectedResponse:  api.PostUserPassword200JSONResponse(api.OK),
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -293,10 +281,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "The request payload is incorrect",
 				Status:  400,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -326,10 +312,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "Incorrect email or password",
 				Status:  401,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -361,10 +345,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "User is disabled",
 				Status:  401,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -396,10 +378,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "Forbidden, user is anonymous.",
 				Status:  403,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -430,10 +410,8 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 				Message: "Password is too short",
 				Status:  400,
 			},
-			emailer:       nil,
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -443,11 +421,7 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: nil,
-				emailer:       nil,
-				hibp:          nil,
-			})
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			ctx := context.Background()
 			if tc.jwtTokenFn != nil {

@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/middleware"
-	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/hasura-auth/go/sql"
 )
 
 func (ctrl *Controller) postSignupEmailPasswordValidateRequest(
@@ -51,100 +52,102 @@ func (ctrl *Controller) PostSignupEmailPassword( //nolint:ireturn
 		return ctrl.respondWithError(apiError), nil
 	}
 
-	if ctrl.config.RequireEmailVerification || ctrl.config.DisableNewUsers {
-		return ctrl.postSignupEmailPasswordWithEmailVerificationOrUserDisabled(
-			ctx,
-			string(req.Body.Email),
-			req.Body.Password,
-			req.Body.Options,
-			logger,
-		)
+	hashedPassword, err := hashPassword(req.Body.Password)
+	if err != nil {
+		logger.Error("error hashing password", logError(err))
+		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	return ctrl.postSignupEmailPasswordWithoutEmailVerification(
+	session, apiErr := ctrl.wf.SignupUserWithFn(
 		ctx,
 		string(req.Body.Email),
-		req.Body.Password,
 		req.Body.Options,
+		true,
+		ctrl.postSignupEmailPasswordWithSession(
+			ctx, string(req.Body.Email), hashedPassword, req.Body.Options,
+		),
+		ctrl.postSignupEmailPasswordWithoutSession(
+			ctx, string(req.Body.Email), hashedPassword, req.Body.Options,
+		),
 		logger,
 	)
-}
 
-func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabled( //nolint:ireturn
-	ctx context.Context,
-	email string,
-	password string,
-	options *api.SignUpOptions,
-	logger *slog.Logger,
-) (api.PostSignupEmailPasswordResponseObject, error) {
-	ticket := generateTicket(TicketTypeVerifyEmail)
-
-	if _, err := ctrl.wf.SignUpUser(
-		ctx,
-		email,
-		options,
-		logger,
-		SignupUserWithTicket(ticket, time.Now().Add(InAMonth)),
-		SignupUserWithPassword(password),
-	); err != nil {
-		return ctrl.respondWithError(err), nil
-	}
-
-	if ctrl.config.DisableNewUsers {
-		return api.PostSignupEmailPassword200JSONResponse{Session: nil}, nil
-	}
-
-	if err := ctrl.wf.SendEmail(
-		ctx,
-		email,
-		deptr(options.Locale),
-		LinkTypeEmailVerify,
-		ticket,
-		deptr(options.RedirectTo),
-		notifications.TemplateNameEmailVerify,
-		deptr(options.DisplayName),
-		email,
-		"",
-		logger,
-	); err != nil {
-		return ctrl.sendError(err), nil
-	}
-
-	return api.PostSignupEmailPassword200JSONResponse{Session: nil}, nil
-}
-
-func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolint:ireturn
-	ctx context.Context,
-	email string,
-	password string,
-	options *api.SignUpOptions,
-	logger *slog.Logger,
-) (api.PostSignupEmailPasswordResponseObject, error) {
-	refreshToken := uuid.New()
-	expiresAt := time.Now().Add(time.Duration(ctrl.config.RefreshTokenExpiresIn) * time.Second)
-
-	userSession, resp, apiErr := ctrl.wf.SignupUserWithRefreshToken(
-		ctx, email, password, refreshToken, expiresAt, options, logger,
-	)
 	if apiErr != nil {
-		return ctrl.respondWithError(apiErr), nil
+		return ctrl.sendError(apiErr), nil
 	}
 
-	accessToken, expiresIn, err := ctrl.wf.jwtGetter.GetToken(
-		ctx, resp.UserID, false, deptr(options.AllowedRoles), *options.DefaultRole, logger,
-	)
-	if err != nil {
-		logger.Error("error getting jwt", logError(err))
-		return nil, fmt.Errorf("error getting jwt: %w", err)
-	}
+	return api.PostSignupEmailPassword200JSONResponse{Session: session}, nil
+}
 
-	return api.PostSignupEmailPassword200JSONResponse{
-		Session: &api.Session{
-			AccessToken:          accessToken,
-			AccessTokenExpiresIn: expiresIn,
-			RefreshTokenId:       resp.RefreshTokenID.String(),
-			RefreshToken:         refreshToken.String(),
-			User:                 userSession,
-		},
-	}, nil
+func (ctrl *Controller) postSignupEmailPasswordWithSession(
+	ctx context.Context,
+	email string,
+	hashedPassword string,
+	options *api.SignUpOptions,
+) databaseWithSessionFn {
+	return func(
+		refreshTokenHash pgtype.Text,
+		refreshTokenExpiresAt pgtype.Timestamptz,
+		metadata []byte,
+		gravatarURL string,
+	) (uuid.UUID, uuid.UUID, error) {
+		resp, err := ctrl.wf.db.InsertUserWithRefreshToken(
+			ctx, sql.InsertUserWithRefreshTokenParams{
+				Disabled:              ctrl.config.DisableNewUsers,
+				DisplayName:           deptr(options.DisplayName),
+				AvatarUrl:             gravatarURL,
+				Email:                 sql.Text(email),
+				PasswordHash:          sql.Text(hashedPassword),
+				Ticket:                pgtype.Text{}, //nolint:exhaustruct
+				TicketExpiresAt:       sql.TimestampTz(time.Now()),
+				EmailVerified:         false,
+				Locale:                deptr(options.Locale),
+				DefaultRole:           deptr(options.DefaultRole),
+				Metadata:              metadata,
+				Roles:                 deptr(options.AllowedRoles),
+				RefreshTokenHash:      refreshTokenHash,
+				RefreshTokenExpiresAt: refreshTokenExpiresAt,
+			},
+		)
+		if err != nil {
+			return uuid.Nil, uuid.Nil,
+				fmt.Errorf("error inserting user with refresh token: %w", err)
+		}
+
+		return resp.ID, resp.RefreshTokenID, nil
+	}
+}
+
+func (ctrl *Controller) postSignupEmailPasswordWithoutSession(
+	ctx context.Context,
+	email string,
+	hashedPassword string,
+	options *api.SignUpOptions,
+) databaseWithoutSessionFn {
+	return func(
+		ticket pgtype.Text,
+		ticketExpiresAt pgtype.Timestamptz,
+		metadata []byte,
+		gravatarURL string,
+	) error {
+		_, err := ctrl.wf.db.InsertUser(ctx, sql.InsertUserParams{
+			ID:              uuid.New(),
+			Disabled:        ctrl.config.DisableNewUsers,
+			DisplayName:     deptr(options.DisplayName),
+			AvatarUrl:       gravatarURL,
+			Email:           sql.Text(email),
+			PasswordHash:    sql.Text(hashedPassword),
+			Ticket:          ticket,
+			TicketExpiresAt: ticketExpiresAt,
+			EmailVerified:   false,
+			Locale:          deptr(options.Locale),
+			DefaultRole:     deptr(options.DefaultRole),
+			Metadata:        metadata,
+			Roles:           deptr(options.AllowedRoles),
+		})
+		if err != nil {
+			return fmt.Errorf("error inserting user: %w", err)
+		}
+		return nil
+	}
 }

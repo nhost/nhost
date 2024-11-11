@@ -139,10 +139,8 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
-			customClaimer: nil,
-			emailer:       nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 		{
 			name:   "anonymous user",
@@ -222,10 +220,8 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
-			customClaimer: nil,
-			emailer:       nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 		{
 			name: "invalid refresh token",
@@ -247,7 +243,6 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			customClaimer: nil,
 			request: api.PostTokenRequestObject{
 				Body: &api.RefreshTokenRequest{
 					RefreshToken: token.String(),
@@ -258,10 +253,9 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 				Message: "Invalid or expired refresh token",
 				Status:  401,
 			},
-			expectedJWT: nil,
-			emailer:     nil,
-			hibp:        nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 		{
 			name:   "user disabled",
@@ -282,7 +276,6 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			customClaimer: nil,
 			request: api.PostTokenRequestObject{
 				Body: &api.RefreshTokenRequest{
 					RefreshToken: token.String(),
@@ -293,10 +286,9 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 				Message: "User is disabled",
 				Status:  401,
 			},
-			expectedJWT: nil,
-			emailer:     nil,
-			hibp:        nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -306,11 +298,7 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: tc.customClaimer,
-				emailer:       nil,
-				hibp:          nil,
-			})
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			//nolint:exhaustruct
 			resp := assertRequest(

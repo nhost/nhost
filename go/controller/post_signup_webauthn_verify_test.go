@@ -154,8 +154,9 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("cf91d1bc-875e-49bc-897f-fbccf32ede11")
+
 	insertResponse := sql.InsertUserWithSecurityKeyAndRefreshTokenRow{
-		UserID:         userID,
+		ID:             userID,
 		RefreshTokenID: refreshTokenID,
 	}
 
@@ -197,15 +198,6 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
 					Credential:           touchIDRequest,
@@ -257,7 +249,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				Signature: []uint8{},
 				Valid:     true,
 			},
-			jwtTokenFn: nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -293,15 +286,6 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
 					Credential:           windowsHelloRequest,
@@ -353,7 +337,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				Signature: []uint8{},
 				Valid:     true,
 			},
-			jwtTokenFn: nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -391,40 +376,6 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameEmailVerify,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ac2ee89db-095c-4904-b796-f6a507ee1260&type=emailVerify", //nolint:lll
-							DisplayName: "Jane Doe",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "verifyEmail:c2ee89db-095c-4904-b796-f6a507ee1260",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
 					Credential:           touchIDRequest,
@@ -437,6 +388,37 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ac2ee89db-095c-4904-b796-f6a507ee1260&type=emailVerify", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:c2ee89db-095c-4904-b796-f6a507ee1260",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -451,16 +433,6 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
 					Credential:           touchIDRequest,
@@ -473,8 +445,9 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				Message: "This endpoint is disabled",
 				Status:  409,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -512,16 +485,6 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
 					Credential:           touchIDRequest,
@@ -534,8 +497,9 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				Message: "User is disabled",
 				Status:  401,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -550,16 +514,6 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
 					Credential:           touchIDRequest,
@@ -572,8 +526,9 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				Message: "Sign up is disabled.",
 				Status:  403,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -611,15 +566,6 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
 					Credential:           touchIDRequest,
@@ -653,7 +599,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				Signature: []uint8{},
 				Valid:     true,
 			},
-			jwtTokenFn: nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -663,11 +610,7 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: tc.customClaimer,
-				emailer:       tc.emailer,
-				hibp:          tc.hibp,
-			})
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			if !tc.config().WebauthnEnabled {
 				return

@@ -65,7 +65,6 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			customClaimer: nil,
 			request: api.PostSigninPatRequestObject{
 				Body: &api.SignInPATRequest{
 					PersonalAccessToken: pat.String(),
@@ -116,9 +115,8 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
-			emailer:    nil,
-			hibp:       nil,
-			jwtTokenFn: nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -157,20 +155,6 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 					gomock.Any(), userID,
 				).Return(sql.TimestampTz(time.Now()), nil)
 
-				return mock
-			},
-			customClaimer: func(ctrl *gomock.Controller) controller.CustomClaimer {
-				mock := mock.NewMockCustomClaimer(ctrl)
-				mock.EXPECT().GetClaims(
-					gomock.Any(),
-					"db477732-48fa-4289-b694-2886a646b6eb",
-				).Return(map[string]any{
-					"claim1":      "value1",
-					"claim2":      "value2",
-					"claimArray":  []any{"value1", "value2"},
-					"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
-					"claimNil":    nil,
-				}, nil)
 				return mock
 			},
 			request: api.PostSigninPatRequestObject{
@@ -228,9 +212,24 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
-			emailer:    nil,
-			hibp:       nil,
 			jwtTokenFn: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withCusomClaimer(func(ctrl *gomock.Controller) controller.CustomClaimer {
+					mock := mock.NewMockCustomClaimer(ctrl)
+					mock.EXPECT().GetClaims(
+						gomock.Any(),
+						"db477732-48fa-4289-b694-2886a646b6eb",
+					).Return(map[string]any{
+						"claim1":      "value1",
+						"claim2":      "value2",
+						"claimArray":  []any{"value1", "value2"},
+						"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
+						"claimNil":    nil,
+					}, nil)
+					return mock
+				},
+				),
+			},
 		},
 
 		{
@@ -253,7 +252,6 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			customClaimer: nil,
 			request: api.PostSigninPatRequestObject{
 				Body: &api.SignInPATRequest{
 					PersonalAccessToken: pat.String(),
@@ -264,10 +262,9 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 				Message: "Invalid or expired personal access token",
 				Status:  401,
 			},
-			expectedJWT: nil,
-			emailer:     nil,
-			hibp:        nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -290,7 +287,6 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			customClaimer: nil,
 			request: api.PostSigninPatRequestObject{
 				Body: &api.SignInPATRequest{
 					PersonalAccessToken: pat.String(),
@@ -301,10 +297,9 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 				Message: "Incorrect email or password",
 				Status:  401,
 			},
-			expectedJWT: nil,
-			emailer:     nil,
-			hibp:        nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -326,7 +321,6 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			customClaimer: nil,
 			request: api.PostSigninPatRequestObject{
 				Body: &api.SignInPATRequest{
 					PersonalAccessToken: pat.String(),
@@ -337,10 +331,9 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 				Message: "User is disabled",
 				Status:  401,
 			},
-			expectedJWT: nil,
-			emailer:     nil,
-			hibp:        nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -366,7 +359,6 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			customClaimer: nil,
 			request: api.PostSigninPatRequestObject{
 				Body: &api.SignInPATRequest{
 					PersonalAccessToken: pat.String(),
@@ -377,10 +369,9 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 				Message: "User is not verified.",
 				Status:  401,
 			},
-			expectedJWT: nil,
-			emailer:     nil,
-			hibp:        nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -390,11 +381,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: tc.customClaimer,
-				emailer:       nil,
-				hibp:          nil,
-			})
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			resp := assertRequest(
 				context.Background(), t, c.PostSigninPat, tc.request, tc.expectedResponse,

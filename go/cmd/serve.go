@@ -20,6 +20,7 @@ import (
 	"github.com/nhost/hasura-auth/go/hibp"
 	"github.com/nhost/hasura-auth/go/middleware"
 	"github.com/nhost/hasura-auth/go/middleware/ratelimit"
+	"github.com/nhost/hasura-auth/go/oidc"
 	"github.com/nhost/hasura-auth/go/sql"
 	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 	"github.com/urfave/cli/v2"
@@ -92,6 +93,8 @@ const (
 	flagRateLimitMemcacheServer          = "rate-limit-memcache-server"
 	flagRateLimitMemcachePrefix          = "rate-limit-memcache-prefix"
 	flagTurnstileSecret                  = "turnstile-secret"
+	flagAppleClientID                    = "apple-client-id"
+	flagGoogleClientID                   = "google-client-id"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -561,6 +564,18 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "turnstile",
 				EnvVars:  []string{"AUTH_TURNSTILE_SECRET"},
 			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagAppleClientID,
+				Usage:    "Apple client ID. If passed, enable Apple Sign In. Also used to verify the issuer on JWT tokens provided by Apple's native sign in",
+				Category: "apple",
+				EnvVars:  []string{"AUTH_PROVIDER_APPLE_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGoogleClientID,
+				Usage:    "Google client ID. If passed, enable Google Sign In. Also used to verify the issuer on JWT tokens provided by Google's native sign in",
+				Category: "google",
+				EnvVars:  []string{"AUTH_PROVIDER_GOOGLE_CLIENT_ID"},
+			},
 		},
 		Action: serve,
 	}
@@ -635,6 +650,36 @@ func getRateLimiter(cCtx *cli.Context, logger *slog.Logger) gin.HandlerFunc {
 	)
 }
 
+func getDependencies( //nolint:ireturn
+	cCtx *cli.Context, db *sql.Queries, logger *slog.Logger,
+) (
+	controller.Emailer,
+	*controller.JWTGetter,
+	*oidc.IDTokenValidatorProviders,
+	error,
+) {
+	emailer, err := getEmailer(cCtx, logger)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("problem creating emailer: %w", err)
+	}
+
+	jwtGetter, err := getJWTGetter(cCtx, db)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("problem creating jwt getter: %w", err)
+	}
+
+	idTokenValidator, err := oidc.NewIDTokenValidatorProviders(
+		cCtx.Context,
+		cCtx.String(flagAppleClientID),
+		cCtx.String(flagGoogleClientID),
+	)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error creating id token validator: %w", err)
+	}
+
+	return emailer, jwtGetter, idTokenValidator, nil
+}
+
 func getGoServer( //nolint:funlen
 	cCtx *cli.Context, db *sql.Queries, logger *slog.Logger,
 ) (*http.Server, error) {
@@ -668,22 +713,19 @@ func getGoServer( //nolint:funlen
 
 	router.Use(handlers...)
 
-	emailer, err := getEmailer(cCtx, logger)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating emailer: %w", err)
-	}
-
 	config, err := getConfig(cCtx)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating config: %w", err)
 	}
 
-	jwtGetter, err := getJWTGetter(cCtx, db)
+	emailer, jwtGetter, idTokenValidator, err := getDependencies(cCtx, db, logger)
 	if err != nil {
-		return nil, fmt.Errorf("problem creating jwt getter: %w", err)
+		return nil, err
 	}
 
-	ctrl, err := controller.New(db, config, jwtGetter, emailer, hibp.NewClient(), cCtx.App.Version)
+	ctrl, err := controller.New(
+		db, config, jwtGetter, emailer, hibp.NewClient(), idTokenValidator, cCtx.App.Version,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create controller: %w", err)
 	}

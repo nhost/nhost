@@ -88,10 +88,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.PostUserDeanonymizeRequestObject{
 				Body: &api.UserDeanonymizeRequest{
@@ -102,10 +98,9 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 					SignInMethod: "email-password",
 				},
 			},
-			expectedResponse: api.PostUserDeanonymize200JSONResponse(api.OK),
-			customClaimer:    nil,
-			expectedJWT:      nil,
-			hibp:             nil,
+			expectedResponse:  api.PostUserDeanonymize200JSONResponse(api.OK),
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -146,10 +141,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.PostUserDeanonymizeRequestObject{
 				Body: &api.UserDeanonymizeRequest{
@@ -169,10 +160,9 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 					SignInMethod: "email-password",
 				},
 			},
-			expectedResponse: api.PostUserDeanonymize200JSONResponse(api.OK),
-			customClaimer:    nil,
-			expectedJWT:      nil,
-			hibp:             nil,
+			expectedResponse:  api.PostUserDeanonymize200JSONResponse(api.OK),
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -221,35 +211,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameEmailVerify,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ab2a8b9c1-ab7e-4602-ac97-86baf828157a&type=emailVerify", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "verifyEmail:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.PostUserDeanonymizeRequestObject{
 				Body: &api.UserDeanonymizeRequest{
@@ -261,9 +222,38 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostUserDeanonymize200JSONResponse(api.OK),
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ab2a8b9c1-ab7e-4602-ac97-86baf828157a&type=emailVerify", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -306,35 +296,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameSigninPasswordless,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ac000a5b3-d3af-4937-aa2e-cc86f19ee565&type=signinPasswordless", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "passwordlessEmail:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.PostUserDeanonymizeRequestObject{
 				Body: &api.UserDeanonymizeRequest{
@@ -346,9 +307,38 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostUserDeanonymize200JSONResponse(api.OK),
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameSigninPasswordless,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ac000a5b3-d3af-4937-aa2e-cc86f19ee565&type=signinPasswordless", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordlessEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -356,10 +346,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -377,9 +363,8 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 				Message: "The request payload is incorrect",
 				Status:  400,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -387,10 +372,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -408,9 +389,8 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 				Message: "Password is too short",
 				Status:  400,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -418,10 +398,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			jwtTokenFn: func() *jwt.Token {
@@ -446,9 +422,8 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 				Message: "Logged in user is not anonymous",
 				Status:  400,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -461,10 +436,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
 				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -482,9 +453,8 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 				Message: "Email already in use",
 				Status:  409,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -496,10 +466,6 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -517,9 +483,8 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 				Message: "Incorrect email or password",
 				Status:  401,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -529,11 +494,7 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: nil,
-				emailer:       tc.emailer,
-				hibp:          nil,
-			})
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
 			assertRequest(

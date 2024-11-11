@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/hasura-auth/go/oidc"
 	"github.com/nhost/hasura-auth/go/sql"
 )
 
@@ -75,10 +76,26 @@ type DBClientUpdateUser interface {
 	) (uuid.UUID, error)
 }
 
+type DBClientUserProvider interface {
+	GetUserByProviderID(
+		ctx context.Context, arg sql.GetUserByProviderIDParams,
+	) (sql.AuthUser, error)
+	FindUserProviderByProviderId(
+		ctx context.Context, arg sql.FindUserProviderByProviderIdParams,
+	) (sql.AuthUserProvider, error)
+	InsertUserWithUserProvider(
+		ctx context.Context, arg sql.InsertUserWithUserProviderParams,
+	) (uuid.UUID, error)
+	InsertUserWithUserProviderAndRefreshToken(
+		ctx context.Context, arg sql.InsertUserWithUserProviderAndRefreshTokenParams,
+	) (sql.InsertUserWithUserProviderAndRefreshTokenRow, error)
+}
+
 type DBClient interface {
 	DBClientGetUser
 	DBClientInsertUser
 	DBClientUpdateUser
+	DBClientUserProvider
 
 	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
 	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
@@ -92,10 +109,11 @@ type DBClient interface {
 }
 
 type Controller struct {
-	wf       *Workflows
-	config   Config
-	Webauthn *Webauthn
-	version  string
+	idTokenValidator *oidc.IDTokenValidatorProviders
+	wf               *Workflows
+	config           Config
+	Webauthn         *Webauthn
+	version          string
 }
 
 func New(
@@ -104,6 +122,7 @@ func New(
 	jwtGetter *JWTGetter,
 	emailer Emailer,
 	hibp HIBPClient,
+	idTokenValidator *oidc.IDTokenValidatorProviders,
 	version string,
 ) (*Controller, error) {
 	validator, err := NewWorkflows(
@@ -129,9 +148,10 @@ func New(
 	}
 
 	return &Controller{
-		config:   config,
-		wf:       validator,
-		Webauthn: wa,
-		version:  version,
+		config:           config,
+		wf:               validator,
+		Webauthn:         wa,
+		idTokenValidator: idTokenValidator,
+		version:          version,
 	}, nil
 }

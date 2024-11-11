@@ -85,35 +85,6 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"newEmail@acme.com",
-					"en",
-					notifications.TemplateNameEmailConfirmChange,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=emailConfirmChange%3A9bd37c9c-8f5b-4c19-af01-a729922c1952&type=emailConfirmChange", //nolint:lll
-							DisplayName: "Jane Doe",
-							Email:       "oldEmail@acme.com",
-							NewEmail:    "newEmail@acme.com",
-							Ticket:      "emailConfirmChange:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.PostUserEmailChangeRequestObject{
 				Body: &api.UserEmailChangeRequest{
@@ -122,9 +93,38 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostUserEmailChange200JSONResponse(api.OK),
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"newEmail@acme.com",
+						"en",
+						notifications.TemplateNameEmailConfirmChange,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=emailConfirmChange%3A9bd37c9c-8f5b-4c19-af01-a729922c1952&type=emailConfirmChange", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "oldEmail@acme.com",
+								NewEmail:    "newEmail@acme.com",
+								Ticket:      "emailConfirmChange:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -148,10 +148,6 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.PostUserEmailChangeRequestObject{
 				Body: &api.UserEmailChangeRequest{
@@ -164,9 +160,8 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				Message: "Email already in use",
 				Status:  409,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -187,10 +182,6 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.PostUserEmailChangeRequestObject{
 				Body: &api.UserEmailChangeRequest{
@@ -203,9 +194,8 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				Message: "Internal server error",
 				Status:  500,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -246,35 +236,6 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"newEmail@acme.com",
-					"en",
-					notifications.TemplateNameEmailConfirmChange,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp%2Fredirect&ticket=emailConfirmChange%3A4c84b833-d330-49a6-b509-6c090959e249&type=emailConfirmChange", //nolint:lll
-							DisplayName: "Jane Doe",
-							Email:       "oldEmail@acme.com",
-							NewEmail:    "newEmail@acme.com",
-							Ticket:      "emailConfirmChange:xxx",
-							RedirectTo:  "https://myapp/redirect",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.PostUserEmailChangeRequestObject{
 				Body: &api.UserEmailChangeRequest{
@@ -285,9 +246,38 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostUserEmailChange200JSONResponse(api.OK),
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"newEmail@acme.com",
+						"en",
+						notifications.TemplateNameEmailConfirmChange,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp%2Fredirect&ticket=emailConfirmChange%3A4c84b833-d330-49a6-b509-6c090959e249&type=emailConfirmChange", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "oldEmail@acme.com",
+								NewEmail:    "newEmail@acme.com",
+								Ticket:      "emailConfirmChange:xxx",
+								RedirectTo:  "https://myapp/redirect",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -295,10 +285,6 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -315,9 +301,8 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				Message: `The value of "options.redirectTo" is not allowed.`,
 				Status:  400,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -327,11 +312,7 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: nil,
-				emailer:       tc.emailer,
-				hibp:          nil,
-			})
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
 			assertRequest(

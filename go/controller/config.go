@@ -26,6 +26,8 @@ func (s *stringlice) UnmarshalJSON(b []byte) error {
 }
 
 type Config struct {
+	AppleClientID              string        `json:"AUTH_PROVIDER_APPLE_CLIENT_ID"`
+	GoogleClientID             string        `json:"AUTH_PROVIDER_GOOGLE_CLIENT_ID"`
 	HasuraGraphqlURL           string        `json:"HASURA_GRAPHQL_GRAPHQL_URL"`
 	HasuraAdminSecret          string        `json:"HASURA_GRAPHQL_ADMIN_SECRET"`
 	AllowedEmailDomains        stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"`

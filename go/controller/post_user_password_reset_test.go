@@ -53,35 +53,6 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNamePasswordReset,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordReset%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordReset", //nolint:lll
-							DisplayName: "Jane Doe",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "passwordReset:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostUserPasswordResetRequestObject{
 				Body: &api.PostUserPasswordResetJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -89,10 +60,39 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostUserPasswordReset200JSONResponse(api.OK),
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
 			jwtTokenFn:       nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNamePasswordReset,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordReset%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordReset", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordReset:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -129,35 +129,6 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNamePasswordReset,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp.com&ticket=passwordReset%3Adadf0554-f118-4446-bfb1-2487b05cf251&type=passwordReset", //nolint:lll
-							DisplayName: "Jane Doe",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "passwordReset:xxx",
-							RedirectTo:  "https://myapp.com",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostUserPasswordResetRequestObject{
 				Body: &api.PostUserPasswordResetJSONRequestBody{
 					Email: "jane@acme.com",
@@ -167,10 +138,39 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostUserPasswordReset200JSONResponse(api.OK),
-			customClaimer:    nil,
 			expectedJWT:      nil,
-			hibp:             nil,
 			jwtTokenFn:       nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNamePasswordReset,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp.com&ticket=passwordReset%3Adadf0554-f118-4446-bfb1-2487b05cf251&type=passwordReset", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordReset:xxx",
+								RedirectTo:  "https://myapp.com",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -178,10 +178,6 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			request: api.PostUserPasswordResetRequestObject{
@@ -197,10 +193,9 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				Message: `The value of "options.redirectTo" is not allowed.`,
 				Status:  400,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -214,10 +209,6 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			request: api.PostUserPasswordResetRequestObject{
 				Body: &api.PostUserPasswordResetJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -229,10 +220,9 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				Message: `Incorrect email or password`,
 				Status:  401,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -248,10 +238,6 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			request: api.PostUserPasswordResetRequestObject{
 				Body: &api.PostUserPasswordResetJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -263,10 +249,9 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				Message: "Incorrect email or password",
 				Status:  401,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -290,10 +275,6 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			request: api.PostUserPasswordResetRequestObject{
 				Body: &api.PostUserPasswordResetJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -305,10 +286,9 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				Message: "User is disabled",
 				Status:  401,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -336,10 +316,6 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			request: api.PostUserPasswordResetRequestObject{
 				Body: &api.PostUserPasswordResetJSONRequestBody{
 					Email:   "jane@acme.com",
@@ -351,10 +327,9 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				Message: "User is not verified.",
 				Status:  401,
 			},
-			customClaimer: nil,
-			expectedJWT:   nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -364,11 +339,7 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, _ := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: nil,
-				emailer:       tc.emailer,
-				hibp:          nil,
-			})
+			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			assertRequest(
 				context.Background(), t, c.PostUserPasswordReset, tc.request, tc.expectedResponse,

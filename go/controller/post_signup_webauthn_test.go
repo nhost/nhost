@@ -38,15 +38,6 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 
 					return mock
 				},
-				emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-					mock := mock.NewMockEmailer(ctrl)
-					return mock
-				},
-				hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-					mock := mock.NewMockHIBPClient(ctrl)
-					return mock
-				},
-				customClaimer: nil,
 				request: api.PostSignupWebauthnRequestObject{
 					Body: &api.PostSignupWebauthnJSONRequestBody{
 						Email:   "jane@acme.com",
@@ -93,8 +84,9 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Extensions:  nil,
 					Hints:       nil,
 				},
-				expectedJWT: nil,
-				jwtTokenFn:  nil,
+				expectedJWT:       nil,
+				jwtTokenFn:        nil,
+				getControllerOpts: []getControllerOptsFunc{},
 			},
 			savedChallenge: controller.WebauthnChallenge{
 				Session: webauthn.SessionData{
@@ -131,15 +123,6 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 
 					return mock
 				},
-				emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-					mock := mock.NewMockEmailer(ctrl)
-					return mock
-				},
-				hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-					mock := mock.NewMockHIBPClient(ctrl)
-					return mock
-				},
-				customClaimer: nil,
 				request: api.PostSignupWebauthnRequestObject{
 					Body: &api.PostSignupWebauthnJSONRequestBody{
 						Email: "jane@acme.com",
@@ -196,8 +179,9 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Extensions:         nil,
 					Hints:              nil,
 				},
-				expectedJWT: nil,
-				jwtTokenFn:  nil,
+				expectedJWT:       nil,
+				jwtTokenFn:        nil,
+				getControllerOpts: []getControllerOptsFunc{},
 			},
 			savedChallenge: controller.WebauthnChallenge{
 				Session: webauthn.SessionData{
@@ -237,15 +221,6 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockDBClient(ctrl)
 					return mock
 				},
-				emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-					mock := mock.NewMockEmailer(ctrl)
-					return mock
-				},
-				hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-					mock := mock.NewMockHIBPClient(ctrl)
-					return mock
-				},
-				customClaimer: nil,
 				request: api.PostSignupWebauthnRequestObject{
 					Body: &api.PostSignupWebauthnJSONRequestBody{
 						Email:   "jane@acme.com",
@@ -257,8 +232,9 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Message: "This endpoint is disabled",
 					Status:  409,
 				},
-				expectedJWT: nil,
-				jwtTokenFn:  nil,
+				expectedJWT:       nil,
+				jwtTokenFn:        nil,
+				getControllerOpts: []getControllerOptsFunc{},
 			},
 			savedChallenge: controller.WebauthnChallenge{}, //nolint:exhaustruct
 		},
@@ -275,15 +251,6 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockDBClient(ctrl)
 					return mock
 				},
-				emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-					mock := mock.NewMockEmailer(ctrl)
-					return mock
-				},
-				hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-					mock := mock.NewMockHIBPClient(ctrl)
-					return mock
-				},
-				customClaimer: nil,
 				request: api.PostSignupWebauthnRequestObject{
 					Body: &api.PostSignupWebauthnJSONRequestBody{
 						Email:   "jane@acme.com",
@@ -295,8 +262,9 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Message: "Sign up is disabled.",
 					Status:  403,
 				},
-				expectedJWT: nil,
-				jwtTokenFn:  nil,
+				expectedJWT:       nil,
+				jwtTokenFn:        nil,
+				getControllerOpts: []getControllerOptsFunc{},
 			},
 			savedChallenge: controller.WebauthnChallenge{}, //nolint:exhaustruct
 		},
@@ -310,15 +278,6 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 
 					return mock
 				},
-				emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-					mock := mock.NewMockEmailer(ctrl)
-					return mock
-				},
-				hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-					mock := mock.NewMockHIBPClient(ctrl)
-					return mock
-				},
-				customClaimer: nil,
 				request: api.PostSignupWebauthnRequestObject{
 					Body: &api.PostSignupWebauthnJSONRequestBody{
 						Email:   "jane@acme.com",
@@ -366,8 +325,9 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Extensions:         nil,
 					Hints:              nil,
 				},
-				expectedJWT: nil,
-				jwtTokenFn:  nil,
+				expectedJWT:       nil,
+				jwtTokenFn:        nil,
+				getControllerOpts: []getControllerOptsFunc{},
 			},
 			savedChallenge: controller.WebauthnChallenge{
 				Session: webauthn.SessionData{
@@ -403,15 +363,6 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockDBClient(ctrl)
 					return mock
 				},
-				emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-					mock := mock.NewMockEmailer(ctrl)
-					return mock
-				},
-				hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-					mock := mock.NewMockHIBPClient(ctrl)
-					return mock
-				},
-				customClaimer: nil,
 				request: api.PostSignupWebauthnRequestObject{
 					Body: &api.PostSignupWebauthnJSONRequestBody{
 						Email: "jane@acme.com",
@@ -430,8 +381,9 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Message: `The value of "options.redirectTo" is not allowed.`,
 					Status:  400,
 				},
-				expectedJWT: nil,
-				jwtTokenFn:  nil,
+				expectedJWT:       nil,
+				jwtTokenFn:        nil,
+				getControllerOpts: []getControllerOptsFunc{},
 			},
 			savedChallenge: controller.WebauthnChallenge{}, //nolint:exhaustruct
 		},
@@ -443,11 +395,7 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, _ := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: tc.customClaimer,
-				emailer:       tc.emailer,
-				hibp:          tc.hibp,
-			})
+			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			//nolint:exhaustruct
 			_ = assertRequest(

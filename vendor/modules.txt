@@ -1,3 +1,9 @@
+# github.com/MicahParks/jwkset v0.5.19
+## explicit; go 1.21
+github.com/MicahParks/jwkset
+# github.com/MicahParks/keyfunc/v3 v3.3.5
+## explicit; go 1.21
+github.com/MicahParks/keyfunc/v3
 # github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 ## explicit; go 1.18
 github.com/bradfitz/gomemcache/memcache
@@ -309,6 +315,9 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
+# golang.org/x/time v0.5.0
+## explicit; go 1.18
+golang.org/x/time/rate
 # google.golang.org/protobuf v1.34.2
 ## explicit; go 1.20
 google.golang.org/protobuf/encoding/protowire

@@ -26,8 +26,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
+
 	insertResponse := sql.InsertUserWithRefreshTokenRow{
-		UserID:         userID,
+		ID:             userID,
 		RefreshTokenID: refreshTokenID,
 	}
 
@@ -60,15 +61,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -121,7 +113,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
-			jwtTokenFn: nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -152,15 +145,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -223,10 +207,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
-			jwtTokenFn: nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{ //nolint:dupl
+		{
 			name: "signup disabled",
 			config: func() *controller.Config {
 				c := getConfig()
@@ -238,15 +223,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -259,8 +235,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Message: "Sign up is disabled.",
 				Status:  403,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -300,15 +277,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -319,8 +287,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorResponse{
 				Error: "disabled-user", Message: "User is disabled", Status: 401,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -360,15 +329,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -379,8 +339,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorResponse{
 				Error: "disabled-user", Message: "User is disabled", Status: 401,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -414,15 +375,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -435,8 +387,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Message: "Email already in use",
 				Status:  409,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -474,15 +427,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -495,11 +439,12 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Message: "The request payload is incorrect",
 				Status:  400,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{ //nolint:dupl
+		{
 			name: "short password",
 			config: func() *controller.Config {
 				cfg := getConfig()
@@ -511,15 +456,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -532,8 +468,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Message: "Password is too short",
 				Status:  400,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -548,21 +485,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-
-				mock.EXPECT().IsPasswordPwned(
-					gomock.Any(),
-					"password",
-				).Return(true, nil)
-
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -577,6 +499,18 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withHIBP(func(ctrl *gomock.Controller) *mock.MockHIBPClient {
+					mock := mock.NewMockHIBPClient(ctrl)
+
+					mock.EXPECT().IsPasswordPwned(
+						gomock.Any(),
+						"password",
+					).Return(true, nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -611,21 +545,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-
-				mock.EXPECT().IsPasswordPwned(
-					gomock.Any(),
-					"password",
-				).Return(false, nil)
-
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -679,6 +598,18 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Valid:     true,
 			},
 			jwtTokenFn: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withHIBP(func(ctrl *gomock.Controller) *mock.MockHIBPClient {
+					mock := mock.NewMockHIBPClient(ctrl)
+
+					mock.EXPECT().IsPasswordPwned(
+						gomock.Any(),
+						"password",
+					).Return(false, nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -689,15 +620,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -717,8 +639,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Message: "Role not allowed",
 				Status:  400,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -753,15 +676,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -814,7 +728,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
-			jwtTokenFn: nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -847,14 +762,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 					}),
 				).Return(insertResponse, nil)
 
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
 			request: api.PostSignupEmailPasswordRequestObject{
@@ -914,21 +821,23 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
-			customClaimer: func(ctrl *gomock.Controller) controller.CustomClaimer {
-				mock := mock.NewMockCustomClaimer(ctrl)
-				mock.EXPECT().GetClaims(
-					gomock.Any(),
-					"db477732-48fa-4289-b694-2886a646b6eb",
-				).Return(map[string]any{
-					"claim1":      "value1",
-					"claim2":      "value2",
-					"claimArray":  []any{"value1", "value2"},
-					"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
-					"claimNil":    nil,
-				}, nil)
-				return mock
-			},
 			jwtTokenFn: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withCusomClaimer(func(ctrl *gomock.Controller) controller.CustomClaimer {
+					mock := mock.NewMockCustomClaimer(ctrl)
+					mock.EXPECT().GetClaims(
+						gomock.Any(),
+						"db477732-48fa-4289-b694-2886a646b6eb",
+					).Return(map[string]any{
+						"claim1":      "value1",
+						"claim2":      "value2",
+						"claimArray":  []any{"value1", "value2"},
+						"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
+						"claimNil":    nil,
+					}, nil)
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -967,39 +876,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameEmailVerify,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ac2ee89db-095c-4904-b796-f6a507ee1260&type=emailVerify", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "verifyEmail:c2ee89db-095c-4904-b796-f6a507ee1260",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -1012,6 +888,36 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ac2ee89db-095c-4904-b796-f6a507ee1260&type=emailVerify", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:c2ee89db-095c-4904-b796-f6a507ee1260",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -1026,15 +932,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
-				mock := mock.NewMockHIBPClient(ctrl)
-				return mock
-			},
-			customClaimer: nil,
 			request: api.PostSignupEmailPasswordRequestObject{
 				Body: &api.PostSignupEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
@@ -1047,8 +944,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Message: "Incorrect email or password",
 				Status:  401,
 			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -1058,11 +956,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: tc.customClaimer,
-				emailer:       tc.emailer,
-				hibp:          tc.hibp,
-			})
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			resp := assertRequest(
 				context.Background(), t, c.PostSignupEmailPassword, tc.request, tc.expectedResponse,

@@ -23,6 +23,7 @@ var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
 
 var (
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
+	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrEmailAlreadyInUse               = &APIError{api.EmailAlreadyInUse}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
@@ -109,6 +110,10 @@ func (response ErrorResponse) VisitPostSignupWebauthnVerifyResponse(w http.Respo
 }
 
 func (response ErrorResponse) VisitPostTokenResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostSigninIdtokenResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 

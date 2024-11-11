@@ -68,35 +68,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameSigninPasswordless,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "passwordlessEmail:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
 					Email:   "jane@acme.com",
@@ -104,10 +75,39 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
-			customClaimer:    nil,
-			hibp:             nil,
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameSigninPasswordless,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordlessEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -121,10 +121,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
 					Email:   "jane@acme.com",
@@ -136,10 +132,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "This endpoint is disabled",
 				Status:  409,
 			},
-			customClaimer: nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
-			expectedJWT:   nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -153,11 +148,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
 					Email:   "jane@acme.com",
@@ -169,10 +159,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "Incorrect email or password",
 				Status:  401,
 			},
-			customClaimer: nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
-			expectedJWT:   nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -184,10 +173,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
@@ -208,10 +193,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "Role not allowed",
 				Status:  400,
 			},
-			customClaimer: nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
-			expectedJWT:   nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -251,35 +235,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameSigninPasswordless,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "passwordlessEmail:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
 					Email: "jane@acme.com",
@@ -294,10 +249,39 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
-			customClaimer:    nil,
-			hibp:             nil,
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameSigninPasswordless,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordlessEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -305,10 +289,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
@@ -329,10 +309,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: `The value of "options.redirectTo" is not allowed.`,
 				Status:  400,
 			},
-			customClaimer: nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
-			expectedJWT:   nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -377,35 +356,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"fr",
-					notifications.TemplateNameSigninPasswordless,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Fmyapp&ticket=passwordlessEmail%3Ac2d0203a-2117-4445-bade-0ed8d5f44f4f&type=signinPasswordless", //nolint:lll
-							DisplayName: "Jane Doe",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "passwordlessEmail:xxx",
-							RedirectTo:  "http://myapp",
-							Locale:      "fr",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
 					Email: "jane@acme.com",
@@ -420,10 +370,39 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
-			customClaimer:    nil,
-			hibp:             nil,
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"fr",
+						notifications.TemplateNameSigninPasswordless,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Fmyapp&ticket=passwordlessEmail%3Ac2d0203a-2117-4445-bade-0ed8d5f44f4f&type=signinPasswordless", //nolint:lll
+								DisplayName: "Jane Doe",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordlessEmail:xxx",
+								RedirectTo:  "http://myapp",
+								Locale:      "fr",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -443,11 +422,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
 					Email:   "jane@acme.com",
@@ -459,10 +433,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "Sign up is disabled.",
 				Status:  403,
 			},
-			customClaimer: nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
-			expectedJWT:   nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -513,35 +486,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				mock.EXPECT().SendEmail(
-					gomock.Any(),
-					"jane@acme.com",
-					"en",
-					notifications.TemplateNameSigninPasswordless,
-					testhelpers.GomockCmpOpts(
-						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
-							DisplayName: "jane@acme.com",
-							Email:       "jane@acme.com",
-							NewEmail:    "",
-							Ticket:      "passwordlessEmail:xxx",
-							RedirectTo:  "http://localhost:3000",
-							Locale:      "en",
-							ServerURL:   "https://local.auth.nhost.run",
-							ClientURL:   "http://localhost:3000",
-						},
-						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
-
-						testhelpers.FilterPathLast(
-							[]string{".Link"}, cmp.Comparer(cmpLink)),
-					)).Return(nil)
-
-				return mock
-			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
 					Email:   "jane@acme.com",
@@ -549,10 +493,39 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
-			customClaimer:    nil,
-			hibp:             nil,
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameSigninPasswordless,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "passwordlessEmail:xxx",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+							testhelpers.FilterPathLast(
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+
+							testhelpers.FilterPathLast(
+								[]string{".Link"}, cmp.Comparer(cmpLink)),
+						)).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 
 		{
@@ -594,11 +567,6 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
-				mock := mock.NewMockEmailer(ctrl)
-
-				return mock
-			},
 			request: api.PostSigninPasswordlessEmailRequestObject{
 				Body: &api.SignInPasswordlessEmailRequest{
 					Email:   "jane@acme.com",
@@ -608,10 +576,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorResponse{
 				Error: "disabled-user", Message: "User is disabled", Status: 401,
 			},
-			customClaimer: nil,
-			hibp:          nil,
-			jwtTokenFn:    nil,
-			expectedJWT:   nil,
+			jwtTokenFn:        nil,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 	}
 
@@ -621,11 +588,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			c, _ := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
-				customClaimer: nil,
-				emailer:       tc.emailer,
-				hibp:          nil,
-			})
+			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			assertRequest(
 				context.Background(),
