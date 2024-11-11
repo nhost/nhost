@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.21.0
+
+### Minor Changes
+
+- b36aa60: feat: add disable sign ups description
+- 9ed9857: feat: add guide for metrics settings in dashboard
+
 ## 2.20.0
 
 ### Minor Changes
