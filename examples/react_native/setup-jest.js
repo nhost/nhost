@@ -2,6 +2,7 @@ import 'react-native-gesture-handler/jestSetup';
 import WebSocket from 'ws';
 
 import MockBroadcastChannel from './__mocks__/BroadcastChannel';
+import '@react-native-google-signin/google-signin';
 
 jest.useFakeTimers();
 
