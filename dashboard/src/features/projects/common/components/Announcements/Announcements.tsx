@@ -1,20 +1,14 @@
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
-import { useGetAnnouncementsQuery } from '@/utils/__generated__/graphql';
+import { type GetAnnouncementsQuery } from '@/utils/__generated__/graphql';
 import formatDistance from 'date-fns/formatDistance';
 
-export default function Announcements() {
-  const { data, loading, error } = useGetAnnouncementsQuery({
-    fetchPolicy: 'cache-first',
-  });
+interface AnnouncementsProps {
+  announcements: GetAnnouncementsQuery['announcements'];
+}
 
-  const announcements = data?.announcements || [];
-
-  if (loading || error) {
-    return null;
-  }
-
+export default function Announcements({ announcements }: AnnouncementsProps) {
   return (
     <section>
       <Text color="secondary" className="mb-2">

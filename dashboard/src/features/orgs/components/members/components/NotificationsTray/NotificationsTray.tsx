@@ -156,10 +156,16 @@ export default function NotificationsTray() {
     <>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="ghost" className="relative h-fit px-3 py-1">
-            <Bell className="mt-[2px] h-[1.15rem] w-[1.15rem]" />
-            {(pendingOrgRequest || Boolean(invites.length)) && (
-              <div className="absolute right-3 top-2 h-2 w-2 rounded-full bg-red-500" />
+          <Button
+            variant="outline"
+            className="relative flex h-8 items-center gap-2 border px-2"
+            aria-label="Notifications"
+          >
+            <Bell className="h-4.5 w-4.5" />
+            {(pendingOrgRequest || invites.length > 0) && (
+              <Badge variant="destructive">
+                {invites.length + (pendingOrgRequest ? 1 : 0)}
+              </Badge>
             )}
           </Button>
         </SheetTrigger>

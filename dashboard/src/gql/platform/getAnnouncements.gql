@@ -10,5 +10,8 @@ query getAnnouncements($limit: Int) {
     href
     content
     createdAt
+    read {
+      id
+    }
   }
 }
