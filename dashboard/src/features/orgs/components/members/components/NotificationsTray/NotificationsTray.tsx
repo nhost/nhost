@@ -25,6 +25,7 @@ import {
   useOrganizationMemberInvitesLazyQuery,
   useOrganizationNewRequestsLazyQuery,
   usePostOrganizationRequestMutation,
+  type OrganizationMemberInvitesQuery,
   type PostOrganizationRequestResponse,
 } from '@/utils/__generated__/graphql';
 import { useUserData } from '@nhost/nextjs';
@@ -33,10 +34,13 @@ import { Bell } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+type Invite = OrganizationMemberInvitesQuery['organizationMemberInvites'][0];
+
 export default function NotificationsTray() {
   const userData = useUserData();
-  const { asPath, route } = useRouter();
+  const { asPath, route, push } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
+  const [open, setOpen] = useState(false);
 
   const [stripeFormDialogOpen, setStripeFormDialogOpen] = useState(false);
 
@@ -113,17 +117,19 @@ export default function NotificationsTray() {
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
   const [deleteInvite] = useDeleteOrganizationMemberInviteMutation();
 
-  const handleAccept = async (inviteId: string) => {
+  const handleAccept = async (invite: Invite) => {
     await execPromiseWithErrorToast(
       async () => {
         await acceptInvite({
           variables: {
-            inviteId,
+            inviteId: invite.id,
           },
         });
 
-        refetchInvites();
-        refetchOrgs();
+        await refetchInvites();
+        await refetchOrgs();
+        await push(`/orgs/${invite?.organization?.slug}/projects`);
+        setOpen(false);
       },
       {
         loadingMessage: `Accepting invite...`,
@@ -154,7 +160,7 @@ export default function NotificationsTray() {
 
   return (
     <>
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button
             variant="outline"
@@ -254,7 +260,7 @@ export default function NotificationsTray() {
                     </Button>
                     <Button
                       className="h-fit"
-                      onClick={() => handleAccept(invite.id)}
+                      onClick={() => handleAccept(invite)}
                     >
                       Accept
                     </Button>
