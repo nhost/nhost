@@ -54,6 +54,7 @@ export default function AnnouncementsTray() {
   };
 
   const handleSetRead = async (announcementID: string) => {
+    console.log('set read');
     await insertAnnouncementRead({
       variables: { announcementID },
     });
@@ -155,7 +156,10 @@ export default function AnnouncementsTray() {
                       >
                         <DropdownMenuItem
                           disabled={announcement.read.length > 0}
-                          onClick={() => handleSetRead(announcement.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetRead(announcement.id);
+                          }}
                         >
                           Mark as read
                         </DropdownMenuItem>
