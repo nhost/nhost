@@ -5,8 +5,8 @@ import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
+import { Button } from '@/components/ui/v3/button';
 import { DevAssistant as WorkspaceProjectDevAssistant } from '@/features/ai/DevAssistant';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
@@ -74,8 +74,12 @@ export default function Header({ className, ...props }: HeaderProps) {
       <BreadcrumbNav />
 
       <div className="hidden grid-flow-col items-center gap-1 sm:grid">
-        <Button className="rounded-full" onClick={openDevAssistant}>
-          <GraphiteIcon className="h-4 w-4" />
+        <Button
+          variant="outline"
+          className="h-8 w-8"
+          onClick={openDevAssistant}
+        >
+          <GraphiteIcon className="h-4" />
         </Button>
 
         <NotificationsTray />
