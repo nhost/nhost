@@ -54,7 +54,6 @@ export default function AnnouncementsTray() {
   };
 
   const handleSetRead = async (announcementID: string) => {
-    console.log('set read');
     await insertAnnouncementRead({
       variables: { announcementID },
     });
