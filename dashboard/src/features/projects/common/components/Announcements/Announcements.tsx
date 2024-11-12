@@ -9,6 +9,7 @@ interface AnnouncementsProps {
 }
 
 export default function Announcements({ announcements }: AnnouncementsProps) {
+  console.log({ announcements });
   return (
     <section>
       <Text color="secondary" className="mb-2">

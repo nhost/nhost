@@ -27881,9 +27881,14 @@ export type SetNewDefaultPaymentMethodMutationVariables = Exact<{
 
 export type SetNewDefaultPaymentMethodMutation = { __typename?: 'mutation_root', setAllPaymentMethodToDefaultFalse?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null, updatePaymentMethods?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null };
 
-export type GetAnnouncementsQueryVariables = Exact<{
-  limit?: InputMaybe<Scalars['Int']>;
+export type DeleteAnnouncementReadMutationVariables = Exact<{
+  id: Scalars['uuid'];
 }>;
+
+
+export type DeleteAnnouncementReadMutation = { __typename?: 'mutation_root', deleteAnnouncementRead?: { __typename?: 'announcements_read', announcementID: any } | null };
+
+export type GetAnnouncementsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetAnnouncementsQuery = { __typename?: 'query_root', announcements: Array<{ __typename?: 'announcements', id: any, href: string, content: string, createdAt: any, read: Array<{ __typename?: 'announcements_read', id: any }> }> };
@@ -32883,11 +32888,43 @@ export function useSetNewDefaultPaymentMethodMutation(baseOptions?: Apollo.Mutat
 export type SetNewDefaultPaymentMethodMutationHookResult = ReturnType<typeof useSetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationResult = Apollo.MutationResult<SetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationOptions = Apollo.BaseMutationOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
+export const DeleteAnnouncementReadDocument = gql`
+    mutation deleteAnnouncementRead($id: uuid!) {
+  deleteAnnouncementRead(id: $id) {
+    announcementID
+  }
+}
+    `;
+export type DeleteAnnouncementReadMutationFn = Apollo.MutationFunction<DeleteAnnouncementReadMutation, DeleteAnnouncementReadMutationVariables>;
+
+/**
+ * __useDeleteAnnouncementReadMutation__
+ *
+ * To run a mutation, you first call `useDeleteAnnouncementReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAnnouncementReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAnnouncementReadMutation, { data, loading, error }] = useDeleteAnnouncementReadMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteAnnouncementReadMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAnnouncementReadMutation, DeleteAnnouncementReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAnnouncementReadMutation, DeleteAnnouncementReadMutationVariables>(DeleteAnnouncementReadDocument, options);
+      }
+export type DeleteAnnouncementReadMutationHookResult = ReturnType<typeof useDeleteAnnouncementReadMutation>;
+export type DeleteAnnouncementReadMutationResult = Apollo.MutationResult<DeleteAnnouncementReadMutation>;
+export type DeleteAnnouncementReadMutationOptions = Apollo.BaseMutationOptions<DeleteAnnouncementReadMutation, DeleteAnnouncementReadMutationVariables>;
 export const GetAnnouncementsDocument = gql`
-    query getAnnouncements($limit: Int) {
+    query getAnnouncements {
   announcements(
     order_by: {createdAt: desc}
-    limit: $limit
     where: {_or: [{expiresAt: {_is_null: true}}, {expiresAt: {_gt: now}}]}
   ) {
     id
@@ -32913,7 +32950,6 @@ export const GetAnnouncementsDocument = gql`
  * @example
  * const { data, loading, error } = useGetAnnouncementsQuery({
  *   variables: {
- *      limit: // value for 'limit'
  *   },
  * });
  */
