@@ -9,7 +9,7 @@ import { Option } from '@/components/ui/v2/Option';
 import type { ColumnAutocompleteProps } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
 import { ColumnAutocomplete } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
@@ -96,7 +96,7 @@ export default function RuleValueInput({
   helperText,
 }: RuleValueInputProps) {
   const { schema, table, disabled } = useRuleGroupEditor();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const { setValue } = useFormContext();
   const inputName = `${name}.value`;
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
@@ -118,8 +118,8 @@ export default function RuleValueInput({
     loading,
     error: customClaimsError,
   } = useGetRolesPermissionsQuery({
-    variables: { appId: currentProject?.id },
-    skip: !isHasuraInput || !currentProject?.id,
+    variables: { appId: project?.id },
+    skip: !isHasuraInput || !project?.id,
   });
 
   if (operator === '_is_null') {
