@@ -70,6 +70,17 @@ Read our [configuration guide](./docs/configuration.md) to customise the Hasura 
 - [Refresh tokens](./docs/workflows/refresh-token.md)
 - [Security keys with WebAuthn](./docs/workflows/webauthn.md)
 
+## JWT Signing
+
+The JWT tokens can be signed with either a symmetric key based on `HMAC-SHA` or with asymmetric keys based on `RSA`. To configure the JWT signing method, set the environment variable `HASURA_GRAPHQL_JWT_SECRET` which should follow the same format as [Hasura](https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt.html#running-with-jwt) with a few considerations:
+
+1. Only `HS` and `RS` algorithms are supported.
+2. If using `RS` algorithm, the public key should be in PEM format.
+3. If using `RS` algorithm, the private key should be in PKCS#8 format inside an extra field `signing_key`.
+4. If using `RS` algorithm, an additional field `kid` can be added to specify the key id in the JWK Set.
+
+When using asymmetric keys, you can get the JWK Set from the endpoing `.well-known/jwks.json`.
+
 ## Recipes
 
 - Extending Hasura's permissions with [Custom JWT claims](./docs/recipes/custom-hasura-claims.md)

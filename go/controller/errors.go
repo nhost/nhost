@@ -22,6 +22,8 @@ func (e *APIError) Error() string {
 var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
 
 var (
+	ErrJWTConfiguration = errors.New("jwt-configuration")
+
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrUserProviderAlreadyLinked       = &APIError{api.InvalidRequest}

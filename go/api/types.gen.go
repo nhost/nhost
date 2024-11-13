@@ -89,6 +89,21 @@ type ErrorResponse struct {
 // ErrorResponseError Error code that identifies the application error
 type ErrorResponseError string
 
+// JWK defines model for JWK.
+type JWK struct {
+	Alg string `json:"alg"`
+	E   string `json:"e"`
+	Kid string `json:"kid"`
+	Kty string `json:"kty"`
+	N   string `json:"n"`
+	Use string `json:"use"`
+}
+
+// JWKSet defines model for JWKSet.
+type JWKSet struct {
+	Keys []JWK `json:"keys"`
+}
+
 // LinkIdTokenRequest defines model for LinkIdTokenRequest.
 type LinkIdTokenRequest struct {
 	// IdToken Apple ID token

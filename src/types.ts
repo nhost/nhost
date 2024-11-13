@@ -98,6 +98,7 @@ export type SignInResponse = {
 export type JwtSecret = {
   type: 'HS256' | 'HS238' | 'HS512' | 'RS256' | 'RS384' | 'RS512' | 'Ed25519';
   key: string;
+  signing_key?: string;
   jwk_url?: string;
   claims_namespace?: string;
   claims_namespace_path?: string;

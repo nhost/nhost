@@ -91,6 +91,7 @@
           };
 
           buildPhase = ''
+            export PNPM_HOME=$TMP/.pnpm-home
             pnpm install --frozen-lockfile
           '';
 
@@ -104,6 +105,7 @@
           name = "node_modules-prod";
 
           buildPhase = ''
+            export PNPM_HOME=$TMP/.pnpm-home
             pnpm install --frozen-lockfile --prod
           '';
         });

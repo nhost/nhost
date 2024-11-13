@@ -1,9 +1,9 @@
 import { Claims, PermissionVariables, Token } from '@/types';
-import { createSecretKey } from 'crypto';
 import { jwtVerify } from 'jose';
 import { ENV } from '../env';
+import { getSecret } from './generate';
 
-const ALLOWED_JWT_TYPES = ['HS256', 'HS384', 'HS512'];
+const ALLOWED_JWT_TYPES = ['HS256', 'HS384', 'HS512', 'RS256', 'RS384', 'RS512'];
 
 if (!ALLOWED_JWT_TYPES.includes(ENV.HASURA_GRAPHQL_JWT_SECRET.type)) {
   throw new Error(`Invalid JWT type: ${ENV.HASURA_GRAPHQL_JWT_SECRET.type}`);
@@ -14,7 +14,7 @@ if (!ENV.HASURA_GRAPHQL_JWT_SECRET.key) {
 }
 
 export const verifyJwt = async (jwt: string) => {
-  const secret = createSecretKey(ENV.HASURA_GRAPHQL_JWT_SECRET.key, 'utf-8');
+  const secret = await getSecret();
   const result = await jwtVerify(jwt, secret);
   return result.payload as unknown as Token;
 };

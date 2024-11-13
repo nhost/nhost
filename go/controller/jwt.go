@@ -3,6 +3,7 @@ package controller
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,22 +16,73 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/nhost/hasura-auth/go/api"
 	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 )
 
 const jwtContextKey = "nhost/auth/jwt"
 
 type JWTSecret struct {
-	Key             string `json:"key"`
+	KeyID           string `json:"kid"`
+	Key             any    `json:"key"`
+	SigningKey      any    `json:"signing_key"`
 	Type            string `json:"type"`
 	Issuer          string `json:"issuer"`
 	ClaimsNamespace string `json:"claims_namespace"`
 }
 
-func decodeJWTSecret(jwtSecretb []byte) (JWTSecret, error) {
+func decodeJWTSecretForRSA(jwtSecret JWTSecret) (JWTSecret, []api.JWK, error) {
+	if jwtSecret.Key == nil {
+		return JWTSecret{}, nil,
+			fmt.Errorf("%w: key is required for RS256, RS384, and RS512", ErrJWTConfiguration)
+	}
+
+	privateKeyS, ok := jwtSecret.SigningKey.(string)
+	if !ok {
+		return JWTSecret{}, nil,
+			fmt.Errorf("%w: signing key must be a string", ErrJWTConfiguration)
+	}
+
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKeyS))
+	if err != nil {
+		return JWTSecret{}, nil, fmt.Errorf("error parsing rsa private key: %w", err)
+	}
+	jwtSecret.SigningKey = privateKey
+
+	publicKeyS, ok := jwtSecret.Key.(string)
+	if !ok {
+		return JWTSecret{}, nil, fmt.Errorf("%w: key must be a string", ErrJWTConfiguration)
+	}
+
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeyS))
+	if err != nil {
+		return JWTSecret{}, nil, fmt.Errorf("error parsing rsa public key: %w", err)
+	}
+	jwtSecret.Key = publicKey
+
+	keyID := jwtSecret.KeyID
+	if keyID == "" {
+		keyID = uuid.NewString()
+	}
+
+	jwks := []api.JWK{
+		{
+			Alg: jwtSecret.Type,
+			E:   "AQAB",
+			Kid: keyID,
+			Kty: "RSA",
+			N:   base64.RawURLEncoding.EncodeToString(publicKey.N.Bytes()),
+			Use: "sig",
+		},
+	}
+
+	return jwtSecret, jwks, nil
+}
+
+func decodeJWTSecret(jwtSecretb []byte) (JWTSecret, []api.JWK, error) {
 	var jwtSecret JWTSecret
 	if err := json.Unmarshal(jwtSecretb, &jwtSecret); err != nil {
-		return JWTSecret{}, fmt.Errorf("error unmarshalling jwt secret: %w", err)
+		return JWTSecret{}, nil, fmt.Errorf("error unmarshalling jwt secret: %w", err)
 	}
 
 	if jwtSecret.Issuer == "" {
@@ -41,7 +93,27 @@ func decodeJWTSecret(jwtSecretb []byte) (JWTSecret, error) {
 		jwtSecret.ClaimsNamespace = "https://hasura.io/jwt/claims"
 	}
 
-	return jwtSecret, nil
+	switch jwtSecret.Type {
+	case "HS256", "HS384", "HS512":
+		if jwtSecret.Key == nil {
+			return JWTSecret{}, nil,
+				fmt.Errorf("%w: key is required for HS256, HS384, and HS512", ErrJWTConfiguration)
+		}
+
+		key, ok := jwtSecret.Key.(string)
+		if !ok {
+			return JWTSecret{}, nil, fmt.Errorf("%w: key must be a string", ErrJWTConfiguration)
+		}
+
+		jwtSecret.Key = []byte(key)
+		jwtSecret.SigningKey = []byte(key)
+		return jwtSecret, nil, nil
+	case "RS256", "RS384", "RS512":
+		return decodeJWTSecretForRSA(jwtSecret)
+	default:
+		return JWTSecret{}, nil,
+			fmt.Errorf("%w: unsupported jwt type: %s", ErrJWTConfiguration, jwtSecret.Type)
+	}
 }
 
 type CustomClaimer interface {
@@ -51,12 +123,14 @@ type CustomClaimer interface {
 type JWTGetter struct {
 	claimsNamespace      string
 	issuer               string
-	signingKey           []byte
+	signingKey           any
+	validatingKey        any
 	method               jwt.SigningMethod
 	customClaimer        CustomClaimer
 	accessTokenExpiresIn time.Duration
 	elevatedClaimMode    string
 	db                   DBClient
+	jwks                 []api.JWK
 }
 
 func NewJWTGetter(
@@ -66,7 +140,7 @@ func NewJWTGetter(
 	elevatedClaimMode string,
 	db DBClient,
 ) (*JWTGetter, error) {
-	jwtSecret, err := decodeJWTSecret(jwtSecretb)
+	jwtSecret, jwks, err := decodeJWTSecret(jwtSecretb)
 	if err != nil {
 		return nil, err
 	}
@@ -76,12 +150,14 @@ func NewJWTGetter(
 	return &JWTGetter{
 		claimsNamespace:      jwtSecret.ClaimsNamespace,
 		issuer:               jwtSecret.Issuer,
-		signingKey:           []byte(jwtSecret.Key),
+		signingKey:           jwtSecret.SigningKey,
+		validatingKey:        jwtSecret.Key,
 		method:               method,
 		customClaimer:        customClaimer,
 		accessTokenExpiresIn: accessTokenExpiresIn,
 		elevatedClaimMode:    elevatedClaimMode,
 		db:                   db,
+		jwks:                 jwks,
 	}, nil
 }
 
@@ -176,7 +252,7 @@ func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 	jwtToken, err := jwt.Parse(
 		accessToken,
 		func(_ *jwt.Token) (interface{}, error) {
-			return j.signingKey, nil
+			return j.validatingKey, nil
 		},
 		jwt.WithValidMethods([]string{j.method.Alg()}),
 		jwt.WithIssuer(j.issuer),
