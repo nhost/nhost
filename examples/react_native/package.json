@@ -22,6 +22,7 @@
     "@react-navigation/native-stack": "^6.9.26",
     "base-64": "^1.0.0",
     "burnt": "^0.12.2",
+    "expo-modules-core": "^2.0.1",
     "react": "18.2.0",
     "react-hook-form": "^7.51.2",
     "react-native": "0.73.7",
