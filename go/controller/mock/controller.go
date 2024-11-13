@@ -373,6 +373,21 @@ func (mr *MockDBClientUserProviderMockRecorder) GetUserByProviderID(ctx, arg any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByProviderID", reflect.TypeOf((*MockDBClientUserProvider)(nil).GetUserByProviderID), ctx, arg)
 }
 
+// InsertUserProvider mocks base method.
+func (m *MockDBClientUserProvider) InsertUserProvider(ctx context.Context, arg sql.InsertUserProviderParams) (sql.AuthUserProvider, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertUserProvider", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthUserProvider)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertUserProvider indicates an expected call of InsertUserProvider.
+func (mr *MockDBClientUserProviderMockRecorder) InsertUserProvider(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserProvider", reflect.TypeOf((*MockDBClientUserProvider)(nil).InsertUserProvider), ctx, arg)
+}
+
 // InsertUserWithUserProvider mocks base method.
 func (m *MockDBClientUserProvider) InsertUserWithUserProvider(ctx context.Context, arg sql.InsertUserWithUserProviderParams) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
@@ -602,6 +617,21 @@ func (m *MockDBClient) InsertUser(ctx context.Context, arg sql.InsertUserParams)
 func (mr *MockDBClientMockRecorder) InsertUser(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUser", reflect.TypeOf((*MockDBClient)(nil).InsertUser), ctx, arg)
+}
+
+// InsertUserProvider mocks base method.
+func (m *MockDBClient) InsertUserProvider(ctx context.Context, arg sql.InsertUserProviderParams) (sql.AuthUserProvider, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertUserProvider", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthUserProvider)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertUserProvider indicates an expected call of InsertUserProvider.
+func (mr *MockDBClientMockRecorder) InsertUserProvider(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserProvider", reflect.TypeOf((*MockDBClient)(nil).InsertUserProvider), ctx, arg)
 }
 
 // InsertUserWithRefreshToken mocks base method.

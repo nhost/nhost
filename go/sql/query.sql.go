@@ -413,6 +413,34 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertU
 	return i, err
 }
 
+const insertUserProvider = `-- name: InsertUserProvider :one
+INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
+VALUES ($1, $2, $3, 'unset')
+RETURNING id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id
+`
+
+type InsertUserProviderParams struct {
+	UserID         uuid.UUID
+	ProviderID     string
+	ProviderUserID string
+}
+
+func (q *Queries) InsertUserProvider(ctx context.Context, arg InsertUserProviderParams) (AuthUserProvider, error) {
+	row := q.db.QueryRow(ctx, insertUserProvider, arg.UserID, arg.ProviderID, arg.ProviderUserID)
+	var i AuthUserProvider
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.AccessToken,
+		&i.RefreshToken,
+		&i.ProviderID,
+		&i.ProviderUserID,
+	)
+	return i, err
+}
+
 const insertUserWithRefreshToken = `-- name: InsertUserWithRefreshToken :one
 WITH inserted_user AS (
     INSERT INTO auth.users (

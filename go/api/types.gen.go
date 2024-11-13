@@ -89,6 +89,16 @@ type ErrorResponse struct {
 // ErrorResponseError Error code that identifies the application error
 type ErrorResponseError string
 
+// LinkIdTokenRequest defines model for LinkIdTokenRequest.
+type LinkIdTokenRequest struct {
+	// IdToken Apple ID token
+	IdToken string `json:"idToken"`
+
+	// Nonce Nonce used during sign in process
+	Nonce    *string  `json:"nonce,omitempty"`
+	Provider Provider `json:"provider"`
+}
+
 // MFAChallengePayload defines model for MFAChallengePayload.
 type MFAChallengePayload struct {
 	Ticket string `json:"ticket"`
@@ -289,6 +299,9 @@ type UserPasswordResetRequest struct {
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
 }
+
+// PostLinkIdtokenJSONRequestBody defines body for PostLinkIdtoken for application/json ContentType.
+type PostLinkIdtokenJSONRequestBody = LinkIdTokenRequest
 
 // PostPatJSONRequestBody defines body for PostPat for application/json ContentType.
 type PostPatJSONRequestBody = CreatePATRequest

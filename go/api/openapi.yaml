@@ -253,6 +253,29 @@ paths:
         - webauthn
         - verify
 
+  /link/idtoken:
+    post:
+      summary: Link a user account with the provider's account using an id token
+      tags:
+        - link
+        - idtoken
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkIdTokenRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Identity linked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
   /user/deanonymize:
     post:
       summary: >-
@@ -880,3 +903,19 @@ components:
       enum:
         - apple
         - google
+
+    LinkIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        idToken:
+          type: string
+          description: Apple ID token
+        nonce:
+          type: string
+          description: Nonce used during sign in process
+      required:
+        - provider
+        - idToken

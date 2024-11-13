@@ -89,6 +89,9 @@ type DBClientUserProvider interface {
 	InsertUserWithUserProviderAndRefreshToken(
 		ctx context.Context, arg sql.InsertUserWithUserProviderAndRefreshTokenParams,
 	) (sql.InsertUserWithUserProviderAndRefreshTokenRow, error)
+	InsertUserProvider(
+		ctx context.Context, arg sql.InsertUserProviderParams,
+	) (sql.AuthUserProvider, error)
 }
 
 type DBClient interface {
@@ -131,6 +134,7 @@ func New(
 		db,
 		hibp,
 		emailer,
+		idTokenValidator,
 		GravatarURLFunc(
 			config.GravatarEnabled, config.GravatarDefault, config.GravatarRating,
 		),

@@ -318,3 +318,8 @@ WHERE user_id = $1;
 -- name: FindUserProviderByProviderId :one
 SELECT * FROM auth.user_providers
 WHERE provider_user_id = $1 AND provider_id = $2;
+
+-- name: InsertUserProvider :one
+INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
+VALUES ($1, $2, $3, 'unset')
+RETURNING *;

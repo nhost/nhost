@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/api"
@@ -49,48 +48,6 @@ func (ctrl *Controller) postSigninIdtokenValidateRequest(
 	return req, nil
 }
 
-func (ctrl *Controller) getIDTokenValidator(
-	provider api.Provider,
-) (*oidc.IDTokenValidator, *APIError) {
-	var validator *oidc.IDTokenValidator
-	switch provider {
-	case api.Apple:
-		validator = ctrl.idTokenValidator.AppleID
-	case api.Google:
-		validator = ctrl.idTokenValidator.Google
-	default:
-		return nil, ErrInvalidRequest
-	}
-
-	if validator == nil {
-		return nil, ErrDisabledEndpoint
-	}
-
-	return validator, nil
-}
-
-func (ctrl *Controller) postSigninIdtokenValidateToken(
-	req api.PostSigninIdtokenRequestObject,
-	idTokenValidator *oidc.IDTokenValidator,
-	logger *slog.Logger,
-) (*jwt.Token, *APIError) {
-	nonce := ""
-	if req.Body.Nonce != nil {
-		nonce = *req.Body.Nonce
-	}
-
-	token, err := idTokenValidator.Validate(
-		req.Body.IdToken,
-		nonce,
-	)
-	if err != nil {
-		logger.Error("error validating id token", logError(err))
-		return nil, ErrInvalidRequest
-	}
-
-	return token, nil
-}
-
 func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 	ctx context.Context, email, providerID, providerUserID string, logger *slog.Logger,
 ) (sql.AuthUser, bool, *APIError) {
@@ -122,21 +79,14 @@ func (ctrl *Controller) PostSigninIdtoken( //nolint:ireturn
 ) (api.PostSigninIdtokenResponseObject, error) {
 	logger := middleware.LoggerFromContext(ctx)
 
-	idTokenValidator, apiError := ctrl.getIDTokenValidator(req.Body.Provider)
+	profile, apiError := ctrl.wf.GetOIDCProfileFromIDToken(
+		req.Body.Provider,
+		req.Body.IdToken,
+		req.Body.Nonce,
+		logger,
+	)
 	if apiError != nil {
-		logger.Error("error getting id token validator", logError(apiError))
 		return ctrl.respondWithError(apiError), nil
-	}
-
-	token, apiError := ctrl.postSigninIdtokenValidateToken(req, idTokenValidator, logger)
-	if apiError != nil {
-		return ctrl.respondWithError(apiError), nil
-	}
-
-	profile, err := idTokenValidator.GetProfile(token)
-	if err != nil {
-		logger.Error("error getting profile from token", logError(err))
-		return ctrl.respondWithError(ErrInvalidRequest), nil
 	}
 
 	if !ctrl.wf.ValidateEmail(profile.Email) {

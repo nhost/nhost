@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/hasura-auth/go/oidc"
 	"github.com/nhost/hasura-auth/go/sql"
 	"github.com/oapi-codegen/runtime/types"
 )
@@ -29,6 +30,7 @@ type Workflows struct {
 	db                   DBClient
 	hibp                 HIBPClient
 	email                Emailer
+	idTokenValidator     *oidc.IDTokenValidatorProviders
 	redirectURLValidator func(redirectTo string) bool
 	ValidateEmail        func(email string) bool
 	gravatarURL          func(string) string
@@ -40,6 +42,7 @@ func NewWorkflows(
 	db DBClient,
 	hibp HIBPClient,
 	email Emailer,
+	idTokenValidator *oidc.IDTokenValidatorProviders,
 	gravatarURL func(string) string,
 ) (*Workflows, error) {
 	allowedURLs := make([]string, len(cfg.AllowedRedirectURLs)+1)
@@ -68,6 +71,7 @@ func NewWorkflows(
 		email:                email,
 		redirectURLValidator: redirectURLValidator,
 		ValidateEmail:        emailValidator,
+		idTokenValidator:     idTokenValidator,
 		gravatarURL:          gravatarURL,
 	}, nil
 }
@@ -881,4 +885,84 @@ func (wf *Workflows) DeanonymizeUser(
 	}
 
 	return nil
+}
+
+func (wf *Workflows) GetOIDCProfileFromIDToken(
+	providerID api.Provider,
+	idToken string,
+	pnonce *string,
+	logger *slog.Logger,
+) (oidc.Profile, *APIError) {
+	idTokenValidator, apiError := wf.getIDTokenValidator(providerID)
+	if apiError != nil {
+		logger.Error("error getting id token validator", logError(apiError))
+		return oidc.Profile{}, apiError
+	}
+
+	nonce := ""
+	if pnonce != nil {
+		nonce = *pnonce
+	}
+
+	token, err := idTokenValidator.Validate(idToken, nonce)
+	if err != nil {
+		logger.Error("error validating id token", logError(err))
+		return oidc.Profile{}, ErrInvalidRequest
+	}
+
+	profile, err := idTokenValidator.GetProfile(token)
+	if err != nil {
+		logger.Error("error getting profile from token", logError(err))
+		return oidc.Profile{}, ErrInvalidRequest
+	}
+
+	return profile, nil
+}
+
+func (wf *Workflows) getIDTokenValidator(
+	provider api.Provider,
+) (*oidc.IDTokenValidator, *APIError) {
+	var validator *oidc.IDTokenValidator
+	switch provider {
+	case api.Apple:
+		validator = wf.idTokenValidator.AppleID
+	case api.Google:
+		validator = wf.idTokenValidator.Google
+	default:
+		return nil, ErrInvalidRequest
+	}
+
+	if validator == nil {
+		return nil, ErrDisabledEndpoint
+	}
+
+	return validator, nil
+}
+
+func (wf *Workflows) InsertUserProvider(
+	ctx context.Context,
+	userID uuid.UUID,
+	providerID string,
+	providerUserID string,
+	logger *slog.Logger,
+) (sql.AuthUserProvider, *APIError) {
+	userP, err := wf.db.InsertUserProvider(
+		ctx,
+		sql.InsertUserProviderParams{
+			UserID:         userID,
+			ProviderID:     providerID,
+			ProviderUserID: providerUserID,
+		},
+	)
+	if err != nil {
+		if sqlIsDuplcateError(err, "user_providers_provider_id_provider_user_id_key") {
+			logger.Error("user provider id already in use", logError(err))
+			return sql.AuthUserProvider{}, ErrUserProviderAlreadyLinked
+		}
+
+		logger.Error("error inserting user provider", logError(err))
+		return sql.AuthUserProvider{}, ErrInternalServerError
+	}
+
+	return userP, nil
 }

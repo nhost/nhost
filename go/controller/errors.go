@@ -24,6 +24,7 @@ var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
 var (
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
+	ErrUserProviderAlreadyLinked       = &APIError{api.InvalidRequest}
 	ErrEmailAlreadyInUse               = &APIError{api.EmailAlreadyInUse}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
@@ -114,6 +115,10 @@ func (response ErrorResponse) VisitPostTokenResponse(w http.ResponseWriter) erro
 }
 
 func (response ErrorResponse) VisitPostSigninIdtokenResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostLinkIdtokenResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -298,4 +303,13 @@ func sqlErrIsDuplicatedEmail(err error, logger *slog.Logger) *APIError {
 
 	logger.Error("error inserting user", logError(err))
 	return &APIError{api.InternalServerError}
+}
+
+func sqlIsDuplcateError(err error, fkey string) bool {
+	if err == nil {
+		return false
+	}
+
+	return strings.Contains(err.Error(), "SQLSTATE 23505") &&
+		strings.Contains(err.Error(), fkey)
 }
