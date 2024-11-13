@@ -12,7 +12,7 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import * as Burnt from 'burnt';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -27,7 +27,7 @@ export default function LinkGoogleAccount() {
   const [loading, setLoading] = useState(false);
   const [linkedWithGooglen, setLinkedWithGoogle] = useState(false);
 
-  const checkIfGoogleLinked = async () => {
+  const checkIfGoogleLinked = useCallback(async () => {
     try {
       setLoading(true);
       const {data, error} = await nhost.graphql.request<{
@@ -63,13 +63,13 @@ export default function LinkGoogleAccount() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [nhost]);
 
   useEffect(() => {
     if (isAuthenticated) {
       checkIfGoogleLinked();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, checkIfGoogleLinked]);
 
   const handleLinkGoogleAccount = async () => {
     try {
