@@ -1,6 +1,7 @@
 import React from 'react';
 import {useHasuraClaims, useUserData} from '@nhost/react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import LinkGoogleAccount from '@components/LinkGoogleAccount';
 
 export default function Profile() {
   const user = useUserData();
@@ -22,6 +23,7 @@ export default function Profile() {
         contentContainerStyle={styles.codeScrollView}>
         <Text style={styles.code}>{JSON.stringify(claims, null, 2)}</Text>
       </ScrollView>
+      <LinkGoogleAccount />
     </View>
   );
 }

@@ -11,7 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.9",
+    "@apollo/client": "^3.11.4",
     "@nhost/react": "workspace:*",
     "@nhost/react-apollo": "workspace:^",
     "@react-native-async-storage/async-storage": "^1.23.1",
@@ -21,6 +21,7 @@
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
     "base-64": "^1.0.0",
+    "burnt": "^0.12.2",
     "react": "18.2.0",
     "react-hook-form": "^7.51.2",
     "react-native": "0.73.7",

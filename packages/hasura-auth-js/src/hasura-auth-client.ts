@@ -37,6 +37,7 @@ import {
   verifyEmailOTPPromise
 } from './promises'
 import { createPATPromise } from './promises/createPAT'
+import { linkIdTokenPromise } from './promises/linkIdToken'
 import {
   AuthChangedFunction,
   AuthErrorPayload,
@@ -51,6 +52,7 @@ import {
   EmailOTPOptions,
   JWTClaims,
   JWTHasuraClaims,
+  LinkIdTokenParams,
   NhostAuthConstructorParams,
   NhostSessionResponse,
   OnTokenChangedFunction,
@@ -173,6 +175,26 @@ export class HasuraAuthClient {
     }
 
     return { providerUrl }
+  }
+
+  /**
+   * Use `nhost.auth.linkIdToken` to link a user account with the provider's account using an id token
+   * with an idToken
+   *
+   * @example
+   * ### Link a user account with the provider's account using an id token
+   * ```ts
+   * nhost.auth.linkIdToken({
+   *   provider: 'google'
+   *   idToken: '...',
+   *   nonce: '...',
+   * })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/link-idtoken
+   */
+  async linkIdToken(params: LinkIdTokenParams) {
+    return linkIdTokenPromise(this._client, params)
   }
 
   /**

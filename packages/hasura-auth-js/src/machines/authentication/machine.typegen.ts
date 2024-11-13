@@ -384,6 +384,8 @@ export interface Typegen0 {
       | 'done.invoke.signUpEmailPassword'
       | 'done.invoke.signUpSecurityKey'
       | 'done.invoke.verifyEmailOTP'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
       | 'error.platform.authenticateWithToken'
       | 'xstate.after(RETRY_IMPORT_TOKEN_DELAY)#nhost.authentication.retryTokenImport'
       | 'xstate.init'
