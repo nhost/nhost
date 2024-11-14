@@ -58,6 +58,22 @@ const (
 	Passwordless  UserDeanonymizeRequestSignInMethod = "passwordless"
 )
 
+// Defines values for TicketTypeQuery.
+const (
+	TicketTypeQueryEmailConfirmChange TicketTypeQuery = "emailConfirmChange"
+	TicketTypeQueryEmailVerify        TicketTypeQuery = "emailVerify"
+	TicketTypeQueryPasswordReset      TicketTypeQuery = "passwordReset"
+	TicketTypeQuerySigninPasswordless TicketTypeQuery = "signinPasswordless"
+)
+
+// Defines values for GetVerifyParamsType.
+const (
+	GetVerifyParamsTypeEmailConfirmChange GetVerifyParamsType = "emailConfirmChange"
+	GetVerifyParamsTypeEmailVerify        GetVerifyParamsType = "emailVerify"
+	GetVerifyParamsTypePasswordReset      GetVerifyParamsType = "passwordReset"
+	GetVerifyParamsTypeSigninPasswordless GetVerifyParamsType = "signinPasswordless"
+)
+
 // CreatePATRequest defines model for CreatePATRequest.
 type CreatePATRequest struct {
 	// ExpiresAt Expiration date of the PAT
@@ -314,6 +330,30 @@ type UserPasswordResetRequest struct {
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
 }
+
+// RedirectToQuery Target URL for the redirect
+type RedirectToQuery = string
+
+// TicketQuery Ticket
+type TicketQuery = string
+
+// TicketTypeQuery Type of the ticket
+type TicketTypeQuery string
+
+// GetVerifyParams defines parameters for GetVerify.
+type GetVerifyParams struct {
+	// Ticket Ticket
+	Ticket TicketQuery `form:"ticket" json:"ticket"`
+
+	// Type Type of the ticket. Deprecated, no longer used
+	Type *GetVerifyParamsType `form:"type,omitempty" json:"type,omitempty"`
+
+	// RedirectTo Target URL for the redirect
+	RedirectTo RedirectToQuery `form:"redirectTo" json:"redirectTo"`
+}
+
+// GetVerifyParamsType defines parameters for GetVerify.
+type GetVerifyParamsType string
 
 // PostLinkIdtokenJSONRequestBody defines body for PostLinkIdtoken for application/json ContentType.
 type PostLinkIdtokenJSONRequestBody = LinkIdTokenRequest

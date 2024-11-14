@@ -74,6 +74,8 @@ type DBClientUpdateUser interface {
 	InsertUserWithSecurityKey(
 		ctx context.Context, arg sql.InsertUserWithSecurityKeyParams,
 	) (uuid.UUID, error)
+	UpdateUserConfirmChangeEmail(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
+	UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 }
 
 type DBClientUserProvider interface {

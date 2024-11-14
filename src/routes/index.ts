@@ -8,7 +8,6 @@ import { elevateRouter } from './elevate';
 import { signOutRouter } from './signout';
 import { tokenRouter } from './token';
 import { userRouter } from './user';
-import { verifyRouter } from './verify';
 import { ENV } from '../utils/env';
 
 const router = express.Router();
@@ -31,7 +30,6 @@ router.use(elevateRouter);
 router.use(userRouter);
 router.use(mfaRouter);
 router.use(tokenRouter);
-router.use(verifyRouter);
 
 // admin
 env(router);

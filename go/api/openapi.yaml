@@ -400,6 +400,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/OKResponse'
 
+  /verify:
+    get:
+      summary: >-
+        Verify tickets created by email verification, email passwordless authentication (magic link),
+        or password reset
+      tags:
+        - verify
+      parameters:
+        - $ref: '#/components/parameters/TicketQuery'
+        - $ref: '#/components/parameters/TicketTypeQuery'
+        - $ref: '#/components/parameters/RedirectToQuery'
+      responses:
+        302:
+          description: Redirect response
+          headers:
+            Location:
+              $ref: '#/components/headers/RedirectLocation'
+          content: {}
+
   /version:
     get:
       summary: Get version
@@ -789,8 +808,9 @@ components:
       additionalProperties: false
       properties:
         redirectTo:
-          example: https://my-app.com/catch-redirection
           type: string
+          format: uri
+          example: https://my-app.com/catch-redirection
 
     SignInEmailPasswordRequest:
       type: object
@@ -881,8 +901,9 @@ components:
             lastName: Smith
           properties: {}
         redirectTo:
-          example: https://my-app.com/catch-redirection
           type: string
+          format: uri
+          example: https://my-app.com/catch-redirection
 
     SignUpWebauthnRequest:
       type: object
@@ -925,7 +946,6 @@ components:
               additionalProperties: false
               properties:
                 nickname:
-                  example: https://my-app.com/catch-redirection
                   type: string
 
     SignInIdTokenRequest:
@@ -968,3 +988,49 @@ components:
       required:
         - provider
         - idToken
+
+  parameters:
+    TicketQuery:
+      in: query
+      name: ticket
+      description: Ticket
+      required: true
+      schema:
+        type: string
+        description: Ticket
+        example: "verifyEmail:xxxxxxxx"
+
+    TicketTypeQuery:
+      in: query
+      name: type
+      description: Type of the ticket. Deprecated, no longer used
+      required: false
+      schema:
+        type: string
+        enum:
+          - emailVerify
+          - emailConfirmChange
+          - signinPasswordless
+          - passwordReset
+        description: Type of the ticket
+        example: email-verification
+      deprecated: true
+
+    RedirectToQuery:
+      in: query
+      name: redirectTo
+      description: Target URL for the redirect
+      required: true
+      schema:
+        description: Target URL for the redirect
+        type: string
+        format: uri
+        example: https://my-app.com/catch-redirection
+
+  headers:
+    RedirectLocation:
+      description: URL to redirect to
+      schema:
+        type: string
+        format: uri
+      required: true

@@ -276,6 +276,21 @@ func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserChangePassword(ctx, arg 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserChangePassword", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserChangePassword), ctx, arg)
 }
 
+// UpdateUserConfirmChangeEmail mocks base method.
+func (m *MockDBClientUpdateUser) UpdateUserConfirmChangeEmail(ctx context.Context, id uuid.UUID) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserConfirmChangeEmail", ctx, id)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserConfirmChangeEmail indicates an expected call of UpdateUserConfirmChangeEmail.
+func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserConfirmChangeEmail(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserConfirmChangeEmail", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserConfirmChangeEmail), ctx, id)
+}
+
 // UpdateUserDeanonymize mocks base method.
 func (m *MockDBClientUpdateUser) UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error {
 	m.ctrl.T.Helper()
@@ -318,6 +333,21 @@ func (m *MockDBClientUpdateUser) UpdateUserTicket(ctx context.Context, arg sql.U
 func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserTicket(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserTicket", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserTicket), ctx, arg)
+}
+
+// UpdateUserVerifyEmail mocks base method.
+func (m *MockDBClientUpdateUser) UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserVerifyEmail", ctx, id)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserVerifyEmail indicates an expected call of UpdateUserVerifyEmail.
+func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserVerifyEmail(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserVerifyEmail", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserVerifyEmail), ctx, id)
 }
 
 // MockDBClientUserProvider is a mock of DBClientUserProvider interface.
@@ -754,6 +784,21 @@ func (mr *MockDBClientMockRecorder) UpdateUserChangePassword(ctx, arg any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserChangePassword", reflect.TypeOf((*MockDBClient)(nil).UpdateUserChangePassword), ctx, arg)
 }
 
+// UpdateUserConfirmChangeEmail mocks base method.
+func (m *MockDBClient) UpdateUserConfirmChangeEmail(ctx context.Context, id uuid.UUID) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserConfirmChangeEmail", ctx, id)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserConfirmChangeEmail indicates an expected call of UpdateUserConfirmChangeEmail.
+func (mr *MockDBClientMockRecorder) UpdateUserConfirmChangeEmail(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserConfirmChangeEmail", reflect.TypeOf((*MockDBClient)(nil).UpdateUserConfirmChangeEmail), ctx, id)
+}
+
 // UpdateUserDeanonymize mocks base method.
 func (m *MockDBClient) UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error {
 	m.ctrl.T.Helper()
@@ -796,4 +841,19 @@ func (m *MockDBClient) UpdateUserTicket(ctx context.Context, arg sql.UpdateUserT
 func (mr *MockDBClientMockRecorder) UpdateUserTicket(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserTicket", reflect.TypeOf((*MockDBClient)(nil).UpdateUserTicket), ctx, arg)
+}
+
+// UpdateUserVerifyEmail mocks base method.
+func (m *MockDBClient) UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserVerifyEmail", ctx, id)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserVerifyEmail indicates an expected call of UpdateUserVerifyEmail.
+func (mr *MockDBClientMockRecorder) UpdateUserVerifyEmail(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserVerifyEmail", reflect.TypeOf((*MockDBClient)(nil).UpdateUserVerifyEmail), ctx, id)
 }

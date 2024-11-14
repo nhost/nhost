@@ -273,7 +273,7 @@ RETURNING id;
 
 -- name: UpdateUserChangeEmail :one
 UPDATE auth.users
-SET (ticket, ticket_expires_at, new_email) = ($2, $3, $4)
+SET (ticket, ticket_expires_at, new_email, email_verified) = ($2, $3, $4, true)
 WHERE id = $1
 RETURNING *;
 
@@ -282,6 +282,18 @@ UPDATE auth.users
 SET password_hash = $2
 WHERE id = $1
 RETURNING id;
+
+-- name: UpdateUserConfirmChangeEmail :one
+UPDATE auth.users
+SET (email, new_email) = (new_email, null)
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateUserVerifyEmail :one
+UPDATE auth.users
+SET email_verified = true
+WHERE id = $1
+RETURNING *;
 
 -- name: CountSecurityKeysUser :one
 SELECT COUNT(*) FROM auth.user_security_keys

@@ -966,3 +966,42 @@ func (wf *Workflows) InsertUserProvider(
 
 	return userP, nil
 }
+
+func (wf *Workflows) UpdateUserConfirmChangeEmail(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	userP, err := wf.db.UpdateUserConfirmChangeEmail(
+		ctx,
+		userID,
+	)
+	if err != nil {
+		if sqlIsDuplcateError(err, "users_email_key") {
+			logger.Error("user email id already in use", logError(err))
+			return sql.AuthUser{}, ErrEmailAlreadyInUse
+		}
+
+		logger.Error("error updating user", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	return userP, nil
+}
+
+func (wf *Workflows) UpdateUserVerifyEmail(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	userP, err := wf.db.UpdateUserVerifyEmail(
+		ctx,
+		userID,
+	)
+	if err != nil {
+		logger.Error("error updating user", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	return userP, nil
+}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/nhost/hasura-auth/go/api"
@@ -124,6 +125,10 @@ func (response ErrorResponse) VisitPostLinkIdtokenResponse(w http.ResponseWriter
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitGetVerifyResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case
@@ -154,9 +159,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 	return false
 }
 
-func (ctrl *Controller) sendError( //nolint:funlen,cyclop
-	err *APIError,
-) ErrorResponse {
+func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:cyclop,funlen
 	invalidRequest := ErrorResponse{
 		Status:  http.StatusBadRequest,
 		Error:   api.InvalidRequest,
@@ -288,6 +291,48 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 	return invalidRequest
 }
 
+func (ctrl *Controller) sendError(
+	err *APIError,
+) ErrorResponse {
+	return ctrl.getError(err)
+}
+
+type ErrorRedirectResponse struct {
+	Headers struct {
+		Location string
+	}
+}
+
+func (response ErrorRedirectResponse) visit(w http.ResponseWriter) error {
+	w.Header().Set("Location", response.Headers.Location)
+	w.WriteHeader(http.StatusFound)
+	return nil
+}
+
+func (response ErrorRedirectResponse) VisitGetVerifyResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (ctrl *Controller) sendRedirectError(
+	redirectURL *url.URL,
+	err *APIError,
+) ErrorRedirectResponse {
+	errResponse := ctrl.getError(err)
+
+	redirectURL = generateRedirectURL(redirectURL, map[string]string{
+		"error":            string(errResponse.Error),
+		"errorDescription": errResponse.Message,
+	})
+
+	return ErrorRedirectResponse{
+		Headers: struct {
+			Location string
+		}{
+			Location: redirectURL.String(),
+		},
+	}
+}
+
 func (ctrl *Controller) respondWithError(err *APIError) ErrorResponse {
 	return ctrl.sendError(err)
 }
@@ -314,4 +359,17 @@ func sqlIsDuplcateError(err error, fkey string) bool {
 
 	return strings.Contains(err.Error(), "SQLSTATE 23505") &&
 		strings.Contains(err.Error(), fkey)
+}
+
+func generateRedirectURL(
+	redirectTo *url.URL,
+	opts map[string]string,
+) *url.URL {
+	q := redirectTo.Query()
+	for k, v := range opts {
+		q.Set(k, v)
+	}
+	redirectTo.RawQuery = q.Encode()
+
+	return redirectTo
 }

@@ -888,7 +888,7 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 
 const updateUserChangeEmail = `-- name: UpdateUserChangeEmail :one
 UPDATE auth.users
-SET (ticket, ticket_expires_at, new_email) = ($2, $3, $4)
+SET (ticket, ticket_expires_at, new_email, email_verified) = ($2, $3, $4, true)
 WHERE id = $1
 RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
 `
@@ -955,6 +955,46 @@ func (q *Queries) UpdateUserChangePassword(ctx context.Context, arg UpdateUserCh
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const updateUserConfirmChangeEmail = `-- name: UpdateUserConfirmChangeEmail :one
+UPDATE auth.users
+SET (email, new_email) = (new_email, null)
+WHERE id = $1
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
+`
+
+func (q *Queries) UpdateUserConfirmChangeEmail(ctx context.Context, id uuid.UUID) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, updateUserConfirmChangeEmail, id)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+	)
+	return i, err
 }
 
 const updateUserDeanonymize = `-- name: UpdateUserDeanonymize :exec
@@ -1039,4 +1079,44 @@ func (q *Queries) UpdateUserTicket(ctx context.Context, arg UpdateUserTicketPara
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const updateUserVerifyEmail = `-- name: UpdateUserVerifyEmail :one
+UPDATE auth.users
+SET email_verified = true
+WHERE id = $1
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
+`
+
+func (q *Queries) UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, updateUserVerifyEmail, id)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+	)
+	return i, err
 }
