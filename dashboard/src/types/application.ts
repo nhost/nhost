@@ -16,13 +16,13 @@ import type {
 export enum ApplicationStatus {
   Empty = 0,
   Provisioning = 1,
-  Pausing = 2,
+  Pausing = 2, // nhost blue blinking
   Unpausing = 3,
   Deleting = 4,
-  Live = 5,
-  Paused = 6,
+  Live = 5, // Nhost Blue
+  Paused = 6, // Grey
   Deleted = 7,
-  Errored = 8,
+  Errored = 8, // Red
   Updating = 9,
   Restoring = 10,
   Migrating = 11,

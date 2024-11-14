@@ -4,7 +4,6 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v2/Alert';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
@@ -34,8 +33,8 @@ function ProjectLayoutContent({
     query: { appSubdomain },
   } = useRouter();
 
-  const isPlatform = useIsPlatform();
   const { state } = useAppState();
+  const isPlatform = useIsPlatform();
   const { project, loading, error } = useProject({ poll: true });
   const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
 
@@ -67,7 +66,7 @@ function ProjectLayoutContent({
         return children;
       case ApplicationStatus.Pausing:
       case ApplicationStatus.Paused:
-        return <ApplicationPaused />;
+        return children;
       case ApplicationStatus.Unpausing:
         return <ApplicationUnpausing />;
       case ApplicationStatus.Restoring:
