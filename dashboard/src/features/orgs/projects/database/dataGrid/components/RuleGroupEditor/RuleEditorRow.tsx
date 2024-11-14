@@ -40,9 +40,7 @@ const commonOperators: {
 }[] = [
   { value: '_eq', helperText: 'equal' },
   { value: '_neq', helperText: 'not equal' },
-  { value: '_in_hasura', label: '_in', helperText: 'in (X-Hasura-)' },
   { value: '_in', helperText: 'in (array)' },
-  { value: '_nin_hasura', label: '_nin', helperText: 'not in (X-Hasura-)' },
   { value: '_nin', helperText: 'not in (array)' },
   { value: '_gt', helperText: 'greater than' },
   { value: '_lt', helperText: 'lower than' },
@@ -205,15 +203,7 @@ export default function RuleEditorRow({
         fullWidth
         error={Boolean(operatorState?.error?.message)}
         onChange={(_event, value: HasuraOperator) => {
-          if (!['_in', '_nin', '_in_hasura', '_nin_hasura'].includes(value)) {
-            return;
-          }
-
-          if (value === '_in_hasura' || value === '_nin_hasura') {
-            setValue(`${rowName}.value`, null, {
-              shouldDirty: true,
-            });
-
+          if (!['_in', '_nin'].includes(value)) {
             return;
           }
 
@@ -222,14 +212,6 @@ export default function RuleEditorRow({
         renderValue={(option) => {
           if (!option?.value) {
             return <span />;
-          }
-
-          if (option.value === '_in_hasura') {
-            return <span>_in</span>;
-          }
-
-          if (option.value === '_nin_hasura') {
-            return <span>_nin</span>;
           }
 
           return <span>{option.value}</span>;

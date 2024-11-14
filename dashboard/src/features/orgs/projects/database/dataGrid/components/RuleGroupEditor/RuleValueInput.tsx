@@ -99,8 +99,8 @@ export default function RuleValueInput({
   const { project } = useProject();
   const { setValue } = useFormContext();
   const inputName = `${name}.value`;
+  console.log('error', helperText);
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
-  const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
   const sharedInputSx: InputProps['sx'] = !disabled
     ? {
         backgroundColor: (theme) =>
@@ -119,7 +119,7 @@ export default function RuleValueInput({
     error: customClaimsError,
   } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
-    skip: !isHasuraInput || !project?.id,
+    skip: !project?.id,
   });
 
   if (operator === '_is_null') {
@@ -161,27 +161,52 @@ export default function RuleValueInput({
       </ControlledSelect>
     );
   }
+  const availableHasuraPermissionVariables = getAllPermissionVariables(
+    data?.config?.auth?.session?.accessToken?.customClaims,
+  ).map(({ key }) => ({
+    value: `X-Hasura-${key}`,
+    label: `X-Hasura-${key}`,
+    group: 'Frequently used',
+  }));
 
   if (operator === '_in' || operator === '_nin') {
     return (
       <ControlledAutocomplete
         disabled={disabled}
-        name={inputName}
-        multiple
         freeSolo
-        limitTags={3}
+        multiple
+        limitTags={-1}
+        isOptionEqualToValue={(option, value) => {
+          return option.value === value.value;
+        }}
+        // isOptionEqualToValue={(
+        //   option,
+        //   value: string | number | AutocompleteOption<string>,
+        // ) => {
+        //   if (typeof value !== 'object') {
+        //     return (
+        //       option.value.toLowerCase() === value?.toString().toLowerCase()
+        //     );
+        //   }
+
+        //   return option.value.toLowerCase() === value.value.toLowerCase();
+        // }}
+        name={inputName}
+        groupBy={(option) => option.group}
         slotProps={{
           input: {
-            className: 'lg:!rounded-none !z-10',
+            className: 'lg:!rounded-none',
             sx: sharedInputSx,
           },
-          paper: { className: 'hidden' },
+          formControl: { className: '!bg-transparent' },
+          paper: { className: 'empty:border-transparent' },
         }}
-        options={[]}
         fullWidth
-        filterSelectedOptions
-        error={error}
-        helperText={helperText}
+        loading={loading}
+        loadingText={<ActivityIndicator label="Loading..." />}
+        error={Boolean(customClaimsError) || error}
+        helperText={customClaimsError?.message || helperText}
+        options={availableHasuraPermissionVariables}
       />
     );
   }
@@ -200,19 +225,10 @@ export default function RuleValueInput({
     );
   }
 
-  const availableHasuraPermissionVariables = getAllPermissionVariables(
-    data?.config?.auth?.session?.accessToken?.customClaims,
-  ).map(({ key }) => ({
-    value: `X-Hasura-${key}`,
-    label: `X-Hasura-${key}`,
-    group: 'Frequently used',
-  }));
-
   return (
     <ControlledAutocomplete
       disabled={disabled}
-      freeSolo={!isHasuraInput}
-      autoHighlight={isHasuraInput}
+      freeSolo
       isOptionEqualToValue={(
         option,
         value: string | number | AutocompleteOption<string>,
@@ -238,17 +254,7 @@ export default function RuleValueInput({
       loadingText={<ActivityIndicator label="Loading..." />}
       error={Boolean(customClaimsError) || error}
       helperText={customClaimsError?.message || helperText}
-      options={
-        isHasuraInput
-          ? availableHasuraPermissionVariables
-          : [
-              {
-                value: 'X-Hasura-User-Id',
-                label: 'X-Hasura-User-Id',
-                group: 'Frequently used',
-              },
-            ]
-      }
+      options={availableHasuraPermissionVariables}
       onChange={(_event, _value, reason, details) => {
         if (
           reason !== 'selectOption' &&

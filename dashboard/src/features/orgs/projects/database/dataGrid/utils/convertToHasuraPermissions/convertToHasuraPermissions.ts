@@ -1,27 +1,7 @@
 import type {
-  HasuraOperator,
   Rule,
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-
-/**
- * Converts a Hasura operator from dashboard's internal logic to a Hasura's
- * valid operator.
- * (Without _in_hasura and _nin_hasura)
- *
- * @param operator - The Hasura operator to convert
- * @returns - A string representation of the Hasura operator
- */
-function convertOperator(operator: HasuraOperator): string {
-  switch (operator) {
-    case '_in_hasura':
-      return '_in';
-    case '_nin_hasura':
-      return '_nin';
-    default:
-      return operator;
-  }
-}
 
 function createNestedObjectFromRule({
   column,
@@ -30,12 +10,10 @@ function createNestedObjectFromRule({
 }: Rule): Record<string, any> {
   const columnNameParts = column.split('.');
 
-  const cleanedOperator = convertOperator(operator);
-
-  if (columnNameParts.length === 1 && cleanedOperator === '_is_null') {
+  if (columnNameParts.length === 1 && operator === '_is_null') {
     return {
       [column]: {
-        [cleanedOperator]: value === 'true',
+        [operator]: value === 'true',
       },
     };
   }
@@ -43,7 +21,7 @@ function createNestedObjectFromRule({
   if (columnNameParts.length === 1) {
     return {
       [column]: {
-        [cleanedOperator]: value,
+        [operator]: value,
       },
     };
   }
@@ -52,7 +30,7 @@ function createNestedObjectFromRule({
     [columnNameParts[0]]: {
       ...createNestedObjectFromRule({
         column: columnNameParts.slice(1).join('.'),
-        operator: cleanedOperator as HasuraOperator,
+        operator,
         value,
       }),
     },
