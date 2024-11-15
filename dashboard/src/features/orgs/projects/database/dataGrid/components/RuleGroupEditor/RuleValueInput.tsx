@@ -6,6 +6,7 @@ import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { InputProps } from '@/components/ui/v2/Input';
 import { inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
+import { FancyMultiSelect } from '@/components/ui/v3/fancy-multi-select';
 import type { ColumnAutocompleteProps } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
 import { ColumnAutocomplete } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -171,42 +172,17 @@ export default function RuleValueInput({
 
   if (operator === '_in' || operator === '_nin') {
     return (
-      <ControlledAutocomplete
-        disabled={disabled}
-        freeSolo
-        multiple
-        limitTags={-1}
-        isOptionEqualToValue={(option, value) => {
-          return option.value === value.value;
-        }}
-        // isOptionEqualToValue={(
-        //   option,
-        //   value: string | number | AutocompleteOption<string>,
-        // ) => {
-        //   if (typeof value !== 'object') {
-        //     return (
-        //       option.value.toLowerCase() === value?.toString().toLowerCase()
-        //     );
-        //   }
-
-        //   return option.value.toLowerCase() === value.value.toLowerCase();
-        // }}
-        name={inputName}
-        groupBy={(option) => option.group}
-        slotProps={{
-          input: {
-            className: 'lg:!rounded-none',
-            sx: sharedInputSx,
-          },
-          formControl: { className: '!bg-transparent' },
-          paper: { className: 'empty:border-transparent' },
-        }}
-        fullWidth
-        loading={loading}
-        loadingText={<ActivityIndicator label="Loading..." />}
-        error={Boolean(customClaimsError) || error}
-        helperText={customClaimsError?.message || helperText}
+      <FancyMultiSelect
+        className="rounded-l-none"
         options={availableHasuraPermissionVariables}
+        creatable
+        onChange={(value) => {
+          setValue(
+            inputName,
+            value.map((v) => v.value),
+            { shouldDirty: true },
+          );
+        }}
       />
     );
   }
