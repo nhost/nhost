@@ -57,12 +57,6 @@ export default function ProjectsComboBox() {
   const [open, setOpen] = useState(false);
 
   const renderProjectStatusIndicator = () => {
-    if (state === ApplicationStatus.Pa) {
-      return (
-        <span className="mt-[2px] h-3 w-3 animate-blinking rounded-full bg-primary-main" />
-      );
-    }
-
     switch (state) {
       case ApplicationStatus.Errored:
         return (
