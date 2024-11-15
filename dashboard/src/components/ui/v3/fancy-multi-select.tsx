@@ -93,7 +93,7 @@ export function FancyMultiSelect({
   return (
     <Command
       onKeyDown={handleKeyDown}
-      className="overflow-visible bg-transparent"
+      className="relative overflow-visible bg-transparent"
     >
       <div
         className={cn(

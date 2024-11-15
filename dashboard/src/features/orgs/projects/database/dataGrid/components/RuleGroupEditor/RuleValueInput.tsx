@@ -77,6 +77,10 @@ export interface RuleValueInputProps {
    */
   name: string;
   /**
+   * Class name to apply to the input wrapper.
+   */
+  className?: string;
+  /**
    * Path of the table selected through the column input.
    */
   selectedTablePath?: string;
@@ -94,6 +98,7 @@ export default function RuleValueInput({
   name,
   selectedTablePath,
   error,
+  className,
   helperText,
 }: RuleValueInputProps) {
   const { schema, table, disabled } = useRuleGroupEditor();
@@ -173,7 +178,7 @@ export default function RuleValueInput({
   if (operator === '_in' || operator === '_nin') {
     return (
       <FancyMultiSelect
-        className="rounded-l-none"
+        className={className}
         options={availableHasuraPermissionVariables}
         creatable
         onChange={(value) => {

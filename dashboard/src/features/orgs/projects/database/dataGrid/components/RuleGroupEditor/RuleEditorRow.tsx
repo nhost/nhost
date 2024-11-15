@@ -194,8 +194,9 @@ export default function RuleEditorRow({
         disabled={disabled}
         onValueChange={handleSelect}
         defaultValue={operator}
+        value={operator}
       >
-        <SelectTrigger className="rounded-l-none [&>*>*:nth-child(2)]:hidden [&>*>*]:block [&>*>*]:w-auto">
+        <SelectTrigger className="z-20 h-10 rounded-l-none rounded-r-none [&>*>*:nth-child(2)]:hidden [&>*>*]:block [&>*>*]:w-auto">
           <SelectValue placeholder="Select a verified email to display" />
         </SelectTrigger>
         <SelectContent>{availableOperators.map(renderOption)}</SelectContent>
@@ -203,6 +204,7 @@ export default function RuleEditorRow({
       <RuleValueInput
         selectedTablePath={selectedTablePath}
         name={rowName}
+        className="min-h-10 rounded-l-none rounded-r-none"
         error={Boolean(valueState?.error?.message)}
       />
 
