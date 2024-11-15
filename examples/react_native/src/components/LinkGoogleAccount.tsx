@@ -11,13 +11,14 @@ import {
   isSuccessResponse,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import * as Burnt from 'burnt';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Toast from 'react-native-simple-toast';
 
 GoogleSignin.configure({
   webClientId: process.env.GOOGLE_CLIENT_ID,
+  iosClientId: process.env.GOOGLE_CLIENT_ID,
 });
 
 export default function LinkGoogleAccount() {
@@ -42,11 +43,10 @@ export default function LinkGoogleAccount() {
       `);
 
       if (error) {
-        // show toast
-        Burnt.toast({
-          title: 'Failed to fetch query user authentication providers',
-          preset: 'error',
-        });
+        Toast.show(
+          'Failed to fetch query user authentication providers',
+          Toast.SHORT,
+        );
         return;
       }
 
@@ -56,10 +56,10 @@ export default function LinkGoogleAccount() {
         );
       }
     } catch (error) {
-      Burnt.toast({
-        title: 'Failed to fetch query user authentication providers',
-        preset: 'error',
-      });
+      Toast.show(
+        'Failed to fetch query user authentication providers',
+        Toast.SHORT,
+      );
     } finally {
       setLoading(false);
     }
@@ -81,47 +81,44 @@ export default function LinkGoogleAccount() {
       if (isSuccessResponse(response)) {
         const idToken = response?.data?.idToken as string;
 
-        const {isError, error, isSuccess} = await linkIdToken({
+        const {isError, isSuccess} = await linkIdToken({
           provider: 'google',
           idToken,
         });
 
         if (isError) {
-          Burnt.toast({
-            title: 'An unexpected error happened',
-            message: error?.message,
-            preset: 'error',
-          });
+          Toast.show('An unexpected error happened', Toast.SHORT);
         }
 
         if (isSuccess) {
-          Burnt.toast({title: 'Google account was linked successfully'});
+          Toast.show('Google account was linked successfully', Toast.SHORT);
           await checkIfGoogleLinked();
         }
       } else {
         // sign in was cancelled by user
-        Burnt.toast({title: 'sign in was cancelled by user'});
+        Toast.show('Sign in was cancelled by user', Toast.SHORT);
       }
     } catch (error) {
       if (isErrorWithCode(error)) {
         switch (error.code) {
           case statusCodes.IN_PROGRESS:
             // operation (eg. sign in) already in progress
-            Burnt.toast({title: 'already in progress'});
+            Toast.show('Sign in already in progress', Toast.SHORT);
             break;
           case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
             // Android only, play services not available or outdated
-            Burnt.toast({
-              title: 'Google play services not available or outdated',
-            });
+            Toast.show(
+              'Google play services not available or outdated',
+              Toast.SHORT,
+            );
             break;
           default:
             // some other error happened
-            Burnt.toast({title: 'An unexpected error happened'});
+            Toast.show('An unexpected error happened', Toast.SHORT);
         }
       } else {
         // an error that's not related to google sign in occurred
-        Burnt.toast({title: 'An unexpected error happened'});
+        Toast.show('An unexpected error happened', Toast.SHORT);
       }
     } finally {
       setLoading(false);
@@ -146,14 +143,14 @@ export default function LinkGoogleAccount() {
       );
 
       if (!error) {
-        Burnt.toast({title: 'Google Account was unlinked successfully'});
+        Toast.show('Google Account was unlinked successfully', Toast.SHORT);
         await checkIfGoogleLinked();
         return;
       }
 
-      Burnt.toast({title: 'Failed to unlink auth user provider'});
+      Toast.show('Failed to unlink auth user provider', Toast.SHORT);
     } catch (error) {
-      Burnt.toast({title: 'Failed to unlink auth user provider'});
+      Toast.show('Failed to unlink auth user provider', Toast.SHORT);
     } finally {
       setLoading(false);
     }
