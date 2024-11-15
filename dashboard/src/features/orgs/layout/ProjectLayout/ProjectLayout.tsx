@@ -4,6 +4,7 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v2/Alert';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
+import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
@@ -14,7 +15,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
@@ -37,6 +38,31 @@ function ProjectLayoutContent({
   const isPlatform = useIsPlatform();
   const { project, loading, error } = useProject({ poll: true });
   const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
+
+  const renderPausedProjectContent = useCallback(
+    (_children: ReactNode) => {
+      const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
+      const blockedPausedProjectPages = [
+        'database',
+        'database/browser/[dataSourceSlug]',
+        'graphql',
+        'hasura',
+        'users',
+        'storage',
+        'ai/auto-embeddings',
+        'ai/assistants',
+        'metrics',
+      ].map((page) => baseProjectPageRoute.concat(page));
+
+      // block these pages when the project is paused
+      if (blockedPausedProjectPages.includes(route)) {
+        return <ApplicationPaused />;
+      }
+
+      return _children;
+    },
+    [route],
+  );
 
   // Render application state based on the current state
   const projectPageContent = useMemo(() => {
@@ -66,7 +92,7 @@ function ProjectLayoutContent({
         return children;
       case ApplicationStatus.Pausing:
       case ApplicationStatus.Paused:
-        return children;
+        return renderPausedProjectContent(children);
       case ApplicationStatus.Unpausing:
         return <ApplicationUnpausing />;
       case ApplicationStatus.Restoring:
@@ -78,7 +104,13 @@ function ProjectLayoutContent({
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSubdomain, isOnOverviewPage]);
+  }, [
+    state,
+    children,
+    appSubdomain,
+    isOnOverviewPage,
+    renderPausedProjectContent,
+  ]);
 
   // Handle loading state
   if (loading) {
