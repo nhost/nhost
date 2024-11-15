@@ -2,6 +2,8 @@ package controller_test
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"testing"
 	"time"
@@ -13,9 +15,42 @@ import (
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/controller/mock"
+	"github.com/nhost/hasura-auth/go/oidc"
 	"github.com/nhost/hasura-auth/go/sql"
 	"go.uber.org/mock/gomock"
 )
+
+func testToken(t *testing.T, nonce string) string {
+	t.Helper()
+
+	claims := jwt.MapClaims{
+		"iss":            "fake.issuer",
+		"aud":            "myapp.local",
+		"sub":            "106964149809169421082",
+		"email":          "jane@myapp.local",
+		"email_verified": true,
+		"name":           "Jane",
+		"picture":        "https://myapp.local/jane.jpg",
+		"iat":            time.Now().Unix(),
+		"exp":            time.Now().Add(time.Hour).Unix(),
+	}
+
+	if nonce != "" {
+		hasher := sha256.New()
+		hasher.Write([]byte(nonce))
+		hashBytes := hasher.Sum(nil)
+		noncestr := hex.EncodeToString(hashBytes)
+		claims["nonce"] = noncestr
+	}
+
+	provider := oidc.FakeProvider{}
+	token, err := provider.GenerateTestIDToken(claims)
+	if err != nil {
+		t.Fatalf("failed to generate test ID token: %v", err)
+	}
+
+	return token
+}
 
 func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 	t.Parallel()
@@ -48,12 +83,11 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 	getConfig := func() *controller.Config {
 		config := getConfig()
 		config.EmailPasswordlessEnabled = true
-		config.GoogleClientID = "936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com"
 		return config
 	}
 
-	token := "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NjNmZTI5MmZhMmEyOTY3Y2Q3NTUxYzQyYTEyMTFiY2FjNTUwNzEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI5MzYyODIyMjM4NzUtbzVrMHZiZmV2N21ra3NxbGExNXNsZzlhbTQydnZoY3MuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI5MzYyODIyMjM4NzUtMWJ0cXNxNGwxMTh1czUxa2RoYWxxb2Q0NGExN2JqMmUuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDY5NjQxNDk4MDkxNjk0MjEwODIiLCJlbWFpbCI6InZld2V5aWY2NjBAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5vbmNlIjoiZGYwNjNjYTliYmU5YzZlNWU4NGZhYjNlYjhmOTQxMmVhZmU4N2ZjNjBmMGE0Y2Y1YjY1YmExOTMwZGYzOGZmYSIsIm5hbWUiOiJKb2huIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0tYNlN2MjZvQzg4UmlOR1MxQkhHc2N4V0xyZ2oxcHhiQ0hQcUZEeWN0WlJWeWV5dz1zOTYtYyIsImdpdmVuX25hbWUiOiJKb2huIiwiaWF0IjoxNzMxMDY3NzQ0LCJleHAiOjE3MzEwNzEzNDR9.P-k76nGt2m5iwciPh7yh_qIfh46-vJ0YV2NHeXkezA3zL23nXxF7HZ7O0EWPHTZyFFnpEzPZCQOEu2WvePiBthjwbDJsoMjrnK5rwd5-GdBhwZBKarH0ZzL6DxObUislLEwRocLsQHxVwqOuU-x_58d4DjPt9uPET7HE0jNoApwWaJciq50iUPMUqm_EinkUeUxYdA_iVc1mIu_mwsuwXYkOI-dRgyKZNqXs_phfhg8Qe8t6pZR-jPzlSDK1PcgtNQP5TcQA-FIMT6ErVzMS94TNSEhYXhl5SNCpeZMBl2TAwkI3lzex8eiwtV1GnkSp0Ljcvc9D0uaJqyzK5sLK3Q" //nolint:gosec,lll
 	nonce := "4laVSZd0rNanAE0TS5iouQ=="
+	token := testToken(t, nonce)
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 	// refreshTokenID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
@@ -104,7 +138,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.InsertUserProviderParams{
 						UserID:         userID,
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(
@@ -115,7 +149,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 						UserID:         userID,
 						AccessToken:    "unset",
 						RefreshToken:   pgtype.Text{}, //nolint:exhaustruct
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					}, nil,
 				)
@@ -129,7 +163,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
 					Nonce:    ptr(nonce),
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: api.PostLinkIdtoken200JSONResponse("OK"),
@@ -187,7 +221,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
 					Nonce:    ptr(nonce),
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -219,7 +253,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
 					Nonce:    ptr(nonce),
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -276,7 +310,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.InsertUserProviderParams{
 						UserID:         userID,
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(
@@ -293,7 +327,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
 					Nonce:    ptr(nonce),
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -321,7 +355,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  "asdasdasd",
 					Nonce:    ptr(nonce),
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -348,7 +382,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 				Body: &api.LinkIdTokenRequest{
 					IdToken:  token,
 					Nonce:    nil,
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{

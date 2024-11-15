@@ -6,3 +6,5 @@ import (
 
 //go:embed openapi.yaml
 var OpenAPISchema []byte
+
+const FakeProvider = Provider("fake")

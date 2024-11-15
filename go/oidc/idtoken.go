@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nhost/hasura-auth/go/api"
 )
@@ -28,13 +27,14 @@ func getClaim[T any](token *jwt.Token, claim string) (T, error) { //nolint:iretu
 }
 
 type IDTokenValidatorProviders struct {
-	AppleID *IDTokenValidator
-	Google  *IDTokenValidator
+	AppleID      *IDTokenValidator
+	Google       *IDTokenValidator
+	FakeProvider *IDTokenValidator
 }
 
 func NewIDTokenValidatorProviders(
 	ctx context.Context,
-	appleClientID, googleClientID string,
+	appleClientID, googleClientID string, fakeProviderAudience string,
 	parserOptions ...jwt.ParserOption,
 ) (*IDTokenValidatorProviders, error) {
 	var appleID *IDTokenValidator
@@ -55,14 +55,26 @@ func NewIDTokenValidatorProviders(
 		}
 	}
 
+	var fakeProvider *IDTokenValidator
+	if fakeProviderAudience != "" {
+		var err error
+		fakeProvider, err = NewIDTokenValidator(
+			ctx, api.FakeProvider, fakeProviderAudience, parserOptions...,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Fake ID token validator: %w", err)
+		}
+	}
+
 	return &IDTokenValidatorProviders{
-		AppleID: appleID,
-		Google:  google,
+		AppleID:      appleID,
+		Google:       google,
+		FakeProvider: fakeProvider,
 	}, nil
 }
 
 type Provider interface {
-	GetJWKURL() string
+	GetJWTKeyFunc(ctx context.Context) (jwt.Keyfunc, error)
 	GetIssuer() string
 	GetValidMethods() string
 	GetProfile(token *jwt.Token) (Profile, error)
@@ -71,7 +83,7 @@ type Provider interface {
 type IDTokenValidator struct {
 	provider      Provider
 	parserOptions []jwt.ParserOption
-	jwkSetKeyFunc keyfunc.Keyfunc
+	jwtKeyFunc    jwt.Keyfunc
 }
 
 func NewIDTokenValidator(
@@ -86,18 +98,20 @@ func NewIDTokenValidator(
 		provider = &Apple{}
 	case api.Google:
 		provider = &Google{}
+	case api.FakeProvider:
+		provider = &FakeProvider{}
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedProvider, providerName)
 	}
 
-	k, err := keyfunc.NewDefaultCtx(ctx, []string{provider.GetJWKURL()})
+	keyFunc, err := provider.GetJWTKeyFunc(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create a jwkSet from the server's URL: %w", err)
+		return nil, fmt.Errorf("failed to get JWT key function from provider: %w", err)
 	}
 
 	return &IDTokenValidator{
-		provider:      provider,
-		jwkSetKeyFunc: k,
+		provider:   provider,
+		jwtKeyFunc: keyFunc,
 		parserOptions: append(
 			[]jwt.ParserOption{
 				jwt.WithAudience(audience),
@@ -118,7 +132,7 @@ func (a *IDTokenValidator) Validate(
 		a.parserOptions...,
 	)
 
-	token, err := jwt.Parse(tokenString, a.jwkSetKeyFunc.Keyfunc, options...)
+	token, err := jwt.Parse(tokenString, a.jwtKeyFunc, options...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate token: %w", err)
 	}

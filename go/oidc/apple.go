@@ -1,8 +1,10 @@
 package oidc
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -14,8 +16,13 @@ const (
 
 type Apple struct{}
 
-func (a *Apple) GetJWKURL() string {
-	return appleJWKURL
+func (a *Apple) GetJWTKeyFunc(ctx context.Context) (jwt.Keyfunc, error) {
+	k, err := keyfunc.NewDefaultCtx(ctx, []string{appleJWKURL})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a jwkSet from the server's URL: %w", err)
+	}
+
+	return k.Keyfunc, nil
 }
 
 func (a *Apple) GetIssuer() string {
@@ -27,21 +34,5 @@ func (a *Apple) GetValidMethods() string {
 }
 
 func (a *Apple) GetProfile(token *jwt.Token) (Profile, error) {
-	sub, err := getClaim[string](token, "sub")
-	if err != nil {
-		return Profile{}, fmt.Errorf("failed to get sub claim from token: %w", err)
-	}
-
-	email, err := getClaim[string](token, "email")
-	if err != nil {
-		return Profile{}, fmt.Errorf("failed to get email claim from token: %w", err)
-	}
-
-	return Profile{
-		ProviderUserID: sub,
-		Email:          email,
-		EmailVerified:  true,
-		Name:           "",
-		Picture:        "",
-	}, nil
+	return getProfile(token)
 }

@@ -17,8 +17,6 @@ func getConfig() *controller.Config {
 
 	//nolint:lll
 	return &controller.Config{
-		AppleClientID:            "",
-		GoogleClientID:           "",
 		HasuraGraphqlURL:         "http://localhost:8080/v1/graphql",
 		HasuraAdminSecret:        "nhost-admin-secret",
 		AllowedEmailDomains:      []string{},

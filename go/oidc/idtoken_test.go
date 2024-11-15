@@ -2,17 +2,18 @@ package oidc_test
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"testing"
 	"time"
 
-	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/oidc"
 )
 
-func testGoogleValidator(
+func testProviderValidator(
 	t *testing.T,
 	audience string,
 	datetime time.Time,
@@ -21,7 +22,7 @@ func testGoogleValidator(
 
 	v, err := oidc.NewIDTokenValidator(
 		context.Background(),
-		api.Google,
+		api.FakeProvider,
 		audience,
 		jwt.WithTimeFunc(func() time.Time {
 			return datetime
@@ -34,41 +35,47 @@ func testGoogleValidator(
 	return v
 }
 
-func testAppleValidator(
-	t *testing.T,
-	audience string,
-	datetime time.Time,
-) *oidc.IDTokenValidator {
+func testToken(t *testing.T, nonce string) string {
 	t.Helper()
 
-	v, err := oidc.NewIDTokenValidator(
-		context.Background(),
-		api.Apple,
-		audience,
-		jwt.WithTimeFunc(func() time.Time {
-			return datetime
-		}),
-	)
-	if err != nil {
-		t.Fatalf("failed to create Google ID token validator: %v", err)
+	claims := jwt.MapClaims{
+		"iss":            "fake.issuer",
+		"aud":            "myapp.local",
+		"sub":            "106964149809169421082",
+		"email":          "jane@myapp.local",
+		"email_verified": true,
+		"name":           "Jane",
+		"picture":        "https://myapp.local/jane.jpg",
+		"iat":            time.Now().Unix(),
+		"exp":            time.Now().Add(time.Hour).Unix(),
 	}
 
-	return v
+	if nonce != "" {
+		hasher := sha256.New()
+		hasher.Write([]byte(nonce))
+		hashBytes := hasher.Sum(nil)
+		noncestr := hex.EncodeToString(hashBytes)
+		claims["nonce"] = noncestr
+	}
+
+	p := oidc.FakeProvider{}
+	token, err := p.GenerateTestIDToken(claims)
+	if err != nil {
+		t.Fatalf("failed to generate test ID token: %v", err)
+	}
+
+	return token
 }
 
 func TestIDTokenValidate(t *testing.T) {
 	t.Parallel()
 
-	tokenWithNonce := "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NjNmZTI5MmZhMmEyOTY3Y2Q3NTUxYzQyYTEyMTFiY2FjNTUwNzEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI5MzYyODIyMjM4NzUtbzVrMHZiZmV2N21ra3NxbGExNXNsZzlhbTQydnZoY3MuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI5MzYyODIyMjM4NzUtMWJ0cXNxNGwxMTh1czUxa2RoYWxxb2Q0NGExN2JqMmUuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDY5NjQxNDk4MDkxNjk0MjEwODIiLCJlbWFpbCI6InZld2V5aWY2NjBAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5vbmNlIjoiZGYwNjNjYTliYmU5YzZlNWU4NGZhYjNlYjhmOTQxMmVhZmU4N2ZjNjBmMGE0Y2Y1YjY1YmExOTMwZGYzOGZmYSIsIm5hbWUiOiJKb2huIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0tYNlN2MjZvQzg4UmlOR1MxQkhHc2N4V0xyZ2oxcHhiQ0hQcUZEeWN0WlJWeWV5dz1zOTYtYyIsImdpdmVuX25hbWUiOiJKb2huIiwiaWF0IjoxNzMxMDY3NzQ0LCJleHAiOjE3MzEwNzEzNDR9.P-k76nGt2m5iwciPh7yh_qIfh46-vJ0YV2NHeXkezA3zL23nXxF7HZ7O0EWPHTZyFFnpEzPZCQOEu2WvePiBthjwbDJsoMjrnK5rwd5-GdBhwZBKarH0ZzL6DxObUislLEwRocLsQHxVwqOuU-x_58d4DjPt9uPET7HE0jNoApwWaJciq50iUPMUqm_EinkUeUxYdA_iVc1mIu_mwsuwXYkOI-dRgyKZNqXs_phfhg8Qe8t6pZR-jPzlSDK1PcgtNQP5TcQA-FIMT6ErVzMS94TNSEhYXhl5SNCpeZMBl2TAwkI3lzex8eiwtV1GnkSp0Ljcvc9D0uaJqyzK5sLK3Q" //nolint:gosec,lll
 	nonce := "4laVSZd0rNanAE0TS5iouQ=="
+	tokenWithNonce := testToken(t, nonce)
 
-	tokenWithoutNonce := "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NjNmZTI5MmZhMmEyOTY3Y2Q3NTUxYzQyYTEyMTFiY2FjNTUwNzEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI5MzYyODIyMjM4NzUtbzVrMHZiZmV2N21ra3NxbGExNXNsZzlhbTQydnZoY3MuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI5MzYyODIyMjM4NzUtMWJ0cXNxNGwxMTh1czUxa2RoYWxxb2Q0NGExN2JqMmUuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDY5NjQxNDk4MDkxNjk0MjEwODIiLCJlbWFpbCI6InZld2V5aWY2NjBAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJKb2huIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0tYNlN2MjZvQzg4UmlOR1MxQkhHc2N4V0xyZ2oxcHhiQ0hQcUZEeWN0WlJWeWV5dz1zOTYtYyIsImdpdmVuX25hbWUiOiJKb2huIiwiaWF0IjoxNzMxMDY3OTU3LCJleHAiOjE3MzEwNzE1NTd9.fmqzZYaFqiMaS0lUhvbTbo1-PZNCJc81ii5IOageUoj3U3TxslX6hba_wtN6XpbVdUKQIDOIL1FZeDKSjxphx9fXCSDGQAKdbM26NhSG31c4ssEFhGvtLQxHOjOHmzWM-NNa313n9Bce96sPm_McRD5UikbT5g7lPC91lc5NiwdXM1ZxLo7mmUqlQwIeVok0soDPSGCRqKIUbx9GRI9dULB7SavrEJkL_fQuRRfhi6J6e7Bq9ECxCS5hX_nvkLxgTI3TrubzCktIrVdgdz3TBpxaIJfunbo8GRW-Ej1vwoAUrgTZcBdygldsngnIrWpm1kMD2Fc2scjnypuPSoSfTA" //nolint:lll,gosec
+	tokenWithoutNonce := testToken(t, "")
 
-	googleProvider := testGoogleValidator(
-		t,
-		"936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com",
-		time.Date(2024, 11, 8, 12, 20, 0, 0, time.UTC),
-	)
+	provider := testProviderValidator(t, "myapp.local", time.Now())
 
 	cases := []struct {
 		name             string
@@ -79,56 +86,43 @@ func TestIDTokenValidate(t *testing.T) {
 	}{
 		{
 			name:             "with nonce",
-			idTokenValidator: googleProvider,
+			idTokenValidator: provider,
 			token:            tokenWithNonce,
 			nonce:            nonce,
 			expecedErr:       nil,
 		},
 		{
 			name:             "with wrong nonce",
-			idTokenValidator: googleProvider,
+			idTokenValidator: provider,
 			token:            tokenWithNonce,
 			nonce:            "asdasdasdasd",
 			expecedErr:       oidc.ErrNonceMismatch,
 		},
 		{
 			name:             "with missing nonce",
-			idTokenValidator: googleProvider,
+			idTokenValidator: provider,
 			token:            tokenWithNonce,
 			nonce:            "",
 			expecedErr:       oidc.ErrNonceMismatch,
 		},
 		{
 			name:             "without nonce",
-			idTokenValidator: googleProvider,
+			idTokenValidator: provider,
 			token:            tokenWithoutNonce,
 			nonce:            "",
 			expecedErr:       nil,
 		},
 		{
-			name: "wrong provider",
-			idTokenValidator: testAppleValidator(
-				t,
-				"936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com",
-				time.Date(2024, 11, 6, 15, 30, 0, 0, time.UTC),
-			),
-			token:      tokenWithNonce,
-			nonce:      nonce,
-			expecedErr: keyfunc.ErrKeyfunc,
-		},
-		{
 			name:             "wrong audience",
-			idTokenValidator: testGoogleValidator(t, "wrong-auddience", time.Now()),
+			idTokenValidator: testProviderValidator(t, "wrong-auddience", time.Now()),
 			token:            tokenWithNonce,
 			nonce:            nonce,
 			expecedErr:       jwt.ErrTokenInvalidAudience,
 		},
 		{
 			name: "too early in the past",
-			idTokenValidator: testGoogleValidator(
-				t,
-				"936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com",
-				time.Date(2024, 10, 6, 15, 30, 0, 0, time.UTC),
+			idTokenValidator: testProviderValidator(
+				t, "myapp.local", time.Date(2024, 10, 6, 15, 30, 0, 0, time.UTC),
 			),
 			token:      tokenWithNonce,
 			nonce:      nonce,
@@ -136,10 +130,8 @@ func TestIDTokenValidate(t *testing.T) {
 		},
 		{
 			name: "too early in the past",
-			idTokenValidator: testGoogleValidator(
-				t,
-				"936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com",
-				time.Date(2024, 12, 6, 15, 30, 0, 0, time.UTC),
+			idTokenValidator: testProviderValidator(
+				t, "myapp.local", time.Date(2024, 12, 6, 15, 30, 0, 0, time.UTC),
 			),
 			token:      tokenWithNonce,
 			nonce:      nonce,

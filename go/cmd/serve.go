@@ -93,8 +93,8 @@ const (
 	flagRateLimitMemcacheServer          = "rate-limit-memcache-server"
 	flagRateLimitMemcachePrefix          = "rate-limit-memcache-prefix"
 	flagTurnstileSecret                  = "turnstile-secret"
-	flagAppleClientID                    = "apple-client-id"
-	flagGoogleClientID                   = "google-client-id"
+	flagAppleAudience                    = "apple-audience"
+	flagGoogleAudience                   = "google-audience"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -565,16 +565,16 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				EnvVars:  []string{"AUTH_TURNSTILE_SECRET"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagAppleClientID,
-				Usage:    "Apple client ID. If passed, enable Apple Sign In. Also used to verify the issuer on JWT tokens provided by Apple's native sign in",
+				Name:     flagAppleAudience,
+				Usage:    "Apple Audience. Used to verify the audience on JWT tokens provided by Apple. Needed for idtoken validation",
 				Category: "apple",
-				EnvVars:  []string{"AUTH_PROVIDER_APPLE_CLIENT_ID"},
+				EnvVars:  []string{"AUTH_PROVIDER_APPLE_AUDIENCE"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagGoogleClientID,
-				Usage:    "Google client ID. If passed, enable Google Sign In. Also used to verify the issuer on JWT tokens provided by Google's native sign in",
+				Name:     flagGoogleAudience,
+				Usage:    "Google Audience. Used to verify the audience on JWT tokens provided by Google. Needed for idtoken validation",
 				Category: "google",
-				EnvVars:  []string{"AUTH_PROVIDER_GOOGLE_CLIENT_ID"},
+				EnvVars:  []string{"AUTH_PROVIDER_GOOGLE_AUDIENCE"},
 			},
 		},
 		Action: serve,
@@ -670,8 +670,9 @@ func getDependencies( //nolint:ireturn
 
 	idTokenValidator, err := oidc.NewIDTokenValidatorProviders(
 		cCtx.Context,
-		cCtx.String(flagAppleClientID),
-		cCtx.String(flagGoogleClientID),
+		cCtx.String(flagAppleAudience),
+		cCtx.String(flagGoogleAudience),
+		"",
 	)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating id token validator: %w", err)

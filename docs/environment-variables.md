@@ -73,6 +73,7 @@
 | AUTH_PROVIDER_GOOGLE_CLIENT_ID<b>\*</b>                                            |                                     |
 | AUTH_PROVIDER_GOOGLE_CLIENT_SECRET<b>\*</b>                                        |                                     |
 | AUTH_PROVIDER_GOOGLE_SCOPE                                                         | `email,profile`                     |
+| AUTH_PROVIDER_GOOGLE_AUDIENCE                                                      |                                     |
 | AUTH_PROVIDER_FACEBOOK_ENABLED                                                     | `false`                             |
 | AUTH_PROVIDER_FACEBOOK_CLIENT_ID<b>\*</b>                                          |                                     |
 | AUTH_PROVIDER_FACEBOOK_CLIENT_SECRET<b>\*</b>                                      |                                     |
@@ -91,6 +92,7 @@
 | AUTH_PROVIDER_APPLE_KEY_ID<b>\*</b>                                                |                                     |
 | AUTH_PROVIDER_APPLE_PRIVATE_KEY<b>\*</b>                                           | Base64 format                       |
 | AUTH_PROVIDER_APPLE_SCOPE                                                          | `name,email`                        |
+| AUTH_PROVIDER_APPLE_AUDIENCE                                                       |                                     |
 | AUTH_PROVIDER_WINDOWS_LIVE_ENABLED                                                 | `false`                             |
 | AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_ID<b>\*</b>                                      |                                     |
 | AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_SECRET<b>\*</b>                                  |                                     |

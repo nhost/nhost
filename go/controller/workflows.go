@@ -928,6 +928,8 @@ func (wf *Workflows) getIDTokenValidator(
 		validator = wf.idTokenValidator.AppleID
 	case api.Google:
 		validator = wf.idTokenValidator.Google
+	case api.FakeProvider:
+		validator = wf.idTokenValidator.FakeProvider
 	default:
 		return nil, ErrInvalidRequest
 	}

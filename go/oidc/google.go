@@ -1,9 +1,11 @@
 package oidc
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -15,8 +17,13 @@ const (
 
 type Google struct{}
 
-func (g *Google) GetJWKURL() string {
-	return googleJWKURL
+func (g *Google) GetJWTKeyFunc(ctx context.Context) (jwt.Keyfunc, error) {
+	k, err := keyfunc.NewDefaultCtx(ctx, []string{googleJWKURL})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a jwkSet from the server's URL: %w", err)
+	}
+
+	return k.Keyfunc, nil
 }
 
 func (g *Google) GetIssuer() string {
@@ -28,6 +35,10 @@ func (g *Google) GetValidMethods() string {
 }
 
 func (g *Google) GetProfile(token *jwt.Token) (Profile, error) {
+	return getProfile(token)
+}
+
+func getProfile(token *jwt.Token) (Profile, error) {
 	sub, err := getClaim[string](token, "sub")
 	if err != nil {
 		return Profile{}, fmt.Errorf("failed to get sub claim from token: %w", err)

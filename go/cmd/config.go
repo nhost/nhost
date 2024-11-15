@@ -71,8 +71,6 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 	}
 
 	return controller.Config{
-		AppleClientID:              cCtx.String(flagAppleClientID),
-		GoogleClientID:             cCtx.String(flagGoogleClientID),
 		HasuraGraphqlURL:           cCtx.String(flagGraphqlURL),
 		HasuraAdminSecret:          cCtx.String(flagHasuraAdminSecret),
 		AllowedEmailDomains:        allowedDomains,

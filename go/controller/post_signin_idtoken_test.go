@@ -25,10 +25,8 @@ func getTestIDTokenValidatorProviders() func(t *testing.T) *oidc.IDTokenValidato
 		idtokenValidators, err := oidc.NewIDTokenValidatorProviders(
 			context.Background(),
 			"appleid",
-			"936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com",
-			jwt.WithTimeFunc(func() time.Time {
-				return time.Date(2024, 11, 8, 12, 20, 0, 0, time.UTC)
-			}),
+			"googleid",
+			"myapp.local",
 		)
 		if err != nil {
 			t.Fatal("failed to create id token validator providers")
@@ -43,12 +41,11 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 	getConfig := func() *controller.Config {
 		config := getConfig()
 		config.EmailPasswordlessEnabled = true
-		config.GoogleClientID = "936282223875-1btqsq4l118us51kdhalqod44a17bj2e.apps.googleusercontent.com"
 		return config
 	}
 
-	token := "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NjNmZTI5MmZhMmEyOTY3Y2Q3NTUxYzQyYTEyMTFiY2FjNTUwNzEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI5MzYyODIyMjM4NzUtbzVrMHZiZmV2N21ra3NxbGExNXNsZzlhbTQydnZoY3MuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI5MzYyODIyMjM4NzUtMWJ0cXNxNGwxMTh1czUxa2RoYWxxb2Q0NGExN2JqMmUuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDY5NjQxNDk4MDkxNjk0MjEwODIiLCJlbWFpbCI6InZld2V5aWY2NjBAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5vbmNlIjoiZGYwNjNjYTliYmU5YzZlNWU4NGZhYjNlYjhmOTQxMmVhZmU4N2ZjNjBmMGE0Y2Y1YjY1YmExOTMwZGYzOGZmYSIsIm5hbWUiOiJKb2huIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0tYNlN2MjZvQzg4UmlOR1MxQkhHc2N4V0xyZ2oxcHhiQ0hQcUZEeWN0WlJWeWV5dz1zOTYtYyIsImdpdmVuX25hbWUiOiJKb2huIiwiaWF0IjoxNzMxMDY3NzQ0LCJleHAiOjE3MzEwNzEzNDR9.P-k76nGt2m5iwciPh7yh_qIfh46-vJ0YV2NHeXkezA3zL23nXxF7HZ7O0EWPHTZyFFnpEzPZCQOEu2WvePiBthjwbDJsoMjrnK5rwd5-GdBhwZBKarH0ZzL6DxObUislLEwRocLsQHxVwqOuU-x_58d4DjPt9uPET7HE0jNoApwWaJciq50iUPMUqm_EinkUeUxYdA_iVc1mIu_mwsuwXYkOI-dRgyKZNqXs_phfhg8Qe8t6pZR-jPzlSDK1PcgtNQP5TcQA-FIMT6ErVzMS94TNSEhYXhl5SNCpeZMBl2TAwkI3lzex8eiwtV1GnkSp0Ljcvc9D0uaJqyzK5sLK3Q" //nolint:gosec,lll
 	nonce := "4laVSZd0rNanAE0TS5iouQ=="
+	token := testToken(t, nonce)
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 	refreshTokenID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
@@ -68,14 +65,14 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByProviderID(
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
-					sql.Text("veweyif660@gmail.com"),
+					sql.Text("jane@myapp.local"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
@@ -83,9 +80,9 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					cmpDBParams(sql.InsertUserWithUserProviderAndRefreshTokenParams{
 						ID:                    userID,
 						Disabled:              false,
-						DisplayName:           "John",
-						AvatarUrl:             "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c", //nolint:lll
-						Email:                 sql.Text("veweyif660@gmail.com"),
+						DisplayName:           "Jane",
+						AvatarUrl:             "https://myapp.local/jane.jpg",
+						Email:                 sql.Text("jane@myapp.local"),
 						Ticket:                sql.Text(""),
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         true,
@@ -95,7 +92,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						Roles:                 []string{"user", "me"},
 						RefreshTokenHash:      sql.Text("asdadasdasdasd"),
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						ProviderID:            "google",
+						ProviderID:            "fake",
 						ProviderUserID:        "106964149809169421082",
 					},
 						cmpopts.IgnoreFields(
@@ -115,7 +112,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					IdToken:  token,
 					Nonce:    ptr(nonce),
 					Options:  nil,
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: api.PostSigninIdtoken200JSONResponse{
@@ -125,11 +122,11 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					RefreshTokenId:       "db477732-48fa-4289-b694-2886a646b6eb",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
-						AvatarUrl:           "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c", //nolint:lll
+						AvatarUrl:           "https://myapp.local/jane.jpg",
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
-						DisplayName:         "John",
-						Email:               ptr(types.Email("veweyif660@gmail.com")),
+						DisplayName:         "Jane",
+						Email:               ptr(types.Email("jane@myapp.local")),
 						EmailVerified:       true,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
@@ -175,14 +172,14 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByProviderID(
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
-					sql.Text("veweyif660@gmail.com"),
+					sql.Text("jane@myapp.local"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
@@ -191,8 +188,8 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						ID:                    userID,
 						Disabled:              false,
 						DisplayName:           "Some other name",
-						AvatarUrl:             "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c", //nolint:lll
-						Email:                 sql.Text("veweyif660@gmail.com"),
+						AvatarUrl:             "https://myapp.local/jane.jpg",
+						Email:                 sql.Text("jane@myapp.local"),
 						Ticket:                sql.Text(""),
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         true,
@@ -202,7 +199,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						Roles:                 []string{"me"},
 						RefreshTokenHash:      sql.Text("asdadasdasdasd"),
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						ProviderID:            "google",
+						ProviderID:            "fake",
 						ProviderUserID:        "106964149809169421082",
 					},
 						cmpopts.IgnoreFields(
@@ -228,7 +225,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						},
 						RedirectTo: nil,
 					},
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: api.PostSigninIdtoken200JSONResponse{
@@ -238,11 +235,11 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					RefreshTokenId:       "db477732-48fa-4289-b694-2886a646b6eb",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
-						AvatarUrl:           "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c", //nolint:lll
+						AvatarUrl:           "https://myapp.local/jane.jpg",
 						CreatedAt:           time.Now(),
 						DefaultRole:         "me",
 						DisplayName:         "Some other name",
-						Email:               ptr(types.Email("veweyif660@gmail.com")),
+						Email:               ptr(types.Email("jane@myapp.local")),
 						EmailVerified:       true,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
@@ -295,14 +292,14 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByProviderID(
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
-					sql.Text("veweyif660@gmail.com"),
+					sql.Text("jane@myapp.local"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				return mock
@@ -312,7 +309,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					IdToken:  token,
 					Nonce:    ptr(nonce),
 					Options:  nil,
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -340,14 +337,14 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByProviderID(
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
-					sql.Text("veweyif660@gmail.com"),
+					sql.Text("jane@myapp.local"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUserWithUserProvider(
@@ -355,9 +352,9 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					cmpDBParams(sql.InsertUserWithUserProviderParams{
 						ID:              userID,
 						Disabled:        true,
-						DisplayName:     "John",
-						AvatarUrl:       "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c", //nolint:lll
-						Email:           sql.Text("veweyif660@gmail.com"),
+						DisplayName:     "Jane",
+						AvatarUrl:       "https://myapp.local/jane.jpg",
+						Email:           sql.Text("jane@myapp.local"),
 						Ticket:          sql.Text(""),
 						TicketExpiresAt: pgtype.Timestamptz{}, //nolint:exhaustruct
 						EmailVerified:   true,
@@ -365,7 +362,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						DefaultRole:     "user",
 						Metadata:        []byte("null"),
 						Roles:           []string{"user", "me"},
-						ProviderID:      "google",
+						ProviderID:      "fake",
 						ProviderUserID:  "106964149809169421082",
 					},
 						cmpopts.IgnoreFields(
@@ -382,7 +379,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					IdToken:  token,
 					Nonce:    ptr(nonce),
 					Options:  nil,
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -414,7 +411,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					IdToken:  token,
 					Nonce:    ptr(nonce),
 					Options:  nil,
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -438,7 +435,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByProviderID( //nolint:dupl
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(
@@ -451,10 +448,10 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						UpdatedAt:   pgtype.Timestamptz{},
 						LastSeen:    pgtype.Timestamptz{},
 						Disabled:    false,
-						DisplayName: "John",
-						AvatarUrl:   "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c",
+						DisplayName: "Jane",
+						AvatarUrl:   "https://myapp.local/jane.jpg",
 						Locale:      "en",
-						Email:       sql.Text("veweyif660@gmail.com"),
+						Email:       sql.Text("jane@myapp.local"),
 						PhoneNumber: pgtype.Text{},
 						PasswordHash: sql.Text(
 							"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
@@ -507,7 +504,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					IdToken:  token,
 					Nonce:    ptr(nonce),
 					Options:  nil,
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: api.PostSigninIdtoken200JSONResponse{
@@ -517,11 +514,11 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					RefreshTokenId:       "db477732-48fa-4289-b694-2886a646b6eb",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
-						AvatarUrl:           "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c", //nolint:lll
+						AvatarUrl:           "https://myapp.local/jane.jpg",
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
-						DisplayName:         "John",
-						Email:               ptr(types.Email("veweyif660@gmail.com")),
+						DisplayName:         "Jane",
+						Email:               ptr(types.Email("jane@myapp.local")),
 						EmailVerified:       true,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
@@ -567,14 +564,14 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByProviderID(
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
-					sql.Text("veweyif660@gmail.com"),
+					sql.Text("jane@myapp.local"),
 				).Return(
 					//nolint:exhaustruct
 					sql.AuthUser{
@@ -585,10 +582,10 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						UpdatedAt:   pgtype.Timestamptz{},
 						LastSeen:    pgtype.Timestamptz{},
 						Disabled:    false,
-						DisplayName: "John",
-						AvatarUrl:   "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c",
+						DisplayName: "Jane",
+						AvatarUrl:   "https://myapp.local/jane.jpg",
 						Locale:      "en",
-						Email:       sql.Text("veweyif660@gmail.com"),
+						Email:       sql.Text("jane@myapp.local"),
 						PhoneNumber: pgtype.Text{},
 						PasswordHash: sql.Text(
 							"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
@@ -641,7 +638,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					IdToken:  token,
 					Nonce:    ptr(nonce),
 					Options:  nil,
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: api.PostSigninIdtoken200JSONResponse{
@@ -651,11 +648,11 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					RefreshTokenId:       "db477732-48fa-4289-b694-2886a646b6eb",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
-						AvatarUrl:           "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c", //nolint:lll
+						AvatarUrl:           "https://myapp.local/jane.jpg",
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
-						DisplayName:         "John",
-						Email:               ptr(types.Email("veweyif660@gmail.com")),
+						DisplayName:         "Jane",
+						Email:               ptr(types.Email("jane@myapp.local")),
 						EmailVerified:       true,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
@@ -701,7 +698,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByProviderID( //nolint:dupl
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
-						ProviderID:     "google",
+						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(
@@ -714,10 +711,10 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						UpdatedAt:   pgtype.Timestamptz{},
 						LastSeen:    pgtype.Timestamptz{},
 						Disabled:    true,
-						DisplayName: "John",
-						AvatarUrl:   "https://lh3.googleusercontent.com/a/ACg8ocKX6Sv26oC88RiNGS1BHGscxWLrgj1pxbCHPqFDyctZRVyeyw=s96-c",
+						DisplayName: "Jane",
+						AvatarUrl:   "https://myapp.local/jane.jpg",
 						Locale:      "en",
-						Email:       sql.Text("veweyif660@gmail.com"),
+						Email:       sql.Text("jane@myapp.local"),
 						PhoneNumber: pgtype.Text{},
 						PasswordHash: sql.Text(
 							"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
@@ -748,7 +745,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 					IdToken:  token,
 					Nonce:    ptr(nonce),
 					Options:  nil,
-					Provider: "google",
+					Provider: "fake",
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
