@@ -49,7 +49,7 @@ function RuleRemoveButton({
           ? {
               backgroundColor: (theme) =>
                 theme.palette.mode === 'dark'
-                  ? `${theme.palette.grey[300]} !important`
+                  ? `${theme.palette.background.paper} !important`
                   : `${theme.palette.common.white} !important`,
             }
           : undefined
