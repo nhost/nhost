@@ -71,7 +71,9 @@ function ProjectStatusIndicator({ status }: { status: ApplicationStatus }) {
             className={cn('mt-[1px] h-2 w-2 rounded-full', style.className)}
           />
         </HoverCardTrigger>
-        <HoverCardContent side="top">{style.description}</HoverCardContent>
+        <HoverCardContent side="top" className="h-fit w-fit py-2">
+          {style.description}
+        </HoverCardContent>
       </HoverCard>
     );
   }
