@@ -1,8 +1,16 @@
 import { Alert } from '@/components/ui/v2/Alert';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { ApplicationStatus } from '@/types/application';
 
 export default function DatabaseMigrateWarning() {
+  const { state } = useAppState();
+
+  if (state == ApplicationStatus.Paused || state == ApplicationStatus.Pausing) {
+    return null;
+  }
+
   return (
     <Alert severity="error" className="flex flex-col gap-3 text-left">
       <Text

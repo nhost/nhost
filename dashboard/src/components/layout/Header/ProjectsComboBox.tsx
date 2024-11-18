@@ -9,6 +9,11 @@ import {
   CommandList,
 } from '@/components/ui/v3/command';
 import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/v3/hover-card';
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -26,19 +31,74 @@ type Option = {
   label: string;
 };
 
+function ProjectStatusIndicator({ status }: { status: ApplicationStatus }) {
+  const indicatorStyles: Record<
+    number,
+    { className: string; description: string }
+  > = {
+    [ApplicationStatus.Errored]: {
+      className: 'bg-destructive',
+      description: 'Project errored',
+    },
+    [ApplicationStatus.Pausing]: {
+      className: 'bg-primary-main animate-blinking',
+      description: 'Project is pausing',
+    },
+    [ApplicationStatus.Restoring]: {
+      className: 'bg-primary-main animate-blinking',
+      description: 'Project is restoring',
+    },
+    [ApplicationStatus.Paused]: {
+      className: 'bg-slate-400',
+      description: 'Project is paused',
+    },
+    [ApplicationStatus.Unpausing]: {
+      className: 'bg-primary-main animate-blinking',
+      description: 'Project is unpausing',
+    },
+    [ApplicationStatus.Live]: {
+      className: 'bg-primary-main',
+      description: 'Project is live',
+    },
+  };
+  const style = indicatorStyles[status];
+
+  if (style) {
+    return (
+      <HoverCard openDelay={0}>
+        <HoverCardTrigger asChild>
+          <span
+            className={cn('mt-[1px] h-2 w-2 rounded-full', style.className)}
+          />
+        </HoverCardTrigger>
+        <HoverCardContent side="top">{style.description}</HoverCardContent>
+      </HoverCard>
+    );
+  }
+
+  return null;
+}
+
 export default function ProjectsComboBox() {
   const {
     query: { appSubdomain },
     push,
   } = useRouter();
 
-  const { state } = useAppState();
-
+  const { state: appState } = useAppState();
   const { currentOrg: { slug: orgSlug, apps = [] } = {} } = useOrgs();
-  const selectedProjectFromUrl = apps.find(
-    (item) => item.subdomain === appSubdomain,
-  );
+
   const [selectedProject, setSelectedProject] = useState<Option | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const options: Option[] = apps.map((app) => ({
+    label: app.name,
+    value: app.subdomain,
+  }));
+
+  const selectedProjectFromUrl = apps.find(
+    (app) => app.subdomain === appSubdomain,
+  );
 
   useEffect(() => {
     if (selectedProjectFromUrl) {
@@ -49,55 +109,24 @@ export default function ProjectsComboBox() {
     }
   }, [selectedProjectFromUrl]);
 
-  const options: Option[] = apps.map((app) => ({
-    label: app.name,
-    value: app.subdomain,
-  }));
-
-  const [open, setOpen] = useState(false);
-
-  const renderProjectStatusIndicator = () => {
-    switch (state) {
-      case ApplicationStatus.Errored:
-        return (
-          <span className="mt-[2px] h-3 w-3 rounded-full bg-destructive" />
-        );
-      case ApplicationStatus.Pausing:
-        return (
-          <span className="mt-[2px] h-3 w-3 animate-blinking rounded-full bg-primary-main" />
-        );
-      case ApplicationStatus.Paused:
-        return <span className="mt-[2px] h-3 w-3 rounded-full bg-slate-400" />;
-      case ApplicationStatus.Unpausing:
-        return (
-          <span className="mt-[2px] h-3 w-3 animate-blinking rounded-full bg-primary-main" />
-        );
-      case ApplicationStatus.Restoring:
-        return (
-          <span className="mt-[2px] h-3 w-3 animate-blinking rounded-full bg-primary-main" />
-        );
-      case ApplicationStatus.Updating:
-      case ApplicationStatus.Live:
-        return (
-          <span className="mt-[2px] h-3 w-3 rounded-full bg-primary-main" />
-        );
-      default:
-        return null;
-    }
+  const handleProjectSelect = (option: Option) => {
+    setSelectedProject(option);
+    setOpen(false);
+    push(`/orgs/${orgSlug}/projects/${option.value}`);
   };
 
   return (
-    <div className="flex flex-row items-center gap-1">
-      {renderProjectStatusIndicator()}
+    <div className="flex items-center gap-1">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
-            className="justify-start gap-2 bg-background pl-2 text-foreground hover:bg-accent dark:hover:bg-muted"
+            className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
           >
             {selectedProject ? (
-              <div className="flex flex-row items-center justify-center gap-1">
+              <div className="flex items-center gap-2">
+                <ProjectStatusIndicator status={appState} />
                 {selectedProject.label}
                 <ProjectStatus />
               </div>
@@ -115,14 +144,9 @@ export default function ProjectsComboBox() {
               <CommandGroup>
                 {options.map((option) => (
                   <CommandItem
-                    keywords={[option.label]}
                     key={option.value}
                     value={option.value}
-                    onSelect={() => {
-                      setSelectedProject(option);
-                      setOpen(false);
-                      push(`/orgs/${orgSlug}/projects/${option.value}`);
-                    }}
+                    onSelect={() => handleProjectSelect(option)}
                   >
                     <Check
                       className={cn(
@@ -132,7 +156,7 @@ export default function ProjectsComboBox() {
                           : 'opacity-0',
                       )}
                     />
-                    <div className="flex flex-row items-center gap-1">
+                    <div className="flex items-center gap-1">
                       <Box className="h-4 w-4" />
                       <span className="max-w-52 truncate">{option.label}</span>
                     </div>

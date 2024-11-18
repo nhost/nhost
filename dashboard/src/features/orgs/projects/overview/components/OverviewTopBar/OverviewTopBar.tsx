@@ -1,7 +1,7 @@
 import { useUI } from '@/components/common/UIProvider';
-import { Button } from '@/components/ui/v2/Button';
 import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/Button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -94,12 +94,13 @@ export default function OverviewTopBar() {
         legacyBehavior
       >
         <Button
-          endIcon={<CogIcon className="h-4 w-4" />}
-          variant="outlined"
+          variant="outline"
+          className="gap-2"
           color="secondary"
           disabled={maintenanceActive}
         >
           Settings
+          <CogIcon className="h-4 w-4" />
         </Button>
       </Link>
     </div>
