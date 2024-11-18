@@ -350,6 +350,35 @@ func (wf *Workflows) GetUserByTicket(
 	return user, nil
 }
 
+func (wf *Workflows) GetUserByEmailAndTicket(
+	ctx context.Context,
+	email string,
+	ticket string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.GetUserByEmailAndTicket(
+		ctx,
+		sql.GetUserByEmailAndTicketParams{
+			Email:  sql.Text(email),
+			Ticket: sql.Text(ticket),
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.Warn("user not found")
+		return sql.AuthUser{}, ErrInvalidTicket
+	}
+	if err != nil {
+		logger.Error("could not get user by ticket", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
+		return user, apiErr
+	}
+
+	return user, nil
+}
+
 func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
 	var email *types.Email
 	if pgemail.Valid {

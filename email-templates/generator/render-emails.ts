@@ -6,6 +6,7 @@ import { EmailConfirmChange } from './email-confirm-change';
 import { EmailVerify } from './email-verify';
 import { PasswordReset } from './password-reset';
 import { SignInPasswordless } from './signin-passwordless';
+import { SignInOTP } from './signin-otp';
 
 function renderEmails(targetLocale: string) {
   const emails = [
@@ -36,6 +37,14 @@ function renderEmails(targetLocale: string) {
     {
       name: 'signin-passwordless',
       body: prettier.format(render(SignInPasswordless()), {
+        parser: 'html',
+        printWidth: 500,
+      }),
+      subject: '<subject>',
+    },
+    {
+      name: 'signin-otp',
+      body: prettier.format(render(SignInOTP()), {
         parser: 'html',
         printWidth: 500,
       }),

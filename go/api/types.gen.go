@@ -196,6 +196,27 @@ type SignInIdTokenRequest struct {
 	Provider Provider       `json:"provider"`
 }
 
+// SignInOTPEmailRequest defines model for SignInOTPEmailRequest.
+type SignInOTPEmailRequest struct {
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
+// SignInOTPEmailVerifyRequest defines model for SignInOTPEmailVerifyRequest.
+type SignInOTPEmailVerifyRequest struct {
+	// Email A valid email
+	Email openapi_types.Email `json:"email"`
+
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
+// SignInOTPEmailVerifyResponse defines model for SignInOTPEmailVerifyResponse.
+type SignInOTPEmailVerifyResponse struct {
+	Session *Session `json:"session,omitempty"`
+}
+
 // SignInPATRequest defines model for SignInPATRequest.
 type SignInPATRequest struct {
 	// PersonalAccessToken PAT
@@ -366,6 +387,12 @@ type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordRequest
 
 // PostSigninIdtokenJSONRequestBody defines body for PostSigninIdtoken for application/json ContentType.
 type PostSigninIdtokenJSONRequestBody = SignInIdTokenRequest
+
+// PostSigninOtpEmailJSONRequestBody defines body for PostSigninOtpEmail for application/json ContentType.
+type PostSigninOtpEmailJSONRequestBody = SignInOTPEmailRequest
+
+// PostSigninOtpEmailVerifyJSONRequestBody defines body for PostSigninOtpEmailVerify for application/json ContentType.
+type PostSigninOtpEmailVerifyJSONRequestBody = SignInOTPEmailVerifyRequest
 
 // PostSigninPasswordlessEmailJSONRequestBody defines body for PostSigninPasswordlessEmail for application/json ContentType.
 type PostSigninPasswordlessEmailJSONRequestBody = SignInPasswordlessEmailRequest

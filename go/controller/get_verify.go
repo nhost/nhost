@@ -22,10 +22,34 @@ func getTicketType(ticket string, logger *slog.Logger) (TicketType, *APIError) {
 		return TicketTypeVerifyEmail, nil
 	case strings.HasPrefix(ticket, "passwordReset:"):
 		return TicketTypePasswordReset, nil
+	case strings.HasPrefix(ticket, "otp:"):
+		return TicketTypeOTP, nil
 	default:
 		logger.Error("unknown ticket type", slog.String("ticket", ticket))
 		return "", ErrInvalidTicket
 	}
+}
+
+func (ctrl *Controller) getVerifyHandleTicketType(
+	ctx context.Context, user sql.AuthUser, ticketType TicketType, logger *slog.Logger,
+) *APIError {
+	var apiErr *APIError
+	switch ticketType {
+	case TicketTypeEmailConfirmChange:
+		apiErr = ctrl.getVerifyEmailConfirmChange(ctx, user, logger)
+	case TicketTypePasswordLessEmail:
+		apiErr = ctrl.getVerifyEmailPasswordLessEmail(ctx, user, logger)
+	case TicketTypePasswordReset:
+		// noop, just redirecting the user to the client (as signed-in).
+		// this isn't great, but it is for historical reasons.
+	case TicketTypeVerifyEmail:
+		apiErr = ctrl.getVerifyEmail(ctx, user, logger)
+	case TicketTypeOTP:
+		logger.Error("OTP verification is not supported in this context")
+		apiErr = ErrInvalidRequest
+	}
+
+	return apiErr
 }
 
 func (ctrl *Controller) GetVerify( //nolint:ireturn
@@ -41,18 +65,7 @@ func (ctrl *Controller) GetVerify( //nolint:ireturn
 		return ctrl.sendRedirectError(redirectTo, apiErr), nil
 	}
 
-	switch ticketType {
-	case TicketTypeEmailConfirmChange:
-		apiErr = ctrl.getVerifyEmailConfirmChange(ctx, user, logger)
-	case TicketTypePasswordLessEmail:
-		apiErr = ctrl.getVerifyEmailPasswordLessEmail(ctx, user, logger)
-	case TicketTypePasswordReset:
-		// noop, just redirecting the user to the client (as signed-in).
-		// this isn't great, but it is for historical reasons.
-	case TicketTypeVerifyEmail:
-		apiErr = ctrl.getVerifyEmail(ctx, user, logger)
-	}
-
+	apiErr = ctrl.getVerifyHandleTicketType(ctx, user, ticketType, logger)
 	if apiErr != nil {
 		return ctrl.sendRedirectError(redirectTo, apiErr), nil
 	}

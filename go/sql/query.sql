@@ -30,6 +30,12 @@ SET ticket = NULL, ticket_expires_at = now()
 WHERE id = (SELECT id FROM selected_user)
 RETURNING *;
 
+-- name: GetUserByEmailAndTicket :one
+UPDATE auth.users
+SET ticket = NULL, ticket_expires_at = now(), email_verified = true
+WHERE email = $1 AND ticket = $2 AND ticket_expires_at > now()
+RETURNING *;
+
 -- name: GetUserByProviderID :one
 WITH user_providers AS (
     SELECT * FROM auth.user_providers

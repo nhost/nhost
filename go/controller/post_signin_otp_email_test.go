@@ -19,18 +19,12 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
+func TestPostSigninOTPEmail(t *testing.T) { //nolint:maintidx
 	t.Parallel()
-
-	getConfig := func() *controller.Config {
-		config := getConfig()
-		config.EmailPasswordlessEnabled = true
-		return config
-	}
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []testRequest[api.PostSigninPasswordlessEmailRequestObject, api.PostSigninPasswordlessEmailResponseObject]{ //nolint:dupl,lll
+	cases := []testRequest[api.PostSigninOtpEmailRequestObject, api.PostSigninOtpEmailResponseObject]{ //nolint:dupl
 		{
 			name:   "signup required",
 			config: getConfig,
@@ -51,7 +45,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          sql.Text("passwordlessEmail:xxx"),
+						Ticket:          sql.Text("xxx"),
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:   false,
 						Locale:          "en",
@@ -68,13 +62,13 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
 			},
-			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
+			expectedResponse: api.PostSigninOtpEmail200JSONResponse(api.OK),
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
 			getControllerOpts: []getControllerOptsFunc{
@@ -85,14 +79,14 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"jane@acme.com",
 						"en",
-						notifications.TemplateNameSigninPasswordless,
+						notifications.TemplateNameSigninOTP,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								Link:        "",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
-								Ticket:      "passwordlessEmail:xxx",
+								Ticket:      "xxx",
 								RedirectTo:  "http://localhost:3000",
 								Locale:      "en",
 								ServerURL:   "https://local.auth.nhost.run",
@@ -111,18 +105,18 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name: "signup required - passwordless disabled",
+			name: "signup required - otp disabled",
 			config: func() *controller.Config {
 				config := getConfig()
-				config.EmailPasswordlessEnabled = false
+				config.OTPEmailEnabled = false
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -148,8 +142,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -175,8 +169,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"admin"},
@@ -218,7 +212,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          sql.Text("passwordlessEmail:xxx"),
+						Ticket:          sql.Text("xxx"),
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:   false,
 						Locale:          "en",
@@ -235,8 +229,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: nil,
@@ -248,7 +242,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					},
 				},
 			},
-			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
+			expectedResponse: api.PostSigninOtpEmail200JSONResponse(api.OK),
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
 			getControllerOpts: []getControllerOptsFunc{
@@ -259,14 +253,14 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"jane@acme.com",
 						"en",
-						notifications.TemplateNameSigninPasswordless,
+						notifications.TemplateNameSigninOTP,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								Link:        "",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
-								Ticket:      "passwordlessEmail:xxx",
+								Ticket:      "xxx",
 								RedirectTo:  "http://localhost:3000",
 								Locale:      "en",
 								ServerURL:   "https://local.auth.nhost.run",
@@ -291,8 +285,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: nil,
@@ -339,7 +333,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          sql.Text("passwordlessEmail:xxx"),
+						Ticket:          sql.Text("xxx"),
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:   false,
 						Locale:          "fr",
@@ -356,8 +350,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"user"},
@@ -369,7 +363,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					},
 				},
 			},
-			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
+			expectedResponse: api.PostSigninOtpEmail200JSONResponse(api.OK),
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
 			getControllerOpts: []getControllerOptsFunc{
@@ -380,14 +374,14 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"jane@acme.com",
 						"fr",
-						notifications.TemplateNameSigninPasswordless,
+						notifications.TemplateNameSigninOTP,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Fmyapp&ticket=passwordlessEmail%3Ac2d0203a-2117-4445-bade-0ed8d5f44f4f&type=signinPasswordless", //nolint:lll
+								Link:        "",
 								DisplayName: "Jane Doe",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
-								Ticket:      "passwordlessEmail:xxx",
+								Ticket:      "xxx",
 								RedirectTo:  "http://myapp",
 								Locale:      "fr",
 								ServerURL:   "https://local.auth.nhost.run",
@@ -422,8 +416,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -479,20 +473,20 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(sql.UpdateUserTicketParams{
 						ID:              userID,
-						Ticket:          sql.Text("passwordlessEmail:xxx"),
+						Ticket:          sql.Text("xxx"),
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 					}),
 				).Return(userID, nil)
 
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
 			},
-			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
+			expectedResponse: api.PostSigninOtpEmail200JSONResponse(api.OK),
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
 			getControllerOpts: []getControllerOptsFunc{
@@ -503,14 +497,14 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"jane@acme.com",
 						"en",
-						notifications.TemplateNameSigninPasswordless,
+						notifications.TemplateNameSigninOTP,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
+								Link:        "",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
-								Ticket:      "passwordlessEmail:xxx",
+								Ticket:      "xxx",
 								RedirectTo:  "http://localhost:3000",
 								Locale:      "en",
 								ServerURL:   "https://local.auth.nhost.run",
@@ -567,8 +561,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			request: api.PostSigninPasswordlessEmailRequestObject{
-				Body: &api.SignInPasswordlessEmailRequest{
+			request: api.PostSigninOtpEmailRequestObject{
+				Body: &api.PostSigninOtpEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -593,7 +587,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			assertRequest(
 				context.Background(),
 				t,
-				c.PostSigninPasswordlessEmail,
+				c.PostSigninOtpEmail,
 				tc.request,
 				tc.expectedResponse,
 			)

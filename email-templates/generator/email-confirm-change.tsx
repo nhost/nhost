@@ -98,7 +98,7 @@ export function EmailConfirmChange() {
           </Text>
           <Section style={buttonContainer}>
             <Button style={button} href="${link}">
-              Confirm Email Change
+              Change Email
             </Button>
           </Section>
           <Hr style={hr} />
@@ -109,7 +109,7 @@ export function EmailConfirmChange() {
                   src="https://nhost.io/images/emails/icon.png"
                   width="20"
                   height="20"
-                  alt="Linear"
+                  alt="Nhost Logo"
                   style={logo}
                 />
               </Column>

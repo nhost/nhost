@@ -1,6 +1,5 @@
 import {
   Body,
-  Button,
   Column,
   Container,
   Head,
@@ -56,18 +55,6 @@ const buttonContainer = {
   padding: '10px 0 0px',
 };
 
-const button = {
-  backgroundColor: '#0052CD',
-  borderRadius: '3px',
-  fontWeight: '600',
-  color: '#fff',
-  fontSize: '15px',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'block',
-  padding: '11px 23px',
-};
-
 const reportLink = {
   fontSize: '14px',
   color: '#b4becc',
@@ -86,18 +73,28 @@ const linkColumn = {
   margin: 0,
 };
 
-export function PasswordReset() {
+const amazingText = {
+  fontSize:'24px',
+  lineHeight:'32px',
+  margin:'16px 0',
+  color:'#0052cd',
+  fontWeight:'600',
+}
+
+export function SignInOTP() {
+  const ticket = "${ticket}";
+  const redirectTo = "${redirectTo}";
   return (
     <Html>
       <Head />
       <Body style={main}>
         <Container style={container}>
-          <Heading style={heading}>Reset Password</Heading>
-          <Text style={paragraph}>Use this link to reset your password:</Text>
+          <Heading style={heading}>One-time Password</Heading>
+          <Text style={paragraph}>To signin to {redirectTo}, please, use the following one-time password:</Text>
           <Section style={buttonContainer}>
-            <Button style={button} href="${link}">
-              Reset Password
-            </Button>
+            <Text style={amazingText}>
+            {ticket}
+            </Text>
           </Section>
           <Hr style={hr} />
           <Section>
@@ -124,4 +121,4 @@ export function PasswordReset() {
   );
 }
 
-export default PasswordReset;
+export default SignInOTP;

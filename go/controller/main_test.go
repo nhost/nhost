@@ -51,16 +51,23 @@ func cmpTicket(x, y string) bool {
 	}
 
 	px := strings.Split(x, ":")
-	if len(px) != 2 {
-		return false
+	if len(px) == 2 {
+		py := strings.Split(y, ":")
+		if len(py) != 2 {
+			return false
+		}
+
+		return px[0] == py[0]
 	}
 
-	py := strings.Split(y, ":")
-	if len(py) != 2 {
-		return false
+	if len(px) == 1 {
+		py := strings.Split(y, ":")
+		if len(py) == 1 {
+			return true
+		}
 	}
 
-	return px[0] == py[0]
+	return false
 }
 
 func cmpLink(x, y string) bool { //nolint:cyclop

@@ -129,6 +129,14 @@ func (response ErrorResponse) VisitGetVerifyResponse(w http.ResponseWriter) erro
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostSigninOtpEmailResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostSigninOtpEmailVerifyResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case

@@ -58,6 +58,7 @@ type Config struct {
 	WebauthnRPName             string        `json:"AUTH_WEBAUTHN_RPNAME"`
 	WebauthnRPOrigins          []string      `json:"AUTH_WEBAUTHN_RP_ORIGINS"`
 	WebauhtnAttestationTimeout time.Duration `json:"AUTH_WEBAUTHN_ATTESTATION_TIMEOUT"`
+	OTPEmailEnabled            bool          `json:"AUTH_OTP_EMAIL_ENABLED"`
 }
 
 func (c *Config) UnmarshalJSON(b []byte) error {

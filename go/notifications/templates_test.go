@@ -30,6 +30,8 @@ func TestGetRawTemplates(t *testing.T) {
 				"bg/email-verify/subject.txt",
 				"bg/password-reset/body.html",
 				"bg/password-reset/subject.txt",
+				"bg/signin-otp/body.html",
+				"bg/signin-otp/subject.txt",
 				"bg/signin-passwordless-sms/body.txt",
 				"bg/signin-passwordless/body.html",
 				"bg/signin-passwordless/subject.txt",
@@ -39,6 +41,8 @@ func TestGetRawTemplates(t *testing.T) {
 				"cs/email-verify/subject.txt",
 				"cs/password-reset/body.html",
 				"cs/password-reset/subject.txt",
+				"cs/signin-otp/body.html",
+				"cs/signin-otp/subject.txt",
 				"cs/signin-passwordless-sms/body.txt",
 				"cs/signin-passwordless/body.html",
 				"cs/signin-passwordless/subject.txt",
@@ -48,6 +52,8 @@ func TestGetRawTemplates(t *testing.T) {
 				"en/email-verify/subject.txt",
 				"en/password-reset/body.html",
 				"en/password-reset/subject.txt",
+				"en/signin-otp/body.html",
+				"en/signin-otp/subject.txt",
 				"en/signin-passwordless-sms/body.txt",
 				"en/signin-passwordless/body.html",
 				"en/signin-passwordless/subject.txt",
@@ -57,6 +63,8 @@ func TestGetRawTemplates(t *testing.T) {
 				"es/email-verify/subject.txt",
 				"es/password-reset/body.html",
 				"es/password-reset/subject.txt",
+				"es/signin-otp/body.html",
+				"es/signin-otp/subject.txt",
 				"es/signin-passwordless-sms/body.txt",
 				"es/signin-passwordless/body.html",
 				"es/signin-passwordless/subject.txt",
@@ -66,6 +74,8 @@ func TestGetRawTemplates(t *testing.T) {
 				"fr/email-verify/subject.txt",
 				"fr/password-reset/body.html",
 				"fr/password-reset/subject.txt",
+				"fr/signin-otp/body.html",
+				"fr/signin-otp/subject.txt",
 				"fr/signin-passwordless-sms/body.txt",
 				"fr/signin-passwordless/body.html",
 				"fr/signin-passwordless/subject.txt",
@@ -151,51 +161,59 @@ func TestRenderEmailVerify(t *testing.T) {
 			},
 			locale: "non-existent",
 			//nolint:lll
-			expectedBody: `<!DOCTYPE html>
+			expectedBody: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
     <meta name="x-apple-disable-message-reformatting" />
   </head>
-  <body style="background-color:#f5f5f5;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;padding:20px;">
-    <div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">
-      Verify Email
-    </div>
-    <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="max-width:560px;margin:0 auto;background-color:#ffffff;padding:20px;border-radius:8px;border:1px solid #ececec;">
+  <body style="background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif">
+    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 560px; margin: 20px auto 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; border: 1px solid #ececec">
       <tbody>
-        <tr style="width:100%">
+        <tr style="width: 100%">
           <td>
-            <img alt="Nhost Logo" height="42" src="https://nhost.io/images/emails/icon.png" style="display:block;outline:none;border:none;text-decoration:none;width:42px;height:42px" width="42" />
-            <h1 style="font-size:24px;letter-spacing:-0.5px;line-height:1.3;font-weight:400;color:#484848;padding:0;margin-top:20px;">Verify Email</h1>
-            <p style="font-size:15px;line-height:1.4;margin:10px 0;color:#3c4149">Use this link to verify your email:</p>
-            <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="padding:27px 0 27px">
+            <h1 style="font-size: 24px; letter-spacing: -0.5px; line-height: 1.3; font-weight: 400; color: #484848; margin-top: 0">Verify Email</h1>
+            <p style="font-size: 15px; line-height: 1.4; margin: 0 0 10px; color: #3c4149">Use this link to verify your email:</p>
+            <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="padding: 10px 0 0px">
               <tbody>
                 <tr>
                   <td>
-                    <a href="http://link.test" style="line-height:100%;text-decoration:none;display:block;max-width:100%;background-color:#0052CD;border-radius:6px;font-weight:600;color:#fff;font-size:15px;text-align:center;padding:11px 23px" target="_blank">
-                      Verify Email
-                    </a>
+                    <a href="http://link.test" style="line-height: 100%; text-decoration: none; display: block; max-width: 100%; background-color: #0052cd; border-radius: 3px; font-weight: 600; color: #fff; font-size: 15px; text-align: center; padding: 11px 23px 11px 23px" target="_blank"
+                      ><span
+                        ><!--[if mso]><i style="mso-font-width: 383.33333333333337%; mso-text-raise: 16.5" hidden>&#8202;&#8202;&#8202;</i><![endif]--></span
+                      ><span style="max-width: 100%; display: inline-block; line-height: 120%; mso-padding-alt: 0px; mso-text-raise: 8.25px">Verify Email</span
+                      ><span
+                        ><!--[if mso]><i style="mso-font-width: 383.33333333333337%" hidden>&#8202;&#8202;&#8202;&#8203;</i><![endif]--></span
+                      ></a
+                    >
                   </td>
                 </tr>
               </tbody>
             </table>
-            <hr style="width:100%;border:none;border-top:1px solid #eaeaea;border-color:#dfe1e4;margin:10px 0" />
-            <table align="left" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-top: 10px;">
-              <tr>
-                <td style="padding-right: 8px;">
-                  <img alt="Nhost Logo" height="20" src="https://nhost.io/images/emails/icon.png" style="display:block;outline:none;border:none;text-decoration:none;width:20px;height:20px;" width="20" />
-                </td>
-                <td>
-                  <a href="https://nhost.io" style="color:#b4becc;text-decoration:none;font-size:14px" target="_blank">Powered by Nhost</a>
-                </td>
-              </tr>
+            <hr style="width: 100%; border: none; border-top: 1px solid #eaeaea; border-color: #dfe1e4; margin: 20px 0 20px" />
+            <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+              <tbody>
+                <tr>
+                  <td>
+                    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                      <tbody style="width: 100%">
+                        <tr style="width: 100%">
+                          <td data-id="__react-email-column" style="width: 30px"><img alt="Nhost Logo" height="20" src="https://nhost.io/images/emails/icon.png" style="display: block; outline: none; border: none; text-decoration: none; border-radius: 0; width: 20px; height: 20px" width="20" /></td>
+                          <td data-id="__react-email-column" style="margin: 0"><a href="https://nhost.io" style="color: #b4becc; text-decoration: none; font-size: 14px" target="_blank">Powered by Nhost</a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </td>
         </tr>
       </tbody>
     </table>
   </body>
-</html>`,
+</html>
+`,
 			expectedSubject: "Verify your email",
 		},
 	}

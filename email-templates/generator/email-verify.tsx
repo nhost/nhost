@@ -107,7 +107,7 @@ export function EmailVerify() {
                   src="https://nhost.io/images/emails/icon.png"
                   width="20"
                   height="20"
-                  alt="Linear"
+                  alt="Nhost Logo"
                   style={logo}
                 />
               </Column>

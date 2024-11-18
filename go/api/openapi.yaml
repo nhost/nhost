@@ -118,8 +118,8 @@ paths:
   /signin/passwordless/email:
     post:
       summary: >-
-        Sign in with magic link sent to user's email. If user doesn't exist, it will be created.
-        The options object is optional and can be used to set the user's when signing up a
+        Sign in with magic link sent to user's email. If the user doesn't exist, it will be created.
+        The options object is optional and can be used to configure the user's when signing up a
         new user. It is ignored if the user already exists.
       tags:
         - signin
@@ -134,11 +134,59 @@ paths:
       responses:
         '200':
           description: >-
-            Magic link sent to user's email successfully
+            Email link sent to user's email successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/OKResponse'
+
+  /signin/otp/email:
+    post:
+      summary: >-
+        Sign in with a one time password sent to user's email. If the user doesn't exist, it will
+        be created. The options object is optional and can be used to configure the user's when
+        signing up a new user. It is ignored if the user already exists.
+      tags:
+        - signin
+        - signup
+        - otp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInOTPEmailRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            OTP sent to user's email successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /signin/otp/email/verify:
+    post:
+      summary: >-
+        Verify OTP and return a session if validation is successful
+      tags:
+        - signin
+        - signup
+        - otp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInOTPEmailVerifyRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Magic link sent to user's email successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInOTPEmailVerifyResponse'
 
   /signin/pat:
     post:
@@ -844,6 +892,43 @@ components:
           $ref: "#/components/schemas/SignUpOptions"
       required:
         - email
+
+    SignInOTPEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+
+    SignInOTPEmailVerifyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        otp:
+          type: string
+          description: One time password
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+      required:
+        - otp
+        - email
+
+    SignInOTPEmailVerifyResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
 
     SignUpEmailPasswordRequest:
       type: object

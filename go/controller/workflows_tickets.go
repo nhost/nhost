@@ -2,9 +2,11 @@ package controller
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/big"
 	"net/url"
 	"time"
 
@@ -20,10 +22,20 @@ const (
 	TicketTypePasswordLessEmail  TicketType = "passwordlessEmail"
 	TicketTypeVerifyEmail        TicketType = "verifyEmail"
 	TicketTypePasswordReset      TicketType = "passwordReset"
+	TicketTypeOTP                TicketType = "otp"
 )
 
 func generateTicket(ticketType TicketType) string {
 	return fmt.Sprintf("%s:%s", ticketType, uuid.NewString())
+}
+
+func generateOTP() (string, error) {
+	n, err := rand.Int(rand.Reader, big.NewInt(1000000)) //nolint:mnd
+	if err != nil {
+		return "", fmt.Errorf("error generating OTP: %w", err)
+	}
+
+	return fmt.Sprintf("%06d", n), nil
 }
 
 func (wf *Workflows) SetTicket(
@@ -56,6 +68,7 @@ func (wf *Workflows) SetTicket(
 type LinkType string
 
 const (
+	LinkTypeNone               LinkType = "none"
 	LinkTypeEmailVerify        LinkType = "emailVerify"
 	LinkTypeEmailConfirmChange LinkType = "emailConfirmChange"
 	LinkTypePasswordlessEmail  LinkType = "signinPasswordless"
@@ -63,6 +76,10 @@ const (
 )
 
 func GenLink(serverURL url.URL, typ LinkType, ticket, redirectTo string) (string, error) {
+	if typ == LinkTypeNone {
+		return "", nil
+	}
+
 	path, err := url.JoinPath(serverURL.Path, "verify")
 	if err != nil {
 		return "", fmt.Errorf("problem appending /verify to server url: %w", err)

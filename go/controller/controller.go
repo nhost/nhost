@@ -47,6 +47,9 @@ type DBClientGetUser interface {
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
+	GetUserByEmailAndTicket(
+		ctx context.Context, arg sql.GetUserByEmailAndTicketParams,
+	) (sql.AuthUser, error)
 }
 
 type DBClientInsertUser interface {

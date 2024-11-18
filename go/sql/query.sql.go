@@ -146,6 +146,51 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (AuthUs
 	return i, err
 }
 
+const getUserByEmailAndTicket = `-- name: GetUserByEmailAndTicket :one
+UPDATE auth.users
+SET ticket = NULL, ticket_expires_at = now(), email_verified = true
+WHERE email = $1 AND ticket = $2 AND ticket_expires_at > now()
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
+`
+
+type GetUserByEmailAndTicketParams struct {
+	Email  pgtype.Text
+	Ticket pgtype.Text
+}
+
+func (q *Queries) GetUserByEmailAndTicket(ctx context.Context, arg GetUserByEmailAndTicketParams) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getUserByEmailAndTicket, arg.Email, arg.Ticket)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+	)
+	return i, err
+}
+
 const getUserByProviderID = `-- name: GetUserByProviderID :one
 WITH user_providers AS (
     SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id FROM auth.user_providers
