@@ -48,7 +48,7 @@ export default function StagingMetadata({
 }: PropsWithChildren<unknown>) {
   return (
     isDevOrStaging() && (
-      <div className="mx-auto mt-10 max-w-sm">
+      <div className="mx-auto max-w-sm">
         <Box className="mx-auto grid grid-flow-row justify-items-center rounded-md border p-5 text-center">
           <Status status={StatusEnum.Deploying}>Internal info</Status>
           {children}

@@ -25,7 +25,7 @@ export default function useAppPausedReason(): {
   });
 
   const { data: isLockedData } = useGetProjectIsLockedQuery({
-    variables: { appId: project.id },
+    variables: { appId: project?.id },
     skip: !project,
   });
 

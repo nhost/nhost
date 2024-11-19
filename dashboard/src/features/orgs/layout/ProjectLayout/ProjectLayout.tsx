@@ -5,6 +5,7 @@ import { Alert } from '@/components/ui/v2/Alert';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
+import { ApplicationPausedBanner } from '@/features/orgs/projects/common/components/ApplicationPausedBanner';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
@@ -15,7 +16,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
@@ -34,10 +35,52 @@ function ProjectLayoutContent({
     query: { appSubdomain },
   } = useRouter();
 
-  const isPlatform = useIsPlatform();
   const { state } = useAppState();
+  const isPlatform = useIsPlatform();
   const { project, loading, error } = useProject({ poll: true });
+
   const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
+
+  const renderPausedProjectContent = useCallback(
+    (_children: ReactNode) => {
+      const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
+      const blockedPausedProjectPages = [
+        'database',
+        'database/browser/[dataSourceSlug]',
+        'graphql',
+        'hasura',
+        'users',
+        'storage',
+        'ai/auto-embeddings',
+        'ai/assistants',
+        'metrics',
+      ].map((page) => baseProjectPageRoute.concat(page));
+
+      // show an alert box on top of the overview page with a wake up button
+      if (isOnOverviewPage) {
+        return (
+          <>
+            <div className="mx-auto mt-5 flex max-w-7xl p-4 pb-0">
+              <ApplicationPausedBanner
+                alertClassName="flex-row"
+                textContainerClassName="flex flex-col items-center justify-center text-left"
+                wakeUpButtonClassName="w-fit self-center"
+              />
+            </div>
+            {children}
+          </>
+        );
+      }
+
+      // block these pages when the project is paused
+      if (blockedPausedProjectPages.includes(route)) {
+        return <ApplicationPaused />;
+      }
+
+      return _children;
+    },
+    [route, isOnOverviewPage, children],
+  );
 
   // Render application state based on the current state
   const projectPageContent = useMemo(() => {
@@ -67,7 +110,7 @@ function ProjectLayoutContent({
         return children;
       case ApplicationStatus.Pausing:
       case ApplicationStatus.Paused:
-        return <ApplicationPaused />;
+        return renderPausedProjectContent(children);
       case ApplicationStatus.Unpausing:
         return <ApplicationUnpausing />;
       case ApplicationStatus.Restoring:
@@ -79,7 +122,13 @@ function ProjectLayoutContent({
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSubdomain, isOnOverviewPage]);
+  }, [
+    state,
+    children,
+    appSubdomain,
+    isOnOverviewPage,
+    renderPausedProjectContent,
+  ]);
 
   // Handle loading state
   if (loading) {
