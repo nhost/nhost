@@ -25,6 +25,11 @@ export type AuthEvents =
     }
   | { type: 'PASSWORDLESS_SMS_OTP'; phoneNumber?: string; otp?: string }
   | {
+      type: 'SIGNIN_EMAIL_OTP'
+      email: string
+    }
+  | { type: 'VERIFY_EMAIL_OTP'; email: string; otp: string }
+  | {
       type: 'SIGNUP_EMAIL_PASSWORD'
       email?: string
       password?: string
