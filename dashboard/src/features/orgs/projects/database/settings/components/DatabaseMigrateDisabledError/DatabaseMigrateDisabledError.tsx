@@ -7,7 +7,10 @@ import { ApplicationStatus } from '@/types/application';
 export default function DatabaseMigrateWarning() {
   const { state } = useAppState();
 
-  if (state == ApplicationStatus.Paused || state == ApplicationStatus.Pausing) {
+  if (
+    state === ApplicationStatus.Paused ||
+    state === ApplicationStatus.Pausing
+  ) {
     return null;
   }
 
