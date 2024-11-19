@@ -22,6 +22,7 @@ import type { ReactElement } from 'react';
 
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { OTPEmailSettings } from '@/features/orgs/projects/authentication/settings/OTPEmailSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -61,6 +62,7 @@ export default function SettingsSignInMethodsPage() {
       <WebAuthnSettings />
       <AnonymousSignInSettings />
       <SMSSettings />
+      <OTPEmailSettings />
       <AppleProviderSettings />
       <AzureADProviderSettings />
       <DiscordProviderSettings />

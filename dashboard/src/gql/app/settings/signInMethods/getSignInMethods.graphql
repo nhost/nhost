@@ -16,6 +16,11 @@ query GetSignInMethods($appId: uuid!) {
       id: __typename
       __typename
       method {
+        otp {
+          email {
+            enabled
+          }
+        }
         emailPassword {
           emailVerificationRequired
           hibpEnabled
