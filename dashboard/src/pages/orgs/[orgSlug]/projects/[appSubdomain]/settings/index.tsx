@@ -216,9 +216,9 @@ export default function SettingsGeneralPage() {
               type: 'button',
               color: 'primary',
               variant: 'contained',
-              loading: pauseApplicationLoading,
+              loading: unpauseApplicationLoading,
               disabled:
-                maintenanceActive || !isPlatform || pauseApplicationLoading,
+                maintenanceActive || !isPlatform || unpauseApplicationLoading,
               onClick: handleTriggerUnpausing,
             },
           }}
@@ -236,9 +236,9 @@ export default function SettingsGeneralPage() {
                 type: 'button',
                 color: 'primary',
                 variant: 'contained',
-                loading: unpauseApplicationLoading,
+                loading: pauseApplicationLoading,
                 disabled:
-                  maintenanceActive || !isPlatform || unpauseApplicationLoading,
+                  maintenanceActive || !isPlatform || pauseApplicationLoading,
                 onClick: () => {
                   openAlertDialog({
                     title: 'Pause Project?',
