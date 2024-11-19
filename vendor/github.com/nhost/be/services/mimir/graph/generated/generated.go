@@ -108,6 +108,7 @@ type ComplexityRoot struct {
 		EmailPassword     func(childComplexity int) int
 		EmailPasswordless func(childComplexity int) int
 		Oauth             func(childComplexity int) int
+		Otp               func(childComplexity int) int
 		SmsPasswordless   func(childComplexity int) int
 		Webauthn          func(childComplexity int) int
 	}
@@ -145,6 +146,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigAuthMethodOauthApple struct {
+		Audience   func(childComplexity int) int
 		ClientId   func(childComplexity int) int
 		Enabled    func(childComplexity int) int
 		KeyId      func(childComplexity int) int
@@ -172,6 +174,14 @@ type ComplexityRoot struct {
 		Connection   func(childComplexity int) int
 		Enabled      func(childComplexity int) int
 		Organization func(childComplexity int) int
+	}
+
+	ConfigAuthMethodOtp struct {
+		Email func(childComplexity int) int
+	}
+
+	ConfigAuthMethodOtpEmail struct {
+		Enabled func(childComplexity int) int
 	}
 
 	ConfigAuthMethodSmsPasswordless struct {
@@ -479,6 +489,8 @@ type ComplexityRoot struct {
 		Issuer              func(childComplexity int) int
 		JwkUrl              func(childComplexity int) int
 		Key                 func(childComplexity int) int
+		Kid                 func(childComplexity int) int
+		SigningKey          func(childComplexity int) int
 		Type                func(childComplexity int) int
 	}
 
@@ -620,6 +632,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigStandardOauthProviderWithScope struct {
+		Audience     func(childComplexity int) int
 		ClientId     func(childComplexity int) int
 		ClientSecret func(childComplexity int) int
 		Enabled      func(childComplexity int) int
@@ -977,6 +990,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigAuthMethod.Oauth(childComplexity), true
 
+	case "ConfigAuthMethod.otp":
+		if e.complexity.ConfigAuthMethod.Otp == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethod.Otp(childComplexity), true
+
 	case "ConfigAuthMethod.smsPasswordless":
 		if e.complexity.ConfigAuthMethod.SmsPasswordless == nil {
 			break
@@ -1131,6 +1151,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigAuthMethodOauth.Workos(childComplexity), true
 
+	case "ConfigAuthMethodOauthApple.audience":
+		if e.complexity.ConfigAuthMethodOauthApple.Audience == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethodOauthApple.Audience(childComplexity), true
+
 	case "ConfigAuthMethodOauthApple.clientId":
 		if e.complexity.ConfigAuthMethodOauthApple.ClientId == nil {
 			break
@@ -1256,6 +1283,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigAuthMethodOauthWorkos.Organization(childComplexity), true
+
+	case "ConfigAuthMethodOtp.email":
+		if e.complexity.ConfigAuthMethodOtp.Email == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethodOtp.Email(childComplexity), true
+
+	case "ConfigAuthMethodOtpEmail.enabled":
+		if e.complexity.ConfigAuthMethodOtpEmail.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMethodOtpEmail.Enabled(childComplexity), true
 
 	case "ConfigAuthMethodSmsPasswordless.enabled":
 		if e.complexity.ConfigAuthMethodSmsPasswordless.Enabled == nil {
@@ -2356,6 +2397,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigJWTSecret.Key(childComplexity), true
 
+	case "ConfigJWTSecret.kid":
+		if e.complexity.ConfigJWTSecret.Kid == nil {
+			break
+		}
+
+		return e.complexity.ConfigJWTSecret.Kid(childComplexity), true
+
+	case "ConfigJWTSecret.signingKey":
+		if e.complexity.ConfigJWTSecret.SigningKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigJWTSecret.SigningKey(childComplexity), true
+
 	case "ConfigJWTSecret.type":
 		if e.complexity.ConfigJWTSecret.Type == nil {
 			break
@@ -2923,6 +2978,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigStandardOauthProvider.Enabled(childComplexity), true
 
+	case "ConfigStandardOauthProviderWithScope.audience":
+		if e.complexity.ConfigStandardOauthProviderWithScope.Audience == nil {
+			break
+		}
+
+		return e.complexity.ConfigStandardOauthProviderWithScope.Audience(childComplexity), true
+
 	case "ConfigStandardOauthProviderWithScope.clientId":
 		if e.complexity.ConfigStandardOauthProviderWithScope.ClientId == nil {
 			break
@@ -3445,6 +3507,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigAuthMethodOauthTwitterInsertInput,
 		ec.unmarshalInputConfigAuthMethodOauthWorkosComparisonExp,
 		ec.unmarshalInputConfigAuthMethodOauthWorkosInsertInput,
+		ec.unmarshalInputConfigAuthMethodOtpComparisonExp,
+		ec.unmarshalInputConfigAuthMethodOtpEmailComparisonExp,
+		ec.unmarshalInputConfigAuthMethodOtpEmailInsertInput,
+		ec.unmarshalInputConfigAuthMethodOtpInsertInput,
 		ec.unmarshalInputConfigAuthMethodSmsPasswordlessComparisonExp,
 		ec.unmarshalInputConfigAuthMethodSmsPasswordlessInsertInput,
 		ec.unmarshalInputConfigAuthMethodWebauthnAttestationComparisonExp,
@@ -4254,6 +4320,10 @@ type ConfigAuthMethod {
     """
 
     """
+    otp: ConfigAuthMethodOtp
+    """
+
+    """
     emailPassword: ConfigAuthMethodEmailPassword
     """
 
@@ -4272,6 +4342,7 @@ type ConfigAuthMethod {
 input ConfigAuthMethodUpdateInput {
     anonymous: ConfigAuthMethodAnonymousUpdateInput
     emailPasswordless: ConfigAuthMethodEmailPasswordlessUpdateInput
+    otp: ConfigAuthMethodOtpUpdateInput
     emailPassword: ConfigAuthMethodEmailPasswordUpdateInput
     smsPasswordless: ConfigAuthMethodSmsPasswordlessUpdateInput
     oauth: ConfigAuthMethodOauthUpdateInput
@@ -4281,6 +4352,7 @@ input ConfigAuthMethodUpdateInput {
 input ConfigAuthMethodInsertInput {
     anonymous: ConfigAuthMethodAnonymousInsertInput
     emailPasswordless: ConfigAuthMethodEmailPasswordlessInsertInput
+    otp: ConfigAuthMethodOtpInsertInput
     emailPassword: ConfigAuthMethodEmailPasswordInsertInput
     smsPasswordless: ConfigAuthMethodSmsPasswordlessInsertInput
     oauth: ConfigAuthMethodOauthInsertInput
@@ -4293,6 +4365,7 @@ input ConfigAuthMethodComparisonExp {
     _or: [ConfigAuthMethodComparisonExp!]
     anonymous: ConfigAuthMethodAnonymousComparisonExp
     emailPasswordless: ConfigAuthMethodEmailPasswordlessComparisonExp
+    otp: ConfigAuthMethodOtpComparisonExp
     emailPassword: ConfigAuthMethodEmailPasswordComparisonExp
     smsPasswordless: ConfigAuthMethodSmsPasswordlessComparisonExp
     oauth: ConfigAuthMethodOauthComparisonExp
@@ -4523,6 +4596,10 @@ type ConfigAuthMethodOauthApple {
     """
 
     """
+    audience: String
+    """
+
+    """
     clientId: String
     """
 
@@ -4544,6 +4621,7 @@ type ConfigAuthMethodOauthApple {
 
 input ConfigAuthMethodOauthAppleUpdateInput {
     enabled: Boolean
+    audience: String
     clientId: String
     keyId: String
     teamId: String
@@ -4553,6 +4631,7 @@ input ConfigAuthMethodOauthAppleUpdateInput {
 
 input ConfigAuthMethodOauthAppleInsertInput {
     enabled: Boolean
+    audience: String
     clientId: String
     keyId: String
     teamId: String
@@ -4565,6 +4644,7 @@ input ConfigAuthMethodOauthAppleComparisonExp {
     _not: ConfigAuthMethodOauthAppleComparisonExp
     _or: [ConfigAuthMethodOauthAppleComparisonExp!]
     enabled: ConfigBooleanComparisonExp
+    audience: ConfigStringComparisonExp
     clientId: ConfigStringComparisonExp
     keyId: ConfigStringComparisonExp
     teamId: ConfigStringComparisonExp
@@ -4708,6 +4788,56 @@ input ConfigAuthMethodOauthWorkosComparisonExp {
     clientId: ConfigStringComparisonExp
     organization: ConfigStringComparisonExp
     clientSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthMethodOtp {
+    """
+
+    """
+    email: ConfigAuthMethodOtpEmail
+}
+
+input ConfigAuthMethodOtpUpdateInput {
+    email: ConfigAuthMethodOtpEmailUpdateInput
+}
+
+input ConfigAuthMethodOtpInsertInput {
+    email: ConfigAuthMethodOtpEmailInsertInput
+}
+
+input ConfigAuthMethodOtpComparisonExp {
+    _and: [ConfigAuthMethodOtpComparisonExp!]
+    _not: ConfigAuthMethodOtpComparisonExp
+    _or: [ConfigAuthMethodOtpComparisonExp!]
+    email: ConfigAuthMethodOtpEmailComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthMethodOtpEmail {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpEmailUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpEmailInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpEmailComparisonExp {
+    _and: [ConfigAuthMethodOtpEmailComparisonExp!]
+    _not: ConfigAuthMethodOtpEmailComparisonExp
+    _or: [ConfigAuthMethodOtpEmailComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
 }
 
 """
@@ -6618,6 +6748,14 @@ type ConfigJWTSecret {
     """
 
     """
+    signingKey: String
+    """
+
+    """
+    kid: String
+    """
+
+    """
     jwk_url: ConfigUrl
     """
 
@@ -6656,6 +6794,8 @@ type ConfigJWTSecret {
 input ConfigJWTSecretUpdateInput {
     type: String
     key: String
+    signingKey: String
+    kid: String
     jwk_url: ConfigUrl
     claims_format: String
     audience: String
@@ -6670,6 +6810,8 @@ input ConfigJWTSecretUpdateInput {
 input ConfigJWTSecretInsertInput {
     type: String
     key: String
+    signingKey: String
+    kid: String
     jwk_url: ConfigUrl
     claims_format: String
     audience: String
@@ -6687,6 +6829,8 @@ input ConfigJWTSecretComparisonExp {
     _or: [ConfigJWTSecretComparisonExp!]
     type: ConfigStringComparisonExp
     key: ConfigStringComparisonExp
+    signingKey: ConfigStringComparisonExp
+    kid: ConfigStringComparisonExp
     jwk_url: ConfigUrlComparisonExp
     claims_format: ConfigStringComparisonExp
     audience: ConfigStringComparisonExp
@@ -7607,6 +7751,10 @@ type ConfigStandardOauthProviderWithScope {
     """
 
     """
+    audience: String
+    """
+
+    """
     clientId: String
     """
 
@@ -7620,6 +7768,7 @@ type ConfigStandardOauthProviderWithScope {
 
 input ConfigStandardOauthProviderWithScopeUpdateInput {
     enabled: Boolean
+    audience: String
     clientId: String
         scope: [String!]
     clientSecret: String
@@ -7627,6 +7776,7 @@ input ConfigStandardOauthProviderWithScopeUpdateInput {
 
 input ConfigStandardOauthProviderWithScopeInsertInput {
     enabled: Boolean
+    audience: String
     clientId: String
         scope: [String!]
     clientSecret: String
@@ -7637,6 +7787,7 @@ input ConfigStandardOauthProviderWithScopeComparisonExp {
     _not: ConfigStandardOauthProviderWithScopeComparisonExp
     _or: [ConfigStandardOauthProviderWithScopeComparisonExp!]
     enabled: ConfigBooleanComparisonExp
+    audience: ConfigStringComparisonExp
     clientId: ConfigStringComparisonExp
     scope: ConfigStringComparisonExp
     clientSecret: ConfigStringComparisonExp
@@ -8017,988 +8168,2165 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_changeDatabaseVersion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_changeDatabaseVersion_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["version"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_changeDatabaseVersion_argsVersion(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["version"] = arg1
-	var arg2 *bool
-	if tmp, ok := rawArgs["force"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("force"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg2, err := ec.field_Mutation_changeDatabaseVersion_argsForce(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["force"] = arg2
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsVersion(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["version"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
+	if tmp, ok := rawArgs["version"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsForce(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["force"]
+	if !ok {
+		var zeroVal *bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("force"))
+	if tmp, ok := rawArgs["force"]; ok {
+		return ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	}
+
+	var zeroVal *bool
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_deleteConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_deleteConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_deleteConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
 }
 
 func (ec *executionContext) field_Mutation_deleteRunServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_deleteRunServiceConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-		arg1, err = ec.unmarshalNuuid2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_deleteRunServiceConfig_argsServiceID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["serviceID"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_deleteRunServiceConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_deleteRunServiceConfig_argsServiceID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["serviceID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+	if tmp, ok := rawArgs["serviceID"]; ok {
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_deleteSecret_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_deleteSecret_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["key"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_deleteSecret_argsKey(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["key"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_deleteSecret_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_deleteSecret_argsKey(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["key"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
+	if tmp, ok := rawArgs["key"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_insertConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_insertConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 model.ConfigConfigInsertInput
-	if tmp, ok := rawArgs["config"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
-		arg1, err = ec.unmarshalNConfigConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigInsertInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_insertConfig_argsConfig(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["config"] = arg1
-	var arg2 model.ConfigSystemConfigInsertInput
-	if tmp, ok := rawArgs["systemConfig"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("systemConfig"))
-		arg2, err = ec.unmarshalNConfigSystemConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigInsertInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg2, err := ec.field_Mutation_insertConfig_argsSystemConfig(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["systemConfig"] = arg2
-	var arg3 []*model.ConfigEnvironmentVariableInsertInput
-	if tmp, ok := rawArgs["secrets"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secrets"))
-		arg3, err = ec.unmarshalOConfigEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInputᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg3, err := ec.field_Mutation_insertConfig_argsSecrets(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["secrets"] = arg3
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_insertConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_insertConfig_argsConfig(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigConfigInsertInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["config"]
+	if !ok {
+		var zeroVal model.ConfigConfigInsertInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+	if tmp, ok := rawArgs["config"]; ok {
+		return ec.unmarshalNConfigConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigInsertInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigConfigInsertInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_insertConfig_argsSystemConfig(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigSystemConfigInsertInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["systemConfig"]
+	if !ok {
+		var zeroVal model.ConfigSystemConfigInsertInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("systemConfig"))
+	if tmp, ok := rawArgs["systemConfig"]; ok {
+		return ec.unmarshalNConfigSystemConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigInsertInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigSystemConfigInsertInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_insertConfig_argsSecrets(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) ([]*model.ConfigEnvironmentVariableInsertInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["secrets"]
+	if !ok {
+		var zeroVal []*model.ConfigEnvironmentVariableInsertInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("secrets"))
+	if tmp, ok := rawArgs["secrets"]; ok {
+		return ec.unmarshalOConfigEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInputᚄ(ctx, tmp)
+	}
+
+	var zeroVal []*model.ConfigEnvironmentVariableInsertInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_insertRunServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_insertRunServiceConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-		arg1, err = ec.unmarshalNuuid2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_insertRunServiceConfig_argsServiceID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["serviceID"] = arg1
-	var arg2 model.ConfigRunServiceConfigInsertInput
-	if tmp, ok := rawArgs["config"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
-		arg2, err = ec.unmarshalNConfigRunServiceConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigInsertInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg2, err := ec.field_Mutation_insertRunServiceConfig_argsConfig(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["config"] = arg2
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsServiceID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["serviceID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+	if tmp, ok := rawArgs["serviceID"]; ok {
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsConfig(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigRunServiceConfigInsertInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["config"]
+	if !ok {
+		var zeroVal model.ConfigRunServiceConfigInsertInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+	if tmp, ok := rawArgs["config"]; ok {
+		return ec.unmarshalNConfigRunServiceConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigInsertInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigRunServiceConfigInsertInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_insertSecret_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_insertSecret_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 model.ConfigEnvironmentVariableInsertInput
-	if tmp, ok := rawArgs["secret"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secret"))
-		arg1, err = ec.unmarshalNConfigEnvironmentVariableInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_insertSecret_argsSecret(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["secret"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_insertSecret_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_insertSecret_argsSecret(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigEnvironmentVariableInsertInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["secret"]
+	if !ok {
+		var zeroVal model.ConfigEnvironmentVariableInsertInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("secret"))
+	if tmp, ok := rawArgs["secret"]; ok {
+		return ec.unmarshalNConfigEnvironmentVariableInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigEnvironmentVariableInsertInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_replaceConfigRawJSON_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_replaceConfigRawJSON_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["rawJSON"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawJSON"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_replaceConfigRawJSON_argsRawJSON(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["rawJSON"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_replaceConfigRawJSON_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_replaceConfigRawJSON_argsRawJSON(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["rawJSON"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("rawJSON"))
+	if tmp, ok := rawArgs["rawJSON"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_replaceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_replaceConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 model.ConfigConfigInsertInput
-	if tmp, ok := rawArgs["config"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
-		arg1, err = ec.unmarshalNConfigConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigInsertInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_replaceConfig_argsConfig(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["config"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_replaceConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_replaceConfig_argsConfig(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigConfigInsertInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["config"]
+	if !ok {
+		var zeroVal model.ConfigConfigInsertInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+	if tmp, ok := rawArgs["config"]; ok {
+		return ec.unmarshalNConfigConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigInsertInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigConfigInsertInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_replaceRunServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_replaceRunServiceConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-		arg1, err = ec.unmarshalNuuid2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_replaceRunServiceConfig_argsServiceID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["serviceID"] = arg1
-	var arg2 model.ConfigRunServiceConfigInsertInput
-	if tmp, ok := rawArgs["config"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
-		arg2, err = ec.unmarshalNConfigRunServiceConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigInsertInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg2, err := ec.field_Mutation_replaceRunServiceConfig_argsConfig(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["config"] = arg2
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsServiceID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["serviceID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+	if tmp, ok := rawArgs["serviceID"]; ok {
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsConfig(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigRunServiceConfigInsertInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["config"]
+	if !ok {
+		var zeroVal model.ConfigRunServiceConfigInsertInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+	if tmp, ok := rawArgs["config"]; ok {
+		return ec.unmarshalNConfigRunServiceConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigInsertInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigRunServiceConfigInsertInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_updateConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_updateConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 model.ConfigConfigUpdateInput
-	if tmp, ok := rawArgs["config"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
-		arg1, err = ec.unmarshalNConfigConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigUpdateInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_updateConfig_argsConfig(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["config"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_updateConfig_argsConfig(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigConfigUpdateInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["config"]
+	if !ok {
+		var zeroVal model.ConfigConfigUpdateInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+	if tmp, ok := rawArgs["config"]; ok {
+		return ec.unmarshalNConfigConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigUpdateInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigConfigUpdateInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_updateRunServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_updateRunServiceConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-		arg1, err = ec.unmarshalNuuid2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_updateRunServiceConfig_argsServiceID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["serviceID"] = arg1
-	var arg2 model.ConfigRunServiceConfigUpdateInput
-	if tmp, ok := rawArgs["config"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
-		arg2, err = ec.unmarshalNConfigRunServiceConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigUpdateInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg2, err := ec.field_Mutation_updateRunServiceConfig_argsConfig(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["config"] = arg2
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsServiceID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["serviceID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+	if tmp, ok := rawArgs["serviceID"]; ok {
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsConfig(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigRunServiceConfigUpdateInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["config"]
+	if !ok {
+		var zeroVal model.ConfigRunServiceConfigUpdateInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+	if tmp, ok := rawArgs["config"]; ok {
+		return ec.unmarshalNConfigRunServiceConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigUpdateInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigRunServiceConfigUpdateInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_updateSecret_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_updateSecret_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 model.ConfigEnvironmentVariableInsertInput
-	if tmp, ok := rawArgs["secret"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secret"))
-		arg1, err = ec.unmarshalNConfigEnvironmentVariableInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_updateSecret_argsSecret(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["secret"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateSecret_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_updateSecret_argsSecret(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigEnvironmentVariableInsertInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["secret"]
+	if !ok {
+		var zeroVal model.ConfigEnvironmentVariableInsertInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("secret"))
+	if tmp, ok := rawArgs["secret"]; ok {
+		return ec.unmarshalNConfigEnvironmentVariableInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigEnvironmentVariableInsertInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_updateSystemConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-		directive2 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAdmin == nil {
-				return nil, errors.New("directive isAdmin is not implemented")
-			}
-			return ec.directives.IsAdmin(ctx, rawArgs, directive1)
-		}
-
-		tmp, err = directive2(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Mutation_updateSystemConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 model.ConfigSystemConfigUpdateInput
-	if tmp, ok := rawArgs["systemConfig"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("systemConfig"))
-		arg1, err = ec.unmarshalNConfigSystemConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigUpdateInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Mutation_updateSystemConfig_argsSystemConfig(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["systemConfig"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateSystemConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+	directive2 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.IsAdmin == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive isAdmin is not implemented")
+		}
+		return ec.directives.IsAdmin(ctx, rawArgs, directive1)
+	}
+
+	tmp, err := directive2(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Mutation_updateSystemConfig_argsSystemConfig(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ConfigSystemConfigUpdateInput, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["systemConfig"]
+	if !ok {
+		var zeroVal model.ConfigSystemConfigUpdateInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("systemConfig"))
+	if tmp, ok := rawArgs["systemConfig"]; ok {
+		return ec.unmarshalNConfigSystemConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigUpdateInput(ctx, tmp)
+	}
+
+	var zeroVal model.ConfigSystemConfigUpdateInput
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg0, err := ec.field_Query___type_argsName(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["name"] = arg0
 	return args, nil
+}
+func (ec *executionContext) field_Query___type_argsName(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["name"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+	if tmp, ok := rawArgs["name"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_appSecrets_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Query_appSecrets_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
 	return args, nil
+}
+func (ec *executionContext) field_Query_appSecrets_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
 }
 
 func (ec *executionContext) field_Query_configRawJSON_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Query_configRawJSON_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 bool
-	if tmp, ok := rawArgs["resolve"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
-		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Query_configRawJSON_argsResolve(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["resolve"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Query_configRawJSON_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Query_configRawJSON_argsResolve(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["resolve"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
+	if tmp, ok := rawArgs["resolve"]; ok {
+		return ec.unmarshalNBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_config_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Query_config_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 bool
-	if tmp, ok := rawArgs["resolve"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
-		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Query_config_argsResolve(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["resolve"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Query_config_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Query_config_argsResolve(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["resolve"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
+	if tmp, ok := rawArgs["resolve"]; ok {
+		return ec.unmarshalNBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_configs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 bool
-	if tmp, ok := rawArgs["resolve"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
-		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg0, err := ec.field_Query_configs_argsResolve(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["resolve"] = arg0
-	var arg1 *model.ConfigConfigComparisonExp
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalOConfigConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExp(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAdmin == nil {
-				return nil, errors.New("directive isAdmin is not implemented")
-			}
-			return ec.directives.IsAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*model.ConfigConfigComparisonExp); ok {
-			arg1 = data
-		} else if tmp == nil {
-			arg1 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigConfigComparisonExp`, tmp))
-		}
+	arg1, err := ec.field_Query_configs_argsWhere(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["where"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Query_configs_argsResolve(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["resolve"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
+	if tmp, ok := rawArgs["resolve"]; ok {
+		return ec.unmarshalNBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_configs_argsWhere(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*model.ConfigConfigComparisonExp, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["where"]
+	if !ok {
+		var zeroVal *model.ConfigConfigComparisonExp
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["where"]
+		if !ok {
+			var zeroVal *model.ConfigConfigComparisonExp
+			return zeroVal, nil
+		}
+		return ec.unmarshalOConfigConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExp(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.IsAdmin == nil {
+			var zeroVal *model.ConfigConfigComparisonExp
+			return zeroVal, errors.New("directive isAdmin is not implemented")
+		}
+		return ec.directives.IsAdmin(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal *model.ConfigConfigComparisonExp
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(*model.ConfigConfigComparisonExp); ok {
+		return data, nil
+	} else if tmp == nil {
+		var zeroVal *model.ConfigConfigComparisonExp
+		return zeroVal, nil
+	} else {
+		var zeroVal *model.ConfigConfigComparisonExp
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigConfigComparisonExp`, tmp))
+	}
 }
 
 func (ec *executionContext) field_Query_runServiceConfigRawJSON_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Query_runServiceConfigRawJSON_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-		arg1, err = ec.unmarshalNuuid2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Query_runServiceConfigRawJSON_argsServiceID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["serviceID"] = arg1
-	var arg2 bool
-	if tmp, ok := rawArgs["resolve"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg2, err := ec.field_Query_runServiceConfigRawJSON_argsResolve(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["resolve"] = arg2
 	return args, nil
+}
+func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsServiceID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["serviceID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+	if tmp, ok := rawArgs["serviceID"]; ok {
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsResolve(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["resolve"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
+	if tmp, ok := rawArgs["resolve"]; ok {
+		return ec.unmarshalNBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_runServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Query_runServiceConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["serviceID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-		arg1, err = ec.unmarshalNuuid2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Query_runServiceConfig_argsServiceID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["serviceID"] = arg1
-	var arg2 bool
-	if tmp, ok := rawArgs["resolve"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg2, err := ec.field_Query_runServiceConfig_argsResolve(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["resolve"] = arg2
 	return args, nil
+}
+func (ec *executionContext) field_Query_runServiceConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Query_runServiceConfig_argsServiceID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["serviceID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
+	if tmp, ok := rawArgs["serviceID"]; ok {
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_runServiceConfig_argsResolve(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["resolve"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
+	if tmp, ok := rawArgs["resolve"]; ok {
+		return ec.unmarshalNBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_runServiceConfigsAll_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 bool
-	if tmp, ok := rawArgs["resolve"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
-		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg0, err := ec.field_Query_runServiceConfigsAll_argsResolve(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["resolve"] = arg0
-	var arg1 *model.ConfigRunServiceConfigComparisonExp
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalOConfigRunServiceConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExp(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAdmin == nil {
-				return nil, errors.New("directive isAdmin is not implemented")
-			}
-			return ec.directives.IsAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*model.ConfigRunServiceConfigComparisonExp); ok {
-			arg1 = data
-		} else if tmp == nil {
-			arg1 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigRunServiceConfigComparisonExp`, tmp))
-		}
+	arg1, err := ec.field_Query_runServiceConfigsAll_argsWhere(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["where"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Query_runServiceConfigsAll_argsResolve(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["resolve"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
+	if tmp, ok := rawArgs["resolve"]; ok {
+		return ec.unmarshalNBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_runServiceConfigsAll_argsWhere(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*model.ConfigRunServiceConfigComparisonExp, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["where"]
+	if !ok {
+		var zeroVal *model.ConfigRunServiceConfigComparisonExp
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["where"]
+		if !ok {
+			var zeroVal *model.ConfigRunServiceConfigComparisonExp
+			return zeroVal, nil
+		}
+		return ec.unmarshalOConfigRunServiceConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExp(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.IsAdmin == nil {
+			var zeroVal *model.ConfigRunServiceConfigComparisonExp
+			return zeroVal, errors.New("directive isAdmin is not implemented")
+		}
+		return ec.directives.IsAdmin(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal *model.ConfigRunServiceConfigComparisonExp
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(*model.ConfigRunServiceConfigComparisonExp); ok {
+		return data, nil
+	} else if tmp == nil {
+		var zeroVal *model.ConfigRunServiceConfigComparisonExp
+		return zeroVal, nil
+	} else {
+		var zeroVal *model.ConfigRunServiceConfigComparisonExp
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigRunServiceConfigComparisonExp`, tmp))
+	}
 }
 
 func (ec *executionContext) field_Query_runServiceConfigs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Query_runServiceConfigs_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
-	var arg1 bool
-	if tmp, ok := rawArgs["resolve"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
-		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg1, err := ec.field_Query_runServiceConfigs_argsResolve(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["resolve"] = arg1
 	return args, nil
+}
+func (ec *executionContext) field_Query_runServiceConfigs_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
+}
+
+func (ec *executionContext) field_Query_runServiceConfigs_argsResolve(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["resolve"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("resolve"))
+	if tmp, ok := rawArgs["resolve"]; ok {
+		return ec.unmarshalNBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_systemConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["appID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasAppVisibility == nil {
-				return nil, errors.New("directive hasAppVisibility is not implemented")
-			}
-			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
+	arg0, err := ec.field_Query_systemConfig_argsAppID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["appID"] = arg0
 	return args, nil
+}
+func (ec *executionContext) field_Query_systemConfig_argsAppID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["appID"]
+	if !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["appID"]
+		if !ok {
+			var zeroVal string
+			return zeroVal, nil
+		}
+		return ec.unmarshalNuuid2string(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.HasAppVisibility == nil {
+			var zeroVal string
+			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
+		}
+		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(string); ok {
+		return data, nil
+	} else {
+		var zeroVal string
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+	}
 }
 
 func (ec *executionContext) field_Query_systemConfigs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.ConfigSystemConfigComparisonExp
-	if tmp, ok := rawArgs["where"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalOConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsAdmin == nil {
-				return nil, errors.New("directive isAdmin is not implemented")
-			}
-			return ec.directives.IsAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*model.ConfigSystemConfigComparisonExp); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigSystemConfigComparisonExp`, tmp))
-		}
+	arg0, err := ec.field_Query_systemConfigs_argsWhere(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["where"] = arg0
 	return args, nil
+}
+func (ec *executionContext) field_Query_systemConfigs_argsWhere(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*model.ConfigSystemConfigComparisonExp, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["where"]
+	if !ok {
+		var zeroVal *model.ConfigSystemConfigComparisonExp
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+	directive0 := func(ctx context.Context) (interface{}, error) {
+		tmp, ok := rawArgs["where"]
+		if !ok {
+			var zeroVal *model.ConfigSystemConfigComparisonExp
+			return zeroVal, nil
+		}
+		return ec.unmarshalOConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx, tmp)
+	}
+
+	directive1 := func(ctx context.Context) (interface{}, error) {
+		if ec.directives.IsAdmin == nil {
+			var zeroVal *model.ConfigSystemConfigComparisonExp
+			return zeroVal, errors.New("directive isAdmin is not implemented")
+		}
+		return ec.directives.IsAdmin(ctx, rawArgs, directive0)
+	}
+
+	tmp, err := directive1(ctx)
+	if err != nil {
+		var zeroVal *model.ConfigSystemConfigComparisonExp
+		return zeroVal, graphql.ErrorOnPath(ctx, err)
+	}
+	if data, ok := tmp.(*model.ConfigSystemConfigComparisonExp); ok {
+		return data, nil
+	} else if tmp == nil {
+		var zeroVal *model.ConfigSystemConfigComparisonExp
+		return zeroVal, nil
+	} else {
+		var zeroVal *model.ConfigSystemConfigComparisonExp
+		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigSystemConfigComparisonExp`, tmp))
+	}
 }
 
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 bool
-	if tmp, ok := rawArgs["includeDeprecated"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
-		arg0, err = ec.unmarshalOBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg0, err := ec.field___Type_enumValues_argsIncludeDeprecated(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["includeDeprecated"] = arg0
 	return args, nil
+}
+func (ec *executionContext) field___Type_enumValues_argsIncludeDeprecated(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["includeDeprecated"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
+	if tmp, ok := rawArgs["includeDeprecated"]; ok {
+		return ec.unmarshalOBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 bool
-	if tmp, ok := rawArgs["includeDeprecated"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
-		arg0, err = ec.unmarshalOBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
+	arg0, err := ec.field___Type_fields_argsIncludeDeprecated(ctx, rawArgs)
+	if err != nil {
+		return nil, err
 	}
 	args["includeDeprecated"] = arg0
 	return args, nil
+}
+func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (bool, error) {
+	// We won't call the directive if the argument is null.
+	// Set call_argument_directives_with_null to true to call directives
+	// even if the argument is null.
+	_, ok := rawArgs["includeDeprecated"]
+	if !ok {
+		var zeroVal bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
+	if tmp, ok := rawArgs["includeDeprecated"]; ok {
+		return ec.unmarshalOBoolean2bool(ctx, tmp)
+	}
+
+	var zeroVal bool
+	return zeroVal, nil
 }
 
 // endregion ***************************** args.gotpl *****************************
@@ -10086,6 +11414,8 @@ func (ec *executionContext) fieldContext_ConfigAuth_method(_ context.Context, fi
 				return ec.fieldContext_ConfigAuthMethod_anonymous(ctx, field)
 			case "emailPasswordless":
 				return ec.fieldContext_ConfigAuthMethod_emailPasswordless(ctx, field)
+			case "otp":
+				return ec.fieldContext_ConfigAuthMethod_otp(ctx, field)
 			case "emailPassword":
 				return ec.fieldContext_ConfigAuthMethod_emailPassword(ctx, field)
 			case "smsPasswordless":
@@ -10372,6 +11702,51 @@ func (ec *executionContext) fieldContext_ConfigAuthMethod_emailPasswordless(_ co
 				return ec.fieldContext_ConfigAuthMethodEmailPasswordless_enabled(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthMethodEmailPasswordless", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethod_otp(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethod) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethod_otp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Otp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAuthMethodOtp)
+	fc.Result = res
+	return ec.marshalOConfigAuthMethodOtp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtp(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethod_otp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethod",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "email":
+				return ec.fieldContext_ConfigAuthMethodOtp_email(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthMethodOtp", field.Name)
 		},
 	}
 	return fc, nil
@@ -10836,6 +12211,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_apple(_ context.C
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigAuthMethodOauthApple_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigAuthMethodOauthApple_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigAuthMethodOauthApple_clientId(ctx, field)
 			case "keyId":
@@ -10991,6 +12368,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_discord(_ context
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11042,6 +12421,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_facebook(_ contex
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11093,6 +12474,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_github(_ context.
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11144,6 +12527,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_gitlab(_ context.
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11195,6 +12580,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_google(_ context.
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11246,6 +12633,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_linkedin(_ contex
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11297,6 +12686,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_spotify(_ context
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11348,6 +12739,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_strava(_ context.
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11399,6 +12792,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_twitch(_ context.
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11499,6 +12894,8 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauth_windowslive(_ con
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_enabled(ctx, field)
+			case "audience":
+				return ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
 			case "clientId":
 				return ec.fieldContext_ConfigStandardOauthProviderWithScope_clientId(ctx, field)
 			case "scope":
@@ -11601,6 +12998,47 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauthApple_enabled(_ co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethodOauthApple_audience(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOauthApple) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethodOauthApple_audience(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Audience, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethodOauthApple_audience(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOauthApple",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12298,6 +13736,92 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOauthWorkos_clientSecre
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethodOtp_email(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOtp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethodOtp_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAuthMethodOtpEmail)
+	fc.Result = res
+	return ec.marshalOConfigAuthMethodOtpEmail2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmail(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethodOtp_email(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOtp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_ConfigAuthMethodOtpEmail_enabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthMethodOtpEmail", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthMethodOtpEmail_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOtpEmail) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMethodOtpEmail_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMethodOtpEmail_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOtpEmail",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -17497,6 +19021,10 @@ func (ec *executionContext) fieldContext_ConfigHasura_jwtSecrets(_ context.Conte
 				return ec.fieldContext_ConfigJWTSecret_type(ctx, field)
 			case "key":
 				return ec.fieldContext_ConfigJWTSecret_key(ctx, field)
+			case "signingKey":
+				return ec.fieldContext_ConfigJWTSecret_signingKey(ctx, field)
+			case "kid":
+				return ec.fieldContext_ConfigJWTSecret_kid(ctx, field)
 			case "jwk_url":
 				return ec.fieldContext_ConfigJWTSecret_jwk_url(ctx, field)
 			case "claims_format":
@@ -18976,6 +20504,88 @@ func (ec *executionContext) _ConfigJWTSecret_key(ctx context.Context, field grap
 }
 
 func (ec *executionContext) fieldContext_ConfigJWTSecret_key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigJWTSecret",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigJWTSecret_signingKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigJWTSecret) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigJWTSecret_signingKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SigningKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigJWTSecret_signingKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigJWTSecret",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigJWTSecret_kid(ctx context.Context, field graphql.CollectedField, obj *model.ConfigJWTSecret) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigJWTSecret_kid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Kid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigJWTSecret_kid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigJWTSecret",
 		Field:      field,
@@ -22990,6 +24600,47 @@ func (ec *executionContext) fieldContext_ConfigStandardOauthProviderWithScope_en
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigStandardOauthProviderWithScope_audience(ctx context.Context, field graphql.CollectedField, obj *model.ConfigStandardOauthProviderWithScope) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigStandardOauthProviderWithScope_audience(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Audience, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigStandardOauthProviderWithScope_audience(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigStandardOauthProviderWithScope",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28379,7 +30030,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodComparisonExp(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "anonymous", "emailPasswordless", "emailPassword", "smsPasswordless", "oauth", "webauthn"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "anonymous", "emailPasswordless", "otp", "emailPassword", "smsPasswordless", "oauth", "webauthn"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28421,6 +30072,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodComparisonExp(ctx cont
 				return it, err
 			}
 			it.EmailPasswordless = data
+		case "otp":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Otp = data
 		case "emailPassword":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailPassword"))
 			data, err := ec.unmarshalOConfigAuthMethodEmailPasswordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordComparisonExp(ctx, v)
@@ -28640,7 +30298,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodInsertInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"anonymous", "emailPasswordless", "emailPassword", "smsPasswordless", "oauth", "webauthn"}
+	fieldsInOrder := [...]string{"anonymous", "emailPasswordless", "otp", "emailPassword", "smsPasswordless", "oauth", "webauthn"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28661,6 +30319,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodInsertInput(ctx contex
 				return it, err
 			}
 			it.EmailPasswordless = data
+		case "otp":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("otp"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Otp = data
 		case "emailPassword":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailPassword"))
 			data, err := ec.unmarshalOConfigAuthMethodEmailPasswordInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordInsertInput(ctx, v)
@@ -28702,7 +30367,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleComparisonEx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "clientId", "keyId", "teamId", "scope", "privateKey"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "audience", "clientId", "keyId", "teamId", "scope", "privateKey"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28737,6 +30402,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleComparisonEx
 				return it, err
 			}
 			it.Enabled = data
+		case "audience":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audience"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Audience = data
 		case "clientId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
 			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
@@ -28785,7 +30457,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleInsertInput(
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"enabled", "clientId", "keyId", "teamId", "scope", "privateKey"}
+	fieldsInOrder := [...]string{"enabled", "audience", "clientId", "keyId", "teamId", "scope", "privateKey"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28799,6 +30471,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleInsertInput(
 				return it, err
 			}
 			it.Enabled = data
+		case "audience":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audience"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Audience = data
 		case "clientId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -29456,6 +31135,156 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthWorkosInsertInput
 				return it, err
 			}
 			it.ClientSecret = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOtpComparisonExp, error) {
+	var it model.ConfigAuthMethodOtpComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "email"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "email":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOtpEmailComparisonExp, error) {
+	var it model.ConfigAuthMethodOtpEmailComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpEmailInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOtpEmailInsertInput, error) {
+	var it model.ConfigAuthMethodOtpEmailInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOtpInsertInput, error) {
+	var it model.ConfigAuthMethodOtpInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"email"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "email":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpEmailInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
 		}
 	}
 
@@ -34845,7 +36674,7 @@ func (ec *executionContext) unmarshalInputConfigJWTSecretComparisonExp(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "type", "key", "jwk_url", "claims_format", "audience", "issuer", "allowed_skew", "header", "claims_map", "claims_namespace", "claims_namespace_path"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "type", "key", "signingKey", "kid", "jwk_url", "claims_format", "audience", "issuer", "allowed_skew", "header", "claims_map", "claims_namespace", "claims_namespace_path"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34887,6 +36716,20 @@ func (ec *executionContext) unmarshalInputConfigJWTSecretComparisonExp(ctx conte
 				return it, err
 			}
 			it.Key = data
+		case "signingKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("signingKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SigningKey = data
+		case "kid":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kid"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Kid = data
 		case "jwk_url":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("jwk_url"))
 			data, err := ec.unmarshalOConfigUrlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigUrlComparisonExp(ctx, v)
@@ -34963,7 +36806,7 @@ func (ec *executionContext) unmarshalInputConfigJWTSecretInsertInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"type", "key", "jwk_url", "claims_format", "audience", "issuer", "allowed_skew", "header", "claims_map", "claims_namespace", "claims_namespace_path"}
+	fieldsInOrder := [...]string{"type", "key", "signingKey", "kid", "jwk_url", "claims_format", "audience", "issuer", "allowed_skew", "header", "claims_map", "claims_namespace", "claims_namespace_path"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34984,6 +36827,20 @@ func (ec *executionContext) unmarshalInputConfigJWTSecretInsertInput(ctx context
 				return it, err
 			}
 			it.Key = data
+		case "signingKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("signingKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SigningKey = data
+		case "kid":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kid"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Kid = data
 		case "jwk_url":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("jwk_url"))
 			data, err := ec.unmarshalOConfigUrl2ᚖstring(ctx, v)
@@ -37394,7 +39251,7 @@ func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeCo
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "clientId", "scope", "clientSecret"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "audience", "clientId", "scope", "clientSecret"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37429,6 +39286,13 @@ func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeCo
 				return it, err
 			}
 			it.Enabled = data
+		case "audience":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audience"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Audience = data
 		case "clientId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
 			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
@@ -37463,7 +39327,7 @@ func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeIn
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"enabled", "clientId", "scope", "clientSecret"}
+	fieldsInOrder := [...]string{"enabled", "audience", "clientId", "scope", "clientSecret"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37477,6 +39341,13 @@ func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeIn
 				return it, err
 			}
 			it.Enabled = data
+		case "audience":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audience"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Audience = data
 		case "clientId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientId"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -39236,6 +41107,8 @@ func (ec *executionContext) _ConfigAuthMethod(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._ConfigAuthMethod_anonymous(ctx, field, obj)
 		case "emailPasswordless":
 			out.Values[i] = ec._ConfigAuthMethod_emailPasswordless(ctx, field, obj)
+		case "otp":
+			out.Values[i] = ec._ConfigAuthMethod_otp(ctx, field, obj)
 		case "emailPassword":
 			out.Values[i] = ec._ConfigAuthMethod_emailPassword(ctx, field, obj)
 		case "smsPasswordless":
@@ -39456,6 +41329,8 @@ func (ec *executionContext) _ConfigAuthMethodOauthApple(ctx context.Context, sel
 			out.Values[i] = graphql.MarshalString("ConfigAuthMethodOauthApple")
 		case "enabled":
 			out.Values[i] = ec._ConfigAuthMethodOauthApple_enabled(ctx, field, obj)
+		case "audience":
+			out.Values[i] = ec._ConfigAuthMethodOauthApple_audience(ctx, field, obj)
 		case "clientId":
 			out.Values[i] = ec._ConfigAuthMethodOauthApple_clientId(ctx, field, obj)
 		case "keyId":
@@ -39592,6 +41467,78 @@ func (ec *executionContext) _ConfigAuthMethodOauthWorkos(ctx context.Context, se
 			out.Values[i] = ec._ConfigAuthMethodOauthWorkos_organization(ctx, field, obj)
 		case "clientSecret":
 			out.Values[i] = ec._ConfigAuthMethodOauthWorkos_clientSecret(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthMethodOtpImplementors = []string{"ConfigAuthMethodOtp"}
+
+func (ec *executionContext) _ConfigAuthMethodOtp(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthMethodOtp) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthMethodOtpImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthMethodOtp")
+		case "email":
+			out.Values[i] = ec._ConfigAuthMethodOtp_email(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthMethodOtpEmailImplementors = []string{"ConfigAuthMethodOtpEmail"}
+
+func (ec *executionContext) _ConfigAuthMethodOtpEmail(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthMethodOtpEmail) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthMethodOtpEmailImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthMethodOtpEmail")
+		case "enabled":
+			out.Values[i] = ec._ConfigAuthMethodOtpEmail_enabled(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41740,6 +43687,10 @@ func (ec *executionContext) _ConfigJWTSecret(ctx context.Context, sel ast.Select
 			out.Values[i] = ec._ConfigJWTSecret_type(ctx, field, obj)
 		case "key":
 			out.Values[i] = ec._ConfigJWTSecret_key(ctx, field, obj)
+		case "signingKey":
+			out.Values[i] = ec._ConfigJWTSecret_signingKey(ctx, field, obj)
+		case "kid":
+			out.Values[i] = ec._ConfigJWTSecret_kid(ctx, field, obj)
 		case "jwk_url":
 			out.Values[i] = ec._ConfigJWTSecret_jwk_url(ctx, field, obj)
 		case "claims_format":
@@ -42687,6 +44638,8 @@ func (ec *executionContext) _ConfigStandardOauthProviderWithScope(ctx context.Co
 			out.Values[i] = graphql.MarshalString("ConfigStandardOauthProviderWithScope")
 		case "enabled":
 			out.Values[i] = ec._ConfigStandardOauthProviderWithScope_enabled(ctx, field, obj)
+		case "audience":
+			out.Values[i] = ec._ConfigStandardOauthProviderWithScope_audience(ctx, field, obj)
 		case "clientId":
 			out.Values[i] = ec._ConfigStandardOauthProviderWithScope_clientId(ctx, field, obj)
 		case "scope":
@@ -44095,6 +46048,16 @@ func (ec *executionContext) unmarshalNConfigAuthMethodOauthTwitterComparisonExp2
 
 func (ec *executionContext) unmarshalNConfigAuthMethodOauthWorkosComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOauthWorkosComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthMethodOtpComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthMethodOtpEmailComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -46480,6 +48443,110 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosUpdateInput2ᚖ
 		return nil, nil
 	}
 	var res = new(model.ConfigAuthMethodOauthWorkosUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthMethodOtp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtp(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthMethodOtp) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthMethodOtp(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOtpComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigAuthMethodOtpComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMethodOtpComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthMethodOtpEmail2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmail(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthMethodOtpEmail) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthMethodOtpEmail(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigAuthMethodOtpEmailComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMethodOtpEmailComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpEmailInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMethodOtpEmailInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpEmailUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthMethodOtpEmailUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMethodOtpInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthMethodOtpUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

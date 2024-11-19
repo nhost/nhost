@@ -7,7 +7,6 @@
       root_fields_namespace: graphite
       type_names:
         mapping: {}
-        prefix: graphite
     headers:
       - name: X-Graphite-Webhook-Secret
         value_from_env: GRAPHITE_WEBHOOK_SECRET

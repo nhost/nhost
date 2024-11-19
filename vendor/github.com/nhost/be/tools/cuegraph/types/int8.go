@@ -26,7 +26,7 @@ func UnmarshalInt8(v interface{}) (int8, error) {
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse string: %w", err)
 		}
-		return int8(iv), nil //nolint:gosec
+		return int8(iv), nil
 	case int:
 		return int8(v), nil //nolint:gosec
 	case int64:

@@ -480,13 +480,14 @@ func sanitizeBranch(name string) string {
 	return strings.ToLower(re.ReplaceAllString(name, ""))
 }
 
-func IsJWTSecretCompatibleWithHasuraAuth(
+func IsJWTSecretCompatibleWithHasuraAuth( //nolint:cyclop
 	jwtSecret *model.ConfigJWTSecret,
 ) bool {
 	if jwtSecret != nil && jwtSecret.Type != nil && *jwtSecret.Type != "" && jwtSecret.Key != nil &&
 		*jwtSecret.Key != "" {
 		return *jwtSecret.Type == "HS256" || *jwtSecret.Type == "HS384" ||
-			*jwtSecret.Type == "HS512"
+			*jwtSecret.Type == "HS512" || *jwtSecret.Type == "RS256" ||
+			*jwtSecret.Type == "RS384" || *jwtSecret.Type == "RS512"
 	}
 	return false
 }

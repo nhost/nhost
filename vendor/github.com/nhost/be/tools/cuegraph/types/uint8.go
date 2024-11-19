@@ -36,7 +36,7 @@ func UnmarshalUint8(v interface{}) (uint8, error) {
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse json.Number: %w", err)
 		}
-		return uint8(iv), nil //nolint:gosec
+		return uint8(iv), nil
 	default:
 		return 0, fmt.Errorf("%T is not an uint", v) //nolint: goerr113
 	}

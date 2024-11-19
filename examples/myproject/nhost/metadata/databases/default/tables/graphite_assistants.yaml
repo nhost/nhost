@@ -7,6 +7,8 @@ configuration:
       custom_name: assistantID
     created_at:
       custom_name: createdAt
+    data:
+      custom_name: data
     id:
       custom_name: id
     updated_at:
@@ -14,6 +16,7 @@ configuration:
   custom_column_names:
     assistant_id: assistantID
     created_at: createdAt
+    data: data
     id: id
     updated_at: updatedAt
   custom_name: _graphiteAssistants

@@ -26,7 +26,7 @@ func UnmarshalInt16(v interface{}) (int16, error) {
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse string: %w", err)
 		}
-		return int16(iv), nil //nolint:gosec
+		return int16(iv), nil
 	case int:
 		return int16(v), nil //nolint:gosec
 	case int64:

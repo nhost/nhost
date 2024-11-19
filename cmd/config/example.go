@@ -222,6 +222,11 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				Anonymous: &model.ConfigAuthMethodAnonymous{
 					Enabled: ptr(false),
 				},
+				Otp: &model.ConfigAuthMethodOtp{
+					Email: &model.ConfigAuthMethodOtpEmail{
+						Enabled: ptr(true),
+					},
+				},
 				EmailPasswordless: &model.ConfigAuthMethodEmailPasswordless{
 					Enabled: ptr(true),
 				},
@@ -241,6 +246,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 						TeamId:     ptr("teamid"),
 						Scope:      []string{"scope"},
 						PrivateKey: ptr("privatekey"),
+						Audience:   ptr("audience"),
 					},
 					Azuread: &model.ConfigAuthMethodOauthAzuread{
 						Tenant:       ptr("tenant"),
@@ -258,54 +264,63 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Facebook: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Github: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Gitlab: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Google: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Linkedin: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Spotify: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Strava: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Twitch: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      ptr(true),
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Twitter: &model.ConfigAuthMethodOauthTwitter{
 						Enabled:        ptr(true),
@@ -317,6 +332,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 						ClientId:     ptr("clientid"),
 						Scope:        []string{"scope"},
 						ClientSecret: ptr("clientsecret"),
+						Audience:     ptr("audience"),
 					},
 					Workos: &model.ConfigAuthMethodOauthWorkos{
 						Connection:   ptr("connection"),

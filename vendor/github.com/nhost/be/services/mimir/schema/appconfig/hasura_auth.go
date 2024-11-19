@@ -8,28 +8,55 @@ import (
 )
 
 const (
-	secretHasuraAuthGraphqlDatabaseURL      = "databaseUrl"
-	secretHasuraAuthDatabaseMigrationsURL   = "databaseMigrationsUrl"
-	secretHasuraAuthHasuraAdminSecret       = "adminSecret"
-	secretHasuraAuthJWTSecret               = "jwtSecret"
-	secretHasuraAuthGithubClientSecret      = "githubClientSecret" //nolint: gosec
-	secretHasuraAuthGoogleClientSecret      = "googleClientSecret"
-	secretHasuraAuthFacebookClientSecret    = "facebookClientSecret"
-	secretHasuraAuthSpotifyClientSecret     = "spotifyClientSecret"
-	secretHasuraAuthLinkedinClientSecret    = "linkedinClientSecret"
-	secretHasuraAuthDiscordClientSecret     = "discordClientSecret"
-	secretHasuraAuthTwitchClientSecret      = "twitchClientSecret"
-	secretHasuraAuthWindowsLiveClientSecret = "windowsLiveClientSecret"
-	secretHasuraAuthWorkOsClientSecret      = "workOsClientSecret"
-	secretHasuraAuthTwitterConsumerSecret   = "twitterConsumerSecret"
-	secretHasuraAuthAppleKeyID              = "appleKeyID"
-	secretHasuraAuthApplePrivateKey         = "applePrivateKey"
-	secretHasuraAuthAzureADClientSecret     = "azureADClientSecret"
-	secretHasuraAuthGitlabClientSecret      = "gitlabClientSecret" //nolint: gosec
-	secretHasuraAuthStravaClientSecret      = "stravaClientSecret" //nolint: gosec
-	secretHasuraAuthBitbucketClientSecret   = "bitbucketClientSecret"
-	secretHasuraAuthSMTPPassword            = "smtpPassword"
+	secretHasuraAuthGraphqlDatabaseURL    = "databaseUrl"
+	secretHasuraAuthDatabaseMigrationsURL = "databaseMigrationsUrl"
+	secretHasuraAuthHasuraAdminSecret     = "adminSecret"
+	secretHasuraAuthJWTSecret             = "jwtSecret"
+	secretHasuraAuthSMTPPassword          = "smtpPassword"
 )
+
+type oauthsettings interface {
+	GetEnabled() *bool
+	GetClientId() *string
+	GetClientSecret() *string
+	GetAudience() *string
+	GetScope() []string
+}
+
+func getOauthSettings(c oauthsettings, provider string) []EnvVar {
+	return []EnvVar{
+		{
+			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_ENABLED", provider),
+			Value:      Stringify(unptr(c.GetEnabled())),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_CLIENT_ID", provider),
+			Value:      unptr(c.GetClientId()),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_CLIENT_SECRET", provider),
+			SecretName: "",
+			Value:      unptr(c.GetClientSecret()),
+			IsSecret:   false,
+		},
+		{
+			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_AUDIENCE", provider),
+			Value:      unptr(c.GetAudience()),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       fmt.Sprintf("AUTH_PROVIDER_%s_SCOPE", provider),
+			Value:      Stringify(c.GetScope()),
+			IsSecret:   false,
+			SecretName: "",
+		},
+	}
+}
 
 func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 	config *model.ConfigConfig,
@@ -329,6 +356,14 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			SecretName: "",
 			IsSecret:   false,
 		},
+		{
+			Name: "AUTH_OTP_EMAIL_ENABLED",
+			Value: Stringify(
+				unptr(config.GetAuth().GetMethod().GetOtp().GetEmail().GetEnabled()),
+			),
+			SecretName: "",
+			IsSecret:   false,
+		},
 	}
 
 	env = append(env, []EnvVar{
@@ -535,354 +570,70 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			},
 			{
 				Name:       "AUTH_PROVIDER_GITHUB_CLIENT_SECRET",
-				SecretName: secretHasuraAuthGithubClientSecret,
+				SecretName: "",
 				Value: unptr(
 					config.GetAuth().GetMethod().GetOauth().GetGithub().GetClientSecret(),
 				),
-				IsSecret: true,
+				IsSecret: false,
 			},
 		}...)
 	}
 
-	if unptr( //nolint:dupl
+	if unptr(
 		config.GetAuth().GetMethod().GetOauth().GetGoogle().GetEnabled(),
 	) {
-		env = append(env, []EnvVar{
-			{
-				Name: "AUTH_PROVIDER_GOOGLE_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetGoogle().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_GOOGLE_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetGoogle().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_GOOGLE_CLIENT_SECRET",
-				SecretName: secretHasuraAuthGoogleClientSecret,
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetGoogle().GetClientSecret(),
-				),
-				IsSecret: true,
-			},
-			{
-				Name: "AUTH_PROVIDER_GOOGLE_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetGoogle().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
+		env = append(env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetGoogle(),
+			"GOOGLE")...,
+		)
 	}
 
-	if unptr( //nolint:dupl
+	if unptr(
 		config.GetAuth().GetMethod().GetOauth().GetFacebook().GetEnabled(),
 	) {
-		env = append(env, []EnvVar{
-			// FACEBOOK
-			{
-				Name: "AUTH_PROVIDER_FACEBOOK_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetFacebook().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_FACEBOOK_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetFacebook().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_FACEBOOK_CLIENT_SECRET",
-				SecretName: secretHasuraAuthFacebookClientSecret,
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetFacebook().GetClientSecret(),
-				),
-				IsSecret: true,
-			},
-			{
-				Name: "AUTH_PROVIDER_FACEBOOK_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetFacebook().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
+		env = append(env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetFacebook(),
+			"FACEBOOK")...,
+		)
 	}
 
-	if unptr( //nolint:dupl
+	if unptr(
 		config.GetAuth().GetMethod().GetOauth().GetSpotify().GetEnabled(),
 	) {
-		env = append(env, []EnvVar{
-			// SPOTIFY
-			{
-				Name: "AUTH_PROVIDER_SPOTIFY_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetSpotify().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_SPOTIFY_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetSpotify().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_SPOTIFY_CLIENT_SECRET",
-				SecretName: secretHasuraAuthSpotifyClientSecret,
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetSpotify().GetClientSecret(),
-				),
-				IsSecret: true,
-			},
-			{
-				Name: "AUTH_PROVIDER_SPOTIFY_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetSpotify().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
+		env = append(env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetSpotify(),
+			"SPOTIFY")...,
+		)
 	}
 
-	if unptr( //nolint:dupl
+	if unptr(
 		config.GetAuth().GetMethod().GetOauth().GetLinkedin().GetEnabled(),
 	) {
-		env = append(env, []EnvVar{
-			{
-				Name: "AUTH_PROVIDER_LINKEDIN_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetLinkedin().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_LINKEDIN_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetLinkedin().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_LINKEDIN_CLIENT_SECRET",
-				SecretName: secretHasuraAuthLinkedinClientSecret,
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetLinkedin().GetClientSecret(),
-				),
-				IsSecret: true,
-			},
-			{
-				Name: "AUTH_PROVIDER_LINKEDIN_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetLinkedin().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
+		env = append(env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetLinkedin(),
+			"LINKEDIN")...,
+		)
 	}
 
-	if unptr( //nolint:dupl
+	if unptr(
 		config.GetAuth().GetMethod().GetOauth().GetDiscord().GetEnabled(),
 	) {
-		env = append(env, []EnvVar{
-			{
-				Name: "AUTH_PROVIDER_DISCORD_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetDiscord().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_DISCORD_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetDiscord().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_DISCORD_CLIENT_SECRET",
-				SecretName: secretHasuraAuthDiscordClientSecret,
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetDiscord().GetClientSecret(),
-				),
-				IsSecret: true,
-			},
-			{
-				Name: "AUTH_PROVIDER_DISCORD_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetDiscord().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
+		env = append(env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetDiscord(),
+			"DISCORD")...,
+		)
 	}
 
-	if unptr( //nolint:dupl
+	if unptr(
 		config.GetAuth().GetMethod().GetOauth().GetTwitch().GetEnabled(),
 	) {
-		env = append(env, []EnvVar{
-			{
-				Name: "AUTH_PROVIDER_TWITCH_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetTwitch().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_TWITCH_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetTwitch().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_TWITCH_CLIENT_SECRET",
-				SecretName: secretHasuraAuthTwitchClientSecret,
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetTwitch().GetClientSecret(),
-				),
-				IsSecret: true,
-			},
-			{
-				Name: "AUTH_PROVIDER_TWITCH_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetTwitch().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
+		env = append(env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetTwitch(),
+			"TWITCH")...,
+		)
 	}
 
-	if unptr( //nolint:dupl
+	if unptr(
 		config.
 			GetAuth().
 			GetMethod().
@@ -890,57 +641,10 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			GetWindowslive().
 			GetEnabled(),
 	) {
-		env = append(env, []EnvVar{
-			{
-				Name: "AUTH_PROVIDER_WINDOWS_LIVE_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetOauth().
-							GetWindowslive().
-							GetEnabled(),
-					),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name: "AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_ID",
-				Value: unptr(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetWindowslive().
-						GetClientId(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-			{
-				Name:       "AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_SECRET",
-				SecretName: secretHasuraAuthWindowsLiveClientSecret,
-				Value: unptr(
-					config.GetAuth().GetMethod().GetOauth().GetWindowslive().GetClientSecret(),
-				),
-				IsSecret: true,
-			},
-			{
-				Name: "AUTH_PROVIDER_WINDOWS_LIVE_SCOPE",
-				Value: Stringify(
-					config.
-						GetAuth().
-						GetMethod().
-						GetOauth().
-						GetWindowslive().
-						GetScope(),
-				),
-				IsSecret:   false,
-				SecretName: "",
-			},
-		}...)
+		env = append(env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetWindowslive(),
+			"WINDOWS_LIVE")...,
+		)
 	}
 
 	if unptr(
@@ -977,11 +681,11 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			},
 			{
 				Name:       "AUTH_PROVIDER_WORKOS_CLIENT_SECRET",
-				SecretName: secretHasuraAuthWorkOsClientSecret,
+				SecretName: "",
 				Value: unptr(
 					config.GetAuth().GetMethod().GetOauth().GetWorkos().GetClientSecret(),
 				),
-				IsSecret: true,
+				IsSecret: false,
 			},
 			{
 				Name: "AUTH_PROVIDER_WORKOS_DEFAULT_ORGANIZATION",
@@ -1047,11 +751,11 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			},
 			{
 				Name:       "AUTH_PROVIDER_TWITTER_CONSUMER_SECRET",
-				SecretName: secretHasuraAuthTwitterConsumerSecret,
+				SecretName: "",
 				Value: unptr(
 					config.GetAuth().GetMethod().GetOauth().GetTwitter().GetConsumerSecret(),
 				),
-				IsSecret: true,
+				IsSecret: false,
 			},
 		}...)
 	}
@@ -1103,17 +807,25 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			},
 			{
 				Name:       "AUTH_PROVIDER_APPLE_KEY_ID",
-				SecretName: secretHasuraAuthAppleKeyID,
+				SecretName: "",
 				Value:      unptr(config.GetAuth().GetMethod().GetOauth().GetApple().GetKeyId()),
-				IsSecret:   true,
+				IsSecret:   false,
 			},
 			{
 				Name:       "AUTH_PROVIDER_APPLE_PRIVATE_KEY",
-				SecretName: secretHasuraAuthApplePrivateKey,
+				SecretName: "",
 				Value: unptr(
 					config.GetAuth().GetMethod().GetOauth().GetApple().GetPrivateKey(),
 				),
-				IsSecret: true,
+				IsSecret: false,
+			},
+			{
+				Name: "AUTH_PROVIDER_APPLE_AUDIENCE",
+				Value: unptr(
+					config.GetAuth().GetMethod().GetOauth().GetApple().GetAudience(),
+				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
@@ -1152,11 +864,11 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			},
 			{
 				Name:       "AUTH_PROVIDER_AZUREAD_CLIENT_SECRET",
-				SecretName: secretHasuraAuthAzureADClientSecret,
+				SecretName: "",
 				Value: unptr(
 					config.GetAuth().GetMethod().GetOauth().GetAzuread().GetClientSecret(),
 				),
-				IsSecret: true,
+				IsSecret: false,
 			},
 			{
 				Name: "AUTH_PROVIDER_AZUREAD_TENANT",
@@ -1208,11 +920,11 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			},
 			{
 				Name:       "AUTH_PROVIDER_GITLAB_CLIENT_SECRET",
-				SecretName: secretHasuraAuthGitlabClientSecret,
+				SecretName: "",
 				Value: unptr(
 					config.GetAuth().GetMethod().GetOauth().GetGitlab().GetClientSecret(),
 				),
-				IsSecret: true,
+				IsSecret: false,
 			},
 			{
 				Name: "AUTH_PROVIDER_GITLAB_SCOPE",
@@ -1264,11 +976,11 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			},
 			{
 				Name:       "AUTH_PROVIDER_STRAVA_CLIENT_SECRET",
-				SecretName: secretHasuraAuthStravaClientSecret,
+				SecretName: "",
 				Value: unptr(
 					config.GetAuth().GetMethod().GetOauth().GetStrava().GetClientSecret(),
 				),
-				IsSecret: true,
+				IsSecret: false,
 			},
 			{
 				Name: "AUTH_PROVIDER_STRAVA_SCOPE",
@@ -1320,11 +1032,11 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			},
 			{
 				Name:       "AUTH_PROVIDER_BITBUCKET_CLIENT_SECRET",
-				SecretName: secretHasuraAuthBitbucketClientSecret,
+				SecretName: "",
 				Value: unptr(
 					config.GetAuth().GetMethod().GetOauth().GetBitbucket().GetClientSecret(),
 				),
-				IsSecret: true,
+				IsSecret: false,
 			},
 		}...)
 	}

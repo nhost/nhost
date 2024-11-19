@@ -9,8 +9,10 @@ adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
 [[hasura.jwtSecrets]]
-type = 'HS256'
-key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
+type = 'RS256'
+key = '{{ secrets.JWT_PUBLIC_KEY }}'
+signingKey = '{{ secrets.JWT_PRIVATE_KEY }}'
+kid = 'bskhwtelkajsd'
 
 [hasura.settings]
 corsDomain = ['https://local.dashboard.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
@@ -22,7 +24,7 @@ liveQueriesMultiplexedRefetchInterval = 3000
 version = 20
 
 [auth]
-version = '0.33.0'
+version = '0.35.0'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
@@ -152,6 +154,22 @@ maxParallelMaintenanceWorkers = 2
 
 [storage]
 version = '0.6.1'
+
+[ai]
+version = '0.6.1'
+webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+
+[ai.resources]
+[ai.resources.compute]
+cpu = 125
+memory = 256
+
+[ai.openai]
+organization = ''
+apiKey = '{{ secrets.OPENAI_API_KEY }}'
+
+[ai.autoEmbeddings]
+synchPeriodMinutes = 5
 
 [observability]
 [observability.grafana]

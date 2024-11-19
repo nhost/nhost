@@ -147,6 +147,7 @@ type ConfigAuthMethodOauth struct {
 }
 
 type ConfigAuthMethodOauthApple struct {
+	Audience   *string  `json:"audience,omitempty"`
 	ClientID   *string  `json:"clientId,omitempty"`
 	Enabled    *bool    `json:"enabled,omitempty"`
 	KeyID      *string  `json:"keyId,omitempty"`
@@ -156,6 +157,7 @@ type ConfigAuthMethodOauthApple struct {
 }
 
 type ConfigAuthMethodOauthAppleUpdateInput struct {
+	Audience   *string  `json:"audience,omitempty"`
 	ClientID   *string  `json:"clientId,omitempty"`
 	Enabled    *bool    `json:"enabled,omitempty"`
 	KeyID      *string  `json:"keyId,omitempty"`
@@ -863,6 +865,8 @@ type ConfigJWTSecret struct {
 	Issuer              *string           `json:"issuer,omitempty"`
 	JwkURL              *string           `json:"jwk_url,omitempty"`
 	Key                 *string           `json:"key,omitempty"`
+	Kid                 *string           `json:"kid,omitempty"`
+	SigningKey          *string           `json:"signingKey,omitempty"`
 	Type                *string           `json:"type,omitempty"`
 }
 
@@ -877,6 +881,8 @@ type ConfigJWTSecretUpdateInput struct {
 	Issuer              *string                      `json:"issuer,omitempty"`
 	JwkURL              *string                      `json:"jwk_url,omitempty"`
 	Key                 *string                      `json:"key,omitempty"`
+	Kid                 *string                      `json:"kid,omitempty"`
+	SigningKey          *string                      `json:"signingKey,omitempty"`
 	Type                *string                      `json:"type,omitempty"`
 }
 
@@ -1191,6 +1197,7 @@ type ConfigStandardOauthProviderUpdateInput struct {
 }
 
 type ConfigStandardOauthProviderWithScope struct {
+	Audience     *string  `json:"audience,omitempty"`
 	ClientID     *string  `json:"clientId,omitempty"`
 	ClientSecret *string  `json:"clientSecret,omitempty"`
 	Enabled      *bool    `json:"enabled,omitempty"`
@@ -1198,6 +1205,7 @@ type ConfigStandardOauthProviderWithScope struct {
 }
 
 type ConfigStandardOauthProviderWithScopeUpdateInput struct {
+	Audience     *string  `json:"audience,omitempty"`
 	ClientID     *string  `json:"clientId,omitempty"`
 	ClientSecret *string  `json:"clientSecret,omitempty"`
 	Enabled      *bool    `json:"enabled,omitempty"`
@@ -1384,7 +1392,9 @@ type Announcements struct {
 	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
 	Href      string     `json:"href"`
 	ID        string     `json:"id"`
-	UpdatedAt time.Time  `json:"updatedAt"`
+	// An array relationship
+	Read      []*AnnouncementsRead `json:"read"`
+	UpdatedAt time.Time            `json:"updatedAt"`
 }
 
 // Boolean expression to filter rows from the table "announcements". All fields are combined with a logical 'AND'.
@@ -1397,17 +1407,105 @@ type AnnouncementsBoolExp struct {
 	ExpiresAt *TimestamptzComparisonExp `json:"expiresAt,omitempty"`
 	Href      *StringComparisonExp      `json:"href,omitempty"`
 	ID        *UUIDComparisonExp        `json:"id,omitempty"`
+	Read      *AnnouncementsReadBoolExp `json:"read,omitempty"`
 	UpdatedAt *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
 }
 
 // Ordering options when selecting data from "announcements".
 type AnnouncementsOrderBy struct {
-	Content   *OrderBy `json:"content,omitempty"`
-	CreatedAt *OrderBy `json:"createdAt,omitempty"`
-	ExpiresAt *OrderBy `json:"expiresAt,omitempty"`
-	Href      *OrderBy `json:"href,omitempty"`
-	ID        *OrderBy `json:"id,omitempty"`
-	UpdatedAt *OrderBy `json:"updatedAt,omitempty"`
+	Content       *OrderBy                           `json:"content,omitempty"`
+	CreatedAt     *OrderBy                           `json:"createdAt,omitempty"`
+	ExpiresAt     *OrderBy                           `json:"expiresAt,omitempty"`
+	Href          *OrderBy                           `json:"href,omitempty"`
+	ID            *OrderBy                           `json:"id,omitempty"`
+	ReadAggregate *AnnouncementsReadAggregateOrderBy `json:"read_aggregate,omitempty"`
+	UpdatedAt     *OrderBy                           `json:"updatedAt,omitempty"`
+}
+
+// columns and relationships of "announcements_read"
+type AnnouncementsRead struct {
+	AnnouncementID string    `json:"announcementID"`
+	CreatedAt      time.Time `json:"createdAt"`
+	ID             string    `json:"id"`
+	UserID         string    `json:"userID"`
+}
+
+// order by aggregate values of table "announcements_read"
+type AnnouncementsReadAggregateOrderBy struct {
+	Count *OrderBy                     `json:"count,omitempty"`
+	Max   *AnnouncementsReadMaxOrderBy `json:"max,omitempty"`
+	Min   *AnnouncementsReadMinOrderBy `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "announcements_read". All fields are combined with a logical 'AND'.
+type AnnouncementsReadBoolExp struct {
+	And            []*AnnouncementsReadBoolExp `json:"_and,omitempty"`
+	Not            *AnnouncementsReadBoolExp   `json:"_not,omitempty"`
+	Or             []*AnnouncementsReadBoolExp `json:"_or,omitempty"`
+	AnnouncementID *UUIDComparisonExp          `json:"announcementID,omitempty"`
+	CreatedAt      *TimestamptzComparisonExp   `json:"createdAt,omitempty"`
+	ID             *UUIDComparisonExp          `json:"id,omitempty"`
+	UserID         *UUIDComparisonExp          `json:"userID,omitempty"`
+}
+
+// input type for inserting data into table "announcements_read"
+type AnnouncementsReadInsertInput struct {
+	AnnouncementID *string `json:"announcementID,omitempty"`
+}
+
+// order by max() on columns of table "announcements_read"
+type AnnouncementsReadMaxOrderBy struct {
+	AnnouncementID *OrderBy `json:"announcementID,omitempty"`
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	UserID         *OrderBy `json:"userID,omitempty"`
+}
+
+// order by min() on columns of table "announcements_read"
+type AnnouncementsReadMinOrderBy struct {
+	AnnouncementID *OrderBy `json:"announcementID,omitempty"`
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	UserID         *OrderBy `json:"userID,omitempty"`
+}
+
+// response of any mutation on the table "announcements_read"
+type AnnouncementsReadMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AnnouncementsRead `json:"returning"`
+}
+
+// on_conflict condition type for table "announcements_read"
+type AnnouncementsReadOnConflict struct {
+	Constraint    AnnouncementsReadConstraint     `json:"constraint"`
+	UpdateColumns []AnnouncementsReadUpdateColumn `json:"update_columns"`
+	Where         *AnnouncementsReadBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "announcements_read".
+type AnnouncementsReadOrderBy struct {
+	AnnouncementID *OrderBy `json:"announcementID,omitempty"`
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	UserID         *OrderBy `json:"userID,omitempty"`
+}
+
+// Streaming cursor of the table "announcements_read"
+type AnnouncementsReadStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *AnnouncementsReadStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AnnouncementsReadStreamCursorValueInput struct {
+	AnnouncementID *string    `json:"announcementID,omitempty"`
+	CreatedAt      *time.Time `json:"createdAt,omitempty"`
+	ID             *string    `json:"id,omitempty"`
+	UserID         *string    `json:"userID,omitempty"`
 }
 
 // Streaming cursor of the table "announcements"
@@ -4358,8 +4456,14 @@ type SoftwareVersionsStreamCursorValueInput struct {
 }
 
 type SubscriptionRoot struct {
+	// fetch data from the table: "announcements_read" using primary key columns
+	AnnouncementRead *AnnouncementsRead `json:"announcementRead,omitempty"`
 	// fetch data from the table: "announcements"
 	Announcements []*Announcements `json:"announcements"`
+	// fetch data from the table: "announcements_read"
+	AnnouncementsRead []*AnnouncementsRead `json:"announcementsRead"`
+	// fetch data from the table in a streaming manner: "announcements_read"
+	AnnouncementsReadStream []*AnnouncementsRead `json:"announcementsReadStream"`
 	// fetch data from the table: "announcements" using primary key columns
 	AnnouncementsByPk *Announcements `json:"announcements_by_pk,omitempty"`
 	// fetch data from the table in a streaming manner: "announcements"
@@ -5323,6 +5427,141 @@ func (e *ServiceState) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ServiceState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// unique or primary key constraints on table "announcements_read"
+type AnnouncementsReadConstraint string
+
+const (
+	// unique or primary key constraint on columns "user_id", "announcement_id"
+	AnnouncementsReadConstraintAnnouncementsReadAnnouncementIDUserIDKey AnnouncementsReadConstraint = "announcements_read_announcement_id_user_id_key"
+	// unique or primary key constraint on columns "id"
+	AnnouncementsReadConstraintAnnouncementsReadPkey AnnouncementsReadConstraint = "announcements_read_pkey"
+)
+
+var AllAnnouncementsReadConstraint = []AnnouncementsReadConstraint{
+	AnnouncementsReadConstraintAnnouncementsReadAnnouncementIDUserIDKey,
+	AnnouncementsReadConstraintAnnouncementsReadPkey,
+}
+
+func (e AnnouncementsReadConstraint) IsValid() bool {
+	switch e {
+	case AnnouncementsReadConstraintAnnouncementsReadAnnouncementIDUserIDKey, AnnouncementsReadConstraintAnnouncementsReadPkey:
+		return true
+	}
+	return false
+}
+
+func (e AnnouncementsReadConstraint) String() string {
+	return string(e)
+}
+
+func (e *AnnouncementsReadConstraint) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AnnouncementsReadConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid announcements_read_constraint", str)
+	}
+	return nil
+}
+
+func (e AnnouncementsReadConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "announcements_read"
+type AnnouncementsReadSelectColumn string
+
+const (
+	// column name
+	AnnouncementsReadSelectColumnAnnouncementID AnnouncementsReadSelectColumn = "announcementID"
+	// column name
+	AnnouncementsReadSelectColumnCreatedAt AnnouncementsReadSelectColumn = "createdAt"
+	// column name
+	AnnouncementsReadSelectColumnID AnnouncementsReadSelectColumn = "id"
+	// column name
+	AnnouncementsReadSelectColumnUserID AnnouncementsReadSelectColumn = "userID"
+)
+
+var AllAnnouncementsReadSelectColumn = []AnnouncementsReadSelectColumn{
+	AnnouncementsReadSelectColumnAnnouncementID,
+	AnnouncementsReadSelectColumnCreatedAt,
+	AnnouncementsReadSelectColumnID,
+	AnnouncementsReadSelectColumnUserID,
+}
+
+func (e AnnouncementsReadSelectColumn) IsValid() bool {
+	switch e {
+	case AnnouncementsReadSelectColumnAnnouncementID, AnnouncementsReadSelectColumnCreatedAt, AnnouncementsReadSelectColumnID, AnnouncementsReadSelectColumnUserID:
+		return true
+	}
+	return false
+}
+
+func (e AnnouncementsReadSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AnnouncementsReadSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AnnouncementsReadSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid announcements_read_select_column", str)
+	}
+	return nil
+}
+
+func (e AnnouncementsReadSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// placeholder for update columns of table "announcements_read" (current role has no relevant permissions)
+type AnnouncementsReadUpdateColumn string
+
+const (
+	// placeholder (do not use)
+	AnnouncementsReadUpdateColumnPlaceholder AnnouncementsReadUpdateColumn = "_PLACEHOLDER"
+)
+
+var AllAnnouncementsReadUpdateColumn = []AnnouncementsReadUpdateColumn{
+	AnnouncementsReadUpdateColumnPlaceholder,
+}
+
+func (e AnnouncementsReadUpdateColumn) IsValid() bool {
+	switch e {
+	case AnnouncementsReadUpdateColumnPlaceholder:
+		return true
+	}
+	return false
+}
+
+func (e AnnouncementsReadUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *AnnouncementsReadUpdateColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AnnouncementsReadUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid announcements_read_update_column", str)
+	}
+	return nil
+}
+
+func (e AnnouncementsReadUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

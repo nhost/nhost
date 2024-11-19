@@ -1810,6 +1810,8 @@ type ConfigAuthMethod struct {
 
 	EmailPasswordless *ConfigAuthMethodEmailPasswordless `json:"emailPasswordless,omitempty" toml:"emailPasswordless,omitempty"`
 
+	Otp *ConfigAuthMethodOtp `json:"otp,omitempty" toml:"otp,omitempty"`
+
 	EmailPassword *ConfigAuthMethodEmailPassword `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
 
 	SmsPasswordless *ConfigAuthMethodSmsPasswordless `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
@@ -1826,6 +1828,9 @@ func (o *ConfigAuthMethod) MarshalJSON() ([]byte, error) {
 	}
 	if o.EmailPasswordless != nil {
 		m["emailPasswordless"] = o.EmailPasswordless
+	}
+	if o.Otp != nil {
+		m["otp"] = o.Otp
 	}
 	if o.EmailPassword != nil {
 		m["emailPassword"] = o.EmailPassword
@@ -1854,6 +1859,13 @@ func (o *ConfigAuthMethod) GetEmailPasswordless() *ConfigAuthMethodEmailPassword
 		return nil
 	}
 	return o.EmailPasswordless
+}
+
+func (o *ConfigAuthMethod) GetOtp() *ConfigAuthMethodOtp {
+	if o == nil {
+		return nil
+	}
+	return o.Otp
 }
 
 func (o *ConfigAuthMethod) GetEmailPassword() *ConfigAuthMethodEmailPassword {
@@ -1889,6 +1901,8 @@ type ConfigAuthMethodUpdateInput struct {
 	IsSetAnonymous         bool                                          `json:"-"`
 	EmailPasswordless      *ConfigAuthMethodEmailPasswordlessUpdateInput `json:"emailPasswordless,omitempty" toml:"emailPasswordless,omitempty"`
 	IsSetEmailPasswordless bool                                          `json:"-"`
+	Otp                    *ConfigAuthMethodOtpUpdateInput               `json:"otp,omitempty" toml:"otp,omitempty"`
+	IsSetOtp               bool                                          `json:"-"`
 	EmailPassword          *ConfigAuthMethodEmailPasswordUpdateInput     `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
 	IsSetEmailPassword     bool                                          `json:"-"`
 	SmsPasswordless        *ConfigAuthMethodSmsPasswordlessUpdateInput   `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
@@ -1923,6 +1937,16 @@ func (o *ConfigAuthMethodUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.EmailPasswordless = t
 		}
 		o.IsSetEmailPasswordless = true
+	}
+	if x, ok := m["otp"]; ok {
+		if x != nil {
+			t := &ConfigAuthMethodOtpUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Otp = t
+		}
+		o.IsSetOtp = true
 	}
 	if x, ok := m["emailPassword"]; ok {
 		if x != nil {
@@ -1989,6 +2013,13 @@ func (o *ConfigAuthMethodUpdateInput) GetEmailPasswordless() *ConfigAuthMethodEm
 	return o.EmailPasswordless
 }
 
+func (o *ConfigAuthMethodUpdateInput) GetOtp() *ConfigAuthMethodOtpUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Otp
+}
+
 func (o *ConfigAuthMethodUpdateInput) GetEmailPassword() *ConfigAuthMethodEmailPasswordUpdateInput {
 	if o == nil {
 		return nil
@@ -2041,6 +2072,16 @@ func (s *ConfigAuthMethod) Update(v *ConfigAuthMethodUpdateInput) {
 			s.EmailPasswordless.Update(v.EmailPasswordless)
 		}
 	}
+	if v.IsSetOtp || v.Otp != nil {
+		if v.Otp == nil {
+			s.Otp = nil
+		} else {
+			if s.Otp == nil {
+				s.Otp = &ConfigAuthMethodOtp{}
+			}
+			s.Otp.Update(v.Otp)
+		}
+	}
 	if v.IsSetEmailPassword || v.EmailPassword != nil {
 		if v.EmailPassword == nil {
 			s.EmailPassword = nil
@@ -2086,6 +2127,7 @@ func (s *ConfigAuthMethod) Update(v *ConfigAuthMethodUpdateInput) {
 type ConfigAuthMethodInsertInput struct {
 	Anonymous         *ConfigAuthMethodAnonymousInsertInput         `json:"anonymous,omitempty" toml:"anonymous,omitempty"`
 	EmailPasswordless *ConfigAuthMethodEmailPasswordlessInsertInput `json:"emailPasswordless,omitempty" toml:"emailPasswordless,omitempty"`
+	Otp               *ConfigAuthMethodOtpInsertInput               `json:"otp,omitempty" toml:"otp,omitempty"`
 	EmailPassword     *ConfigAuthMethodEmailPasswordInsertInput     `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
 	SmsPasswordless   *ConfigAuthMethodSmsPasswordlessInsertInput   `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
 	Oauth             *ConfigAuthMethodOauthInsertInput             `json:"oauth,omitempty" toml:"oauth,omitempty"`
@@ -2104,6 +2146,13 @@ func (o *ConfigAuthMethodInsertInput) GetEmailPasswordless() *ConfigAuthMethodEm
 		return nil
 	}
 	return o.EmailPasswordless
+}
+
+func (o *ConfigAuthMethodInsertInput) GetOtp() *ConfigAuthMethodOtpInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Otp
 }
 
 func (o *ConfigAuthMethodInsertInput) GetEmailPassword() *ConfigAuthMethodEmailPasswordInsertInput {
@@ -2147,6 +2196,12 @@ func (s *ConfigAuthMethod) Insert(v *ConfigAuthMethodInsertInput) {
 		}
 		s.EmailPasswordless.Insert(v.EmailPasswordless)
 	}
+	if v.Otp != nil {
+		if s.Otp == nil {
+			s.Otp = &ConfigAuthMethodOtp{}
+		}
+		s.Otp.Insert(v.Otp)
+	}
 	if v.EmailPassword != nil {
 		if s.EmailPassword == nil {
 			s.EmailPassword = &ConfigAuthMethodEmailPassword{}
@@ -2181,6 +2236,7 @@ func (s *ConfigAuthMethod) Clone() *ConfigAuthMethod {
 	v := &ConfigAuthMethod{}
 	v.Anonymous = s.Anonymous.Clone()
 	v.EmailPasswordless = s.EmailPasswordless.Clone()
+	v.Otp = s.Otp.Clone()
 	v.EmailPassword = s.EmailPassword.Clone()
 	v.SmsPasswordless = s.SmsPasswordless.Clone()
 	v.Oauth = s.Oauth.Clone()
@@ -2194,6 +2250,7 @@ type ConfigAuthMethodComparisonExp struct {
 	Or                []*ConfigAuthMethodComparisonExp                `json:"_or,omitempty"`
 	Anonymous         *ConfigAuthMethodAnonymousComparisonExp         `json:"anonymous,omitempty"`
 	EmailPasswordless *ConfigAuthMethodEmailPasswordlessComparisonExp `json:"emailPasswordless,omitempty"`
+	Otp               *ConfigAuthMethodOtpComparisonExp               `json:"otp,omitempty"`
 	EmailPassword     *ConfigAuthMethodEmailPasswordComparisonExp     `json:"emailPassword,omitempty"`
 	SmsPasswordless   *ConfigAuthMethodSmsPasswordlessComparisonExp   `json:"smsPasswordless,omitempty"`
 	Oauth             *ConfigAuthMethodOauthComparisonExp             `json:"oauth,omitempty"`
@@ -2209,6 +2266,7 @@ func (exp *ConfigAuthMethodComparisonExp) Matches(o *ConfigAuthMethod) bool {
 		o = &ConfigAuthMethod{
 			Anonymous:         &ConfigAuthMethodAnonymous{},
 			EmailPasswordless: &ConfigAuthMethodEmailPasswordless{},
+			Otp:               &ConfigAuthMethodOtp{},
 			EmailPassword:     &ConfigAuthMethodEmailPassword{},
 			SmsPasswordless:   &ConfigAuthMethodSmsPasswordless{},
 			Oauth:             &ConfigAuthMethodOauth{},
@@ -2219,6 +2277,9 @@ func (exp *ConfigAuthMethodComparisonExp) Matches(o *ConfigAuthMethod) bool {
 		return false
 	}
 	if !exp.EmailPasswordless.Matches(o.EmailPasswordless) {
+		return false
+	}
+	if !exp.Otp.Matches(o.Otp) {
 		return false
 	}
 	if !exp.EmailPassword.Matches(o.EmailPassword) {
@@ -3753,6 +3814,8 @@ func (exp *ConfigAuthMethodOauthComparisonExp) Matches(o *ConfigAuthMethodOauth)
 type ConfigAuthMethodOauthApple struct {
 	Enabled *bool `json:"enabled" toml:"enabled"`
 
+	Audience *string `json:"audience" toml:"audience"`
+
 	ClientId *string `json:"clientId" toml:"clientId"`
 
 	KeyId *string `json:"keyId" toml:"keyId"`
@@ -3768,6 +3831,9 @@ func (o *ConfigAuthMethodOauthApple) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Enabled != nil {
 		m["enabled"] = o.Enabled
+	}
+	if o.Audience != nil {
+		m["audience"] = o.Audience
 	}
 	if o.ClientId != nil {
 		m["clientId"] = o.ClientId
@@ -3792,6 +3858,13 @@ func (o *ConfigAuthMethodOauthApple) GetEnabled() *bool {
 		o = &ConfigAuthMethodOauthApple{}
 	}
 	return o.Enabled
+}
+
+func (o *ConfigAuthMethodOauthApple) GetAudience() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthApple{}
+	}
+	return o.Audience
 }
 
 func (o *ConfigAuthMethodOauthApple) GetClientId() *string {
@@ -3832,6 +3905,8 @@ func (o *ConfigAuthMethodOauthApple) GetPrivateKey() *string {
 type ConfigAuthMethodOauthAppleUpdateInput struct {
 	Enabled         *bool    `json:"enabled,omitempty" toml:"enabled,omitempty"`
 	IsSetEnabled    bool     `json:"-"`
+	Audience        *string  `json:"audience,omitempty" toml:"audience,omitempty"`
+	IsSetAudience   bool     `json:"-"`
 	ClientId        *string  `json:"clientId,omitempty" toml:"clientId,omitempty"`
 	IsSetClientId   bool     `json:"-"`
 	KeyId           *string  `json:"keyId,omitempty" toml:"keyId,omitempty"`
@@ -3865,6 +3940,23 @@ func (o *ConfigAuthMethodOauthAppleUpdateInput) UnmarshalGQL(v interface{}) erro
 			o.Enabled = &x
 		}
 		o.IsSetEnabled = true
+	}
+	if v, ok := m["audience"]; ok {
+		if v == nil {
+			o.Audience = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Audience = &x
+		}
+		o.IsSetAudience = true
 	}
 	if v, ok := m["clientId"]; ok {
 		if v == nil {
@@ -3967,6 +4059,13 @@ func (o *ConfigAuthMethodOauthAppleUpdateInput) GetEnabled() *bool {
 	return o.Enabled
 }
 
+func (o *ConfigAuthMethodOauthAppleUpdateInput) GetAudience() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthAppleUpdateInput{}
+	}
+	return o.Audience
+}
+
 func (o *ConfigAuthMethodOauthAppleUpdateInput) GetClientId() *string {
 	if o == nil {
 		o = &ConfigAuthMethodOauthAppleUpdateInput{}
@@ -4009,6 +4108,9 @@ func (s *ConfigAuthMethodOauthApple) Update(v *ConfigAuthMethodOauthAppleUpdateI
 	if v.IsSetEnabled || v.Enabled != nil {
 		s.Enabled = v.Enabled
 	}
+	if v.IsSetAudience || v.Audience != nil {
+		s.Audience = v.Audience
+	}
 	if v.IsSetClientId || v.ClientId != nil {
 		s.ClientId = v.ClientId
 	}
@@ -4035,6 +4137,7 @@ func (s *ConfigAuthMethodOauthApple) Update(v *ConfigAuthMethodOauthAppleUpdateI
 
 type ConfigAuthMethodOauthAppleInsertInput struct {
 	Enabled    *bool    `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	Audience   *string  `json:"audience,omitempty" toml:"audience,omitempty"`
 	ClientId   *string  `json:"clientId,omitempty" toml:"clientId,omitempty"`
 	KeyId      *string  `json:"keyId,omitempty" toml:"keyId,omitempty"`
 	TeamId     *string  `json:"teamId,omitempty" toml:"teamId,omitempty"`
@@ -4047,6 +4150,13 @@ func (o *ConfigAuthMethodOauthAppleInsertInput) GetEnabled() *bool {
 		o = &ConfigAuthMethodOauthAppleInsertInput{}
 	}
 	return o.Enabled
+}
+
+func (o *ConfigAuthMethodOauthAppleInsertInput) GetAudience() *string {
+	if o == nil {
+		o = &ConfigAuthMethodOauthAppleInsertInput{}
+	}
+	return o.Audience
 }
 
 func (o *ConfigAuthMethodOauthAppleInsertInput) GetClientId() *string {
@@ -4086,6 +4196,7 @@ func (o *ConfigAuthMethodOauthAppleInsertInput) GetPrivateKey() *string {
 
 func (s *ConfigAuthMethodOauthApple) Insert(v *ConfigAuthMethodOauthAppleInsertInput) {
 	s.Enabled = v.Enabled
+	s.Audience = v.Audience
 	s.ClientId = v.ClientId
 	s.KeyId = v.KeyId
 	s.TeamId = v.TeamId
@@ -4105,6 +4216,7 @@ func (s *ConfigAuthMethodOauthApple) Clone() *ConfigAuthMethodOauthApple {
 
 	v := &ConfigAuthMethodOauthApple{}
 	v.Enabled = s.Enabled
+	v.Audience = s.Audience
 	v.ClientId = s.ClientId
 	v.KeyId = s.KeyId
 	v.TeamId = s.TeamId
@@ -4121,6 +4233,7 @@ type ConfigAuthMethodOauthAppleComparisonExp struct {
 	Not        *ConfigAuthMethodOauthAppleComparisonExp   `json:"_not,omitempty"`
 	Or         []*ConfigAuthMethodOauthAppleComparisonExp `json:"_or,omitempty"`
 	Enabled    *ConfigBooleanComparisonExp                `json:"enabled,omitempty"`
+	Audience   *ConfigStringComparisonExp                 `json:"audience,omitempty"`
 	ClientId   *ConfigStringComparisonExp                 `json:"clientId,omitempty"`
 	KeyId      *ConfigStringComparisonExp                 `json:"keyId,omitempty"`
 	TeamId     *ConfigStringComparisonExp                 `json:"teamId,omitempty"`
@@ -4139,6 +4252,9 @@ func (exp *ConfigAuthMethodOauthAppleComparisonExp) Matches(o *ConfigAuthMethodO
 		}
 	}
 	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.Audience != nil && !exp.Audience.Matches(*o.Audience) {
 		return false
 	}
 	if o.ClientId != nil && !exp.ClientId.Matches(*o.ClientId) {
@@ -5054,6 +5170,277 @@ func (exp *ConfigAuthMethodOauthWorkosComparisonExp) Matches(o *ConfigAuthMethod
 		return false
 	}
 	if o.ClientSecret != nil && !exp.ClientSecret.Matches(*o.ClientSecret) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthMethodOtp struct {
+	Email *ConfigAuthMethodOtpEmail `json:"email,omitempty" toml:"email,omitempty"`
+}
+
+func (o *ConfigAuthMethodOtp) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Email != nil {
+		m["email"] = o.Email
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthMethodOtp) GetEmail() *ConfigAuthMethodOtpEmail {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+type ConfigAuthMethodOtpUpdateInput struct {
+	Email      *ConfigAuthMethodOtpEmailUpdateInput `json:"email,omitempty" toml:"email,omitempty"`
+	IsSetEmail bool                                 `json:"-"`
+}
+
+func (o *ConfigAuthMethodOtpUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["email"]; ok {
+		if x != nil {
+			t := &ConfigAuthMethodOtpEmailUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Email = t
+		}
+		o.IsSetEmail = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthMethodOtpUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthMethodOtpUpdateInput) GetEmail() *ConfigAuthMethodOtpEmailUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+func (s *ConfigAuthMethodOtp) Update(v *ConfigAuthMethodOtpUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEmail || v.Email != nil {
+		if v.Email == nil {
+			s.Email = nil
+		} else {
+			if s.Email == nil {
+				s.Email = &ConfigAuthMethodOtpEmail{}
+			}
+			s.Email.Update(v.Email)
+		}
+	}
+}
+
+type ConfigAuthMethodOtpInsertInput struct {
+	Email *ConfigAuthMethodOtpEmailInsertInput `json:"email,omitempty" toml:"email,omitempty"`
+}
+
+func (o *ConfigAuthMethodOtpInsertInput) GetEmail() *ConfigAuthMethodOtpEmailInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+func (s *ConfigAuthMethodOtp) Insert(v *ConfigAuthMethodOtpInsertInput) {
+	if v.Email != nil {
+		if s.Email == nil {
+			s.Email = &ConfigAuthMethodOtpEmail{}
+		}
+		s.Email.Insert(v.Email)
+	}
+}
+
+func (s *ConfigAuthMethodOtp) Clone() *ConfigAuthMethodOtp {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthMethodOtp{}
+	v.Email = s.Email.Clone()
+	return v
+}
+
+type ConfigAuthMethodOtpComparisonExp struct {
+	And   []*ConfigAuthMethodOtpComparisonExp    `json:"_and,omitempty"`
+	Not   *ConfigAuthMethodOtpComparisonExp      `json:"_not,omitempty"`
+	Or    []*ConfigAuthMethodOtpComparisonExp    `json:"_or,omitempty"`
+	Email *ConfigAuthMethodOtpEmailComparisonExp `json:"email,omitempty"`
+}
+
+func (exp *ConfigAuthMethodOtpComparisonExp) Matches(o *ConfigAuthMethodOtp) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthMethodOtp{
+			Email: &ConfigAuthMethodOtpEmail{},
+		}
+	}
+	if !exp.Email.Matches(o.Email) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthMethodOtpEmail struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+}
+
+func (o *ConfigAuthMethodOtpEmail) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthMethodOtpEmail) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOtpEmail{}
+	}
+	return o.Enabled
+}
+
+type ConfigAuthMethodOtpEmailUpdateInput struct {
+	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool  `json:"-"`
+}
+
+func (o *ConfigAuthMethodOtpEmailUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthMethodOtpEmailUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthMethodOtpEmailUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOtpEmailUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthMethodOtpEmail) Update(v *ConfigAuthMethodOtpEmailUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+}
+
+type ConfigAuthMethodOtpEmailInsertInput struct {
+	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+}
+
+func (o *ConfigAuthMethodOtpEmailInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOtpEmailInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthMethodOtpEmail) Insert(v *ConfigAuthMethodOtpEmailInsertInput) {
+	s.Enabled = v.Enabled
+}
+
+func (s *ConfigAuthMethodOtpEmail) Clone() *ConfigAuthMethodOtpEmail {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthMethodOtpEmail{}
+	v.Enabled = s.Enabled
+	return v
+}
+
+type ConfigAuthMethodOtpEmailComparisonExp struct {
+	And     []*ConfigAuthMethodOtpEmailComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthMethodOtpEmailComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthMethodOtpEmailComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp              `json:"enabled,omitempty"`
+}
+
+func (exp *ConfigAuthMethodOtpEmailComparisonExp) Matches(o *ConfigAuthMethodOtpEmail) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthMethodOtpEmail{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
 		return false
 	}
 
@@ -17598,6 +17985,10 @@ type ConfigJWTSecret struct {
 
 	Key *string `json:"key" toml:"key"`
 
+	SigningKey *string `json:"signingKey" toml:"signingKey"`
+
+	Kid *string `json:"kid" toml:"kid"`
+
 	JwkUrl *string `json:"jwk_url" toml:"jwk_url"`
 
 	ClaimsFormat *string `json:"claims_format" toml:"claims_format"`
@@ -17624,6 +18015,12 @@ func (o *ConfigJWTSecret) MarshalJSON() ([]byte, error) {
 	}
 	if o.Key != nil {
 		m["key"] = o.Key
+	}
+	if o.SigningKey != nil {
+		m["signingKey"] = o.SigningKey
+	}
+	if o.Kid != nil {
+		m["kid"] = o.Kid
 	}
 	if o.JwkUrl != nil {
 		m["jwk_url"] = o.JwkUrl
@@ -17667,6 +18064,20 @@ func (o *ConfigJWTSecret) GetKey() *string {
 		o = &ConfigJWTSecret{}
 	}
 	return o.Key
+}
+
+func (o *ConfigJWTSecret) GetSigningKey() *string {
+	if o == nil {
+		o = &ConfigJWTSecret{}
+	}
+	return o.SigningKey
+}
+
+func (o *ConfigJWTSecret) GetKid() *string {
+	if o == nil {
+		o = &ConfigJWTSecret{}
+	}
+	return o.Kid
 }
 
 func (o *ConfigJWTSecret) GetJwkUrl() *string {
@@ -17737,6 +18148,10 @@ type ConfigJWTSecretUpdateInput struct {
 	IsSetType                bool                         `json:"-"`
 	Key                      *string                      `json:"key,omitempty" toml:"key,omitempty"`
 	IsSetKey                 bool                         `json:"-"`
+	SigningKey               *string                      `json:"signingKey,omitempty" toml:"signingKey,omitempty"`
+	IsSetSigningKey          bool                         `json:"-"`
+	Kid                      *string                      `json:"kid,omitempty" toml:"kid,omitempty"`
+	IsSetKid                 bool                         `json:"-"`
 	JwkUrl                   *string                      `json:"jwk_url,omitempty" toml:"jwk_url,omitempty"`
 	IsSetJwkUrl              bool                         `json:"-"`
 	ClaimsFormat             *string                      `json:"claims_format,omitempty" toml:"claims_format,omitempty"`
@@ -17795,6 +18210,40 @@ func (o *ConfigJWTSecretUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Key = &x
 		}
 		o.IsSetKey = true
+	}
+	if v, ok := m["signingKey"]; ok {
+		if v == nil {
+			o.SigningKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.SigningKey = &x
+		}
+		o.IsSetSigningKey = true
+	}
+	if v, ok := m["kid"]; ok {
+		if v == nil {
+			o.Kid = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Kid = &x
+		}
+		o.IsSetKid = true
 	}
 	if v, ok := m["jwk_url"]; ok {
 		if v == nil {
@@ -17976,6 +18425,20 @@ func (o *ConfigJWTSecretUpdateInput) GetKey() *string {
 	return o.Key
 }
 
+func (o *ConfigJWTSecretUpdateInput) GetSigningKey() *string {
+	if o == nil {
+		o = &ConfigJWTSecretUpdateInput{}
+	}
+	return o.SigningKey
+}
+
+func (o *ConfigJWTSecretUpdateInput) GetKid() *string {
+	if o == nil {
+		o = &ConfigJWTSecretUpdateInput{}
+	}
+	return o.Kid
+}
+
 func (o *ConfigJWTSecretUpdateInput) GetJwkUrl() *string {
 	if o == nil {
 		o = &ConfigJWTSecretUpdateInput{}
@@ -18049,6 +18512,12 @@ func (s *ConfigJWTSecret) Update(v *ConfigJWTSecretUpdateInput) {
 	if v.IsSetKey || v.Key != nil {
 		s.Key = v.Key
 	}
+	if v.IsSetSigningKey || v.SigningKey != nil {
+		s.SigningKey = v.SigningKey
+	}
+	if v.IsSetKid || v.Kid != nil {
+		s.Kid = v.Kid
+	}
 	if v.IsSetJwkUrl || v.JwkUrl != nil {
 		s.JwkUrl = v.JwkUrl
 	}
@@ -18090,6 +18559,8 @@ func (s *ConfigJWTSecret) Update(v *ConfigJWTSecretUpdateInput) {
 type ConfigJWTSecretInsertInput struct {
 	Type                *string                      `json:"type,omitempty" toml:"type,omitempty"`
 	Key                 *string                      `json:"key,omitempty" toml:"key,omitempty"`
+	SigningKey          *string                      `json:"signingKey,omitempty" toml:"signingKey,omitempty"`
+	Kid                 *string                      `json:"kid,omitempty" toml:"kid,omitempty"`
 	JwkUrl              *string                      `json:"jwk_url,omitempty" toml:"jwk_url,omitempty"`
 	ClaimsFormat        *string                      `json:"claims_format,omitempty" toml:"claims_format,omitempty"`
 	Audience            *string                      `json:"audience,omitempty" toml:"audience,omitempty"`
@@ -18113,6 +18584,20 @@ func (o *ConfigJWTSecretInsertInput) GetKey() *string {
 		o = &ConfigJWTSecretInsertInput{}
 	}
 	return o.Key
+}
+
+func (o *ConfigJWTSecretInsertInput) GetSigningKey() *string {
+	if o == nil {
+		o = &ConfigJWTSecretInsertInput{}
+	}
+	return o.SigningKey
+}
+
+func (o *ConfigJWTSecretInsertInput) GetKid() *string {
+	if o == nil {
+		o = &ConfigJWTSecretInsertInput{}
+	}
+	return o.Kid
 }
 
 func (o *ConfigJWTSecretInsertInput) GetJwkUrl() *string {
@@ -18181,6 +18666,8 @@ func (o *ConfigJWTSecretInsertInput) GetClaimsNamespacePath() *string {
 func (s *ConfigJWTSecret) Insert(v *ConfigJWTSecretInsertInput) {
 	s.Type = v.Type
 	s.Key = v.Key
+	s.SigningKey = v.SigningKey
+	s.Kid = v.Kid
 	s.JwkUrl = v.JwkUrl
 	s.ClaimsFormat = v.ClaimsFormat
 	s.Audience = v.Audience
@@ -18207,6 +18694,8 @@ func (s *ConfigJWTSecret) Clone() *ConfigJWTSecret {
 	v := &ConfigJWTSecret{}
 	v.Type = s.Type
 	v.Key = s.Key
+	v.SigningKey = s.SigningKey
+	v.Kid = s.Kid
 	v.JwkUrl = s.JwkUrl
 	v.ClaimsFormat = s.ClaimsFormat
 	v.Audience = s.Audience
@@ -18230,6 +18719,8 @@ type ConfigJWTSecretComparisonExp struct {
 	Or                  []*ConfigJWTSecretComparisonExp `json:"_or,omitempty"`
 	Type                *ConfigStringComparisonExp      `json:"type,omitempty"`
 	Key                 *ConfigStringComparisonExp      `json:"key,omitempty"`
+	SigningKey          *ConfigStringComparisonExp      `json:"signingKey,omitempty"`
+	Kid                 *ConfigStringComparisonExp      `json:"kid,omitempty"`
 	JwkUrl              *ConfigUrlComparisonExp         `json:"jwk_url,omitempty"`
 	ClaimsFormat        *ConfigStringComparisonExp      `json:"claims_format,omitempty"`
 	Audience            *ConfigStringComparisonExp      `json:"audience,omitempty"`
@@ -18255,6 +18746,12 @@ func (exp *ConfigJWTSecretComparisonExp) Matches(o *ConfigJWTSecret) bool {
 		return false
 	}
 	if o.Key != nil && !exp.Key.Matches(*o.Key) {
+		return false
+	}
+	if o.SigningKey != nil && !exp.SigningKey.Matches(*o.SigningKey) {
+		return false
+	}
+	if o.Kid != nil && !exp.Kid.Matches(*o.Kid) {
 		return false
 	}
 	if o.JwkUrl != nil && !exp.JwkUrl.Matches(*o.JwkUrl) {
@@ -24395,6 +24892,8 @@ func (exp *ConfigStandardOauthProviderComparisonExp) Matches(o *ConfigStandardOa
 type ConfigStandardOauthProviderWithScope struct {
 	Enabled *bool `json:"enabled" toml:"enabled"`
 
+	Audience *string `json:"audience" toml:"audience"`
+
 	ClientId *string `json:"clientId" toml:"clientId"`
 
 	Scope []string `json:"scope,omitempty" toml:"scope,omitempty"`
@@ -24406,6 +24905,9 @@ func (o *ConfigStandardOauthProviderWithScope) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Enabled != nil {
 		m["enabled"] = o.Enabled
+	}
+	if o.Audience != nil {
+		m["audience"] = o.Audience
 	}
 	if o.ClientId != nil {
 		m["clientId"] = o.ClientId
@@ -24424,6 +24926,13 @@ func (o *ConfigStandardOauthProviderWithScope) GetEnabled() *bool {
 		o = &ConfigStandardOauthProviderWithScope{}
 	}
 	return o.Enabled
+}
+
+func (o *ConfigStandardOauthProviderWithScope) GetAudience() *string {
+	if o == nil {
+		o = &ConfigStandardOauthProviderWithScope{}
+	}
+	return o.Audience
 }
 
 func (o *ConfigStandardOauthProviderWithScope) GetClientId() *string {
@@ -24450,6 +24959,8 @@ func (o *ConfigStandardOauthProviderWithScope) GetClientSecret() *string {
 type ConfigStandardOauthProviderWithScopeUpdateInput struct {
 	Enabled           *bool    `json:"enabled,omitempty" toml:"enabled,omitempty"`
 	IsSetEnabled      bool     `json:"-"`
+	Audience          *string  `json:"audience,omitempty" toml:"audience,omitempty"`
+	IsSetAudience     bool     `json:"-"`
 	ClientId          *string  `json:"clientId,omitempty" toml:"clientId,omitempty"`
 	IsSetClientId     bool     `json:"-"`
 	Scope             []string `json:"scope,omitempty" toml:"scope,omitempty"`
@@ -24479,6 +24990,23 @@ func (o *ConfigStandardOauthProviderWithScopeUpdateInput) UnmarshalGQL(v interfa
 			o.Enabled = &x
 		}
 		o.IsSetEnabled = true
+	}
+	if v, ok := m["audience"]; ok {
+		if v == nil {
+			o.Audience = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Audience = &x
+		}
+		o.IsSetAudience = true
 	}
 	if v, ok := m["clientId"]; ok {
 		if v == nil {
@@ -24547,6 +25075,13 @@ func (o *ConfigStandardOauthProviderWithScopeUpdateInput) GetEnabled() *bool {
 	return o.Enabled
 }
 
+func (o *ConfigStandardOauthProviderWithScopeUpdateInput) GetAudience() *string {
+	if o == nil {
+		o = &ConfigStandardOauthProviderWithScopeUpdateInput{}
+	}
+	return o.Audience
+}
+
 func (o *ConfigStandardOauthProviderWithScopeUpdateInput) GetClientId() *string {
 	if o == nil {
 		o = &ConfigStandardOauthProviderWithScopeUpdateInput{}
@@ -24575,6 +25110,9 @@ func (s *ConfigStandardOauthProviderWithScope) Update(v *ConfigStandardOauthProv
 	if v.IsSetEnabled || v.Enabled != nil {
 		s.Enabled = v.Enabled
 	}
+	if v.IsSetAudience || v.Audience != nil {
+		s.Audience = v.Audience
+	}
 	if v.IsSetClientId || v.ClientId != nil {
 		s.ClientId = v.ClientId
 	}
@@ -24595,6 +25133,7 @@ func (s *ConfigStandardOauthProviderWithScope) Update(v *ConfigStandardOauthProv
 
 type ConfigStandardOauthProviderWithScopeInsertInput struct {
 	Enabled      *bool    `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	Audience     *string  `json:"audience,omitempty" toml:"audience,omitempty"`
 	ClientId     *string  `json:"clientId,omitempty" toml:"clientId,omitempty"`
 	Scope        []string `json:"scope,omitempty" toml:"scope,omitempty"`
 	ClientSecret *string  `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
@@ -24605,6 +25144,13 @@ func (o *ConfigStandardOauthProviderWithScopeInsertInput) GetEnabled() *bool {
 		o = &ConfigStandardOauthProviderWithScopeInsertInput{}
 	}
 	return o.Enabled
+}
+
+func (o *ConfigStandardOauthProviderWithScopeInsertInput) GetAudience() *string {
+	if o == nil {
+		o = &ConfigStandardOauthProviderWithScopeInsertInput{}
+	}
+	return o.Audience
 }
 
 func (o *ConfigStandardOauthProviderWithScopeInsertInput) GetClientId() *string {
@@ -24630,6 +25176,7 @@ func (o *ConfigStandardOauthProviderWithScopeInsertInput) GetClientSecret() *str
 
 func (s *ConfigStandardOauthProviderWithScope) Insert(v *ConfigStandardOauthProviderWithScopeInsertInput) {
 	s.Enabled = v.Enabled
+	s.Audience = v.Audience
 	s.ClientId = v.ClientId
 	if v.Scope != nil {
 		s.Scope = make([]string, len(v.Scope))
@@ -24647,6 +25194,7 @@ func (s *ConfigStandardOauthProviderWithScope) Clone() *ConfigStandardOauthProvi
 
 	v := &ConfigStandardOauthProviderWithScope{}
 	v.Enabled = s.Enabled
+	v.Audience = s.Audience
 	v.ClientId = s.ClientId
 	if s.Scope != nil {
 		v.Scope = make([]string, len(s.Scope))
@@ -24661,6 +25209,7 @@ type ConfigStandardOauthProviderWithScopeComparisonExp struct {
 	Not          *ConfigStandardOauthProviderWithScopeComparisonExp   `json:"_not,omitempty"`
 	Or           []*ConfigStandardOauthProviderWithScopeComparisonExp `json:"_or,omitempty"`
 	Enabled      *ConfigBooleanComparisonExp                          `json:"enabled,omitempty"`
+	Audience     *ConfigStringComparisonExp                           `json:"audience,omitempty"`
 	ClientId     *ConfigStringComparisonExp                           `json:"clientId,omitempty"`
 	Scope        *ConfigStringComparisonExp                           `json:"scope,omitempty"`
 	ClientSecret *ConfigStringComparisonExp                           `json:"clientSecret,omitempty"`
@@ -24677,6 +25226,9 @@ func (exp *ConfigStandardOauthProviderWithScopeComparisonExp) Matches(o *ConfigS
 		}
 	}
 	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.Audience != nil && !exp.Audience.Matches(*o.Audience) {
 		return false
 	}
 	if o.ClientId != nil && !exp.ClientId.Matches(*o.ClientId) {

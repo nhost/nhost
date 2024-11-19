@@ -112,6 +112,8 @@ type jwtSecret struct {
 	Issuer              *string           `graphql:"issuer"                json:"issuer,omitempty"`
 	JwkURL              *string           `graphql:"jwk_url"               json:"jwk_url,omitempty"`
 	Key                 *string           `graphql:"key"                   json:"key,omitempty"`
+	SigninKey           *string           `graphql:"signin_key"            json:"signing_key,omitempty"`
+	KeyID               *string           `graphql:"kid"                   json:"kid,omitempty"`
 	Type                *string           `graphql:"type"                  json:"type,omitempty"`
 }
 
@@ -138,6 +140,8 @@ func marshalJWT(jwt *model.ConfigJWTSecret) ([]byte, error) {
 		Issuer:              jwt.Issuer,
 		JwkURL:              jwt.JwkUrl,
 		Key:                 jwt.Key,
+		SigninKey:           jwt.SigningKey,
+		KeyID:               jwt.Kid,
 		Type:                jwt.Type,
 	})
 }

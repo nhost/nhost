@@ -66,6 +66,11 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				Anonymous: &model.ConfigAuthMethodAnonymous{
 					Enabled: ptr(true),
 				},
+				Otp: &model.ConfigAuthMethodOtp{
+					Email: &model.ConfigAuthMethodOtpEmail{
+						Enabled: ptr(true),
+					},
+				},
 				EmailPassword: &model.ConfigAuthMethodEmailPassword{
 					EmailVerificationRequired: ptr(true),
 					HibpEnabled:               ptr(true),
@@ -82,6 +87,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 						TeamId:     ptr("appleTeamId"),
 						Scope:      []string{},
 						PrivateKey: ptr("applePrivateKey"),
+						Audience:   ptr("audience"),
 					},
 					Azuread: &model.ConfigAuthMethodOauthAzuread{
 						ClientId:     ptr("azureadClientId"),
@@ -99,54 +105,63 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 						ClientSecret: ptr("discordClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"identify", "email"},
+						Audience:     ptr("audience"),
 					},
 					Facebook: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("facebookClientId"),
 						ClientSecret: ptr("facebookClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"email"},
+						Audience:     ptr("audience"),
 					},
 					Github: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("githubClientId"),
 						ClientSecret: ptr("githubClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"user:email"},
+						Audience:     ptr("audience"),
 					},
 					Gitlab: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("gitlabClientId"),
 						ClientSecret: ptr("gitlabClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"read_user"},
+						Audience:     ptr("audience"),
 					},
 					Google: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("googleClientId"),
 						ClientSecret: ptr("googleClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"openid", "profile", "email"},
+						Audience:     ptr("audience"),
 					},
 					Linkedin: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("linkedinClientId"),
 						ClientSecret: ptr("linkedinClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"r_liteprofile", "r_emailaddress"},
+						Audience:     ptr("audience"),
 					},
 					Spotify: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("spotifyClientId"),
 						ClientSecret: ptr("spotifyClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"user-read-email"},
+						Audience:     ptr("audience"),
 					},
 					Strava: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("stravaClientId"),
 						ClientSecret: ptr("stravaClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"read_all"},
+						Audience:     ptr("audience"),
 					},
 					Twitch: &model.ConfigStandardOauthProviderWithScope{
 						ClientId:     ptr("twitchClientId"),
 						ClientSecret: ptr("twitchClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"user:email"},
+						Audience:     ptr("audience"),
 					},
 					Twitter: &model.ConfigAuthMethodOauthTwitter{
 						ConsumerKey:    ptr("twitterConsumerKey"),
@@ -158,6 +173,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 						ClientSecret: ptr("windowsliveClientSecret"),
 						Enabled:      ptr(true),
 						Scope:        []string{"wl.emails"},
+						Audience:     ptr("audience"),
 					},
 					Workos: &model.ConfigAuthMethodOauthWorkos{
 						ClientId:     ptr("workosClientId"),

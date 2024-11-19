@@ -14,6 +14,9 @@ let
       "go.sum"
       (inDirectory "vendor")
       isDirectory
+      "${submodule}/directive/sql/sqlc.yaml"
+      "${submodule}/directive/sql/query.sql"
+      "services/console-next/schema.sql"
       (and
         (inDirectory submodule)
         (matchExt "go")
@@ -30,7 +33,9 @@ let
   };
 
   checkDeps = with pkgs; [
+    sqlc
     mockgen
+    nhost-cli
   ];
 
   buildInputs = with pkgs; [

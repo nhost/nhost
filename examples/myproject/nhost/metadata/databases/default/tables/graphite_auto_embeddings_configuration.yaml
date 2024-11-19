@@ -11,6 +11,8 @@ configuration:
       custom_name: id
     last_run:
       custom_name: lastRun
+    model:
+      custom_name: model
     mutation:
       custom_name: mutation
     name:
@@ -28,6 +30,7 @@ configuration:
     created_at: createdAt
     id: id
     last_run: lastRun
+    model: model
     mutation: mutation
     name: name
     query: query

@@ -103,9 +103,9 @@ import (
 #Ingress: {
 	fqdn: [string & net.FQDN & strings.MinRunes(1) & strings.MaxRunes(63)]
 
-    tls?: {
-        clientCA?: string
-    }
+	tls?: {
+		clientCA?: string
+	}
 }
 
 #Autoscaler: {
@@ -326,9 +326,9 @@ import (
 		// AUTH_DISABLE_NEW_USERS
 		disableNewUsers: bool | *false
 
-        turnstile?: {
-            secretKey: string
-        }
+		turnstile?: {
+			secretKey: string
+		}
 	}
 
 	user: {
@@ -395,6 +395,12 @@ import (
 			enabled: bool | *false
 		}
 
+		otp: {
+			email: {
+				enabled: bool | *false
+			}
+		}
+
 		emailPassword: {
 			// Disabling email+password sign in is not implmented yet
 			// enabled: bool | *true
@@ -422,6 +428,7 @@ import (
 					teamId?:     string
 					privateKey?: string
 				}
+                audience?: string
 				scope?: [...string]
 			}
 			azuread: {
@@ -522,6 +529,7 @@ import (
 		clientId?:     string
 		clientSecret?: string
 	}
+	audience?: string
 	scope?: [...string]
 }
 
@@ -556,8 +564,14 @@ import (
 // See https://hasura.io/docs/latest/auth/authentication/jwt/
 #JWTSecret:
 	({
-		type: "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "Ed25519" | *"HS256"
+		type: "HS384" | "HS512" | *"HS256"
 		key:  string
+	} |
+    {
+		type: "RS256" | "RS384" | "RS512"
+		key: string
+        signingKey: string
+        kid: string
 	} |
 	{
 		jwk_url: #Url | *null
@@ -666,18 +680,18 @@ import (
 
 	contacts: {
 		emails?: [...string]
-		pagerduty?: [{
+		pagerduty?: [...{
 			integrationKey: string
 			severity:       string
 			class:          string
 			component:      string
 			group:          string
 		}]
-		discord?: [{
+		discord?: [...{
 			url:       string
 			avatarUrl: string
 		}]
-		slack?: [{
+		slack?: [...{
 			recipient: string
 			token:     string
 			username:  string
@@ -689,7 +703,7 @@ import (
 			url:            string
 			endpointURL:    string
 		}]
-		webhook?: [{
+		webhook?: [...{
 			url:                      string
 			httpMethod:               string
 			username:                 string

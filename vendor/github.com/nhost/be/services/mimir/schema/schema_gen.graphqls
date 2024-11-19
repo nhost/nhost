@@ -386,6 +386,10 @@ type ConfigAuthMethod {
     """
 
     """
+    otp: ConfigAuthMethodOtp
+    """
+
+    """
     emailPassword: ConfigAuthMethodEmailPassword
     """
 
@@ -404,6 +408,7 @@ type ConfigAuthMethod {
 input ConfigAuthMethodUpdateInput {
     anonymous: ConfigAuthMethodAnonymousUpdateInput
     emailPasswordless: ConfigAuthMethodEmailPasswordlessUpdateInput
+    otp: ConfigAuthMethodOtpUpdateInput
     emailPassword: ConfigAuthMethodEmailPasswordUpdateInput
     smsPasswordless: ConfigAuthMethodSmsPasswordlessUpdateInput
     oauth: ConfigAuthMethodOauthUpdateInput
@@ -413,6 +418,7 @@ input ConfigAuthMethodUpdateInput {
 input ConfigAuthMethodInsertInput {
     anonymous: ConfigAuthMethodAnonymousInsertInput
     emailPasswordless: ConfigAuthMethodEmailPasswordlessInsertInput
+    otp: ConfigAuthMethodOtpInsertInput
     emailPassword: ConfigAuthMethodEmailPasswordInsertInput
     smsPasswordless: ConfigAuthMethodSmsPasswordlessInsertInput
     oauth: ConfigAuthMethodOauthInsertInput
@@ -425,6 +431,7 @@ input ConfigAuthMethodComparisonExp {
     _or: [ConfigAuthMethodComparisonExp!]
     anonymous: ConfigAuthMethodAnonymousComparisonExp
     emailPasswordless: ConfigAuthMethodEmailPasswordlessComparisonExp
+    otp: ConfigAuthMethodOtpComparisonExp
     emailPassword: ConfigAuthMethodEmailPasswordComparisonExp
     smsPasswordless: ConfigAuthMethodSmsPasswordlessComparisonExp
     oauth: ConfigAuthMethodOauthComparisonExp
@@ -655,6 +662,10 @@ type ConfigAuthMethodOauthApple {
     """
 
     """
+    audience: String
+    """
+
+    """
     clientId: String
     """
 
@@ -676,6 +687,7 @@ type ConfigAuthMethodOauthApple {
 
 input ConfigAuthMethodOauthAppleUpdateInput {
     enabled: Boolean
+    audience: String
     clientId: String
     keyId: String
     teamId: String
@@ -685,6 +697,7 @@ input ConfigAuthMethodOauthAppleUpdateInput {
 
 input ConfigAuthMethodOauthAppleInsertInput {
     enabled: Boolean
+    audience: String
     clientId: String
     keyId: String
     teamId: String
@@ -697,6 +710,7 @@ input ConfigAuthMethodOauthAppleComparisonExp {
     _not: ConfigAuthMethodOauthAppleComparisonExp
     _or: [ConfigAuthMethodOauthAppleComparisonExp!]
     enabled: ConfigBooleanComparisonExp
+    audience: ConfigStringComparisonExp
     clientId: ConfigStringComparisonExp
     keyId: ConfigStringComparisonExp
     teamId: ConfigStringComparisonExp
@@ -840,6 +854,56 @@ input ConfigAuthMethodOauthWorkosComparisonExp {
     clientId: ConfigStringComparisonExp
     organization: ConfigStringComparisonExp
     clientSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthMethodOtp {
+    """
+
+    """
+    email: ConfigAuthMethodOtpEmail
+}
+
+input ConfigAuthMethodOtpUpdateInput {
+    email: ConfigAuthMethodOtpEmailUpdateInput
+}
+
+input ConfigAuthMethodOtpInsertInput {
+    email: ConfigAuthMethodOtpEmailInsertInput
+}
+
+input ConfigAuthMethodOtpComparisonExp {
+    _and: [ConfigAuthMethodOtpComparisonExp!]
+    _not: ConfigAuthMethodOtpComparisonExp
+    _or: [ConfigAuthMethodOtpComparisonExp!]
+    email: ConfigAuthMethodOtpEmailComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthMethodOtpEmail {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpEmailUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpEmailInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpEmailComparisonExp {
+    _and: [ConfigAuthMethodOtpEmailComparisonExp!]
+    _not: ConfigAuthMethodOtpEmailComparisonExp
+    _or: [ConfigAuthMethodOtpEmailComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
 }
 
 """
@@ -2750,6 +2814,14 @@ type ConfigJWTSecret {
     """
 
     """
+    signingKey: String
+    """
+
+    """
+    kid: String
+    """
+
+    """
     jwk_url: ConfigUrl
     """
 
@@ -2788,6 +2860,8 @@ type ConfigJWTSecret {
 input ConfigJWTSecretUpdateInput {
     type: String
     key: String
+    signingKey: String
+    kid: String
     jwk_url: ConfigUrl
     claims_format: String
     audience: String
@@ -2802,6 +2876,8 @@ input ConfigJWTSecretUpdateInput {
 input ConfigJWTSecretInsertInput {
     type: String
     key: String
+    signingKey: String
+    kid: String
     jwk_url: ConfigUrl
     claims_format: String
     audience: String
@@ -2819,6 +2895,8 @@ input ConfigJWTSecretComparisonExp {
     _or: [ConfigJWTSecretComparisonExp!]
     type: ConfigStringComparisonExp
     key: ConfigStringComparisonExp
+    signingKey: ConfigStringComparisonExp
+    kid: ConfigStringComparisonExp
     jwk_url: ConfigUrlComparisonExp
     claims_format: ConfigStringComparisonExp
     audience: ConfigStringComparisonExp
@@ -3739,6 +3817,10 @@ type ConfigStandardOauthProviderWithScope {
     """
 
     """
+    audience: String
+    """
+
+    """
     clientId: String
     """
 
@@ -3752,6 +3834,7 @@ type ConfigStandardOauthProviderWithScope {
 
 input ConfigStandardOauthProviderWithScopeUpdateInput {
     enabled: Boolean
+    audience: String
     clientId: String
         scope: [String!]
     clientSecret: String
@@ -3759,6 +3842,7 @@ input ConfigStandardOauthProviderWithScopeUpdateInput {
 
 input ConfigStandardOauthProviderWithScopeInsertInput {
     enabled: Boolean
+    audience: String
     clientId: String
         scope: [String!]
     clientSecret: String
@@ -3769,6 +3853,7 @@ input ConfigStandardOauthProviderWithScopeComparisonExp {
     _not: ConfigStandardOauthProviderWithScopeComparisonExp
     _or: [ConfigStandardOauthProviderWithScopeComparisonExp!]
     enabled: ConfigBooleanComparisonExp
+    audience: ConfigStringComparisonExp
     clientId: ConfigStringComparisonExp
     scope: ConfigStringComparisonExp
     clientSecret: ConfigStringComparisonExp

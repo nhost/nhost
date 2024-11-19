@@ -26,6 +26,11 @@ func GinContextToContextMiddleware(c *gin.Context) {
 	c.Next()
 }
 
+// GinContextToContext adds gin.Context to the context.
+func GinContextToContext(ctx context.Context, ginCtx *gin.Context) context.Context {
+	return context.WithValue(ctx, ginContextKey, ginCtx)
+}
+
 // ginContextFromContext returns the gin.Context from the context.
 func GinContextFromContext(ctx context.Context) (*gin.Context, error) {
 	ginContext := ctx.Value(ginContextKey)

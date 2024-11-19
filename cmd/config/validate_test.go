@@ -107,6 +107,11 @@ func expectedConfig() *model.ConfigConfig {
 				Anonymous: &model.ConfigAuthMethodAnonymous{
 					Enabled: ptr(false),
 				},
+				Otp: &model.ConfigAuthMethodOtp{
+					Email: &model.ConfigAuthMethodOtpEmail{
+						Enabled: ptr(false),
+					},
+				},
 				EmailPasswordless: &model.ConfigAuthMethodEmailPasswordless{
 					Enabled: ptr(false),
 				},
