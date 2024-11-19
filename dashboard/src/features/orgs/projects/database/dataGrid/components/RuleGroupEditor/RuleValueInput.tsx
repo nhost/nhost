@@ -1,20 +1,60 @@
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
+
+import { Check, ChevronsUpDown } from 'lucide-react';
+
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { InputProps } from '@/components/ui/v2/Input';
 import { inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Command,
+  CommandCreateItem,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/v3/command';
 import { FancyMultiSelect } from '@/components/ui/v3/fancy-multi-select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/v3/popover';
 import type { ColumnAutocompleteProps } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
 import { ColumnAutocomplete } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
+import { cn } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import { useState } from 'react';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
+
+const frameworks = [
+  {
+    value: 'next.js',
+    label: 'Next.js',
+  },
+  {
+    value: 'sveltekit',
+    label: 'SvelteKit',
+  },
+  {
+    value: 'nuxt.js',
+    label: 'Nuxt.js',
+  },
+  {
+    value: 'remix',
+    label: 'Remix',
+  },
+  {
+    value: 'astro',
+    label: 'Astro',
+  },
+];
 
 function ColumnSelectorInput({
   name,
@@ -104,6 +144,9 @@ export default function RuleValueInput({
   const { schema, table, disabled } = useRuleGroupEditor();
   const { project } = useProject();
   const { setValue } = useFormContext();
+
+  const [open, setOpen] = useState(false);
+  const [comboboxValue, setComboboxValue] = useState('');
   const inputName = `${name}.value`;
   console.log('error', helperText);
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
@@ -206,46 +249,124 @@ export default function RuleValueInput({
     );
   }
 
+  const selectedFramework = frameworks.find(
+    (framework) => framework.value === comboboxValue,
+  );
+  const comboboxLabel =
+    selectedFramework?.label || comboboxValue || 'Select framework...';
+
   return (
-    <ControlledAutocomplete
-      disabled={disabled}
-      freeSolo
-      isOptionEqualToValue={(
-        option,
-        value: string | number | AutocompleteOption<string>,
-      ) => {
-        if (typeof value !== 'object') {
-          return option.value.toLowerCase() === value?.toString().toLowerCase();
-        }
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-[200px] justify-between"
+        >
+          {comboboxLabel}
+          <ChevronsUpDown className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command
+          filter={(item, query) => {
+            console.log('item', item);
+            if (item === 'create') {
+              console.log('CREATE*++');
+              if (
+                frameworks.some(
+                  (framework) =>
+                    framework.value === query || framework.label === query,
+                )
+              ) {
+                console.log('RETURNING 0 for query', query);
+                return 0;
+              }
+              return 1;
+            }
+            if (item.toLowerCase().includes(query.trim().toLowerCase())) {
+              return 1;
+            }
+            return 0;
+          }}
+        >
+          <CommandInput placeholder="Search framework..." />
+          <CommandList>
+            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandGroup>
+              {frameworks.map((framework) => (
+                <CommandItem
+                  key={framework.value}
+                  value={framework.value}
+                  onSelect={(currentValue) => {
+                    setComboboxValue(
+                      currentValue === comboboxValue ? '' : currentValue,
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  {framework.label}
+                  <Check
+                    className={cn(
+                      'ml-auto',
+                      comboboxValue === framework.value
+                        ? 'opacity-100'
+                        : 'opacity-0',
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandCreateItem
+              onCreate={(currentValue) => {
+                setComboboxValue(currentValue);
+                setOpen(false);
+              }}
+            />
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+    // <ControlledAutocomplete
+    //   disabled={disabled}
+    //   freeSolo
+    //   isOptionEqualToValue={(
+    //     option,
+    //     value: string | number | AutocompleteOption<string>,
+    //   ) => {
+    //     if (typeof value !== 'object') {
+    //       return option.value.toLowerCase() === value?.toString().toLowerCase();
+    //     }
 
-        return option.value.toLowerCase() === value.value.toLowerCase();
-      }}
-      name={inputName}
-      groupBy={(option) => option.group}
-      slotProps={{
-        input: {
-          className: 'lg:!rounded-none',
-          sx: sharedInputSx,
-        },
-        formControl: { className: '!bg-transparent' },
-        paper: { className: 'empty:border-transparent' },
-      }}
-      fullWidth
-      loading={loading}
-      loadingText={<ActivityIndicator label="Loading..." />}
-      error={Boolean(customClaimsError) || error}
-      helperText={customClaimsError?.message || helperText}
-      options={availableHasuraPermissionVariables}
-      onChange={(_event, _value, reason, details) => {
-        if (
-          reason !== 'selectOption' &&
-          details.option.value !== 'X-Hasura-User-Id'
-        ) {
-          return;
-        }
+    //     return option.value.toLowerCase() === value.value.toLowerCase();
+    //   }}
+    //   name={inputName}
+    //   groupBy={(option) => option.group}
+    //   slotProps={{
+    //     input: {
+    //       className: 'lg:!rounded-none',
+    //       sx: sharedInputSx,
+    //     },
+    //     formControl: { className: '!bg-transparent' },
+    //     paper: { className: 'empty:border-transparent' },
+    //   }}
+    //   fullWidth
+    //   loading={loading}
+    //   loadingText={<ActivityIndicator label="Loading..." />}
+    //   error={Boolean(customClaimsError) || error}
+    //   helperText={customClaimsError?.message || helperText}
+    //   options={availableHasuraPermissionVariables}
+    //   onChange={(_event, _value, reason, details) => {
+    //     if (
+    //       reason !== 'selectOption' &&
+    //       details.option.value !== 'X-Hasura-User-Id'
+    //     ) {
+    //       return;
+    //     }
 
-        setValue(inputName, details.option.value, { shouldDirty: true });
-      }}
-    />
+    //     setValue(inputName, details.option.value, { shouldDirty: true });
+    //   }}
+    // />
   );
 }
