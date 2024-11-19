@@ -123,6 +123,7 @@ type CustomClaimer interface {
 type JWTGetter struct {
 	claimsNamespace      string
 	issuer               string
+	kid                  string
 	signingKey           any
 	validatingKey        any
 	method               jwt.SigningMethod
@@ -151,6 +152,7 @@ func NewJWTGetter(
 		claimsNamespace:      jwtSecret.ClaimsNamespace,
 		issuer:               jwtSecret.Issuer,
 		signingKey:           jwtSecret.SigningKey,
+		kid:                  jwtSecret.KeyID,
 		validatingKey:        jwtSecret.Key,
 		method:               method,
 		customClaimer:        customClaimer,
@@ -240,6 +242,9 @@ func (j *JWTGetter) GetToken(
 		j.claimsNamespace: c,
 	}
 	token := jwt.NewWithClaims(j.method, claims)
+	if j.kid != "" {
+		token.Header["kid"] = j.kid
+	}
 	ss, err := token.SignedString(j.signingKey)
 	if err != nil {
 		return "", 0, fmt.Errorf("error signing token: %w", err)
