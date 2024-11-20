@@ -61,7 +61,7 @@ export type ServiceUrls = {
 export interface NhostClientConstructorParams
   extends Partial<Subdomain>,
     Partial<ServiceUrls>,
-    Omit<NhostAuthConstructorParams, 'url' | 'subdomain' | 'region'> {
+    Omit<NhostAuthConstructorParams, 'url' | 'broadcastKey'> {
   /**
    * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
    * for all requests to GraphQL, Storage, and Serverless Functions.

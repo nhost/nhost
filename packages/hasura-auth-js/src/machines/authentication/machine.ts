@@ -34,7 +34,6 @@ import {
   PasswordlessSmsOtpResponse,
   PasswordlessSmsResponse,
   RefreshSessionResponse,
-  RequestOptions,
   SignInAnonymousResponse,
   SignInMfaTotpResponse,
   SignInPATResponse,
@@ -57,8 +56,6 @@ import { AuthEvents } from './events'
 
 export interface AuthMachineOptions extends AuthOptions {
   backendUrl: string
-  subdomain: string
-  region?: string
   clientUrl: string
 }
 
@@ -83,9 +80,8 @@ type AuthServices = {
 
 export const createAuthMachine = ({
   backendUrl,
-  subdomain,
-  region,
   clientUrl,
+  broadcastKey,
   clientStorageType = 'web',
   clientStorage,
   refreshIntervalTime,
@@ -689,9 +685,9 @@ export const createAuthMachine = ({
 
         // * Broadcast the token to other tabs when `autoSignIn` is activated
         broadcastToken: (context) => {
-          if (autoSignIn) {
+          if (autoSignIn && broadcastKey) {
             try {
-              const channel = new BroadcastChannel(`${subdomain}${region}`)
+              const channel = new BroadcastChannel(broadcastKey)
               // ? broadcat session instead of token ?
               channel.postMessage({
                 type: 'broadcast_token',
@@ -906,12 +902,14 @@ export const createAuthMachine = ({
             !!e.all ? ctx.accessToken.value : undefined
           )
 
-          try {
-            const channel = new BroadcastChannel(`${subdomain}${region}`)
-            // ? broadcast the signout event to other tabs to remove the accessToken
-            channel.postMessage({ type: 'signout' })
-          } catch (error) {
-            // * BroadcastChannel is not available e.g. react-native
+          if (broadcastKey) {
+            try {
+              const channel = new BroadcastChannel(broadcastKey)
+              // ? broadcast the signout event to other tabs to remove the accessToken
+              channel.postMessage({ type: 'signout' })
+            } catch (error) {
+              // * BroadcastChannel is not available e.g. react-native
+            }
           }
 
           return signOutResponse

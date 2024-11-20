@@ -34,9 +34,8 @@ export class AuthClient {
     autoRefreshToken = true,
     start = true,
     backendUrl,
-    subdomain,
-    region,
     clientUrl,
+    broadcastKey,
     devTools,
     ...defaultOptions
   }: NhostClientOptions) {
@@ -47,22 +46,21 @@ export class AuthClient {
       ...defaultOptions,
       backendUrl,
       clientUrl,
+      broadcastKey,
       clientStorageType,
       autoSignIn,
-      autoRefreshToken,
-      subdomain,
-      region
+      autoRefreshToken
     })
 
     if (start) {
       this.start({ devTools })
     }
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && broadcastKey) {
       try {
         // TODO the same refresh token is used and refreshed by all tabs
         // * Ideally, a single tab should autorefresh and share the new jwt
-        this._channel = new BroadcastChannel(`${subdomain}${region}`)
+        this._channel = new BroadcastChannel(broadcastKey)
 
         if (autoSignIn) {
           this._channel?.addEventListener('message', (event) => {
