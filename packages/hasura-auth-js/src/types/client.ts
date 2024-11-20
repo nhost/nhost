@@ -58,6 +58,8 @@ export interface SignInPasswordlessSmsOtpParams {
 
 export interface NhostAuthConstructorParams extends AuthOptions {
   url: string
+  subdomain: string
+  region?: string
   start?: boolean
   /** @internal @deprecated @alias autoSignIn - use autoSignIn instead  */
   autoLogin?: boolean

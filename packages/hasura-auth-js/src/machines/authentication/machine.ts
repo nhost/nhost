@@ -57,6 +57,8 @@ import { AuthEvents } from './events'
 
 export interface AuthMachineOptions extends AuthOptions {
   backendUrl: string
+  subdomain: string
+  region?: string
   clientUrl: string
 }
 
@@ -81,6 +83,8 @@ type AuthServices = {
 
 export const createAuthMachine = ({
   backendUrl,
+  subdomain,
+  region,
   clientUrl,
   clientStorageType = 'web',
   clientStorage,
@@ -687,7 +691,7 @@ export const createAuthMachine = ({
         broadcastToken: (context) => {
           if (autoSignIn) {
             try {
-              const channel = new BroadcastChannel('nhost')
+              const channel = new BroadcastChannel(`${subdomain}${region}`)
               // ? broadcat session instead of token ?
               channel.postMessage({
                 type: 'broadcast_token',
@@ -903,7 +907,7 @@ export const createAuthMachine = ({
           )
 
           try {
-            const channel = new BroadcastChannel('nhost')
+            const channel = new BroadcastChannel(`${subdomain}${region}`)
             // ? broadcast the signout event to other tabs to remove the accessToken
             channel.postMessage({ type: 'signout' })
           } catch (error) {
