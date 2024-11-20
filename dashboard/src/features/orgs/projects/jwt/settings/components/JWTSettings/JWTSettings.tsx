@@ -15,6 +15,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Box } from '@/components/ui/v2/Box';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -67,6 +69,7 @@ export default function JWTSettings() {
     data: customClaimsData,
     loading: customClaimsLoading,
     error: customClaimsError,
+    refetch: refetchCustomClaims,
   } = useGetCustomClaimsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -232,6 +235,7 @@ export default function JWTSettings() {
         await updateConfigPromise;
         form.reset(values);
         refetchJwtSecrets();
+        refetchCustomClaims();
 
         if (!isPlatform) {
           openDialog({
@@ -281,8 +285,8 @@ export default function JWTSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleJWTSettingsChange}>
         <SettingsContainer
-          title="JWT Secret Type"
-          description="The type of JWT secret to use."
+          title="JSON Web Token Settings"
+          description="Select how JSON Web Tokens (JWTs) are signed and verified."
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty || maintenanceActive,
@@ -302,16 +306,93 @@ export default function JWTSettings() {
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="symmetric" id="symmetric" />
-                <Label htmlFor="symmetric">Symmetric key</Label>
+                <Label htmlFor="symmetric" className="flex items-center gap-1">
+                  Symmetric key
+                  <Tooltip
+                    title={
+                      <span>
+                        With symmetric keys your project uses a single for both
+                        signing and verifying JWTs. Refer to{' '}
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          href="https://docs.nhost.io/guides/auth/jwt#symmetric-keys"
+                          className="underline"
+                        >
+                          symmetric keys
+                        </a>{' '}
+                        for more information.
+                      </span>
+                    }
+                  >
+                    <InfoIcon
+                      aria-label="Info"
+                      className="h-4 w-4"
+                      color="primary"
+                    />
+                  </Tooltip>
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="asymmetric" id="asymmetric" />
-                <Label htmlFor="asymmetric">Asymmetric key</Label>
+                <Label htmlFor="asymmetric" className="flex items-center gap-1">
+                  Asymmetric key
+                  <Tooltip
+                    title={
+                      <span>
+                        With asymmetric keys your project uses a public and
+                        private key pair for signing and verifying JWTs. Refer
+                        to{' '}
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          href="https://docs.nhost.io/guides/auth/jwt#asymmetric-keys"
+                          className="underline"
+                        >
+                          asymmetric keys
+                        </a>{' '}
+                        for more information.
+                      </span>
+                    }
+                  >
+                    <InfoIcon
+                      aria-label="Info"
+                      className="h-4 w-4"
+                      color="primary"
+                    />
+                  </Tooltip>
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="third-party" id="third-party" />
-                <Label className="flex flex-1" htmlFor="third-party">
+                <Label
+                  htmlFor="third-party"
+                  className="flex items-center gap-1"
+                >
                   Third party service
+                  <Tooltip
+                    title={
+                      <span>
+                        This will use a third party service's JWK endpoint to
+                        verify JWT's. Refer to{' '}
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          href="https://docs.nhost.io/guides/auth/jwt#external-signing"
+                          className="underline"
+                        >
+                          external signing
+                        </a>{' '}
+                        for more information.
+                      </span>
+                    }
+                  >
+                    <InfoIcon
+                      aria-label="Info"
+                      className="h-4 w-4"
+                      color="primary"
+                    />
+                  </Tooltip>
                 </Label>
               </div>
             </RadioGroup>

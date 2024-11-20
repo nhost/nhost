@@ -19,13 +19,11 @@ export default function SymmetricKeyFormSection() {
 
   const type = watch('type');
 
-  console.log('type:', type);
-
   return (
-    <Box className="grid grid-cols-3 gap-4">
+    <Box className="grid grid-cols-5 gap-4">
       <Select
         id="type"
-        className="col-span-2"
+        className="col-span-5 lg:col-span-1"
         placeholder="HS256"
         hideEmptyHelperText
         variant="normal"
@@ -50,7 +48,7 @@ export default function SymmetricKeyFormSection() {
         id="key"
         label="Key"
         placeholder="Enter symmetric key"
-        className="col-span-2"
+        className="col-span-5 lg:col-span-3"
         fullWidth
         hideEmptyHelperText
         error={!!errors?.key}

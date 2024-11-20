@@ -20,13 +20,13 @@ export default function ThirdPartySecretFormSection() {
           disabled.
         </Text>
       </Alert>
-      <Box className="grid grid-cols-3 gap-4">
+      <Box className="grid grid-cols-5 gap-4">
         <Input
           {...register('jwkUrl')}
           name="jwkUrl"
           id="jwkUrl"
-          placeholder="https://acme.com/jwk"
-          className="col-span-2"
+          placeholder="https://acme.com/jwks.json"
+          className="col-span-5 lg:col-span-4"
           label="JWK URL"
           fullWidth
           hideEmptyHelperText
