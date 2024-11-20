@@ -20,12 +20,15 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { CustomClaimsFormSection } from '@/features/orgs/projects/jwt/settings/components/CustomClaimsFormSection';
+import { JWTSecretField } from '@/features/orgs/projects/jwt/settings/components/JWTSecretField';
+import type {
+  JWTSecretType,
+  JWTSettingsFormValues,
+} from '@/features/orgs/projects/jwt/settings/types';
+import { validationSchema } from '@/features/orgs/projects/jwt/settings/types';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { removeTypename } from '@/utils/helpers';
-import type { JWTSecretType, JWTSettingsFormValues } from '../../types';
-import { validationSchema } from '../../types';
-import { CustomClaimsFormSection } from '../CustomClaimsFormSection';
-import { JWTSecretField } from '../JWTSecretField';
 
 export default function JWTSettings() {
   const { project } = useProject();
@@ -118,18 +121,39 @@ export default function JWTSettings() {
     form,
   ]);
 
-  const { formState, reset } = form;
+  const { formState, reset, setValue } = form;
 
   const formValues = form.getValues();
 
+  let initialSignatureType: JWTSecretType = 'symmetric';
+
+  if (signingKey) {
+    initialSignatureType = 'asymmetric';
+  }
+  if (jwk_url) {
+    initialSignatureType = 'third-party';
+  }
+
   const handleSignatureTypeChange = (value: JWTSecretType) => {
-    if (value === signatureType) {
-      reset({
+    if (value === initialSignatureType) {
+    reset(
+      {
         ...formValues,
-      });
+        type: jwtType || '',
+        key: jwtKey || '',
+        signingKey: signingKey || '',
+        kid: kid || '',
+        jwkUrl: jwk_url || '',
+      },
+    );
     } else {
       reset({
         ...formValues,
+        type: '',
+        key: '',
+        signingKey: '',
+        kid: '',
+        jwkUrl: '',
       });
     }
 

@@ -1,5 +1,7 @@
+import { AsymmetricKeyFormSection } from '@/features/orgs/projects/jwt/settings/components/AsymmetricKeyFormSection';
+import { SymmetricKeyFormSection } from '@/features/orgs/projects/jwt/settings/components/SymmetricKeyFormSection';
+import { ThirdPartySecretFormSection } from '@/features/orgs/projects/jwt/settings/components/ThirdPartySecretFormSection';
 import type { JWTSecretType } from '@/features/orgs/projects/jwt/settings/types';
-import { SymmetricKeyFormSection } from '../SymmetricKeyFormSection';
 
 interface JWTSecretFieldProps {
   secretType: JWTSecretType;
@@ -10,10 +12,10 @@ export default function JWTSecretField({ secretType }: JWTSecretFieldProps) {
     return <SymmetricKeyFormSection />;
   }
   if (secretType === 'asymmetric') {
-    return <div>Asymmetric</div>;
+    return <AsymmetricKeyFormSection />;
   }
   if (secretType === 'third-party') {
-    return <div>Third party</div>;
+    return <ThirdPartySecretFormSection />;
   }
   return null;
 }
