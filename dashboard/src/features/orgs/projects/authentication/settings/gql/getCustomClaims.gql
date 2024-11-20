@@ -1,0 +1,18 @@
+query GetCustomClaims($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    auth {
+      id: __typename
+      __typename
+      session {
+        accessToken {
+          customClaims {
+            key
+            value
+          }
+        }
+      }
+    }
+  }
+}

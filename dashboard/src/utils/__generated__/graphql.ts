@@ -27275,6 +27275,13 @@ export type GetHasuraSettingsQueryVariables = Exact<{
 
 export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null, inferFunctionPermissions?: boolean | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } } | null };
 
+export type GetCustomClaimsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetCustomClaimsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', customClaims?: Array<{ __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string }> | null } | null } | null } | null } | null };
+
 export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
 
 export type GetApplicationBackupsQueryVariables = Exact<{
@@ -27292,6 +27299,13 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
 
 
 export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
+
+export type GetJwtSecretsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetJwtSecretsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', type?: string | null, key?: string | null, signingKey?: string | null, kid?: string | null, jwk_url?: any | null }> | null } } | null };
 
 export type GetObservabilitySettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -29137,6 +29151,57 @@ export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQ
 export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
       return { query: GetHasuraSettingsDocument, variables: variables }
     }
+export const GetCustomClaimsDocument = gql`
+    query GetCustomClaims($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    auth {
+      id: __typename
+      __typename
+      session {
+        accessToken {
+          customClaims {
+            key
+            value
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomClaimsQuery__
+ *
+ * To run a query within a React component, call `useGetCustomClaimsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomClaimsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomClaimsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetCustomClaimsQuery(baseOptions: Apollo.QueryHookOptions<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>(GetCustomClaimsDocument, options);
+      }
+export function useGetCustomClaimsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>(GetCustomClaimsDocument, options);
+        }
+export type GetCustomClaimsQueryHookResult = ReturnType<typeof useGetCustomClaimsQuery>;
+export type GetCustomClaimsLazyQueryHookResult = ReturnType<typeof useGetCustomClaimsLazyQuery>;
+export type GetCustomClaimsQueryResult = Apollo.QueryResult<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>;
+export function refetchGetCustomClaimsQuery(variables: GetCustomClaimsQueryVariables) {
+      return { query: GetCustomClaimsDocument, variables: variables }
+    }
 export const GetApplicationBackupsDocument = gql`
     query getApplicationBackups($appId: uuid!) {
   app(id: $appId) {
@@ -29221,6 +29286,54 @@ export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetB
 export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
 export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
       return { query: GetBackupPresignedUrlDocument, variables: variables }
+    }
+export const GetJwtSecretsDocument = gql`
+    query GetJWTSecrets($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    hasura {
+      jwtSecrets {
+        type
+        key
+        signingKey
+        kid
+        jwk_url
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetJwtSecretsQuery__
+ *
+ * To run a query within a React component, call `useGetJwtSecretsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetJwtSecretsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetJwtSecretsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetJwtSecretsQuery(baseOptions: Apollo.QueryHookOptions<GetJwtSecretsQuery, GetJwtSecretsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetJwtSecretsQuery, GetJwtSecretsQueryVariables>(GetJwtSecretsDocument, options);
+      }
+export function useGetJwtSecretsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetJwtSecretsQuery, GetJwtSecretsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetJwtSecretsQuery, GetJwtSecretsQueryVariables>(GetJwtSecretsDocument, options);
+        }
+export type GetJwtSecretsQueryHookResult = ReturnType<typeof useGetJwtSecretsQuery>;
+export type GetJwtSecretsLazyQueryHookResult = ReturnType<typeof useGetJwtSecretsLazyQuery>;
+export type GetJwtSecretsQueryResult = Apollo.QueryResult<GetJwtSecretsQuery, GetJwtSecretsQueryVariables>;
+export function refetchGetJwtSecretsQuery(variables: GetJwtSecretsQueryVariables) {
+      return { query: GetJwtSecretsDocument, variables: variables }
     }
 export const GetObservabilitySettingsDocument = gql`
     query GetObservabilitySettings($appId: uuid!) {
