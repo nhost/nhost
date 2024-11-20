@@ -1,466 +1,668 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.yaml
----
-openapi: 3.0.3
+openapi: "3.0.0"
 info:
-  description: Hasura Auth
   version: 1.0.0
-  title: Hasura Auth
+  title: Nhost Auth
+  description: Service to Authenticate
+  termsOfService: http://swagger.io/terms/
+  contact:
+    name: Nhost's Support
+    email: support@nhost.io
+    url: https://nhost.io
   license:
-    name: LICENSE-TBD
-    url: https://LICENSE-TBD
-servers:
-  - url: https://local.auth.nhost.run/v1
-    description: API Server
-components:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+paths:
+  /healthz:
+    head:
+      description: Health check
+      tags:
+        - health
+      responses:
+        '200':
+          description: >-
+            Service is healthy
 
+    get:
+      description: Health check
+      tags:
+        - health
+      responses:
+        '200':
+          description: >-
+            Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /.well-known/jwks.json:
+    get:
+      description: Get public keys for JWT verification in JWK Set format
+      tags:
+        - keys
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWKSet'
+          description: >-
+            The public keys in JWK Set format
+
+  /pat:
+    post:
+      description: Create a Personal Access Token (PAT)
+      tags:
+        - pat
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePATRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePATResponse'
+          description: >-
+            Successfully created a Personal Access Token
+
+  /token:
+    post:
+      description: Refresh the JWT access token
+      tags:
+        - token
+        - access-token
+        - jwt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: >-
+            Successfully refreshed the JWT access token
+
+  /signin/email-password:
+    post:
+      description: Sign in with email and password
+      tags:
+        - signin
+        - email-and-password
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInEmailPasswordRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInEmailPasswordResponse'
+          description: >-
+            Successfully signed in. Null session means TOTP challenge is needed
+
+  /signin/passwordless/email:
+    post:
+      description: >-
+        Sign in with magic link sent to user's email. If the user doesn't exist, it will be created.
+        The options object is optional and can be used to configure the user's when signing up a
+        new user. It is ignored if the user already exists.
+      tags:
+        - signin
+        - signup
+        - passwordless
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInPasswordlessEmailRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Email link sent to user's email successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /signin/otp/email:
+    post:
+      description: >-
+        Sign in with a one time password sent to user's email. If the user doesn't exist, it will
+        be created. The options object is optional and can be used to configure the user's when
+        signing up a new user. It is ignored if the user already exists.
+      tags:
+        - signin
+        - signup
+        - otp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInOTPEmailRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            OTP sent to user's email successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /signin/otp/email/verify:
+    post:
+      description: >-
+        Verify OTP and return a session if validation is successful
+      tags:
+        - signin
+        - signup
+        - otp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInOTPEmailVerifyRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Magic link sent to user's email successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInOTPEmailVerifyResponse'
+
+  /signin/pat:
+    post:
+      description: >-
+        Sign in with Personal Access Token (PAT)
+      tags:
+        - signin
+        - pat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInPATRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Successfully signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+
+  /signin/idtoken:
+    post:
+      description: Sign in with in an id token
+      tags:
+        - signin
+        - idtoken
+        - apple
+        - google
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInIdTokenRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Successfully signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+
+  /signup/email-password:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpEmailPasswordRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+          description: >-
+            Successfully registered. Null session means email verification is
+            pending
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: >-
+            Signup mechanism is disabled
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: >-
+            User with given email already exists
+
+      description: Signup with email and password
+      tags:
+        - signup
+        - email-and-password
+
+  /signup/webauthn:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpWebauthnRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignUpWebauthnResponse'
+          description: >-
+            Challenge sent
+
+      description: Signup with webauthn
+      tags:
+        - signup
+        - webauthn
+
+  /signup/webauthn/verify:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpWebauthnVerifyRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+          description: >-
+            Sign up successful
+
+      description: Verify webauthn signup
+      tags:
+        - signup
+        - webauthn
+        - verify
+
+  /link/idtoken:
+    post:
+      description: Link a user account with the provider's account using an id token
+      tags:
+        - link
+        - idtoken
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkIdTokenRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Identity linked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /user/deanonymize:
+    post:
+      description: >-
+        Deanonymize an anonymous user in adding missing email or email+password, depending on the chosen authentication method. Will send a confirmation email if the server is configured to do so
+      tags:
+        - anonymous
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDeanonymizeRequest'
+      responses:
+        '200':
+          description: >-
+            User deanonymized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /user/email/change:
+    post:
+      description: Change user email
+      tags:
+        - user
+        - email
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEmailChangeRequest'
+      responses:
+        '200':
+          description: >-
+            Email change requested. An email with a verification link has been sent to the new address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /user/email/send-verification-email:
+    post:
+      description: Send email verification email
+      tags:
+        - user
+        - email
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEmailSendVerificationEmailRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+          description: >-
+            Email verification email sent successfully
+
+  /user/password:
+    post:
+      description: >-
+        Change user password. The user must be authenticated or provide a ticket
+      tags:
+        - user
+        - password
+      security:
+        - BearerAuthElevated: []
+        - {}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPasswordRequest'
+      responses:
+        '200':
+          description: >-
+            Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /user/password/reset:
+    post:
+      description: >-
+        Request a password reset. An email with a verification link will be sent to the user's address
+      tags:
+        - user
+        - password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPasswordResetRequest'
+      responses:
+        '200':
+          description: >-
+            Password reset requested
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /verify:
+    get:
+      description: >-
+        Verify tickets created by email verification, email passwordless authentication (magic link),
+        or password reset
+      tags:
+        - verify
+      parameters:
+        - $ref: '#/components/parameters/TicketQuery'
+        - $ref: '#/components/parameters/TicketTypeQuery'
+        - $ref: '#/components/parameters/RedirectToQuery'
+      responses:
+        302:
+          description: Redirect response
+          headers:
+            Location:
+              $ref: '#/components/headers/RedirectLocation'
+          content: {}
+
+  /version:
+    get:
+      description: Get version
+      tags:
+        - version
+      responses:
+        '200':
+          description: >-
+            Version of the service
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  version:
+                    type: string
+                    example: 0.0.0-dev
+                required:
+                  - version
+
+components:
   securitySchemes:
     BearerAuth:
-      scheme: bearer
       type: http
-      bearerFormat: JWT
-      description: JSON Web Token to authorize requests.
+      scheme: bearer
+    BearerAuthElevated:
+      type: http
+      scheme: bearer
+      description: >-
+        This endpoint may require elevated permissions, depending on server settings.
+        For details see https://docs.nhost.io/guides/auth/elevated-permissions
+
   schemas:
-
-    SignInWebauthnSessionPayload:
+    JWKSet:
       type: object
-      properties:
-        challenge:
-          type: string
-        allowCredentials:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-              type:
-                type: string
-        timeout:
-          type: integer
-        userVerification:
-          type: string
-        rpId:
-          type: string
-      example:
-        challenge: "KOGeoAfC2nrZ_SluhmU5RYYMvBsRDvzghjERGdXbbfQ"
-        allowCredentials:
-          - id: "zCnsWvxgtMrOCeX6eA_yqQ"
-            type: "public-key"
-        timeout: 60000
-        userVerification: "preferred"
-        rpId: "react-apollo.example.nhost.io"
-
-    ElevateWebauthnSessionPayload:
-      type: object
-      properties:
-        challenge:
-          type: string
-        allowCredentials:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-              type:
-                type: string
-        timeout:
-          type: integer
-        userVerification:
-          type: string
-        rpId:
-          type: string
-      example:
-        challenge: "KOGeoAfC2nrZ_SluhmU5RYYMvBsRDvzghjERGdXbbfQ"
-        allowCredentials:
-          - id: "zCnsWvxgtMrOCeX6eA_yqQ"
-            type: "public-key"
-        timeout: 60000
-        userVerification: "preferred"
-        rpId: "react-apollo.example.nhost.io"
-
-    WebauthnSessionPayload:
-      type: object
-      properties:
-        challenge:
-          type: string
-        rp:
-          type: object
-          properties:
-            name:
-              type: string
-            id:
-              type: string
-        user:
-          type: object
-          properties:
-            id:
-              type: string
-              format: uuid
-            name:
-              type: string
-              format: email
-            displayName:
-              type: string
-        pubKeyCredParams:
-          type: array
-          items:
-            type: object
-            properties:
-              alg:
-                type: integer
-              type:
-                type: string
-        timeout:
-          type: integer
-        attestation:
-          type: string
-        excludeCredentials:
-          type: array
-          items: {}
-        authenticatorSelection:
-          type: object
-          properties:
-            requireResidentKey:
-              type: boolean
-            userVerification:
-              type: string
-      example:
-        challenge: "eKdWG60F0lB-wNOviefzn6En0jvdf_GYDyCK2Zuznh8"
-        rp:
-          name: "hasura-auth"
-          id: "localhost"
-        user:
-          id: "44b96e0d-18ad-48b9-a517-6537d32223da"
-          name: "john.smith@nhost.io"
-          displayName: "John Smith"
-        pubKeyCredParams:
-          - alg: -7
-            type: "public-key"
-          - alg: -8
-            type: "public-key"
-          - alg: -36
-            type: "public-key"
-          - alg: -37
-            type: "public-key"
-          - alg: -38
-            type: "public-key"
-          - alg: -39
-            type: "public-key"
-          - alg: -257
-            type: "public-key"
-          - alg: -258
-            type: "public-key"
-          - alg: -259
-            type: "public-key"
-        timeout: 60000
-        attestation: "indirect"
-        excludeCredentials: []
-        authenticatorSelection:
-          requireResidentKey: false
-          userVerification: "preferred"
-
-    CannotSendSmsError:
       additionalProperties: false
       properties:
-        error:
-          enum:
-            - cannot-send-sms
-        message:
-          enum:
-            - Error sending SMS
+        keys:
+          type: array
+          items:
+            $ref: "#/components/schemas/JWK"
+      required:
+        - keys
+
+    JWK:
+      type: object
+      additionalProperties: false
+      properties:
+        alg:
+          type: string
+        e:
+          type: string
+        kid:
+          type: string
+        kty:
+          type: string
+        n:
+          type: string
+        use:
+          type: string
+      required:
+        - alg
+        - e
+        - kid
+        - kty
+        - n
+        - use
+
+    RefreshTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        refreshToken:
+          description: Refresh Token
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - refreshToken
+
+    CreatePATRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        expiresAt:
+          description: Expiration date of the PAT
+          format: date-time
+          type: string
+
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            name: my-pat
+            used-by: my-app-cli
+          properties: {}
+      required:
+        - expiresAt
+
+    CreatePATResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          description: ID of the PAT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        personalAccessToken:
+          description: PAT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - id
+        - personalAccessToken
+
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      properties:
         status:
-          enum:
-            - 500
-      type: object
-    DisabledEndpointError:
-      additionalProperties: false
-      properties:
+          description: HTTP status error code
+          type: integer
+        message:
+          description: Human friendly error message
+          type: string
         error:
+          description: Error code that identifies the application error
+          type: string
           enum:
+            - default-role-must-be-in-allowed-roles
             - disabled-endpoint
-        message:
-          enum:
-            - This endpoint is disabled
-        status:
-          enum:
-            - 404
-      type: object
-    DisabledMfaTotpError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - disabled-mfa-totp
-        message:
-          enum:
-            - MFA TOTP is not enabled for this user
-        status:
-          enum:
-            - 400
-      type: object
-    DisabledUserError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
             - disabled-user
-        message:
-          enum:
-            - User is disabled
-        status:
-          enum:
-            - 401
-      type: object
-    EmailAlreadyInUseError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
             - email-already-in-use
-        message:
-          enum:
-            - Email already in use
-        status:
-          enum:
-            - 409
-      type: object
-    EmailAlreadyVerifiedError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
             - email-already-verified
-        message:
-          enum:
-            - User's email is already verified
-        status:
-          enum:
-            - 400
-      type: object
-    ForbiddenAnonymousError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
             - forbidden-anonymous
-        message:
-          enum:
-            - Anonymous users cannot access this endpoint
-        status:
-          enum:
-            - 403
-      type: object
-    ForbiddenEndpointInProductionError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - forbidden-endpoint-in-production
-        message:
-          enum:
-            - This endpoint is only available on test environments
-        status:
-          enum:
-            - 400
-      type: object
-    InternalErrorError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - internal-error
-        message:
-          enum:
-            - Internal server error
-        status:
-          enum:
-            - 500
-      type: object
-    InvalidAdminSecretError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - invalid-admin-secret
-        message:
-          enum:
-            - Invalid admin secret
-        status:
-          enum:
-            - 401
-      type: object
-    InvalidEmailPasswordError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
+            - internal-server-error
             - invalid-email-password
-        message:
-          enum:
-            - Incorrect email or password
-        status:
-          enum:
-            - 401
-      type: object
-    InvalidOauthConfigurationError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - invalid-oauth-configuration
-        message:
-          enum:
-            - Invalid OAuth configuration
-        status:
-          enum:
-            - 500
-      type: object
-    InvalidOtpError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - invalid-otp
-        message:
-          enum:
-            - Invalid or expired OTP
-        status:
-          enum:
-            - 401
-      type: object
-    InvalidRefreshTokenError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - invalid-refresh-token
-        message:
-          enum:
-            - Invalid or expired refresh token
-        status:
-          enum:
-            - 401
-      type: object
-    InvalidRequestError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
             - invalid-request
-        message:
-          enum:
-            - The request payload is incorrect
-        status:
-          enum:
-            - 400
-      type: object
-    InvalidSignInMethodError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - invalid-sign-in-method
-        message:
-          enum:
-            - Incorrect sign in method
-        status:
-          enum:
-            - 400
-      type: object
-    InvalidTicketError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
+            - locale-not-allowed
+            - password-too-short
+            - password-in-hibp-database
+            - redirectTo-not-allowed
+            - role-not-allowed
+            - signup-disabled
+            - unverified-user
+            - user-not-anonymous
+            - invalid-pat
+            - invalid-refresh-token
             - invalid-ticket
-        message:
-          enum:
-            - Invalid or expired verification ticket
-        status:
-          enum:
-            - 401
+      required:
+        - status
+        - message
+        - error
+
+    SignInEmailPasswordResponse:
       type: object
-    InvalidWebauthnSecurityKeyError:
       additionalProperties: false
       properties:
-        error:
-          enum:
-            - invalid-webauthn-security-key
-        message:
-          enum:
-            - Invalid WebAuthn security key
-        status:
-          enum:
-            - 401
+        session:
+          $ref: "#/components/schemas/Session"
+        mfa:
+          $ref: "#/components/schemas/MFAChallengePayload"
+
+    MFAChallengePayload:
       type: object
-    InvalidWebauthnVerificationError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - invalid-webauthn-verification
-        message:
-          enum:
-            - Invalid WebAuthn verification
-        status:
-          enum:
-            - 401
-      type: object
-    Mfa:
       additionalProperties: false
       properties:
         ticket:
           type: string
+      required:
+        - ticket
+
+    SessionPayload:
       type: object
-    MfaTypeNotFoundError:
       additionalProperties: false
       properties:
-        error:
-          enum:
-            - mfa-type-not-found
-        message:
-          enum:
-            - There is no active MFA set for the user
-        status:
-          enum:
-            - 400
-      type: object
-    NoTotpSecretError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - no-totp-secret
-        message:
-          enum:
-            - OTP secret is not set for user
-        status:
-          enum:
-            - 400
-      type: object
-    RouteNotFoundError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - route-not-found
-        message:
-          enum:
-            - Route not found
-        status:
-          enum:
-            - 404
-      type: object
+        session:
+          $ref: "#/components/schemas/Session"
 
     Session:
+      type: object
       additionalProperties: false
       properties:
         accessToken:
           type: string
         accessTokenExpiresIn:
-          format: float
-          type: number
+          type: integer
+          format: int64
+        refreshTokenId:
+          description: Refresh token id
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
         refreshToken:
           description: Refresh token during authentication or when refreshing the JWT
           example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
@@ -472,599 +674,30 @@ components:
         - accessToken
         - accessTokenExpiresIn
         - refreshToken
-      type: object
+        - refreshTokenId
 
-    SessionPayload:
-      additionalProperties: false
-      properties:
-        mfa:
-          $ref: '#/components/schemas/Mfa'
-        session:
-          $ref: '#/components/schemas/Session'
-      type: object
-
-    SignInAnonymousSchema:
-      additionalProperties: false
-      properties:
-        displayName:
-          example: John Smith
-          type: string
-        locale:
-          default: en
-          description: A two-characters locale
-          example: en
-          maxLength: 2
-          minLength: 2
-          type: string
-        metadata:
-          additionalProperties: false
-          default: {}
-          example:
-            firstName: John
-            lastName: Smith
-          properties: {}
-          type: object
-      type: object
-    SignInEmailPasswordSchema:
+    SignInPATRequest:
       type: object
       additionalProperties: false
       properties:
-        email:
-          description: A valid email
-          example: john.smith@nhost.io
-          format: email
-          type: string
-        password:
-          example: Str0ngPassw#ord-94|%
-          type: string
-      required:
-        - email
-        - password
-    SignInMfaTotpSchema:
-      additionalProperties: false
-      properties:
-        otp:
-          type: string
-        ticket:
-          example: mfaTotp:e08204c7-40af-4434-a7ed-31c6aa37a390
-          pattern: >-
-            mfaTotp:\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
-          type: string
-      required:
-        - ticket
-        - otp
-      type: object
-    SignInOtpSchema:
-      additionalProperties: false
-      properties:
-        otp:
-          type: string
-        phoneNumber:
-          type: string
-      required:
-        - phoneNumber
-        - otp
-      type: object
-    SignInPasswordlessEmailSchema:
-      additionalProperties: false
-      properties:
-        email:
-          description: A valid email
-          example: john.smith@nhost.io
-          format: email
-          type: string
-        options:
-          additionalProperties: false
-          properties:
-            allowedRoles:
-              default:
-                - me
-                - user
-              example:
-                - me
-                - user
-              items:
-                oneOf:
-                  - enum:
-                      - me
-                  - enum:
-                      - user
-              type: array
-            defaultRole:
-              default: user
-              enum:
-                - me
-                - user
-              example: user
-              type: string
-            displayName:
-              example: John Smith
-              type: string
-            locale:
-              default: en
-              description: A two-characters locale
-              example: en
-              maxLength: 2
-              minLength: 2
-              type: string
-            metadata:
-              additionalProperties: false
-              default: {}
-              example:
-                firstName: John
-                lastName: Smith
-              properties: {}
-              type: object
-            redirectTo:
-              default: https://my-app.com
-              example: https://my-app.com/catch-redirection
-              type: string
-          type: object
-      required:
-        - email
-      type: object
-    SignInPasswordlessSmsSchema:
-      additionalProperties: false
-      properties:
-        phoneNumber:
-          type: string
-        options:
-          additionalProperties: false
-          properties:
-            allowedRoles:
-              default:
-                - me
-                - user
-              example:
-                - me
-                - user
-              items:
-                oneOf:
-                  - enum:
-                      - me
-                  - enum:
-                      - user
-              type: array
-            defaultRole:
-              default: user
-              enum:
-                - me
-                - user
-              example: user
-              type: string
-            displayName:
-              example: John Smith
-              type: string
-            locale:
-              default: en
-              description: A two-characters locale
-              example: en
-              maxLength: 2
-              minLength: 2
-              type: string
-            metadata:
-              additionalProperties: false
-              default: {}
-              example:
-                firstName: John
-                lastName: Smith
-              properties: {}
-              type: object
-            redirectTo:
-              default: https://my-app.com
-              example: https://my-app.com/catch-redirection
-              type: string
-          type: object
-      required:
-        - phoneNumber
-      type: object
-
-    SignUpWebauthnSchema:
-      additionalProperties: false
-      type: object
-      properties:
-        email:
-          description: A valid email
-          example: john.smith@nhost.io
-          format: email
-          type: string
-        options:
-          type: object
-          properties:
-            allowedRoles:
-              default:
-                - me
-                - user
-              example:
-                - me
-                - user
-              items:
-                oneOf:
-                  - enum:
-                      - me
-                  - enum:
-                      - user
-              type: array
-            defaultRole:
-              default: user
-              enum:
-                - me
-                - user
-              example: user
-              type: string
-            displayName:
-              example: John Smith
-              type: string
-            locale:
-              default: en
-              description: A two-characters locale
-              example: en
-              maxLength: 2
-              minLength: 2
-              type: string
-            metadata:
-              additionalProperties: false
-              default: {}
-              example:
-                firstName: John
-                lastName: Smith
-              properties: {}
-              type: object
-      required:
-        - email
-
-    SignUpVerifyWebauthnSchema:
-      additionalProperties: false
-      type: object
-      properties:
-        credential:
-          type: object
-          properties:
-            id:
-              type: string
-            rawId:
-              type: string
-            response:
-              type: object
-              properties:
-                attestationObject:
-                  type: string
-                clientDataJSON:
-                  type: string
-            type:
-              type: string
-            clientExtensionResults:
-              type: object
-            authenticatorAttachment:
-              type: string
-            transports:
-              type: array
-              items:
-                type: string
-        options:
-          type: object
-      example:
-        credential:
-          id: "zCnsWvxgtMrOCeX6eA_yqQ"
-          rawId: "zCnsWvxgtMrOCeX6eA_yqQ"
-          response:
-            attestationObject: "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViU0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDtdAAAAALraVWanqkAfvZZFYZpVEg0AEMwp7Fr8YLTKzgnl-ngP8qmlAQIDJiABIVgg3XjPRqX1a22te029Du57F1w56XXy3GARb842fEtQlIEiWCC1Jce4J3bN1P-V-78elqwVy0u6MAxEcZwCvkSLqZjkjA"
-            clientDataJSON: "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiSGlwZ0NKLWR0bU1FeWxRN05pRnV4VXE0allNbFIwMDA1V2VmcEJWQm9payIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ"
-          type: "public-key"
-          clientExtensionResults: {}
-          authenticatorAttachment: "platform"
-          transports:
-            - "internal"
-            - "hybrid"
-        options: {}
-      required:
-        - credential
-
-    SignInWebauthnSchema:
-      additionalProperties: false
-      type: object
-      properties:
-        email:
-          description: A valid email
-          example: john.smith@nhost.io
-          format: email
-          type: string
-      required:
-        - email
-
-    SignInVerifyWebauthnSchema:
-      additionalProperties: true
-      type: object
-      properties:
-        email:
-          description: A valid email
-          example: john.smith@nhost.io
-          format: email
-          type: string
-        credential:
-          type: object
-          properties:
-            id:
-              type: string
-            rawId:
-              type: string
-            response:
-              type: object
-              properties:
-                authenticatorData:
-                  type: string
-                clientDataJSON:
-                  type: string
-                signature:
-                  type: string
-                userHandle:
-                  type: string
-                  format: uuid
-            type:
-              type: string
-            clientExtensionResults:
-              type: object
-        authenticatorAttachment:
-          type: string
-      example:
-        email: "nuno@nhost.io"
-        credential:
-          id: "zCnsWvxgtMrOCeX6eA_yqQ"
-          rawId: "zCnsWvxgtMrOCeX6eA_yqQ"
-          response:
-            authenticatorData: "0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDsdAAAAAA"
-            clientDataJSON: "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiTkNSSVRVU1pjeFE1ZTFhdUtUcXVlNnA4R0ZacHdxUS1kZzM4bnlWa3NCRSIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ"
-            signature: "MEUCIQDRXq3aY-gXWsuYJZhOzqqn6UpoRQfcPdNLP7hpZ7IdvQIgX5rY6TomkYUtqydu-w88fW7KeFm-0oE-5jTdLNHg9zw"
-            userHandle: "8881037a-8495-48ef-8a04-ebbdb69415db"
-          type: "public-key"
-          clientExtensionResults: {}
-        authenticatorAttachment: "platform"
-      required:
-        - email
-        - credential
-
-    ElevateWebauthnSchema:
-      additionalProperties: false
-      type: object
-      properties:
-        email:
-          description: A valid email
-          example: john.smith@nhost.io
-          format: email
-          type: string
-      required:
-        - email
-
-    ElevateVerifyWebauthnSchema:
-      additionalProperties: true
-      type: object
-      properties:
-        email:
-          description: A valid email
-          example: john.smith@nhost.io
-          format: email
-          type: string
-        credential:
-          type: object
-          properties:
-            id:
-              type: string
-            rawId:
-              type: string
-            response:
-              type: object
-              properties:
-                authenticatorData:
-                  type: string
-                clientDataJSON:
-                  type: string
-                signature:
-                  type: string
-                userHandle:
-                  type: string
-                  format: uuid
-            type:
-              type: string
-            clientExtensionResults:
-              type: object
-        authenticatorAttachment:
-          type: string
-      example:
-        email: "nuno@nhost.io"
-        credential:
-          id: "zCnsWvxgtMrOCeX6eA_yqQ"
-          rawId: "zCnsWvxgtMrOCeX6eA_yqQ"
-          response:
-            authenticatorData: "0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDsdAAAAAA"
-            clientDataJSON: "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiTkNSSVRVU1pjeFE1ZTFhdUtUcXVlNnA4R0ZacHdxUS1kZzM4bnlWa3NCRSIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ"
-            signature: "MEUCIQDRXq3aY-gXWsuYJZhOzqqn6UpoRQfcPdNLP7hpZ7IdvQIgX5rY6TomkYUtqydu-w88fW7KeFm-0oE-5jTdLNHg9zw"
-            userHandle: "8881037a-8495-48ef-8a04-ebbdb69415db"
-          type: "public-key"
-          clientExtensionResults: {}
-        authenticatorAttachment: "platform"
-      required:
-        - email
-        - credential
-
-    SignOutSchema:
-      additionalProperties: false
-      properties:
-        all:
-          default: false
-          description: Sign out from all connected devices
-          type: boolean
-        refreshToken:
-          description: Refresh token during authentication or when refreshing the JWT
+        personalAccessToken:
+          description: PAT
           example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
           pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
           type: string
       required:
-        - refreshToken
-      type: object
-    SignUpEmailPasswordSchema:
-      additionalProperties: false
-      properties:
-        email:
-          description: A valid email
-          example: john.smith@nhost.io
-          format: email
-          type: string
-        password:
-          description: A password of minimum 9 characters
-          example: Str0ngPassw#ord-94|%
-          minLength: 9
-          type: string
-        options:
-          additionalProperties: false
-          type: object
-          properties:
-            allowedRoles:
-              default:
-                - me
-                - user
-              example:
-                - me
-                - user
-              items:
-                oneOf:
-                  - enum:
-                      - me
-                  - enum:
-                      - user
-              type: array
-            defaultRole:
-              default: user
-              enum:
-                - me
-                - user
-              example: user
-              type: string
-            displayName:
-              example: John Smith
-              type: string
-            locale:
-              default: en
-              description: A two-characters locale
-              example: en
-              maxLength: 2
-              minLength: 2
-              type: string
-            metadata:
-              additionalProperties: false
-              default: {}
-              example:
-                firstName: John
-                lastName: Smith
-              properties: {}
-              type: object
-            redirectTo:
-              default: https://my-app.com
-              example: https://my-app.com/catch-redirection
-              type: string
-      required:
-        - email
-        - password
-      type: object
-    TokenSchema:
-      additionalProperties: false
-      properties:
-        refreshToken:
-          description: Refresh token during authentication or when refreshing the JWT
-          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
-          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
-          type: string
-      required:
-        - refreshToken
-      type: object
-    TotpAlreadyActiveError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - totp-already-active
-        message:
-          enum:
-            - TOTP MFA already active
-        status:
-          enum:
-            - 400
-      type: object
-    TotpPayload:
-      additionalProperties: false
-      properties:
-        imageUrl:
-          description: Data URL of the QR code
-          type: string
-        totpSecret:
-          description: TOTP secret
-          type: string
-      required:
-        - imageUrl
-        - totpSecret
-      type: object
-    UnauthenticatedUserError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - unauthenticated-user
-        message:
-          enum:
-            - User is not logged in
-        status:
-          enum:
-            - 401
-      type: object
-    UnauthorizedError:
-      additionalProperties: false
-      properties:
-        error:
-          type: string
-        message:
-          type: string
-        status:
-          enum:
-            - 401
-      required:
-        - error
-        - status
-      type: object
-    UnverifiedUserError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - unverified-user
-        message:
-          enum:
-            - Email is not verified
-        status:
-          enum:
-            - 401
-      type: object
+        - personalAccessToken
+
     User:
+      type: object
       additionalProperties: false
       properties:
-        activeMfaType:
-          anyOf:
-            - enum:
-                - 'totp'
-              type: string
-            - enum:
-                - totp
-              type: string
-          description: Multi-factor authentication type. A null value deactivates MFA
-          example: totp
         avatarUrl:
           type: string
         createdAt:
           format: date-time
           type: string
         defaultRole:
-          default: user
-          enum:
-            - me
-            - user
           example: user
           type: string
         displayName:
@@ -1076,7 +709,6 @@ components:
           format: email
           type: string
         emailVerified:
-          default: false
           type: boolean
         id:
           description: Id of the user
@@ -1084,129 +716,78 @@ components:
           pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
           type: string
         isAnonymous:
-          default: false
           type: boolean
         locale:
-          default: en
           description: A two-characters locale
           example: en
           maxLength: 2
           minLength: 2
           type: string
         metadata:
-          additionalProperties: false
-          default: {}
+          type: object
+          additionalProperties: true
           example:
             firstName: John
             lastName: Smith
           properties: {}
-          type: object
         phoneNumber:
           type: string
         phoneNumberVerified:
-          default: false
           type: boolean
         roles:
-          default:
-            - me
-            - user
           example:
             - me
             - user
-          items:
-            oneOf:
-              - enum:
-                  - me
-              - enum:
-                  - user
           type: array
+          items:
+            type: string
       required:
-        - createdAt
-        - displayName
         - avatarUrl
-        - locale
-        - email
-        - isAnonymous
+        - createdAt
         - defaultRole
-        - metadata
-        - activeMfaType
+        - displayName
         - emailVerified
+        - id
+        - isAnonymous
+        - locale
+        - metadata
         - phoneNumber
         - phoneNumberVerified
         - roles
+
+    UserDeanonymizeRequest:
       type: object
-    UserDeanonymizeSchema:
       additionalProperties: false
       properties:
-        connection:
-          example: email
+        signInMethod:
+          description: Which sign-in method to use
           type: string
+          enum:
+            - email-password
+            - passwordless
         email:
           description: A valid email
           example: john.smith@nhost.io
           format: email
           type: string
-        options:
-          additionalProperties: false
-          properties:
-            allowedRoles:
-              default:
-                - me
-                - user
-              example:
-                - me
-                - user
-              items:
-                oneOf:
-                  - enum:
-                      - me
-                  - enum:
-                      - user
-              type: array
-            defaultRole:
-              default: user
-              enum:
-                - me
-                - user
-              example: user
-              type: string
-            displayName:
-              example: John Smith
-              type: string
-            locale:
-              default: en
-              description: A two-characters locale
-              example: en
-              maxLength: 2
-              minLength: 2
-              type: string
-            metadata:
-              additionalProperties: false
-              default: {}
-              example:
-                firstName: John
-                lastName: Smith
-              properties: {}
-              type: object
-            redirectTo:
-              default: https://my-app.com
-              example: https://my-app.com/catch-redirection
-              type: string
-          type: object
         password:
+          description: A password of minimum 3 characters
           example: Str0ngPassw#ord-94|%
+          minLength: 3
+          maxLength: 50
           type: string
-        signInMethod:
-          enum:
-            - email-password
-            - passwordless
-          example: email-password
+        connection:
+          deprecated: true
+          description: Deprecated, will be ignored
           type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - signInMethod
         - email
+
+    UserEmailChangeRequest:
       type: object
-    UserEmailChangeSchema:
       additionalProperties: false
       properties:
         newEmail:
@@ -1215,15 +796,12 @@ components:
           format: email
           type: string
         options:
-          additionalProperties: false
-          properties:
-            redirectTo:
-              default: https://my-app.com
-              example: https://my-app.com/catch-redirection
-              type: string
-          type: object
+          $ref: "#/components/schemas/OptionsRedirectTo"
+      required:
+        - newEmail
+
+    UserEmailSendVerificationEmailRequest:
       type: object
-    UserEmailSendVerificationEmailSchema:
       additionalProperties: false
       properties:
         email:
@@ -1232,59 +810,12 @@ components:
           format: email
           type: string
         options:
-          additionalProperties: false
-          properties:
-            redirectTo:
-              default: https://my-app.com
-              example: https://my-app.com/catch-redirection
-              type: string
-          type: object
+          $ref: "#/components/schemas/OptionsRedirectTo"
       required:
         - email
+
+    UserPasswordResetRequest:
       type: object
-    UserMfaSchema:
-      additionalProperties: false
-      properties:
-        activeMfaType:
-          anyOf:
-            - enum:
-                - totp
-              type: string
-          description: Multi-factor authentication type. A null value deactivates MFA
-          example: totp
-        code:
-          description: MFA activation code
-          type: string
-      required:
-        - code
-      type: object
-    UserNotAnonymousError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - user-not-anonymous
-        message:
-          enum:
-            - Logged in user is not anonymous
-        status:
-          enum:
-            - 400
-      type: object
-    UserNotFoundError:
-      additionalProperties: false
-      properties:
-        error:
-          enum:
-            - user-not-found
-        message:
-          enum:
-            - No user found
-        status:
-          enum:
-            - 400
-      type: object
-    UserPasswordResetSchema:
       additionalProperties: false
       properties:
         email:
@@ -1293,1243 +824,298 @@ components:
           format: email
           type: string
         options:
-          additionalProperties: false
-          properties:
-            redirectTo:
-              default: https://my-app.com
-              example: https://my-app.com/catch-redirection
-              type: string
-          type: object
+          $ref: "#/components/schemas/OptionsRedirectTo"
       required:
         - email
+
+    UserPasswordRequest:
       type: object
-    UserPasswordSchema:
       additionalProperties: false
       properties:
         newPassword:
+          description: A password of minimum 3 characters
           example: Str0ngPassw#ord-94|%
+          minLength: 3
+          maxLength: 50
           type: string
         ticket:
           type: string
+          pattern: ^passwordReset\:.*$
+          description: Ticket to reset the password, required if the user is not authenticated
       required:
         - newPassword
-      type: object
-    UserProviderTokensSchema:
+
+    OKResponse:
+      type: string
       additionalProperties: false
-      properties:
-        providerId:
-          type: string
-        userId:
-          description: Id of the user
-          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
-          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
-          type: string
-      required:
-        - providerId
-        - userId
+      enum:
+        - OK
+
+    OptionsRedirectTo:
       type: object
-    VerifyAddSecurityKeySchema:
-      additionalProperties: false
-      properties:
-        credential:
-          additionalProperties: false
-          properties: {}
-          type: object
-        nickname:
-          type: string
-      required:
-        - credential
-      type: object
-    VerifySchema:
       additionalProperties: false
       properties:
         redirectTo:
-          default: https://my-app.com
+          type: string
+          format: uri
           example: https://my-app.com/catch-redirection
-          type: string
-        ticket:
-          type: string
-        type:
-          type: string
-      required:
-        - redirectTo
-        - ticket
-        - type
+
+    SignInEmailPasswordRequest:
       type: object
-    VerifyTokenSchema:
       additionalProperties: false
       properties:
-        token:
-          description: Access token
-          example: >-
-            eyJhbGciOiJIUzI1NiJ9.eyJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiODAwYjA2ZWYtNGMyYi00NjQwLWIyMjAtNWZlNjk3ZWNjZGM2IiwieC1oYXN1cmEtdXNlci1pcy1hbm9ueW1vdXMiOiJmYWxzZSJ9LCJzdWIiOiI4MDBiMDZlZi00YzJiLTQ2NDAtYjIyMC01ZmU2OTdlY2NkYzYiLCJpc3MiOiJoYXN1cmEtYXV0aCIsImlhdCI6MTY1MTg2NTkwMCwiZXhwIjoxNjUxODY2ODAwfQ.IvFIMXOe6J21fyEfPkP9Caim3C_uAD2qimK4oGpNm44
-          pattern: ^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/=]*$
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
           type: string
-      type: object
-    Version:
-      example: 0.17.1
-      type: string
+        password:
+          description: A password of minimum 3 characters
+          example: Str0ngPassw#ord-94|%
+          minLength: 3
+          maxLength: 50
+          type: string
+      required:
+        - email
+        - password
 
-    CreatePATSchema:
+    SignInPasswordlessEmailRequest:
       type: object
+      additionalProperties: false
       properties:
-        expiresAt:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
           type: string
-          format: date-time
-          description: The expiration date and time of the personal access token
-          example: 
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+
+    SignInOTPEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+
+    SignInOTPEmailVerifyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        otp:
+          type: string
+          description: One time password
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+      required:
+        - otp
+        - email
+
+    SignInOTPEmailVerifyResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+
+    SignUpEmailPasswordRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        password:
+          description: A password of minimum 3 characters
+          example: Str0ngPassw#ord-94|%
+          minLength: 3
+          maxLength: 50
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+        - password
+
+    SignUpOptions:
+      type: object
+      additionalProperties: false
+      properties:
+        allowedRoles:
+          example:
+            - me
+            - user
+          type: array
+          items:
+            type: string
+        defaultRole:
+          example: user
+          type: string
+        displayName:
+          example: John Smith
+          type: string
+          # This is a very permissive regex that allows most characters
+          # but forbids characters like `&`, '/' and ':' that could be used for XSS
+          pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
+          maxLength: 32
+        locale:
+          description: A two-characters locale
+          example: en
+          maxLength: 2
+          minLength: 2
+          type: string
         metadata:
           type: object
-          description: Additional metadata associated with the personal access token
-          additionalProperties: true 
+          additionalProperties: true
+          example:
+            firstName: John
+            lastName: Smith
+          properties: {}
+        redirectTo:
+          type: string
+          format: uri
+          example: https://my-app.com/catch-redirection
+
+    SignUpWebauthnRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
       required:
-        - expiresAt
+        - email
 
-paths:
-  /healthz:
-    get:
-      deprecated: false
-      parameters: []
-      responses:
-        '200':
-          description: Success
-      security: []
-      summary: Check if the server is up and running
-      tags:
-        - General
-  /version:
-    get:
-      deprecated: false
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Version'
-          description: Hasura auth version
-      security: []
-      summary: Get the current Hasura-auth version
-      tags:
-        - General
+    SignUpWebauthnResponse:
+      type: object
+      x-go-type-import:
+        name: protocol
+        path: github.com/go-webauthn/webauthn/protocol
+      x-go-type: protocol.PublicKeyCredentialCreationOptions
 
-  /signup/email-password:
-    post:
-      summary: Sign Up
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignUpEmailPasswordSchema'
-        description: 'a description'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: >-
-            Successfully registered. Null session means email verification is
-            pending
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '409':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmailAlreadyInUseError'
-          description: Email is already present in the database
-      security: []
-      tags:
-        - Authentication
+    SignUpWebauthnVerifyRequest:
+      type: object
+      additionalProperties: true
+      properties:
+        credential:
+          type: object
+          additionalProperties: true
+          x-go-type-import:
+            name: protocol
+            path: github.com/go-webauthn/webauthn/protocol
+          x-go-type: protocol.CredentialCreationResponse
+        options:
+          type: object
+          additionalProperties: false
+          allOf:
+            - $ref: "#/components/schemas/SignUpOptions"
+            - type: object
+              additionalProperties: false
+              properties:
+                nickname:
+                  type: string
 
-  /signin/email-password:
-    post:
-      summary: Sign In
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignInEmailPasswordSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: Signed in successfully
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
-          description: Invalid email or password, or user is not verified
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      tags:
-        - Authentication
+    SignInIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        idToken:
+          type: string
+          description: Apple ID token
+        nonce:
+          type: string
+          description: Nonce used during sign in process
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - provider
+        - idToken
 
-  /signup/webauthn:
-    post:
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignUpWebauthnSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebauthnSessionPayload'
-          description: Signed Up successfully
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Sign Up WebAuthn
-      tags:
-        - Authentication
+    Provider:
+      type: string
+      additionalProperties: false
+      enum:
+        - apple
+        - google
 
-  /signup/webauthn/verify:
-    post:
-      description: Verify WebAuthn Sign Up to complete authentication
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignUpVerifyWebauthnSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: Signed in successfully
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Sign Up WebAuthn Verify 
-      tags:
-        - Authentication
+    LinkIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        idToken:
+          type: string
+          description: Apple ID token
+        nonce:
+          type: string
+          description: Nonce used during sign in process
+      required:
+        - provider
+        - idToken
 
-  /signin/anonymous:
-    post:
-      description: 'Sign In a user anonymously'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignInAnonymousSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: User successfully authenticated
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Sign In Anonymous
-      tags:
-        - Authentication
+  parameters:
+    TicketQuery:
+      in: query
+      name: ticket
+      description: Ticket
+      required: true
+      schema:
+        type: string
+        description: Ticket
+        example: "verifyEmail:xxxxxxxx"
 
-  /signin/mfa/totp:
-    post:
-      description: 'Sign In with a Time-based One-Time Password (TOTP)'
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignInMfaTotpSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: User successfully authenticated
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      summary: Sign In TOTP
-      tags:
-        - Authentication
+    TicketTypeQuery:
+      in: query
+      name: type
+      description: Type of the ticket. Deprecated, no longer used
+      required: false
+      schema:
+        type: string
+        enum:
+          - emailVerify
+          - emailConfirmChange
+          - signinPasswordless
+          - passwordReset
+        description: Type of the ticket
+        example: email-verification
+      deprecated: true
 
-  /signin/passwordless/email:
-    post:
-      description: 'Sign In with a Magic Link, a one-time (OTP) use link sent to the user during the authentication process'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignInPasswordlessEmailSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "OK"
-          description: Email sent successfully
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledUserError'
-          description: User is disabled
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Sign In Email 
-      tags:
-        - Authentication
+    RedirectToQuery:
+      in: query
+      name: redirectTo
+      description: Target URL for the redirect
+      required: true
+      schema:
+        description: Target URL for the redirect
+        type: string
+        format: uri
+        example: https://my-app.com/catch-redirection
 
-  /signin/passwordless/sms:
-    post:
-      description: 'Send a one-time password (OTP) to a user through SMS '
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignInPasswordlessSmsSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "OK"
-          description: SMS sent successfully
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Sign In SMS
-      tags:
-        - Authentication
-
-  /signin/passwordless/sms/otp:
-    post:
-      description: 'Verify and authenticate the one-time password (OTP) received by SMS'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignInOtpSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: User successfully authenticated
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
-          description: Error processing the request
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: >-
-        Sign In SMS Verify OTP
-      tags:
-        - Authentication
-
-  /signin/provider/{provider}:
-    get:
-      deprecated: false
-      parameters:
-        - name: provider
-          description: OAuth Provider to use
-          in: path
-          required: true
-          schema:
-            enum:
-              - github
-              - google
-              - facebook
-              - twitter
-              - apple
-              - azuread
-              - windowslive
-              - linkedin
-              - spotify
-              - strava
-              - gitlab
-              - bitbucket
-              - twitch
-            type: string
-        - name: redirectUrl
-          description: After a user successfully authorizes an application, the authorization server will redirect the user back to this URL
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '302':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Redirect to the provider's authentication page
-      security: []
-      summary: 'Sign In'
-      tags:
-        - Authentication
-
-  /signin/provider/{provider}/callback:
-    get:
-      deprecated: false
-      description: OAuth Callback used by the provider when redirecting the user back to your application
-      parameters:
-        - deprecated: false
-          description: >-
-          in: path
-          name: provider
-          required: true
-          schema:
-            enum:
-              - github
-              - google
-              - facebook
-              - twitter
-              - apple
-              - azuread
-              - windowslive
-              - linkedin
-              - spotify
-              - strava
-              - gitlab
-              - bitbucket
-              - twitch
-            type: string
-        - deprecated: false
-          description: ''
-          in: query
-          name: redirectUrl
-          required: true
-          schema:
-            type: string
-      responses:
-        '302':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: >-
-            Redirect to the initial url given as a query parameter in
-            /signin/provider/{provider}
-      security: []
-      summary: Sign In Callback
-      tags:
-        - Authentication
-
-  /signin/webauthn:
-    post:
-      description: ""
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignInWebauthnSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SignInWebauthnSessionPayload'
-          description: Signed in successfully
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Sign In WebAuthn
-      tags:
-        - Authentication
-
-  /signin/webauthn/verify:
-    post:
-      description: Verify WebAuthn Sign In to complete authentication
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignInVerifyWebauthnSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: Signed in successfully
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
-          description: Invalid email or password, or user is not verified
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Sign In WebAuthn Verify
-      tags:
-        - Authentication
-
-  /elevate/webauthn:
-    post: 
-      description: Elevate access for an already signed in user using FIDO2 Webauthn
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ElevateWebauthnSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ElevateWebauthnSessionPayload'
-          description: Elevated Webauthn successfully 
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security:
-        - BearerAuth: []
-      summary: Elevate WebAuthn  
-      tags:
-        - Authentication
-
-  /elevate/webauthn/verify:
-    post: 
-      description: Verify FIDO2 Webauthn authentication using public-key cryptography
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ElevateVerifyWebauthnSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionPayload'
-          description: Access elevated successfully
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
-          description: Invalid email or password, or user is not verified
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security:
-        - BearerAuth: []
-      summary: Elevate WebAuthn Verify 
-      tags:
-        - Authentication
-
-  /mfa/totp/generate:
-    get:
-      parameters: []
-      description: Generate Secret to request the activation of Time-Based One-Time password (TOTP)
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TotpPayload'
-          description: Success
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthenticatedUserError'
-          description: User is not authenticated
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security:
-        - BearerAuth: []
-      summary: TOTP Secret
-      tags:
-        - User management
-
-  /signout:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignOutSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "OK"
-          description: Successfully signed out
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthenticatedUserError'
-          description: User must be signed in to sign out from all sessions
-      security:
-        - BearerAuth: []
-      summary: Sign Out
-      tags:
-        - Sign out
-
-
-  /token:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Session'
-          description: User successfully authenticated
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
-          description: Unauthenticated user or invalid token
-      security: []
-      summary: Refresh the access JWT token
-      tags:
-        - General
-
-  /token/verify:
-    post:
-      deprecated: false
-      description: >-
-        If request body is not passed the autorization header will be used to be
-        verified
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VerifyTokenSchema'
-        description: ''
-        required: false
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Valid JWT token
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
-          description: Unauthenticated user or invalid token
-      security: []
-      summary: Veify JWT token
-      tags:
-        - General
-
-  /user:
-    get:
-      deprecated: false
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: User information
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthenticatedUserError'
-          description: User is not authenticated
-      security:
-        - BearerAuth: []
-      summary: Get User Information
-      tags:
-        - User management
-
-  /user/deanonymize:
-    post:
-      deprecated: false
-      description: Deanonymize an anonymous user with email and optionally password
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserDeanonymizeSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Success
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload format is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthenticatedUserError'
-          description: User is not authenticated
-      security:
-        - BearerAuth: []
-      summary: >-
-        Sign In Deanonymize 
-      tags:
-        - Authentication
-
-  /user/email/change:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserEmailChangeSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: A verification email has been sent to the new email
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload format is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthenticatedUserError'
-          description: User is not authenticated
-      security:
-        - BearerAuth: []
-      summary: Change Email
-      tags:
-        - User management
-
-  /user/email/send-verification-email:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserEmailSendVerificationEmailSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Success
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload format is invalid
-      security: []
-      summary: Verify Account 
-      tags:
-        - User management
-
-  /user/mfa:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserMfaSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Success
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload format is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthenticatedUserError'
-          description: User is not authenticated
-      security:
-        - BearerAuth: []
-      summary: Toogle MFA
-      tags:
-        - Authentication
-
-  /user/password:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPasswordSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            tapplication/json:
-              schema:
-                type: string
-          description: The password has been successfully changed
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthenticatedUserError'
-          description: User is not authenticated
-      security:
-        - BearerAuth: []
-      summary: Set New Password
-      tags:
-        - User management
-
-  /user/password/reset:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPasswordResetSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: The email to reset the password has been sent
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-      security: []
-      summary: Reset Password
-      tags:
-        - User management
-
-  /user/provider/tokens:
-    post:
-      deprecated: false
-      parameters:
-        - deprecated: false
-          description: Hasura admin secret
-          in: header
-          name: x-hasura-admin-secret
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserProviderTokensSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Success
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload format is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidAdminSecretError'
-          description: Incorrect admin secret header
-      security: []
-      summary: Refresh Oauth Token
-      tags:
-        - User management
-
-  /user/webauthn/add:
-    post:
-      parameters: []
-      description: Add WebAuthn Security Key for web or mobile devices
-      responses:
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
-          description: Invalid email or password, or user is not verified
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Add Security Key
-      tags:
-        - User management
-
-  /user/webauthn/verify:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VerifyAddSecurityKeySchema'
-        description: ''
-        required: true
-      responses:
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
-          description: Invalid email or password, or user is not verified
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisabledEndpointError'
-          description: The feature is not activated
-      security: []
-      summary: Verify Security Key
-      tags:
-        - User management
-
-  /pat:
-    post:
-      deprecated: false
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreatePATSchema'
-        description: ''
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Session'
-          description: User successfully authenticated
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload format is invalid
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthenticatedUserError'
-          description: User is not authenticated
-      security:
-        - BearerAuth: []
-      summary: Create Personal Access Token (PAT) 
-      tags:
-        - User management
-
-  /verify:
-    get:
-      deprecated: false
-      parameters:
-        - deprecated: false
-          description: Ticket generated in the previous actions and sent by email
-          in: query
-          name: ticket
-          required: true
-          schema:
-            type: string
-        - deprecated: false
-          description: name param description
-          in: query
-          name: type
-          required: true
-          schema:
-            enum:
-              - emailVerify
-              - emailConfirmChange
-              - signinPasswordless
-              - passwordReset
-            type: string
-        - deprecated: false
-          description: Redirection link
-          in: query
-          name: redirectTo
-          required: true
-          schema:
-            type: string
-      responses:
-        '302':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: '{redirectTo}?refreshToken=${refreshToken}&type=${type}'
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvalidRequestError'
-          description: The payload format is invalid
-      security: []
-      summary: >-
-        Verify tickets created by email verification, email passwordless
-        authentication, or password reset
-      tags:
-        - General
+  headers:
+    RedirectLocation:
+      description: URL to redirect to
+      schema:
+        type: string
+        format: uri
+      required: true

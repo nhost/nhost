@@ -132,6 +132,8 @@
               nhost-cli
               nodejs
               nodePackages.pnpm
+              go
+              golangci-lint
             ] ++ buildInputs ++ nativeBuildInputs;
 
             # shellHook = ''
