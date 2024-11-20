@@ -26,7 +26,11 @@ import type {
   JWTSecretType,
   JWTSettingsFormValues,
 } from '@/features/orgs/projects/jwt/settings/types';
-import { validationSchema } from '@/features/orgs/projects/jwt/settings/types';
+import {
+  ASYMMETRIC_ALGORITHMS,
+  SYMMETRIC_ALGORITHMS,
+  validationSchema,
+} from '@/features/orgs/projects/jwt/settings/types';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { removeTypename } from '@/utils/helpers';
 
@@ -41,13 +45,11 @@ export default function JWTSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const [signatureType, setSignatureType] =
-    useState<JWTSecretType>('symmetric');
-
   const {
     data: jwtSecretsData,
     loading: jwtSecretsLoading,
     error: jwtSecretsError,
+    refetch: refetchJwtSecrets,
   } = useGetJwtSecretsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -76,6 +78,23 @@ export default function JWTSettings() {
     [customClaimsData],
   );
 
+  let initialSignatureType: JWTSecretType = 'symmetric';
+
+  if (
+    typeof jwtType === 'string' &&
+    ASYMMETRIC_ALGORITHMS.includes(
+      jwtType as (typeof ASYMMETRIC_ALGORITHMS)[number],
+    )
+  ) {
+    initialSignatureType = 'asymmetric';
+  }
+  if (jwk_url) {
+    initialSignatureType = 'third-party';
+  }
+
+  const [signatureType, setSignatureType] =
+    useState<JWTSecretType>(initialSignatureType);
+
   const form = useForm<JWTSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
@@ -87,6 +106,9 @@ export default function JWTSettings() {
       customClaims: customClaims || [],
     },
     resolver: yupResolver(validationSchema),
+    context: {
+      signatureType,
+    },
   });
 
   useEffect(() => {
@@ -125,28 +147,21 @@ export default function JWTSettings() {
 
   const formValues = form.getValues();
 
-  let initialSignatureType: JWTSecretType = 'symmetric';
-
-  if (signingKey) {
-    initialSignatureType = 'asymmetric';
-  }
-  if (jwk_url) {
-    initialSignatureType = 'third-party';
-  }
-
   const handleSignatureTypeChange = (value: JWTSecretType) => {
     if (value === initialSignatureType) {
-    reset(
-      {
+      reset({
         ...formValues,
         type: jwtType || '',
         key: jwtKey || '',
         signingKey: signingKey || '',
         kid: kid || '',
         jwkUrl: jwk_url || '',
-      },
-    );
+      });
     } else {
+      const newType =
+        value === 'symmetric'
+          ? SYMMETRIC_ALGORITHMS[0]
+          : ASYMMETRIC_ALGORITHMS[0];
       reset({
         ...formValues,
         type: '',
@@ -155,6 +170,7 @@ export default function JWTSettings() {
         kid: '',
         jwkUrl: '',
       });
+      setValue('type', newType, { shouldDirty: true });
     }
 
     setSignatureType(value);
@@ -215,6 +231,7 @@ export default function JWTSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(values);
+        refetchJwtSecrets();
 
         if (!isPlatform) {
           openDialog({
@@ -272,11 +289,11 @@ export default function JWTSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://github.com/nhost/hasura-auth/releases"
-          docsTitle="the latest releases"
+          docsLink="https://docs.nhost.io/guides/auth/jwt"
+          docsTitle="JSON Web Token (JWT) Settings"
           className="grid grid-flow-row gap-x-4 gap-y-2 px-4"
         >
-          <Box className="flex flex-col gap-2">
+          <Box className="flex flex-col gap-6">
             <RadioGroup
               className="flex flex-col gap-4 lg:flex-row"
               defaultValue="public"
@@ -294,7 +311,7 @@ export default function JWTSettings() {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="third-party" id="third-party" />
                 <Label className="flex flex-1" htmlFor="third-party">
-                  Third party service (disable hasura-auth)
+                  Third party service
                 </Label>
               </div>
             </RadioGroup>

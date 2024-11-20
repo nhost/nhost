@@ -19,6 +19,8 @@ export default function SymmetricKeyFormSection() {
 
   const type = watch('type');
 
+  console.log('type:', type);
+
   return (
     <Box className="grid grid-cols-3 gap-4">
       <Select
@@ -27,11 +29,14 @@ export default function SymmetricKeyFormSection() {
         placeholder="HS256"
         hideEmptyHelperText
         variant="normal"
+        defaultValue={SYMMETRIC_ALGORITHMS[0]}
         error={!!errors.type}
         helperText={errors?.type?.message}
         label="Hashing algorithm"
         value={type}
-        onChange={(_event, value) => setValue('type', value as string)}
+        onChange={(_event, value) =>
+          setValue('type', value as string, { shouldDirty: true })
+        }
       >
         {SYMMETRIC_ALGORITHMS.map((algorithm) => (
           <Option key={algorithm} value={algorithm}>
@@ -44,7 +49,7 @@ export default function SymmetricKeyFormSection() {
         name="key"
         id="key"
         label="Key"
-        placeholder="This is a secret key that will be used to sign the JWT token."
+        placeholder="Enter symmetric key"
         className="col-span-2"
         fullWidth
         hideEmptyHelperText

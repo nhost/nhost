@@ -18,19 +18,24 @@ export default function AsymmetricKeyFormSection() {
 
   const type = watch('type');
 
+  console.log('atype:', type);
+
   return (
-    <Box className="grid grid-cols-3 gap-4">
+    <Box className="grid grid-cols-5 gap-4">
       <Select
         id="type"
-        className="col-span-2"
+        className="col-span-1 lg:col-span-1"
         placeholder="RS256"
         hideEmptyHelperText
         variant="normal"
+        defaultValue={ASYMMETRIC_ALGORITHMS[0]}
         error={!!errors.type}
         helperText={errors?.type?.message}
         label="Hashing algorithm"
         value={type}
-        onChange={(_event, value) => setValue('type', value as string)}
+        onChange={(_event, value) =>
+          setValue('type', value as string, { shouldDirty: true })
+        }
       >
         {ASYMMETRIC_ALGORITHMS.map((algorithm) => (
           <Option key={algorithm} value={algorithm}>
@@ -43,8 +48,8 @@ export default function AsymmetricKeyFormSection() {
         name="key"
         id="key"
         label="Key"
-        placeholder="This is a secret key that will be used to sign the JWT token."
-        className="col-span-2"
+        placeholder="Enter public key"
+        className="col-span-3 lg:col-span-2"
         fullWidth
         hideEmptyHelperText
         error={!!errors?.key}
@@ -55,8 +60,8 @@ export default function AsymmetricKeyFormSection() {
         name="signingKey"
         id="signingKey"
         label="Signing key"
-        placeholder="This is a secret key that will be used to sign the JWT token."
-        className="col-span-2"
+        placeholder="Enter private signing key"
+        className="col-span-3 lg:col-span-2"
         fullWidth
         hideEmptyHelperText
         error={!!errors?.signingKey}
@@ -67,8 +72,8 @@ export default function AsymmetricKeyFormSection() {
         name="kid"
         id="kid"
         label="Key ID"
-        placeholder="The key ID to use for the signing key."
-        className="col-span-2"
+        placeholder="Enter unique key ID (optional)"
+        className="col-span-3 lg:col-span-2"
         fullWidth
         hideEmptyHelperText
         error={!!errors?.kid}

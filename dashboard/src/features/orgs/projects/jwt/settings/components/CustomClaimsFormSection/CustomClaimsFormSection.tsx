@@ -21,9 +21,14 @@ export default function CustomClaimsFormSection() {
   return (
     <Box className="flex flex-col gap-4">
       <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
+        <Box className="flex flex-col gap-1">
           <Text variant="h4" className="font-semibold">
             Custom Claims
+          </Text>
+          <Text color="secondary">
+            You can attach extra information to your JWTs in the form of custom
+            claims. These claims can be used for authorization purposes in your
+            application.
           </Text>
         </Box>
         <Button
@@ -42,7 +47,7 @@ export default function CustomClaimsFormSection() {
                   {...register(`customClaims.${index}.key`)}
                   id={`${field.id}-custom-claims-key`}
                   label="Key"
-                  placeholder="https://discord.com/api/webhooks/..."
+                  placeholder="Enter your key"
                   className="w-full"
                   hideEmptyHelperText
                   error={!!errors?.customClaims?.[index]?.key}
@@ -54,7 +59,7 @@ export default function CustomClaimsFormSection() {
                   {...register(`customClaims.${index}.value`)}
                   id={`${field.id}-custom-claims-value`}
                   label="Value"
-                  placeholder="https://discord.com/api/avatar/..."
+                  placeholder="Enter your value"
                   className="w-full"
                   hideEmptyHelperText
                   error={!!errors?.customClaims?.[index]?.value}
