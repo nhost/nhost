@@ -18,6 +18,7 @@
 		"@react-navigation/native-stack": "^6.9.26",
 		"base-64": "^1.0.0",
 		"react": "18.2.0",
+    "react-dom": "18.2.0",
 		"react-hook-form": "^7.51.2",
 		"react-native": "0.73.7",
 		"react-native-document-picker": "^9.2.0",
