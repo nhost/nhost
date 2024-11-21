@@ -32,8 +32,6 @@ export default function ExternalSigningFormSection({
 
   const type = watch('type');
 
-  console.log('errors:', errors);
-
   return (
     <div className="flex flex-col gap-6">
       <Alert severity="warning">
@@ -48,7 +46,7 @@ export default function ExternalSigningFormSection({
             defaultValue="jwk-endpoint"
             value={externalSigningType}
             onValueChange={handleExternalSigningTypeChange}
-            className="flex flex-row"
+            className="flex flex-col gap-4 lg:flex-row"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="jwk-endpoint" id="jwk-endpoint" />
