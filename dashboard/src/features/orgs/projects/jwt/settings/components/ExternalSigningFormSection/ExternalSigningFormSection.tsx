@@ -8,18 +8,21 @@ import { Box } from '@/components/ui/v2/Box';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   ASYMMETRIC_ALGORITHMS,
   type ExternalSigningType,
   type JWTSettingsFormValues,
 } from '@/features/orgs/projects/jwt/settings/types';
-import { useGetJwtSecretsQuery } from '@/utils/__generated__/graphql';
-import { useState } from 'react';
 
-export default function ExternalSigningFormSection() {
+interface ExternalSigningFormSectionProps {
+  externalSigningType: ExternalSigningType;
+  handleExternalSigningTypeChange: (value: ExternalSigningType) => void;
+}
+
+export default function ExternalSigningFormSection({
+  externalSigningType,
+  handleExternalSigningTypeChange,
+}: ExternalSigningFormSectionProps) {
   const {
     register,
     formState: { errors },
@@ -29,27 +32,7 @@ export default function ExternalSigningFormSection() {
 
   const type = watch('type');
 
-  const { project } = useProject();
-  const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
-
-  const { data } = useGetJwtSecretsQuery({
-    variables: { appId: project?.id },
-    fetchPolicy: 'cache-only',
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-  const { jwk_url } = data?.config?.hasura?.jwtSecrets?.[0] || {};
-
-  const initialExternalSigningType: ExternalSigningType = jwk_url
-    ? 'jwk-endpoint'
-    : 'public-key';
-
-  const [externalSigningType, setExternalSigningType] =
-    useState<ExternalSigningType>(initialExternalSigningType);
-
-  const handleExternalSigningTypeChange = (value: ExternalSigningType) => {
-    setExternalSigningType(value);
-  };
+  console.log('errors:', errors);
 
   return (
     <div className="flex flex-col gap-6">

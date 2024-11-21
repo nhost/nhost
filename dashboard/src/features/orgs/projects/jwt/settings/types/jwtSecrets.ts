@@ -11,14 +11,30 @@ export const ASYMMETRIC_ALGORITHMS = ['RS256', 'RS384', 'RS512'] as const;
 export const validationSchema = Yup.object({
   type: Yup.string()
     .label('Type')
-    .when('$signatureType', {
-      is: (signatureType: JWTSecretType) => signatureType !== 'external',
+    .when(['$signatureType', '$externalSigningType'], {
+      is: (
+        signatureType: JWTSecretType,
+        externalSigningType: ExternalSigningType,
+      ) => {
+        if (signatureType === 'external') {
+          return externalSigningType === 'public-key';
+        }
+        return true;
+      },
       then: (schema) => schema.required(),
     }),
   key: Yup.string()
     .label('Key')
-    .when('$signatureType', {
-      is: (signatureType: JWTSecretType) => signatureType !== 'external',
+    .when(['$signatureType', '$externalSigningType'], {
+      is: (
+        signatureType: JWTSecretType,
+        externalSigningType: ExternalSigningType,
+      ) => {
+        if (signatureType === 'external') {
+          return externalSigningType === 'public-key';
+        }
+        return true;
+      },
       then: (schema) => schema.required(),
     }),
   signingKey: Yup.string()
@@ -36,8 +52,12 @@ export const validationSchema = Yup.object({
   jwkUrl: Yup.string()
     .label('JWK endpoint URL')
     .url()
-    .when('$signatureType', {
-      is: (signatureType: JWTSecretType) => signatureType === 'external',
+    .when(['$signatureType', '$externalSigningType'], {
+      is: (
+        signatureType: JWTSecretType,
+        externalSigningType: ExternalSigningType,
+      ) =>
+        signatureType === 'external' && externalSigningType === 'jwk-endpoint',
       then: (schema) => schema.required(),
     }),
 });

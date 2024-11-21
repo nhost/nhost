@@ -23,6 +23,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { JWTSecretField } from '@/features/orgs/projects/jwt/settings/components/JWTSecretField';
 import type {
+  ExternalSigningType,
   JWTSecretType,
   JWTSettingsFormValues,
 } from '@/features/orgs/projects/jwt/settings/types';
@@ -65,21 +66,34 @@ export default function JWTSettings() {
   } = jwtSecretsData?.config?.hasura?.jwtSecrets?.[0] || {};
 
   let initialSignatureType: JWTSecretType = 'symmetric';
-
   if (
+    typeof jwtType === 'string' &&
+    SYMMETRIC_ALGORITHMS.includes(
+      jwtType as (typeof SYMMETRIC_ALGORITHMS)[number],
+    )
+  ) {
+    initialSignatureType = 'symmetric';
+  } else if (
     typeof jwtType === 'string' &&
     ASYMMETRIC_ALGORITHMS.includes(
       jwtType as (typeof ASYMMETRIC_ALGORITHMS)[number],
-    )
+    ) &&
+    kid
   ) {
     initialSignatureType = 'asymmetric';
-  }
-  if (jwk_url) {
+  } else {
     initialSignatureType = 'external';
   }
 
+  const initialExternalSigningType: ExternalSigningType = jwk_url
+    ? 'jwk-endpoint'
+    : 'public-key';
+
   const [signatureType, setSignatureType] =
     useState<JWTSecretType>(initialSignatureType);
+
+  const [externalSigningType, setExternalSigningType] =
+    useState<ExternalSigningType>(initialExternalSigningType);
 
   const form = useForm<JWTSettingsFormValues>({
     reValidateMode: 'onSubmit',
@@ -93,6 +107,7 @@ export default function JWTSettings() {
     resolver: yupResolver(validationSchema),
     context: {
       signatureType,
+      externalSigningType,
     },
   });
 
@@ -151,6 +166,31 @@ export default function JWTSettings() {
     setSignatureType(value);
   };
 
+  const handleExternalSigningTypeChange = (value: ExternalSigningType) => {
+    if (value === initialExternalSigningType) {
+      reset({
+        ...formValues,
+        type: jwtType || '',
+        key: jwtKey || '',
+        signingKey: signingKey || '',
+        kid: kid || '',
+        jwkUrl: jwk_url || '',
+      });
+    } else {
+      reset({
+        ...formValues,
+        type: '',
+        key: '',
+        signingKey: '',
+        kid: '',
+        jwkUrl: '',
+      });
+      setValue('type', ASYMMETRIC_ALGORITHMS[0], { shouldDirty: true });
+    }
+
+    setExternalSigningType(value);
+  };
+
   const getFormattedConfig = (
     values: JWTSettingsFormValues,
   ): ConfigConfigUpdateInput => {
@@ -171,9 +211,14 @@ export default function JWTSettings() {
         signingKey: sanitizedValues.signingKey,
         kid: sanitizedValues.kid,
       };
-    } else {
+    } else if (externalSigningType === 'jwk-endpoint') {
       jwtSecret = {
         jwk_url: sanitizedValues.jwkUrl,
+      };
+    } else if (externalSigningType === 'public-key') {
+      jwtSecret = {
+        type: sanitizedValues.type,
+        key: sanitizedValues.key,
       };
     }
 
@@ -354,7 +399,11 @@ export default function JWTSettings() {
                 </Label>
               </div>
             </RadioGroup>
-            <JWTSecretField secretType={signatureType} />
+            <JWTSecretField
+              secretType={signatureType}
+              externalSigningType={externalSigningType}
+              handleExternalSigningTypeChange={handleExternalSigningTypeChange}
+            />
           </Box>
         </SettingsContainer>
       </Form>
