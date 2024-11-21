@@ -33,12 +33,6 @@ export const validationSchema = Yup.object({
       is: (signatureType: JWTSecretType) => signatureType === 'third-party',
       then: (schema) => schema.required(),
     }),
-  customClaims: Yup.array().of(
-    Yup.object({
-      key: Yup.string().label('Key'),
-      value: Yup.string().label('Value'),
-    }),
-  ),
 });
 
 export type JWTSettingsFormValues = Yup.InferType<typeof validationSchema>;

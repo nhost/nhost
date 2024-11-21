@@ -5,13 +5,12 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
-  useGetCustomClaimsQuery,
   useGetJwtSecretsQuery,
   useUpdateConfigMutation,
   type ConfigConfigUpdateInput,
 } from '@/generated/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { Box } from '@/components/ui/v2/Box';
@@ -22,7 +21,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { CustomClaimsFormSection } from '@/features/orgs/projects/jwt/settings/components/CustomClaimsFormSection';
 import { JWTSecretField } from '@/features/orgs/projects/jwt/settings/components/JWTSecretField';
 import type {
   JWTSecretType,
@@ -66,22 +64,6 @@ export default function JWTSettings() {
     ...rest
   } = jwtSecretsData?.config?.hasura?.jwtSecrets?.[0] || {};
 
-  const {
-    data: customClaimsData,
-    loading: customClaimsLoading,
-    error: customClaimsError,
-    refetch: refetchCustomClaims,
-  } = useGetCustomClaimsQuery({
-    variables: { appId: project?.id },
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
-  const customClaims = useMemo(
-    () =>
-      customClaimsData?.config?.auth?.session?.accessToken?.customClaims || [],
-    [customClaimsData],
-  );
-
   let initialSignatureType: JWTSecretType = 'symmetric';
 
   if (
@@ -107,7 +89,6 @@ export default function JWTSettings() {
       signingKey: signingKey || '',
       kid: kid || '',
       jwkUrl: jwk_url || '',
-      customClaims: customClaims || [],
     },
     resolver: yupResolver(validationSchema),
     context: {
@@ -116,33 +97,23 @@ export default function JWTSettings() {
   });
 
   useEffect(() => {
-    if (
-      !jwtSecretsLoading &&
-      !customClaimsLoading &&
-      !jwtSecretsError &&
-      !customClaimsError
-    ) {
+    if (!jwtSecretsLoading && !jwtSecretsError) {
       form.reset({
         type: jwtType || '',
         key: jwtKey || '',
         signingKey: signingKey || '',
         kid: kid || '',
         jwkUrl: jwk_url || '',
-        customClaims: customClaims || [],
       });
     }
   }, [
     jwtSecretsLoading,
-    customClaimsLoading,
     jwtSecretsData,
-    customClaimsData,
     jwtType,
     jwtKey,
     signingKey,
     kid,
     jwk_url,
-    customClaims,
-    customClaimsError,
     jwtSecretsError,
     form,
   ]);
@@ -215,13 +186,6 @@ export default function JWTSettings() {
       hasura: {
         jwtSecrets: [jwtSecret],
       },
-      auth: {
-        session: {
-          accessToken: {
-            customClaims: sanitizedValues.customClaims || [],
-          },
-        },
-      },
     };
 
     return config;
@@ -242,7 +206,6 @@ export default function JWTSettings() {
         await updateConfigPromise;
         form.reset(values);
         refetchJwtSecrets();
-        refetchCustomClaims();
 
         if (!isPlatform) {
           openDialog({
@@ -264,9 +227,7 @@ export default function JWTSettings() {
     );
   };
 
-  const showCustomClaims = signatureType !== 'third-party';
-
-  if (jwtSecretsLoading || customClaimsLoading) {
+  if (jwtSecretsLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -276,16 +237,8 @@ export default function JWTSettings() {
     );
   }
 
-  if (jwtSecretsError || customClaimsError) {
-    throw new Error(
-      'An error occurred while trying to fetch JWT secrets or custom claims.',
-      {
-        cause: {
-          jwtSecretsError,
-          customClaimsError,
-        },
-      },
-    );
+  if (jwtSecretsError) {
+    throw jwtSecretsError;
   }
 
   return (
@@ -404,7 +357,6 @@ export default function JWTSettings() {
               </div>
             </RadioGroup>
             <JWTSecretField secretType={signatureType} />
-            {showCustomClaims && <CustomClaimsFormSection />}
           </Box>
         </SettingsContainer>
       </Form>
