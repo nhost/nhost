@@ -139,6 +139,20 @@ If you are using a third party service like Auth0 or Clerk you can configure you
 jwk_url = "https://mythirdpartyservice.com/jwks.json"
 ```
 
+Alternatively, you can configure the public key directly:
+
+```toml
+[[hasura.jwtSecrets]]
+type = "RS256"
+key = ""
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqSFS8Kx9LuiYpIms+NoZ
+(ommited for brevity)
+jwIDAQAB
+-----END PUBLIC KEY-----
+""
+```
+
 <Note>
 When using external signing the Auth service will be automatically disabled.
 </Note>
