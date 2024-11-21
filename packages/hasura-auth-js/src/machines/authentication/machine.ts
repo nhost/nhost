@@ -517,7 +517,6 @@ export const createAuthMachine = ({
                 }
               }
             },
-
             signInEmailOTP: {
               entry: ['resetErrors'],
               invoke: {
@@ -548,7 +547,6 @@ export const createAuthMachine = ({
                 }
               }
             },
-
             complete: {
               on: {
                 SIGNED_OUT: 'incomplete'
@@ -869,11 +867,19 @@ export const createAuthMachine = ({
           })
         },
         signInEmailOTP: (_, { email }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+
           return postRequest('/signin/otp/email', {
             email
           })
         },
         verifyEmailOTP: (_, { email, otp }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+
           return postRequest('/signin/otp/email/verify', {
             email,
             otp

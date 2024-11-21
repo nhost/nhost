@@ -8,7 +8,13 @@ import {
   SessionActionHandlerResult
 } from './types'
 
-export interface SignInEmailOTPHandlerResult extends AuthActionErrorState, AuthActionSuccessState {}
+export interface SignInEmailOTPHandlerResult extends AuthActionErrorState, AuthActionSuccessState {
+  /**
+   * Returns true when the one-time password has been sent via email, and the user needs to send it back to complete sign-in.
+   */
+  needsOtp: boolean
+}
+
 export interface SignInEmailOTPState extends SignInEmailOTPHandlerResult, AuthActionLoadingState {}
 
 export interface VerifyEmailOTPHandlerResult extends SessionActionHandlerResult {}
@@ -21,7 +27,8 @@ export const signInEmailOTPPromise = (interpreter: AuthInterpreter, email: strin
       return resolve({
         error: USER_ALREADY_SIGNED_IN,
         isError: true,
-        isSuccess: false
+        isSuccess: false,
+        needsOtp: false
       })
     }
 
@@ -30,13 +37,15 @@ export const signInEmailOTPPromise = (interpreter: AuthInterpreter, email: strin
         resolve({
           error: null,
           isError: false,
-          isSuccess: true
+          isSuccess: true,
+          needsOtp: true
         })
       } else if (state.matches('registration.incomplete.failed')) {
         resolve({
           error: state.context.errors.authentication || null,
           isError: true,
-          isSuccess: false
+          isSuccess: false,
+          needsOtp: false
         })
       }
     })

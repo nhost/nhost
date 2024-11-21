@@ -23,6 +23,7 @@ import {
   resetPasswordPromise,
   sendVerificationEmailPromise,
   signInAnonymousPromise,
+  signInEmailOTPPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
   signInEmailSecurityKeyPromise,
@@ -32,7 +33,8 @@ import {
   signInSmsPasswordlessPromise,
   signOutPromise,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise
+  signUpEmailSecurityKeyPromise,
+  verifyEmailOTPPromise
 } from './promises'
 import { createPATPromise } from './promises/createPAT'
 import {
@@ -56,6 +58,7 @@ import {
   SecurityKey,
   SendVerificationEmailParams,
   SendVerificationEmailResponse,
+  SignInEmailOTPResponse,
   SignInParams,
   SignInPATResponse,
   SignInResponse,
@@ -327,6 +330,51 @@ export class HasuraAuthClient {
     const res = await signInPATPromise(interpreter, personalAccessToken)
 
     return getAuthenticationResult(res)
+  }
+
+  /**
+   * Use `nhost.auth.signInEmailOTP` to sign in with an email one-time password (OTP).
+   *
+   * @example
+   * ```ts
+   * nhost.auth.signInEmailOTP('user@example.com')
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/sign-in-email-otp
+   *
+   * @param email - The email address to send the OTP to
+   */
+  async signInEmailOTP(email: string): Promise<SignInResponse> {
+    const interpreter = await this.waitUntilReady()
+
+    const { error } = await signInEmailOTPPromise(interpreter, email)
+
+    return {
+      error,
+      session: null,
+      mfa: null
+    }
+  }
+
+  /**
+   * Use `nhost.auth.verifyEmailOTP` to verify an email one-time password (OTP) and complete the sign-in process
+   *
+   * @example
+   * ```ts
+   * nhost.auth.verifyEmailOTP('user@example.com', '123456')
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/verify-email-otp
+   *
+   * @param email - The email address to verify the OTP for
+   * @param otp - The one-time password sent to the email address
+   */
+  async verifyEmailOTP(email: string, otp: string): Promise<SignInResponse> {
+    const interpreter = await this.waitUntilReady()
+
+    const res = await verifyEmailOTPPromise(interpreter, email, otp)
+
+    return { ...getAuthenticationResult(res), mfa: null }
   }
 
   /**
