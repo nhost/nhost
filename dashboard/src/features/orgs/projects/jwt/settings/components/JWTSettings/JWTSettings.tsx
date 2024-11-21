@@ -63,6 +63,7 @@ export default function JWTSettings() {
     signingKey,
     kid,
     jwk_url,
+    ...rest
   } = jwtSecretsData?.config?.hasura?.jwtSecrets?.[0] || {};
 
   const {
@@ -184,6 +185,7 @@ export default function JWTSettings() {
   ): ConfigConfigUpdateInput => {
     // Remove any __typename property from the values
     const sanitizedValues = removeTypename(values) as JWTSettingsFormValues;
+    const sanitizedRest = removeTypename(rest);
 
     let jwtSecret = {};
     if (signatureType === 'symmetric') {
@@ -203,6 +205,11 @@ export default function JWTSettings() {
         jwk_url: sanitizedValues.jwkUrl,
       };
     }
+
+    jwtSecret = {
+      ...sanitizedRest,
+      ...jwtSecret,
+    };
 
     const config: ConfigConfigUpdateInput = {
       hasura: {
@@ -373,8 +380,8 @@ export default function JWTSettings() {
                   <Tooltip
                     title={
                       <span>
-                        This will use a third party service's JWK endpoint to
-                        verify JWT's. Refer to{' '}
+                        This will use a third party service&apos;s JWK endpoint
+                        to verify JWT&apos;s. Refer to{' '}
                         <a
                           target="_blank"
                           rel="noopener noreferrer"

@@ -27305,7 +27305,7 @@ export type GetJwtSecretsQueryVariables = Exact<{
 }>;
 
 
-export type GetJwtSecretsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', type?: string | null, key?: string | null, signingKey?: string | null, kid?: string | null, jwk_url?: any | null }> | null } } | null };
+export type GetJwtSecretsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', type?: string | null, key?: string | null, signingKey?: string | null, kid?: string | null, jwk_url?: any | null, allowed_skew?: any | null, audience?: string | null, claims_format?: string | null, claims_namespace?: string | null, claims_namespace_path?: string | null, header?: string | null, issuer?: string | null, claims_map?: Array<{ __typename?: 'ConfigClaimMap', claim: string, default?: string | null, path?: string | null, value?: string | null }> | null }> | null } } | null };
 
 export type GetObservabilitySettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -29299,6 +29299,19 @@ export const GetJwtSecretsDocument = gql`
         signingKey
         kid
         jwk_url
+        allowed_skew
+        audience
+        claims_format
+        claims_map {
+          claim
+          default
+          path
+          value
+        }
+        claims_namespace
+        claims_namespace_path
+        header
+        issuer
       }
     }
   }
