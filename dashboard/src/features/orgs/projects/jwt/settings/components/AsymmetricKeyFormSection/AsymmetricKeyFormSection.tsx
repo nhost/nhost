@@ -42,40 +42,49 @@ export default function AsymmetricKeyFormSection() {
         ))}
       </Select>
       <Input
+        {...register('kid')}
+        name="kid"
+        id="kid"
+        label="Key ID"
+        placeholder="Enter unique key ID"
+        className="col-span-5 lg:col-span-3"
+        fullWidth
+        hideEmptyHelperText
+        error={!!errors?.kid}
+        helperText={errors?.kid?.message}
+      />
+
+      <Input
         {...register('key')}
         name="key"
         id="key"
-        label="Key"
-        placeholder="Enter public key"
-        className="col-span-5 lg:col-span-3"
+        label="Public Key"
+        placeholder="-----BEGIN PUBLIC KEY-----"
+        className="col-span-5 lg:col-span-4"
         fullWidth
         hideEmptyHelperText
         error={!!errors?.key}
         helperText={errors?.key?.message}
+        multiline
+        inputProps={{
+          className: 'resize-y min-h-[130px]',
+        }}
       />
       <Input
         {...register('signingKey')}
         name="signingKey"
         id="signingKey"
         label="Signing key"
-        placeholder="Enter private signing key"
+        placeholder="-----BEGIN PRIVATE KEY-----"
         className="col-span-5 lg:col-span-4"
         fullWidth
         hideEmptyHelperText
         error={!!errors?.signingKey}
         helperText={errors?.signingKey?.message}
-      />
-      <Input
-        {...register('kid')}
-        name="kid"
-        id="kid"
-        label="Key ID"
-        placeholder="Enter unique key ID (optional)"
-        className="col-span-5 lg:col-span-4"
-        fullWidth
-        hideEmptyHelperText
-        error={!!errors?.kid}
-        helperText={errors?.kid?.message}
+        multiline
+        inputProps={{
+          className: 'resize-y min-h-[130px]',
+        }}
       />
     </Box>
   );

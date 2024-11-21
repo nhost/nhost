@@ -75,7 +75,7 @@ export default function JWTSettings() {
     initialSignatureType = 'asymmetric';
   }
   if (jwk_url) {
-    initialSignatureType = 'third-party';
+    initialSignatureType = 'external';
   }
 
   const [signatureType, setSignatureType] =
@@ -324,17 +324,15 @@ export default function JWTSettings() {
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="third-party" id="third-party" />
-                <Label
-                  htmlFor="third-party"
-                  className="flex items-center gap-1"
-                >
-                  Third party service
+                <RadioGroupItem value="external" id="external" />
+                <Label htmlFor="external" className="flex items-center gap-1">
+                  External signing
                   <Tooltip
                     title={
                       <span>
                         This will use a third party service&apos;s JWK endpoint
-                        to verify JWT&apos;s. Refer to{' '}
+                        to verify JWT&apos;s. Alternatively you can configure
+                        the public key directly. Refer to{' '}
                         <a
                           target="_blank"
                           rel="noopener noreferrer"
