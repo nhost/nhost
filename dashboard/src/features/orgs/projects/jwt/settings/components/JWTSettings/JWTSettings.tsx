@@ -27,11 +27,11 @@ import type {
   JWTSecretType,
   JWTSettingsFormValues,
 } from '@/features/orgs/projects/jwt/settings/types';
+import { validationSchema } from '@/features/orgs/projects/jwt/settings/types';
 import {
   ASYMMETRIC_ALGORITHMS,
   SYMMETRIC_ALGORITHMS,
-  validationSchema,
-} from '@/features/orgs/projects/jwt/settings/types';
+} from '@/features/orgs/projects/jwt/settings/utils/constants';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { removeTypename } from '@/utils/helpers';
 

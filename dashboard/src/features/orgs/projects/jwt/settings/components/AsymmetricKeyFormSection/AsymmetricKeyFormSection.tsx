@@ -6,7 +6,7 @@ import { Option } from '@/components/ui/v2/Option';
 import { type JWTSettingsFormValues } from '@/features/orgs/projects/jwt/settings/types';
 
 import { Select } from '@/components/ui/v2/Select';
-import { ASYMMETRIC_ALGORITHMS } from '@/features/orgs/projects/jwt/settings/types';
+import { ASYMMETRIC_ALGORITHMS } from '@/features/orgs/projects/jwt/settings/utils/constants';
 
 export default function AsymmetricKeyFormSection() {
   const {

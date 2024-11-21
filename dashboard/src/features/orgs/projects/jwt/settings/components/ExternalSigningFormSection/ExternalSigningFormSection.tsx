@@ -8,8 +8,9 @@ import { Box } from '@/components/ui/v2/Box';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
+import { ASYMMETRIC_ALGORITHMS } from '@/features/orgs/projects/jwt/settings/utils/constants';
+
 import {
-  ASYMMETRIC_ALGORITHMS,
   type ExternalSigningType,
   type JWTSettingsFormValues,
 } from '@/features/orgs/projects/jwt/settings/types';
