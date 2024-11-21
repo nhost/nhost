@@ -265,9 +265,9 @@ export default function JWTSettings() {
         }
       },
       {
-        loadingMessage: 'Auth version is being updated...',
-        successMessage: 'Auth version has been updated successfully.',
-        errorMessage: 'An error occurred while trying to update Auth version.',
+        loadingMessage: 'JWT settings are being updated...',
+        successMessage: 'JWT settings have been updated successfully.',
+        errorMessage: 'An error occurred while trying to update JWT settings.',
       },
     );
   };
@@ -276,7 +276,7 @@ export default function JWTSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Auth version..."
+        label="Loading JWT settings..."
         className="justify-center"
       />
     );
