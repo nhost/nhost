@@ -27469,14 +27469,14 @@ export type DnsLookupCnameQuery = { __typename?: 'query_root', dnsLookupCNAME: s
 
 export type EnvironmentVariableFragment = { __typename?: 'ConfigGlobalEnvironmentVariable', name: string, value: string, id: string };
 
-export type JwtSecretFragment = { __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null };
+export type JwtSecretFragment = { __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, signingKey?: string | null, kid?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null, claims_map?: Array<{ __typename?: 'ConfigClaimMap', claim: string, default?: string | null, path?: string | null, value?: string | null }> | null };
 
 export type GetEnvironmentVariablesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigGlobalEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
+export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigGlobalEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, signingKey?: string | null, kid?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null, claims_map?: Array<{ __typename?: 'ConfigClaimMap', claim: string, default?: string | null, path?: string | null, value?: string | null }> | null }> | null } } | null };
 
 export type GetConfigRawJsonQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -28392,9 +28392,17 @@ export const JwtSecretFragmentDoc = gql`
   issuer
   key
   type
+  signingKey
+  kid
   jwk_url
   header
   claims_namespace_path
+  claims_map {
+    claim
+    default
+    path
+    value
+  }
   claims_namespace
   claims_format
   audience
