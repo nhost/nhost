@@ -297,7 +297,7 @@ type User struct {
 	// Locale A two-characters locale
 	Locale              string                 `json:"locale"`
 	Metadata            map[string]interface{} `json:"metadata"`
-	PhoneNumber         string                 `json:"phoneNumber"`
+	PhoneNumber         *string                `json:"phoneNumber,omitempty"`
 	PhoneNumberVerified bool                   `json:"phoneNumberVerified"`
 	Roles               []string               `json:"roles"`
 }

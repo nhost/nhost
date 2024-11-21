@@ -751,7 +751,6 @@ components:
         - isAnonymous
         - locale
         - metadata
-        - phoneNumber
         - phoneNumberVerified
         - roles
 

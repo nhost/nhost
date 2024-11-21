@@ -85,7 +85,7 @@ func TestPostSigninOTPEmailVerify(t *testing.T) {
 						IsAnonymous:         false,
 						Locale:              "en",
 						Metadata:            map[string]any{},
-						PhoneNumber:         "",
+						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"user", "me"},
 					},

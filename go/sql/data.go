@@ -28,3 +28,10 @@ func TimestampTz(t time.Time) pgtype.Timestamptz {
 		Valid:            true,
 	}
 }
+
+func ToPointerString(value pgtype.Text) *string {
+	if value.Valid {
+		return &value.String
+	}
+	return nil
+}
