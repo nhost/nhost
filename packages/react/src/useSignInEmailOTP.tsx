@@ -6,7 +6,6 @@ import {
   verifyEmailOTPPromise
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-import { useState } from 'react'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 export interface SignInEmailOTPHandler {
@@ -71,7 +70,11 @@ export function useSignInEmailOTP(): SignInEmailOTPHookResult {
 
   const isSuccess = useSelector(service, (state) => state.matches('authentication.signedIn'))
 
+  const needsOtp = useSelector(service, (state) =>
+    state.matches('registration.incomplete.needsOtp')
+  )
+
   const isError = useSelector(service, (state) => state.matches('registration.incomplete.failed'))
 
-  return { signInEmailOTP, verifyEmailOTP, isLoading, isSuccess, isError, error }
+  return { signInEmailOTP, verifyEmailOTP, isLoading, isSuccess, isError, error, needsOtp }
 }
