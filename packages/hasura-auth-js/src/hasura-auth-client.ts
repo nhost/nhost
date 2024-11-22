@@ -58,7 +58,6 @@ import {
   SecurityKey,
   SendVerificationEmailParams,
   SendVerificationEmailResponse,
-  SignInEmailOTPResponse,
   SignInParams,
   SignInPATResponse,
   SignInResponse,
