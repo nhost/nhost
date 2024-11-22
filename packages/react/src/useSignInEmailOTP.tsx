@@ -24,16 +24,18 @@ export interface SignInEmailOTPHookResult extends SignInEmailOTPState {
 /**
  * Use the hook `useSignInEmailOTP` to sign in a user with a one-time password sent via email.
  *
- * 1. The `signInEmailOTP` action sends a one-time password to the given email.
- * 3. After the code is received by email, the client sends the code with `verifyEmailOTP`. On success, the client is authenticated, and `isSuccess` equals `true`.
+ * ## Usage
+ *
+ * 1. Call the `signInEmailOTP` function with the user's email to send a one-time password (OTP) to that email address.
+ * 2. The state `needsOtp` will be `true`, indicating that an OTP is required.
+ * 3. Once the user receives the OTP via email, call the `verifyEmailOTP` function with the email and the received OTP.
+ * 4. On successful verification, the user is authenticated, and `isSuccess` becomes `true`.
  *
  * Any error is monitored through `isError` and `error`. While the `signInEmailOTP` and `verifyEmailOTP` actions are running, `isLoading` equals `true`.
  *
  * @example
  * ```tsx
  * const { signInEmailOTP, verifyEmailOTP, isLoading, isSuccess, isError, error } = useSignInEmailOTP()
- *
- * console.log({ isLoading, isSuccess, isError, error });
  *
  * const signIn = async (e) => {
  *   e.preventDefault();
