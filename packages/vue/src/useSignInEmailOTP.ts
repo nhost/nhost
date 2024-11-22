@@ -6,8 +6,8 @@ import {
   verifyEmailOTPPromise
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-import { ref, ToRefs, unref } from 'vue'
-import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
+import { ToRefs, unref } from 'vue'
+import { RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 export interface SignInEmailOTPHandler {
@@ -24,29 +24,35 @@ export interface SignEmailOTPComposableResult extends ToRefs<SignInEmailOTPState
 }
 
 /**
- * Use the composable `useSignInSmsPasswordless` to sign in a user with a one-time password sent via SMS to a phone.
+ * Use the `useSignInEmailOTP` composable to sign in a user with a one-time password sent via email.
  *
- * 1. The `signInSmsPasswordless` action sends a one-time password to the given phone number.
- * 2. The client is then awaiting the OTP. `needsOtp` equals true.
- * 3. After the code is received by SMS, the client sends the code with `sendOtp`. On success, the client is authenticated, and `isSuccess` equals `true`.
+ * ## Usage
  *
- * Any error is monitored through `isError` and `error`. While the `signInSmsPasswordless` and `sendOtp` actions are running, `isLoading` equals `true`.
+ * 1. Call the `signInEmailOTP` function with the user's email to send a one-time password (OTP) to that email address.
+ * 2. The state `needsOtp` will be `true`, indicating that an OTP is required.
+ * 3. Once the user receives the OTP via email, call the `verifyEmailOTP` function with the email and the received OTP.
+ * 4. On successful verification, the user is authenticated, and `isSuccess` becomes `true`.
  *
- * @example
- * ```tsx
- * const { signInSmsPasswordless, sendOtp, needsOtp, isLoading, isSuccess, isError, error } = useSignInSmsPasswordless()
+ * Any errors during the sign-in or verification process are tracked using `isError` and `error`. While the `signInEmailOTP` and `verifyEmailOTP` actions are in progress, `isLoading` is `true`.
  *
- * console.log({ isLoading, isSuccess, isError, error });
+ * ## Example
+ * ```vue
+ * const {
+ *   signInEmailOTP,
+ *   verifyEmailOTP,
+ *   error
+ * } = useSignInEmailOTP()
  *
- * const askCode = async (e) => {
- *   e.preventDefault();
- *   await signInSmsPasswordless('+32455555555');
+ * const requestOtp = async (e: Event) => {
+ *   e.preventDefault()
+ *   await signInEmailOTP(email.value)
  * }
  *
- * const sendCode = async (e) => {
- *   e.preventDefault();
- *   await sendOtp('123456');
+ * const confirmOtp = async (e: Event) => {
+ *   e.preventDefault()
+ *   await verifyEmailOTP(email.value, otp.value)
  * }
+ *
  * ```
  *
  * @docs https://docs.nhost.io/reference/vue/use-sign-in-email-otp
