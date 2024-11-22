@@ -20,11 +20,12 @@ const emailFormSchema = z.object({
 })
 
 export default function SignInEmailOTP() {
-  const { signInEmailOTP, verifyEmailOTP } = useSignInEmailOTP()
-  const [showOTPSentDialog, setShowOTPSentDialog] = useState(false)
-  const [email, setEmail] = useState('')
-  const [otp, setOTP] = useState('')
   const navigate = useNavigate()
+  const [otp, setOTP] = useState('')
+  const [email, setEmail] = useState('')
+  const [showOTPSentDialog, setShowOTPSentDialog] = useState(false)
+
+  const { signInEmailOTP, verifyEmailOTP } = useSignInEmailOTP()
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
