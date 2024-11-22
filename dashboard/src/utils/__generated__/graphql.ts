@@ -27275,13 +27275,6 @@ export type GetHasuraSettingsQueryVariables = Exact<{
 
 export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null, inferFunctionPermissions?: boolean | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } } | null };
 
-export type GetCustomClaimsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetCustomClaimsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', customClaims?: Array<{ __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string }> | null } | null } | null } | null } | null };
-
 export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
 
 export type GetApplicationBackupsQueryVariables = Exact<{
@@ -29158,57 +29151,6 @@ export type GetHasuraSettingsLazyQueryHookResult = ReturnType<typeof useGetHasur
 export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>;
 export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
       return { query: GetHasuraSettingsDocument, variables: variables }
-    }
-export const GetCustomClaimsDocument = gql`
-    query GetCustomClaims($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    auth {
-      id: __typename
-      __typename
-      session {
-        accessToken {
-          customClaims {
-            key
-            value
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetCustomClaimsQuery__
- *
- * To run a query within a React component, call `useGetCustomClaimsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomClaimsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomClaimsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetCustomClaimsQuery(baseOptions: Apollo.QueryHookOptions<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>(GetCustomClaimsDocument, options);
-      }
-export function useGetCustomClaimsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>(GetCustomClaimsDocument, options);
-        }
-export type GetCustomClaimsQueryHookResult = ReturnType<typeof useGetCustomClaimsQuery>;
-export type GetCustomClaimsLazyQueryHookResult = ReturnType<typeof useGetCustomClaimsLazyQuery>;
-export type GetCustomClaimsQueryResult = Apollo.QueryResult<GetCustomClaimsQuery, GetCustomClaimsQueryVariables>;
-export function refetchGetCustomClaimsQuery(variables: GetCustomClaimsQueryVariables) {
-      return { query: GetCustomClaimsDocument, variables: variables }
     }
 export const GetApplicationBackupsDocument = gql`
     query getApplicationBackups($appId: uuid!) {

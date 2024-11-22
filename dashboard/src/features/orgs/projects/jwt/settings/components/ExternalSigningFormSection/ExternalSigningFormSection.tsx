@@ -43,8 +43,8 @@ export default function ExternalSigningFormSection({
             </div>
           </RadioGroup>
         </div>
+        <ExternalSigningField externalSigningType={externalSigningType} />
       </Box>
-      <ExternalSigningField externalSigningType={externalSigningType} />
     </div>
   );
 }

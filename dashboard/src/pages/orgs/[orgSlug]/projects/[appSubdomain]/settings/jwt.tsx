@@ -1,9 +1,6 @@
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import {
-  useGetCustomClaimsQuery,
-  useGetJwtSecretsQuery,
-} from '@/utils/__generated__/graphql';
+import { useGetJwtSecretsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
@@ -18,34 +15,14 @@ export default function SettingsJWTPage() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const {
-    data: customClaimsData,
-    loading: customClaimsLoading,
-    error: customClaimsError,
-  } = useGetCustomClaimsQuery({
+  const { data, loading, error } = useGetJwtSecretsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     skip: !project,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const {
-    data: jwtSecretsData,
-    loading: jwtSecretsLoading,
-    error: jwtSecretsError,
-  } = useGetJwtSecretsQuery({
-    variables: { appId: project?.id },
-    fetchPolicy: 'cache-and-network',
-    skip: !project,
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
-  if (
-    customClaimsLoading ||
-    jwtSecretsLoading ||
-    !jwtSecretsData ||
-    !customClaimsData
-  ) {
+  if (loading || !data) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -55,10 +32,8 @@ export default function SettingsJWTPage() {
     );
   }
 
-  if (customClaimsError || jwtSecretsError) {
-    throw new Error('Failed to load JWT settings', {
-      cause: { customClaimsError, jwtSecretsError },
-    });
+  if (error) {
+    throw error;
   }
 
   return (

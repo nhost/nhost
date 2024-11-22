@@ -47,7 +47,7 @@ export default function ExternalSigningField({
       <>
         <Select
           id="type"
-          className="col-span-5 lg:col-span-2"
+          className="col-span-5 lg:col-span-1"
           placeholder="RS256"
           hideEmptyHelperText
           variant="normal"
@@ -66,6 +66,7 @@ export default function ExternalSigningField({
             </Option>
           ))}
         </Select>
+        <div className="lg:col-span-4" />
 
         <Input
           {...register('key')}
