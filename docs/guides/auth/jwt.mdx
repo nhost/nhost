@@ -38,11 +38,19 @@ With symmetric keys your project uses a single for both signing and verifying JW
 
 Below you can see an example of a symmetric key configuration:
 
+
+<Tabs>
+  <Tab title="nhost.toml">
 ```toml
 [[hasura.jwtSecrets]]
 type = 'HS256'
 key = 'f03d5f5a0ed055e3fcbc0a3639405aca0511e6abe6d60e40d1fff610c6248f2a'
 ```
+  </Tab>
+  <Tab title="dashboard">
+![Symmetric Key Configuration](/images/guides/auth/jwt/symmetric.png)
+  </Tab>
+</Tabs>
 
 <Note>
 We recommend using a [secret](/platform/secrets) to configure the key.
@@ -74,6 +82,8 @@ With asymmetric keys your project uses a public and private key pair for signing
 
 Below you can see an example of an asymmetric key configuration:
 
+<Tabs>
+  <Tab title="nhost.toml">
 ```toml
 [[hasura.jwtSecrets]]
 type = "RS256"
@@ -93,6 +103,11 @@ s6fJmz3ZeArPI8KFSI3Q2xqm
 -----END PRIVATE KEY-----
 ""
 ```
+  </Tab>
+  <Tab title="dashboard">
+![Asymmetric Key Configuration](/images/guides/auth/jwt/asymmetric.png)
+  </Tab>
+</Tabs>
 
 In addition to `RS256`, you can also use `RS384` and `RS512` for extra security. To quickly generate a key pair, you can use the following commands:
 
@@ -134,6 +149,9 @@ The `kid` value in your configuration can be any string you want and must be uni
 
 If you are using a third party service like Auth0 or Clerk you can configure your project to use their JWK endpoint to verify JWTs. Below you can see an example of an external signing configuration:
 
+<Tabs>
+  <Tab title="nhost.toml">
+
 ```toml
 [[hasura.jwtSecrets]]
 jwk_url = "https://mythirdpartyservice.com/jwks.json"
@@ -152,6 +170,11 @@ jwIDAQAB
 -----END PUBLIC KEY-----
 ""
 ```
+  </Tab>
+  <Tab title="dashboard">
+![External signing](/images/guides/auth/jwt/external.png)
+  </Tab>
+</Tabs>
 
 <Note>
 When using external signing the Auth service will be automatically disabled.
