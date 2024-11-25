@@ -1,4 +1,5 @@
 import {
+  EmailOTPOptions,
   SignInEmailOTPHandlerResult,
   signInEmailOTPPromise,
   SignInEmailOTPState,
@@ -9,7 +10,7 @@ import { useSelector } from '@xstate/react'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 export interface SignInEmailOTPHandler {
-  (email: string): Promise<SignInEmailOTPHandlerResult>
+  (email: string, options?: EmailOTPOptions): Promise<SignInEmailOTPHandlerResult>
 }
 
 export interface VerifyEmailOTPHandler {
@@ -50,11 +51,11 @@ export interface SignInEmailOTPHookResult extends SignInEmailOTPState {
  *
  * @docs https://docs.nhost.io/reference/react/use-sign-in-email-otp
  */
-export function useSignInEmailOTP(): SignInEmailOTPHookResult {
+export function useSignInEmailOTP(options?: EmailOTPOptions): SignInEmailOTPHookResult {
   const service = useAuthInterpreter()
 
-  const signInEmailOTP: SignInEmailOTPHandler = (email: string) =>
-    signInEmailOTPPromise(service, email)
+  const signInEmailOTP: SignInEmailOTPHandler = (email: string, overrideOptions = options) =>
+    signInEmailOTPPromise(service, email, overrideOptions)
 
   const verifyEmailOTP: VerifyEmailOTPHandler = async (email: string, otp: string) =>
     verifyEmailOTPPromise(service, email, otp)

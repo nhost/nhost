@@ -1,5 +1,6 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
+import { EmailOTPOptions } from '../types'
 
 import {
   AuthActionErrorState,
@@ -19,9 +20,13 @@ export interface SignInEmailOTPState extends SignInEmailOTPHandlerResult, AuthAc
 
 export interface VerifyEmailOTPHandlerResult extends SessionActionHandlerResult {}
 
-export const signInEmailOTPPromise = (interpreter: AuthInterpreter, email: string) =>
+export const signInEmailOTPPromise = (
+  interpreter: AuthInterpreter,
+  email: string,
+  options?: EmailOTPOptions
+) =>
   new Promise<SignInEmailOTPHandlerResult>((resolve) => {
-    const { changed } = interpreter.send('SIGNIN_EMAIL_OTP', { email })
+    const { changed } = interpreter.send('SIGNIN_EMAIL_OTP', { email, options })
 
     if (!changed) {
       return resolve({

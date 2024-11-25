@@ -866,13 +866,14 @@ export const createAuthMachine = ({
             otp
           })
         },
-        signInEmailOTP: (_, { email }) => {
+        signInEmailOTP: (_, { email, options }) => {
           if (!isValidEmail(email)) {
             return Promise.reject({ error: INVALID_EMAIL_ERROR })
           }
 
           return postRequest('/signin/otp/email', {
-            email
+            email,
+            options: rewriteRedirectTo(clientUrl, options)
           })
         },
         verifyEmailOTP: (_, { email, otp }) => {

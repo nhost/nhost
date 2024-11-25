@@ -48,6 +48,7 @@ import {
   ConnectProviderResponse,
   DeanonymizeParams,
   DeanonymizeResponse,
+  EmailOTPOptions,
   JWTClaims,
   JWTHasuraClaims,
   NhostAuthConstructorParams,
@@ -343,10 +344,10 @@ export class HasuraAuthClient {
    *
    * @param email - The email address to send the OTP to
    */
-  async signInEmailOTP(email: string): Promise<SignInResponse> {
+  async signInEmailOTP(email: string, options?: EmailOTPOptions): Promise<SignInResponse> {
     const interpreter = await this.waitUntilReady()
 
-    const { error } = await signInEmailOTPPromise(interpreter, email)
+    const { error } = await signInEmailOTPPromise(interpreter, email, options)
 
     return {
       error,

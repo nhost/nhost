@@ -1,4 +1,5 @@
 import {
+  EmailOTPOptions,
   SignInEmailOTPHandlerResult,
   signInEmailOTPPromise,
   SignInEmailOTPState,
@@ -7,11 +8,14 @@ import {
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
 import { ToRefs, unref } from 'vue'
-import { RefOrValue } from './helpers'
+import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 export interface SignInEmailOTPHandler {
-  (email: RefOrValue<string>): Promise<SignInEmailOTPHandlerResult>
+  (
+    email: RefOrValue<string>,
+    options?: NestedRefOfValue<EmailOTPOptions | undefined>
+  ): Promise<SignInEmailOTPHandlerResult>
 }
 
 export interface VerifyEmailOTPHandler {
@@ -57,11 +61,16 @@ export interface SignEmailOTPComposableResult extends ToRefs<SignInEmailOTPState
  *
  * @docs https://docs.nhost.io/reference/vue/use-sign-in-email-otp
  */
-export function useSignInEmailOTP(): SignEmailOTPComposableResult {
+export function useSignInEmailOTP(
+  options?: NestedRefOfValue<EmailOTPOptions | undefined>
+): SignEmailOTPComposableResult {
   const service = useAuthInterpreter()
 
-  const signInEmailOTP: SignInEmailOTPHandler = (email: RefOrValue<string>) => {
-    return signInEmailOTPPromise(service.value, unref(email))
+  const signInEmailOTP: SignInEmailOTPHandler = (
+    email: RefOrValue<string>,
+    overrideOptions = options
+  ) => {
+    return signInEmailOTPPromise(service.value, unref(email), nestedUnref(overrideOptions))
   }
 
   const verifyEmailOTP: VerifyEmailOTPHandler = async (
