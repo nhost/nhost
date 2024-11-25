@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/schema.json",
   "name": "Documentation",
-  "openapi": ["reference/openapi-auth.yaml", "reference/openapi-storage.yaml"],
+  "openapi": ["reference/openapi-auth.yaml", "reference/openapi-auth-old.yaml", "reference/openapi-storage.yaml"],
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
@@ -135,6 +135,7 @@
       "pages": [
         "guides/auth/overview",
         "guides/auth/users",
+        "guides/auth/jwt",
         {
           "group": "Social Sign In",
           "icon": "at",
@@ -213,76 +214,46 @@
           "group": "Authentication",
           "icon": "users",
           "pages": [
-            {
-              "group": "Email and Password",
-              "icon": "envelope",
-              "pages": [
-                "reference/auth/sign-up-email-and-password",
-                "reference/auth/sign-in-email-and-password"
-              ]
-            },
-            {
-              "group": "Passwordless",
-              "icon": "message-sms",
-              "pages": [
-                "reference/auth/sign-in-email-passwordless",
-                "reference/auth/sign-in-sms-passwordless",
-                "reference/auth/sign-in-sms-passwordless-otp"
-              ]
-            },
-            {
-              "group": "OAuth",
-              "icon": "at",
-              "pages": [
-                "reference/auth/sign-in-oauth-provider",
-                "reference/auth/oauth-callback-url-that-will-be-used-by-the-oauth-provider-to-redirect-to-the-client-application-attention:-all-providers-are-using-a-get-operation-except-apple-and-azure-ad-that-use-post"
-              ]
-            },
-            {
-              "group": "WebAuthn",
-              "icon": "atom",
-              "pages": [
-                "reference/auth/sign-up-using-email-via-fido2-webauthn-authentication",
-                "reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
-                "reference/auth/sign-in-using-email-via-fido2-webauthn-authentication",
-                "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography",
-                "reference/auth/elevate-webauthn",
-                "reference/auth/elevate-webauthn-verify"
-              ]
-            },
-            {
-              "group": "Anonymous",
-              "icon": "luchador-mask",
-              "pages": [
-                "reference/auth/sign-in-anonymous",
-                "reference/auth/deanonymize-an-anonymous-user-in-adding-missing-email-or-email+password-depending-on-the-chosen-authentication-method-will-send-a-confirmation-email-if-the-server-is-configured-to-do-so"
-              ]
-            },
-            {
-              "group": "MFA",
-              "icon": "message-sms",
-              "pages": [
-                "reference/auth/generate-a-secret-to-request-the-activation-of-time-based-one-time-password-totp-multi-factor-authentication",
-                "reference/auth/sign-in-totp",
-                "reference/auth/activatedeactivate-multi-factor-authentication"
-              ]
-            },
-            {
-              "group": "User",
-              "icon": "user",
-              "pages": [
-                "reference/auth/change-the-current-users-email",
-                "reference/auth/send-an-email-asking-the-user-to-reset-their-password",
-                "reference/auth/send-an-email-to-verify-the-account",
-                "reference/auth/set-a-new-password",
-                "reference/auth/get-user-information",
-                "reference/auth/refresh-the-oauth-access-tokens-of-a-given-user-you-must-be-an-admin-to-perform-this-operation",
-                "reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser",
-                "reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser",
-                "reference/auth/create-personal-access-token-pat"
-              ]
-            },
-            "reference/auth/sign-out"
+            "reference/auth/get-.well-known-jwks.json",
+            "reference/auth/post-elevate-webauthn",
+            "reference/auth/post-elevate-webauthn-verify",
+            "reference/auth/get-healthz",
+            "reference/auth/head-healthz",
+            "reference/auth/post-link-idtoken",
+            "reference/auth/get-mfa-totp-generate",
+            "reference/auth/post-pat",
+            "reference/auth/post-signin-anonymous",
+            "reference/auth/post-signin-email-password",
+            "reference/auth/post-signin-idtoken",
+            "reference/auth/post-signin-mfa-totp",
+            "reference/auth/post-signin-otp-email",
+            "reference/auth/post-signin-otp-email-verify",
+            "reference/auth/post-signin-passwordless-email",
+            "reference/auth/post-signin-passwordless-sms",
+            "reference/auth/post-signin-passwordless-sms-otp",
+            "reference/auth/post-signin-pat",
+            "reference/auth/get-signin-provider-{provider}",
+            "reference/auth/get-signin-provider-{provider}-callback",
+            "reference/auth/post-signin-webauthn",
+            "reference/auth/post-signin-webauthn-verify",
+            "reference/auth/post-signout",
+            "reference/auth/post-signup-email-password",
+            "reference/auth/post-signup-webauthn",
+            "reference/auth/post-signup-webauthn-verify",
+            "reference/auth/post-token",
+            "reference/auth/post-token-verify",
+            "reference/auth/get-user",
+            "reference/auth/post-user-deanonymize",
+            "reference/auth/post-user-email-change",
+            "reference/auth/post-user-email-send-verification-email",
+            "reference/auth/post-user-mfa",
+            "reference/auth/post-user-password",
+            "reference/auth/post-user-password-reset",
+            "reference/auth/post-user-provider-tokens",
+            "reference/auth/post-user-webauthn-add",
+            "reference/auth/post-user-webauthn-verify",
+            "reference/auth/get-verify",
+            "reference/auth/get-version"
           ]
         },
         {
