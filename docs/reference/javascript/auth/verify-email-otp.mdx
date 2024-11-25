@@ -1,0 +1,26 @@
+---
+title: verifyEmailOTP()
+sidebarTitle: verifyEmailOTP()
+---
+
+Use `nhost.auth.verifyEmailOTP` to verify an email one-time password (OTP) and complete the sign-in process
+
+```ts
+nhost.auth.verifyEmailOTP('user@example.com', '123456')
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">email</span>** <span className="optional-status">required</span> <code>string</code>
+
+The email address to verify the OTP for
+
+---
+
+**<span className="parameter-name">otp</span>** <span className="optional-status">required</span> <code>string</code>
+
+The one-time password sent to the email address
+
+---

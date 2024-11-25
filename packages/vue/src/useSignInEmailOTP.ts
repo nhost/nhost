@@ -36,7 +36,7 @@ export interface SignEmailOTPComposableResult extends ToRefs<SignInEmailOTPState
  * Any errors during the sign-in or verification process are tracked using `isError` and `error`. While the `signInEmailOTP` and `verifyEmailOTP` actions are in progress, `isLoading` is `true`.
  *
  * ## Example
- * ```vue
+ * ```ts
  * const {
  *   signInEmailOTP,
  *   verifyEmailOTP,
