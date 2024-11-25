@@ -1,7 +1,6 @@
-query getAnnouncements($limit: Int) {
+query getAnnouncements {
   announcements(
     order_by: { createdAt: desc }
-    limit: $limit
     where: {
       _or: [{ expiresAt: { _is_null: true } }, { expiresAt: { _gt: now } }]
     }
@@ -10,5 +9,8 @@ query getAnnouncements($limit: Int) {
     href
     content
     createdAt
+    read {
+      id
+    }
   }
 }

@@ -8,7 +8,7 @@ Ensuring a healthy and performant PostgreSQL service is crucial as it directly i
 
 In case your Postgres service is not meeting your performance expectations, you can explore the following options:
 
-1. Consider upgrading your [dedicated compute](/platform/compute) resources to provide more processing power and memory to the Postgres server.
+1. Consider upgrading your [dedicated compute](/platform/compute-resources#dedicated-compute) resources to provide more processing power and memory to the Postgres server.
 
 2. Fine-tune the configuration parameters of Postgres to optimize its performance. Adjust settings such as `shared_buffers`, `work_mem`, and `effective_cache_size` to better align with your workload and server resources.
 
@@ -26,11 +26,11 @@ Before trying anything else, always upgrade to our latest postgres image first. 
 
 ## Upgrade to dedicated compute
 
-Increasing CPU and memory is the simplest way to address performance issues. You can read more about compute resources [here](/platform/compute).
+Increasing CPU and memory is the simplest way to address performance issues. You can read more about compute resources [here](/platform/compute-resources#dedicated-compute).
 
 ## Fine-tune configuration parameters
 
-When optimizing your Postgres setup, you can consider adjusting various Postgres settings. You can find a list of these parameters [here](/database/settings). Keep in mind that the optimal values for these parameters will depend on factors such as available resources, workload, and data distribution.
+When optimizing your Postgres setup, you can consider adjusting various Postgres settings. You can find a list of these parameters [here](/guides/database/configuring-postgres). Keep in mind that the optimal values for these parameters will depend on factors such as available resources, workload, and data distribution.
 
 To help you get started, you can use [pgtune](https://pgtune.leopard.in.ua) as a reference tool. Pgtune can generate recommended configuration settings based on your system specifications. By providing information about your system, it can suggest parameter values that may be a good starting point for optimization.
 
@@ -42,9 +42,9 @@ Monitoring slow queries is a highly effective method for tackling performance is
 
 ### pghero
 
-[PgHero](https://github.com/ankane/pghero) is one of such tools you can use to idenfity and address slow queries. You can easily run pghero alongside your postgres with [Nhost Run](/run):
+[PgHero](https://github.com/ankane/pghero) is one of such tools you can use to idenfity and address slow queries. You can easily run pghero alongside your postgres with [Nhost Run](/product/run):
 
-1. First, make sure the extension [pg_stat_statements](/database/extensions#pg_stat_statements) is enabled.
+1. First, make sure the extension [pg_stat_statements](/guides/database/extensions#pg-stat-statements) is enabled.
 
 2. Click on this [one-click install link](https://app.nhost.io:/run-one-click-install?config=eyJuYW1lIjoicGdoZXJvIiwiaW1hZ2UiOnsiaW1hZ2UiOiJkb2NrZXIuaW8vYW5rYW5lL3BnaGVybzpsYXRlc3QifSwiY29tbWFuZCI6W10sInJlc291cmNlcyI6eyJjb21wdXRlIjp7ImNwdSI6MTI1LCJtZW1vcnkiOjI1Nn0sInN0b3JhZ2UiOltdLCJyZXBsaWNhcyI6MX0sImVudmlyb25tZW50IjpbeyJuYW1lIjoiREFUQUJBU0VfVVJMIiwidmFsdWUiOiJwb3N0Z3JlczovL3Bvc3RncmVzOltQQVNTV09SRF1AcG9zdGdyZXMtc2VydmljZTo1NDMyL1tTVUJET01BSU5dP3NzbG1vZGU9ZGlzYWJsZSJ9LHsibmFtZSI6IlBHSEVST19VU0VSTkFNRSIsInZhbHVlIjoiW1VTRVJdIn0seyJuYW1lIjoiUEdIRVJPX1BBU1NXT1JEIiwidmFsdWUiOiJbUEFTU1dPUkRdIn1dLCJwb3J0cyI6W3sicG9ydCI6ODA4MCwidHlwZSI6Imh0dHAiLCJwdWJsaXNoIjp0cnVlfV19)
 
@@ -78,7 +78,7 @@ There are tools you can use to help analyze your workload and detect missing ind
 
 ### pghero
 
-[PgHero](https://github.com/ankane/pghero), in addition to help with slow queries, can also help finding missing and duplicate indexes. See previous section on how to deploy pghero with [Nhost Run](/run).
+[PgHero](https://github.com/ankane/pghero), in addition to help with slow queries, can also help finding missing and duplicate indexes. See previous section on how to deploy pghero with [Nhost Run](/product/run).
 
 ### dexter
 
