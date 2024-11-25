@@ -50,6 +50,7 @@ const validationSchema = Yup.object({
       is: true,
       then: (schema) => schema.required(),
     }),
+  audience: Yup.string().label('Audience'),
   enabled: Yup.boolean(),
 });
 
@@ -72,7 +73,7 @@ export default function AppleProviderSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { clientId, enabled, keyId, privateKey, teamId } =
+  const { clientId, enabled, keyId, privateKey, teamId, audience } =
     data?.config?.auth?.method?.oauth?.apple || {};
 
   const form = useForm<AppleProviderFormValues>({
@@ -82,6 +83,7 @@ export default function AppleProviderSettings() {
       keyId: keyId || '',
       clientId: clientId || '',
       privateKey: privateKey || '',
+      audience: audience || '',
       enabled: enabled || false,
     },
     resolver: yupResolver(validationSchema),
@@ -94,10 +96,11 @@ export default function AppleProviderSettings() {
         keyId: keyId || '',
         clientId: clientId || '',
         privateKey: privateKey || '',
+        audience: audience || '',
         enabled: enabled || false,
       });
     }
-  }, [loading, teamId, keyId, clientId, privateKey, enabled, form]);
+  }, [loading, teamId, keyId, clientId, privateKey, audience, enabled, form]);
 
   if (loading) {
     return (
@@ -236,6 +239,18 @@ export default function AppleProviderSettings() {
             hideEmptyHelperText
             error={!!formState.errors?.privateKey}
             helperText={formState.errors?.privateKey?.message}
+          />
+          <Input
+            {...register('audience')}
+            name="audience"
+            id="audience"
+            label="Audience (optional)"
+            placeholder="Apple Audience"
+            className="col-span-2"
+            fullWidth
+            hideEmptyHelperText
+            error={!!formState.errors?.audience}
+            helperText={formState.errors?.audience?.message}
           />
           <Input
             name="redirectUrl"
