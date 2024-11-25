@@ -96,6 +96,7 @@ type ConfigAuthMethod struct {
 	EmailPassword     *ConfigAuthMethodEmailPassword     `json:"emailPassword,omitempty"`
 	EmailPasswordless *ConfigAuthMethodEmailPasswordless `json:"emailPasswordless,omitempty"`
 	Oauth             *ConfigAuthMethodOauth             `json:"oauth,omitempty"`
+	Otp               *ConfigAuthMethodOtp               `json:"otp,omitempty"`
 	SmsPasswordless   *ConfigAuthMethodSmsPasswordless   `json:"smsPasswordless,omitempty"`
 	Webauthn          *ConfigAuthMethodWebauthn          `json:"webauthn,omitempty"`
 }
@@ -226,6 +227,22 @@ type ConfigAuthMethodOauthWorkosUpdateInput struct {
 	Organization *string `json:"organization,omitempty"`
 }
 
+type ConfigAuthMethodOtp struct {
+	Email *ConfigAuthMethodOtpEmail `json:"email,omitempty"`
+}
+
+type ConfigAuthMethodOtpEmail struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+type ConfigAuthMethodOtpEmailUpdateInput struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+type ConfigAuthMethodOtpUpdateInput struct {
+	Email *ConfigAuthMethodOtpEmailUpdateInput `json:"email,omitempty"`
+}
+
 type ConfigAuthMethodSmsPasswordless struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
@@ -239,6 +256,7 @@ type ConfigAuthMethodUpdateInput struct {
 	EmailPassword     *ConfigAuthMethodEmailPasswordUpdateInput     `json:"emailPassword,omitempty"`
 	EmailPasswordless *ConfigAuthMethodEmailPasswordlessUpdateInput `json:"emailPasswordless,omitempty"`
 	Oauth             *ConfigAuthMethodOauthUpdateInput             `json:"oauth,omitempty"`
+	Otp               *ConfigAuthMethodOtpUpdateInput               `json:"otp,omitempty"`
 	SmsPasswordless   *ConfigAuthMethodSmsPasswordlessUpdateInput   `json:"smsPasswordless,omitempty"`
 	Webauthn          *ConfigAuthMethodWebauthnUpdateInput          `json:"webauthn,omitempty"`
 }
