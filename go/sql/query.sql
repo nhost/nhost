@@ -305,6 +305,11 @@ RETURNING *;
 SELECT COUNT(*) FROM auth.user_security_keys
 WHERE user_id = $1;
 
+-- name: GetSecurityKeys :many
+SELECT *
+FROM auth.user_security_keys
+WHERE user_id = $1;
+
 -- name: UpdateUserDeanonymize :exec
 WITH inserted_user AS (
     UPDATE auth.users

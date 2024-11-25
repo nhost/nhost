@@ -270,6 +270,51 @@ paths:
         - signup
         - email-and-password
 
+  /signin/webauthn:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInWebauthnRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInWebauthnResponse'
+          description: >-
+            Challenge sent
+
+      summary: Signin with webauthn
+      tags:
+        - signin
+        - webauthn
+
+  /signin/webauthn/verify:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInWebauthnVerifyRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+          description: >-
+            Sign in successful
+
+      summary: Verify webauthn signin
+      tags:
+        - signin
+        - webauthn
+        - verify
+
   /signup/webauthn:
     post:
       requestBody:
@@ -989,6 +1034,28 @@ components:
           format: uri
           example: https://my-app.com/catch-redirection
 
+    SignInWebauthnRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        userHandle:
+          description: User identifier for webauthn
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+          x-go-type-import:
+            name: uuid
+            path: "github.com/google/uuid"
+          x-go-type: uuid.UUID
+      oneOf:
+        - required: [email]
+        - required: [userHandle]
+
     SignUpWebauthnRequest:
       type: object
       additionalProperties: false
@@ -1003,12 +1070,39 @@ components:
       required:
         - email
 
+    SignInWebauthnResponse:
+      type: object
+      x-go-type-import:
+        name: protocol
+        path: github.com/go-webauthn/webauthn/protocol
+      x-go-type: protocol.PublicKeyCredentialRequestOptions
+
     SignUpWebauthnResponse:
       type: object
       x-go-type-import:
         name: protocol
         path: github.com/go-webauthn/webauthn/protocol
       x-go-type: protocol.PublicKeyCredentialCreationOptions
+
+    SignInWebauthnVerifyRequest:
+      type: object
+      additionalProperties: true
+      properties:
+        email:
+          description: A valid email. Deprecated, no longer used
+          example: john.smith@nhost.io
+          format: email
+          type: string
+          deprecated: true
+        credential:
+          type: object
+          additionalProperties: true
+          x-go-type-import:
+            name: protocol
+            path: github.com/go-webauthn/webauthn/protocol
+          x-go-type: protocol.CredentialAssertionResponse
+      required:
+        - credential
 
     SignUpWebauthnVerifyRequest:
       type: object

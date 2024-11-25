@@ -50,9 +50,10 @@ func (ctrl *Controller) PostSignupWebauthn( //nolint:ireturn
 	}
 
 	user := WebauthnUser{
-		ID:    uuid.New(),
-		Name:  deptr(options.DisplayName),
-		Email: string(request.Body.Email),
+		ID:          uuid.New(),
+		Name:        deptr(options.DisplayName),
+		Email:       string(request.Body.Email),
+		Credentials: nil,
 	}
 
 	creation, apiErr := ctrl.Webauthn.BeginRegistration(user, options, logger)

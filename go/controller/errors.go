@@ -27,6 +27,7 @@ var (
 
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
+	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
 	ErrUserProviderAlreadyLinked       = &APIError{api.InvalidRequest}
 	ErrEmailAlreadyInUse               = &APIError{api.EmailAlreadyInUse}
 	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
@@ -106,6 +107,14 @@ func (response ErrorResponse) VisitPostUserDeanonymizeResponse(w http.ResponseWr
 }
 
 func (response ErrorResponse) VisitPostSignupWebauthnResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostSigninWebauthnResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostSigninWebauthnVerifyResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 

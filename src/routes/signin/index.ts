@@ -10,12 +10,6 @@ import {
   signInPasswordlessSmsSchema,
 } from './passwordless';
 import { signInOtpHandler, signInOtpSchema } from './passwordless/sms/otp';
-import {
-  signInVerifyWebauthnHandler,
-  signInVerifyWebauthnSchema,
-  signInWebauthnHandler,
-  signInWebauthnSchema,
-} from './webauthn';
 
 const router = Router();
 
@@ -49,37 +43,6 @@ router.post(
   '/signin/passwordless/sms/otp',
   bodyValidator(signInOtpSchema),
   aw(signInOtpHandler)
-);
-
-// TODO add @return payload on success
-/**
- * POST /signin/webauthn
- * @summary Sign in using email via FIDO2 Webauthn authentication
- * @param {SignInWebauthnSchema} request.body.required
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
- */
-router.post(
-  '/signin/webauthn',
-  bodyValidator(signInWebauthnSchema),
-  aw(signInWebauthnHandler)
-);
-
-/**
- * POST /signin/webauthn/verify
- * @summary Verfiy FIDO2 Webauthn authentication using public-key cryptography
- * @param {SignInVerifyWebauthnSchema} request.body.required
- * @return {SessionPayload} 200 - Signed in successfully - application/json
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
- */
-router.post(
-  '/signin/webauthn/verify',
-  bodyValidator(signInVerifyWebauthnSchema),
-  aw(signInVerifyWebauthnHandler)
 );
 
 /**

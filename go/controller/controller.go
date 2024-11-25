@@ -99,13 +99,14 @@ type DBClientUserProvider interface {
 	) (sql.AuthUserProvider, error)
 }
 
-type DBClient interface {
+type DBClient interface { //nolint:interfacebloat
 	DBClientGetUser
 	DBClientInsertUser
 	DBClientUpdateUser
 	DBClientUserProvider
 
 	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
+	GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserSecurityKey, error)
 	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
 	DeleteUserRoles(ctx context.Context, userID uuid.UUID) error
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)

@@ -9,6 +9,8 @@ import (
 	"time"
 
 	protocol "github.com/go-webauthn/webauthn/protocol"
+	uuid "github.com/google/uuid"
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -230,6 +232,35 @@ type SignInPasswordlessEmailRequest struct {
 	Options *SignUpOptions      `json:"options,omitempty"`
 }
 
+// SignInWebauthnRequest defines model for SignInWebauthnRequest.
+type SignInWebauthnRequest struct {
+	// Email A valid email
+	Email *openapi_types.Email `json:"email,omitempty"`
+
+	// UserHandle User identifier for webauthn
+	UserHandle *uuid.UUID `json:"userHandle,omitempty"`
+	union      json.RawMessage
+}
+
+// SignInWebauthnRequest0 defines model for .
+type SignInWebauthnRequest0 = interface{}
+
+// SignInWebauthnRequest1 defines model for .
+type SignInWebauthnRequest1 = interface{}
+
+// SignInWebauthnResponse defines model for SignInWebauthnResponse.
+type SignInWebauthnResponse = protocol.PublicKeyCredentialRequestOptions
+
+// SignInWebauthnVerifyRequest defines model for SignInWebauthnVerifyRequest.
+type SignInWebauthnVerifyRequest struct {
+	Credential protocol.CredentialAssertionResponse `json:"credential"`
+
+	// Email A valid email. Deprecated, no longer used
+	// Deprecated:
+	Email                *openapi_types.Email   `json:"email,omitempty"`
+	AdditionalProperties map[string]interface{} `json:"-"`
+}
+
 // SignUpEmailPasswordRequest defines model for SignUpEmailPasswordRequest.
 type SignUpEmailPasswordRequest struct {
 	// Email A valid email
@@ -400,6 +431,12 @@ type PostSigninPasswordlessEmailJSONRequestBody = SignInPasswordlessEmailRequest
 // PostSigninPatJSONRequestBody defines body for PostSigninPat for application/json ContentType.
 type PostSigninPatJSONRequestBody = SignInPATRequest
 
+// PostSigninWebauthnJSONRequestBody defines body for PostSigninWebauthn for application/json ContentType.
+type PostSigninWebauthnJSONRequestBody = SignInWebauthnRequest
+
+// PostSigninWebauthnVerifyJSONRequestBody defines body for PostSigninWebauthnVerify for application/json ContentType.
+type PostSigninWebauthnVerifyJSONRequestBody = SignInWebauthnVerifyRequest
+
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
 type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
 
@@ -426,6 +463,87 @@ type PostUserPasswordJSONRequestBody = UserPasswordRequest
 
 // PostUserPasswordResetJSONRequestBody defines body for PostUserPasswordReset for application/json ContentType.
 type PostUserPasswordResetJSONRequestBody = UserPasswordResetRequest
+
+// Getter for additional properties for SignInWebauthnVerifyRequest. Returns the specified
+// element and whether it was found
+func (a SignInWebauthnVerifyRequest) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for SignInWebauthnVerifyRequest
+func (a *SignInWebauthnVerifyRequest) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for SignInWebauthnVerifyRequest to handle AdditionalProperties
+func (a *SignInWebauthnVerifyRequest) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["credential"]; found {
+		err = json.Unmarshal(raw, &a.Credential)
+		if err != nil {
+			return fmt.Errorf("error reading 'credential': %w", err)
+		}
+		delete(object, "credential")
+	}
+
+	if raw, found := object["email"]; found {
+		err = json.Unmarshal(raw, &a.Email)
+		if err != nil {
+			return fmt.Errorf("error reading 'email': %w", err)
+		}
+		delete(object, "email")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for SignInWebauthnVerifyRequest to handle AdditionalProperties
+func (a SignInWebauthnVerifyRequest) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	object["credential"], err = json.Marshal(a.Credential)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'credential': %w", err)
+	}
+
+	if a.Email != nil {
+		object["email"], err = json.Marshal(a.Email)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for SignUpWebauthnVerifyRequest. Returns the specified
 // element and whether it was found
@@ -508,4 +626,114 @@ func (a SignUpWebauthnVerifyRequest) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// AsSignInWebauthnRequest0 returns the union data inside the SignInWebauthnRequest as a SignInWebauthnRequest0
+func (t SignInWebauthnRequest) AsSignInWebauthnRequest0() (SignInWebauthnRequest0, error) {
+	var body SignInWebauthnRequest0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSignInWebauthnRequest0 overwrites any union data inside the SignInWebauthnRequest as the provided SignInWebauthnRequest0
+func (t *SignInWebauthnRequest) FromSignInWebauthnRequest0(v SignInWebauthnRequest0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSignInWebauthnRequest0 performs a merge with any union data inside the SignInWebauthnRequest, using the provided SignInWebauthnRequest0
+func (t *SignInWebauthnRequest) MergeSignInWebauthnRequest0(v SignInWebauthnRequest0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSignInWebauthnRequest1 returns the union data inside the SignInWebauthnRequest as a SignInWebauthnRequest1
+func (t SignInWebauthnRequest) AsSignInWebauthnRequest1() (SignInWebauthnRequest1, error) {
+	var body SignInWebauthnRequest1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSignInWebauthnRequest1 overwrites any union data inside the SignInWebauthnRequest as the provided SignInWebauthnRequest1
+func (t *SignInWebauthnRequest) FromSignInWebauthnRequest1(v SignInWebauthnRequest1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSignInWebauthnRequest1 performs a merge with any union data inside the SignInWebauthnRequest, using the provided SignInWebauthnRequest1
+func (t *SignInWebauthnRequest) MergeSignInWebauthnRequest1(v SignInWebauthnRequest1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t SignInWebauthnRequest) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	object := make(map[string]json.RawMessage)
+	if t.union != nil {
+		err = json.Unmarshal(b, &object)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if t.Email != nil {
+		object["email"], err = json.Marshal(t.Email)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'email': %w", err)
+		}
+	}
+
+	if t.UserHandle != nil {
+		object["userHandle"], err = json.Marshal(t.UserHandle)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'userHandle': %w", err)
+		}
+	}
+	b, err = json.Marshal(object)
+	return b, err
+}
+
+func (t *SignInWebauthnRequest) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	if err != nil {
+		return err
+	}
+	object := make(map[string]json.RawMessage)
+	err = json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["email"]; found {
+		err = json.Unmarshal(raw, &t.Email)
+		if err != nil {
+			return fmt.Errorf("error reading 'email': %w", err)
+		}
+	}
+
+	if raw, found := object["userHandle"]; found {
+		err = json.Unmarshal(raw, &t.UserHandle)
+		if err != nil {
+			return fmt.Errorf("error reading 'userHandle': %w", err)
+		}
+	}
+
+	return err
 }

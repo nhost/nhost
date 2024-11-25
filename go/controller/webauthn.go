@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"time"
@@ -12,9 +14,10 @@ import (
 )
 
 type WebauthnUser struct {
-	ID    uuid.UUID
-	Name  string
-	Email string
+	ID          uuid.UUID
+	Name        string
+	Email       string
+	Credentials []webauthn.Credential
 }
 
 func (u WebauthnUser) WebAuthnID() []byte {
@@ -30,7 +33,7 @@ func (u WebauthnUser) WebAuthnDisplayName() string {
 }
 
 func (u WebauthnUser) WebAuthnCredentials() []webauthn.Credential {
-	return nil
+	return u.Credentials
 }
 
 func (u WebauthnUser) WebAuthnIcon() string {
@@ -131,6 +134,84 @@ func (w *Webauthn) FinishRegistration(
 	}
 
 	cred, err := w.wa.CreateCredential(challenge.User, challenge.Session, response)
+	if err != nil {
+		logger.Info("failed to create webauthn credential", logError(err))
+		return nil, WebauthnUser{}, ErrInvalidRequest
+	}
+
+	w.cleanCache()
+
+	return cred, challenge.User, nil
+}
+
+func (w *Webauthn) BeginLogin(
+	user WebauthnUser,
+	logger *slog.Logger,
+) (*protocol.CredentialAssertion, *APIError) {
+	w.cleanCache()
+
+	creds := user.WebAuthnCredentials()
+	allowList := make([]protocol.CredentialDescriptor, len(creds))
+	for i, cred := range creds {
+		allowList[i] = protocol.CredentialDescriptor{
+			Type:            protocol.CredentialType("public-key"),
+			CredentialID:    cred.ID,
+			Transport:       nil,
+			AttestationType: "",
+		}
+	}
+
+	challenge, session, err := w.wa.BeginLogin(
+		user,
+		webauthn.WithAllowedCredentials(allowList),
+	)
+	if err != nil {
+		logger.Info("failed to begin webauthn login", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	w.Storage[challenge.Response.Challenge.String()] = WebauthnChallenge{
+		Session: *session,
+		User:    user,
+		Options: nil,
+	}
+
+	return challenge, nil
+}
+
+func (w *Webauthn) FinishLogin(
+	response *protocol.ParsedCredentialAssertionData,
+	logger *slog.Logger,
+) (*webauthn.Credential, WebauthnUser, *APIError) {
+	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
+	if !ok {
+		logger.Info("webauthn challenge not found")
+		return nil, WebauthnUser{}, ErrInvalidRequest
+	}
+
+	// we do this in case the userHandle hasn't been urlencoded by the library
+	b, err := json.Marshal(protocol.URLEncodedBase64(response.Response.UserHandle))
+	if err == nil {
+		potentialUUID, err := uuid.Parse(string(b))
+		if err == nil && bytes.Equal(potentialUUID[:], challenge.User.ID[:]) {
+			response.Response.UserHandle = challenge.User.WebAuthnID()
+		}
+	}
+
+	// we don't track the flags so we just copy them
+	for i, userCreds := range challenge.User.Credentials {
+		if bytes.Equal(response.RawID, userCreds.ID) {
+			userCreds.Flags = webauthn.CredentialFlags{
+				UserPresent:    response.Response.AuthenticatorData.Flags.UserPresent(),
+				UserVerified:   response.Response.AuthenticatorData.Flags.UserVerified(),
+				BackupEligible: response.Response.AuthenticatorData.Flags.HasBackupEligible(),
+				BackupState:    response.Response.AuthenticatorData.Flags.HasBackupState(),
+			}
+			challenge.User.Credentials[i] = userCreds
+		}
+	}
+
+	cred, err := w.wa.ValidateLogin(challenge.User, challenge.Session, response)
 	if err != nil {
 		logger.Info("failed to create webauthn credential", logError(err))
 		return nil, WebauthnUser{}, ErrInvalidRequest

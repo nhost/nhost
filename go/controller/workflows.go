@@ -1036,3 +1036,21 @@ func (wf *Workflows) UpdateUserVerifyEmail(
 
 	return userP, nil
 }
+
+func (wf *Workflows) GetUserSecurityKeys(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) ([]sql.AuthUserSecurityKey, *APIError) {
+	keys, err := wf.db.GetSecurityKeys(ctx, userID)
+	if errors.Is(err, pgx.ErrNoRows) || len(keys) == 0 {
+		logger.Warn("security keys not found")
+		return nil, ErrSecurityKeyNotFound
+	}
+	if err != nil {
+		logger.Error("error getting security keys", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	return keys, nil
+}

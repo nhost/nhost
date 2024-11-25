@@ -70,6 +70,40 @@ func (q *Queries) FindUserProviderByProviderId(ctx context.Context, arg FindUser
 	return i, err
 }
 
+const getSecurityKeys = `-- name: GetSecurityKeys :many
+SELECT id, user_id, credential_id, credential_public_key, counter, transports, nickname
+FROM auth.user_security_keys
+WHERE user_id = $1
+`
+
+func (q *Queries) GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]AuthUserSecurityKey, error) {
+	rows, err := q.db.Query(ctx, getSecurityKeys, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthUserSecurityKey
+	for rows.Next() {
+		var i AuthUserSecurityKey
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CredentialID,
+			&i.CredentialPublicKey,
+			&i.Counter,
+			&i.Transports,
+			&i.Nickname,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge FROM auth.users
 WHERE id = $1 LIMIT 1

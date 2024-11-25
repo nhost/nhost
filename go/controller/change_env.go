@@ -70,6 +70,16 @@ func (ctrl *Controller) PostChangeEnv(fn gin.HandlerFunc) gin.HandlerFunc { //no
 			)
 		}
 
+		if ctrl.config.WebauthnEnabled {
+			wa, err := NewWebAuthn(ctrl.config)
+			if err != nil {
+				_ = c.Error(err)
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			ctrl.Webauthn = wa
+		}
+
 		fn(c)
 	}
 }
