@@ -82,6 +82,7 @@ export class HasuraAuthClient {
   readonly url: string
   constructor({
     url,
+    broadcastKey,
     autoRefreshToken = true,
     autoSignIn = true,
     clientStorage,
@@ -93,6 +94,7 @@ export class HasuraAuthClient {
     this._client = new AuthClient({
       backendUrl: url,
       clientUrl: (typeof window !== 'undefined' && window.location?.origin) || '',
+      broadcastKey,
       autoRefreshToken,
       autoSignIn,
       start,

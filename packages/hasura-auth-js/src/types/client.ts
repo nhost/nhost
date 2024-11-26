@@ -119,6 +119,8 @@ export type AuthChangedFunction = (event: AuthChangeEvent, session: NhostSession
 export type OnTokenChangedFunction = (session: NhostSession | null) => void
 
 export interface AuthOptions {
+  /** Unique key used for inter-tab communication to synchronize authentication state. */
+  broadcastKey?: string
   /** Time interval until token refreshes, in seconds */
   refreshIntervalTime?: number
   /**
