@@ -255,6 +255,11 @@ export default function RuleValueInput({
   const comboboxLabel =
     selectedFramework?.label || comboboxValue || 'Select framework...';
 
+  console.log(
+    'availableHasuraPermissionVariables',
+    availableHasuraPermissionVariables,
+  );
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -272,12 +277,14 @@ export default function RuleValueInput({
         <Command
           filter={(item, query) => {
             console.log('item', item);
-            if (item === 'create') {
+            if (item === '+create+') {
               console.log('CREATE*++');
+              // Don't show create option if it matches an existing option
               if (
                 frameworks.some(
                   (framework) =>
-                    framework.value === query || framework.label === query,
+                    framework.value.toLowerCase() === query.toLowerCase() ||
+                    framework.label.toLowerCase() === query.toLowerCase(),
                 )
               ) {
                 console.log('RETURNING 0 for query', query);
@@ -291,26 +298,27 @@ export default function RuleValueInput({
             return 0;
           }}
         >
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder="Search variable..." />
           <CommandList>
-            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandEmpty>No variable found.</CommandEmpty>
             <CommandGroup>
-              {frameworks.map((framework) => (
+              {availableHasuraPermissionVariables.map((variable) => (
                 <CommandItem
-                  key={framework.value}
-                  value={framework.value}
+                  key={variable.value}
+                  value={variable.value}
                   onSelect={(currentValue) => {
+                    console.log('currentValue', currentValue);
                     setComboboxValue(
                       currentValue === comboboxValue ? '' : currentValue,
                     );
                     setOpen(false);
                   }}
                 >
-                  {framework.label}
+                  {variable.label}
                   <Check
                     className={cn(
                       'ml-auto',
-                      comboboxValue === framework.value
+                      comboboxValue === variable.value
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}
