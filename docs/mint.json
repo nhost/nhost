@@ -154,6 +154,7 @@
         },
         "guides/auth/social-connect",
         "guides/auth/sign-in-email-password",
+        "guides/auth/sign-in-otp",
         "guides/auth/sign-in-magic-link",
         "guides/auth/sign-in-phone-number",
         "guides/auth/sign-in-webauthn",
