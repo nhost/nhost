@@ -1109,8 +1109,8 @@ export default function PricingPage() {
                   title="Auto scaling"
                   starterIcon="x"
                   proIcon="x"
-                  teamContent="Coming soon"
-                  enterpriseContent="Coming soon"
+                  teamIcon="check"
+                  enterpriseIcon="check"
                 />
 
                 <PricingListItem
