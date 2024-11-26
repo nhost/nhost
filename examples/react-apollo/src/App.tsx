@@ -16,6 +16,7 @@ import SignUpEmailPassword from '@/components/routes/auth/sign-up/sign-up-email-
 import SignUpMagicLink from '@/components/routes/auth/sign-up/sign-up-magic-link'
 import SignUpSecurityKey from '@/components/routes/auth/sign-up/sign-up-security-key'
 import VerifyEmail from './components/routes/auth/verify-email'
+import SignInEmailOTP from './components/routes/auth/sign-in/sign-in-email-otp'
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
         <Route path="/sign-in/email-password" element={<SignInEmailPassword />} />
         <Route path="/sign-in/security-key" element={<SignInSecurityKey />} />
         <Route path="/sign-in/magic-link" element={<SignInMagicLink />} />
+        <Route path="/sign-in/email-otp" element={<SignInEmailOTP />} />
         <Route path="/sign-in/forgot-password" element={<ForgotPassword />} />
       </Route>
 

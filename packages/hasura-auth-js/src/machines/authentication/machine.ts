@@ -34,13 +34,14 @@ import {
   PasswordlessSmsOtpResponse,
   PasswordlessSmsResponse,
   RefreshSessionResponse,
-  RequestOptions,
   SignInAnonymousResponse,
+  SignInEmailOTPResponse,
   SignInMfaTotpResponse,
   SignInPATResponse,
   SignInResponse,
   SignOutResponse,
-  SignUpResponse
+  SignUpResponse,
+  VerifyEmailOTPResponse
 } from '../../types'
 import {
   getParameterByName,
@@ -67,6 +68,8 @@ type AuthServices = {
   signInPassword: { data: SignInResponse }
   passwordlessSms: { data: PasswordlessSmsResponse | DeanonymizeResponse }
   passwordlessSmsOtp: { data: PasswordlessSmsOtpResponse }
+  signInEmailOTP: { data: SignInEmailOTPResponse }
+  verifyEmailOTP: { data: VerifyEmailOTPResponse }
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
   signInPAT: { data: SignInPATResponse }
@@ -401,7 +404,9 @@ export const createAuthMachine = ({
                 SIGNUP_SECURITY_KEY: 'securityKey',
                 PASSWORDLESS_EMAIL: 'passwordlessEmail',
                 PASSWORDLESS_SMS: 'passwordlessSms',
-                PASSWORDLESS_SMS_OTP: 'passwordlessSmsOtp'
+                PASSWORDLESS_SMS_OTP: 'passwordlessSmsOtp',
+                SIGNIN_EMAIL_OTP: 'signInEmailOTP',
+                VERIFY_EMAIL_OTP: 'verifyEmailOTP'
               },
               initial: 'noErrors',
               states: {
@@ -512,7 +517,36 @@ export const createAuthMachine = ({
                 }
               }
             },
-
+            signInEmailOTP: {
+              entry: ['resetErrors'],
+              invoke: {
+                src: 'signInEmailOTP',
+                id: 'signInEmailOTP',
+                onDone: {
+                  actions: 'clearContext',
+                  target: ['#nhost.authentication.signedOut', 'incomplete.needsOtp']
+                },
+                onError: {
+                  actions: 'saveRegistrationError',
+                  target: 'incomplete.failed'
+                }
+              }
+            },
+            verifyEmailOTP: {
+              entry: ['resetErrors'],
+              invoke: {
+                src: 'verifyEmailOTP',
+                id: 'verifyEmailOTP',
+                onDone: {
+                  actions: ['saveSession', 'reportTokenChanged'],
+                  target: '#nhost.authentication.signedIn'
+                },
+                onError: {
+                  actions: 'saveRegistrationError',
+                  target: 'incomplete.failed'
+                }
+              }
+            },
             complete: {
               on: {
                 SIGNED_OUT: 'incomplete'
@@ -829,6 +863,26 @@ export const createAuthMachine = ({
           }
           return postRequest('/signin/passwordless/sms/otp', {
             phoneNumber,
+            otp
+          })
+        },
+        signInEmailOTP: (_, { email, options }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+
+          return postRequest('/signin/otp/email', {
+            email,
+            options: rewriteRedirectTo(clientUrl, options)
+          })
+        },
+        verifyEmailOTP: (_, { email, otp }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+
+          return postRequest('/signin/otp/email/verify', {
+            email,
             otp
           })
         },

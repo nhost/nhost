@@ -1,4 +1,5 @@
 import type {
+  EmailOTPOptions,
   NhostSession,
   PasswordlessOptions,
   RequestOptions,
@@ -24,6 +25,12 @@ export type AuthEvents =
       options?: PasswordlessOptions
     }
   | { type: 'PASSWORDLESS_SMS_OTP'; phoneNumber?: string; otp?: string }
+  | {
+      type: 'SIGNIN_EMAIL_OTP'
+      email: string
+      options?: EmailOTPOptions
+    }
+  | { type: 'VERIFY_EMAIL_OTP'; email: string; otp: string }
   | {
       type: 'SIGNUP_EMAIL_PASSWORD'
       email?: string

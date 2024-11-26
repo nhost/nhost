@@ -1,0 +1,38 @@
+---
+title: useSignInEmailOTP()
+sidebarTitle: useSignInEmailOTP()
+---
+
+Use the hook `useSignInEmailOTP` to sign in a user with a one-time password sent via email.
+
+## Usage
+
+1. Call the `signInEmailOTP` function with the user's email to send a one-time password (OTP) to that email address.
+2. The state `needsOtp` will be `true`, indicating that an OTP is required.
+3. Once the user receives the OTP via email, call the `verifyEmailOTP` function with the email and the received OTP.
+4. On successful verification, the user is authenticated, and `isSuccess` becomes `true`.
+
+Any error is monitored through `isError` and `error`. While the `signInEmailOTP` and `verifyEmailOTP` actions are running, `isLoading` equals `true`.
+
+```tsx
+const { signInEmailOTP, verifyEmailOTP, isLoading, isSuccess, isError, error } =
+  useSignInEmailOTP()
+
+const signIn = async (e) => {
+  e.preventDefault()
+  await signInEmailOTP('john@gmail.com')
+}
+
+const verify = async (e) => {
+  e.preventDefault()
+  await verifyEmailOTP('123456')
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> <code>EmailOTPOptions</code>
+
+---

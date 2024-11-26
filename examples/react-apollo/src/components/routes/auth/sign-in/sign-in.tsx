@@ -1,10 +1,10 @@
-import { Fingerprint, Mail } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { cn } from '@/lib/utils'
-import SignInFooter from '@/components/auth/sign-in-footer'
 import OAuthLinks from '@/components/auth/oauth-links'
+import SignInFooter from '@/components/auth/sign-in-footer'
 import { buttonVariants } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+import { Fingerprint, Mail, RectangleEllipsis } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function SignIn() {
   return (
@@ -30,6 +30,14 @@ export default function SignIn() {
           >
             <Mail className="w-4 h-4" />
             <span className="flex-1 text-center">Continue with a magick link</span>
+          </Link>
+
+          <Link
+            to={'/sign-in/email-otp'}
+            className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
+          >
+            <RectangleEllipsis className="w-4 h-4" />
+            <span className="flex-1 text-center">Continue with OTP</span>
           </Link>
 
           <Link

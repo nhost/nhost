@@ -1220,6 +1220,9 @@ importers:
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
+      input-otp:
+        specifier: ^1.4.1
+        version: 1.4.1(react-dom@18.2.0)(react@18.2.0)
       lucide-react:
         specifier: ^0.416.0
         version: 0.416.0(react@18.2.0)
@@ -22381,6 +22384,16 @@ packages:
 
   /inline-style-parser@0.2.3:
     resolution: {integrity: sha512-qlD8YNDqyTKTyuITrDOffsl6Tdhv+UC4hcdAVuQsK4IMQ99nSgd1MIA/Q+jQYoh9r3hVUXhYh7urSRmXPkW04g==}
+    dev: false
+
+  /input-otp@1.4.1(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-+yvpmKYKHi9jIGngxagY9oWiiblPB7+nEO75F2l2o4vs+6vpPZZmUl4tBNYuTCvQjhvEIbdNeJu70bhfYP2nbw==}
+    peerDependencies:
+      react: 18.2.0
+      react-dom: 18.2.0
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
     dev: false
 
   /inquirer@8.2.6:

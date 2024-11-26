@@ -8,6 +8,7 @@ import Profile from './pages/ProfilePage.vue'
 import SignInMain from './pages/sign-in/CommonActions.vue'
 import SignInEmailPasword from './pages/sign-in/EmailPassword.vue'
 import SignInEmailPaswordless from './pages/sign-in/EmailPasswordless.vue'
+import SignInEmailOTP from './pages/sign-in/EmailOTP.vue'
 import SignIn from './pages/sign-in/IndexPage.vue'
 import SignUpMain from './pages/sign-up/CommonActions.vue'
 import SignUpEmailPasword from './pages/sign-up/EmailPassword.vue'
@@ -34,6 +35,10 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'passwordless',
         component: SignInEmailPaswordless
+      },
+      {
+        path: 'otp',
+        component: SignInEmailOTP
       },
       {
         path: 'email-password',
