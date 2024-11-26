@@ -356,7 +356,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						AvatarUrl:       "https://myapp.local/jane.jpg",
 						Email:           sql.Text("jane@myapp.local"),
 						Ticket:          sql.Text(""),
-						TicketExpiresAt: pgtype.Timestamptz{}, //nolint:exhaustruct
+						TicketExpiresAt: sql.TimestampTz(time.Now()),
 						EmailVerified:   true,
 						Locale:          "en",
 						DefaultRole:     "user",
@@ -467,7 +467,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						TotpSecret:               pgtype.Text{},
 						ActiveMfaType:            pgtype.Text{},
 						Ticket:                   pgtype.Text{},
-						TicketExpiresAt:          pgtype.Timestamptz{},
+						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
 					}, nil)
@@ -601,7 +601,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						TotpSecret:               pgtype.Text{},
 						ActiveMfaType:            pgtype.Text{},
 						Ticket:                   pgtype.Text{},
-						TicketExpiresAt:          pgtype.Timestamptz{},
+						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
 					}, nil)
@@ -730,7 +730,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						TotpSecret:               pgtype.Text{},
 						ActiveMfaType:            pgtype.Text{},
 						Ticket:                   pgtype.Text{},
-						TicketExpiresAt:          pgtype.Timestamptz{},
+						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
 					}, nil)

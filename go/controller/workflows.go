@@ -819,7 +819,7 @@ func (wf *Workflows) SignupUserWithouthSession(
 	gravatarURL := wf.gravatarURL(email)
 
 	var ticket pgtype.Text
-	var ticketExpiresAt pgtype.Timestamptz
+	ticketExpiresAt := sql.TimestampTz(time.Now())
 	if sendConfirmationEmail {
 		ticket = sql.Text(generateTicket(TicketTypeVerifyEmail))
 		ticketExpiresAt = sql.TimestampTz(time.Now().Add(InAMonth))
