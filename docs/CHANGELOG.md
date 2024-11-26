@@ -1,5 +1,13 @@
 # @nhost/docs
 
+## 2.22.0
+
+### Minor Changes
+
+- 10b0f74: feat: add jwt docs + openapi improvements
+- fe6e8e2: feat: add signin with otp reference docs
+- 8f77914: fix: added pg_repack and an extension overview to database guide
+
 ## 2.21.0
 
 ### Minor Changes
