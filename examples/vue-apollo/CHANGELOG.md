@@ -1,5 +1,19 @@
 # @nhost-examples/vue-apollo
 
+## 0.7.0
+
+### Minor Changes
+
+- fe6e8e2: feat: add signin with otp
+
+### Patch Changes
+
+- Updated dependencies [fe6e8e2]
+- Updated dependencies [72899a6]
+  - @nhost/vue@2.7.0
+  - @nhost/nhost-js@3.2.0
+  - @nhost/apollo@8.0.0
+
 ## 0.6.13
 
 ### Patch Changes
