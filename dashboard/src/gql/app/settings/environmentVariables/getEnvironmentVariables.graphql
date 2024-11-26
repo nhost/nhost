@@ -8,9 +8,17 @@ fragment JWTSecret on ConfigJWTSecret {
   issuer
   key
   type
+  signingKey
+  kid
   jwk_url
   header
   claims_namespace_path
+  claims_map {
+    claim
+    default
+    path
+    value
+  }
   claims_namespace
   claims_format
   audience

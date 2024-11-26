@@ -1,5 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -34,7 +33,6 @@ export default function SystemEnvironmentVariableSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
@@ -74,30 +72,14 @@ export default function SystemEnvironmentVariableSettings() {
           <span>Auth JWT Secret</span>
 
           <Text variant="subtitle1" component="span">
-            This is the key used for generating JWTs. It&apos;s HMAC-SHA-based
-            and the same as configured in Hasura.
+            This is the key used for generating JWTs. It&apos;s the same as
+            configured in Hasura.
           </Text>
         </span>
       ),
       component: (
         <EditJwtSecretForm disabled jwtSecret={stringifiedJwtSecrets} />
       ),
-    });
-  }
-
-  function showEditJwtSecretModal() {
-    openDialog({
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Edit JWT Secret</span>
-
-          <Text variant="subtitle1" component="span">
-            You can add your custom JWT secret here. Hasura will use it to
-            validate the identity of your users.
-          </Text>
-        </span>
-      ),
-      component: <EditJwtSecretForm jwtSecret={stringifiedJwtSecrets} />,
     });
   }
 
@@ -131,7 +113,7 @@ export default function SystemEnvironmentVariableSettings() {
       className="mb-2.5 mt-2 px-0"
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <Box className="grid grid-cols-3 gap-2 px-4 py-3 border-b-1">
+      <Box className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
         <Text className="font-medium">Variable Name</Text>
         <Text className="font-medium lg:col-span-2">Value</Text>
       </Box>
@@ -140,7 +122,7 @@ export default function SystemEnvironmentVariableSettings() {
         <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
 
-          <div className="grid items-center justify-start grid-flow-col gap-2 lg:col-span-2">
+          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
             <Text className="truncate" color="secondary">
               {showAdminSecret ? (
                 <InlineCode className="!text-sm font-medium">
@@ -160,9 +142,9 @@ export default function SystemEnvironmentVariableSettings() {
               onClick={() => setShowAdminSecret((show) => !show)}
             >
               {showAdminSecret ? (
-                <EyeOffIcon className="w-5 h-5" />
+                <EyeOffIcon className="h-5 w-5" />
               ) : (
-                <EyeIcon className="w-5 h-5" />
+                <EyeIcon className="h-5 w-5" />
               )}
             </IconButton>
           </div>
@@ -173,7 +155,7 @@ export default function SystemEnvironmentVariableSettings() {
         <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
 
-          <div className="grid items-center justify-start grid-flow-col gap-2 lg:col-span-2">
+          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
             <Text className="truncate" color="secondary">
               {showWebhookSecret ? (
                 <InlineCode className="!text-sm font-medium">
@@ -195,9 +177,9 @@ export default function SystemEnvironmentVariableSettings() {
               onClick={() => setShowWebhookSecret((show) => !show)}
             >
               {showWebhookSecret ? (
-                <EyeOffIcon className="w-5 h-5" />
+                <EyeOffIcon className="h-5 w-5" />
               ) : (
-                <EyeIcon className="w-5 h-5" />
+                <EyeIcon className="h-5 w-5" />
               )}
             </IconButton>
           </div>
@@ -223,7 +205,7 @@ export default function SystemEnvironmentVariableSettings() {
 
         <Divider component="li" className="!mb-2.5 !mt-4" />
 
-        <ListItem.Root className="grid justify-start grid-cols-2 px-4 lg:grid-cols-3">
+        <ListItem.Root className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
 
           <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
@@ -233,17 +215,6 @@ export default function SystemEnvironmentVariableSettings() {
               size="small"
             >
               Show JWT Secret
-            </Button>
-
-            <Text component="span">or</Text>
-
-            <Button
-              variant="borderless"
-              onClick={showEditJwtSecretModal}
-              size="small"
-              disabled={maintenanceActive}
-            >
-              Edit JWT Secret
             </Button>
           </div>
         </ListItem.Root>

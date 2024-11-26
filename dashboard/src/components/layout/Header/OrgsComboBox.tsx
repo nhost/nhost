@@ -105,7 +105,7 @@ export default function OrgsComboBox() {
         <Button
           size="sm"
           variant="ghost"
-          className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+          className="justify-between w-full gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
           {selectedItem ? (
             <div className="flex flex-row items-center justify-center">
@@ -115,7 +115,7 @@ export default function OrgsComboBox() {
           ) : (
             'Select organization / workspace'
           )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
+          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -129,7 +129,7 @@ export default function OrgsComboBox() {
                   keywords={[option.label]}
                   key={option.value}
                   value={option.value}
-                  className="flex items-center justify-between bg-background text-foreground dark:hover:bg-muted"
+                  className="flex items-center text-foreground dark:hover:bg-muted"
                   onSelect={() => {
                     setSelectedItem(option);
                     setOpen(false);
@@ -144,17 +144,15 @@ export default function OrgsComboBox() {
                     }
                   }}
                 >
-                  <div className="flex items-center font-normal">
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedItem?.value === option.value
-                          ? 'opacity-100'
-                          : 'opacity-0',
-                      )}
-                    />
-                    <span className="max-w-52 truncate">{option.label}</span>
-                  </div>
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      selectedItem?.value === option.value
+                        ? 'opacity-100'
+                        : 'opacity-0',
+                    )}
+                  />
+                  <span className="w-full truncate">{option.label}</span>
                   {renderBadge(option.plan)}
                 </CommandItem>
               ))}
@@ -170,7 +168,7 @@ export default function OrgsComboBox() {
                       keywords={[option.label]}
                       key={option.value}
                       value={option.value}
-                      className="flex items-center justify-between bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+                      className="flex items-center text-foreground dark:hover:bg-muted"
                       onSelect={() => {
                         setSelectedItem(option);
                         setOpen(false);
@@ -185,19 +183,15 @@ export default function OrgsComboBox() {
                         }
                       }}
                     >
-                      <div className="flex items-center">
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            selectedItem?.value === option.value
-                              ? 'opacity-100'
-                              : 'opacity-0',
-                          )}
-                        />
-                        <span className="max-w-52 truncate">
-                          {option.label}
-                        </span>
-                      </div>
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          selectedItem?.value === option.value
+                            ? 'opacity-100'
+                            : 'opacity-0',
+                        )}
+                      />
+                      <span className="w-full truncate">{option.label}</span>
                       {renderBadge(option.plan)}
                     </CommandItem>
                   ))}

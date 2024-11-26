@@ -3,10 +3,10 @@ import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useGetSignInMethodsQuery,
@@ -38,10 +38,10 @@ export default function EditUserPasswordForm({
     client: remoteProjectGQLClient,
   });
   const { closeDialog } = useDialog();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const { data } = useGetSignInMethodsQuery({
-    variables: { appId: currentProject?.id },
-    skip: !currentProject?.id,
+    variables: { appId: project?.id },
+    skip: !project?.id,
   });
 
   const passwordMinLength =

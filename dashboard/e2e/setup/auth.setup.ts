@@ -1,5 +1,6 @@
 import {
   TEST_DASHBOARD_URL,
+  TEST_PERSONAL_ORG_SLUG,
   TEST_USER_EMAIL,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
@@ -15,6 +16,9 @@ setup('authenticate user', async ({ page }) => {
   await page.getByLabel('Password').fill(TEST_USER_PASSWORD);
   await page.getByRole('button', { name: /sign in/i }).click();
 
-  await page.waitForURL(TEST_DASHBOARD_URL);
+  await page.waitForURL(
+    `${TEST_DASHBOARD_URL}/orgs/${TEST_PERSONAL_ORG_SLUG}/projects`,
+    { waitUntil: 'networkidle' },
+  );
   await page.context().storageState({ path: 'e2e/.auth/user.json' });
 });

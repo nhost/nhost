@@ -8,7 +8,6 @@ import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
-import { Announcements } from '@/features/projects/common/components/Announcements';
 import { EditWorkspaceNameForm } from '@/features/projects/workspaces/components/EditWorkspaceNameForm';
 import type { Workspace } from '@/types/application';
 import Image from 'next/image';
@@ -39,8 +38,6 @@ export default function WorkspaceSidebar({
       )}
       {...props}
     >
-      <Announcements />
-
       <section className="grid grid-flow-row gap-2">
         <Text color="secondary">My Workspaces</Text>
 
@@ -48,14 +45,19 @@ export default function WorkspaceSidebar({
           <List className="grid grid-flow-row gap-2">
             {workspaces.map(({ id, name, slug }) => (
               <ListItem.Root key={id}>
-                <NavLink href={`/${slug}`} passHref className='w-full' legacyBehavior>
+                <NavLink
+                  href={`/${slug}`}
+                  passHref
+                  className="w-full"
+                  legacyBehavior
+                >
                   <ListItem.Button
                     dense
                     aria-label={`View ${name}`}
                     className="!p-1"
                   >
-                    <ListItem.Avatar className="w-8 h-8">
-                      <div className="inline-block w-8 h-8 overflow-hidden rounded-lg">
+                    <ListItem.Avatar className="h-8 w-8">
+                      <div className="inline-block h-8 w-8 overflow-hidden rounded-lg">
                         <Image
                           src="/logos/new.svg"
                           alt="Nhost Logo"
@@ -129,7 +131,8 @@ export default function WorkspaceSidebar({
           passHref
           target="_blank"
           rel="noreferrer noopener"
-          legacyBehavior>
+          legacyBehavior
+        >
           <Button
             className="grid w-full grid-flow-col gap-1"
             variant="outlined"
@@ -145,7 +148,8 @@ export default function WorkspaceSidebar({
           passHref
           target="_blank"
           rel="noreferrer noopener"
-          legacyBehavior>
+          legacyBehavior
+        >
           <Button
             className="grid w-full grid-flow-col gap-1"
             variant="outlined"

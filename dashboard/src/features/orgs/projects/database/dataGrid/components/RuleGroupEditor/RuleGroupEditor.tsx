@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/v2/Text';
 import type {
   Rule,
   RuleGroup,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { useMemo } from 'react';

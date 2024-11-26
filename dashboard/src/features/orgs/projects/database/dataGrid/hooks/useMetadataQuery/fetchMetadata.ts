@@ -3,7 +3,7 @@ import type {
   HasuraMetadataSource,
   MutationOrQueryBaseOptions,
   QueryError,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface FetchMetadataOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}

@@ -3,9 +3,9 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import type { RolePermissionEditorFormValues } from '@/features/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
-import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
-import type { DatabaseAction } from '@/features/database/dataGrid/types/dataBrowser';
+import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
+import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useFormContext, useWatch } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
 

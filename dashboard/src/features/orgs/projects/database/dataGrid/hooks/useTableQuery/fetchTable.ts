@@ -5,10 +5,10 @@ import type {
   OrderBy,
   QueryError,
   QueryResult,
-} from '@/features/database/dataGrid/types/dataBrowser';
-import { extractForeignKeyRelation } from '@/features/database/dataGrid/utils/extractForeignKeyRelation';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/database/dataGrid/utils/hasuraQueryHelpers';
-import { POSTGRESQL_ERROR_CODES } from '@/features/database/dataGrid/utils/postgresqlConstants';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { formatWithArray } from 'node-pg-format';
 
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {

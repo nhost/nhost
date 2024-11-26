@@ -1,4 +1,4 @@
-import type { ColumnType } from '@/features/database/dataGrid/types/dataBrowser';
+import type { ColumnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 /**
  * Aliases for PostgreSQL error codes.

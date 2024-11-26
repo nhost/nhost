@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "2.3.0",
+  "version": "2.7.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -128,7 +128,7 @@
     "@graphql-codegen/typescript-operations": "^3.0.4",
     "@graphql-codegen/typescript-react-apollo": "^3.3.7",
     "@next/bundle-analyzer": "^12.3.4",
-    "@playwright/test": "1.41.0",
+    "@playwright/test": "1.47.0",
     "@storybook/addon-actions": "^6.5.16",
     "@storybook/addon-essentials": "^6.5.16",
     "@storybook/addon-interactions": "^6.5.16",

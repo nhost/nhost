@@ -9,6 +9,7 @@ import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -17,8 +18,10 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useBillingDeleteAppMutation,
   usePauseApplicationMutation,
+  useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
+import { ApplicationStatus } from '@/types/application';
 import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
@@ -46,12 +49,21 @@ export default function SettingsGeneralPage() {
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
   const { project, loading, refetch: refetchProject } = useProject();
+  const { state } = useAppState();
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();
-  const [pauseApplication] = usePauseApplicationMutation({
-    variables: { appId: project?.id },
-  });
+  const [pauseApplication, { loading: pauseApplicationLoading }] =
+    usePauseApplicationMutation({
+      variables: { appId: project?.id },
+    });
+
+  const [unpauseApplication, { loading: unpauseApplicationLoading }] =
+    useUnpauseApplicationMutation({
+      variables: {
+        appId: project?.id,
+      },
+    });
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -137,6 +149,24 @@ export default function SettingsGeneralPage() {
     );
   }
 
+  async function handleTriggerUnpausing() {
+    await execPromiseWithErrorToast(
+      async () => {
+        await unpauseApplication();
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        });
+        await refetchProject();
+      },
+      {
+        loadingMessage: 'Starting the project...',
+        successMessage: 'The project has been started successfully.',
+        errorMessage:
+          'An error occurred while waking up the project. Please try again.',
+      },
+    );
+  }
+
   if (loading) {
     return <ActivityIndicator label="Loading project..." />;
   }
@@ -176,29 +206,53 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      <SettingsContainer
-        title="Pause Project"
-        description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-        submitButtonText="Pause"
-        slotProps={{
-          submitButton: {
-            type: 'button',
-            color: 'primary',
-            variant: 'contained',
-            disabled: maintenanceActive || !isPlatform,
-            onClick: () => {
-              openAlertDialog({
-                title: 'Pause Project?',
-                payload:
-                  'Are you sure you want to pause this project? It will not be accessible until you unpause it.',
-                props: {
-                  onPrimaryAction: handlePauseApplication,
-                },
-              });
+      {state === ApplicationStatus.Paused && (
+        <SettingsContainer
+          title="Wake up Project"
+          description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
+          submitButtonText="Wake up"
+          slotProps={{
+            submitButton: {
+              type: 'button',
+              color: 'primary',
+              variant: 'contained',
+              loading: unpauseApplicationLoading,
+              disabled:
+                maintenanceActive || !isPlatform || unpauseApplicationLoading,
+              onClick: handleTriggerUnpausing,
             },
-          },
-        }}
-      />
+          }}
+        />
+      )}
+
+      {state !== ApplicationStatus.Paused &&
+        state !== ApplicationStatus.Pausing && (
+          <SettingsContainer
+            title="Pause Project"
+            description="While your project is paused, it will not be accessible. You can wake it up anytime after."
+            submitButtonText="Pause"
+            slotProps={{
+              submitButton: {
+                type: 'button',
+                color: 'primary',
+                variant: 'contained',
+                loading: pauseApplicationLoading,
+                disabled:
+                  maintenanceActive || !isPlatform || pauseApplicationLoading,
+                onClick: () => {
+                  openAlertDialog({
+                    title: 'Pause Project?',
+                    payload:
+                      'Are you sure you want to pause this project? It will not be accessible until you unpause it.',
+                    props: {
+                      onPrimaryAction: handlePauseApplication,
+                    },
+                  });
+                },
+              },
+            }}
+          />
+        )}
 
       <TransferProject />
 

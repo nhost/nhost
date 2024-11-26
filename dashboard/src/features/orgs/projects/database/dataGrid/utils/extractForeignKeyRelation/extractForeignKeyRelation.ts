@@ -1,7 +1,7 @@
 import type {
   ForeignKeyRelation,
   PostgresReferentialAction,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 /**
  * Extracts foreign key relation data from a raw foreign key constraint. This

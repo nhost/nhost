@@ -1,8 +1,8 @@
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
-import { ColumnAutocomplete } from '@/features/database/dataGrid/components/ColumnAutocomplete';
-import type { HasuraOperator } from '@/features/database/dataGrid/types/dataBrowser';
+import { ColumnAutocomplete } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
+import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
@@ -74,7 +74,7 @@ function renderOption({
   value,
   label,
   helperText,
-}: typeof commonOperators[number]) {
+}: (typeof commonOperators)[number]) {
   return (
     <Option key={value} value={value} className="grid grid-flow-col gap-2">
       <Text component="span" className="inline-block w-16">
