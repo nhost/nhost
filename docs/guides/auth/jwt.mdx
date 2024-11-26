@@ -1,12 +1,18 @@
 ---
 title: JSON Web Tokens (JWTs)
-description: Adapt JSON Web Tokens configuration to your needs
+description: Configure JSON Web Tokens to your needs
 icon: key
 ---
 
 ## Introduction
 
-JSON Web Tokens (JWT) are encoded strings that securely transmit information between parties as a JSON object. They consist of three parts: header, payload, and signature. JWTs are commonly used for authentication after login, where the server generates a token containing user claims (like identity and permissions) that subsequent requests can include to prove authorization.
+JSON Web Tokens (JWT) are encoded strings designed to securely transmit information between parties in the form of a JSON object. Each JWT consists of three parts: 
+
+- header
+- payload
+- signature
+
+JWTs are commonly used for authentication post-login. The server generates a token containing user claims (like identity and permissions) that subsequent requests can include to prove authorization.
 
 Here's how JWTs typically work in an authentication flow:
 
@@ -14,15 +20,15 @@ Here's how JWTs typically work in an authentication flow:
 2. Server validates credentials and generates a signed JWT containing user information and permissions
 3. Server sends the JWT to the client, which stores it (usually in browser storage)
 4. For subsequent requests, the client includes the JWT in the Authorization header
-5. Server verifies the token's signature and grants access based on the encoded permissions 1
+5. Server verifies the token's signature and grants access based on the encoded permissions
 
-The main advantage is that the server doesn't need to store session information - all necessary data is contained within the token itself, making it ideal for stateless authentication. You can read more information about JSON Web Tokens on [jwt.io](https://jwt.io).
+The main advantage is that the server doesn't need to store session information - all necessary data is contained within the token itself, making it ideal for stateless authentication. 
 
-A continuation we will explain how to configure various parameters to tweak how JWTs are signed and verified.
+<Info>For more information about JSON Web Tokens, visit [jwt.io](https://jwt.io).</Info>
 
 ## JWT Configuration
 
-You can configure your project's to use three different kinds of JWTs:
+You can configure your project to use three different kinds of JWTs:
 
 - JWTs signed with symmetric keys
 - JWTs signed with asymmetric keys
@@ -34,7 +40,8 @@ Currently we default to using symmetric keys for signing JWTs. However, we plan 
 
 ### Symmetric Keys
 
-With symmetric keys your project uses a single for both signing and verifying JWTs. This key is stored in the project's configuration and is used to sign JWTs. When a client sends a JWT to the server, the server uses the same key to verify the JWT's signature. If you need to verify JWTs in a different service, you can use the same key to verify the JWT. Because the same key is used for both signing and verifying, it is important to keep the key secret and sharing it with others can compromise the security of your JWTs.
+With symmetric keys, your project uses a single key for both signing and verifying JWTs. This key is stored in the project's configuration and is responsible for signing JWTs. When a client sends a JWT to the server, the server uses the same key to verify the JWT’s signature. If you need to verify JWTs in a different service, the same key can be used for verification. Since the same key is used for both signing and verification, it is crucial to keep it secret, as sharing it with others can compromise the security of your JWTs.
+
 
 Below you can see an example of a symmetric key configuration:
 
@@ -78,7 +85,8 @@ In addition to `HS256`, you can also use `HS384` and `HS512` for extra security.
 
 ### Asymmetric Keys
 
-With asymmetric keys your project uses a public and private key pair for signing and verifying JWTs. The private key is used to sign JWTs and is stored in the project's configuration. The public key is used to verify JWTs and is made available to clients. When a client sends a JWT to the server, the server uses the public key to verify the JWT's signature. If you need to verify JWTs in a different service, you can use the public key to verify the JWT. Because the public key is used for verifying and the private key is used for signing, you can share the public key with others without compromising the security of your JWTs.
+With asymmetric keys, your project uses a pair of public and private keys for signing and verifying JWTs. The private key, stored securely in the project's configuration, is used to sign the JWTs. The public key, on the other hand, is made available to clients and is used to verify the JWTs. When a client sends a JWT to the server, the server uses the public key to validate the JWT’s signature. If verification is needed in a different service, the public key can be used without compromising security. Since the public key is only used for verification and the private key for signing, sharing the public key is safe and does not jeopardize the security of your JWTs.
+
 
 Below you can see an example of an asymmetric key configuration:
 
@@ -143,7 +151,7 @@ In addition to `RS256`, you can also use `RS384` and `RS512` for extra security.
 
 You can then copy the contents of `jwt_private.pem` into the `signingKey` field and the contents of `jwt_public.pem` into the `key` field.
 
-The `kid` value in your configuration can be any string you want and must be unique per key. This is used to identify the key when verifying JWTs using the JWKS endpoint.
+The `kid` value in your configuration can be any unique string of your choice and must be distinct for each key. It is used to identify the correct key when verifying JWTs through the JWKS endpoint.
 
 ### External Signing
 
@@ -185,7 +193,7 @@ When using external signing the Auth service will be automatically disabled.
 
 ### Symmetric Keys
 
-To verify a JWT signed with a symmetric key yourself in a serverless function or third party service you can use a code similar to the following:
+To verify a JWT signed with a symmetric key in a serverless function or third party service you can use code similar to the following:
 
 ```javascript
 import { Request, Response } from 'express'
@@ -230,7 +238,7 @@ Keep in mind that you need access to the same key that was used to sign the JWT 
 
 ### Asymmetric Keys
 
-To verify a JWT signed with an asymmetric key yourself you can leverage the JWKS endpoint that is automatically enabled in your project when you configure it to use asymmetric keys. The JWKS endpoint can be found at `https://<subdomain>.auth.<region>.nhost.run/v1/.well-known/jwks.json`. For instance:
+To verify a JWT signed with an asymmetric key you can leverage the JWKS endpoint that is automatically enabled in your project when you configure it to use asymmetric keys. The JWKS endpoint can be found at `https://<subdomain>.auth.<region>.nhost.run/v1/.well-known/jwks.json`. For instance:
 
 ```shell
 $ curl -s https://local.auth.local.nhost.run/v1/.well-known/jwks.json | jq
@@ -247,7 +255,7 @@ $ curl -s https://local.auth.local.nhost.run/v1/.well-known/jwks.json | jq
   ]
 }
 ```
-Using the public key from the JWKS endpoint you can verify the JWT in a serverless function using a code similar to the following:
+Using the public key from the JWKS endpoint you can verify the JWT in a serverless function using code similar to the following:
 
 ```javascript
 import { Request, Response } from 'express'
