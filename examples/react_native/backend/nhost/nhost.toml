@@ -30,7 +30,7 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.35.0-beta004'
+version = '0.36.0'
 
 [auth.elevatedPrivileges]
 mode = 'disabled'
@@ -90,6 +90,7 @@ clientId = '{{ secrets.APPLE_SERVICE_IDENTIFIER }}'
 keyId = '{{ secrets.APPLE_KEY_ID }}'
 teamId = '{{ secrets.APPLE_TEAM_ID }}'
 privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
+audience = '{{ secrets.APPLE_AUDIENCE }}'
 
 [auth.method.oauth.azuread]
 tenant = 'common'
