@@ -1,0 +1,18 @@
+---
+title: useLinkIdToken()
+sidebarTitle: useLinkIdToken()
+---
+
+Use the hook `useLinkIdToken` to link a user account with the provider's account using an id token
+
+```tsx
+const { linkIdToken, isLoading, isSuccess, isError, error } = useLinkIdToken()
+
+const handleLinkIdToken = async () => {
+  await linkIdToken({
+    provider: 'google',
+    idToken: '...',
+    nonce: '...'
+  })
+}
+```

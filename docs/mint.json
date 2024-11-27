@@ -1,7 +1,11 @@
 {
   "$schema": "https://mintlify.com/schema.json",
   "name": "Documentation",
-  "openapi": ["reference/openapi-auth.yaml", "reference/openapi-auth-old.yaml", "reference/openapi-storage.yaml"],
+  "openapi": [
+    "reference/openapi-auth.yaml",
+    "reference/openapi-auth-old.yaml",
+    "reference/openapi-storage.yaml"
+  ],
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
@@ -347,7 +351,9 @@
                 "reference/javascript/auth/elevate-email-security-key",
                 "reference/javascript/auth/connect-provider",
                 "reference/javascript/auth/sign-in-email-otp",
-                "reference/javascript/auth/verify-email-otp"
+                "reference/javascript/auth/verify-email-otp",
+                "reference/javascript/auth/sign-in-id-token",
+                "reference/javascript/auth/link-id-token"
               ]
             },
             {
@@ -431,7 +437,9 @@
             "reference/react/use-user-is-anonymous",
             "reference/react/use-user-locale",
             "reference/react/use-user-roles",
-            "reference/react/use-sign-in-email-otp"
+            "reference/react/use-sign-in-email-otp",
+            "reference/react/use-sign-in-id-token",
+            "reference/react/use-link-id-token"
           ]
         },
         {
@@ -479,7 +487,9 @@
             "reference/nextjs/use-user-is-anonymous",
             "reference/nextjs/use-user-locale",
             "reference/nextjs/use-user-roles",
-            "reference/nextjs/use-sign-in-email-otp"
+            "reference/nextjs/use-sign-in-email-otp",
+            "reference/nextjs/use-sign-in-id-token",
+            "reference/nextjs/use-link-id-token"
           ]
         },
         {
@@ -522,7 +532,9 @@
             "reference/vue/use-elevate-security-key-email",
             "reference/vue/use-sign-in-email-security-key",
             "reference/vue/use-sign-up-email-security-key",
-            "reference/vue/use-sign-in-email-otp"
+            "reference/vue/use-sign-in-email-otp",
+            "reference/vue/use-sign-in-id-token",
+            "reference/vue/use-link-id-token"
           ]
         },
         {

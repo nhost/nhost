@@ -1,0 +1,28 @@
+---
+title: signInIdToken()
+sidebarTitle: signInIdToken()
+---
+
+Use `nhost.auth.signInIdToken` to sign in a user with the provider's account using an ID token
+
+```ts
+nhost.auth.signInIdToken({
+  provider: 'google', // The provider name, e.g., 'google', 'apple', etc.
+  idToken: '...', // The ID token issued by the provider.
+  nonce: '...' // Optional: The nonce used during token generation.
+})
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`SignInIdTokenParams`](/reference/javascript/nhost-js/types/sign-in-id-token-params)
+
+| Property                                                                                    | Type                                                        | Required | Notes |
+| :------------------------------------------------------------------------------------------ | :---------------------------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">params.</span>idToken</span>  | <code>string</code>                                         |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>provider</span> | [`Provider`](/reference/javascript/nhost-js/types/provider) |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>nonce</span>    | <code>string</code>                                         |          |       |
+
+---
