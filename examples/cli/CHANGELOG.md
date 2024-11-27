@@ -1,5 +1,12 @@
 # @nhost-examples/cli
 
+## 0.3.13
+
+### Patch Changes
+
+- Updated dependencies [72899a6]
+  - @nhost/nhost-js@3.2.0
+
 ## 0.3.12
 
 ### Patch Changes

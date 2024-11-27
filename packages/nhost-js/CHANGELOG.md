@@ -1,5 +1,17 @@
 # @nhost/nhost-js
 
+## 3.2.0
+
+### Minor Changes
+
+- 72899a6: fix: use a unique `broadcastKey` per nhost client for synchronizing authentication state across browser tabs
+
+### Patch Changes
+
+- Updated dependencies [fe6e8e2]
+- Updated dependencies [72899a6]
+  - @nhost/hasura-auth-js@2.7.0
+
 ## 3.1.10
 
 ### Patch Changes

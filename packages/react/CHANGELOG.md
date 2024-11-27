@@ -1,5 +1,16 @@
 # @nhost/react
 
+## 3.7.0
+
+### Minor Changes
+
+- fe6e8e2: feat: add email OTP sign-in functionality
+
+### Patch Changes
+
+- Updated dependencies [72899a6]
+  - @nhost/nhost-js@3.2.0
+
 ## 3.6.0
 
 ### Minor Changes

@@ -1,0 +1,73 @@
+---
+title: Sign In with One-Time Passwords
+sidebarTitle: One-Time Passwords
+description: Learn about One-Time Passwords
+icon: lock-hashtag
+---
+
+One-Time Passwords (OTPs) are temporary codes for single use that can be delivered to users via email. OTPs expire after 5 minutes and can only be used once. OTPs can provide a more secure and convenient alternative to regular passwords.
+
+To use One-Time Passwords, they need to be enabled in the configuration:
+
+<Tabs>
+ <Tab title="nhost.toml">
+ ```toml
+ [auth.method.otp.email]
+ enabled = true
+ ```
+ </Tab>
+ <Tab title="Dashboard">
+ ![sign-in otp](/images/guides/auth/sign-in-otp.png)
+ </Tab>
+</Tabs>
+
+After the functionality has been enabled the flow is as follows:
+
+1. User requests an OTP:
+
+<Tabs>
+  <Tab title="javascript">
+  ```js
+  nhost.auth.signInEmailOTP('user@example.com')
+  ```
+  </Tab>
+
+  <Tab title="react">
+  See [react docs](/reference/react/use-sign-in-email-otp) for details
+  </Tab>
+
+  <Tab title="vue">
+  See [vue docs](/reference/vue/use-sign-in-email-otp) for details
+  </Tab>
+
+  <Tab title="dart">
+  ```dart
+  nhost.auth.signInEmailOTP(email: "user@example.com");
+  ```
+  </Tab>
+</Tabs>
+
+2. User receives an email with the OTP
+3. User enters the OTP
+
+<Tabs>
+  <Tab title="javascript">
+  ```js
+  nhost.auth.verifyEmailOTP('user@example.com', '123456')
+  ```
+  </Tab>
+
+  <Tab title="react">
+  See [react docs](/reference/react/use-sign-in-email-otp) for details
+  </Tab>
+
+  <Tab title="vue">
+  See [vue docs](/reference/vue/use-sign-in-email-otp) for details
+  </Tab>
+
+  <Tab title="dart">
+  ```dart
+  nhost.auth.verifyEmailOTP(email: "user@example.com", otp: "123456");
+  ```
+  </Tab>
+</Tabs>

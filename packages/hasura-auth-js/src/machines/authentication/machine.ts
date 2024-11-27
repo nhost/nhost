@@ -34,13 +34,14 @@ import {
   PasswordlessSmsOtpResponse,
   PasswordlessSmsResponse,
   RefreshSessionResponse,
-  RequestOptions,
   SignInAnonymousResponse,
+  SignInEmailOTPResponse,
   SignInMfaTotpResponse,
   SignInPATResponse,
   SignInResponse,
   SignOutResponse,
-  SignUpResponse
+  SignUpResponse,
+  VerifyEmailOTPResponse
 } from '../../types'
 import {
   getParameterByName,
@@ -67,6 +68,8 @@ type AuthServices = {
   signInPassword: { data: SignInResponse }
   passwordlessSms: { data: PasswordlessSmsResponse | DeanonymizeResponse }
   passwordlessSmsOtp: { data: PasswordlessSmsOtpResponse }
+  signInEmailOTP: { data: SignInEmailOTPResponse }
+  verifyEmailOTP: { data: VerifyEmailOTPResponse }
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
   signInPAT: { data: SignInPATResponse }
@@ -82,6 +85,7 @@ type AuthServices = {
 export const createAuthMachine = ({
   backendUrl,
   clientUrl,
+  broadcastKey,
   clientStorageType = 'web',
   clientStorage,
   refreshIntervalTime,
@@ -401,7 +405,9 @@ export const createAuthMachine = ({
                 SIGNUP_SECURITY_KEY: 'securityKey',
                 PASSWORDLESS_EMAIL: 'passwordlessEmail',
                 PASSWORDLESS_SMS: 'passwordlessSms',
-                PASSWORDLESS_SMS_OTP: 'passwordlessSmsOtp'
+                PASSWORDLESS_SMS_OTP: 'passwordlessSmsOtp',
+                SIGNIN_EMAIL_OTP: 'signInEmailOTP',
+                VERIFY_EMAIL_OTP: 'verifyEmailOTP'
               },
               initial: 'noErrors',
               states: {
@@ -512,7 +518,36 @@ export const createAuthMachine = ({
                 }
               }
             },
-
+            signInEmailOTP: {
+              entry: ['resetErrors'],
+              invoke: {
+                src: 'signInEmailOTP',
+                id: 'signInEmailOTP',
+                onDone: {
+                  actions: 'clearContext',
+                  target: ['#nhost.authentication.signedOut', 'incomplete.needsOtp']
+                },
+                onError: {
+                  actions: 'saveRegistrationError',
+                  target: 'incomplete.failed'
+                }
+              }
+            },
+            verifyEmailOTP: {
+              entry: ['resetErrors'],
+              invoke: {
+                src: 'verifyEmailOTP',
+                id: 'verifyEmailOTP',
+                onDone: {
+                  actions: ['saveSession', 'reportTokenChanged'],
+                  target: '#nhost.authentication.signedIn'
+                },
+                onError: {
+                  actions: 'saveRegistrationError',
+                  target: 'incomplete.failed'
+                }
+              }
+            },
             complete: {
               on: {
                 SIGNED_OUT: 'incomplete'
@@ -685,9 +720,9 @@ export const createAuthMachine = ({
 
         // * Broadcast the token to other tabs when `autoSignIn` is activated
         broadcastToken: (context) => {
-          if (autoSignIn) {
+          if (autoSignIn && broadcastKey) {
             try {
-              const channel = new BroadcastChannel('nhost')
+              const channel = new BroadcastChannel(broadcastKey)
               // ? broadcat session instead of token ?
               channel.postMessage({
                 type: 'broadcast_token',
@@ -832,6 +867,26 @@ export const createAuthMachine = ({
             otp
           })
         },
+        signInEmailOTP: (_, { email, options }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+
+          return postRequest('/signin/otp/email', {
+            email,
+            options: rewriteRedirectTo(clientUrl, options)
+          })
+        },
+        verifyEmailOTP: (_, { email, otp }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+
+          return postRequest('/signin/otp/email/verify', {
+            email,
+            otp
+          })
+        },
         passwordlessEmail: (context, { email, options }) => {
           if (!isValidEmail(email)) {
             return Promise.reject({ error: INVALID_EMAIL_ERROR })
@@ -902,12 +957,14 @@ export const createAuthMachine = ({
             !!e.all ? ctx.accessToken.value : undefined
           )
 
-          try {
-            const channel = new BroadcastChannel('nhost')
-            // ? broadcast the signout event to other tabs to remove the accessToken
-            channel.postMessage({ type: 'signout' })
-          } catch (error) {
-            // * BroadcastChannel is not available e.g. react-native
+          if (broadcastKey) {
+            try {
+              const channel = new BroadcastChannel(broadcastKey)
+              // ? broadcast the signout event to other tabs to remove the accessToken
+              channel.postMessage({ type: 'signout' })
+            } catch (error) {
+              // * BroadcastChannel is not available e.g. react-native
+            }
           }
 
           return signOutResponse
