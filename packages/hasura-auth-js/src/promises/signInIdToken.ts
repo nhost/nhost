@@ -4,14 +4,18 @@ import { Provider } from '../types'
 
 import { AuthActionLoadingState, SessionActionHandlerResult } from './types'
 
+export interface SignInIdTokenHandlerParams {
+  provider: Provider
+  idToken: string
+  nonce?: string
+}
+
 export interface SignInIdTokenHandlerResult extends SessionActionHandlerResult {}
 export interface SignInIdTokenState extends SignInIdTokenHandlerResult, AuthActionLoadingState {}
 
 export const signInIdTokenPromise = (
   interpreter: AuthInterpreter,
-  provider: Provider,
-  idToken: string,
-  nonce?: string
+  { provider, idToken, nonce }: SignInIdTokenHandlerParams
 ): Promise<SignInIdTokenHandlerResult> =>
   new Promise((resolve) => {
     const { changed } = interpreter.send('SIGNIN_ID_TOKEN', {

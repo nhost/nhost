@@ -43,7 +43,12 @@ export const useSignInIdToken: SignInIdTokenHook = () => {
     provider: Provider,
     idToken: string,
     nonce?: string
-  ) => signInIdTokenPromise(service, provider, idToken, nonce)
+  ) =>
+    signInIdTokenPromise(service, {
+      provider,
+      idToken,
+      nonce
+    })
 
   const user = useSelector(
     service,

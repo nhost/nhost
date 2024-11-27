@@ -40,7 +40,12 @@ export const useSignInIdToken = (): SignInIdTokenResult => {
     provider: RefOrValue<Provider>,
     idToken: RefOrValue<string>,
     nonce?: RefOrValue<string>
-  ) => signInIdTokenPromise(service.value, unref(provider), unref(idToken), unref(nonce))
+  ) =>
+    signInIdTokenPromise(service.value, {
+      provider: unref(provider),
+      idToken: unref(idToken),
+      nonce: unref(nonce)
+    })
 
   const user = useSelector(
     service.value,

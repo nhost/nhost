@@ -70,6 +70,7 @@ export type SignInWithProviderParams =
 export type ConnectProviderParams = SignInWithProviderParams
 
 export type LinkIdTokenParams = { provider: Provider; idToken: string; nonce?: string }
+export type SignInIdTokenParams = { provider: Provider; idToken: string; nonce?: string }
 
 export type SignInParams =
   | SignInEmailPasswordParams
