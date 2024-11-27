@@ -81,7 +81,7 @@ export default function LinkGoogleAccount() {
       if (isSuccessResponse(response)) {
         const idToken = response?.data?.idToken as string;
 
-        const {isError, isSuccess, error} = await linkIdToken({
+        const {isError, isSuccess} = await linkIdToken({
           provider: 'google',
           idToken,
         });

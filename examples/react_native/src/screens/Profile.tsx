@@ -1,8 +1,8 @@
-import React from 'react';
-import {useHasuraClaims, useUserData} from '@nhost/react';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
-import LinkGoogleAccount from '@components/LinkGoogleAccount';
 import LinkAppleAccount from '@components/LinkAppleAccount';
+import LinkGoogleAccount from '@components/LinkGoogleAccount';
+import {useHasuraClaims, useUserData} from '@nhost/react';
+import React from 'react';
+import {ScrollView, StyleSheet, Text} from 'react-native';
 
 export default function Profile() {
   const user = useUserData();
