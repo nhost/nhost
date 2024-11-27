@@ -26,7 +26,7 @@ export default function LinkGoogleAccount() {
   const {linkIdToken} = useLinkIdToken();
   const {isAuthenticated} = useAuthenticationStatus();
   const [loading, setLoading] = useState(false);
-  const [linkedWithGooglen, setLinkedWithGoogle] = useState(false);
+  const [linkedWithGoogle, setLinkedWithGoogle] = useState(false);
 
   const checkIfGoogleLinked = useCallback(async () => {
     try {
@@ -81,7 +81,7 @@ export default function LinkGoogleAccount() {
       if (isSuccessResponse(response)) {
         const idToken = response?.data?.idToken as string;
 
-        const {isError, isSuccess} = await linkIdToken({
+        const {isError, isSuccess, error} = await linkIdToken({
           provider: 'google',
           idToken,
         });
@@ -164,7 +164,7 @@ export default function LinkGoogleAccount() {
     );
   }
 
-  if (linkedWithGooglen) {
+  if (linkedWithGoogle) {
     return (
       <View style={styles.unlinkGoogleContainer}>
         <View style={styles.linkedWithGoogleContainer}>
@@ -187,7 +187,7 @@ export default function LinkGoogleAccount() {
 
   return (
     <Button
-      disabled={loading || linkedWithGooglen}
+      disabled={loading || linkedWithGoogle}
       label={
         <View style={styles.labelWrapper}>
           <Icon name="google" color="white" size={20} />
