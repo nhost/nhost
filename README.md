@@ -16,7 +16,7 @@
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/discord">Discord</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="https://gurubase.io/g/nhost">Ask Nhost Guru</a>
+<a href="https://gurubase.io/g/nhost">Ask Nhost Guru (third party, unofficial)</a>
 <br />
 
   <hr />
