@@ -101,7 +101,6 @@ export default function RuleEditorRow({
   const rowName = `${name}.rules.${index}`;
 
   const columnState = getFieldState(`${rowName}.column`);
-  const operatorState = getFieldState(`${rowName}.operator`);
   const valueState = getFieldState(`${rowName}.value`);
 
   const operator = watch(`${rowName}.operator`);
@@ -162,7 +161,7 @@ export default function RuleEditorRow({
         }}
         fullWidth
         error={Boolean(columnState?.error?.message)}
-        onChange={(_event, { value, columnMetadata, disableReset }) => {
+        onChange={({ value, columnMetadata, disableReset }) => {
           setSelectedTablePath(
             `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
           );
