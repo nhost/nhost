@@ -162,6 +162,7 @@
         "guides/auth/sign-in-magic-link",
         "guides/auth/sign-in-phone-number",
         "guides/auth/sign-in-webauthn",
+        "guides/auth/sign-in-idtokens",
         "guides/auth/elevated-permissions",
         "guides/auth/bot-protection",
         "guides/auth/email-templates",
