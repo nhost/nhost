@@ -1,5 +1,13 @@
 # @nhost-examples/react-apollo
 
+## 1.1.1
+
+### Patch Changes
+
+- Updated dependencies [14e6100]
+  - @nhost/react@3.8.0
+  - @nhost/react-apollo@15.0.0
+
 ## 1.1.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.8.0
+
+### Minor Changes
+
+- 14e6100: feat: add support for ID token sign-in from authentication providers
+
 ## 2.7.0
 
 ### Minor Changes
