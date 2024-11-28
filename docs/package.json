@@ -1,6 +1,6 @@
 {
   "name": "@nhost/docs",
-  "version": "2.22.0",
+  "version": "2.23.0",
   "private": true,
   "scripts": {
     "start": "mintlify dev"

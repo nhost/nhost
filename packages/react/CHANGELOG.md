@@ -1,5 +1,15 @@
 # @nhost/react
 
+## 3.8.0
+
+### Minor Changes
+
+- 14e6100: feat: add support for ID token sign-in from authentication providers
+
+### Patch Changes
+
+- @nhost/nhost-js@3.2.1
+
 ## 3.7.0
 
 ### Minor Changes

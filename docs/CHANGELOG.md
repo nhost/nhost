@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.23.0
+
+### Minor Changes
+
+- 14e6100: feat: add documentation for sign-in with ID token
+
 ## 2.22.0
 
 ### Minor Changes
