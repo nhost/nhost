@@ -1,7 +1,6 @@
 'use client';
 
 import { X } from 'lucide-react';
-import * as React from 'react';
 
 import { Badge } from '@/components/ui/v3/badge';
 import {
@@ -12,6 +11,13 @@ import {
 } from '@/components/ui/v3/command';
 import { cn } from '@/lib/utils';
 import { Command as CommandPrimitive } from 'cmdk';
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from 'react';
 
 type Option = Record<'value' | 'label', string>;
 
@@ -28,38 +34,35 @@ export function FancyMultiSelect({
   className,
   onChange,
 }: FancyMultiSelectProps) {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const [open, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<Option[]>([]);
-  const [inputValue, setInputValue] = React.useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<Option[]>([]);
+  const [inputValue, setInputValue] = useState('');
 
-  const handleUnselect = React.useCallback((option: Option) => {
+  const handleUnselect = useCallback((option: Option) => {
     setSelected((prev) => prev.filter((s) => s.value !== option.value));
   }, []);
 
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      const input = inputRef.current;
-      if (input) {
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-          if (input.value === '') {
-            setSelected((prev) => {
-              const newSelected = [...prev];
-              newSelected.pop();
-              return newSelected;
-            });
-          }
-        }
-        // This is not a default behaviour of the <input /> field
-        if (e.key === 'Escape') {
-          input.blur();
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    const input = inputRef.current;
+    if (input) {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (input.value === '') {
+          setSelected((prev) => {
+            const newSelected = [...prev];
+            newSelected.pop();
+            return newSelected;
+          });
         }
       }
-    },
-    [],
-  );
+      // This is not a default behaviour of the <input /> field
+      if (e.key === 'Escape') {
+        input.blur();
+      }
+    }
+  }, []);
 
-  const handleSelect = React.useCallback(
+  const handleSelect = useCallback(
     (option: Option) => {
       setInputValue('');
       setSelected((prev) => {
@@ -71,20 +74,23 @@ export function FancyMultiSelect({
     [onChange],
   );
 
-  const selectables = React.useMemo(() => {
+  const selectables = useMemo(() => {
+    const selectedValues = selected.map((s) => s.value);
     const filtered = options.filter(
       (option) =>
-        !selected.includes(option) &&
+        !selected.map((s) => s.value).includes(option.value) &&
         option.label.toLowerCase().includes(inputValue.toLowerCase()),
     );
 
     if (creatable && inputValue && !filtered.length) {
-      return [
-        {
-          value: inputValue.toLowerCase(),
-          label: inputValue,
-        },
-      ];
+      if (!selectedValues.includes(inputValue)) {
+        return [
+          {
+            value: inputValue.toLowerCase(),
+            label: inputValue,
+          },
+        ];
+      }
     }
 
     return filtered;
@@ -111,6 +117,8 @@ export function FancyMultiSelect({
               >
                 {option.label}
                 <button
+                  type="button"
+                  aria-label={`Remove ${option.label}`}
                   className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
