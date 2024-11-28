@@ -37,14 +37,22 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
+    prefix?: React.ReactNode;
+  }
+>(({ className, prefix, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    {prefix && (
+      <span className="pointer-events-none flex items-center text-muted-foreground">
+        {prefix}
+      </span>
+    )}
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
         'flex h-11 w-full rounded-md border-none bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50',
+        prefix && 'pl-0',
         className,
       )}
       {...props}
@@ -146,9 +154,7 @@ const CommandCreateItem = ({
   onCreate: (value: string) => void;
 }) => {
   const query = useCommandState((state) => state.search);
-  console.log('query', query);
   if (!query || !onCreate) {
-    console.log('no query or onCreate');
     return null;
   }
 
