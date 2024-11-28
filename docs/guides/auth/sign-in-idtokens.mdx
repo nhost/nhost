@@ -15,11 +15,9 @@ ID tokens serve as a secure proof that a user has already been authenticated by 
 
 To use ID tokens, you need to configure supported identity providers (currently [apple](/guides/auth/social/sign-in-apple) and [google](/guides/auth/social/sign-in-google)) and make sure the `audience` is set correctly.
 
-
 ### Sign in
 
 Once everything is configured you can use an ID token to authenticate users with just a single call:
-
 
 <Tabs>
   <Tab title="javascript">
@@ -33,17 +31,15 @@ Once everything is configured you can use an ID token to authenticate users with
 
   </Tab>
 
-  <Tab title="react">
-  See [react docs](/reference/react/use-sign-in-id-token) for details
-  </Tab>
+{' '}
+<Tab title="react">See [react docs](/reference/react/use-sign-in-id-token) for details</Tab>
 
-  <Tab title="vue">
-  See [vue docs](/reference/react/use-sign-in-id-token) for details
-  </Tab>
+{' '}
+<Tab title="vue">See [vue docs](/reference/react/use-sign-in-id-token) for details</Tab>
 
   <Tab title="dart">
   ```dart
-  TBD
+  nhost.auth.signInIdToken(provider: 'google', idToken: '...', nonce: '...');
   ```
 
   </Tab>
@@ -63,23 +59,20 @@ Similarly to the [Social Connect](/guides/auth/social-connect) feature, you can 
   })
   ```
 
-  <Note>
-  Keep in mind this is an authenticated method so the user must be logged in already.
-  </Note>
+{' '}
+<Note>Keep in mind this is an authenticated method so the user must be logged in already.</Note>
 
   </Tab>
 
-  <Tab title="react">
-  See [react docs](/reference/react/use-link-id-token) for details
-  </Tab>
+{' '}
+<Tab title="react">See [react docs](/reference/react/use-link-id-token) for details</Tab>
 
-  <Tab title="vue">
-  See [vue docs](/reference/vue/use-link-id-token) for details
-  </Tab>
+{' '}
+<Tab title="vue">See [vue docs](/reference/vue/use-link-id-token) for details</Tab>
 
   <Tab title="dart">
   ```dart
-  TBD
+  nhost.auth.linkIdToken(provider: 'google', idToken: '...', nonce: '...');
   ```
 
   </Tab>
