@@ -1,9 +1,14 @@
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type { RuleGroup } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { useWatch } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
@@ -32,9 +37,11 @@ export default function RuleGroupControls({
   ...props
 }: RuleGroupControlsProps) {
   const { disabled } = useRuleGroupEditor();
+  const inputName = `${name}.operator`;
   const currentOperator: RuleGroup['operator'] = useWatch({
-    name: `${name}.operator`,
+    name: inputName,
   });
+  const { setValue } = useFormContext();
 
   return (
     <div
@@ -42,24 +49,22 @@ export default function RuleGroupControls({
       {...props}
     >
       {showSelect ? (
-        <ControlledSelect
+        <Select
           disabled={disabled}
-          name={`${name}.operator`}
-          slotProps={{
-            root: {
-              sx: {
-                backgroundColor: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? `${theme.palette.grey[300]} !important`
-                    : `${theme.palette.common.white} !important`,
-              },
-            },
+          name={inputName}
+          onValueChange={(newValue: string) => {
+            setValue(inputName, newValue, { shouldDirty: true });
           }}
-          fullWidth
+          defaultValue={currentOperator}
         >
-          <Option value="_and">and</Option>
-          <Option value="_or">or</Option>
-        </ControlledSelect>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_and">and</SelectItem>
+            <SelectItem value="_or">or</SelectItem>
+          </SelectContent>
+        </Select>
       ) : (
         <Text className="p-2 !font-medium">
           {operatorDictionary[currentOperator]}
