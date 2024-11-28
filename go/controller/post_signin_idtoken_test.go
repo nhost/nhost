@@ -606,6 +606,26 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 						WebauthnCurrentChallenge: pgtype.Text{},
 					}, nil)
 
+				mock.EXPECT().InsertUserProvider(
+					gomock.Any(),
+					sql.InsertUserProviderParams{
+						UserID:         userID,
+						ProviderID:     "fake",
+						ProviderUserID: "106964149809169421082",
+					},
+				).Return(
+					sql.AuthUserProvider{
+						ID:             userID,
+						CreatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						UpdatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						UserID:         userID,
+						AccessToken:    "unset",
+						RefreshToken:   pgtype.Text{}, //nolint:exhaustruct
+						ProviderID:     "fake",
+						ProviderUserID: "106964149809169421082",
+					}, nil,
+				)
+
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
