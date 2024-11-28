@@ -1,0 +1,315 @@
+---
+title: JSON Web Tokens (JWTs)
+description: Configure JSON Web Tokens to your needs
+icon: key
+---
+
+## Introduction
+
+JSON Web Tokens (JWT) are encoded strings designed to securely transmit information between parties in the form of a JSON object. Each JWT consists of three parts: 
+
+- header
+- payload
+- signature
+
+JWTs are commonly used for authentication post-login. The server generates a token containing user claims (like identity and permissions) that subsequent requests can include to prove authorization.
+
+Here's how JWTs typically work in an authentication flow:
+
+1. User logs in with credentials (username/password)
+2. Server validates credentials and generates a signed JWT containing user information and permissions
+3. Server sends the JWT to the client, which stores it (usually in browser storage)
+4. For subsequent requests, the client includes the JWT in the Authorization header
+5. Server verifies the token's signature and grants access based on the encoded permissions
+
+The main advantage is that the server doesn't need to store session information - all necessary data is contained within the token itself, making it ideal for stateless authentication. 
+
+<Info>For more information about JSON Web Tokens, visit [jwt.io](https://jwt.io).</Info>
+
+## JWT Configuration
+
+You can configure your project to use three different kinds of JWTs:
+
+- JWTs signed with symmetric keys
+- JWTs signed with asymmetric keys
+- JWTs signed externally via a third-party service
+
+<Note>
+Currently we default to using symmetric keys for signing JWTs. However, we plan to change this to use asymmetric keys in the near future.
+</Note>
+
+### Symmetric Keys
+
+With symmetric keys, your project uses a single key for both signing and verifying JWTs. This key is stored in the project's configuration and is responsible for signing JWTs. When a client sends a JWT to the server, the server uses the same key to verify the JWT’s signature. If you need to verify JWTs in a different service, the same key can be used for verification. Since the same key is used for both signing and verification, it is crucial to keep it secret, as sharing it with others can compromise the security of your JWTs.
+
+
+Below you can see an example of a symmetric key configuration:
+
+
+<Tabs>
+  <Tab title="nhost.toml">
+```toml
+[[hasura.jwtSecrets]]
+type = 'HS256'
+key = 'f03d5f5a0ed055e3fcbc0a3639405aca0511e6abe6d60e40d1fff610c6248f2a'
+```
+  </Tab>
+  <Tab title="dashboard">
+![Symmetric Key Configuration](/images/guides/auth/jwt/symmetric.png)
+  </Tab>
+</Tabs>
+
+<Note>
+We recommend using a [secret](/platform/secrets) to configure the key.
+</Note>
+
+In addition to `HS256`, you can also use `HS384` and `HS512` for extra security. To quickly generate a key, you can use the following command:
+
+<Tabs>
+  <Tab title="HS256">
+    ```shell
+    openssl rand -base64 32
+    ```
+  </Tab>
+  <Tab title="HS384">
+    ```shell
+    openssl rand -base64 48
+    ```
+  </Tab>
+  <Tab title="HS512">
+    ```shell
+    openssl rand -base64 64
+    ```
+  </Tab>
+</Tabs>
+
+### Asymmetric Keys
+
+With asymmetric keys, your project uses a pair of public and private keys for signing and verifying JWTs. The private key, stored securely in the project's configuration, is used to sign the JWTs. The public key, on the other hand, is made available to clients and is used to verify the JWTs. When a client sends a JWT to the server, the server uses the public key to validate the JWT’s signature. If verification is needed in a different service, the public key can be used without compromising security. Since the public key is only used for verification and the private key for signing, sharing the public key is safe and does not jeopardize the security of your JWTs.
+
+
+Below you can see an example of an asymmetric key configuration:
+
+<Tabs>
+  <Tab title="nhost.toml">
+```toml
+[[hasura.jwtSecrets]]
+type = "RS256"
+kid = "bskhwtelkajsd"
+key = ""
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqSFS8Kx9LuiYpIms+NoZ
+(ommited for brevity)
+jwIDAQAB
+-----END PUBLIC KEY-----
+""
+signingKey = ""
+-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCpIVLwrH0u6Jik
+(ommited for brevity)
+s6fJmz3ZeArPI8KFSI3Q2xqm
+-----END PRIVATE KEY-----
+""
+```
+  </Tab>
+  <Tab title="dashboard">
+![Asymmetric Key Configuration](/images/guides/auth/jwt/asymmetric.png)
+  </Tab>
+</Tabs>
+
+In addition to `RS256`, you can also use `RS384` and `RS512` for extra security. To quickly generate a key pair, you can use the following commands:
+
+<Tabs>
+  <Tab title="RS256">
+    ```shell
+    # Generate a private key
+    openssl genpkey -algorithm RSA -out jwt_private.pem -pkeyopt rsa_keygen_bits:2048
+
+    # Generate a public key from the private key
+    openssl rsa -pubout -in jwt_private.pem -out jwt_public.pem
+    ```
+  </Tab>
+  <Tab title="RS384">
+    ```shell
+    # Generate a private key
+    openssl genpkey -algorithm RSA -out jwt_private.pem -pkeyopt rsa_keygen_bits:3072
+
+    # Generate a public key from the private key
+    openssl rsa -pubout -in jwt_private.pem -out jwt_public.pem
+    ```
+  </Tab>
+  <Tab title="RS512">
+    ```shell
+    # Generate a private key
+    openssl genpkey -algorithm RSA -out jwt_private.pem -pkeyopt rsa_keygen_bits:4096
+
+    # Generate a public key from the private key
+    openssl rsa -pubout -in jwt_private.pem -out jwt_public.pem
+    ```
+  </Tab>
+</Tabs>
+
+You can then copy the contents of `jwt_private.pem` into the `signingKey` field and the contents of `jwt_public.pem` into the `key` field.
+
+The `kid` value in your configuration can be any unique string of your choice and must be distinct for each key. It is used to identify the correct key when verifying JWTs through the JWKS endpoint.
+
+### External Signing
+
+If you are using a third party service like Auth0 or Clerk you can configure your project to use their JWK endpoint to verify JWTs. Below you can see an example of an external signing configuration:
+
+<Tabs>
+  <Tab title="nhost.toml">
+
+```toml
+[[hasura.jwtSecrets]]
+jwk_url = "https://mythirdpartyservice.com/jwks.json"
+```
+
+Alternatively, you can configure the public key directly:
+
+```toml
+[[hasura.jwtSecrets]]
+type = "RS256"
+key = ""
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqSFS8Kx9LuiYpIms+NoZ
+(ommited for brevity)
+jwIDAQAB
+-----END PUBLIC KEY-----
+""
+```
+  </Tab>
+  <Tab title="dashboard">
+![External signing](/images/guides/auth/jwt/external.png)
+  </Tab>
+</Tabs>
+
+<Note>
+When using external signing the Auth service will be automatically disabled.
+</Note>
+
+## Verify a JWT
+
+
+### Symmetric Keys
+
+To verify a JWT signed with a symmetric key in a serverless function or third party service you can use code similar to the following:
+
+```javascript
+import { Request, Response } from 'express'
+import process from 'process'
+import jwt from 'jsonwebtoken'
+
+const JWT_SECRET = process.env.HASURA_GRAPHQL_JWT_SECRET;
+
+export default (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: missing header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    const verifyToken = new Promise((resolve, reject) => {
+        const verifyOptions = {
+            algorithms: ['HS256', 'HS384', 'HS512'],
+        };
+
+        jwt.verify(token, JWT_SECRET, verifyOptions, (err, decoded) => {
+            if (err) reject(err);
+            else resolve(decoded);
+        });
+    });
+
+    verifyToken
+        .then((decoded) => {
+            res.status(200).json({
+                token: decoded,
+            });
+        })
+        .catch((err) => {
+            res.status(401).json({ error: `Unauthorized: ${err}` });
+        });
+}
+```
+
+Keep in mind that you need access to the same key that was used to sign the JWT in order to verify it so this mechanism may not be suitable for all use cases.
+
+### Asymmetric Keys
+
+To verify a JWT signed with an asymmetric key you can leverage the JWKS endpoint that is automatically enabled in your project when you configure it to use asymmetric keys. The JWKS endpoint can be found at `https://<subdomain>.auth.<region>.nhost.run/v1/.well-known/jwks.json`. For instance:
+
+```shell
+$ curl -s https://local.auth.local.nhost.run/v1/.well-known/jwks.json | jq
+{
+  "keys": [
+    {
+      "alg": "RS256",
+      "e": "AQAB",
+      "kid": "bskhwtelkajsd",
+      "kty": "RSA",
+      "n": "qSFS8Kx9LuiYpIms-NoZdSIcIgVp3z531bCSq1shx6ZqsKxHyNAjQ9vcYDBcW1gS1q0NFCDWyDLoNyd_lYUDlsc6zjXZAGyjiT1l_Qe9USHjXhT6Yv8SQlVbj8YCYPhYV9g6Bj922gXOmwXpWToHVYK5bjZmq897doksTErKiny6-FlPJvLVp3cpTFuNy6DKkZkIliuZnmf8EMFOVoFuQtNVlDZZZjk9TK9SP-qN1bvFPTdlCxdkA8ws8IkvhFivgfOflLRlzEE4fECEkaC3tZzGzjhPOmV5T8UC8eNz0Ir87nez8_fVyq61ffPkFftfGOjZ4hUfQqn-YW4sH_VTjw",
+      "use": "sig"
+    }
+  ]
+}
+```
+Using the public key from the JWKS endpoint you can verify the JWT in a serverless function using code similar to the following:
+
+```javascript
+import { Request, Response } from 'express'
+import process from 'process'
+import jwt from 'jsonwebtoken'
+import jwksClient from 'jwks-rsa'
+
+const subdomain = process.env.NHOST_SUBDOMAIN;
+const region = process.env.NHOST_REGION;
+
+// Initialize the JWKS client
+const client = jwksClient({
+  jwksUri: `https://${subdomain}.auth.${region}.nhost.run/v1/.well-known/jwks.json`,
+  cache: true,
+  cacheMaxAge: 86400000, // 24 hours cache
+});
+
+export default (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: missing header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    const verifyToken = new Promise((resolve, reject) => {
+        const verifyOptions = {
+            algorithms: ['RS256', 'RS384', 'RS512'],
+        };
+
+        jwt.verify(token, (header, callback) => {
+            client.getSigningKey(header.kid, (err, key) => {
+                if (err) return callback(err);
+                callback(null, key.getPublicKey());
+            });
+        }, verifyOptions, (err, decoded) => {
+            if (err) reject(err);
+            else resolve(decoded);
+        });
+    });
+
+    verifyToken
+        .then((decoded) => {
+            res.status(200).json({
+                token: decoded,
+            });
+        })
+        .catch((err) => {
+            res.status(401).json({ error: `Unauthorized: ${err}` });
+        });
+}
+```
+
+## Custom Claims
+
+You can attach extra information to your JWTs in the form of custom claims. These claims can be used for authorization purposes in your application. For more details on how to add custom claims to your JWTs and how to use them, see the [Permissions Variables](/guides/api/permissions#permission-variables) documentation.

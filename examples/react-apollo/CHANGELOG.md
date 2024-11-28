@@ -1,5 +1,25 @@
 # @nhost-examples/react-apollo
 
+## 1.1.1
+
+### Patch Changes
+
+- Updated dependencies [14e6100]
+  - @nhost/react@3.8.0
+  - @nhost/react-apollo@15.0.0
+
+## 1.1.0
+
+### Minor Changes
+
+- fe6e8e2: feat: add signin with otp
+
+### Patch Changes
+
+- Updated dependencies [fe6e8e2]
+  - @nhost/react@3.7.0
+  - @nhost/react-apollo@14.0.0
+
 ## 1.0.2
 
 ### Patch Changes

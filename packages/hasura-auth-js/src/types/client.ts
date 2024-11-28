@@ -69,6 +69,9 @@ export type SignInWithProviderParams =
 
 export type ConnectProviderParams = SignInWithProviderParams
 
+export type LinkIdTokenParams = { provider: Provider; idToken: string; nonce?: string }
+export type SignInIdTokenParams = { provider: Provider; idToken: string; nonce?: string }
+
 export type SignInParams =
   | SignInEmailPasswordParams
   | SignInEmailPasswordOtpParams
@@ -119,6 +122,8 @@ export type AuthChangedFunction = (event: AuthChangeEvent, session: NhostSession
 export type OnTokenChangedFunction = (session: NhostSession | null) => void
 
 export interface AuthOptions {
+  /** Unique key used for inter-tab communication to synchronize authentication state. */
+  broadcastKey?: string
   /** Time interval until token refreshes, in seconds */
   refreshIntervalTime?: number
   /**

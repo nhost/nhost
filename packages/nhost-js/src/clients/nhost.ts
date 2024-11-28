@@ -28,7 +28,7 @@ export class NhostClient {
    *
    * ```ts
    * // Create a new Nhost client from individual service URLs (custom domains, self-hosting, etc).
-   * const nhost = new NhostClient({ 
+   * const nhost = new NhostClient({
    *   authUrl: "my-auth-service-url",
    *   storageUrl: "my-storage-service-url",
    *   graphqlUrl: "my-graphql-service-url",

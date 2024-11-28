@@ -1,7 +1,7 @@
 {
   "name": "@nhost-examples/react-gqty",
   "private": true,
-  "version": "1.2.13",
+  "version": "1.2.15",
   "type": "module",
   "scripts": {
     "dev": "vite",

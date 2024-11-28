@@ -1,0 +1,19 @@
+---
+title: useSignInIdToken()
+sidebarTitle: useSignInIdToken()
+---
+
+Use the hook `useSignInIdToken` to sign in a user using an `idToken`.
+
+```tsx
+const { signInIdToken, isLoading, isSuccess, isError, error } =
+  useSignInIdToken()
+
+console.log({ isLoading, isSuccess, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await signInIdToken({ provider: 'google', idToken: '...' })
+}
+```

@@ -10,10 +10,6 @@ import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import type { BaseProviderSettingsFormValues } from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
 import {
-  BaseProviderSettings,
-  baseProviderValidationSchema,
-} from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
-import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -28,6 +24,28 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import * as Yup from 'yup';
+
+const googleProviderValidationSchema = Yup.object({
+  clientId: Yup.string()
+    .label('Client ID')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  clientSecret: Yup.string()
+    .label('Client Secret')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  audience: Yup.string().label('Audience'),
+  enabled: Yup.bool(),
+});
+
+export type GoogleProviderFormValues = Yup.InferType<
+  typeof googleProviderValidationSchema
+>;
 
 export default function GoogleProviderSettings() {
   const { project } = useProject();
@@ -45,17 +63,18 @@ export default function GoogleProviderSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { clientId, clientSecret, enabled } =
+  const { clientId, clientSecret, enabled, audience } =
     data?.config?.auth?.method?.oauth?.google || {};
 
-  const form = useForm<BaseProviderSettingsFormValues>({
+  const form = useForm<GoogleProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
       clientId: clientId || '',
       clientSecret: clientSecret || '',
+      audience: audience || '',
       enabled: enabled || false,
     },
-    resolver: yupResolver(baseProviderValidationSchema),
+    resolver: yupResolver(googleProviderValidationSchema),
   });
 
   useEffect(() => {
@@ -63,10 +82,11 @@ export default function GoogleProviderSettings() {
       form.reset({
         clientId: clientId || '',
         clientSecret: clientSecret || '',
+        audience: audience || '',
         enabled: enabled || false,
       });
     }
-  }, [loading, clientId, clientSecret, enabled, form]);
+  }, [loading, clientId, clientSecret, audience, enabled, form]);
 
   if (loading) {
     return (
@@ -82,7 +102,7 @@ export default function GoogleProviderSettings() {
     throw error;
   }
 
-  const { formState, watch } = form;
+  const { formState, watch, register } = form;
   const authEnabled = watch('enabled');
 
   async function handleSubmit(formValues: BaseProviderSettingsFormValues) {
@@ -148,11 +168,44 @@ export default function GoogleProviderSettings() {
           switchId="enabled"
           showSwitch
           className={twMerge(
-            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
+            'grid-flow-rows grid grid-cols-2 grid-rows-3 gap-x-3 gap-y-4 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings providerName="google" />
+          <Input
+            {...register('clientId')}
+            id="google-clientId"
+            label="Client ID"
+            placeholder="Enter your Client ID"
+            className="col-span-1"
+            fullWidth
+            hideEmptyHelperText
+            error={!!formState.errors?.clientId}
+            helperText={formState.errors?.clientId?.message}
+          />
+          <Input
+            {...register('clientSecret')}
+            id="google-clientSecret"
+            label="Client Secret"
+            placeholder="Enter your Client Secret"
+            className="col-span-1"
+            fullWidth
+            hideEmptyHelperText
+            error={!!formState.errors?.clientSecret}
+            helperText={formState.errors?.clientSecret?.message}
+          />
+          <Input
+            {...register('audience')}
+            name="audience"
+            id="audience"
+            label="Audience (optional)"
+            placeholder="Enter Audience"
+            className="col-span-2"
+            fullWidth
+            hideEmptyHelperText
+            error={!!formState.errors?.audience}
+            helperText={formState.errors?.audience?.message}
+          />
           <Input
             name="redirectUrl"
             id="google-redirectUrl"

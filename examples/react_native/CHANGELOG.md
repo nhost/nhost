@@ -1,5 +1,25 @@
 # @nhost-examples/react-native
 
+## 0.1.0
+
+### Minor Changes
+
+- 14e6100: feat: add signIn with Google and Apple using an ID token
+
+### Patch Changes
+
+- Updated dependencies [14e6100]
+  - @nhost/react@3.8.0
+  - @nhost/react-apollo@15.0.0
+
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [fe6e8e2]
+  - @nhost/react@3.7.0
+  - @nhost/react-apollo@14.0.0
+
 ## 0.0.6
 
 ### Patch Changes

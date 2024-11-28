@@ -16,6 +16,11 @@ query GetSignInMethods($appId: uuid!) {
       id: __typename
       __typename
       method {
+        otp {
+          email {
+            enabled
+          }
+        }
         emailPassword {
           emailVerificationRequired
           hibpEnabled
@@ -40,6 +45,7 @@ query GetSignInMethods($appId: uuid!) {
             keyId
             teamId
             privateKey
+            audience
           }
           bitbucket {
             enabled
@@ -81,6 +87,7 @@ query GetSignInMethods($appId: uuid!) {
             clientId
             clientSecret
             scope
+            audience
           }
           linkedin {
             enabled

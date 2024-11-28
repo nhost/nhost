@@ -1,5 +1,18 @@
 # @nhost/hasura-auth-js
 
+## 2.8.0
+
+### Minor Changes
+
+- 14e6100: feat: add support for ID token sign-in from authentication providers
+
+## 2.7.0
+
+### Minor Changes
+
+- fe6e8e2: feat: add email OTP sign-in functionality
+- 72899a6: fix: use a unique `broadcastKey` per nhost client for synchronizing authentication state across browser tabs
+
 ## 2.6.0
 
 ### Minor Changes

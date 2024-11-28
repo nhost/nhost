@@ -1,0 +1,17 @@
+---
+title: useSignInIdToken()
+sidebarTitle: useSignInIdToken()
+---
+
+Use the composable `useSignInIdToken` to sign in a user using an `idToken`.
+
+```ts
+const { signInIdToken, isLoading, isSuccess, isError, error } =
+  useSignInIdToken()
+
+console.log({ isLoading, isSuccess, isError, error })
+
+const handleSignInIdToken = async () => {
+  await signInIdToken({ provider: 'google', idToken: '...' })
+}
+```

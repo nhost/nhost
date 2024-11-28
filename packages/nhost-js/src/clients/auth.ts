@@ -9,9 +9,15 @@ import { NhostClientConstructorParams } from '../utils/types'
 export function createAuthClient(params: NhostClientConstructorParams) {
   const authUrl = 'subdomain' in params ? urlFromSubdomain(params, 'auth') : params.authUrl
 
+  const { subdomain, region } = params
+
   if (!authUrl) {
     throw new Error('Please provide `subdomain` or `authUrl`.')
   }
 
-  return new HasuraAuthClient({ url: authUrl, ...params })
+  return new HasuraAuthClient({
+    url: authUrl,
+    broadcastKey: `${subdomain}${region ?? 'local'}`,
+    ...params
+  })
 }

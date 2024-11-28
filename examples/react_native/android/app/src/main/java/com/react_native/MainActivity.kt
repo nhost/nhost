@@ -1,4 +1,4 @@
-package com.react_native
+package io.nhost.react_native
 
 import android.os.Bundle;
 import com.facebook.react.ReactActivity

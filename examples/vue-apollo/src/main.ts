@@ -15,6 +15,7 @@ import EmailPasswordless from './components/EmailPasswordlessForm.vue'
 import ErrorSnackBar from './components/ErrorSnackBar.vue'
 import OauthLinks from './components/OAuthLinks.vue'
 import VerificationEmailDialog from './components/VerificationEmailDialog.vue'
+import OtpSentDialog from './components/OtpSentDialog.vue'
 import { routes } from './routes'
 
 import '@mdi/font/css/materialdesignicons.css'
@@ -90,4 +91,5 @@ createApp(App)
   .component('EmailPasswordless', EmailPasswordless)
   .component('OauthLinks', OauthLinks)
   .component('VerificationEmailDialog', VerificationEmailDialog)
+  .component('OTPSentDialog', OtpSentDialog)
   .mount('#app')

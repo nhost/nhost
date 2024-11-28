@@ -17,4 +17,7 @@
   <v-btn class="my-1" block variant="text" color="primary" to="/signin/security-key">
     Continue with security key
   </v-btn>
+  <v-btn class="my-1" block variant="text" color="primary" to="/signin/otp">
+    Continue with otp
+  </v-btn>
 </template>

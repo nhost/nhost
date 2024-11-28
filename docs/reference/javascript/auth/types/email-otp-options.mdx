@@ -1,0 +1,48 @@
+---
+title: EmailOTPOptions
+sidebarTitle: EmailOTPOptions
+description: No description provided.
+---
+
+# `EmailOTPOptions`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">locale</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Locale of the user, in two digits
+
+---
+
+**<span className="parameter-name">allowedRoles</span>** <span className="optional-status">optional</span> <code>Array&lt;string&gt;</code>
+
+Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasura Auth.
+
+---
+
+**<span className="parameter-name">defaultRole</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Default role of the user. Must be part of the default allowed roles defined in Hasura Auth.
+
+---
+
+**<span className="parameter-name">displayName</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Display name of the user. If not provided, it will use the display name given by the social provider (Oauth) used on registration, or the email address otherwise.
+
+---
+
+**<span className="parameter-name">metadata</span>** <span className="optional-status">optional</span> <code>Record&lt;string, unknown&gt;</code>
+
+Custom additional user information stored in the `metadata` column. Can be any JSON object.
+
+---
+
+**<span className="parameter-name">redirectTo</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Redirection path in the client application that will be used in the link in the verification email.
+For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`.
+
+---
