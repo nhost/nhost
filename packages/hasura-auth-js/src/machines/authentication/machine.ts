@@ -73,6 +73,7 @@ type AuthServices = {
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
   signInPAT: { data: SignInPATResponse }
+  signInIdToken: { data: SignInResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
   signInSecurityKeyEmail: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
@@ -191,7 +192,8 @@ export const createAuthMachine = ({
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
                 SIGNIN_SECURITY_KEY_EMAIL: 'authenticating.securityKeyEmail',
                 SIGNIN_MFA_TOTP: 'authenticating.mfa.totp',
-                SIGNIN_PAT: 'authenticating.pat'
+                SIGNIN_PAT: 'authenticating.pat',
+                SIGNIN_ID_TOKEN: 'authenticating.idToken'
               }
             },
             authenticating: {
@@ -233,6 +235,20 @@ export const createAuthMachine = ({
                     id: 'authenticateWithPAT',
                     onDone: {
                       actions: ['savePATSession', 'reportTokenChanged'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: {
+                      actions: 'saveAuthenticationError',
+                      target: '#nhost.authentication.signedOut.failed'
+                    }
+                  }
+                },
+                idToken: {
+                  invoke: {
+                    src: 'signInIdToken',
+                    id: 'authenticateWithIdToken',
+                    onDone: {
+                      actions: ['saveSession', 'reportTokenChanged'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: {
@@ -829,6 +845,13 @@ export const createAuthMachine = ({
         signInPAT: (_context, { pat }) => {
           return postRequest<SignInPATResponse>('/signin/pat', {
             personalAccessToken: pat
+          })
+        },
+        signInIdToken: (_context, { provider, idToken, nonce }) => {
+          return postRequest<SignInResponse>('/signin/idtoken', {
+            provider,
+            idToken,
+            ...(nonce && { nonce })
           })
         },
         passwordlessSms: (context, { phoneNumber, options }) => {

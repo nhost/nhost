@@ -1,4 +1,4 @@
-package com.react_native
+package io.nhost.react_native
 
 import android.app.Application
 import com.facebook.react.PackageList

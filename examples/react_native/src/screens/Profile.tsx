@@ -1,13 +1,17 @@
-import React from 'react';
+import LinkAppleAccount from '@components/LinkAppleAccount';
+import LinkGoogleAccount from '@components/LinkGoogleAccount';
 import {useHasuraClaims, useUserData} from '@nhost/react';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import React from 'react';
+import {ScrollView, StyleSheet, Text} from 'react-native';
 
 export default function Profile() {
   const user = useUserData();
   const claims = useHasuraClaims();
 
   return (
-    <View style={styles.wrapper}>
+    <ScrollView contentContainerStyle={styles.wrapper}>
+      <LinkAppleAccount />
+      <LinkGoogleAccount />
       <Text style={styles.subTitle}>User information</Text>
       <ScrollView
         horizontal
@@ -22,13 +26,14 @@ export default function Profile() {
         contentContainerStyle={styles.codeScrollView}>
         <Text style={styles.code}>{JSON.stringify(claims, null, 2)}</Text>
       </ScrollView>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
     padding: 12,
+    paddingBottom: 50,
     gap: 10,
   },
   subTitle: {
@@ -43,5 +48,6 @@ const styles = StyleSheet.create({
   codeScrollView: {
     backgroundColor: 'white',
     borderRadius: 10,
+    padding: 10,
   },
 });

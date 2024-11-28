@@ -1,0 +1,39 @@
+---
+title: LinkIdTokenHookResult
+sidebarTitle: LinkIdTokenHookResult
+description: No description provided.
+---
+
+# `LinkIdTokenHookResult`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` if an error occurred
+
+**`@depreacted`**
+
+use `!isSuccess` or `!!error` instead
+
+---
+
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>null &#124; [`ErrorPayload`](/reference/nextjs/types/error-payload)</code>
+
+Provides details about the error
+
+---
+
+**<span className="parameter-name">isSuccess</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` if the action is successful.
+
+---
+
+**<span className="parameter-name">linkIdToken</span>** <span className="optional-status">required</span> <code>LinkIdTokenHandler</code>
+
+---

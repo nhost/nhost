@@ -1,0 +1,93 @@
+---
+title: Sign In with ID tokens
+sidebarTitle: IDTokens
+description: Learn about ID tokens
+icon: binary
+---
+
+## Overview
+
+ID tokens are tokens provided by identity providers that contain authenticated user information and are specifically designed for authentication purposes, unlike access tokens which are used for authorization. ID tokens include claims about the user's identity, such as user ID, name, and email, along with metadata like token expiration time and intended audience.
+
+ID tokens serve as a secure proof that a user has already been authenticated by a trusted identity provider. When someone logs in through their device's built-in authentication (like Sign in with Apple on iOS/macOS or Google Sign-in on Android), the system generates an ID token. This token can then be passed to your authentication service, confirming the user's identity without requiring them to log in again. This streamlined approach works with any OpenID Connect (OIDC) provider, including popular services like Google One Tap sign-in, making the authentication process both secure and user-friendly.
+
+## Usage
+
+To use ID tokens, you need to configure supported identity providers (currently [apple](/guides/auth/social/sign-in-apple) and [google](/guides/auth/social/sign-in-google)) and make sure the `audience` is set correctly.
+
+### Sign in
+
+Once everything is configured you can use an ID token to authenticate users with just a single call:
+
+<Tabs>
+  <Tab title="javascript">
+  ```js
+  nhost.auth.signInIdToken({
+    provider: 'google', // The provider name, e.g., 'google', 'apple', etc.
+    idToken: '...', // The ID token issued by the provider.
+    nonce: '...' // Optional: The nonce used during token generation.
+  })
+  ```
+
+  </Tab>
+
+{' '}
+<Tab title="react">See [react docs](/reference/react/use-sign-in-id-token) for details</Tab>
+
+{' '}
+<Tab title="vue">See [vue docs](/reference/react/use-sign-in-id-token) for details</Tab>
+
+  <Tab title="dart">
+  ```dart
+  nhost.auth.signInIdToken(provider: 'google', idToken: '...', nonce: '...');
+  ```
+
+  </Tab>
+</Tabs>
+
+### Link Provider to existing user
+
+Similarly to the [Social Connect](/guides/auth/social-connect) feature, you can link an identity provider to an existing user:
+
+<Tabs>
+  <Tab title="javascript">
+  ```js
+  nhost.auth.linkIdToken({
+    provider: 'google', // The provider name, e.g., 'google', 'apple', etc.
+    idToken: '...', // The ID token issued by the provider.
+    nonce: '...' // Optional: The nonce used during token generation.
+  })
+  ```
+
+{' '}
+<Note>Keep in mind this is an authenticated method so the user must be logged in already.</Note>
+
+  </Tab>
+
+{' '}
+<Tab title="react">See [react docs](/reference/react/use-link-id-token) for details</Tab>
+
+{' '}
+<Tab title="vue">See [vue docs](/reference/vue/use-link-id-token) for details</Tab>
+
+  <Tab title="dart">
+  ```dart
+  nhost.auth.linkIdToken(provider: 'google', idToken: '...', nonce: '...');
+  ```
+
+  </Tab>
+</Tabs>
+
+## Examples
+
+Below you can find some examples on how to extract an ID Token from various identity providers to be used with the Auth service. Keep in mind these are just some examples, use cases and sources are not limited to the examples below.
+
+### React Native
+
+#### Apple
+
+For an example on how to authenticate using "Sign in with Apple" on iOS using React Native you can refer to our [sample component](https://github.com/nhost/nhost/blob/main/examples/react_native/src/components/SignInWithAppleButton.tsx).
+
+#### Google
+
+For an example on how to authenticate using "Sign in with Google" on Android using React Native you can refer to our [sample component](https://github.com/nhost/nhost/blob/main/examples/react_native/src/components/SignInWithGoogleButton.tsx).

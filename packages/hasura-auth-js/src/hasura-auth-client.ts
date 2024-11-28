@@ -37,6 +37,8 @@ import {
   verifyEmailOTPPromise
 } from './promises'
 import { createPATPromise } from './promises/createPAT'
+import { linkIdTokenPromise } from './promises/linkIdToken'
+import { signInIdTokenPromise } from './promises/signInIdToken'
 import {
   AuthChangedFunction,
   AuthErrorPayload,
@@ -51,6 +53,7 @@ import {
   EmailOTPOptions,
   JWTClaims,
   JWTHasuraClaims,
+  LinkIdTokenParams,
   NhostAuthConstructorParams,
   NhostSessionResponse,
   OnTokenChangedFunction,
@@ -59,6 +62,7 @@ import {
   SecurityKey,
   SendVerificationEmailParams,
   SendVerificationEmailResponse,
+  SignInIdTokenParams,
   SignInParams,
   SignInPATResponse,
   SignInResponse,
@@ -173,6 +177,48 @@ export class HasuraAuthClient {
     }
 
     return { providerUrl }
+  }
+
+  /**
+   * Use `nhost.auth.signInIdToken` to sign in a user with the provider's account using an ID token
+   *
+   * @example
+   * ### Sign in a user with an id token
+   * ```ts
+   * nhost.auth.signInIdToken({
+   *   provider: 'google', // The provider name, e.g., 'google', 'apple', etc.
+   *   idToken: '...', // The ID token issued by the provider.
+   *   nonce: '...', // Optional: The nonce used during token generation.
+   * });
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/sign-in-idtoken
+   */
+  async signInIdToken(params: SignInIdTokenParams) {
+    const interpreter = await this.waitUntilReady()
+
+    const res = await signInIdTokenPromise(interpreter, params)
+
+    return { ...getAuthenticationResult(res), mfa: null }
+  }
+
+  /**
+   * Use `nhost.auth.linkIdToken` to link a user account with the provider's account using an ID token
+   *
+   * @example
+   * ### Link a user account with the provider's account using an id token
+   * ```ts
+   * nhost.auth.linkIdToken({
+   *   provider: 'google', // The provider name, e.g., 'google', 'apple', etc.
+   *   idToken: '...', // The ID token issued by the provider.
+   *   nonce: '...', // Optional: The nonce used during token generation.
+   * })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/link-idtoken
+   */
+  async linkIdToken(params: LinkIdTokenParams) {
+    return linkIdTokenPromise(this._client, params)
   }
 
   /**

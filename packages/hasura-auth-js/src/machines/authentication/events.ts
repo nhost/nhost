@@ -45,3 +45,4 @@ export type AuthEvents =
   | { type: 'SIGNED_OUT' }
   | { type: 'TOKEN_CHANGED' }
   | { type: 'AWAIT_EMAIL_VERIFICATION' }
+  | { type: 'SIGNIN_ID_TOKEN'; provider: string; idToken: string; nonce?: string }

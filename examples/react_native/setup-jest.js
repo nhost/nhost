@@ -2,8 +2,14 @@ import 'react-native-gesture-handler/jestSetup';
 import WebSocket from 'ws';
 
 import MockBroadcastChannel from './__mocks__/BroadcastChannel';
+import '@react-native-google-signin/google-signin';
 
 jest.useFakeTimers();
+
+jest.mock('expo-modules-core', () => ({
+  EventEmitter: jest.fn(),
+  requireNativeModule: jest.fn().mockReturnValue({}), // Mock this function
+}));
 
 Object.assign(global, {
   WebSocket,
