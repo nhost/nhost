@@ -25,11 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   ColumnAutocomplete,
   type ColumnAutocompleteProps,
 } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete';
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import { cn } from '@/lib/utils';
@@ -133,6 +135,9 @@ export default function RuleValueInput({
   const comboboxValue = useWatch({ name: inputName });
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
 
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+
   const {
     data,
     loading,
@@ -140,6 +145,7 @@ export default function RuleValueInput({
   } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
     skip: !project?.id,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (operator === '_is_null') {
