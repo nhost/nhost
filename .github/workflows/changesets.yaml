@@ -65,29 +65,13 @@ jobs:
 
   publish-vercel:
     name: Publish to Vercel
-    runs-on: ubuntu-latest
     needs:
       - test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Setup Vercel CLI
-        run: pnpm add -g vercel
-      - name: Trigger a Vercel deployment
-        env:
-          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
-        run: |
-          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+    uses: ./.github/workflows/deploy-dashboard.yaml
+    with:
+      git_ref: ${{ github.ref_name }}
+      environment: production
+    secrets: inherit
 
   publish-docker:
     name: Publish to Docker Hub
@@ -141,33 +125,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-
-  bump-cli:
-    name: Bump Dashboard version in the Nhost CLI
-    runs-on: ubuntu-latest
-    needs:
-      - version
-      - publish-docker
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          repository: nhost/cli
-          token: ${{ secrets.GH_PAT }}
-          fetch-depth: 0
-      - name: Bump version in source code
-        run: |
-          IMAGE=$(echo ${{ env.DASHBOARD_PACKAGE }} | sed 's/@\(.\+\)\/\(.\+\)/\1\\\/\2/g')
-          VERSION="${{ needs.version.outputs.dashboardVersion }}"
-          EXPRESSION='s/"'$IMAGE':[0-9]\+\.[0-9]\+\.[0-9]\+"/"'$IMAGE':'$VERSION'"/g'
-          find ./ -type f -exec sed -i -e $EXPRESSION {} \;
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GH_PAT }}
-          commit-message: 'chore: bump nhost/dashboard to ${{ needs.version.outputs.dashboardVersion }}'
-          branch: bump-dashboard-version
-          delete-branch: true
-          title: 'chore: bump nhost/dashboard to ${{ needs.version.outputs.dashboardVersion }}'
-          body: |
-            This PR bumps the Nhost Dashboard Docker image to version ${{ needs.version.outputs.dashboardVersion }}.
