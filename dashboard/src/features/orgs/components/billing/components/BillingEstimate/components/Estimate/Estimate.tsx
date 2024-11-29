@@ -14,9 +14,6 @@ export default function Estimate() {
 
   const amountDue = useMemo(() => {
     const amount = data?.billingGetNextInvoice?.AmountDue;
-    if (!amount) {
-      return 'N/A';
-    }
     if (typeof amount !== 'number') {
       return 'N/A';
     }
