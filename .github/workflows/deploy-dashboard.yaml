@@ -25,8 +25,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.git_ref }}
           fetch-depth: 0
 
       - name: Install Node and dependencies
@@ -41,35 +42,9 @@ jobs:
       - name: Trigger Vercel deployment
         env:
           VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
+          VERCEL_PROJECT_ID: ${{ inputs.environment == 'staging' && secrets.DASHBOARD_VERCEL_PROJECT_STAGING_ID || secrets.DASHBOARD_VERCEL_PROJECT_ID }}
         run: |
-          echo "Deploying to: ${{ inputs.environment }}"
-          case "${{ inputs.environment }}" in
-            "staging")
-              echo "Deploying to staging..."
-              vercel pull --environment=preview --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              vercel build --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              vercel deploy --prebuilt --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              ;;
-            "production")
-              echo "Deploying to production..."
-              vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              ;;
-            "all")
-              echo "Deploying to all environments..."
-              # Staging deployment
-              vercel pull --environment=preview --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              vercel build --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              vercel deploy --prebuilt --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              # Production deployment
-              vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-              ;;
-            *)
-              echo "Invalid environment: ${{ inputs.environment }}"
-              exit 1
-              ;;
-          esac
+          echo "Deploying to: ${{ github.event.inputs.environment }}..."
+          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
