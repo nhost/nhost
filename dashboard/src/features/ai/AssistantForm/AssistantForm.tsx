@@ -11,13 +11,13 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
-import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
+import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient'
 import type { DialogFormProps } from '@/types/common';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
