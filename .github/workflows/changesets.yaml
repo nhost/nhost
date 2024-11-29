@@ -65,29 +65,13 @@ jobs:
 
   publish-vercel:
     name: Publish to Vercel
-    runs-on: ubuntu-latest
     needs:
       - test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Setup Vercel CLI
-        run: pnpm add -g vercel
-      - name: Trigger a Vercel deployment
-        env:
-          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
-        run: |
-          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+    uses: ./.github/workflows/deploy-dashboard.yaml
+    with:
+      git_ref: ${{ github.ref_name }}
+      environment: production
+    secrets: inherit
 
   publish-docker:
     name: Publish to Docker Hub
