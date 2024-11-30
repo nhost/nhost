@@ -19,7 +19,7 @@ import {
   useGetGraphiteFileStoresQuery,
   type GetGraphiteFileStoresQuery
 } from '@/utils/__generated__/graphite.graphql';
-import { useEffect, useMemo, type ReactElement } from 'react';
+import { useMemo, type ReactElement } from 'react';
 
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -45,13 +45,6 @@ export default function FileStoresPage() {
   const { data, loading, refetch } = useGetGraphiteFileStoresQuery({
     client: adminClient,
   });
-
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
-
-  }, [data, loading]);
 
   const fileStores = useMemo(() => data?.graphite.fileStores || [], [data]);
 

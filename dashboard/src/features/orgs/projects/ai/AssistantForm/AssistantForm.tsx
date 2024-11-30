@@ -351,7 +351,7 @@ export default function AssistantForm({
             helperText={errors?.model?.message}
             disabled={!isFileStoreSupported}
           >
-            <Option value=""></Option>
+            <Option value="" />
             {fileStoresOptions.map((fileStore) => (
               <Option key={fileStore.id} value={fileStore.id}>
                 {fileStore.label}
