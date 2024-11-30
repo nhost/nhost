@@ -1,7 +1,6 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 
 import type { InputProps } from '@/components/ui/v2/Input';
-import { inputClasses } from '@/components/ui/v2/Input';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -67,22 +66,6 @@ function ColumnSelectorInput({
       schema={schema}
       table={table}
       disableRelationships
-      slotProps={{
-        input: {
-          className: 'lg:!rounded-none !z-10',
-          sx: !disabled
-            ? {
-                backgroundColor: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? theme.palette.grey[300]
-                    : theme.palette.common.white,
-                [`& .${inputClasses.input}`]: {
-                  backgroundColor: 'transparent',
-                },
-              }
-            : undefined,
-        },
-      }}
       onChange={({ value }) => {
         if (selectedTablePath === `${schema}.${table}`) {
           setValue(name, [value], { shouldDirty: true });
