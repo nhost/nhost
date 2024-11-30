@@ -14,14 +14,11 @@ import { generateAppServiceUrl } from '@/features/projects/common/utils/generate
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
-import type { RuleEditorRowProps } from './RuleEditorRow';
 import RuleEditorRow from './RuleEditorRow';
 import RuleGroupControls from './RuleGroupControls';
 import { RuleGroupEditorContext } from './useRuleGroupEditor';
 
-export interface RuleGroupEditorProps
-  extends BoxProps,
-    Pick<RuleEditorRowProps, 'disabledOperators'> {
+export interface RuleGroupEditorProps extends BoxProps {
   /**
    * Determines whether or not the rule group editor is disabled.
    */
@@ -63,7 +60,6 @@ export default function RuleGroupEditor({
   name,
   className,
   disableRemove,
-  disabledOperators = [],
   depth = 0,
   maxDepth,
   schema,
@@ -147,7 +143,6 @@ export default function RuleGroupEditor({
                 name={name}
                 index={ruleIndex}
                 onRemove={() => removeRule(ruleIndex)}
-                disabledOperators={disabledOperators}
               />
             </div>
           ))}
@@ -177,7 +172,6 @@ export default function RuleGroupEditor({
                   table={table}
                   onRemove={() => removeGroup(ruleGroupIndex)}
                   disableRemove={rules.length === 0 && groups.length === 1}
-                  disabledOperators={disabledOperators}
                   name={`${name}.groups.${ruleGroupIndex}`}
                   depth={depth + 1}
                   disabled={disabled}
