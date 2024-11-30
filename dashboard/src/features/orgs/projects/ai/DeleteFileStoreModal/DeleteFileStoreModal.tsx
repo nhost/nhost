@@ -2,10 +2,10 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient'
-import { useDeleteFileStoreMutation } from '@/utils/__generated__/graphite.graphql';
+import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { type GraphiteFileStore } from '@pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
+import { type GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
+import { useDeleteFileStoreMutation } from '@/utils/__generated__/graphite.graphql';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 

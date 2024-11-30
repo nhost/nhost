@@ -16,9 +16,15 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
-  useGetAssistantsQuery
+  useGetAssistantsQuery,
+  type GetAssistantsQuery
 } from '@/utils/__generated__/graphite.graphql';
 import { useMemo, type ReactElement } from 'react';
+
+export type Assistant = Omit<
+  GetAssistantsQuery['graphite']['assistants'][0],
+  '__typename'
+>;
 
 export default function AssistantsPage() {
   const { openDrawer } = useDialog();
