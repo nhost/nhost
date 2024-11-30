@@ -1,5 +1,4 @@
-import type { InputProps } from '@/components/ui/v2/Input';
-import { Button } from '@/components/ui/v3/button';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import {
   Command,
   CommandEmpty,
@@ -18,16 +17,17 @@ import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/
 import { cn } from '@/lib/utils';
 import { Check, ChevronLeft, ChevronsUpDown } from 'lucide-react';
 
+import useRuleGroupEditor from '@/features/orgs/projects/database/dataGrid/components/RuleGroupEditor/useRuleGroupEditor';
 import { CommandLoading } from 'cmdk';
-import type { ForwardedRef, PropsWithoutRef } from 'react';
+import type { ForwardedRef } from 'react';
 import { forwardRef, useEffect, useState } from 'react';
 import type { UseAsyncValueOptions } from './useAsyncValue';
 import useAsyncValue from './useAsyncValue';
 import type { UseColumnGroupsOptions } from './useColumnGroups';
 import useColumnGroups from './useColumnGroups';
 
-export interface ColumnAutocompleteProps
-  extends Omit<PropsWithoutRef<InputProps>, 'onChange'> {
+export interface ColumnAutocompleteProps extends Omit<ButtonProps, 'onChange'> {
+  value?: string;
   /**
    * Schema where the `table` is located.
    */
@@ -49,10 +49,6 @@ export interface ColumnAutocompleteProps
    */
   onInitialized?: UseAsyncValueOptions['onInitialized'];
   /**
-   * Class name to be applied to the root element.
-   */
-  rootClassName?: string;
-  /**
    * Determines if the autocomplete should allow relationships.
    */
   disableRelationships?: UseColumnGroupsOptions['disableRelationships'];
@@ -60,19 +56,20 @@ export interface ColumnAutocompleteProps
 
 function ColumnAutocomplete(
   {
-    rootClassName,
     schema: defaultSchema,
     table: defaultTable,
     value: externalValue,
     disableRelationships,
     onChange,
     onInitialized,
-    ...props
   }: ColumnAutocompleteProps,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
+
+  const { disabled } = useRuleGroupEditor();
+
   const [search, setSearch] = useState('');
   const [pages, setPages] = useState<string[]>([]);
   const activePage = pages[pages.length - 1];
@@ -197,6 +194,8 @@ function ColumnAutocomplete(
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          ref={ref}
+          disabled={disabled}
           variant="outline"
           role="combobox"
           aria-expanded={open}
@@ -212,7 +211,7 @@ function ColumnAutocomplete(
           ) : (
             selectedColumn?.label || 'Select a column'
           )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
@@ -284,17 +283,19 @@ function ColumnAutocomplete(
                     </CommandItem>
                   ))}
                 </CommandGroup>
-                <CommandGroup heading="relationships">
-                  {relationships.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.value}
-                      onSelect={handleRelationshipChange}
-                    >
-                      {option.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {relationships.length > 0 && !disableRelationships && (
+                  <CommandGroup heading="relationships">
+                    {relationships.map((option) => (
+                      <CommandItem
+                        key={option.value}
+                        value={option.value}
+                        onSelect={handleRelationshipChange}
+                      >
+                        {option.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
               </>
             )}
             {activePage === 'address' && (
