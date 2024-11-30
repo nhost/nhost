@@ -1,0 +1,58 @@
+name: 'dashboard: release form'
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        type: string
+        description: 'Branch, tag, or commit SHA'
+        required: true
+
+      environment:
+        type: choice
+        description: 'Deployment environment'
+        required: true
+        default: staging
+        options:
+          - staging
+          - production
+
+  workflow_call:
+    inputs:
+      git_ref:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+
+jobs:
+  publish-vercel:
+    name: Publish to Vercel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref }}
+          fetch-depth: 0
+
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+      - name: Setup Vercel CLI
+        run: pnpm add -g vercel
+
+      - name: Trigger Vercel deployment
+        env:
+          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ inputs.environment == 'production' && secrets.DASHBOARD_VERCEL_PROJECT_ID || secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
+        run: |
+          echo "Deploying to: ${{ inputs.environment }}..."
+          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
