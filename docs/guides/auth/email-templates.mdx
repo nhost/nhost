@@ -34,6 +34,9 @@ nhost
 │   │   ├── password-reset
 │   │   │   ├── body.html
 │   │   │   └── subject.txt
+│   │   ├── signin-otp
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
 │   │   ├── signin-passwordless
 │   │   │   ├── body.html
 │   │   │   └── subject.txt
@@ -47,6 +50,9 @@ nhost
 │       │   ├── body.html
 │       │   └── subject.txt
 │       ├── password-reset
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── signin-otp
 │       │   ├── body.html
 │       │   └── subject.txt
 │       ├── signin-passwordless
@@ -82,7 +88,7 @@ The following variables are available to all email templates:
 | `serverUrl`   | URL of the authentication server                                                                                                   |
 | `clientUrl`   | URL of your client app                                                                                                             |
 | `redirectTo`  | URL where the user will be redirected to after clicking the link and finishing the action of the email                             |
-| `ticket`      | Ticket that is used to authorize the link request                                                                                  |
+| `ticket`      | Ticket or OTP that is used to authorize the request.                                                                                  |
 | `displayName` | The display name of the user                                                                                                      |
 | `email`       | The email of the user                                                                                                             |
 | `locale`      | Locale of the user as a two-letter language code (e.g. "en")                                                                       |
