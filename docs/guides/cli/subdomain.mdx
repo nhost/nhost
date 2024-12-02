@@ -40,7 +40,7 @@ The domains in the URLs above will all return the IP address for localhost, `127
 local.auth.local.nhost.run has address 127.0.0.1
 ```
 
-However, those URLs are powered by a dynamic DNS that can return any IPv4 address you need, you just need to replace the subdomain `local` with a `subdomain` that contains the 4 octets of the IPv4 adress you want separated by `-`. For instance:
+However, those URLs are powered by a dynamic DNS that can return any IPv4 address you need, you just need to replace the subdomain `local` with a `subdomain` that contains the 4 octets of the IPv4 address you want separated by `-`. For instance:
 
 ```
 > host 192-168-100-1.auth.local.nhost.run
@@ -51,6 +51,13 @@ However, those URLs are powered by a dynamic DNS that can return any IPv4 addres
 ```
 
 This is useful if you need to connect to your environment from a different device, a VM or a mobile device emulator.
+
+<Warning>
+Some ISPs filter DNS responses that point to localhost and/or private IP space. If your provider is one of them you may have troubles accessing your local dev environment. As a workaround you have two options:
+
+1. Follow the instructions under [offline access](/guides/cli/subdomain#offline-access) to create static DNS entries in your machine.
+2. Configure your computer to use a different [DNS provider](https://privacysavvy.com/security/business/best-free-public-dns-servers/).
+</Warning>
 
 To make use of this functionality you can start your development environment after setting the environment variable `NHOST_LOCAL_SUBDOMAIN` or passing the flag `--local-subdomain` :
 
