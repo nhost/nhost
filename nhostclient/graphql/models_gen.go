@@ -1253,9 +1253,10 @@ type ConfigStorageUpdateInput struct {
 }
 
 type ConfigSystemConfig struct {
-	Auth     *ConfigSystemConfigAuth     `json:"auth,omitempty"`
-	Graphql  *ConfigSystemConfigGraphql  `json:"graphql,omitempty"`
-	Postgres *ConfigSystemConfigPostgres `json:"postgres"`
+	Auth                       *ConfigSystemConfigAuth     `json:"auth,omitempty"`
+	Graphql                    *ConfigSystemConfigGraphql  `json:"graphql,omitempty"`
+	PersistentVolumesEncrypted *bool                       `json:"persistentVolumesEncrypted,omitempty"`
+	Postgres                   *ConfigSystemConfigPostgres `json:"postgres"`
 }
 
 type ConfigSystemConfigAuth struct {
