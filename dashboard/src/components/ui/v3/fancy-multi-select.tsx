@@ -22,6 +22,7 @@ import {
 type Option = Record<'value' | 'label', string>;
 
 interface FancyMultiSelectProps {
+  defaultValue?: Option[];
   options?: Option[];
   creatable?: boolean;
   className?: string;
@@ -29,6 +30,7 @@ interface FancyMultiSelectProps {
 }
 
 export function FancyMultiSelect({
+  defaultValue = [],
   options = [],
   creatable = false,
   className,
@@ -36,7 +38,7 @@ export function FancyMultiSelect({
 }: FancyMultiSelectProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Option[]>([]);
+  const [selected, setSelected] = useState<Option[]>(defaultValue);
   const [inputValue, setInputValue] = useState('');
 
   const handleUnselect = useCallback((option: Option) => {

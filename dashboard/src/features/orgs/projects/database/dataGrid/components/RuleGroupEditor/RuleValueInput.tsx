@@ -111,10 +111,14 @@ export default function RuleValueInput({
 }: RuleValueInputProps) {
   const { schema, table, disabled } = useRuleGroupEditor();
   const { project } = useProject();
-  const { setValue } = useFormContext();
+  const { setValue, control } = useFormContext();
+  const inputName = `${name}.value`;
+  const { field } = useController({
+    name: inputName,
+    control,
+  });
 
   const [open, setOpen] = useState(false);
-  const inputName = `${name}.value`;
   const comboboxValue = useWatch({ name: inputName });
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
 
@@ -160,11 +164,14 @@ export default function RuleValueInput({
   }));
 
   if (operator === '_in' || operator === '_nin') {
+    const defaultValue = Array.isArray(field.value) ? field.value : [];
+
     return (
       <FancyMultiSelect
         className={className}
         options={availableHasuraPermissionVariables}
         creatable
+        defaultValue={defaultValue.map((v) => ({ value: v, label: v }))}
         onChange={(value) => {
           setValue(
             inputName,
