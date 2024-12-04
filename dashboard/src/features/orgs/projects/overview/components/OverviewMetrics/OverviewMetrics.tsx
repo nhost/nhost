@@ -98,7 +98,7 @@ export default function OverviewMetrics() {
     },
     {
       label: 'Function Duration',
-      tooltip: 'Total function execution time',
+      tooltip: 'Total function execution time this month',
       value: prettifyNumber(functionsDuration),
     },
     {
