@@ -79,7 +79,7 @@ export default function OverviewMetrics() {
     },
     {
       label: 'Storage',
-      tooltip: 'Total size of stored files',
+      tooltip: 'Total size of stored files in the storage service',
       value: prettifySize(totalStorage || 0),
     },
     {
