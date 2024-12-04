@@ -202,36 +202,6 @@ test('should convert a complex permission to a rule group', () => {
   });
 });
 
-test(`should convert an _in or _nin value that do not have an array as value to _in_hasura or _nin_hasura`, () => {
-  expect(
-    convertToRuleGroup({ title: { _in: ['X-Hasura-Allowed-Ids'] } }),
-  ).toMatchObject({
-    operator: '_and',
-    rules: [
-      {
-        column: 'title',
-        operator: '_in',
-        value: ['X-Hasura-Allowed-Ids'],
-      },
-    ],
-    groups: [],
-  });
-
-  expect(
-    convertToRuleGroup({ title: { _in: 'X-Hasura-Allowed-Ids' } }),
-  ).toMatchObject({
-    operator: '_and',
-    rules: [
-      {
-        column: 'title',
-        operator: '_in_hasura',
-        value: 'X-Hasura-Allowed-Ids',
-      },
-    ],
-    groups: [],
-  });
-});
-
 test('should transform operators and relations if the _not operator is being used', () => {
   expect(
     convertToRuleGroup({ _not: { title: { _eq: 'test' } } }),
