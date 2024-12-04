@@ -32,10 +32,8 @@ export default function RuleEditorRow({
   ...props
 }: RuleEditorRowProps) {
   const { schema, table } = useRuleGroupEditor();
-  const { control, setValue, getFieldState } = useFormContext();
+  const { control, setValue } = useFormContext();
   const rowName = `${name}.rules.${index}`;
-
-  const valueState = getFieldState(`${rowName}.value`);
 
   const [selectedTablePath, setSelectedTablePath] = useState<string>('');
   const [selectedColumnType, setSelectedColumnType] = useState<string>('');
@@ -92,7 +90,6 @@ export default function RuleEditorRow({
         selectedTablePath={selectedTablePath}
         name={rowName}
         className="min-h-10"
-        error={Boolean(valueState?.error?.message)}
       />
 
       <RuleRemoveButton

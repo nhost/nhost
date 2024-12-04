@@ -1,6 +1,5 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 
-import type { InputProps } from '@/components/ui/v2/Input';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -92,22 +91,12 @@ export interface RuleValueInputProps {
    * Path of the table selected through the column input.
    */
   selectedTablePath?: string;
-  /**
-   * Whether the input should be marked as invalid.
-   */
-  error?: InputProps['error'];
-  /**
-   * Helper text to display below the input.
-   */
-  helperText?: InputProps['helperText'];
 }
 
 export default function RuleValueInput({
   name,
   selectedTablePath,
-  error,
   className,
-  helperText,
 }: RuleValueInputProps) {
   const { schema, table, disabled } = useRuleGroupEditor();
   const { project } = useProject();
@@ -125,11 +114,7 @@ export default function RuleValueInput({
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const {
-    data,
-    loading,
-    error: customClaimsError,
-  } = useGetRolesPermissionsQuery({
+  const { data, loading } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
     skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -191,8 +176,6 @@ export default function RuleValueInput({
         schema={schema}
         table={table}
         name={inputName}
-        error={error}
-        helperText={helperText}
       />
     );
   }
