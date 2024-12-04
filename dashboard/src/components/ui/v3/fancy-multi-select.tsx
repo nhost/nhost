@@ -77,22 +77,20 @@ export function FancyMultiSelect({
   );
 
   const selectables = useMemo(() => {
-    const selectedValues = selected.map((s) => s.value);
     const filtered = options.filter(
       (option) =>
         !selected.map((s) => s.value).includes(option.value) &&
         option.label.toLowerCase().includes(inputValue.toLowerCase()),
     );
 
-    if (creatable && inputValue && !filtered.length) {
-      if (!selectedValues.includes(inputValue)) {
-        return [
-          {
-            value: inputValue.toLowerCase(),
-            label: inputValue,
-          },
-        ];
-      }
+    if (creatable && inputValue) {
+      return [
+        ...filtered,
+        {
+          value: inputValue.toLowerCase(),
+          label: inputValue,
+        },
+      ];
     }
 
     return filtered;
@@ -113,11 +111,13 @@ export function FancyMultiSelect({
           {selected.map((option) => {
             return (
               <Badge
-                className="h-7 overflow-x-hidden text-ellipsis whitespace-nowrap break-words text-[12px] font-normal"
+                className="h-7 text-[12px] font-normal"
                 key={option.value}
                 variant="outline"
               >
-                {option.label}
+                <span className="overflow-x-hidden text-ellipsis whitespace-nowrap break-words">
+                  {option.label}
+                </span>
                 <button
                   type="button"
                   aria-label={`Remove ${option.label}`}
