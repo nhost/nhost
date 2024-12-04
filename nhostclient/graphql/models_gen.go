@@ -1673,7 +1673,8 @@ type AppStateHistoryVarianceOrderBy struct {
 type Apps struct {
 	AppSecrets []*ConfigEnvironmentVariable `json:"appSecrets"`
 	// An array relationship
-	AppStates []*AppStateHistory `json:"appStates"`
+	AppStates        []*AppStateHistory `json:"appStates"`
+	AutomaticDeploys bool               `json:"automaticDeploys"`
 	// An array relationship
 	Backups   []*Backups    `json:"backups"`
 	Config    *ConfigConfig `json:"config,omitempty"`
@@ -1749,6 +1750,7 @@ type AppsBoolExp struct {
 	Not                        *AppsBoolExp                `json:"_not,omitempty"`
 	Or                         []*AppsBoolExp              `json:"_or,omitempty"`
 	AppStates                  *AppStateHistoryBoolExp     `json:"appStates,omitempty"`
+	AutomaticDeploys           *BooleanComparisonExp       `json:"automaticDeploys,omitempty"`
 	Backups                    *BackupsBoolExp             `json:"backups,omitempty"`
 	CreatedAt                  *TimestamptzComparisonExp   `json:"createdAt,omitempty"`
 	Creator                    *UsersBoolExp               `json:"creator,omitempty"`
@@ -1856,6 +1858,7 @@ type AppsOnConflict struct {
 // Ordering options when selecting data from "apps".
 type AppsOrderBy struct {
 	AppStatesAggregate         *AppStateHistoryAggregateOrderBy `json:"appStates_aggregate,omitempty"`
+	AutomaticDeploys           *OrderBy                         `json:"automaticDeploys,omitempty"`
 	BackupsAggregate           *BackupsAggregateOrderBy         `json:"backups_aggregate,omitempty"`
 	CreatedAt                  *OrderBy                         `json:"createdAt,omitempty"`
 	Creator                    *UsersOrderBy                    `json:"creator,omitempty"`
@@ -1891,6 +1894,7 @@ type AppsPkColumnsInput struct {
 
 // input type for updating data in table "apps"
 type AppsSetInput struct {
+	AutomaticDeploys           *bool   `json:"automaticDeploys,omitempty"`
 	DesiredState               *int64  `json:"desiredState,omitempty"`
 	GithubRepositoryID         *string `json:"githubRepositoryId,omitempty"`
 	Name                       *string `json:"name,omitempty"`
@@ -1924,6 +1928,7 @@ type AppsStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AppsStreamCursorValueInput struct {
+	AutomaticDeploys           *bool                  `json:"automaticDeploys,omitempty"`
 	CreatedAt                  *time.Time             `json:"createdAt,omitempty"`
 	CreatorUserID              *string                `json:"creatorUserId,omitempty"`
 	DesiredState               *int64                 `json:"desiredState,omitempty"`
@@ -5745,6 +5750,8 @@ type AppsSelectColumn string
 
 const (
 	// column name
+	AppsSelectColumnAutomaticDeploys AppsSelectColumn = "automaticDeploys"
+	// column name
 	AppsSelectColumnCreatedAt AppsSelectColumn = "createdAt"
 	// column name
 	AppsSelectColumnCreatorUserID AppsSelectColumn = "creatorUserId"
@@ -5779,6 +5786,7 @@ const (
 )
 
 var AllAppsSelectColumn = []AppsSelectColumn{
+	AppsSelectColumnAutomaticDeploys,
 	AppsSelectColumnCreatedAt,
 	AppsSelectColumnCreatorUserID,
 	AppsSelectColumnDesiredState,
@@ -5799,7 +5807,7 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 
 func (e AppsSelectColumn) IsValid() bool {
 	switch e {
-	case AppsSelectColumnCreatedAt, AppsSelectColumnCreatorUserID, AppsSelectColumnDesiredState, AppsSelectColumnGithubRepositoryID, AppsSelectColumnID, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnMetadataFunctions, AppsSelectColumnName, AppsSelectColumnNhostBaseFolder, AppsSelectColumnOrganizationID, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnSlug, AppsSelectColumnSubdomain, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID:
+	case AppsSelectColumnAutomaticDeploys, AppsSelectColumnCreatedAt, AppsSelectColumnCreatorUserID, AppsSelectColumnDesiredState, AppsSelectColumnGithubRepositoryID, AppsSelectColumnID, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnMetadataFunctions, AppsSelectColumnName, AppsSelectColumnNhostBaseFolder, AppsSelectColumnOrganizationID, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnSlug, AppsSelectColumnSubdomain, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID:
 		return true
 	}
 	return false
@@ -5831,6 +5839,8 @@ type AppsUpdateColumn string
 
 const (
 	// column name
+	AppsUpdateColumnAutomaticDeploys AppsUpdateColumn = "automaticDeploys"
+	// column name
 	AppsUpdateColumnDesiredState AppsUpdateColumn = "desiredState"
 	// column name
 	AppsUpdateColumnGithubRepositoryID AppsUpdateColumn = "githubRepositoryId"
@@ -5845,6 +5855,7 @@ const (
 )
 
 var AllAppsUpdateColumn = []AppsUpdateColumn{
+	AppsUpdateColumnAutomaticDeploys,
 	AppsUpdateColumnDesiredState,
 	AppsUpdateColumnGithubRepositoryID,
 	AppsUpdateColumnName,
@@ -5855,7 +5866,7 @@ var AllAppsUpdateColumn = []AppsUpdateColumn{
 
 func (e AppsUpdateColumn) IsValid() bool {
 	switch e {
-	case AppsUpdateColumnDesiredState, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnName, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnSlug:
+	case AppsUpdateColumnAutomaticDeploys, AppsUpdateColumnDesiredState, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnName, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnSlug:
 		return true
 	}
 	return false

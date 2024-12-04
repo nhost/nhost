@@ -19,15 +19,23 @@ func getRemoteAppInfo(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
-	workspaces, err := cl.GetOrganizationsAndWorkspacesApps(
+	resp, err := cl.GetOrganizationsAndWorkspacesApps(
 		ctx,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspaces: %w", err)
 	}
 
-	for _, workspace := range workspaces.Workspaces {
+	for _, workspace := range resp.Workspaces {
 		for _, app := range workspace.Apps {
+			if app.Subdomain == subdomain {
+				return app, nil
+			}
+		}
+	}
+
+	for _, organization := range resp.Organizations {
+		for _, app := range organization.Apps {
 			if app.Subdomain == subdomain {
 				return app, nil
 			}
