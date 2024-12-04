@@ -74,7 +74,7 @@ export default function OverviewMetrics() {
     },
     {
       label: 'All Users',
-      tooltip: 'Total unique users',
+      tooltip: 'Total registered users',
       value: prettifyNumber(allUsers),
     },
     {
