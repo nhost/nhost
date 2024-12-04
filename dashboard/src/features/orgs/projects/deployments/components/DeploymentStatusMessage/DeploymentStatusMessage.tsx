@@ -23,7 +23,7 @@ export default function DeploymentStatusMessage({
     return (
       <span className="flex flex-row justify-start">
         <Avatar
-          alt={deployment.commitUserName}
+          alt={`Avatar of ${deployment.commitUserName}`}
           src={deployment.commitUserAvatarUrl}
           className="mr-1 h-4 w-4 self-center"
         />
@@ -40,7 +40,7 @@ export default function DeploymentStatusMessage({
     return (
       <div className="relative flex flex-row">
         <Avatar
-          alt={deployment.commitUserName}
+          alt={`Avatar of ${deployment.commitUserName}`}
           src={deployment.commitUserAvatarUrl}
           className="mr-2 mt-1 h-4 w-4"
         />
