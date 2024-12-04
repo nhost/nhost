@@ -27416,7 +27416,16 @@ export type GetProjectMetricsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
+export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
+
+export type GetProjectRequestsMetricQueryVariables = Exact<{
+  appId: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+}>;
+
+
+export type GetProjectRequestsMetricQuery = { __typename?: 'query_root', totalRequests: { __typename?: 'Metrics', value: any } };
 
 export type GetProjectServicesHealthQueryVariables = Exact<{
   appId: Scalars['String'];
@@ -29885,16 +29894,6 @@ export const GetProjectMetricsDocument = gql`
   logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
     value
   }
-  cpuSecondsUsage: getCPUSecondsUsage(appID: $appId, from: $from, to: $to) {
-    value
-  }
-  functionInvocations: getFunctionsInvocations(
-    appID: $appId
-    from: $from
-    to: $to
-  ) {
-    value
-  }
   functionsDuration: getFunctionsDuration(appID: $appId, from: $from, to: $to) {
     value
   }
@@ -29950,6 +29949,46 @@ export type GetProjectMetricsLazyQueryHookResult = ReturnType<typeof useGetProje
 export type GetProjectMetricsQueryResult = Apollo.QueryResult<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>;
 export function refetchGetProjectMetricsQuery(variables: GetProjectMetricsQueryVariables) {
       return { query: GetProjectMetricsDocument, variables: variables }
+    }
+export const GetProjectRequestsMetricDocument = gql`
+    query GetProjectRequestsMetric($appId: String!, $from: Timestamp, $to: Timestamp) {
+  totalRequests: getTotalRequests(appID: $appId, from: $from, to: $to) {
+    value
+  }
+}
+    `;
+
+/**
+ * __useGetProjectRequestsMetricQuery__
+ *
+ * To run a query within a React component, call `useGetProjectRequestsMetricQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectRequestsMetricQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectRequestsMetricQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetProjectRequestsMetricQuery(baseOptions: Apollo.QueryHookOptions<GetProjectRequestsMetricQuery, GetProjectRequestsMetricQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectRequestsMetricQuery, GetProjectRequestsMetricQueryVariables>(GetProjectRequestsMetricDocument, options);
+      }
+export function useGetProjectRequestsMetricLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectRequestsMetricQuery, GetProjectRequestsMetricQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectRequestsMetricQuery, GetProjectRequestsMetricQueryVariables>(GetProjectRequestsMetricDocument, options);
+        }
+export type GetProjectRequestsMetricQueryHookResult = ReturnType<typeof useGetProjectRequestsMetricQuery>;
+export type GetProjectRequestsMetricLazyQueryHookResult = ReturnType<typeof useGetProjectRequestsMetricLazyQuery>;
+export type GetProjectRequestsMetricQueryResult = Apollo.QueryResult<GetProjectRequestsMetricQuery, GetProjectRequestsMetricQueryVariables>;
+export function refetchGetProjectRequestsMetricQuery(variables: GetProjectRequestsMetricQueryVariables) {
+      return { query: GetProjectRequestsMetricDocument, variables: variables }
     }
 export const GetProjectServicesHealthDocument = gql`
     query getProjectServicesHealth($appId: String!) {

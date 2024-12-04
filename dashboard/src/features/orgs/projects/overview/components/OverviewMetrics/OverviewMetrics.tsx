@@ -6,12 +6,13 @@ import { MetricsCard } from '@/features/orgs/projects/overview/components/Metric
 import { prettifyNumber } from '@/utils/prettifyNumber';
 import {
   useGetProjectMetricsQuery,
+  useGetProjectRequestsMetricQuery,
   useGetUserProjectMetricsQuery,
 } from '@/utils/__generated__/graphql';
 import { twMerge } from 'tailwind-merge';
 
 import { prettifySize } from '@/utils/prettifySize';
-import { startOfDay, startOfMonth } from 'date-fns';
+import { formatISO, startOfDay, startOfMonth, subMinutes } from 'date-fns';
 
 const now = new Date();
 
@@ -43,18 +44,30 @@ export default function OverviewMetrics() {
 
   const {
     data: {
-      functionInvocations: { value: functionInvocations = 0 } = {},
+      totalRequests: { value: totalRequestsInLastFiveMinutes = 0 } = {},
+    } = {},
+  } = useGetProjectRequestsMetricQuery({
+    variables: {
+      appId: project.id,
+      from: formatISO(subMinutes(new Date(), 6)), // 6 mns earlier
+      to: formatISO(subMinutes(new Date(), 1)), // 1 mn earlier
+    },
+    skip: !project,
+    pollInterval: 1000 * 60 * 5, // Poll every 5 minutes
+  });
+
+  const {
+    data: {
       functionsDuration: { value: functionsDuration = 0 } = {},
       totalRequests: { value: totalRequests = 0 } = {},
       postgresVolumeUsage: { value: postgresVolumeUsage = 0 } = {},
       egressVolume: { value: egressVolume = 0 } = {},
-      cpuSecondsUsage: { value: cpuSecondsUsage = 0 } = {},
     } = {},
     loading,
     error,
   } = useGetProjectMetricsQuery({
     variables: {
-      appId: project?.id,
+      appId: project.id,
       subdomain: project?.subdomain,
       from: new Date(now.getFullYear(), now.getMonth(), 1),
     },
@@ -90,15 +103,8 @@ export default function OverviewMetrics() {
       }),
     },
     {
-      label: 'Function Invocations',
-      tooltip: 'Total function calls',
-      value: prettifyNumber(functionInvocations || 0, {
-        numberOfDecimals: 0,
-      }),
-    },
-    {
-      label: 'Function Duration',
-      tooltip: 'Total function execution time this month',
+      label: 'Functions Duration',
+      tooltip: 'Total Functions execution time this month',
       value: prettifyNumber(functionsDuration),
     },
     {
@@ -113,9 +119,8 @@ export default function OverviewMetrics() {
     },
     {
       label: 'RPS',
-      tooltip:
-        'Requests per second, calculated as total requests divided by CPU seconds usage',
-      value: prettifyNumber(totalRequests / cpuSecondsUsage, {
+      tooltip: 'Requests Per Second (RPS) measured in the last 5 minutes',
+      value: prettifyNumber(totalRequestsInLastFiveMinutes / 300, {
         numberOfDecimals: 2,
       }),
     },

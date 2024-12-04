@@ -7,16 +7,6 @@ query GetProjectMetrics(
   logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
     value
   }
-  cpuSecondsUsage: getCPUSecondsUsage(appID: $appId, from: $from, to: $to) {
-    value
-  }
-  functionInvocations: getFunctionsInvocations(
-    appID: $appId
-    from: $from
-    to: $to
-  ) {
-    value
-  }
   functionsDuration: getFunctionsDuration(appID: $appId, from: $from, to: $to) {
     value
   }

@@ -1,0 +1,9 @@
+query GetProjectRequestsMetric(
+  $appId: String!
+  $from: Timestamp
+  $to: Timestamp
+) {
+  totalRequests: getTotalRequests(appID: $appId, from: $from, to: $to) {
+    value
+  }
+}
