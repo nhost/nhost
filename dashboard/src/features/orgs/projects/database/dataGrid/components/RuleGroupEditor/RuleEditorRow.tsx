@@ -47,7 +47,7 @@ export default function RuleEditorRow({
   return (
     <div
       className={twMerge(
-        'grid grid-flow-row space-y-1 lg:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] lg:space-y-0',
+        'flex flex-col gap-1 space-y-1 overflow-x-hidden pb-4 xl:grid xl:grid-flow-row xl:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] xl:space-y-0 xl:overflow-x-visible',
         className,
       )}
       {...props}
@@ -91,11 +91,15 @@ export default function RuleEditorRow({
       <RuleValueInput
         selectedTablePath={selectedTablePath}
         name={rowName}
-        className="min-h-10 rounded-l-none rounded-r-none"
+        className="min-h-10"
         error={Boolean(valueState?.error?.message)}
       />
 
-      <RuleRemoveButton onRemove={onRemove} name={name} />
+      <RuleRemoveButton
+        className="w-full xl:w-auto"
+        onRemove={onRemove}
+        name={name}
+      />
     </div>
   );
 }

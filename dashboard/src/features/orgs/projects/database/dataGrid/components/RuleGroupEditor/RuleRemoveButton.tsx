@@ -35,7 +35,7 @@ function RuleRemoveButton({
     <Button
       variant="outline"
       size="icon"
-      className={twMerge('h-10 !min-w-0 lg:!rounded-l-none', className)}
+      className={twMerge('h-10 !min-w-0', className)}
       disabled={
         disabled ||
         (rules.length === 1 && !groups?.length && !unsupported?.length)

@@ -210,7 +210,7 @@ export default function RuleValueInput({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between rounded-l-none rounded-r-none"
+          className="justify-between"
         >
           {comboboxLabel}
           <ChevronsUpDown className="opacity-50" />
