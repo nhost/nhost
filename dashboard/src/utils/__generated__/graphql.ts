@@ -27416,7 +27416,7 @@ export type GetProjectMetricsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
+export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
 
 export type GetProjectRequestsMetricQueryVariables = Exact<{
   appId: Scalars['String'];
@@ -29892,6 +29892,16 @@ export function refetchGetProjectLocalesQuery(variables: GetProjectLocalesQueryV
 export const GetProjectMetricsDocument = gql`
     query GetProjectMetrics($appId: String!, $subdomain: String!, $from: Timestamp, $to: Timestamp) {
   logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
+    value
+  }
+  cpuSecondsUsage: getCPUSecondsUsage(appID: $appId, from: $from, to: $to) {
+    value
+  }
+  functionInvocations: getFunctionsInvocations(
+    appID: $appId
+    from: $from
+    to: $to
+  ) {
     value
   }
   functionsDuration: getFunctionsDuration(appID: $appId, from: $from, to: $to) {
