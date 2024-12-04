@@ -103,15 +103,15 @@ export function FancyMultiSelect({
     >
       <div
         className={cn(
-          'group rounded-md border border-input bg-background px-3 py-0 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+          'group flex min-h-10 flex-1 rounded-md border bg-background px-4 py-0 text-sm ring-offset-background hover:bg-accent',
           className,
         )}
       >
-        <div className="flex flex-wrap items-center gap-1 py-0">
+        <div className="flex flex-1 flex-wrap items-center gap-1 overflow-x-hidden py-1">
           {selected.map((option) => {
             return (
               <Badge
-                className="h-7 text-[12px] font-normal"
+                className="h-7 overflow-x-hidden text-[12px] font-normal"
                 key={option.value}
                 variant="outline"
               >
@@ -121,7 +121,7 @@ export function FancyMultiSelect({
                 <button
                   type="button"
                   aria-label={`Remove ${option.label}`}
-                  className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  className="ml-1 rounded-full outline-none"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       handleUnselect(option);
@@ -146,14 +146,14 @@ export function FancyMultiSelect({
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}
             placeholder="Select options..."
-            className="flex-1 border-none bg-transparent text-sm outline-none !ring-0 !ring-offset-0 placeholder:text-sm placeholder:text-muted-foreground"
+            className="flex flex-1 border-none bg-transparent px-0 py-0 text-sm font-medium outline-none !ring-0 !ring-offset-0 placeholder:text-sm placeholder:text-muted-foreground group-hover:text-accent-foreground"
           />
         </div>
       </div>
-      <div className="relative mt-2">
+      <div className="relative">
         <CommandList>
           {open && selectables.length > 0 ? (
-            <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+            <div className="absolute top-2 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
               <CommandGroup className="h-full overflow-auto">
                 {selectables.map((option) => {
                   return (
