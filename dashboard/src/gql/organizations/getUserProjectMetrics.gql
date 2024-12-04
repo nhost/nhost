@@ -1,0 +1,28 @@
+query GetUserProjectMetrics($startOfMonth: timestamptz!, $today: timestamptz!) {
+  monthlyActiveUsers: usersAggregate(
+    where: { lastSeen: { _gte: $startOfMonth, _lte: $today } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  dailyActiveUsers: usersAggregate(where: { lastSeen: { _gte: $today } }) {
+    aggregate {
+      count
+    }
+  }
+  allUsers: usersAggregate {
+    aggregate {
+      count
+    }
+  }
+
+  filesAggregate {
+    aggregate {
+      count
+      sum {
+        size
+      }
+    }
+  }
+}

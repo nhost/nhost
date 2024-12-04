@@ -2946,6 +2946,7 @@ export type ConfigSystemConfig = {
   __typename?: 'ConfigSystemConfig';
   auth?: Maybe<ConfigSystemConfigAuth>;
   graphql?: Maybe<ConfigSystemConfigGraphql>;
+  persistentVolumesEncrypted?: Maybe<Scalars['Boolean']>;
   postgres: ConfigSystemConfigPostgres;
 };
 
@@ -3015,6 +3016,7 @@ export type ConfigSystemConfigComparisonExp = {
   _or?: InputMaybe<Array<ConfigSystemConfigComparisonExp>>;
   auth?: InputMaybe<ConfigSystemConfigAuthComparisonExp>;
   graphql?: InputMaybe<ConfigSystemConfigGraphqlComparisonExp>;
+  persistentVolumesEncrypted?: InputMaybe<ConfigBooleanComparisonExp>;
   postgres?: InputMaybe<ConfigSystemConfigPostgresComparisonExp>;
 };
 
@@ -3045,6 +3047,7 @@ export type ConfigSystemConfigGraphqlUpdateInput = {
 export type ConfigSystemConfigInsertInput = {
   auth?: InputMaybe<ConfigSystemConfigAuthInsertInput>;
   graphql?: InputMaybe<ConfigSystemConfigGraphqlInsertInput>;
+  persistentVolumesEncrypted?: InputMaybe<Scalars['Boolean']>;
   postgres: ConfigSystemConfigPostgresInsertInput;
 };
 
@@ -3143,6 +3146,7 @@ export type ConfigSystemConfigPostgresUpdateInput = {
 export type ConfigSystemConfigUpdateInput = {
   auth?: InputMaybe<ConfigSystemConfigAuthUpdateInput>;
   graphql?: InputMaybe<ConfigSystemConfigGraphqlUpdateInput>;
+  persistentVolumesEncrypted?: InputMaybe<Scalars['Boolean']>;
   postgres?: InputMaybe<ConfigSystemConfigPostgresUpdateInput>;
 };
 
@@ -4337,6 +4341,7 @@ export type Apps = {
   appStates: Array<AppStateHistory>;
   /** An aggregate relationship */
   appStates_aggregate: AppStateHistory_Aggregate;
+  automaticDeploys: Scalars['Boolean'];
   /** An array relationship */
   backups: Array<Backups>;
   /** An aggregate relationship */
@@ -4615,6 +4620,7 @@ export type Apps_Bool_Exp = {
   _or?: InputMaybe<Array<Apps_Bool_Exp>>;
   appStates?: InputMaybe<AppStateHistory_Bool_Exp>;
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Bool_Exp>;
+  automaticDeploys?: InputMaybe<Boolean_Comparison_Exp>;
   backups?: InputMaybe<Backups_Bool_Exp>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Bool_Exp>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
@@ -4692,6 +4698,7 @@ export type Apps_Inc_Input = {
 /** input type for inserting data into table "apps" */
 export type Apps_Insert_Input = {
   appStates?: InputMaybe<AppStateHistory_Arr_Rel_Insert_Input>;
+  automaticDeploys?: InputMaybe<Scalars['Boolean']>;
   backups?: InputMaybe<Backups_Arr_Rel_Insert_Input>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Obj_Rel_Insert_Input>;
   billingSubscriptions?: InputMaybe<Billing_Subscriptions_Obj_Rel_Insert_Input>;
@@ -4858,6 +4865,7 @@ export type Apps_On_Conflict = {
 /** Ordering options when selecting data from "apps". */
 export type Apps_Order_By = {
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Order_By>;
+  automaticDeploys?: InputMaybe<Order_By>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Order_By>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Order_By>;
   billingSubscriptions?: InputMaybe<Billing_Subscriptions_Order_By>;
@@ -4909,6 +4917,8 @@ export type Apps_Prepend_Input = {
 
 /** select columns of table "apps" */
 export enum Apps_Select_Column {
+  /** column name */
+  AutomaticDeploys = 'automaticDeploys',
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -4962,6 +4972,8 @@ export enum Apps_Select_Column {
 /** select "apps_aggregate_bool_exp_bool_and_arguments_columns" columns of table "apps" */
 export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
+  AutomaticDeploys = 'automaticDeploys',
+  /** column name */
   IsLocked = 'isLocked',
   /** column name */
   StateMatch = 'stateMatch'
@@ -4970,6 +4982,8 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Column
 /** select "apps_aggregate_bool_exp_bool_or_arguments_columns" columns of table "apps" */
 export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
+  AutomaticDeploys = 'automaticDeploys',
+  /** column name */
   IsLocked = 'isLocked',
   /** column name */
   StateMatch = 'stateMatch'
@@ -4977,6 +4991,7 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns
 
 /** input type for updating data in table "apps" */
 export type Apps_Set_Input = {
+  automaticDeploys?: InputMaybe<Scalars['Boolean']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
   currentState?: InputMaybe<Scalars['Int']>;
@@ -5051,6 +5066,7 @@ export type Apps_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Apps_Stream_Cursor_Value_Input = {
+  automaticDeploys?: InputMaybe<Scalars['Boolean']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
   currentState?: InputMaybe<Scalars['Int']>;
@@ -5092,6 +5108,8 @@ export type Apps_Sum_Order_By = {
 
 /** update columns of table "apps" */
 export enum Apps_Update_Column {
+  /** column name */
+  AutomaticDeploys = 'automaticDeploys',
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -27842,6 +27860,14 @@ export type GetProjectsQueryVariables = Exact<{
 
 export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
+export type GetUserProjectMetricsQueryVariables = Exact<{
+  startOfMonth: Scalars['timestamptz'];
+  today: Scalars['timestamptz'];
+}>;
+
+
+export type GetUserProjectMetricsQuery = { __typename?: 'query_root', monthlyActiveUsers: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, dailyActiveUsers: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, allUsers: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number, sum?: { __typename?: 'files_sum_fields', size?: number | null } | null } | null } };
+
 export type InsertOrgApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
 }>;
@@ -32511,6 +32537,67 @@ export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLaz
 export type GetProjectsQueryResult = Apollo.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
 export function refetchGetProjectsQuery(variables: GetProjectsQueryVariables) {
       return { query: GetProjectsDocument, variables: variables }
+    }
+export const GetUserProjectMetricsDocument = gql`
+    query GetUserProjectMetrics($startOfMonth: timestamptz!, $today: timestamptz!) {
+  monthlyActiveUsers: usersAggregate(
+    where: {lastSeen: {_gte: $startOfMonth, _lte: $today}}
+  ) {
+    aggregate {
+      count
+    }
+  }
+  dailyActiveUsers: usersAggregate(where: {lastSeen: {_gte: $today}}) {
+    aggregate {
+      count
+    }
+  }
+  allUsers: usersAggregate {
+    aggregate {
+      count
+    }
+  }
+  filesAggregate {
+    aggregate {
+      count
+      sum {
+        size
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetUserProjectMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetUserProjectMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserProjectMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserProjectMetricsQuery({
+ *   variables: {
+ *      startOfMonth: // value for 'startOfMonth'
+ *      today: // value for 'today'
+ *   },
+ * });
+ */
+export function useGetUserProjectMetricsQuery(baseOptions: Apollo.QueryHookOptions<GetUserProjectMetricsQuery, GetUserProjectMetricsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserProjectMetricsQuery, GetUserProjectMetricsQueryVariables>(GetUserProjectMetricsDocument, options);
+      }
+export function useGetUserProjectMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserProjectMetricsQuery, GetUserProjectMetricsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserProjectMetricsQuery, GetUserProjectMetricsQueryVariables>(GetUserProjectMetricsDocument, options);
+        }
+export type GetUserProjectMetricsQueryHookResult = ReturnType<typeof useGetUserProjectMetricsQuery>;
+export type GetUserProjectMetricsLazyQueryHookResult = ReturnType<typeof useGetUserProjectMetricsLazyQuery>;
+export type GetUserProjectMetricsQueryResult = Apollo.QueryResult<GetUserProjectMetricsQuery, GetUserProjectMetricsQueryVariables>;
+export function refetchGetUserProjectMetricsQuery(variables: GetUserProjectMetricsQueryVariables) {
+      return { query: GetUserProjectMetricsDocument, variables: variables }
     }
 export const InsertOrgApplicationDocument = gql`
     mutation insertOrgApplication($app: apps_insert_input!) {
