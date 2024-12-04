@@ -52,8 +52,6 @@ const negatedValueOperatorPairs: Record<HasuraOperator, HasuraOperator> = {
   _cgte: '_clt',
   _clte: '_cgt',
   _is_null: '_is_null',
-  _in_hasura: '_nin_hasura',
-  _nin_hasura: '_in_hasura',
 };
 
 export default function convertToRuleGroup(
