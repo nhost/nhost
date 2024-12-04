@@ -89,9 +89,3 @@ const Template: ComponentStory<typeof RuleGroupEditor> = function Template(
 export const Default = Template.bind({});
 Default.args = {};
 Default.parameters = defaultParameters;
-
-export const DisabledOperators = Template.bind({});
-DisabledOperators.args = {
-  disabledOperators: ['_in_hasura', '_nin_hasura', '_is_null'],
-};
-DisabledOperators.parameters = defaultParameters;
