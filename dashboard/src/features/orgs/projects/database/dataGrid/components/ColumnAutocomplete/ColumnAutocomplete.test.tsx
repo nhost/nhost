@@ -21,13 +21,7 @@ afterAll(() => {
 });
 
 test('should render a combobox', () => {
-  render(
-    <ColumnAutocomplete
-      schema="public"
-      table="books"
-      label="Column Autocomplete"
-    />,
-  );
+  render(<ColumnAutocomplete schema="public" table="books" />);
 
   expect(
     screen.getByRole('combobox', { name: /column autocomplete/i }),
