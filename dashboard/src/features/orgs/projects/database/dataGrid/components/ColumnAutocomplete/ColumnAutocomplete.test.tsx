@@ -7,6 +7,10 @@ import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, test, vi } from 'vitest';
 import ColumnAutocomplete from './ColumnAutocomplete';
 
+vi.mock('@/lib/utils', () => ({
+  cn: (...classes: (string | undefined)[]) => classes.filter(Boolean).join(' '),
+}));
+
 const server = setupServer(
   tableQuery,
   hasuraMetadataQuery,
