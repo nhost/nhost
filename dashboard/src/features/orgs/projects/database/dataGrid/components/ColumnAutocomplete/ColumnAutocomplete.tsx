@@ -129,8 +129,6 @@ function ColumnAutocomplete(
   }, [relationshipDotNotation]);
 
   const activePage = pages[pages.length - 1];
-  console.log('pages', pages);
-  console.log('activePage', activePage);
 
   useEffect(() => {
     setActiveRelationship(asyncActiveRelationship);

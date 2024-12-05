@@ -121,6 +121,7 @@ export default function RuleValueInput({
   });
 
   if (operator === '_is_null') {
+    const defaultValue = !Array.isArray(comboboxValue) ? comboboxValue : null;
     return (
       <Select
         disabled={disabled}
@@ -128,9 +129,9 @@ export default function RuleValueInput({
         onValueChange={(newValue: string) => {
           setValue(inputName, newValue, { shouldDirty: true });
         }}
-        defaultValue={comboboxValue}
+        defaultValue={defaultValue}
       >
-        <SelectTrigger className="border hover:bg-accent hover:text-accent-foreground">
+        <SelectTrigger className="border hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-0">
           <SelectValue placeholder="Is null?" />
         </SelectTrigger>
         <SelectContent>
