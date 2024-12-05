@@ -57,7 +57,7 @@ export default function RuleGroupControls({
           }}
           defaultValue={currentOperator}
         >
-          <SelectTrigger>
+          <SelectTrigger className="border hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
