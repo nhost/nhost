@@ -97,7 +97,7 @@ export default function OverviewMetrics() {
     },
     {
       label: 'Total Requests',
-      tooltip: 'Total service requests (excluding functions)',
+      tooltip: 'Total service requests this month so far (excluding functions)',
       value: prettifyNumber(totalRequests || 0, {
         numberOfDecimals: totalRequests > 1000 ? 2 : 0,
       }),
