@@ -114,7 +114,7 @@ export default function OverviewMetrics() {
     },
     {
       label: 'Egress',
-      tooltip: 'Total outgoing data transfer',
+      tooltip: 'Total outgoing data transfer this month so far',
       value: prettifySize(egressVolume),
     },
     {
