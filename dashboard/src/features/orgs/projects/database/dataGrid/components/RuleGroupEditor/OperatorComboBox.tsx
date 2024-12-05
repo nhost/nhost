@@ -95,7 +95,7 @@ export default function OperatorComboBox({
           className="justify-between"
         >
           {operator ?? 'Select operator...'}
-          <ChevronsUpDown className="opacity-50" />
+          <ChevronsUpDown className="h-5 w-5 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0">
