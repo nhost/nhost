@@ -146,7 +146,7 @@ export function FancyMultiSelect({
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}
             placeholder="Select options..."
-            className="flex flex-1 border-none bg-transparent px-0 py-0 text-sm font-medium outline-none !ring-0 !ring-offset-0 placeholder:text-sm placeholder:text-muted-foreground group-hover:text-accent-foreground"
+            className="flex flex-1 border-none bg-transparent px-0 py-1 text-sm font-medium outline-none !ring-0 !ring-offset-0 placeholder:text-sm placeholder:text-muted-foreground group-hover:text-accent-foreground"
           />
         </div>
       </div>
