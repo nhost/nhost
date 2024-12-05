@@ -1,8 +1,9 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Input } from '@/components/ui/v2/Input';
 import { Button } from '@/components/ui/v3/button';
+import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
+import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { DeploymentStatusMessage } from '@/features/projects/deployments/components/DeploymentStatusMessage';
 import {
   useGetProjectsQuery,
   type GetProjectsQuery,
@@ -22,20 +23,21 @@ function ProjectCard({ project }: { project: Project }) {
   return (
     <Link
       href={`/orgs/${org?.slug}/projects/${project.subdomain}`}
-      className="flex cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm"
+      className="flex h-44 cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm"
     >
-      <div className="flex items-start gap-2">
-        <div className="flex w-full flex-row items-center space-x-2">
-          <Box className="h-6 w-6 flex-shrink-0" />
-          <p className="truncate text-lg font-bold">{project.name}</p>
+      <div className="flex flex-row items-start gap-2">
+        <Box className="mt-[2px] h-5 w-5 flex-shrink-0" />
+        <div className="flex w-full flex-col">
+          <p className="truncate font-bold">{project.name}</p>
+          <span className="text-xs text-muted-foreground">
+            {project.region.name}
+          </span>
         </div>
+        <ProjectStatusIndicator status={project.appStates[0].stateId} />
       </div>
 
-      <div className="flex flex-row items-start gap-2">
-        <DeploymentStatusMessage
-          appCreatedAt={project.createdAt}
-          deployment={latestDeployment}
-        />
+      <div className="flex flex-1 flex-row items-start gap-2">
+        <DeploymentStatusMessage deployment={latestDeployment} />
       </div>
 
       <div className="flex w-full justify-end">
@@ -53,6 +55,7 @@ export default function ProjectsGrid() {
       orgSlug: org?.slug,
     },
     skip: !org,
+    pollInterval: 10 * 1000,
   });
 
   const [query, setQuery] = useState('');
@@ -100,7 +103,7 @@ export default function ProjectsGrid() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {filteredProjects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}
