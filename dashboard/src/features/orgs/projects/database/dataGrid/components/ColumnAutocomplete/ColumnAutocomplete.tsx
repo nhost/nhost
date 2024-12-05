@@ -282,7 +282,7 @@ function ColumnAutocomplete(
                       />
                       <div className="flex gap-3">
                         {option.label}
-                        <code className="relative rounded bg-primary px-[0.2rem] font-mono text-primary-foreground">
+                        <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
                           {option.metadata?.udt_name || option.value}
                         </code>
                       </div>
@@ -322,7 +322,7 @@ function ColumnAutocomplete(
                       />
                       <div className="flex gap-3">
                         {option.label}
-                        <code className="relative rounded bg-primary px-[0.2rem] font-mono text-primary-foreground">
+                        <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
                           {option.metadata?.udt_name || option.value}
                         </code>
                       </div>
