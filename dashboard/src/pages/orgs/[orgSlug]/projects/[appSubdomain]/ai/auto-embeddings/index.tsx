@@ -12,14 +12,13 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
-// import AILayout from '@/features/orgs/layout/AILayout/AILayout';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetGraphiteAutoEmbeddingsConfigurationsQuery,
@@ -36,9 +35,11 @@ export type AutoEmbeddingsConfiguration = Omit<
 export default function AutoEmbeddingsPage() {
   const limit = useRef(25);
   const router = useRouter();
+
   const { openDrawer } = useDialog();
   const isPlatform = useIsPlatform();
-  const { currentOrg: org } = useOrgs();
+
+  const { org } = useCurrentOrg();
   const { project } = useProject();
 
   const { adminClient } = useAdminApolloClient();
@@ -128,7 +129,7 @@ export default function AutoEmbeddingsPage() {
     );
   }
 
-  if (data?.graphiteAutoEmbeddingsConfigurations.length === 0 && !loading) {
+  if (autoEmbeddingsConfigurations.length === 0 && !loading) {
     return (
       <Box
         className="w-full p-6"

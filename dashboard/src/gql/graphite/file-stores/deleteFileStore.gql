@@ -1,0 +1,5 @@
+mutation deleteFileStore($id: uuid!) {
+  graphite {
+    deleteFileStore(id: $id)
+  }
+}

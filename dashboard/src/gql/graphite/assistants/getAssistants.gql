@@ -1,4 +1,4 @@
-query getAssistants {
+query getAssistants($isFileStoresSupported: Boolean!) {
   graphite {
     assistants {
       assistantID
@@ -28,6 +28,7 @@ query getAssistants {
           required
         }
       }
+      fileStores @include(if: $isFileStoresSupported)
     }
   }
 }
