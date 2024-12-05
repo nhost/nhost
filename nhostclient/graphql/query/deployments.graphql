@@ -1,0 +1,38 @@
+query ListDeployments($appID: uuid!) {
+  deployments(
+    where: {appId: {_eq: $appID}},
+    order_by: {deploymentStartedAt: desc},
+    limit: 10,
+  ) {
+    id
+    deploymentStartedAt
+    deploymentEndedAt
+    deploymentStatus
+    commitSHA
+    commitMessage
+    commitUserName
+  }
+}
+
+query GetDeploymentLogs($deploymentID: uuid!) {
+  deploymentLogs: deploymentLogs(
+    where: {deploymentId: {_eq: $deploymentID}},
+    order_by: {createdAt: asc}
+   ) {
+    id
+    createdAt
+    message
+  }
+  deployment: deployment(
+    id: $deploymentID
+  ) {
+    deploymentEndedAt
+    deploymentStatus
+  }
+}
+
+mutation InsertDeployment($object: deployments_insert_input!) {
+  insertDeployment(object: $object) {
+    id
+  }
+}
