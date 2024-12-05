@@ -76,14 +76,14 @@ export default function OverviewMetrics() {
 
   const cardElements: MetricsCardProps[] = [
     {
-      label: 'Monthly Active Users',
-      tooltip: 'Unique users active this month',
-      value: prettifyNumber(monthlyActiveUsers),
-    },
-    {
       label: 'Daily Active Users',
       tooltip: 'Unique users active today',
       value: prettifyNumber(dailyActiveUsers),
+    },
+    {
+      label: 'Monthly Active Users',
+      tooltip: 'Unique users active this month',
+      value: prettifyNumber(monthlyActiveUsers),
     },
     {
       label: 'All Users',
@@ -91,9 +91,11 @@ export default function OverviewMetrics() {
       value: prettifyNumber(allUsers),
     },
     {
-      label: 'Storage',
-      tooltip: 'Total size of stored files in the storage service',
-      value: prettifySize(totalStorage || 0),
+      label: 'RPS',
+      tooltip: 'Requests Per Second (RPS) measured in the last 5 minutes',
+      value: prettifyNumber(totalRequestsInLastFiveMinutes / 300, {
+        numberOfDecimals: 2,
+      }),
     },
     {
       label: 'Total Requests',
@@ -103,26 +105,24 @@ export default function OverviewMetrics() {
       }),
     },
     {
-      label: 'Functions Duration',
-      tooltip: 'Total Functions execution this month so far',
-      value: prettifyNumber(functionsDuration),
-    },
-    {
-      label: 'Postgres Volume Usage',
-      tooltip: 'Used storage in the Postgres database',
-      value: prettifySize(postgresVolumeUsage),
-    },
-    {
       label: 'Egress',
       tooltip: 'Total outgoing data transfer this month so far',
       value: prettifySize(egressVolume),
     },
     {
-      label: 'RPS',
-      tooltip: 'Requests Per Second (RPS) measured in the last 5 minutes',
-      value: prettifyNumber(totalRequestsInLastFiveMinutes / 300, {
-        numberOfDecimals: 2,
-      }),
+      label: 'Functions Duration',
+      tooltip: 'Total Functions execution this month so far',
+      value: prettifyNumber(functionsDuration),
+    },
+    {
+      label: 'Storage',
+      tooltip: 'Total size of stored files in the storage service',
+      value: prettifySize(totalStorage || 0),
+    },
+    {
+      label: 'Postgres Volume Usage',
+      tooltip: 'Used storage in the Postgres database',
+      value: prettifySize(postgresVolumeUsage),
     },
   ];
 
