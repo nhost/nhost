@@ -211,7 +211,7 @@ function ColumnAutocomplete(
           ) : (
             selectedColumn?.label || 'Select a column'
           )}
-          <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
@@ -247,7 +247,7 @@ function ColumnAutocomplete(
                 className="h-8 w-8"
                 onClick={handleBackRelationship}
               >
-                <ChevronLeft />
+                <ChevronLeft className="h-5 w-5" />
               </Button>
               <span className="py-1.5 text-sm text-muted-foreground">
                 {defaultTable}.{pages.join('.')}
@@ -298,7 +298,7 @@ function ColumnAutocomplete(
                 )}
               </>
             )}
-            {activePage === 'address' && (
+            {activePage && (
               <>
                 <CommandEmpty>No options found.</CommandEmpty>
                 <CommandGroup heading="columns">
@@ -316,7 +316,7 @@ function ColumnAutocomplete(
                       />
                       <div className="flex gap-3">
                         {option.label}
-                        <code className="relative rounded bg-primary px-[0.2rem] font-mono">
+                        <code className="relative rounded bg-primary px-[0.2rem] font-mono text-primary-foreground">
                           {option.metadata?.udt_name || option.value}
                         </code>
                       </div>
