@@ -83,7 +83,6 @@ function ColumnAutocomplete(
   const {
     data: tableData,
     status: tableStatus,
-    error: tableError,
     isFetching: isTableFetching,
   } = useTableQuery([`default.${selectedSchema}.${selectedTable}`], {
     schema: selectedSchema,
@@ -95,7 +94,6 @@ function ColumnAutocomplete(
   const {
     data: metadata,
     status: metadataStatus,
-    error: metadataError,
     isFetching: isMetadataFetching,
   } = useMetadataQuery([`default.metadata`], {
     queryOptions: { refetchOnWindowFocus: false },
