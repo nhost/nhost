@@ -3,6 +3,7 @@ package appconfig
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
 )
@@ -21,6 +22,21 @@ type oauthsettings interface {
 	GetClientSecret() *string
 	GetAudience() *string
 	GetScope() []string
+}
+
+func usesPubKey(typ, signingKey *string) bool {
+	return strings.HasPrefix(*typ, "RS") && signingKey != nil && *signingKey != ""
+}
+
+func IsJWTSecretCompatibleWithHasuraAuth(
+	typ *string,
+	key *string,
+	signingKey *string,
+) bool {
+	if typ != nil && *typ != "" && key != nil && *key != "" {
+		return strings.HasPrefix(*typ, "HS") || usesPubKey(typ, signingKey)
+	}
+	return false
 }
 
 func getOauthSettings(c oauthsettings, provider string) []EnvVar {

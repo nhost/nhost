@@ -651,9 +651,10 @@ type ComplexityRoot struct {
 	}
 
 	ConfigSystemConfig struct {
-		Auth     func(childComplexity int) int
-		Graphql  func(childComplexity int) int
-		Postgres func(childComplexity int) int
+		Auth                       func(childComplexity int) int
+		Graphql                    func(childComplexity int) int
+		PersistentVolumesEncrypted func(childComplexity int) int
+		Postgres                   func(childComplexity int) int
 	}
 
 	ConfigSystemConfigAuth struct {
@@ -3061,6 +3062,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigSystemConfig.Graphql(childComplexity), true
+
+	case "ConfigSystemConfig.persistentVolumesEncrypted":
+		if e.complexity.ConfigSystemConfig.PersistentVolumesEncrypted == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfig.PersistentVolumesEncrypted(childComplexity), true
 
 	case "ConfigSystemConfig.postgres":
 		if e.complexity.ConfigSystemConfig.Postgres == nil {
@@ -7886,18 +7894,24 @@ type ConfigSystemConfig {
 
     """
     postgres: ConfigSystemConfigPostgres!
+    """
+
+    """
+    persistentVolumesEncrypted: Boolean
 }
 
 input ConfigSystemConfigUpdateInput {
     auth: ConfigSystemConfigAuthUpdateInput
     graphql: ConfigSystemConfigGraphqlUpdateInput
     postgres: ConfigSystemConfigPostgresUpdateInput
+    persistentVolumesEncrypted: Boolean
 }
 
 input ConfigSystemConfigInsertInput {
     auth: ConfigSystemConfigAuthInsertInput
     graphql: ConfigSystemConfigGraphqlInsertInput
     postgres: ConfigSystemConfigPostgresInsertInput!
+    persistentVolumesEncrypted: Boolean
 }
 
 input ConfigSystemConfigComparisonExp {
@@ -7907,6 +7921,7 @@ input ConfigSystemConfigComparisonExp {
     auth: ConfigSystemConfigAuthComparisonExp
     graphql: ConfigSystemConfigGraphqlComparisonExp
     postgres: ConfigSystemConfigPostgresComparisonExp
+    persistentVolumesEncrypted: ConfigBooleanComparisonExp
 }
 
 """
@@ -11034,6 +11049,8 @@ func (ec *executionContext) fieldContext_ConfigAppSystemConfig_systemConfig(_ co
 				return ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
 			case "postgres":
 				return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
+			case "persistentVolumesEncrypted":
+				return ec.fieldContext_ConfigSystemConfig_persistentVolumesEncrypted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfig", field.Name)
 		},
@@ -20377,6 +20394,8 @@ func (ec *executionContext) fieldContext_ConfigInsertConfigResponse_systemConfig
 				return ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
 			case "postgres":
 				return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
+			case "persistentVolumesEncrypted":
+				return ec.fieldContext_ConfigSystemConfig_persistentVolumesEncrypted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfig", field.Name)
 		},
@@ -25140,6 +25159,47 @@ func (ec *executionContext) fieldContext_ConfigSystemConfig_postgres(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigSystemConfig_persistentVolumesEncrypted(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfig_persistentVolumesEncrypted(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PersistentVolumesEncrypted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfig_persistentVolumesEncrypted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigSystemConfigAuth_email(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigAuth) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigSystemConfigAuth_email(ctx, field)
 	if err != nil {
@@ -26423,6 +26483,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSystemConfig(ctx context
 				return ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
 			case "postgres":
 				return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
+			case "persistentVolumesEncrypted":
+				return ec.fieldContext_ConfigSystemConfig_persistentVolumesEncrypted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfig", field.Name)
 		},
@@ -27062,6 +27124,8 @@ func (ec *executionContext) fieldContext_Query_systemConfig(ctx context.Context,
 				return ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
 			case "postgres":
 				return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
+			case "persistentVolumesEncrypted":
+				return ec.fieldContext_ConfigSystemConfig_persistentVolumesEncrypted(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfig", field.Name)
 		},
@@ -39847,7 +39911,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "auth", "graphql", "postgres"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "auth", "graphql", "postgres", "persistentVolumesEncrypted"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -39896,6 +39960,13 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx co
 				return it, err
 			}
 			it.Postgres = data
+		case "persistentVolumesEncrypted":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("persistentVolumesEncrypted"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PersistentVolumesEncrypted = data
 		}
 	}
 
@@ -39984,7 +40055,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"auth", "graphql", "postgres"}
+	fieldsInOrder := [...]string{"auth", "graphql", "postgres", "persistentVolumesEncrypted"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -40012,6 +40083,13 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx cont
 				return it, err
 			}
 			it.Postgres = data
+		case "persistentVolumesEncrypted":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("persistentVolumesEncrypted"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PersistentVolumesEncrypted = data
 		}
 	}
 
@@ -44767,6 +44845,8 @@ func (ec *executionContext) _ConfigSystemConfig(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "persistentVolumesEncrypted":
+			out.Values[i] = ec._ConfigSystemConfig_persistentVolumesEncrypted(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

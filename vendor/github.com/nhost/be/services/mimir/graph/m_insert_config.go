@@ -74,7 +74,7 @@ func (r *mutationResolver) insertConfig(
 	newApp.Config = config
 	newApp.SystemConfig = systemConfig
 
-	if err := newApp.ValidateConfig(r.schema); err != nil {
+	if err := r.configValidate(ctx, nil, newApp); err != nil {
 		return nil, err
 	}
 

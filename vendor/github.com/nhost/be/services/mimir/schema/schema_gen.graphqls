@@ -3952,18 +3952,24 @@ type ConfigSystemConfig {
 
     """
     postgres: ConfigSystemConfigPostgres!
+    """
+
+    """
+    persistentVolumesEncrypted: Boolean
 }
 
 input ConfigSystemConfigUpdateInput {
     auth: ConfigSystemConfigAuthUpdateInput
     graphql: ConfigSystemConfigGraphqlUpdateInput
     postgres: ConfigSystemConfigPostgresUpdateInput
+    persistentVolumesEncrypted: Boolean
 }
 
 input ConfigSystemConfigInsertInput {
     auth: ConfigSystemConfigAuthInsertInput
     graphql: ConfigSystemConfigGraphqlInsertInput
     postgres: ConfigSystemConfigPostgresInsertInput!
+    persistentVolumesEncrypted: Boolean
 }
 
 input ConfigSystemConfigComparisonExp {
@@ -3973,6 +3979,7 @@ input ConfigSystemConfigComparisonExp {
     auth: ConfigSystemConfigAuthComparisonExp
     graphql: ConfigSystemConfigGraphqlComparisonExp
     postgres: ConfigSystemConfigPostgresComparisonExp
+    persistentVolumesEncrypted: ConfigBooleanComparisonExp
 }
 
 """

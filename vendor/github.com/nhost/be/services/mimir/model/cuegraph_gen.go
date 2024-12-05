@@ -25727,6 +25727,8 @@ type ConfigSystemConfig struct {
 	Graphql *ConfigSystemConfigGraphql `json:"graphql,omitempty" toml:"graphql,omitempty"`
 
 	Postgres *ConfigSystemConfigPostgres `json:"postgres,omitempty" toml:"postgres,omitempty"`
+
+	PersistentVolumesEncrypted *bool `json:"persistentVolumesEncrypted" toml:"persistentVolumesEncrypted"`
 }
 
 func (o *ConfigSystemConfig) MarshalJSON() ([]byte, error) {
@@ -25739,6 +25741,9 @@ func (o *ConfigSystemConfig) MarshalJSON() ([]byte, error) {
 	}
 	if o.Postgres != nil {
 		m["postgres"] = o.Postgres
+	}
+	if o.PersistentVolumesEncrypted != nil {
+		m["persistentVolumesEncrypted"] = o.PersistentVolumesEncrypted
 	}
 	return json.Marshal(m)
 }
@@ -25764,13 +25769,22 @@ func (o *ConfigSystemConfig) GetPostgres() *ConfigSystemConfigPostgres {
 	return o.Postgres
 }
 
+func (o *ConfigSystemConfig) GetPersistentVolumesEncrypted() *bool {
+	if o == nil {
+		o = &ConfigSystemConfig{}
+	}
+	return o.PersistentVolumesEncrypted
+}
+
 type ConfigSystemConfigUpdateInput struct {
-	Auth          *ConfigSystemConfigAuthUpdateInput     `json:"auth,omitempty" toml:"auth,omitempty"`
-	IsSetAuth     bool                                   `json:"-"`
-	Graphql       *ConfigSystemConfigGraphqlUpdateInput  `json:"graphql,omitempty" toml:"graphql,omitempty"`
-	IsSetGraphql  bool                                   `json:"-"`
-	Postgres      *ConfigSystemConfigPostgresUpdateInput `json:"postgres,omitempty" toml:"postgres,omitempty"`
-	IsSetPostgres bool                                   `json:"-"`
+	Auth                            *ConfigSystemConfigAuthUpdateInput     `json:"auth,omitempty" toml:"auth,omitempty"`
+	IsSetAuth                       bool                                   `json:"-"`
+	Graphql                         *ConfigSystemConfigGraphqlUpdateInput  `json:"graphql,omitempty" toml:"graphql,omitempty"`
+	IsSetGraphql                    bool                                   `json:"-"`
+	Postgres                        *ConfigSystemConfigPostgresUpdateInput `json:"postgres,omitempty" toml:"postgres,omitempty"`
+	IsSetPostgres                   bool                                   `json:"-"`
+	PersistentVolumesEncrypted      *bool                                  `json:"persistentVolumesEncrypted,omitempty" toml:"persistentVolumesEncrypted,omitempty"`
+	IsSetPersistentVolumesEncrypted bool                                   `json:"-"`
 }
 
 func (o *ConfigSystemConfigUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -25808,6 +25822,23 @@ func (o *ConfigSystemConfigUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetPostgres = true
 	}
+	if v, ok := m["persistentVolumesEncrypted"]; ok {
+		if v == nil {
+			o.PersistentVolumesEncrypted = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.PersistentVolumesEncrypted = &x
+		}
+		o.IsSetPersistentVolumesEncrypted = true
+	}
 
 	return nil
 }
@@ -25838,6 +25869,13 @@ func (o *ConfigSystemConfigUpdateInput) GetPostgres() *ConfigSystemConfigPostgre
 		return nil
 	}
 	return o.Postgres
+}
+
+func (o *ConfigSystemConfigUpdateInput) GetPersistentVolumesEncrypted() *bool {
+	if o == nil {
+		o = &ConfigSystemConfigUpdateInput{}
+	}
+	return o.PersistentVolumesEncrypted
 }
 
 func (s *ConfigSystemConfig) Update(v *ConfigSystemConfigUpdateInput) {
@@ -25874,12 +25912,16 @@ func (s *ConfigSystemConfig) Update(v *ConfigSystemConfigUpdateInput) {
 			s.Postgres.Update(v.Postgres)
 		}
 	}
+	if v.IsSetPersistentVolumesEncrypted || v.PersistentVolumesEncrypted != nil {
+		s.PersistentVolumesEncrypted = v.PersistentVolumesEncrypted
+	}
 }
 
 type ConfigSystemConfigInsertInput struct {
-	Auth     *ConfigSystemConfigAuthInsertInput     `json:"auth,omitempty" toml:"auth,omitempty"`
-	Graphql  *ConfigSystemConfigGraphqlInsertInput  `json:"graphql,omitempty" toml:"graphql,omitempty"`
-	Postgres *ConfigSystemConfigPostgresInsertInput `json:"postgres,omitempty" toml:"postgres,omitempty"`
+	Auth                       *ConfigSystemConfigAuthInsertInput     `json:"auth,omitempty" toml:"auth,omitempty"`
+	Graphql                    *ConfigSystemConfigGraphqlInsertInput  `json:"graphql,omitempty" toml:"graphql,omitempty"`
+	Postgres                   *ConfigSystemConfigPostgresInsertInput `json:"postgres,omitempty" toml:"postgres,omitempty"`
+	PersistentVolumesEncrypted *bool                                  `json:"persistentVolumesEncrypted,omitempty" toml:"persistentVolumesEncrypted,omitempty"`
 }
 
 func (o *ConfigSystemConfigInsertInput) GetAuth() *ConfigSystemConfigAuthInsertInput {
@@ -25903,6 +25945,13 @@ func (o *ConfigSystemConfigInsertInput) GetPostgres() *ConfigSystemConfigPostgre
 	return o.Postgres
 }
 
+func (o *ConfigSystemConfigInsertInput) GetPersistentVolumesEncrypted() *bool {
+	if o == nil {
+		o = &ConfigSystemConfigInsertInput{}
+	}
+	return o.PersistentVolumesEncrypted
+}
+
 func (s *ConfigSystemConfig) Insert(v *ConfigSystemConfigInsertInput) {
 	if v.Auth != nil {
 		if s.Auth == nil {
@@ -25922,6 +25971,7 @@ func (s *ConfigSystemConfig) Insert(v *ConfigSystemConfigInsertInput) {
 		}
 		s.Postgres.Insert(v.Postgres)
 	}
+	s.PersistentVolumesEncrypted = v.PersistentVolumesEncrypted
 }
 
 func (s *ConfigSystemConfig) Clone() *ConfigSystemConfig {
@@ -25933,16 +25983,18 @@ func (s *ConfigSystemConfig) Clone() *ConfigSystemConfig {
 	v.Auth = s.Auth.Clone()
 	v.Graphql = s.Graphql.Clone()
 	v.Postgres = s.Postgres.Clone()
+	v.PersistentVolumesEncrypted = s.PersistentVolumesEncrypted
 	return v
 }
 
 type ConfigSystemConfigComparisonExp struct {
-	And      []*ConfigSystemConfigComparisonExp       `json:"_and,omitempty"`
-	Not      *ConfigSystemConfigComparisonExp         `json:"_not,omitempty"`
-	Or       []*ConfigSystemConfigComparisonExp       `json:"_or,omitempty"`
-	Auth     *ConfigSystemConfigAuthComparisonExp     `json:"auth,omitempty"`
-	Graphql  *ConfigSystemConfigGraphqlComparisonExp  `json:"graphql,omitempty"`
-	Postgres *ConfigSystemConfigPostgresComparisonExp `json:"postgres,omitempty"`
+	And                        []*ConfigSystemConfigComparisonExp       `json:"_and,omitempty"`
+	Not                        *ConfigSystemConfigComparisonExp         `json:"_not,omitempty"`
+	Or                         []*ConfigSystemConfigComparisonExp       `json:"_or,omitempty"`
+	Auth                       *ConfigSystemConfigAuthComparisonExp     `json:"auth,omitempty"`
+	Graphql                    *ConfigSystemConfigGraphqlComparisonExp  `json:"graphql,omitempty"`
+	Postgres                   *ConfigSystemConfigPostgresComparisonExp `json:"postgres,omitempty"`
+	PersistentVolumesEncrypted *ConfigBooleanComparisonExp              `json:"persistentVolumesEncrypted,omitempty"`
 }
 
 func (exp *ConfigSystemConfigComparisonExp) Matches(o *ConfigSystemConfig) bool {
@@ -25964,6 +26016,9 @@ func (exp *ConfigSystemConfigComparisonExp) Matches(o *ConfigSystemConfig) bool 
 		return false
 	}
 	if !exp.Postgres.Matches(o.Postgres) {
+		return false
+	}
+	if o.PersistentVolumesEncrypted != nil && !exp.PersistentVolumesEncrypted.Matches(*o.PersistentVolumesEncrypted) {
 		return false
 	}
 

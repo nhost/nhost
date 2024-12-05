@@ -37,10 +37,7 @@ func (r *mutationResolver) updateConfig(
 		return nil, err
 	}
 
-	if err := r.configValidate(oldApp, newApp); err != nil {
-		return nil, err
-	}
-	if err := newApp.ValidateConfig(r.schema); err != nil {
+	if err := r.configValidate(ctx, oldApp, newApp); err != nil {
 		return nil, err
 	}
 

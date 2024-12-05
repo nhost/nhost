@@ -570,8 +570,8 @@ import (
     {
 		type: "RS256" | "RS384" | "RS512"
 		key: string
-        signingKey: string
-        kid: string
+        signingKey?: string
+        kid?: string
 	} |
 	{
 		jwk_url: #Url | *null
@@ -639,6 +639,8 @@ import (
 			tput: uint32 | *125
 		}
 	}
+
+    persistentVolumesEncrypted: bool | *false
 }
 
 #AI: {

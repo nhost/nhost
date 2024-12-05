@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/be/services/mimir/nhost"
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/sirupsen/logrus"
 )
@@ -40,19 +41,24 @@ type Plugin interface {
 	) error
 }
 
+//go:generate mockgen -package graphmock -destination mock/nhost_client.go . NhostClient
+type NhostClient nhost.Querier
+
 type Resolver struct {
+	nhost   NhostClient
 	data    Data
 	schema  *schema.Schema
 	plugins []Plugin
 	mu      sync.RWMutex
 }
 
-func NewResolver(data Data, plugins []Plugin) (*Resolver, error) {
+func NewResolver(data Data, nhostc nhost.Querier, plugins []Plugin) (*Resolver, error) {
 	s, err := schema.New()
 	if err != nil {
 		return nil, fmt.Errorf("problem getting schema: %w", err)
 	}
 	return &Resolver{
+		nhost:   nhostc,
 		data:    data,
 		schema:  s,
 		plugins: plugins,

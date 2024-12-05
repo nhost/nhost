@@ -44,7 +44,7 @@ func (r *mutationResolver) replaceRunServiceConfig(
 		return nil, err
 	}
 
-	if err := r.runServiceConfigValidate(oldService, newService); err != nil {
+	if err := r.runServiceConfigValidate(ctx, appID, oldService, newService); err != nil {
 		return nil, err
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	nhcontext "github.com/nhost/be/lib/graphql/context"
 )
 
@@ -11,8 +12,43 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-func (r *mutationResolver) changeDatabaseVersion( //nolint:cyclop
-	ctx context.Context, appID string, version string, force *bool,
+func deptr[T any](v *T) T {
+	if v == nil {
+		return *new(T)
+	}
+	return *v
+}
+
+func (r *mutationResolver) changeDatabaseVersionValidate(
+	ctx context.Context,
+	oldApp *App,
+	newApp *App,
+) error {
+	id, err := uuid.Parse(newApp.AppID)
+	if err != nil {
+		return fmt.Errorf("failed to parse app id: %w", err)
+	}
+
+	desiredState, err := r.nhost.GetAppDesiredState(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get app desired state: %w", err)
+	}
+
+	oldMajorVersion := deptr(oldApp.Config.Postgres.Version)[:3]
+	newMajorVersion := deptr(newApp.Config.Postgres.Version)[:3]
+	if oldMajorVersion >= newMajorVersion {
+		return ErrDatabaseVersionMustBeGreater
+	}
+
+	if desiredState != appLive {
+		return ErrAppMustBeLive
+	}
+
+	return nil
+}
+
+func (r *mutationResolver) changeDatabaseVersion(
+	ctx context.Context, appID string, version string, _ *bool,
 ) (bool, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -23,17 +59,6 @@ func (r *mutationResolver) changeDatabaseVersion( //nolint:cyclop
 	}
 
 	oldApp := r.data[i]
-	skipCheck := force != nil && *force
-
-	curVer := "14"
-	if oldApp.SystemConfig.GetPostgres().GetMajorVersion() != nil {
-		curVer = *oldApp.SystemConfig.GetPostgres().GetMajorVersion()
-	}
-
-	if !skipCheck && curVer >= version[:2] {
-		return false, ErrDatabaseVersionMustBeGreater
-	}
-
 	newApp := &App{
 		AppID:          oldApp.AppID,
 		Config:         oldApp.Config.Clone(),
@@ -53,10 +78,7 @@ func (r *mutationResolver) changeDatabaseVersion( //nolint:cyclop
 		return false, err
 	}
 
-	if err := r.configValidate(oldApp, newApp); err != nil {
-		return false, err
-	}
-	if err := newApp.ValidateConfig(r.schema); err != nil {
+	if err := r.changeDatabaseVersionValidate(ctx, oldApp, newApp); err != nil {
 		return false, err
 	}
 

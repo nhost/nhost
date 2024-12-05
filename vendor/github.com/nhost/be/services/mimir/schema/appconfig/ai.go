@@ -65,7 +65,7 @@ func AIEnv( //nolint:funlen
 			SecretName: "",
 		},
 		{
-			Name:       "HASURA_STORAGE_URL",
+			Name:       "NHOST_STORAGE_URL",
 			Value:      storageURL,
 			IsSecret:   false,
 			SecretName: "",

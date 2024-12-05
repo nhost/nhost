@@ -109,7 +109,7 @@ func serve(cCtx *cli.Context) error {
 	}
 	plugins := []graph.Plugin{st}
 
-	resolver, err := graph.NewResolver(data, plugins)
+	resolver, err := graph.NewResolver(data, Querier{}, plugins)
 	if err != nil {
 		return fmt.Errorf("failed to create resolver: %w", err)
 	}
