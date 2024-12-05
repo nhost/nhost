@@ -1,22 +1,14 @@
-import { Avatar } from '@/components/ui/v1/Avatar';
+import { Avatar } from '@/components/ui/v2/Avatar';
 import { Text } from '@/components/ui/v2/Text';
 import type { Deployment } from '@/types/application';
 import formatDistance from 'date-fns/formatDistance';
 
 export interface DeploymentStatusMessageProps {
-  /**
-   * The deployment to render the status message for.
-   */
   deployment: Partial<Deployment>;
-  /**
-   * The date the application was created.
-   */
-  appCreatedAt: string;
 }
 
 export default function DeploymentStatusMessage({
   deployment,
-  appCreatedAt,
 }: DeploymentStatusMessageProps) {
   const isDeployingToProduction = [
     'SCHEDULED',
@@ -29,11 +21,10 @@ export default function DeploymentStatusMessage({
     (deployment && !deployment.deploymentEndedAt)
   ) {
     return (
-      <span className="flex flex-row">
+      <span className="flex flex-row justify-start">
         <Avatar
-          component="span"
-          name={deployment.commitUserName}
-          avatarUrl={deployment.commitUserAvatarUrl}
+          alt={`Avatar of ${deployment.commitUserName}`}
+          src={deployment.commitUserAvatarUrl}
           className="mr-1 h-4 w-4 self-center"
         />
         <Text component="span" className="self-center text-sm">
@@ -44,30 +35,26 @@ export default function DeploymentStatusMessage({
   }
 
   if (!isDeployingToProduction && deployment?.deploymentEndedAt) {
+    const statusMessage = `deployed ${formatDistance(new Date(deployment.deploymentEndedAt), new Date(), { addSuffix: true })}`;
+
     return (
-      <span className="grid grid-flow-col">
+      <div className="relative flex flex-row">
         <Avatar
-          component="span"
-          name={deployment.commitUserName}
-          avatarUrl={deployment.commitUserAvatarUrl}
-          className="mr-1 h-4 w-4 self-center"
+          alt={`Avatar of ${deployment.commitUserName}`}
+          src={deployment.commitUserAvatarUrl}
+          className="mr-2 mt-1 h-4 w-4"
         />
-        <Text component="span" className="self-center truncate text-sm">
-          {deployment.commitUserName} deployed{' '}
-          {formatDistance(new Date(deployment.deploymentEndedAt), new Date(), {
-            addSuffix: true,
-          })}
-        </Text>
-      </span>
+        <div className="flex flex-col text-sm text-muted-foreground">
+          <p className="line-clamp-1 break-all">{deployment.commitUserName}</p>
+          <p>{statusMessage}</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Text component="span" className="text-sm">
-      created{' '}
-      {formatDistance(new Date(appCreatedAt), new Date(), {
-        addSuffix: true,
-      })}
+    <Text component="span" className="text-sm text-muted-foreground">
+      No deployments
     </Text>
   );
 }

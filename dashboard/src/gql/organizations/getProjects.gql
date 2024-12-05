@@ -5,6 +5,10 @@ query getProjects($orgSlug: String!) {
     slug
     createdAt
     subdomain
+    region {
+      id
+      name
+    }
     deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
       id
       commitSHA
@@ -19,6 +23,13 @@ query getProjects($orgSlug: String!) {
       id
       email
       displayName
+    }
+    appStates(order_by: { createdAt: desc }, limit: 1) {
+      id
+      appId
+      message
+      stateId
+      createdAt
     }
   }
 }

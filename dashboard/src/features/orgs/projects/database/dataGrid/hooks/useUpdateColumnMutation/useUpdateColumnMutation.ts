@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -39,10 +39,12 @@ export default function useUpdateColumnMutation({
   const {
     query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+
+  const { project } = useProject();
+
   const appUrl = generateAppServiceUrl(
-    currentProject?.subdomain,
-    currentProject?.region,
+    project?.subdomain,
+    project?.region,
     'hasura',
   );
   const mutationFn = isPlatform ? updateColumn : updateColumnMigration;
@@ -55,7 +57,7 @@ export default function useUpdateColumnMutation({
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || currentProject?.config?.hasura.adminSecret,
+            : customAdminSecret || project?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
         table: customTable || (tableSlug as string),

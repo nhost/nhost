@@ -13352,6 +13352,7 @@ export type Mutation_Root = {
   delete_regions?: Maybe<Regions_Mutation_Response>;
   /** delete single row from the table: "regions" */
   delete_regions_by_pk?: Maybe<Regions>;
+  encryptPersistentVolumes: Scalars['Boolean'];
   /** insert a single row into the table: "announcements_read" */
   insertAnnouncementRead?: Maybe<Announcements_Read>;
   /** insert data into the table: "announcements_read" */
@@ -14674,6 +14675,12 @@ export type Mutation_RootDelete_RegionsArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Regions_By_PkArgs = {
   id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootEncryptPersistentVolumesArgs = {
+  appID: Scalars['uuid'];
 };
 
 
@@ -27867,7 +27874,7 @@ export type GetProjectsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, region: { __typename?: 'regions', id: any, name: string }, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
 
 export type GetUserProjectMetricsQueryVariables = Exact<{
   startOfMonth: Scalars['timestamptz'];
@@ -32538,6 +32545,10 @@ export const GetProjectsDocument = gql`
     slug
     createdAt
     subdomain
+    region {
+      id
+      name
+    }
     deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
       id
       commitSHA
@@ -32552,6 +32563,13 @@ export const GetProjectsDocument = gql`
       id
       email
       displayName
+    }
+    appStates(order_by: {createdAt: desc}, limit: 1) {
+      id
+      appId
+      message
+      stateId
+      createdAt
     }
   }
 }
