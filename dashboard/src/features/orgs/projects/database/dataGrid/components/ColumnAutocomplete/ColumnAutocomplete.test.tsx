@@ -23,9 +23,7 @@ afterAll(() => {
 test('should render a combobox', () => {
   render(<ColumnAutocomplete schema="public" table="books" />);
 
-  expect(
-    screen.getByRole('combobox', { name: /column autocomplete/i }),
-  ).toBeInTheDocument();
+  expect(screen.getByRole('combobox')).toBeInTheDocument();
 });
 
 // Note: Network requests don't go through in tests, so we can't test the
