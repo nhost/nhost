@@ -326,10 +326,10 @@ export default function RolePermissionEditorForm({
   return (
     <FormProvider {...form}>
       {error && error instanceof Error && (
-        <div className="px-6 mb-4 -mt-3">
+        <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
@@ -349,13 +349,13 @@ export default function RolePermissionEditorForm({
 
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col content-between flex-auto overflow-hidden border-t-1"
+        className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
         sx={{ backgroundColor: 'background.default' }}
       >
-        <div className="grid content-start flex-auto grid-flow-row gap-6 py-4 overflow-auto">
+        <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
             title="Selected role & action"
-            className="justify-between grid-flow-col"
+            className="grid-flow-col justify-between"
           >
             <div className="grid grid-flow-col gap-4">
               <Text>
@@ -408,7 +408,7 @@ export default function RolePermissionEditorForm({
           {action !== 'select' && <BackendOnlySection disabled={disabled} />}
         </div>
 
-        <Box className="grid flex-shrink-0 gap-2 p-2 border-t-1 sm:grid-flow-col sm:justify-between">
+        <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
             variant="borderless"
             color="secondary"
