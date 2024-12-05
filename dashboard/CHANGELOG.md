@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 2.10.0
+
+### Minor Changes
+
+- 86ecf27: feat: add support for additional metrics in overview
+- 21708be: feat: dashboard: add support for storage buckets to AI assistants
+
 ## 1.30.0
 
 ### Minor Changes
