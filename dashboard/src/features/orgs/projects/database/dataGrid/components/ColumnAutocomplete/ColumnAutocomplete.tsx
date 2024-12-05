@@ -71,8 +71,6 @@ function ColumnAutocomplete(
   const { disabled } = useRuleGroupEditor();
 
   const [search, setSearch] = useState('');
-  const [pages, setPages] = useState<string[]>([]);
-  const activePage = pages[pages.length - 1];
 
   const [activeRelationship, setActiveRelationship] = useState<{
     schema: string;
@@ -121,6 +119,18 @@ function ColumnAutocomplete(
     metadata,
     onInitialized,
   });
+
+  const [pages, setPages] = useState<string[]>([]);
+
+  useEffect(() => {
+    setPages(
+      relationshipDotNotation ? [relationshipDotNotation?.split('.')[0]] : [],
+    );
+  }, [relationshipDotNotation]);
+
+  const activePage = pages[pages.length - 1];
+  console.log('pages', pages);
+  console.log('activePage', activePage);
 
   useEffect(() => {
     setActiveRelationship(asyncActiveRelationship);
@@ -276,7 +286,7 @@ function ColumnAutocomplete(
                       />
                       <div className="flex gap-3">
                         {option.label}
-                        <code className="relative rounded bg-primary px-[0.2rem] font-mono">
+                        <code className="relative rounded bg-primary px-[0.2rem] font-mono text-primary-foreground">
                           {option.metadata?.udt_name || option.value}
                         </code>
                       </div>
