@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -10,14 +11,14 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
-import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
+import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient'
 import type { DialogFormProps } from '@/types/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -28,6 +29,7 @@ export const validationSchema = Yup.object({
   description: Yup.string(),
   instructions: Yup.string().required('The instructions are required'),
   model: Yup.string().required('The model is required'),
+  fileStore: Yup.string().label('File Store'),
   graphql: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -64,14 +66,14 @@ export type AssistantFormValues = Yup.InferType<typeof validationSchema>;
 
 export interface AssistantFormProps extends DialogFormProps {
   /**
-   * To use in conjunction with initialData to allow for updating the autoEmbeddingsConfiguration
+   * To use in conjunction with initialData to allow for updating the Assistant Configuration
    */
   assistantId?: string;
 
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AssistantFormValues;
+  initialData?: AssistantFormValues
 
   /**
    * Function to be called when the operation is cancelled.
@@ -114,26 +116,26 @@ export default function AssistantForm({
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
-
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const createOrUpdateAutoEmbeddings = async (
-    values: DeepRequired<AssistantFormValues> & { assistantID: string },
+  const createOrUpdateAssistant = async (
+    values: DeepRequired<AssistantFormValues> & {
+      assistantID: string;
+    },
   ) => {
     // remove any __typename from the form values
     const payload = removeTypename(values);
 
-    if (values.webhooks.length === 0) {
+    if (values.webhooks?.length === 0) {
       delete payload.webhooks;
     }
 
-    if (values.graphql.length === 0) {
+    if (values.graphql?.length === 0) {
       delete payload.graphql;
     }
 
-    // remove assistantId because the update mutation fails otherwise
     delete payload.assistantID;
 
     // If the assistantId is set then we do an update
@@ -158,11 +160,13 @@ export default function AssistantForm({
   };
 
   const handleSubmit = async (
-    values: DeepRequired<AssistantFormValues> & { assistantID: string },
+    values: DeepRequired<AssistantFormValues> & {
+      assistantID: string;
+    },
   ) => {
     await execPromiseWithErrorToast(
       async () => {
-        await createOrUpdateAutoEmbeddings(values);
+        await createOrUpdateAssistant(values);
         onSubmit?.();
       },
       {
@@ -282,6 +286,7 @@ export default function AssistantForm({
             autoComplete="off"
             autoFocus
           />
+
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
         </div>

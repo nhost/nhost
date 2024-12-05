@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/v2/Text';
 
 import {
   useGetAssistantsQuery,
+  useGetGraphiteFileStoresQuery,
   type GetAssistantsQuery,
 } from '@/utils/__generated__/graphite.graphql';
 import { useMemo, type ReactElement } from 'react';
@@ -21,6 +22,7 @@ import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
+import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
@@ -43,24 +45,46 @@ export default function AssistantsPage() {
   const { isGraphiteEnabled, loading: loadingGraphite } =
     useIsGraphiteEnabled();
 
-  const {
-    data,
-    loading: loadingAssistants,
-    refetch,
-  } = useGetAssistantsQuery({
-    client: adminClient,
-  });
+  const { isFileStoreSupported, loading: fileStoreLoading } =
+    useIsFileStoreSupported();
 
-  const assistants = useMemo(() => data?.graphite?.assistants || [], [data]);
+    const {
+      data: assistantsData,
+      loading: assistantsLoading,
+      refetch: assistantsRefetch,
+    } = useGetAssistantsQuery({
+      client: adminClient,
+      variables: {
+        isFileStoresSupported: isFileStoreSupported ?? false,
+      },
+      skip: isFileStoreSupported === null || fileStoreLoading,
+    });
+    const { data: fileStoresData } = useGetGraphiteFileStoresQuery({
+      client: adminClient,
+    });
+  
+    const assistants = useMemo(
+      () => assistantsData?.graphite?.assistants || [],
+      [assistantsData],
+    );
+    const fileStores = useMemo(
+      () => fileStoresData?.graphite?.fileStores || [],
+      [fileStoresData],
+    );
 
   const openCreateAssistantForm = () => {
     openDrawer({
       title: 'Create a new Assistant',
-      component: <AssistantForm onSubmit={refetch} />,
+      component: (
+        <AssistantForm
+          onSubmit={assistantsRefetch}
+          fileStores={isFileStoreSupported ? fileStores : undefined}
+        />
+      ),
     });
   };
 
-  if (loadingOrg || loadingProject || loadingGraphite || loadingAssistants) {
+  if (loadingOrg || loadingProject || loadingGraphite || assistantsLoading) {
     return (
       <Box className="flex items-center justify-center w-full h-full">
         <ActivityIndicator
@@ -114,7 +138,7 @@ export default function AssistantsPage() {
     );
   }
 
-  if (data?.graphite?.assistants.length === 0 && !loadingAssistants) {
+  if (assistants.length === 0 && !assistantsLoading) {
     return (
       <Box
         className="w-full p-6"
@@ -161,8 +185,9 @@ export default function AssistantsPage() {
       <div>
         <AssistantsList
           assistants={assistants}
-          onDelete={() => refetch()}
-          onCreateOrUpdate={() => refetch()}
+          fileStores={isFileStoreSupported ? fileStores : undefined}
+          onDelete={() => assistantsRefetch()}
+          onCreateOrUpdate={() => assistantsRefetch()}
         />
       </div>
     </Box>

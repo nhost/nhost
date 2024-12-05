@@ -1,66 +1,75 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import { AISidebar } from '@/components/layout/AISidebar';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { AssistantForm } from '@/features/ai/AssistantForm';
-import { AssistantsList } from '@/features/ai/AssistantsList';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
+import { FileStoresList } from '@/features/orgs/projects/ai/FileStoresList';
+import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
+import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  useGetAssistantsQuery,
-  type GetAssistantsQuery
+  useGetGraphiteFileStoresQuery,
+  type GetGraphiteFileStoresQuery
 } from '@/utils/__generated__/graphite.graphql';
 import { useMemo, type ReactElement } from 'react';
 
-export type Assistant = Omit<
-  GetAssistantsQuery['graphite']['assistants'][0],
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { AISidebar } from '@/features/orgs/layout/AISidebar';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+
+export type GraphiteFileStore = Omit<
+  GetGraphiteFileStoresQuery['graphite']['fileStores'][0],
   '__typename'
 >;
 
-export default function AssistantsPage() {
+export default function FileStoresPage() {
   const { openDrawer } = useDialog();
   const isPlatform = useIsPlatform();
-  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+
+  const { org, loading: loadingOrg } = useCurrentOrg();
+  const { project, loading: loadingProject } = useProject();
+
   const { adminClient } = useAdminApolloClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
-
-  const {
-    data,
-    loading,
-    refetch,
-  } = useGetAssistantsQuery({
+  const { isFileStoreSupported } = useIsFileStoreSupported();
+  
+  const { data, loading, refetch } = useGetGraphiteFileStoresQuery({
     client: adminClient,
   });
-  
-  const assistants = useMemo(
-    () => data?.graphite?.assistants || [],
-    [data],
-  );
 
-  const openCreateAssistantForm = () => {
+  const fileStores = useMemo(() => data?.graphite.fileStores || [], [data]);
+
+  const openCreateFileStoreForm = () => {
     openDrawer({
-      title: 'Create a new Assistant',
-      component: (
-        <AssistantForm onSubmit={refetch} />
-      ),
+      title: 'Create a new File Store',
+      component: <FileStoreForm onSubmit={refetch} />,
     });
   };
 
-  if (isPlatform && currentProject?.legacyPlan?.isFree) {
+  if (loadingOrg || loadingProject || loading) {
     return (
-      <Box
-        className="w-full p-4"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <Box className="flex items-center justify-center w-full h-full">
+        <ActivityIndicator
+          delay={1000}
+          label="Loading File Stores..."
+          className="justify-center"
+        />
+      </Box>
+    );
+  }
+
+  if (isPlatform && org?.plan?.isFree) {
+    return (
+      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <UpgradeToProBanner
           title="Upgrade to Nhost Pro."
           description={
@@ -76,8 +85,8 @@ export default function AssistantsPage() {
 
   if (
     (isPlatform &&
-      !currentProject?.legacyPlan?.isFree &&
-      !currentProject?.config?.ai) ||
+      !org?.plan?.isFree &&
+      !project.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
@@ -90,8 +99,7 @@ export default function AssistantsPage() {
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
-                href={`/${currentWorkspace?.slug}/${currentProject?.subdomain}/settings/ai`}
-                target="_blank"
+                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/ai`}
                 rel="noopener noreferrer"
                 underline="hover"
               >
@@ -105,35 +113,42 @@ export default function AssistantsPage() {
     );
   }
 
-  if (loading) {
-    return <Box className="p-4">Loading...</Box>;
-  }
-
-  if (assistants.length === 0) {
+  if (fileStores.length === 0 && !loading) {
     return (
       <Box
         className="w-full p-6"
         sx={{ backgroundColor: 'background.default' }}
       >
         <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <span className="text-6xl">🤖</span>
+          <FileStoresIcon className="h-10 w-10" />
+
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">
-              No Assistants are configured
+              No File Stores are configured
             </Text>
             <Text variant="subtitle1" className="text-center">
-              All your assistants will be listed here.
+              File Stores are used to share storage documents with your
+              AI assistants.
             </Text>
+            {!isFileStoreSupported && (
+              <Box className="px-4 pb-4">
+                <Alert className="mt-2 text-left">
+                  Please upgrade Graphite to its latest version in order to use
+                  file stores.
+                </Alert>
+              </Box>
+            )}
           </div>
           <div className="flex flex-row place-content-between rounded-lg">
             <Button
               variant="contained"
               color="primary"
               className="w-full"
-              onClick={openCreateAssistantForm}
+              onClick={openCreateFileStoreForm}
               startIcon={<PlusIcon className="h-4 w-4" />}
+              disabled={!isFileStoreSupported}
             >
-              Create a new assistant
+              Add a new File Store
             </Button>
           </div>
         </Box>
@@ -142,27 +157,29 @@ export default function AssistantsPage() {
   }
 
   return (
-    <Box className="flex w-full flex-col overflow-hidden">
+    <Box className="flex flex-col w-full overflow-hidden">
       <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"
           color="primary"
-          onClick={openCreateAssistantForm}
+          onClick={openCreateFileStoreForm}
           startIcon={<PlusIcon className="h-4 w-4" />}
         >
           New
         </Button>
       </Box>
-      <AssistantsList
-        assistants={assistants}
-        onDelete={() => refetch()}
-        onCreateOrUpdate={() => refetch()}
-      />
+      <div>
+        <FileStoresList
+          fileStores={fileStores}
+          onDelete={() => refetch()}
+          onCreateOrUpdate={() => refetch()}
+        />
+      </div>
     </Box>
   );
 }
 
-AssistantsPage.getLayout = function getLayout(page: ReactElement) {
+FileStoresPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
@@ -171,4 +188,5 @@ AssistantsPage.getLayout = function getLayout(page: ReactElement) {
       <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
     </ProjectLayout>
   );
+
 };
