@@ -22,7 +22,7 @@ func expectedAI() *Service {
 			"GRAPHITE_BASE_URL":           "http://ai:8090",
 			"GRAPHITE_WEBHOOK_SECRET":     "webhookSecret",
 			"HASURA_GRAPHQL_ADMIN_SECRET": "adminSecret",
-			"NHOST_STORAGE_URL":           "http://storage:5000",
+			"NHOST_STORAGE_URL":           "http://storage:5000/v1",
 			"LICENSE":                     "",
 			"NHOST_GRAPHQL_URL":           "http://graphql:8080/v1/graphql",
 			"OPENAI_API_KEY":              "openaiApiKey",

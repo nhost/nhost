@@ -13,7 +13,7 @@ func ai(
 		cfg,
 		"http://graphql:8080/v1/graphql",
 		"postgres://postgres@postgres:5432/local?sslmode=disable",
-		"http://storage:5000",
+		"http://storage:5000/v1",
 		"",
 	)
 
