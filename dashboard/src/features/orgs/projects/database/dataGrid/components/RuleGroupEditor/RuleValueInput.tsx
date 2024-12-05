@@ -131,7 +131,7 @@ export default function RuleValueInput({
         }}
         defaultValue={defaultValue}
       >
-        <SelectTrigger className="border hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-0">
+        <SelectTrigger className="border hover:bg-accent hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
           <SelectValue placeholder="Is null?" />
         </SelectTrigger>
         <SelectContent>
@@ -197,7 +197,7 @@ export default function RuleValueInput({
           className="justify-between"
         >
           <span className="truncate">{comboboxLabel}</span>
-          <ChevronsUpDown className="h-5 w-5 opacity-50" />
+          <ChevronsUpDown className="h-5 min-h-5 w-5 min-w-5 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0">
