@@ -196,7 +196,7 @@ export default function RuleValueInput({
           aria-expanded={open}
           className="justify-between"
         >
-          {comboboxLabel}
+          <span className="truncate">{comboboxLabel}</span>
           <ChevronsUpDown className="h-5 w-5 opacity-50" />
         </Button>
       </PopoverTrigger>
