@@ -277,6 +277,7 @@ function ColumnAutocomplete(
                       key={option.value}
                       value={option.value}
                       onSelect={handleChange}
+                      className="overflow-x-hidden"
                     >
                       <Check
                         className={cn(
@@ -285,10 +286,14 @@ function ColumnAutocomplete(
                         )}
                       />
                       <div className="flex gap-3">
-                        {option.label}
-                        <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
-                          {option.metadata?.udt_name || option.value}
-                        </code>
+                        <span className="line-clamp-2 break-all">
+                          {option.label}
+                        </span>
+                        <div className="flex items-center">
+                          <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
+                            {option.metadata?.udt_name || option.value}
+                          </code>
+                        </div>
                       </div>
                     </CommandItem>
                   ))}
@@ -325,10 +330,14 @@ function ColumnAutocomplete(
                         )}
                       />
                       <div className="flex gap-3">
-                        {option.label}
-                        <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
-                          {option.metadata?.udt_name || option.value}
-                        </code>
+                        <span className="line-clamp-2 break-all">
+                          {option.label}
+                        </span>
+                        <div className="flex items-center">
+                          <code className="relative rounded bg-primary px-[0.2rem] font-mono text-white">
+                            {option.metadata?.udt_name || option.value}
+                          </code>
+                        </div>
                       </div>
                     </CommandItem>
                   ))}

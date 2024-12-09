@@ -115,7 +115,7 @@ export function FancyMultiSelect({
                 key={option.value}
                 variant="outline"
               >
-                <span className="overflow-x-hidden text-ellipsis whitespace-nowrap break-words">
+                <span className="overflow-x-hidden text-ellipsis whitespace-nowrap break-words font-medium">
                   {option.label}
                 </span>
                 <button
