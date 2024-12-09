@@ -772,14 +772,15 @@ export const createAuthMachine = ({
             if (ctx.refreshTimer.attempts > REFRESH_TOKEN_MAX_ATTEMPTS) {
               return false
             }
+
+            // This happens when either the computer goes to sleep or when Chrome descides to suspend the tab
+            if (expiresAt.getTime() < Date.now()) {
+              return true
+            }
+
             const elapsed = Date.now() - ctx.refreshTimer.lastAttempt.getTime()
             // * Exponential backoff
             return elapsed > Math.pow(2, ctx.refreshTimer.attempts - 1) * 5_000
-          }
-
-          // This happens when either the computer goes to sleep or when Chrome descides to suspend the tab
-          if (expiresAt.getTime() < Date.now()) {
-            return true
           }
 
           if (refreshIntervalTime) {
