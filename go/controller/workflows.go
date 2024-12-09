@@ -458,7 +458,7 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 	}, nil
 }
 
-func (wf *Workflows) NewSession(
+func (wf *Workflows) NewSession( //nolint:funlen
 	ctx context.Context,
 	user sql.AuthUser,
 	logger *slog.Logger,
@@ -467,9 +467,13 @@ func (wf *Workflows) NewSession(
 	if err != nil {
 		return nil, fmt.Errorf("error getting roles by user id: %w", err)
 	}
-	allowedRoles := make([]string, len(userRoles))
-	for i, role := range userRoles {
-		allowedRoles[i] = role.Role
+	allowedRoles := make([]string, 0, len(userRoles))
+	for _, role := range userRoles {
+		allowedRoles = append(allowedRoles, role.Role)
+	}
+
+	if !slices.Contains(allowedRoles, user.DefaultRole) {
+		allowedRoles = append(allowedRoles, user.DefaultRole)
 	}
 
 	refreshToken := uuid.New()
