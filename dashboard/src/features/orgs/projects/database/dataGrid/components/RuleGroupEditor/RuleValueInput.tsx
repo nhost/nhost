@@ -135,8 +135,12 @@ export default function RuleValueInput({
           <SelectValue placeholder="Is null?" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="true">true</SelectItem>
-          <SelectItem value="false">false</SelectItem>
+          <SelectItem value="true">
+            <span className="font-medium">true</span>
+          </SelectItem>
+          <SelectItem value="false">
+            <span className="font-medium">false</span>
+          </SelectItem>
         </SelectContent>
       </Select>
     );
@@ -200,7 +204,11 @@ export default function RuleValueInput({
           <ChevronsUpDown className="h-5 min-h-5 w-5 min-w-5 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent
+        side="bottom"
+        align="start"
+        className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0"
+      >
         <Command>
           <CommandInput placeholder="Choose variable..." />
           <CommandList>

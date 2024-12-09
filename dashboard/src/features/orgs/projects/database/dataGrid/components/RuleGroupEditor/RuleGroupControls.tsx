@@ -61,8 +61,12 @@ export default function RuleGroupControls({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="_and">and</SelectItem>
-            <SelectItem value="_or">or</SelectItem>
+            <SelectItem value="_and">
+              <span className="font-medium">and</span>
+            </SelectItem>
+            <SelectItem value="_or">
+              <span className="font-medium">or</span>
+            </SelectItem>
           </SelectContent>
         </Select>
       ) : (
