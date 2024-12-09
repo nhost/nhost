@@ -53,7 +53,6 @@ export default function useAsyncValue({
   onInitialized,
 }: UseAsyncValueOptions) {
   const currentTablePath = `${selectedSchema}.${selectedTable}`;
-  const [inputValue, setInputValue] = useState('');
   const [initialized, setInitialized] = useState(false);
   // We might not going to have the most up-to-date table data because the
   // relationship is loaded asynchronously, so we need to make sure we don't
@@ -131,7 +130,6 @@ export default function useAsyncValue({
       ),
     });
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
-    setInputValue(activeColumn);
   }, [
     remainingColumnPath,
     isTableLoading,
@@ -287,8 +285,6 @@ export default function useAsyncValue({
 
   return {
     initialized,
-    inputValue,
-    setInputValue,
     activeRelationship,
     selectedRelationships: initialized ? selectedRelationships : [],
     selectedColumn: initialized ? selectedColumn : null,

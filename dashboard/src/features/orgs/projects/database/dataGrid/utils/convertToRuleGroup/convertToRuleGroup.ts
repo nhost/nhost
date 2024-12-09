@@ -52,8 +52,6 @@ const negatedValueOperatorPairs: Record<HasuraOperator, HasuraOperator> = {
   _cgte: '_clt',
   _clte: '_cgt',
   _is_null: '_is_null',
-  _in_hasura: '_nin_hasura',
-  _nin_hasura: '_in_hasura',
 };
 
 export default function convertToRuleGroup(
@@ -151,16 +149,14 @@ export default function convertToRuleGroup(
     (currentKey === '_in' || currentKey === '_nin') &&
     typeof value === 'string'
   ) {
-    const operator = currentKey === '_in' ? '_in_hasura' : '_nin_hasura';
-
     return {
       operator: '_and',
       rules: [
         {
           column: previousKey,
           operator: shouldNegate
-            ? negatedValueOperatorPairs[operator]
-            : operator,
+            ? negatedValueOperatorPairs[currentKey]
+            : currentKey,
           value,
         },
       ],
