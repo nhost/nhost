@@ -129,9 +129,9 @@ func TestIDTokenValidate(t *testing.T) {
 			expecedErr: jwt.ErrTokenUsedBeforeIssued,
 		},
 		{
-			name: "too early in the past",
+			name: "too late, expired",
 			idTokenValidator: testProviderValidator(
-				t, "myapp.local", time.Date(2024, 12, 6, 15, 30, 0, 0, time.UTC),
+				t, "myapp.local", time.Date(2124, 12, 6, 15, 30, 0, 0, time.UTC),
 			),
 			token:      tokenWithNonce,
 			nonce:      nonce,
