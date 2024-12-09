@@ -111,7 +111,7 @@ export default function RuleGroupEditor({
       <Box
         {...props}
         className={twMerge(
-          'min-h-52 rounded-lg border border-r-8 border-transparent pl-2',
+          'flex min-h-44 flex-col justify-between rounded-lg border border-r-8 border-transparent pl-2',
           className,
         )}
         sx={[

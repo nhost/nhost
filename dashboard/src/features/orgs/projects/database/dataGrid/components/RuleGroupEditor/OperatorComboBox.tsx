@@ -98,7 +98,7 @@ export default function OperatorComboBox({
           <ChevronsUpDown className="h-5 w-5 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent side="bottom" align="start" className="p-0">
         <Command>
           <CommandInput placeholder="Search operator..." />
           <CommandList>
