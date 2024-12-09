@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.24.0
+
+### Minor Changes
+
+- a99f034: chore: fix function name
+
 ## 2.23.0
 
 ### Minor Changes
