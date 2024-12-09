@@ -100,7 +100,6 @@ pnpm storybook --port 6007
 
 | Name                                    | Description                                                                                 |
 | --------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_NHOST_BACKEND_URL`         | Backend URL. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                   |
 | `NEXT_PUBLIC_STRIPE_PK`                 | Stripe public key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.             |
 | `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`    | URL of the GitHub application. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`. |
 | `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`       | Analytics key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                 |

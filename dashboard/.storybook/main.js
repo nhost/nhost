@@ -42,7 +42,6 @@ module.exports = {
   env: (config) => ({
     ...config,
     NEXT_PUBLIC_ENV: 'dev',
-    NEXT_PUBLIC_NHOST_BACKEND_URL: 'http://localhost:1337',
     NEXT_PUBLIC_NHOST_PLATFORM: 'false',
   }),
 };
