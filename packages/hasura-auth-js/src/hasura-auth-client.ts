@@ -804,10 +804,10 @@ export class HasuraAuthClient {
    * @example
    * ```ts
    * // Refresh the session with the the current internal refresh token.
-   * nhost.auth.refreshToken();
+   * nhost.auth.refreshSession();
    *
    * // Refresh the session with an external refresh token.
-   * nhost.auth.refreshToken(refreshToken);
+   * nhost.auth.refreshSession(refreshToken);
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/refresh-session
