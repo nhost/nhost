@@ -241,7 +241,7 @@ export default function RuleGroupEditor({
             {onRemove && (
               <Button
                 variant="borderless"
-                color="secondary"
+                color="error"
                 onClick={onRemove}
                 disabled={disableRemove}
               >
