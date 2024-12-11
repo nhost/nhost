@@ -46,7 +46,9 @@ export default function SelectOrganizationAndProject() {
     await router.push({
       pathname: `${org.value}/${
         (() => {
-          if (!slug) return '';
+          if (!slug) {
+            return '';
+          }
           return Array.isArray(slug) ? slug.join('/') : slug;
         })()
       }`,
