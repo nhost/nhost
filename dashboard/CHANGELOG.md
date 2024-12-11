@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 2.11.0
+
+### Minor Changes
+
+- cea3ef5: Feat: add org and project placeholders
+
 ## 2.10.0
 
 ### Minor Changes
