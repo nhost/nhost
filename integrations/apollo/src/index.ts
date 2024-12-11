@@ -64,41 +64,24 @@ export const createApolloClient = ({
       return false
     }
 
-    const marginInSeconds = 3
+    const marginInSeconds = 5
     const marginInMilliseconds = marginInSeconds * 1000
 
     let decodedToken = jwtDecode(accessToken.value) as JwtPayload
     return decodedToken.exp! * 1000 > Date.now() - marginInMilliseconds
   }
 
-  const isTokenValid = () =>
-    !!accessToken?.value &&
-    !!accessToken?.expiresAt &&
-    accessToken?.expiresAt > new Date() &&
-    isJwtValid()
-
-  const isTokenValidOrNull = () => !accessToken || isTokenValid()
-
-  const awaitValidTokenOrNull = () => {
-    if (isTokenValidOrNull()) {
-      return Promise.resolve()
+  const refreshTokenIfNeeded = async () => {
+    if (!accessToken?.value || isJwtValid()) {
+      return
     }
 
-    const waitForValidToken = () => {
-      if (isTokenValidOrNull()) {
-        return Promise.resolve(true)
-      }
-      return new Promise((resolve) => {
-        setTimeout(() => waitForValidToken().then(resolve), 100)
-      })
-    }
-
-    return waitForValidToken()
+    await nhost?.auth.refreshSession()
   }
 
   const getAuthHeaders = async () => {
-    // wait for valid access token
-    await awaitValidTokenOrNull()
+    // Ensure token is refreshed before adding headers
+    await refreshTokenIfNeeded()
 
     // add headers
     const resHeaders = {
