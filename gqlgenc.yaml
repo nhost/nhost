@@ -25,7 +25,7 @@ models:
       - github.com/99designs/gqlgen/graphql.Uint32
 
 endpoint:
-  url: https://staging.nhost.run/v1/graphql
+  url: https://mytpiiwxeyrvlqrxuknp.graphql.eu-central-1.nhost.run/v1
   headers:
     Authorization: Bearer $NHOST_ACCESS_TOKEN # # support environment variables
 

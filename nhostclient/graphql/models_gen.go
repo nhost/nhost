@@ -7950,7 +7950,7 @@ type SoftwareTypeEnum string
 const (
 	// Hasura Auth
 	SoftwareTypeEnumAuth SoftwareTypeEnum = "Auth"
-	// Graphite
+	// Nhost AI service
 	SoftwareTypeEnumGraphite SoftwareTypeEnum = "Graphite"
 	// Hasura GraphQL Engine
 	SoftwareTypeEnumHasura SoftwareTypeEnum = "Hasura"

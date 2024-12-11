@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	flagDomain         = "domain"
+	flagAuthURL        = "auth-url"
+	flagGraphqlURL     = "graphql-url"
 	flagBranch         = "branch"
 	flagProjectName    = "project-name"
 	flagRootFolder     = "root-folder"
@@ -52,10 +53,17 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 
 	return []cli.Flag{
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    flagDomain,
-			Usage:   "Nhost domain",
-			EnvVars: []string{"NHOST_DOMAIN"},
-			Value:   "nhost.run",
+			Name:    flagAuthURL,
+			Usage:   "Nhost auth URL",
+			EnvVars: []string{"NHOST_CLI_AUTH_URL"},
+			Value:   "https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1",
+			Hidden:  true,
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagGraphqlURL,
+			Usage:   "Nhost GraphQL URL",
+			EnvVars: []string{"NHOST_CLI_GRAPHQL_URL"},
+			Value:   "https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1",
 			Hidden:  true,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct

@@ -20,7 +20,7 @@ func (ce *CliEnv) LoadSession(
 		}
 	}
 
-	cl := nhostclient.New(ce.Domain())
+	cl := nhostclient.New(ce.AuthURL(), ce.GraphqlURL())
 	session, err := cl.LoginPAT(ctx, creds.PersonalAccessToken)
 	if err != nil {
 		return credentials.Session{}, fmt.Errorf("failed to login: %w", err)

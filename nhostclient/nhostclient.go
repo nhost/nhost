@@ -33,13 +33,13 @@ func (e *RequestError) Error() string {
 	return fmt.Sprintf("status: %d, error: %s, message: %s", e.Status, e.ErrorCode, e.Message)
 }
 
-func New(domain string, interceptors ...clientv2.RequestInterceptor) *Client {
+func New(authURL, graphqlURL string, interceptors ...clientv2.RequestInterceptor) *Client {
 	return &Client{
-		baseURL: fmt.Sprintf("https://%s/v1/auth", domain),
+		baseURL: authURL,
 		client:  &http.Client{}, //nolint:exhaustruct
 		Client: graphql.NewClient(
 			&http.Client{}, //nolint:exhaustruct
-			fmt.Sprintf("https://%s/v1/graphql", domain),
+			graphqlURL,
 			&clientv2.Options{}, //nolint:exhaustruct
 			interceptors...,
 		),

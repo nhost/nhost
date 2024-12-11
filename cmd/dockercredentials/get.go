@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	flagDomain = "domain"
+	flagAuthURL    = "auth-url"
+	flagGraphqlURL = "graphql-url"
 )
 
 func CommandGet() *cli.Command {
@@ -23,10 +24,17 @@ func CommandGet() *cli.Command {
 		Hidden:  true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagDomain,
-				Usage:   "Nhost domain",
-				EnvVars: []string{"NHOST_DOMAIN"},
-				Value:   "nhost.run",
+				Name:    flagAuthURL,
+				Usage:   "Nhost auth URL",
+				EnvVars: []string{"NHOST_CLI_AUTH_URL"},
+				Value:   "https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1",
+				Hidden:  true,
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagGraphqlURL,
+				Usage:   "Nhost GraphQL URL",
+				EnvVars: []string{"NHOST_CLI_GRAPHQL_URL"},
+				Value:   "https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1",
 				Hidden:  true,
 			},
 		},
@@ -34,12 +42,13 @@ func CommandGet() *cli.Command {
 	}
 }
 
-func getToken(ctx context.Context, domain string) (string, error) {
+func getToken(ctx context.Context, authURL, graphqlURL string) (string, error) {
 	ce := clienv.New(
 		os.Stdout,
 		os.Stderr,
 		&clienv.PathStructure{},
-		domain,
+		authURL,
+		graphqlURL,
 		"unneeded",
 		"unneeded",
 		"unneeded",
@@ -65,7 +74,7 @@ func actionGet(c *cli.Context) error {
 	for scanner.Scan() {
 		input += scanner.Text()
 	}
-	token, err := getToken(c.Context, c.String(flagDomain))
+	token, err := getToken(c.Context, c.String(flagAuthURL), c.String(flagGraphqlURL))
 	if err != nil {
 		return err
 	}

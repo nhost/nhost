@@ -22,7 +22,8 @@ type CliEnv struct {
 	stdout         io.Writer
 	stderr         io.Writer
 	Path           *PathStructure
-	domain         string
+	authURL        string
+	graphqlURL     string
 	branch         string
 	nhclient       *nhostclient.Client
 	nhpublicclient *nhostclient.Client
@@ -34,7 +35,8 @@ func New(
 	stdout io.Writer,
 	stderr io.Writer,
 	path *PathStructure,
-	domain string,
+	authURL string,
+	graphqlURL string,
 	branch string,
 	projectName string,
 	localSubdomain string,
@@ -43,7 +45,8 @@ func New(
 		stdout:         stdout,
 		stderr:         stderr,
 		Path:           path,
-		domain:         domain,
+		authURL:        authURL,
+		graphqlURL:     graphqlURL,
 		branch:         branch,
 		nhclient:       nil,
 		nhpublicclient: nil,
@@ -67,7 +70,8 @@ func FromCLI(cCtx *cli.Context) *CliEnv {
 			cCtx.String(flagDataFolder),
 			cCtx.String(flagNhostFolder),
 		),
-		domain:         cCtx.String(flagDomain),
+		authURL:        cCtx.String(flagAuthURL),
+		graphqlURL:     cCtx.String(flagGraphqlURL),
 		branch:         cCtx.String(flagBranch),
 		projectName:    sanitizeName(cCtx.String(flagProjectName)),
 		nhclient:       nil,
@@ -84,8 +88,12 @@ func (ce *CliEnv) LocalSubdomain() string {
 	return ce.localSubdomain
 }
 
-func (ce *CliEnv) Domain() string {
-	return ce.domain
+func (ce *CliEnv) AuthURL() string {
+	return ce.authURL
+}
+
+func (ce *CliEnv) GraphqlURL() string {
+	return ce.graphqlURL
 }
 
 func (ce *CliEnv) Branch() string {
@@ -99,7 +107,8 @@ func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, erro
 			return nil, fmt.Errorf("failed to load session: %w", err)
 		}
 		ce.nhclient = nhostclient.New(
-			ce.domain,
+			ce.authURL,
+			ce.graphqlURL,
 			graphql.WithAccessToken(session.Session.AccessToken),
 		)
 	}
@@ -108,7 +117,7 @@ func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, erro
 
 func (ce *CliEnv) GetNhostPublicClient() (*nhostclient.Client, error) {
 	if ce.nhpublicclient == nil {
-		ce.nhpublicclient = nhostclient.New(ce.domain)
+		ce.nhpublicclient = nhostclient.New(ce.authURL, ce.graphqlURL)
 	}
 	return ce.nhpublicclient, nil
 }
