@@ -1,5 +1,4 @@
 
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -15,7 +14,7 @@ import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { ChangeEvent, ReactElement } from 'react';
+import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 
 export default function SelectOrganizationAndProject() {
@@ -50,7 +49,10 @@ export default function SelectOrganizationAndProject() {
     const { slug } = router.query;
     await router.push({
       pathname: `${project.value}/${
-        slug ? Array.isArray(slug) ? slug.join('/') : slug : ''
+        (() => {
+          if (!slug) return '';
+          return Array.isArray(slug) ? slug.join('/') : slug;
+        })()
       }`,
     });
   };
@@ -135,12 +137,4 @@ export default function SelectOrganizationAndProject() {
       </div>
     </Container>
   );
-
-return <div>Hello</div>;
 }
-
-SelectOrganizationAndProject.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <AuthenticatedLayout title="Select a Project">{page}</AuthenticatedLayout>
-  );
-};
