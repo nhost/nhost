@@ -1,5 +1,4 @@
 
-import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -73,8 +72,8 @@ export default function SelectOrganizationAndProject() {
   }
 
   return (
-    <Container>
-      <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
+    <div className="flex flex-col items-start w-full h-full px-5 py-4 mx-auto bg-background">
+      <div className="mx-auto flex h-full w-full max-w-[760px] flex-col gap-4 py-6 sm:py-14">
         <Text variant="h2" component="h1" className="">
           Select an Organization
         </Text>
@@ -133,6 +132,6 @@ export default function SelectOrganizationAndProject() {
           </RetryableErrorBoundary>
         </div>
       </div>
-    </Container>
+    </div>
   );
 }
