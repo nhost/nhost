@@ -10,7 +10,7 @@ import {
 } from '@apollo/client/core'
 import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
-import { getMainDefinition } from '@apollo/client/utilities'
+import { getMainDefinition, Observable } from '@apollo/client/utilities'
 import { AuthContext, NhostClient } from '@nhost/nhost-js'
 import { jwtDecode, JwtPayload } from 'jwt-decode'
 
@@ -178,6 +178,42 @@ export const createApolloClient = ({
 
   const links = []
 
+  // Middleware for validating and refreshing the token
+  const authMiddleware = new ApolloLink((operation, forward) => {
+    return new Observable((observer) => {
+      const processOperation = async () => {
+        try {
+          // Check if the token is valid or refresh if needed
+          await awaitValidTokenOrNull()
+
+          // Set the authorization header
+          const authHeaders = await getAuthHeaders();
+          operation.setContext(({ headers = {} }) => ({
+            headers: {
+              ...headers,
+              ...authHeaders
+            }
+          }));
+
+          // Proceed with the operation
+          const subscription = forward(operation).subscribe({
+            next: observer.next.bind(observer),
+            error: observer.error.bind(observer),
+            complete: observer.complete.bind(observer)
+          });
+
+          return () => subscription.unsubscribe();
+        } catch (error) {
+          observer.error(error);
+        }
+      };
+
+      processOperation();
+    });
+  });
+
+  links.push(authMiddleware)
+
   if (onError) {
     links.push(onError)
   }
@@ -185,6 +221,7 @@ export const createApolloClient = ({
   if (customLink) {
     links.push(customLink)
   }
+
 
   links.push(splitLink)
 
