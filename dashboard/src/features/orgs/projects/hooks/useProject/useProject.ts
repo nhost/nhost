@@ -1,10 +1,8 @@
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
-  GetProjectDocument,
-  useGetProjectQuery,
-  type GetProjectQuery,
-  type ProjectFragment,
+  GetProjectDocument, type GetProjectQuery,
+  type ProjectFragment
 } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus, useNhostClient } from '@nhost/nextjs';
 import { useQuery } from '@tanstack/react-query';
@@ -25,8 +23,7 @@ export interface UseProjectReturnType {
 }
 
 export default function useProject({
-  poll = false,
-  target = 'console-next',
+  poll = false
 }: UseProjectOptions = {}): UseProjectReturnType {
   const {
     query: { appSubdomain },
@@ -44,24 +41,12 @@ export default function useProject({
     !!appSubdomain &&
     isRouterReady;
 
-  // Fetch project data for 'console-next' target
-  const {
-    data: consoleData,
-    loading: consoleLoading,
-    error: consoleError,
-    refetch: refetchConsole,
-  } = useGetProjectQuery({
-    variables: { subdomain: appSubdomain as string },
-    skip: !shouldFetchProject && target === 'console-next',
-    fetchPolicy: 'cache-and-network',
-    pollInterval: poll ? 5000 * 2 : 0, // every 10s
-  });
-
   // Fetch project data for 'user-project' target using client.graphql
   const {
-    data: userProjectData,
-    isFetching: userProjectFetching,
-    refetch: refetchUserProject,
+    data,
+    isFetching,
+    refetch,
+    error
   } = useQuery(
     ['currentProject', appSubdomain],
     () =>
@@ -69,33 +54,19 @@ export default function useProject({
         subdomain: (appSubdomain as string) || '',
       }),
     {
+      enabled: shouldFetchProject,
       keepPreviousData: true,
-      enabled: shouldFetchProject && target === 'user-project',
-      staleTime: poll ? 5000 : Infinity, // Adjust staleTime for better performance
+      staleTime: poll ? 1000 * 10 : Infinity,
     },
   );
 
-  const project =
-    target === 'console-next'
-      ? consoleData?.apps?.[0] || null
-      : userProjectData?.data?.apps?.[0] || null;
-
-  const loading =
-    target === 'console-next'
-      ? consoleLoading || isAuthLoading
-      : userProjectFetching || isAuthLoading;
-  const error = consoleError
-    ? new Error(consoleError.message || 'Unknown error occurred.')
-    : null;
-
-  const refetch =
-    target === 'console-next' ? refetchConsole : refetchUserProject;
-
   if (isPlatform) {
     return {
-      project,
-      loading,
-      error,
+      project: data?.data?.apps?.[0] || null,
+      loading: isFetching,
+      error: Array.isArray(error || {})
+      ? error[0]
+      : error,
       refetch,
     };
   }
