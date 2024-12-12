@@ -59,29 +59,43 @@ export const createApolloClient = ({
 
   let accessToken: AuthContext['accessToken'] | null = null
 
-  const isJwtValid = () => {
+  const isJwtValidOrNUll = () => {
     if (!accessToken?.value) {
-      return false
+      return true // Allow if the access token is null
     }
 
     const marginInSeconds = 5
     const marginInMilliseconds = marginInSeconds * 1000
 
-    let decodedToken = jwtDecode(accessToken.value) as JwtPayload
+    const decodedToken = jwtDecode(accessToken.value) as JwtPayload
     return decodedToken.exp! * 1000 > Date.now() - marginInMilliseconds
   }
 
-  const refreshTokenIfNeeded = async () => {
-    if (!accessToken?.value || isJwtValid()) {
+  // this will make sure to wait for a valid or null access token
+  // before firing the request using the graphql codegen hooks
+  const checkAccessToken = async () => {
+    if (isJwtValidOrNUll()) {
       return
     }
 
-    await nhost?.auth.refreshSession()
+    const waitForValidToken = () =>
+      new Promise<void>((resolve) => {
+        setTimeout(async () => {
+          if (isJwtValidOrNUll()) {
+            resolve()
+          } else {
+            await waitForValidToken()
+            resolve()
+          }
+        }, 100)
+      })
+
+    await waitForValidToken()
   }
 
   const getAuthHeaders = async () => {
     // Ensure token is refreshed before adding headers
-    await refreshTokenIfNeeded()
+    await checkAccessToken()
 
     // add headers
     const resHeaders = {
