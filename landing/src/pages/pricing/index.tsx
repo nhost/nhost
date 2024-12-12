@@ -183,18 +183,18 @@ const PricingTabs = ({ onTabChange }: { onTabChange: (tab: string) => void }) =>
   };
 
   return (
-    <div className="flex justify-center w-full mb-12">
+    <div className="flex justify-center w-full mb-8 md:mb-12 px-4">
       <div
         role="tablist"
         aria-orientation="horizontal"
-        className="inline-flex items-center justify-center rounded-lg p-2 h-12 border dark:border-gray-700 md:w-auto"
+        className="inline-flex items-center justify-center rounded-lg p-2 h-12 border dark:border-gray-700 w-full max-w-md md:w-auto"
       >
         <button
           type="button"
           role="tab"
           aria-selected={activeTab === 'cloud'}
           onClick={() => handleTabChange('cloud')}
-          className={`inline-flex items-center justify-center rounded-md px-3 py-1 text-base font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 gap-x-2 ${
+          className={`inline-flex items-center justify-center rounded-md px-2 md:px-3 py-1 text-sm md:text-base font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 gap-x-2 flex-1 md:flex-initial ${
             activeTab === 'cloud'
               ? 'bg-gray-100 text-black shadow dark:bg-gray-800 dark:text-white'
               : 'hover:text-black dark:hover:text-white'
@@ -210,7 +210,7 @@ const PricingTabs = ({ onTabChange }: { onTabChange: (tab: string) => void }) =>
           role="tab"
           aria-selected={activeTab === 'self-hosted'}
           onClick={() => handleTabChange('self-hosted')}
-          className={`inline-flex items-center justify-center rounded-md px-3 py-1 text-base font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 gap-x-2 ${
+          className={`inline-flex items-center justify-center rounded-md px-2 md:px-3 py-1 text-sm md:text-base font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 gap-x-2 flex-1 md:flex-initial ${
             activeTab === 'self-hosted'
               ? 'bg-gray-100 text-black shadow dark:bg-gray-800 dark:text-white'
               : 'hover:text-black dark:hover:text-white'
@@ -238,7 +238,7 @@ export default function PricingPage() {
     <>
       <Container
         component="section"
-        className="relative flex max-w-5xl pt-20 pb-4 lg:pt-28 lg:pb-12"
+        className="relative flex max-w-5xl pt-12 pb-4 px-4 md:pt-20 lg:pt-28 lg:pb-12"
       >
         <LineGrid
           className="left-0 right-0 top-5 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-16 lg:h-40 lg:w-40"
@@ -261,13 +261,15 @@ export default function PricingPage() {
 
       <PricingTabs onTabChange={handleTabChange} />
 
-      <Container className={`grid w-full grid-flow-row justify-items-center gap-4 pb-8 ${
-        activeTab === 'cloud' ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1 lg:grid-cols-2 lg:max-w-4xl lg:justify-center'
+      <Container className={`grid w-full grid-flow-row justify-items-center gap-4 pb-8 px-4 ${
+        activeTab === 'cloud' 
+          ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' 
+          : 'grid-cols-1 lg:grid-cols-2 lg:max-w-4xl lg:justify-center'
       }`}>
         {activeTab === 'cloud' ? (
           <>
             {/* Starter plan  */}
-            <div className="mt-14 w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8">
+            <div className="mt-14 w-full max-w-[500px] space-y-6 md:space-y-8 self-start overflow-hidden rounded-md border border-divider p-4 md:p-8">
               <div className="flex flex-col space-y-4 ">
                 <div className="flex flex-col space-y-1 mb-3">
                   <div className="flex flex-row justify-between">
@@ -1525,14 +1527,14 @@ export default function PricingPage() {
         )}
       </Container>
 
-      <section className="col-span-3 mx-auto mt-4 grid max-w-5xl grid-flow-row gap-6">
+      <section className="col-span-3 mx-auto mt-4 grid max-w-5xl grid-flow-row gap-6 px-4">
         <SectionHeading
           title="Compute Pricing"
           subtitle="Billed by the minute"
         />
 
-        <div className="flex justify-center gap-8">
-          <div className="bg-background flex flex-col items-center justify-start gap-4 rounded-lg border border-black border-opacity-5 pb-16 w-[300px]">
+        <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-8">
+          <div className="bg-background flex flex-col items-center justify-start gap-4 rounded-lg border border-black border-opacity-5 pb-8 md:pb-16 w-full md:w-[300px]">
             <h3 className="text-xl font-semibold mt-4">Dedicated</h3>
             <div className="flex flex-col items-center justify-center gap-2">
               <div className="inline-flex items-center justify-center gap-[4px] p-[0px]">
@@ -1582,7 +1584,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="col-span-3 mx-auto mt-4 grid max-w-5xl grid-flow-row gap-16 p-8">
+      <section className="col-span-3 mx-auto mt-4 grid max-w-5xl grid-flow-row gap-8 md:gap-16 p-4 md:p-8">
         <SectionHeading
           title="FAQ"
           subtitle={
