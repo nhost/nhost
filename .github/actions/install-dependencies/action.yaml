@@ -14,7 +14,7 @@ runs:
   steps:
     - uses: pnpm/action-setup@v4
       with:
-        version: 8.10.5
+        version: 9.15.0
         run_install: false
     - name: Get pnpm cache directory
       id: pnpm-cache-dir
@@ -26,10 +26,10 @@ runs:
         path: ${{ steps.pnpm-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: ${{ runner.os }}-node-
-    - name: Use Node.js v18
+    - name: Use Node.js v20
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
     - shell: bash
       name: Install packages
       run: pnpm install --frozen-lockfile
