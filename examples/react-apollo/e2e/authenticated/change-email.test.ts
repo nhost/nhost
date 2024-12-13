@@ -18,20 +18,15 @@ test('should be able to change email', async ({ page, browser }) => {
 
   await newPage.getByPlaceholder(/new email/i).fill(newEmail)
 
-  // await newPage.locator('h1:has-text("Change email") + div button:has-text("Change")').click()
   await newPage
     .locator('div')
     .filter({ hasText: /^Change emailChange$/ })
     .getByRole('button')
     .click()
 
-  // await expect(
-  //   newPage.getByText(/please check your inbox and follow the link to confirm the email change./i)
-  // ).toBeVisible()
-
-  await expect(newPage.getByRole('status')).toContainText(
-    'Please check your inbox and follow the link to confirm the email change.'
-  )
+  await expect(
+    newPage.getByText('Please check your inbox and follow the link to confirm the email change.')
+  ).toBeVisible()
 
   await newPage.getByRole('link', { name: /sign out/i }).click()
 
@@ -45,7 +40,6 @@ test('should be able to change email', async ({ page, browser }) => {
     requestType: 'email-confirm-change'
   })
 
-  // await expect(updatedEmailPage.getByText(/profile page/i)).toBeVisible()
   await expect(updatedEmailPage.getByRole('heading', { name: /profile/i })).toBeVisible()
 })
 
