@@ -1685,8 +1685,8 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0
       pnpm:
-        specifier: ^7.33.7
-        version: 7.33.7
+        specifier: ^9.15.0
+        version: 9.15.0
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
@@ -14444,9 +14444,9 @@ packages:
     resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
     engines: {node: '>=14.19.0'}
 
-  pnpm@7.33.7:
-    resolution: {integrity: sha512-ev4kEGQrOcaY30baTOXHIxpczjYGmNafjPj0IlfUCz5D8jEFOwe43oSf1P+/SnH/V7g1E3d3o1I4jz09p0cgDg==}
-    engines: {node: '>=14.6'}
+  pnpm@9.15.0:
+    resolution: {integrity: sha512-duI3l2CkMo7EQVgVvNZije5yevN3mqpMkU45RBVsQpmSGon5djge4QfUHxLPpLZmgcqccY8GaPoIMe1MbYulbA==}
+    engines: {node: '>=18.12'}
     hasBin: true
 
   polished@4.3.1:
@@ -36011,7 +36011,7 @@ snapshots:
 
   pngjs@7.0.0: {}
 
-  pnpm@7.33.7: {}
+  pnpm@9.15.0: {}
 
   polished@4.3.1:
     dependencies:
