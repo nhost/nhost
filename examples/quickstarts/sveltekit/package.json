@@ -13,7 +13,7 @@
     "lint": "eslint ."
   },
   "devDependencies": {
-    "@nhost/nhost-js": "^3.1.5",
+    "@nhost/nhost-js": "^3.2.1",
     "@playwright/test": "^1.41.0",
     "@sveltejs/adapter-auto": "^2.1.1",
     "@sveltejs/kit": "^1.30.4",
