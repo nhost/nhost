@@ -11,6 +11,11 @@
       "outputs": ["dist/**"],
       "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
     },
+    "@nhost-examples/sveltekit#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".svelte-kit/**", ".vercel/**"],
+      "env": ["PUBLIC_NHOST_SUBDOMAIN", "PUBLIC_NHOST_REGION"]
+    },
     "@nhost-examples/vue-apollo#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],

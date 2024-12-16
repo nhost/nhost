@@ -20,7 +20,8 @@
     "build:dashboard": "turbo run build --filter=@nhost/dashboard",
     "build:docs": "turbo run build --filter=@nhost/docs",
     "build:all": "turbo run build --include-dependencies",
-    "build:nextjs-server-components": "turbo run build --filter=@nhost-examples/nextjs-server-components",
+    "build:@nhost-examples/nextjs-server-components": "turbo run build --filter=@nhost-examples/nextjs-server-components",
+    "build:@nhost-examples/sveltekit": "turbo run build --filter=@nhost-examples/sveltekit",
     "dev": "turbo run dev --filter=!@nhost/dashboard --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples/**,templates/**}/*,docs,dashboard}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{dist,umd,.next,.turbo,coverage}",
@@ -91,10 +92,9 @@
   "resolutions": {
     "graphql": "16.8.1"
   },
-  "packageManager": "pnpm@8.10.5",
+  "packageManager": "pnpm@9.15.0",
   "engines": {
-    "node": ">=18 <19",
-    "pnpm": ">=8.0.0"
+    "node": ">=20"
   },
   "eslintConfig": {
     "extends": "./config/.eslintrc.js"
