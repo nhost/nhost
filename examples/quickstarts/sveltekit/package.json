@@ -16,6 +16,7 @@
     "@playwright/test": "^1.41.0",
     "@sveltejs/adapter-auto": "^2.1.1",
     "@sveltejs/kit": "^2.11.1",
+    "@sveltejs/vite-plugin-svelte": "^5.0.2",
     "@types/js-cookie": "^3.0.6",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
