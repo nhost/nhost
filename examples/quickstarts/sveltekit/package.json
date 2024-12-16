@@ -13,7 +13,6 @@
     "lint": "eslint ."
   },
   "devDependencies": {
-    "@nhost/nhost-js": "^3.2.1",
     "@playwright/test": "^1.41.0",
     "@sveltejs/adapter-auto": "^2.1.1",
     "@sveltejs/kit": "^1.30.4",
@@ -34,6 +33,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@nhost/nhost-js": "workspace:^",
     "graphql": "16.8.1",
     "graphql-tag": "^2.12.6",
     "js-cookie": "^3.0.5",
