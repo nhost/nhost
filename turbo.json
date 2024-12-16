@@ -1,6 +1,7 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "tasks": {
+  "baseBranch": "origin/main",
+  "pipeline": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "umd/**", "build/**", ".next/**"]
@@ -13,7 +14,7 @@
     "@nhost-examples/sveltekit#build": {
       "dependsOn": ["^build"],
       "outputs": [".svelte-kit/**", ".vercel/**"],
-      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
+      "env": ["PUBLIC_NHOST_SUBDOMAIN", "PUBLIC_NHOST_REGION"]
     },
     "@nhost-examples/vue-apollo#build": {
       "dependsOn": ["^build"],
