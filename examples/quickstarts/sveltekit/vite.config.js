@@ -16,6 +16,7 @@ export default defineConfig({
     port: 3000
   },
   resolve: {
-    preserveSymlinks: true
+    preserveSymlinks: true,
+    dedupe: ['esm-env']
   }
 })
