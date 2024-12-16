@@ -9,6 +9,9 @@ export default defineConfig({
     include: ['@nhost/nhost-js']
   },
   build: {
+    rollupOptions: {
+      external: ['esm-env']
+    },
     commonjsOptions: {
       include: [path.resolve(__dirname, '../../../packages/nhost-js'), /node_modules/] // Resolve monorepo package
     }
@@ -17,6 +20,6 @@ export default defineConfig({
     port: 3000
   },
   resolve: {
-    preserveSymlinks: true // Optional, for monorepo symlink resolution
+    preserveSymlinks: true
   }
 })
