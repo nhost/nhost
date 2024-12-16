@@ -4,14 +4,10 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [sveltekit()],
-
   optimizeDeps: {
     include: ['@nhost/nhost-js']
   },
   build: {
-    rollupOptions: {
-      external: ['esm-env']
-    },
     commonjsOptions: {
       include: [path.resolve(__dirname, '../../../packages/nhost-js'), /node_modules/]
     }
