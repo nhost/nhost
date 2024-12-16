@@ -13,7 +13,7 @@ export default defineConfig({
       external: ['esm-env']
     },
     commonjsOptions: {
-      include: [path.resolve(__dirname, '../../../packages/nhost-js'), /node_modules/] // Resolve monorepo package
+      include: [path.resolve(__dirname, '../../../packages/nhost-js'), /node_modules/]
     }
   },
   server: {
