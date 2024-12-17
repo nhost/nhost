@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 2.11.1
+
+### Patch Changes
+
+- 0f6ce52: fix: consolidate useProject hook and fix jwt expired error
+
 ## 2.11.0
 
 ### Minor Changes
