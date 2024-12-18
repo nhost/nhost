@@ -1,4 +1,4 @@
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useProjectWithState } from '@/features/orgs/projects/hooks/useProjectWithState';
 import { ApplicationStatus } from '@/types/application';
 
 /**
@@ -9,7 +9,7 @@ export default function useAppState(): {
   state: ApplicationStatus;
   message?: string;
 } {
-  const { project } = useProject({ poll: true });
+  const { project } = useProjectWithState();
   const noApplication = !project;
 
   if (noApplication) {

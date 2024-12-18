@@ -1,7 +1,7 @@
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
-  GetProjectDocument,
+  GetProjectStateDocument,
   type GetProjectQuery,
   type ProjectFragment,
 } from '@/utils/__generated__/graphql';
@@ -12,14 +12,14 @@ import { useMemo } from 'react';
 
 type Project = GetProjectQuery['apps'][0];
 
-export interface UseProjectReturnType {
+export interface UseProjectWithStateReturnType {
   project: Project;
   loading?: boolean;
   error?: Error;
   refetch: (variables?: any) => Promise<any>;
 }
 
-export default function useProject(): UseProjectReturnType {
+export default function useProjectWithState(): UseProjectWithStateReturnType {
   const {
     query: { appSubdomain },
     isReady: isRouterReady,
@@ -44,13 +44,18 @@ export default function useProject(): UseProjectReturnType {
     async () => {
       const response = await client.graphql.request<{
         apps: ProjectFragment[];
-      }>(GetProjectDocument, {
+      }>(GetProjectStateDocument, {
         subdomain: (appSubdomain as string) || '',
       });
       return response;
     },
     {
       enabled: shouldFetchProject,
+      keepPreviousData: true,
+      refetchOnWindowFocus: true,
+      refetchInterval: 10000, // poll every 10s
+      staleTime: 1000 * 60 * 5, // 1 minutes
+      cacheTime: 1000 * 60 * 6, //
     },
   );
 

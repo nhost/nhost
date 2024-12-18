@@ -12,7 +12,7 @@ import { ApplicationUnknown } from '@/features/orgs/projects/common/components/A
 import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useProjectWithState } from '@/features/orgs/projects/hooks/useProjectWithState';
 import { ApplicationStatus } from '@/types/application';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
@@ -37,7 +37,7 @@ function ProjectLayoutContent({
 
   const { state } = useAppState();
   const isPlatform = useIsPlatform();
-  const { project, loading, error } = useProject({ poll: true });
+  const { project, loading, error } = useProjectWithState();
 
   const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
 
