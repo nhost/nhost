@@ -26,7 +26,7 @@ export default function useGetAppUsers({
   offset = 0,
   options = {},
 }: UseFilesOptions) {
-  const { project } = useProject({ target: 'user-project' });
+  const { project } = useProject();
   const userApplicationClient = useRemoteApplicationGQLClient();
   const { data, error, loading } = useRemoteAppGetUsersCustomQuery({
     ...options,

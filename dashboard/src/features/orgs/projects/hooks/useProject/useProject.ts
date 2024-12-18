@@ -1,18 +1,19 @@
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
-  GetProjectDocument, type GetProjectQuery,
-  type ProjectFragment
+  GetProjectDocument,
+  type GetProjectQuery,
+  type ProjectFragment,
 } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus, useNhostClient } from '@nhost/nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useMemo } from 'react';
 
 type Project = GetProjectQuery['apps'][0];
 
 interface UseProjectOptions {
   poll?: boolean;
-  target?: 'console-next' | 'user-project';
 }
 
 export interface UseProjectReturnType {
@@ -23,7 +24,7 @@ export interface UseProjectReturnType {
 }
 
 export default function useProject({
-  poll = false
+  poll = false,
 }: UseProjectOptions = {}): UseProjectReturnType {
   const {
     query: { appSubdomain },
@@ -34,39 +35,41 @@ export default function useProject({
   const { isAuthenticated, isLoading: isAuthLoading } =
     useAuthenticationStatus();
 
-  const shouldFetchProject =
-    isPlatform &&
-    isAuthenticated &&
-    !isAuthLoading &&
-    !!appSubdomain &&
-    isRouterReady;
-
-  // Fetch project data for 'user-project' target using client.graphql
-  const {
-    data,
-    isFetching,
-    refetch,
-    error
-  } = useQuery(
-    ['currentProject', appSubdomain],
+  const shouldFetchProject = useMemo(
     () =>
-      client.graphql.request<{ apps: ProjectFragment[] }>(GetProjectDocument, {
+      isPlatform &&
+      isAuthenticated &&
+      !isAuthLoading &&
+      !!appSubdomain &&
+      isRouterReady,
+    [isPlatform, isAuthenticated, isAuthLoading, appSubdomain, isRouterReady],
+  );
+
+  const { data, isLoading, refetch, error } = useQuery(
+    ['currentProject', appSubdomain as string],
+    async () => {
+      const response = await client.graphql.request<{
+        apps: ProjectFragment[];
+      }>(GetProjectDocument, {
         subdomain: (appSubdomain as string) || '',
-      }),
+      });
+      return response;
+    },
     {
       enabled: shouldFetchProject,
       keepPreviousData: true,
-      staleTime: poll ? 1000 * 10 : Infinity,
+      refetchInterval: poll ? 10000 : false,
+      refetchOnWindowFocus: true,
+      staleTime: 1000 * 60 * 5, // 1 minutes
+      cacheTime: 1000 * 60 * 6, //
     },
   );
 
   if (isPlatform) {
     return {
       project: data?.data?.apps?.[0] || null,
-      loading: isFetching,
-      error: Array.isArray(error || {})
-      ? error[0]
-      : error,
+      loading: isLoading && shouldFetchProject,
+      error: Array.isArray(error || {}) ? error[0] : error,
       refetch,
     };
   }
