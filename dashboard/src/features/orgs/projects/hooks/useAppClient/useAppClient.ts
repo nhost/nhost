@@ -24,7 +24,7 @@ export default function useAppClient(
   options?: UseAppClientOptions,
 ): UseAppClientReturn {
   const isPlatform = useIsPlatform();
-  const { project } = useProject({ target: 'user-project' });
+  const { project } = useProject();
 
   if (!isPlatform) {
     return new NhostClient({

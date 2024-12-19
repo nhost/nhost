@@ -12,9 +12,9 @@ import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { FileUploadButtonProps } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
 import { FileUploadButton } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
+import type { Files } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
-import type { Files } from '@/utils/__generated__/graphql';
 import type { PropsWithoutRef } from 'react';
 import { useState } from 'react';
 import type { Row } from 'react-table';
@@ -38,7 +38,7 @@ export default function FilesDataGridControls({
   ...props
 }: FilesDataGridControlsProps) {
   const { openAlertDialog } = useDialog();
-  const { project } = useProject({ target: 'user-project' });
+  const { project } = useProject();
   const appClient = useAppClient();
   const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -160,7 +160,7 @@ export default function FilesDataGridControls({
           </Button>
         </div>
       ) : (
-        <div className="grid w-full grid-cols-12 gap-2 mx-auto">
+        <div className="mx-auto grid w-full grid-cols-12 gap-2">
           <Input
             className={twMerge(
               'col-span-12 xs+:col-span-12 md:col-span-9 xl:col-span-10',
@@ -170,7 +170,7 @@ export default function FilesDataGridControls({
             {...restFilterProps}
           />
 
-          <div className="grid grid-flow-col col-span-12 gap-2 md:col-span-3 xl:col-span-2">
+          <div className="col-span-12 grid grid-flow-col gap-2 md:col-span-3 xl:col-span-2">
             <DataGridPagination
               className={twMerge('col-span-6', paginationClassName)}
               {...restPaginationProps}

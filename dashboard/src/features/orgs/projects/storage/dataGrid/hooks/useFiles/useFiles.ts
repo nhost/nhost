@@ -1,11 +1,11 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
 } from '@/utils/__generated__/graphql';
 import { useGetFilesQuery } from '@/utils/__generated__/graphql';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryHookOptions } from '@apollo/client';
 
 export type UseFilesOptions = {
@@ -38,7 +38,7 @@ export default function useFiles({
   orderBy,
   options = {},
 }: UseFilesOptions) {
-  const { project } = useProject({ target: 'user-project' });
+  const { project } = useProject();
   const { data, previousData, ...rest } = useGetFilesQuery({
     variables: {
       where: searchString

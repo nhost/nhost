@@ -166,7 +166,7 @@ export default function DataGridPreviewCell<TData extends object>({
   value: { fetchBlob, id, mimeType, alt, blob },
   fallbackPreview = null,
 }: DataGridPreviewCellProps<TData>) {
-  const { project } = useProject({ target: 'user-project' });
+  const { project } = useProject();
   const appClient = useAppClient();
   const { objectUrl, loading, error } = useBlob({ fetchBlob, blob, mimeType });
   const [showModal, setShowModal] = useState(false);
