@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "2.11.1",
+  "version": "2.11.2",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
