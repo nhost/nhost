@@ -5732,7 +5732,6 @@ export type AuthRefreshTokens = {
   id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   type: AuthRefreshTokenTypes_Enum;
   /** An object relationship */
   user: Users;
@@ -5807,7 +5806,6 @@ export type AuthRefreshTokens_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
-  refresh_token?: InputMaybe<Uuid_Comparison_Exp>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -5841,7 +5839,6 @@ export type AuthRefreshTokens_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -5854,7 +5851,6 @@ export type AuthRefreshTokens_Max_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -5864,7 +5860,6 @@ export type AuthRefreshTokens_Max_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -5875,7 +5870,6 @@ export type AuthRefreshTokens_Min_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -5885,7 +5879,6 @@ export type AuthRefreshTokens_Min_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -5912,7 +5905,6 @@ export type AuthRefreshTokens_Order_By = {
   id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -5941,8 +5933,6 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
   /** column name */
-  RefreshToken = 'refresh_token',
-  /** column name */
   Type = 'type',
   /** column name */
   UserId = 'userId'
@@ -5955,7 +5945,6 @@ export type AuthRefreshTokens_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -5975,7 +5964,6 @@ export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -5992,8 +5980,6 @@ export enum AuthRefreshTokens_Update_Column {
   Metadata = 'metadata',
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
-  /** column name */
-  RefreshToken = 'refresh_token',
   /** column name */
   Type = 'type',
   /** column name */
@@ -8308,10 +8294,6 @@ export enum Billing_Reports_Constraint {
   /** unique or primary key constraint on columns "id" */
   ReportsPkey = 'reports_pkey'
 }
-
-export type Billing_Reports_Delete_Older_Than_Days_Args = {
-  days?: InputMaybe<Scalars['Int']>;
-};
 
 /** input type for incrementing numeric columns in table "billing.reports" */
 export type Billing_Reports_Inc_Input = {
@@ -11879,11 +11861,18 @@ export type Files = {
   etag?: Maybe<Scalars['String']>;
   id: Scalars['uuid'];
   isUploaded?: Maybe<Scalars['Boolean']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   mimeType?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   size?: Maybe<Scalars['Int']>;
   updatedAt: Scalars['timestamptz'];
   uploadedByUserId?: Maybe<Scalars['uuid']>;
+};
+
+
+/** columns and relationships of "storage.files" */
+export type FilesMetadataArgs = {
+  path?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregated selection of "storage.files" */
@@ -11958,6 +11947,11 @@ export type Files_Aggregate_Order_By = {
   variance?: InputMaybe<Files_Variance_Order_By>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Files_Append_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** input type for inserting array relation for remote table "storage.files" */
 export type Files_Arr_Rel_Insert_Input = {
   data: Array<Files_Insert_Input>;
@@ -11987,6 +11981,7 @@ export type Files_Bool_Exp = {
   etag?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isUploaded?: InputMaybe<Boolean_Comparison_Exp>;
+  metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   mimeType?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   size?: InputMaybe<Int_Comparison_Exp>;
@@ -11999,6 +11994,21 @@ export enum Files_Constraint {
   /** unique or primary key constraint on columns "id" */
   FilesPkey = 'files_pkey'
 }
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Files_Delete_At_Path_Input = {
+  metadata?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Files_Delete_Elem_Input = {
+  metadata?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Files_Delete_Key_Input = {
+  metadata?: InputMaybe<Scalars['String']>;
+};
 
 /** input type for incrementing numeric columns in table "storage.files" */
 export type Files_Inc_Input = {
@@ -12013,6 +12023,7 @@ export type Files_Insert_Input = {
   etag?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isUploaded?: InputMaybe<Scalars['Boolean']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
   mimeType?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   size?: InputMaybe<Scalars['Int']>;
@@ -12083,6 +12094,13 @@ export type Files_Mutation_Response = {
   returning: Array<Files>;
 };
 
+/** input type for inserting object relation for remote table "storage.files" */
+export type Files_Obj_Rel_Insert_Input = {
+  data: Files_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Files_On_Conflict>;
+};
+
 /** on_conflict condition type for table "storage.files" */
 export type Files_On_Conflict = {
   constraint: Files_Constraint;
@@ -12098,6 +12116,7 @@ export type Files_Order_By = {
   etag?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isUploaded?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   mimeType?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
@@ -12108,6 +12127,11 @@ export type Files_Order_By = {
 /** primary key columns input for table: storage.files */
 export type Files_Pk_Columns_Input = {
   id: Scalars['uuid'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Files_Prepend_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
 };
 
 /** select columns of table "storage.files" */
@@ -12122,6 +12146,8 @@ export enum Files_Select_Column {
   Id = 'id',
   /** column name */
   IsUploaded = 'isUploaded',
+  /** column name */
+  Metadata = 'metadata',
   /** column name */
   MimeType = 'mimeType',
   /** column name */
@@ -12153,6 +12179,7 @@ export type Files_Set_Input = {
   etag?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isUploaded?: InputMaybe<Scalars['Boolean']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
   mimeType?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   size?: InputMaybe<Scalars['Int']>;
@@ -12208,6 +12235,7 @@ export type Files_Stream_Cursor_Value_Input = {
   etag?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isUploaded?: InputMaybe<Scalars['Boolean']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
   mimeType?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   size?: InputMaybe<Scalars['Int']>;
@@ -12239,6 +12267,8 @@ export enum Files_Update_Column {
   /** column name */
   IsUploaded = 'isUploaded',
   /** column name */
+  Metadata = 'metadata',
+  /** column name */
   MimeType = 'mimeType',
   /** column name */
   Name = 'name',
@@ -12251,8 +12281,18 @@ export enum Files_Update_Column {
 }
 
 export type Files_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<Files_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<Files_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<Files_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<Files_Delete_Key_Input>;
   /** increments the numeric columns with given value of the filtered values */
   _inc?: InputMaybe<Files_Inc_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<Files_Prepend_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<Files_Set_Input>;
   /** filter the rows which have to be updated */
@@ -13123,6 +13163,7 @@ export type Mutation_Root = {
   billingDeleteOrganization: Scalars['Boolean'];
   billingFinishSubscription: Scalars['Boolean'];
   billingFixSubscriptionItems: Scalars['Boolean'];
+  billingFixSubscriptions: Scalars['Boolean'];
   billingFullReportWorkflow: Scalars['Boolean'];
   billingMigrateProjectToOrganization: Scalars['Boolean'];
   billingPostOrganizationRequest: PostOrganizationRequestResponse;
@@ -13134,8 +13175,6 @@ export type Mutation_Root = {
   billingUpdatePersistentVolume: Scalars['Boolean'];
   billingUpdateReports: Scalars['Boolean'];
   billingUploadReports: Scalars['Boolean'];
-  /** execute VOLATILE function "billing.reports_delete_older_than_days" which returns "billing.reports" */
-  billing_reports_delete_older_than_days: Array<Billing_Reports>;
   changeDatabaseVersion: Scalars['Boolean'];
   /** delete single row from the table: "announcements_read" */
   deleteAnnouncementRead?: Maybe<Announcements_Read>;
@@ -13288,6 +13327,10 @@ export type Mutation_Root = {
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
   deleteUsers?: Maybe<Users_Mutation_Response>;
+  /** delete single row from the table: "storage.virus" */
+  deleteVirus?: Maybe<Virus>;
+  /** delete data from the table: "storage.virus" */
+  deleteViruses?: Maybe<Virus_Mutation_Response>;
   /** delete single row from the table: "workspaces" */
   deleteWorkspace?: Maybe<Workspaces>;
   /** delete single row from the table: "workspace_members" */
@@ -13352,7 +13395,6 @@ export type Mutation_Root = {
   delete_regions?: Maybe<Regions_Mutation_Response>;
   /** delete single row from the table: "regions" */
   delete_regions_by_pk?: Maybe<Regions>;
-  encryptPersistentVolumes: Scalars['Boolean'];
   /** insert a single row into the table: "announcements_read" */
   insertAnnouncementRead?: Maybe<Announcements_Read>;
   /** insert data into the table: "announcements_read" */
@@ -13504,6 +13546,10 @@ export type Mutation_Root = {
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
   insertUsers?: Maybe<Users_Mutation_Response>;
+  /** insert a single row into the table: "storage.virus" */
+  insertVirus?: Maybe<Virus>;
+  /** insert data into the table: "storage.virus" */
+  insertViruses?: Maybe<Virus_Mutation_Response>;
   /** insert a single row into the table: "workspaces" */
   insertWorkspace?: Maybe<Workspaces>;
   /** insert a single row into the table: "workspace_members" */
@@ -13753,6 +13799,10 @@ export type Mutation_Root = {
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
   updateUsers?: Maybe<Users_Mutation_Response>;
+  /** update single row of the table: "storage.virus" */
+  updateVirus?: Maybe<Virus>;
+  /** update data of the table: "storage.virus" */
+  updateViruses?: Maybe<Virus_Mutation_Response>;
   /** update single row of the table: "workspaces" */
   updateWorkspace?: Maybe<Workspaces>;
   /** update single row of the table: "workspace_members" */
@@ -13897,6 +13947,8 @@ export type Mutation_Root = {
   update_run_service_many?: Maybe<Array<Maybe<Run_Service_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
+  /** update multiples rows of table: "storage.virus" */
+  update_virus_many?: Maybe<Array<Maybe<Virus_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_member_invites" */
   update_workspaceMemberInvites_many?: Maybe<Array<Maybe<WorkspaceMemberInvites_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_members" */
@@ -14000,17 +14052,6 @@ export type Mutation_RootBillingUpdatePersistentVolumeArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
   organizationID?: InputMaybe<Scalars['uuid']>;
-};
-
-
-/** mutation root */
-export type Mutation_RootBilling_Reports_Delete_Older_Than_DaysArgs = {
-  args: Billing_Reports_Delete_Older_Than_Days_Args;
-  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
 
@@ -14487,6 +14528,18 @@ export type Mutation_RootDeleteUsersArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeleteVirusArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteVirusesArgs = {
+  where: Virus_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootDeleteWorkspaceArgs = {
   id: Scalars['uuid'];
 };
@@ -14675,12 +14728,6 @@ export type Mutation_RootDelete_RegionsArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Regions_By_PkArgs = {
   id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootEncryptPersistentVolumesArgs = {
-  appID: Scalars['uuid'];
 };
 
 
@@ -15223,6 +15270,20 @@ export type Mutation_RootInsertUserArgs = {
 export type Mutation_RootInsertUsersArgs = {
   objects: Array<Users_Insert_Input>;
   on_conflict?: InputMaybe<Users_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertVirusArgs = {
+  object: Virus_Insert_Input;
+  on_conflict?: InputMaybe<Virus_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertVirusesArgs = {
+  objects: Array<Virus_Insert_Input>;
+  on_conflict?: InputMaybe<Virus_On_Conflict>;
 };
 
 
@@ -15898,7 +15959,12 @@ export type Mutation_RootUpdateFeatureFlagsArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateFileArgs = {
+  _append?: InputMaybe<Files_Append_Input>;
+  _delete_at_path?: InputMaybe<Files_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Files_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Files_Delete_Key_Input>;
   _inc?: InputMaybe<Files_Inc_Input>;
+  _prepend?: InputMaybe<Files_Prepend_Input>;
   _set?: InputMaybe<Files_Set_Input>;
   pk_columns: Files_Pk_Columns_Input;
 };
@@ -15906,7 +15972,12 @@ export type Mutation_RootUpdateFileArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateFilesArgs = {
+  _append?: InputMaybe<Files_Append_Input>;
+  _delete_at_path?: InputMaybe<Files_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Files_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Files_Delete_Key_Input>;
   _inc?: InputMaybe<Files_Inc_Input>;
+  _prepend?: InputMaybe<Files_Prepend_Input>;
   _set?: InputMaybe<Files_Set_Input>;
   where: Files_Bool_Exp;
 };
@@ -16209,6 +16280,30 @@ export type Mutation_RootUpdateUsersArgs = {
   _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateVirusArgs = {
+  _append?: InputMaybe<Virus_Append_Input>;
+  _delete_at_path?: InputMaybe<Virus_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Virus_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Virus_Delete_Key_Input>;
+  _prepend?: InputMaybe<Virus_Prepend_Input>;
+  _set?: InputMaybe<Virus_Set_Input>;
+  pk_columns: Virus_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateVirusesArgs = {
+  _append?: InputMaybe<Virus_Append_Input>;
+  _delete_at_path?: InputMaybe<Virus_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Virus_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Virus_Delete_Key_Input>;
+  _prepend?: InputMaybe<Virus_Prepend_Input>;
+  _set?: InputMaybe<Virus_Set_Input>;
+  where: Virus_Bool_Exp;
 };
 
 
@@ -16679,6 +16774,12 @@ export type Mutation_RootUpdate_Run_Service_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Virus_ManyArgs = {
+  updates: Array<Virus_Updates>;
 };
 
 
@@ -19850,6 +19951,12 @@ export type Query_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
+  /** fetch data from the table: "storage.virus" using primary key columns */
+  virus?: Maybe<Virus>;
+  /** fetch data from the table: "storage.virus" */
+  viruses: Array<Virus>;
+  /** fetch aggregated fields from the table: "storage.virus" */
+  virusesAggregate: Virus_Aggregate;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
   /** fetch data from the table: "workspace_members" using primary key columns */
@@ -21201,6 +21308,29 @@ export type Query_RootUsersAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Users_Order_By>>;
   where?: InputMaybe<Users_Bool_Exp>;
+};
+
+
+export type Query_RootVirusArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootVirusesArgs = {
+  distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Virus_Order_By>>;
+  where?: InputMaybe<Virus_Bool_Exp>;
+};
+
+
+export type Query_RootVirusesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Virus_Order_By>>;
+  where?: InputMaybe<Virus_Bool_Exp>;
 };
 
 
@@ -22725,7 +22855,7 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
-  /** Graphite */
+  /** Nhost AI service */
   Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
@@ -23436,6 +23566,14 @@ export type Subscription_Root = {
   usersAggregate: Users_Aggregate;
   /** fetch data from the table in a streaming manner: "auth.users" */
   users_stream: Array<Users>;
+  /** fetch data from the table: "storage.virus" using primary key columns */
+  virus?: Maybe<Virus>;
+  /** fetch data from the table in a streaming manner: "storage.virus" */
+  virus_stream: Array<Virus>;
+  /** fetch data from the table: "storage.virus" */
+  viruses: Array<Virus>;
+  /** fetch aggregated fields from the table: "storage.virus" */
+  virusesAggregate: Virus_Aggregate;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
   /** fetch data from the table: "workspace_members" using primary key columns */
@@ -24971,6 +25109,36 @@ export type Subscription_RootUsers_StreamArgs = {
 };
 
 
+export type Subscription_RootVirusArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootVirus_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Virus_Stream_Cursor_Input>>;
+  where?: InputMaybe<Virus_Bool_Exp>;
+};
+
+
+export type Subscription_RootVirusesArgs = {
+  distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Virus_Order_By>>;
+  where?: InputMaybe<Virus_Bool_Exp>;
+};
+
+
+export type Subscription_RootVirusesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Virus_Order_By>>;
+  where?: InputMaybe<Virus_Bool_Exp>;
+};
+
+
 export type Subscription_RootWorkspaceArgs = {
   id: Scalars['uuid'];
 };
@@ -26081,6 +26249,244 @@ export type Uuid_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['uuid']>;
   _neq?: InputMaybe<Scalars['uuid']>;
   _nin?: InputMaybe<Array<Scalars['uuid']>>;
+};
+
+/** columns and relationships of "storage.virus" */
+export type Virus = {
+  __typename?: 'virus';
+  createdAt: Scalars['timestamptz'];
+  /** An object relationship */
+  file: Files;
+  fileId: Scalars['uuid'];
+  filename: Scalars['String'];
+  id: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+  userSession: Scalars['jsonb'];
+  virus: Scalars['String'];
+};
+
+
+/** columns and relationships of "storage.virus" */
+export type VirusUserSessionArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregated selection of "storage.virus" */
+export type Virus_Aggregate = {
+  __typename?: 'virus_aggregate';
+  aggregate?: Maybe<Virus_Aggregate_Fields>;
+  nodes: Array<Virus>;
+};
+
+/** aggregate fields of "storage.virus" */
+export type Virus_Aggregate_Fields = {
+  __typename?: 'virus_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Virus_Max_Fields>;
+  min?: Maybe<Virus_Min_Fields>;
+};
+
+
+/** aggregate fields of "storage.virus" */
+export type Virus_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Virus_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Virus_Append_Input = {
+  userSession?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** Boolean expression to filter rows from the table "storage.virus". All fields are combined with a logical 'AND'. */
+export type Virus_Bool_Exp = {
+  _and?: InputMaybe<Array<Virus_Bool_Exp>>;
+  _not?: InputMaybe<Virus_Bool_Exp>;
+  _or?: InputMaybe<Array<Virus_Bool_Exp>>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  file?: InputMaybe<Files_Bool_Exp>;
+  fileId?: InputMaybe<Uuid_Comparison_Exp>;
+  filename?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  userSession?: InputMaybe<Jsonb_Comparison_Exp>;
+  virus?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "storage.virus" */
+export enum Virus_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  VirusPkey = 'virus_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Virus_Delete_At_Path_Input = {
+  userSession?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Virus_Delete_Elem_Input = {
+  userSession?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Virus_Delete_Key_Input = {
+  userSession?: InputMaybe<Scalars['String']>;
+};
+
+/** input type for inserting data into table "storage.virus" */
+export type Virus_Insert_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  file?: InputMaybe<Files_Obj_Rel_Insert_Input>;
+  fileId?: InputMaybe<Scalars['uuid']>;
+  filename?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userSession?: InputMaybe<Scalars['jsonb']>;
+  virus?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Virus_Max_Fields = {
+  __typename?: 'virus_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  fileId?: Maybe<Scalars['uuid']>;
+  filename?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  virus?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Virus_Min_Fields = {
+  __typename?: 'virus_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  fileId?: Maybe<Scalars['uuid']>;
+  filename?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  virus?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "storage.virus" */
+export type Virus_Mutation_Response = {
+  __typename?: 'virus_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Virus>;
+};
+
+/** on_conflict condition type for table "storage.virus" */
+export type Virus_On_Conflict = {
+  constraint: Virus_Constraint;
+  update_columns?: Array<Virus_Update_Column>;
+  where?: InputMaybe<Virus_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "storage.virus". */
+export type Virus_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  file?: InputMaybe<Files_Order_By>;
+  fileId?: InputMaybe<Order_By>;
+  filename?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  userSession?: InputMaybe<Order_By>;
+  virus?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: storage.virus */
+export type Virus_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Virus_Prepend_Input = {
+  userSession?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** select columns of table "storage.virus" */
+export enum Virus_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  FileId = 'fileId',
+  /** column name */
+  Filename = 'filename',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserSession = 'userSession',
+  /** column name */
+  Virus = 'virus'
+}
+
+/** input type for updating data in table "storage.virus" */
+export type Virus_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileId?: InputMaybe<Scalars['uuid']>;
+  filename?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userSession?: InputMaybe<Scalars['jsonb']>;
+  virus?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "virus" */
+export type Virus_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Virus_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Virus_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileId?: InputMaybe<Scalars['uuid']>;
+  filename?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userSession?: InputMaybe<Scalars['jsonb']>;
+  virus?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "storage.virus" */
+export enum Virus_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  FileId = 'fileId',
+  /** column name */
+  Filename = 'filename',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserSession = 'userSession',
+  /** column name */
+  Virus = 'virus'
+}
+
+export type Virus_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<Virus_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<Virus_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<Virus_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<Virus_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<Virus_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Virus_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Virus_Bool_Exp;
 };
 
 /** columns and relationships of "workspace_member_invites" */
@@ -27868,6 +28274,13 @@ export type GetProjectQueryVariables = Exact<{
 
 
 export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+
+export type GetProjectStateQueryVariables = Exact<{
+  subdomain: Scalars['String'];
+}>;
+
+
+export type GetProjectStateQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, createdAt: any, desiredState: number, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
 
 export type GetProjectsQueryVariables = Exact<{
   orgSlug: Scalars['String'];
@@ -32536,6 +32949,62 @@ export type GetProjectLazyQueryHookResult = ReturnType<typeof useGetProjectLazyQ
 export type GetProjectQueryResult = Apollo.QueryResult<GetProjectQuery, GetProjectQueryVariables>;
 export function refetchGetProjectQuery(variables: GetProjectQueryVariables) {
       return { query: GetProjectDocument, variables: variables }
+    }
+export const GetProjectStateDocument = gql`
+    query getProjectState($subdomain: String!) {
+  apps(where: {subdomain: {_eq: $subdomain}}) {
+    id
+    name
+    subdomain
+    region {
+      id
+      countryCode
+      name
+      domain
+      city
+    }
+    createdAt
+    desiredState
+    appStates(order_by: {createdAt: desc}, limit: 1) {
+      id
+      appId
+      message
+      stateId
+      createdAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetProjectStateQuery__
+ *
+ * To run a query within a React component, call `useGetProjectStateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectStateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectStateQuery({
+ *   variables: {
+ *      subdomain: // value for 'subdomain'
+ *   },
+ * });
+ */
+export function useGetProjectStateQuery(baseOptions: Apollo.QueryHookOptions<GetProjectStateQuery, GetProjectStateQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectStateQuery, GetProjectStateQueryVariables>(GetProjectStateDocument, options);
+      }
+export function useGetProjectStateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectStateQuery, GetProjectStateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectStateQuery, GetProjectStateQueryVariables>(GetProjectStateDocument, options);
+        }
+export type GetProjectStateQueryHookResult = ReturnType<typeof useGetProjectStateQuery>;
+export type GetProjectStateLazyQueryHookResult = ReturnType<typeof useGetProjectStateLazyQuery>;
+export type GetProjectStateQueryResult = Apollo.QueryResult<GetProjectStateQuery, GetProjectStateQueryVariables>;
+export function refetchGetProjectStateQuery(variables: GetProjectStateQueryVariables) {
+      return { query: GetProjectStateDocument, variables: variables }
     }
 export const GetProjectsDocument = gql`
     query getProjects($orgSlug: String!) {

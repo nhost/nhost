@@ -1,0 +1,23 @@
+query getProjectState($subdomain: String!) {
+  apps(where: { subdomain: { _eq: $subdomain } }) {
+    id
+    name
+    subdomain
+    region {
+      id
+      countryCode
+      name
+      domain
+      city
+    }
+    createdAt
+    desiredState
+    appStates(order_by: { createdAt: desc }, limit: 1) {
+      id
+      appId
+      message
+      stateId
+      createdAt
+    }
+  }
+}
