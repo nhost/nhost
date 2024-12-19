@@ -40,7 +40,7 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
   );
 
   const { data, isLoading, refetch, error } = useQuery(
-    ['currentProject', appSubdomain as string],
+    ['projectWithState', appSubdomain as string],
     async () => {
       const response = await client.graphql.request<{
         apps: ProjectFragment[];

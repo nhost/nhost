@@ -40,7 +40,7 @@ export default function useProject(): UseProjectReturnType {
   );
 
   const { data, isLoading, refetch, error } = useQuery(
-    ['currentProject', appSubdomain as string],
+    ['project', appSubdomain as string],
     async () => {
       const response = await client.graphql.request<{
         apps: ProjectFragment[];
