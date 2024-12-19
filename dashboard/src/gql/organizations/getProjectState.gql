@@ -3,6 +3,13 @@ query getProjectState($subdomain: String!) {
     id
     name
     subdomain
+    region {
+      id
+      countryCode
+      name
+      domain
+      city
+    }
     createdAt
     desiredState
     appStates(order_by: { createdAt: desc }, limit: 1) {

@@ -28280,7 +28280,7 @@ export type GetProjectStateQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectStateQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, createdAt: any, desiredState: number, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
+export type GetProjectStateQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, createdAt: any, desiredState: number, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
 
 export type GetProjectsQueryVariables = Exact<{
   orgSlug: Scalars['String'];
@@ -32956,6 +32956,13 @@ export const GetProjectStateDocument = gql`
     id
     name
     subdomain
+    region {
+      id
+      countryCode
+      name
+      domain
+      city
+    }
     createdAt
     desiredState
     appStates(order_by: {createdAt: desc}, limit: 1) {
