@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 2.11.2
+
+### Patch Changes
+
+- 6a34f89: fix: improve project polling logic and unify usage across components
+
 ## 2.11.1
 
 ### Patch Changes
