@@ -102,7 +102,7 @@ export default function AutoEmbeddingsPage() {
   }
 
   if (
-    (isPlatform && !org?.plan?.isFree && !project.config?.ai) ||
+    (isPlatform && !org?.plan?.isFree && !project?.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
