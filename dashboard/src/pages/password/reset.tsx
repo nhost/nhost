@@ -8,15 +8,21 @@ import { Text } from '@/components/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
-import { useResetPassword } from '@nhost/nextjs';
+import { useChangePassword } from '@nhost/nextjs';
+import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  email: Yup.string().label('Email').email().required(),
+  newPassword: Yup.string()
+    .label('New Password')
+    .required('New Password is required'),
+  confirmNewPassword: Yup.string()
+    .label('Confirm New Password')
+    .required('Confirm New Password is required')
+    .oneOf([Yup.ref('newPassword')], 'Passwords must match'),
 });
 
 export type ResetPasswordFormValues = Yup.InferType<typeof validationSchema>;
@@ -29,47 +35,43 @@ const StyledInput = styled(Input)({
 });
 
 export default function ResetPasswordPage() {
-  const { resetPassword, error, isSent } = useResetPassword();
+  const router = useRouter();
+  const { changePassword } = useChangePassword();
 
   const form = useForm<ResetPasswordFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      email: '',
+      newPassword: '',
+      confirmNewPassword: '',
     },
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, getValues } = form;
+  const { register, formState } = form;
 
-  useEffect(() => {
-    if (!error) {
-      return;
-    }
-
-    toast.error(
-      error?.message || 'An error occurred while signing in. Please try again.',
-      getToastStyleProps(),
-    );
-  }, [error]);
-
-  async function handleSubmit({ email }: ResetPasswordFormValues) {
+  async function handleSubmit({ newPassword }: ResetPasswordFormValues) {
     try {
-      await resetPassword(email);
+      const password = newPassword;
+
+      const { isError, error } = await changePassword(password);
+
+      if (isError) {
+        toast.error(
+          `An error occurred while changing your password: ${error.message}`,
+          getToastStyleProps(),
+        );
+
+        return;
+      }
+
+      toast.success('Password was updated successfully.');
+      router.push('/signin');
     } catch {
       toast.error(
-        'An error occurred while signing up. Please try again.',
+        'An error occurred while updating your password. Please try again.',
         getToastStyleProps(),
       );
     }
-  }
-
-  if (isSent) {
-    return (
-      <div className="text-center">
-        We&apos;ve sent a temporary link to reset your password. Check your
-        inbox at {getValues('email')}.
-      </div>
-    );
   }
 
   return (
@@ -79,7 +81,7 @@ export default function ResetPasswordPage() {
         component="h1"
         className="text-center text-3.5xl font-semibold lg:text-4.5xl"
       >
-        Reset Password
+        Change password
       </Text>
 
       <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
@@ -89,16 +91,25 @@ export default function ResetPasswordPage() {
             className="grid grid-flow-row gap-4 bg-transparent"
           >
             <StyledInput
-              {...register('email')}
-              type="email"
-              id="email"
-              label="Email"
-              placeholder="Email"
+              {...register('newPassword')}
+              type="password"
+              id="newPassword"
+              label="New Password"
               fullWidth
-              autoFocus
               inputProps={{ min: 2, max: 128 }}
-              error={!!formState.errors.email}
-              helperText={formState.errors.email?.message}
+              error={!!formState.errors.newPassword}
+              helperText={formState.errors.newPassword?.message}
+            />
+
+            <StyledInput
+              {...register('confirmNewPassword')}
+              type="password"
+              id="confirmNewPassword"
+              label="Confirm New Password"
+              fullWidth
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.confirmNewPassword}
+              helperText={formState.errors.confirmNewPassword?.message}
             />
 
             <Button
@@ -108,14 +119,14 @@ export default function ResetPasswordPage() {
               disabled={formState.isSubmitting}
               loading={formState.isSubmitting}
             >
-              Send Reset Instructions
+              Change password
             </Button>
           </Form>
         </FormProvider>
       </Box>
 
       <Text color="secondary" className="text-center text-base lg:text-lg">
-        Is your password okay?{' '}
+        Go back to{' '}
         <NavLink href="/signin/email" color="white" className="font-medium">
           Sign In
         </NavLink>
@@ -126,6 +137,8 @@ export default function ResetPasswordPage() {
 
 ResetPasswordPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout title="Reset Password">{page}</UnauthenticatedLayout>
+    <UnauthenticatedLayout title="Request Password Reset">
+      {page}
+    </UnauthenticatedLayout>
   );
 };
