@@ -1,10 +1,9 @@
-import type { ButtonProps } from '@/components/ui/v2/Button';
-import { Button } from '@/components/ui/v2/Button';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import type {
   Rule,
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { X } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
@@ -34,9 +33,9 @@ function RuleRemoveButton({
 
   return (
     <Button
-      variant="outlined"
-      color="secondary"
-      className={twMerge('h-10 !min-w-0 lg:!rounded-l-none', className)}
+      variant="outline"
+      size="icon"
+      className={twMerge('h-10 !min-w-0', className)}
       disabled={
         disabled ||
         (rules.length === 1 && !groups?.length && !unsupported?.length)
@@ -44,18 +43,8 @@ function RuleRemoveButton({
       {...props}
       aria-label="Remove Rule"
       onClick={onRemove}
-      sx={
-        !disabled
-          ? {
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? `${theme.palette.grey[300]} !important`
-                  : `${theme.palette.common.white} !important`,
-            }
-          : undefined
-      }
     >
-      <XIcon className="!h-4 !w-4" />
+      <X className="h-4 w-4" />
     </Button>
   );
 }
