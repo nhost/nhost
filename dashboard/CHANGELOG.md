@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 2.12.0
+
+### Minor Changes
+
+- eb95562: fix: show all available permission variables in permission dropdown select
+
 ## 2.11.3
 
 ### Patch Changes
