@@ -3,7 +3,7 @@ RUN apk add --no-cache libc6-compat
 RUN apk update
 WORKDIR /app
 
-RUN yarn global add turbo@1.11.3
+RUN yarn global add turbo@2.2.3
 COPY . .
 RUN turbo prune --scope="@nhost/dashboard" --docker
 
@@ -17,7 +17,7 @@ WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_ENV=dev
-ENV NEXT_PUBLIC_NHOST_PLATFORM false
+ENV NEXT_PUBLIC_NHOST_PLATFORM=false
 
 # placeholders for URLs, will be replaced on runtime by entrypoint script
 ENV NEXT_PUBLIC_NHOST_ADMIN_SECRET=__NEXT_PUBLIC_NHOST_ADMIN_SECRET__
