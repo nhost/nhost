@@ -21,22 +21,9 @@ import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoun
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import {
-  useEffect,
-  useState,
-  type DetailedHTMLProps,
-  type HTMLProps,
-} from 'react';
+import { useEffect, useState } from 'react';
 
-export interface AuthenticatedLayoutProps extends BaseLayoutProps {
-  /**
-   * Props passed to the internal content container.
-   */
-  contentContainerProps?: DetailedHTMLProps<
-    HTMLProps<HTMLDivElement>,
-    HTMLDivElement
-  >;
-}
+export interface AuthenticatedLayoutProps extends BaseLayoutProps {}
 
 export default function AuthenticatedLayout({
   children,
