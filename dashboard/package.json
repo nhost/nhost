@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "dev": "next dev",
+    "dev": "RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED=false next dev",
     "build": "next build --no-lint",
     "analyze": "ANALYZE=true pnpm build --no-lint",
     "start": "next start",

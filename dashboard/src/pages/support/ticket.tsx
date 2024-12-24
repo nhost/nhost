@@ -9,13 +9,13 @@ import { EnvelopeIcon } from '@/components/ui/v2/icons/EnvelopeIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetAllWorkspacesAndProjectsQuery,
   useGetOrganizationsQuery,
   type GetAllWorkspacesAndProjectsQuery,
   type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { useUserData } from '@nhost/nextjs';
@@ -175,14 +175,14 @@ function TicketPage() {
       className="flex flex-col items-center justify-center py-10"
       sx={{ backgroundColor: 'background.default' }}
     >
-      <div className="flex flex-col w-full max-w-3xl">
-        <div className="flex flex-col items-center mb-4">
+      <div className="flex w-full max-w-3xl flex-col">
+        <div className="mb-4 flex flex-col items-center">
           <Text variant="h4" className="font-bold">
             Nhost Support
           </Text>
           <Text variant="h4">How can we help you?</Text>
         </div>
-        <Box className="w-full p-10 border rounded-md">
+        <Box className="w-full rounded-md border p-10">
           <Box className="grid grid-flow-row gap-4">
             <Box className="flex flex-col gap-4">
               <FormProvider {...form}>
@@ -205,7 +205,7 @@ function TicketPage() {
                       helperText={errors.organization?.message}
                       disabled={!!selectedWorkspace}
                       renderValue={(option) => (
-                        <span className="inline-grid items-center grid-flow-col gap-2">
+                        <span className="inline-grid grid-flow-col items-center gap-2">
                           {option?.label}
                         </span>
                       )}
@@ -238,7 +238,7 @@ function TicketPage() {
                       helperText={errors.workspace?.message}
                       disabled={!!selectedOrganization}
                       renderValue={(option) => (
-                        <span className="inline-grid items-center grid-flow-col gap-2">
+                        <span className="inline-grid grid-flow-col items-center gap-2">
                           {option?.label}
                         </span>
                       )}
@@ -267,7 +267,7 @@ function TicketPage() {
                     error={!!errors.project}
                     helperText={errors.project?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -318,7 +318,7 @@ function TicketPage() {
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -401,8 +401,8 @@ function TicketPage() {
                     helperText={errors.ccs?.message}
                   />
 
-                  <Box className="flex flex-col gap-4 ml-auto w-80">
-                    <Text color="secondary" className="text-sm text-right">
+                  <Box className="ml-auto flex w-80 flex-col gap-4">
+                    <Text color="secondary" className="text-right text-sm">
                       We will contact you at <strong>{user?.email}</strong>
                     </Text>
                     <Button
@@ -429,12 +429,7 @@ function TicketPage() {
 
 TicketPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout
-      title="Help & Support | Nhost"
-      contentContainerProps={{
-        className: 'flex w-full flex-col h-screen overflow-auto',
-      }}
-    >
+    <AuthenticatedLayout title="Help & Support | Nhost">
       {page}
     </AuthenticatedLayout>
   );

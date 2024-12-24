@@ -224,16 +224,16 @@ export default function UsersPage() {
   if (loadingRemoteAppUsersQuery) {
     return (
       <Container
-        className="flex flex-col h-full max-w-9xl"
+        className="flex h-full max-w-9xl flex-col"
         rootClassName="h-full"
       >
-        <div className="flex flex-row shrink-0 grow-0 place-content-between">
+        <div className="flex shrink-0 grow-0 flex-row place-content-between">
           <Input
             className="rounded-sm"
             placeholder="Search users"
             startAdornment={
               <SearchIcon
-                className="w-4 h-4 ml-2 -mr-1 shrink-0"
+                className="-mr-1 ml-2 h-4 w-4 shrink-0"
                 sx={{ color: 'text.disabled' }}
               />
             }
@@ -241,14 +241,14 @@ export default function UsersPage() {
           />
           <Button
             onClick={openCreateUserDialog}
-            startIcon={<PlusIcon className="w-4 h-4" />}
+            startIcon={<PlusIcon className="h-4 w-4" />}
             size="small"
           >
             Create User
           </Button>
         </div>
 
-        <div className="flex items-center justify-center flex-auto overflow-hidden">
+        <div className="flex flex-auto items-center justify-center overflow-hidden">
           <ActivityIndicator label="Loading users..." />
         </div>
       </Container>
@@ -256,14 +256,14 @@ export default function UsersPage() {
   }
 
   return (
-    <Container className="mx-auto space-y-5 overflow-x-hidden max-w-9xl">
+    <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
       <div className="flex flex-row place-content-between">
         <Input
           className="rounded-sm"
           placeholder="Search users"
           startAdornment={
             <SearchIcon
-              className="w-4 h-4 ml-2 -mr-1 shrink-0"
+              className="-mr-1 ml-2 h-4 w-4 shrink-0"
               sx={{ color: 'text.disabled' }}
             />
           }
@@ -271,21 +271,21 @@ export default function UsersPage() {
         />
         <Button
           onClick={openCreateUserDialog}
-          startIcon={<PlusIcon className="w-4 h-4" />}
+          startIcon={<PlusIcon className="h-4 w-4" />}
           size="small"
         >
           Create User
         </Button>
       </div>
       {usersCount === 0 ? (
-        <Box className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm">
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <UserIcon
             strokeWidth={1}
-            className="w-10 h-10"
+            className="h-10 w-10"
             sx={{ color: 'text.disabled' }}
           />
           <div className="flex flex-col space-y-1">
-            <Text className="font-medium text-center" variant="h3">
+            <Text className="text-center font-medium" variant="h3">
               There are no users yet
             </Text>
             <Text variant="subtitle1" className="text-center">
@@ -298,34 +298,34 @@ export default function UsersPage() {
               color="primary"
               className="w-full"
               onClick={openCreateUserDialog}
-              startIcon={<PlusIcon className="w-4 h-4" />}
+              startIcon={<PlusIcon className="h-4 w-4" />}
             >
               Create User
             </Button>
           </div>
         </Box>
       ) : (
-        <div className="grid grid-flow-row gap-2 lg:w-9xl">
-          <div className="grid w-full h-full grid-flow-row pb-4 overflow-hidden">
-            <Box className="grid w-full p-2 border-b md:grid-cols-6">
+        <div className="lg:w-9xl grid grid-flow-row gap-2">
+          <div className="grid h-full w-full grid-flow-row overflow-hidden pb-4">
+            <Box className="grid w-full border-b p-2 md:grid-cols-6">
               <Text className="font-medium md:col-span-2">Name</Text>
               <Text className="hidden font-medium md:block">Signed up at</Text>
               <Text className="hidden font-medium md:block">Last Seen</Text>
-              <Text className="hidden col-span-2 font-medium md:block">
+              <Text className="col-span-2 hidden font-medium md:block">
                 OAuth Providers
               </Text>
             </Box>
             {dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ===
               0 &&
               usersCount !== 0 && (
-                <Box className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border-b border-x">
+                <Box className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
                   <UserIcon
                     strokeWidth={1}
-                    className="w-10 h-10"
+                    className="h-10 w-10"
                     sx={{ color: 'text.disabled' }}
                   />
                   <div className="flex flex-col space-y-1">
-                    <Text className="font-medium text-center" variant="h3">
+                    <Text className="text-center font-medium" variant="h3">
                       No results for &quot;{searchString}&quot;
                     </Text>
                     <Text variant="subtitle1" className="text-center">
@@ -388,9 +388,5 @@ export default function UsersPage() {
 }
 
 UsersPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout contentContainerProps={{ className: 'h-full' }}>
-      {page}
-    </ProjectLayout>
-  );
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

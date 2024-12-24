@@ -65,10 +65,7 @@ export default function IndexPage() {
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout
-      title="Dashboard"
-      contentContainerProps={{ className: 'flex w-full flex-col' }}
-    >
+    <AuthenticatedLayout title="Dashboard">
       <Container className="py-0">
         <MaintenanceAlert />
       </Container>
