@@ -1,47 +1,36 @@
 FROM node:20-alpine AS pruner
 RUN apk add --no-cache libc6-compat
+RUN apk update
 WORKDIR /app
-
-# Enable Corepack
-RUN corepack enable
-
-# Activate the specific pnpm version
-RUN corepack prepare pnpm@9.15.0 --activate
 
 RUN yarn global add turbo@1.11.3
 COPY . .
-RUN pnpm install --frozen-lockfile
 RUN turbo prune --scope="@nhost/dashboard" --docker
-RUN ls -lah /app/out/json/ && ls -lah /app/out/full/ # Debugging
 
 FROM node:20-alpine AS builder
 ARG TURBO_TOKEN
 ARG TURBO_TEAM
 
-RUN apk add --no-cache libc6-compat python3 make g++ curl
+RUN apk add --no-cache libc6-compat python3 make g++
+RUN apk update
 WORKDIR /app
 
-# Enable Corepack
-RUN corepack enable
-
-# Activate the specific pnpm version
-RUN corepack prepare pnpm@9.15.0 --activate
-
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NEXT_PUBLIC_ENV dev
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_ENV=dev
 ENV NEXT_PUBLIC_NHOST_PLATFORM false
 
 # placeholders for URLs, will be replaced on runtime by entrypoint script
-ENV NEXT_PUBLIC_NHOST_ADMIN_SECRET __NEXT_PUBLIC_NHOST_ADMIN_SECRET__
-ENV NEXT_PUBLIC_NHOST_AUTH_URL __NEXT_PUBLIC_NHOST_AUTH_URL__
-ENV NEXT_PUBLIC_NHOST_FUNCTIONS_URL __NEXT_PUBLIC_NHOST_FUNCTIONS_URL__
-ENV NEXT_PUBLIC_NHOST_GRAPHQL_URL __NEXT_PUBLIC_NHOST_GRAPHQL_URL__
-ENV NEXT_PUBLIC_NHOST_STORAGE_URL __NEXT_PUBLIC_NHOST_STORAGE_URL__
-ENV NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL __NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL__
-ENV NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL __NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL__
-ENV NEXT_PUBLIC_NHOST_HASURA_API_URL __NEXT_PUBLIC_NHOST_HASURA_API_URL__
-ENV NEXT_PUBLIC_NHOST_CONFIGSERVER_URL __NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__
+ENV NEXT_PUBLIC_NHOST_ADMIN_SECRET=__NEXT_PUBLIC_NHOST_ADMIN_SECRET__
+ENV NEXT_PUBLIC_NHOST_AUTH_URL=__NEXT_PUBLIC_NHOST_AUTH_URL__
+ENV NEXT_PUBLIC_NHOST_FUNCTIONS_URL=__NEXT_PUBLIC_NHOST_FUNCTIONS_URL__
+ENV NEXT_PUBLIC_NHOST_GRAPHQL_URL=__NEXT_PUBLIC_NHOST_GRAPHQL_URL__
+ENV NEXT_PUBLIC_NHOST_STORAGE_URL=__NEXT_PUBLIC_NHOST_STORAGE_URL__
+ENV NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=__NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL__
+ENV NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=__NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL__
+ENV NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__
+ENV NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__
 
+RUN yarn global add pnpm@9.15.0
 COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-*.yaml .
@@ -51,7 +40,6 @@ COPY --from=pruner /app/out/full/ .
 COPY turbo.json turbo.json
 COPY config/ config/
 RUN pnpm build:dashboard
-RUN ls -lah /app/dashboard/.next/standalone/ && ls -lah /app/dashboard/.next/static # Debugging
 
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -64,6 +52,8 @@ COPY --chown=nextjs:nodejs dashboard/docker-entrypoint.sh .
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/next.config.js .
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/package.json .
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/public ./dashboard/public
+
+
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/standalone/app ./
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/static ./dashboard/.next/static
 
