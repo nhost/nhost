@@ -388,9 +388,5 @@ export default function UsersPage() {
 }
 
 UsersPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout contentContainerProps={{ className: 'h-full' }}>
-      {page}
-    </ProjectLayout>
-  );
+  return <ProjectLayout>{page}</ProjectLayout>;
 };
