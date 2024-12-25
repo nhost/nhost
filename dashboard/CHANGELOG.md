@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 2.12.0
+
+### Minor Changes
+
+- eb95562: fix: show all available permission variables in permission dropdown select
+
+### Patch Changes
+
+- 8b5c4a0: chore: cleanup layout and add disable duplicate atom key checking in development mode
+
 ## 2.11.3
 
 ### Patch Changes
