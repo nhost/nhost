@@ -37,6 +37,8 @@ import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 
 export interface EditUserFormProps extends DialogFormProps {
   /**
@@ -106,6 +108,8 @@ export default function EditUserForm({
   onDeleteUser,
   roles,
 }: EditUserFormProps) {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const theme = useTheme();
   const { onDirtyStateChange, openDialog } = useDialog();
   const { project } = useProject();
@@ -196,6 +200,7 @@ export default function EditUserForm({
 
   const { data: dataRoles } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const allAvailableProjectRoles = getUserRoles(
@@ -206,6 +211,7 @@ export default function EditUserForm({
     variables: {
       appId: project?.id,
     },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const allowedLocales = data?.config?.auth?.user?.locale?.allowed || [];
@@ -465,11 +471,11 @@ export default function EditUserForm({
                       src={
                         theme.palette.mode === 'dark'
                           ? `/assets/brands/light/${kebabCase(
-                              provider.providerId,
-                            )}.svg`
+                            provider.providerId,
+                          )}.svg`
                           : `/assets/brands/${kebabCase(
-                              provider.providerId,
-                            )}.svg`
+                            provider.providerId,
+                          )}.svg`
                       }
                       width={25}
                       height={25}

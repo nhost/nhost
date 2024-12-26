@@ -15,6 +15,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import type { EditUserFormValues } from '@/features/orgs/projects/authentication/users/components/EditUserForm';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
@@ -61,6 +63,8 @@ export interface UsersBodyProps {
 
 export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
   const theme = useTheme();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { openAlertDialog, openDrawer, closeDrawer } = useDialog();
   const { project } = useProject();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
@@ -88,6 +92,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
    */
   const { data: dataRoles } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { allowed: allowedRoles } = dataRoles?.config?.auth?.user?.roles || {};
@@ -322,9 +327,9 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
               <Text className="hidden px-2 font-normal md:block">
                 {user.createdAt
                   ? `${formatDistance(
-                      new Date(user.createdAt),
-                      new Date(),
-                    )} ago`
+                    new Date(user.createdAt),
+                    new Date(),
+                  )} ago`
                   : '-'}
               </Text>
               <Text className="hidden px-4 font-normal md:block">
@@ -353,11 +358,11 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                         src={
                           theme.palette.mode === 'dark'
                             ? `/assets/brands/light/${kebabCase(
-                                provider.providerId,
-                              )}.svg`
+                              provider.providerId,
+                            )}.svg`
                             : `/assets/brands/${kebabCase(
-                                provider.providerId,
-                              )}.svg`
+                              provider.providerId,
+                            )}.svg`
                         }
                         width={16}
                         height={16}
