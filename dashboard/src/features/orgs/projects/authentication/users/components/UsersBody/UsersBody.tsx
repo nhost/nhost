@@ -327,9 +327,9 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
               <Text className="hidden px-2 font-normal md:block">
                 {user.createdAt
                   ? `${formatDistance(
-                    new Date(user.createdAt),
-                    new Date(),
-                  )} ago`
+                      new Date(user.createdAt),
+                      new Date(),
+                    )} ago`
                   : '-'}
               </Text>
               <Text className="hidden px-4 font-normal md:block">
@@ -358,11 +358,11 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                         src={
                           theme.palette.mode === 'dark'
                             ? `/assets/brands/light/${kebabCase(
-                              provider.providerId,
-                            )}.svg`
+                                provider.providerId,
+                              )}.svg`
                             : `/assets/brands/${kebabCase(
-                              provider.providerId,
-                            )}.svg`
+                                provider.providerId,
+                              )}.svg`
                         }
                         width={16}
                         height={16}

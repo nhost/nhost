@@ -16,18 +16,20 @@ import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { EditUserPasswordForm } from '@/features/orgs/projects/authentication/users/components/EditUserPasswordForm';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { type RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
 import type { DialogFormProps } from '@/types/common';
-import { copy } from '@/utils/copy';
 import {
   RemoteAppGetUsersDocument,
   useGetProjectLocalesQuery,
   useGetRolesPermissionsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+import { copy } from '@/utils/copy';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
@@ -37,8 +39,6 @@ import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 
 export interface EditUserFormProps extends DialogFormProps {
   /**
@@ -471,11 +471,11 @@ export default function EditUserForm({
                       src={
                         theme.palette.mode === 'dark'
                           ? `/assets/brands/light/${kebabCase(
-                            provider.providerId,
-                          )}.svg`
+                              provider.providerId,
+                            )}.svg`
                           : `/assets/brands/${kebabCase(
-                            provider.providerId,
-                          )}.svg`
+                              provider.providerId,
+                            )}.svg`
                       }
                       width={25}
                       height={25}
