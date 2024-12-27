@@ -242,7 +242,7 @@ export class HasuraStorageClient {
    * @docs https://docs.nhost.io/reference/javascript/storage/get-headers
    */
   getHeaders(): Record<string, string> {
-    return this.getHeaders()
+    return this.api.getHeaders()
   }
 
   /**
