@@ -76,6 +76,7 @@ type AuthServices = {
   signInIdToken: { data: SignInResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
   signInSecurityKeyEmail: { data: SignInResponse }
+  signInSecurityKey: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
   signout: { data: SignOutResponse }
   signUpEmailPassword: { data: SignUpResponse }
@@ -191,6 +192,7 @@ export const createAuthMachine = ({
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
                 SIGNIN_SECURITY_KEY_EMAIL: 'authenticating.securityKeyEmail',
+                SIGNIN_SECURITY_KEY: 'authenticating.securityKey',
                 SIGNIN_MFA_TOTP: 'authenticating.mfa.totp',
                 SIGNIN_PAT: 'authenticating.pat',
                 SIGNIN_ID_TOKEN: 'authenticating.idToken'
@@ -292,6 +294,29 @@ export const createAuthMachine = ({
                 securityKeyEmail: {
                   invoke: {
                     src: 'signInSecurityKeyEmail',
+                    id: 'authenticateUserWithSecurityKey',
+                    onDone: {
+                      actions: ['saveSession', 'reportTokenChanged'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: [
+                      {
+                        cond: 'unverified',
+                        target: [
+                          '#nhost.authentication.signedOut',
+                          '#nhost.registration.incomplete.needsEmailVerification'
+                        ]
+                      },
+                      {
+                        actions: 'saveAuthenticationError',
+                        target: '#nhost.authentication.signedOut.failed'
+                      }
+                    ]
+                  }
+                },
+                securityKey: {
+                  invoke: {
+                    src: 'signInSecurityKey',
                     id: 'authenticateUserWithSecurityKey',
                     onDone: {
                       actions: ['saveSession', 'reportTokenChanged'],
@@ -969,6 +994,59 @@ export const createAuthMachine = ({
             refreshToken
           })
           return { session, error: null }
+        },
+        signInSecurityKey: async () => {
+          const available =
+            await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+          if (!available) {
+            throw new CodifiedError(new Error('WebAuthn is not available on this device'))
+          }
+
+          let credential: PublicKeyCredential
+          try {
+            credential = (await navigator.credentials.get({
+              publicKey: {
+                challenge: crypto.getRandomValues(new Uint8Array(32)),
+                timeout: 60000,
+                userVerification: 'preferred',
+                rpId: window.location.hostname
+              }
+            })) as PublicKeyCredential
+          } catch (error) {
+            throw new CodifiedError(error as Error)
+          }
+
+          if (!credential) {
+            throw new CodifiedError(new Error('No credentials found'))
+          }
+
+          const userHandle = (credential.response as AuthenticatorAssertionResponse).userHandle
+          if (!userHandle) {
+            throw new CodifiedError(new Error('No user handle found in credential'))
+          }
+
+          let options: PublicKeyCredentialRequestOptionsJSON
+          try {
+            const decoder = new TextDecoder()
+            const decodedUserHandle = decoder.decode(userHandle)
+
+            options = await postRequest<PublicKeyCredentialRequestOptionsJSON>('/signin/webauthn', {
+              userHandle: decodedUserHandle
+            })
+          } catch (error) {
+            throw new CodifiedError(error as Error)
+          }
+
+          let authenticationCredential: AuthenticationCredentialJSON
+          try {
+            authenticationCredential = await startAuthentication(options)
+          } catch (error) {
+            throw new CodifiedError(error as Error)
+          }
+
+          return postRequest<SignInResponse>('/signin/webauthn/verify', {
+            credential: authenticationCredential
+          })
         },
         signout: async (ctx, e) => {
           const signOutResponse = await postRequest(
