@@ -65,7 +65,7 @@ overrides:
   rollup: ^4.24.0
   http-proxy-middleware: ^2.0.7
   cross-spawn: ^7.0.5
-  path-to-regexp: 8.2.0
+  path-to-regexp: ^8.2.0
 
 importers:
 
@@ -4563,7 +4563,7 @@ packages:
   '@graphql-tools/schema@9.0.19':
     resolution: {integrity: sha512-oBRPoNBtCkk0zbUsyP4GaIzCt8C0aCI4ycIRUL67KK5pOHljKLBBtGT+Jr6hkzA74C8Gco8bpZPe7aWFjiaK2w==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
 
   '@graphql-tools/url-loader@8.0.2':
     resolution: {integrity: sha512-1dKp2K8UuFn7DFo1qX5c1cyazQv2h2ICwA9esHblEqCYrgf69Nk8N7SODmsfWg94OEaI74IqMoM12t7eIGwFzQ==}
