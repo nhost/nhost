@@ -193,11 +193,16 @@ export default function DatabaseServiceVersionSettings() {
   const applicationUpdating =
     state === ApplicationStatus.Updating ||
     state === ApplicationStatus.Migrating;
+
+  const applicationLive = state === ApplicationStatus.Live;
+  const applicationPaused = state === ApplicationStatus.Paused;
+
   const applicationUnhealthy =
-    state !== ApplicationStatus.Live && !applicationUpdating;
+    !applicationLive && !applicationPaused && !applicationUpdating;
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
+
   const versionFieldsDisabled =
     applicationUpdating || applicationUnhealthy || maintenanceActive;
   const saveDisabled = versionFieldsDisabled || !isDirty;
@@ -208,7 +213,7 @@ export default function DatabaseServiceVersionSettings() {
     const newVersion = `${formValues.majorVersion.value}.${formValues.minorVersion.value}`;
 
     // Major version change
-    if (isMajorVersionDirty) {
+    if (isMajorVersionDirty && applicationLive) {
       openDialog({
         title: 'Update Postgres MAJOR version',
         component: (
@@ -228,7 +233,7 @@ export default function DatabaseServiceVersionSettings() {
       return;
     }
 
-    // Minor version change
+    // Only minor version change or project is paused
     const updateConfigPromise = updateConfig({
       variables: {
         appId: project.id,
