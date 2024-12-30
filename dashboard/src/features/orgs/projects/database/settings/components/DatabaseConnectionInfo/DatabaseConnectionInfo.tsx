@@ -118,8 +118,8 @@ export default function DatabaseConnectionInfo() {
   }
 
   const postgresHost = generateAppServiceUrl(
-    project.subdomain,
-    project.region,
+    project?.subdomain,
+    project?.region,
     'db',
   ).replace('https://', '');
 
