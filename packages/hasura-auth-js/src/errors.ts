@@ -4,6 +4,8 @@ export const NETWORK_ERROR_CODE = 0
 export const OTHER_ERROR_CODE = 1
 export const VALIDATION_ERROR_CODE = 10
 export const STATE_ERROR_CODE = 20
+export const WEBAUTHN_NOT_AVAILABLE_ERROR_CODE = 11
+export const NO_USER_HANDLE_ERROR_CODE = 13
 
 /**
  * @internal
@@ -124,4 +126,16 @@ export const INVALID_SIGN_IN_METHOD: AuthErrorPayload = {
   status: OTHER_ERROR_CODE,
   error: 'invalid-sign-in-method',
   message: 'Invalid sign-in method'
+}
+
+export const WEBAUTHN_NOT_AVAILABLE: AuthErrorPayload = {
+  status: WEBAUTHN_NOT_AVAILABLE_ERROR_CODE,
+  error: 'webauthn-not-available',
+  message: 'WebAuthn is not available on this device'
+}
+
+export const NO_USER_HANDLE: AuthErrorPayload = {
+  status: NO_USER_HANDLE_ERROR_CODE,
+  error: 'no-userhandle-found',
+  message: 'No user handle found in credential'
 }
