@@ -4,7 +4,10 @@ import { Form } from '@/components/form/Form';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -12,6 +15,7 @@ import { RemoveApplicationModal } from '@/features/orgs/projects/common/componen
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -25,7 +29,7 @@ import { ApplicationStatus } from '@/types/application';
 import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
+import { useMemo, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -50,6 +54,20 @@ export default function SettingsGeneralPage() {
   const { currentOrg: org } = useOrgs();
   const { project, loading, refetch: refetchProject } = useProject();
   const { state } = useAppState();
+
+  const { services } = useRunServices();
+
+  const showWarning = useMemo(() => {
+    const isPlanFree = org?.plan?.isFree;
+
+    if (isPlanFree) {
+      return false;
+    }
+
+    return services?.some(
+      (service) => service.config.resources.storage.length > 0,
+    );
+  }, [org?.plan?.isFree, services]);
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();
@@ -242,9 +260,49 @@ export default function SettingsGeneralPage() {
                 onClick: () => {
                   openAlertDialog({
                     title: 'Pause Project?',
-                    payload:
-                      'Are you sure you want to pause this project? It will not be accessible until you unpause it.',
+                    payload: (
+                      <div className="flex flex-col gap-2">
+                        {showWarning ? (
+                          <Alert
+                            severity="warning"
+                            className="flex flex-col gap-3 text-left"
+                          >
+                            <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
+                              <Text className="flex items-start gap-1 font-semibold">
+                                <span>⚠</span> Warning: This action will delete
+                                all volume data for your Run services.
+                              </Text>
+                            </div>
+                            <div className="flex flex-col gap-4">
+                              <Text>
+                                Pausing this project will delete all persistent
+                                volume data for your Run services. No automatic
+                                backups are made. Please backup your data
+                                manually to prevent loss. Contact{' '}
+                                <Link
+                                  href="/support"
+                                  target="_blank"
+                                  className="underline"
+                                  sx={{
+                                    color: 'text.primary',
+                                  }}
+                                  rel="noopener noreferrer"
+                                >
+                                  support
+                                </Link>{' '}
+                                with any questions.
+                              </Text>
+                            </div>
+                          </Alert>
+                        ) : null}
+                        <p className="text-pretty">
+                          Are you sure you want to pause this project? It will
+                          not be accessible until you unpause it.
+                        </p>
+                      </div>
+                    ),
                     props: {
+                      maxWidth: 'sm',
                       onPrimaryAction: handlePauseApplication,
                     },
                   });
