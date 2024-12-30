@@ -21,7 +21,9 @@ import {
   INVALID_PHONE_NUMBER_ERROR,
   NETWORK_ERROR_CODE,
   NO_MFA_TICKET_ERROR,
-  VALIDATION_ERROR_CODE
+  NO_USER_HANDLE,
+  VALIDATION_ERROR_CODE,
+  WEBAUTHN_NOT_AVAILABLE
 } from '../../errors'
 import { localStorageGetter, localStorageSetter } from '../../local-storage'
 import {
@@ -990,63 +992,68 @@ export const createAuthMachine = ({
         },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
-          const session = await postRequest<RefreshSessionResponse>('/token', {
+          const session: NhostSession = await postRequest<RefreshSessionResponse>('/token', {
             refreshToken
           })
           return { session, error: null }
         },
         signInSecurityKey: async () => {
-          const available =
-            await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-          if (!available) {
-            throw new CodifiedError(new Error('WebAuthn is not available on this device'))
-          }
-
-          let credential: PublicKeyCredential
           try {
-            credential = (await navigator.credentials.get({
+            const credential = (await navigator.credentials.get({
               publicKey: {
-                challenge: crypto.getRandomValues(new Uint8Array(32)),
+                challenge: crypto.getRandomValues(new Uint8Array(32)), // Temporary fallback
                 timeout: 60000,
                 userVerification: 'preferred',
                 rpId: window.location.hostname
               }
             })) as PublicKeyCredential
-          } catch (error) {
-            throw new CodifiedError(error as Error)
-          }
 
-          if (!credential) {
-            throw new CodifiedError(new Error('No credentials found'))
-          }
+            if (!credential) {
+              throw new CodifiedError(WEBAUTHN_NOT_AVAILABLE)
+            }
 
-          const userHandle = (credential.response as AuthenticatorAssertionResponse).userHandle
-          if (!userHandle) {
-            throw new CodifiedError(new Error('No user handle found in credential'))
-          }
+            const userHandle = (credential.response as AuthenticatorAssertionResponse).userHandle
 
-          let options: PublicKeyCredentialRequestOptionsJSON
-          try {
-            const decoder = new TextDecoder()
-            const decodedUserHandle = decoder.decode(userHandle)
+            if (!userHandle) {
+              throw new CodifiedError(NO_USER_HANDLE)
+            }
 
-            options = await postRequest<PublicKeyCredentialRequestOptionsJSON>('/signin/webauthn', {
-              userHandle: decodedUserHandle
+            const decodedUserHandle = new TextDecoder().decode(userHandle)
+
+            const options = await postRequest<PublicKeyCredentialRequestOptionsJSON>(
+              '/signin/webauthn',
+              {
+                userHandle: decodedUserHandle
+              }
+            )
+
+            const assertion = (await navigator.credentials.get({
+              publicKey: {
+                challenge: Uint8Array.from(
+                  atob(
+                    options.challenge
+                      .replace(/-/g, '+')
+                      .replace(/_/g, '/')
+                      .padEnd(
+                        options.challenge.length + ((4 - (options.challenge.length % 4)) % 4),
+                        '='
+                      )
+                  ),
+                  (c) => c.charCodeAt(0)
+                ),
+                timeout: options.timeout,
+                rpId: options.rpId,
+                userVerification: options.userVerification,
+                extensions: options.extensions
+              }
+            })) as PublicKeyCredential
+
+            return await postRequest<SignInResponse>('/signin/webauthn/verify', {
+              credential: assertion
             })
           } catch (error) {
             throw new CodifiedError(error as Error)
           }
-
-          let authenticationCredential: AuthenticationCredentialJSON
-          try {
-            authenticationCredential = await startAuthentication(options)
-          } catch (error) {
-            throw new CodifiedError(error as Error)
-          }
-
-          return postRequest<SignInResponse>('/signin/webauthn/verify', {
-            credential: authenticationCredential
-          })
         },
         signout: async (ctx, e) => {
           const signOutResponse = await postRequest(
