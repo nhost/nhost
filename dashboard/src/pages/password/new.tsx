@@ -54,7 +54,9 @@ export default function NewPasswordPage() {
 
   async function handleSubmit({ email }: NewPasswordFormValues) {
     try {
-      await resetPassword(email);
+      await resetPassword(email, {
+        redirectTo: '/password/reset',
+      });
     } catch {
       toast.error(
         'An error occurred while signing up. Please try again.',
