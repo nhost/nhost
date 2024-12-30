@@ -85,7 +85,7 @@ export default function EmailSignUpPage() {
         Sign In
       </Text>
 
-      <Box className="grid grid-flow-row gap-4 p-6 bg-transparent border rounded-md lg:p-12">
+      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
@@ -123,9 +123,9 @@ export default function EmailSignUpPage() {
             />
 
             <NavLink
-              href="/reset-password"
+              href="/password/new"
               color="white"
-              className="font-semibold justify-self-start"
+              className="justify-self-start font-semibold"
             >
               Forgot password?
             </NavLink>
@@ -150,7 +150,7 @@ export default function EmailSignUpPage() {
         </FormProvider>
       </Box>
 
-      <Text color="secondary" className="text-base text-center lg:text-lg">
+      <Text color="secondary" className="text-center text-base lg:text-lg">
         Don&apos;t have an account?{' '}
         <NavLink href="/signup" color="white">
           Sign Up

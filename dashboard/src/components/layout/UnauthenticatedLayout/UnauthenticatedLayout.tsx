@@ -21,23 +21,22 @@ export default function UnauthenticatedLayout({
   const router = useRouter();
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const isOnResetPassword = router.route === '/password/reset';
 
   useEffect(() => {
     if (!isPlatform || (!isLoading && isAuthenticated)) {
-      router.push('/');
+      // we do not want to redirect if the user tries to reset their password
+      if (!isOnResetPassword) {
+        router.push('/');
+      }
     }
-  }, [isLoading, isAuthenticated, router, isPlatform]);
+  }, [isLoading, isAuthenticated, router, isPlatform, isOnResetPassword]);
 
-  if (!isPlatform || isLoading || isAuthenticated) {
+  if ((!isPlatform || isLoading || isAuthenticated) && !isOnResetPassword) {
     return (
       <BaseLayout {...props}>
         <LoadingScreen
           sx={{ backgroundColor: (theme) => theme.palette.background.default }}
-          slotProps={{
-            activityIndicator: {
-              className: 'text-white',
-            },
-          }}
         />
       </BaseLayout>
     );
@@ -59,19 +58,19 @@ export default function UnauthenticatedLayout({
 
         <RetryableErrorBoundary>
           <Box
-            className="flex items-center min-h-screen"
+            className="flex min-h-screen items-center"
             sx={{ backgroundColor: (theme) => theme.palette.common.black }}
           >
             <Container
               rootClassName="bg-transparent h-full"
-              className="grid items-center w-full h-full gap-12 pt-8 pb-12 bg-transparent justify-items-center lg:grid-cols-2 lg:gap-4 lg:pb-0 lg:pt-0"
+              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pb-12 pt-8 lg:grid-cols-2 lg:gap-4 lg:pb-0 lg:pt-0"
             >
               <div className="relative z-10 order-2 grid w-full max-w-[544px] grid-flow-row gap-12 lg:order-1">
                 {children}
               </div>
 
               <div className="relative z-0 order-1 flex h-full w-full items-center justify-center md:min-h-[150px] lg:order-2 lg:min-h-[none]">
-                <div className="absolute top-0 bottom-0 left-0 right-0 flex items-center justify-center w-full h-full max-w-xl mx-auto overflow-hidden opacity-70">
+                <div className="absolute bottom-0 left-0 right-0 top-0 mx-auto flex h-full w-full max-w-xl items-center justify-center overflow-hidden opacity-70">
                   <Image
                     priority
                     src="/assets/line-grid.svg"

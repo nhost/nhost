@@ -19,7 +19,7 @@ const validationSchema = Yup.object({
   email: Yup.string().label('Email').email().required(),
 });
 
-export type ResetPasswordFormValues = Yup.InferType<typeof validationSchema>;
+export type NewPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
 const StyledInput = styled(Input)({
   backgroundColor: 'transparent',
@@ -28,10 +28,10 @@ const StyledInput = styled(Input)({
   },
 });
 
-export default function ResetPasswordPage() {
+export default function NewPasswordPage() {
   const { resetPassword, error, isSent } = useResetPassword();
 
-  const form = useForm<ResetPasswordFormValues>({
+  const form = useForm<NewPasswordFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
       email: '',
@@ -52,9 +52,11 @@ export default function ResetPasswordPage() {
     );
   }, [error]);
 
-  async function handleSubmit({ email }: ResetPasswordFormValues) {
+  async function handleSubmit({ email }: NewPasswordFormValues) {
     try {
-      await resetPassword(email);
+      await resetPassword(email, {
+        redirectTo: '/password/reset',
+      });
     } catch {
       toast.error(
         'An error occurred while signing up. Please try again.',
@@ -124,8 +126,10 @@ export default function ResetPasswordPage() {
   );
 }
 
-ResetPasswordPage.getLayout = function getLayout(page: ReactElement) {
+NewPasswordPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout title="Reset Password">{page}</UnauthenticatedLayout>
+    <UnauthenticatedLayout title="Request Password Reset">
+      {page}
+    </UnauthenticatedLayout>
   );
 };
