@@ -65,7 +65,7 @@ export default function SettingsGeneralPage() {
     }
 
     return services?.some(
-      (service) => service.config.resources.storage.length > 0,
+      (service) => service?.config?.resources?.storage?.length > 0,
     );
   }, [org?.plan?.isFree, services]);
 
