@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
       }
 
       toast.success('Password was updated successfully.');
-      router.push('/signin');
+      router.push('/');
     } catch {
       toast.error(
         'An error occurred while updating your password. Please try again.',
