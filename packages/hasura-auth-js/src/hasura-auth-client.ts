@@ -55,6 +55,7 @@ import {
   JWTHasuraClaims,
   LinkIdTokenParams,
   NhostAuthConstructorParams,
+  NhostSession,
   NhostSessionResponse,
   OnTokenChangedFunction,
   ResetPasswordParams,
@@ -855,6 +856,23 @@ export class HasuraAuthClient {
    */
   getSession() {
     return getSession(this._client.interpreter?.getSnapshot()?.context)
+  }
+
+  /**
+   * Initialize the auth client with an existing session
+   *
+   * @example
+   * ### Initialize with an existing Nhost session
+   * ```ts
+   * await nhost.auth.initWithSession({ session: initialSession })
+   * ```
+   *
+   * @param session - The Nhost session object to initialize the client with
+   * @docs https://docs.nhost.io/reference/javascript/auth/init-with-session
+   */
+  async initWithSession({ session }: { session: NhostSession }): Promise<void> {
+    this.client.start({ initialSession: session })
+    await this.waitUntilReady()
   }
 
   /**
