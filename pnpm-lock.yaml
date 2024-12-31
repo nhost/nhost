@@ -1086,9 +1086,6 @@ importers:
       typescript:
         specifier: 5.2.2
         version: 5.2.2
-      xstate:
-        specifier: ^4.38.3
-        version: 4.38.3
     devDependencies:
       '@types/js-cookie':
         specifier: ^3.0.6
