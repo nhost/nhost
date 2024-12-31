@@ -64,6 +64,9 @@ export default function DatabaseStorageCapacity() {
 
   const { state } = useAppState();
 
+  const applicationPause =
+    state === ApplicationStatus.Paused || state === ApplicationStatus.Pausing;
+
   const { formState, register, reset, watch } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
   const newCapacity = watch('capacity');
@@ -79,12 +82,12 @@ export default function DatabaseStorageCapacity() {
       return true;
     }
 
-    if (decreasingSize && state !== ApplicationStatus.Paused) {
+    if (decreasingSize && !applicationPause) {
       return true;
     }
 
     return false;
-  }, [isDirty, maintenanceActive, decreasingSize, state]);
+  }, [isDirty, maintenanceActive, decreasingSize, applicationPause]);
 
   useEffect(() => {
     if (data && !loading) {
