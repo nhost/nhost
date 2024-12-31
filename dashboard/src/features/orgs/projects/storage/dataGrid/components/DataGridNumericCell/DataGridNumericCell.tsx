@@ -51,7 +51,7 @@ export default function DataGridNumericCell<TData extends object>({
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     if (onTemporaryValueChange) {
       if (event.target.value) {
-        onTemporaryValueChange(parseInt(event.target.value, 10));
+        onTemporaryValueChange(parseFloat(event.target.value));
       } else {
         onTemporaryValueChange(null);
       }
@@ -90,6 +90,7 @@ export default function DataGridNumericCell<TData extends object>({
           inputWrapper: { className: 'h-full' },
           input: { className: 'h-full' },
           inputRoot: {
+            step: 'any',
             className:
               'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
           },
