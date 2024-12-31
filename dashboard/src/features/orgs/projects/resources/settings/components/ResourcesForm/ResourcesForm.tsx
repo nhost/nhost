@@ -18,15 +18,19 @@ import { calculateBillableResources } from '@/features/orgs/projects/resources/s
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  RESOURCE_VCPU_MULTIPLIER,
-  RESOURCE_VCPU_PRICE,
-} from '@/utils/constants/common';
-import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
+import type {
+  ConfigConfigUpdateInput,
+  GetResourcesQuery,
+} from '@/utils/__generated__/graphql';
 import {
   useGetResourcesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import {
+  RESOURCE_VCPU_MULTIPLIER,
+  RESOURCE_VCPU_PRICE,
+} from '@/utils/constants/common';
+import { removeTypename } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -36,7 +40,7 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, replicas, autoscaler } =
+  const { compute, replicas, autoscaler, ...rest } =
     data?.config?.[service]?.resources || {};
 
   return {
@@ -44,6 +48,7 @@ function getInitialServiceResources(
     vcpu: compute?.cpu || 0,
     memory: compute?.memory || 0,
     autoscale: autoscaler || null,
+    rest,
   };
 }
 
@@ -176,76 +181,130 @@ export default function ResourcesForm() {
     ? (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
     : 0;
 
+  const getFormattedConfig = (
+    values: ResourceSettingsFormValues,
+  ): ConfigConfigUpdateInput => {
+    const sanitizedValues = removeTypename(
+      values,
+    ) as ResourceSettingsFormValues;
+
+    const sanitizedInitialDatabaseResources = removeTypename(
+      initialDatabaseResources,
+    );
+    const sanitizedInitialHasuraResources = removeTypename(
+      initialHasuraResources,
+    );
+    const sanitizedInitialAuthResources = removeTypename(initialAuthResources);
+    const sanitizedInitialStorageResources = removeTypename(
+      initialStorageResources,
+    );
+
+    if (sanitizedValues.enabled) {
+      return {
+        postgres: {
+          resources: {
+            compute: {
+              cpu: sanitizedValues.database.vcpu,
+              memory: sanitizedValues.database.memory,
+            },
+            replicas: sanitizedValues.database.replicas,
+            autoscaler: sanitizedValues.database.autoscale
+              ? {
+                  maxReplicas: sanitizedValues.database.maxReplicas,
+                }
+              : null,
+            ...sanitizedInitialDatabaseResources.rest,
+          },
+        },
+        hasura: {
+          resources: {
+            compute: {
+              cpu: sanitizedValues.hasura.vcpu,
+              memory: sanitizedValues.hasura.memory,
+            },
+            replicas: sanitizedValues.hasura.replicas,
+            autoscaler: sanitizedValues.hasura.autoscale
+              ? {
+                  maxReplicas: sanitizedValues.hasura.maxReplicas,
+                }
+              : null,
+            ...sanitizedInitialHasuraResources.rest,
+          },
+        },
+        auth: {
+          resources: {
+            compute: {
+              cpu: sanitizedValues.auth.vcpu,
+              memory: sanitizedValues.auth.memory,
+            },
+            replicas: sanitizedValues.auth.replicas,
+            autoscaler: sanitizedValues.auth.autoscale
+              ? {
+                  maxReplicas: sanitizedValues.auth.maxReplicas,
+                }
+              : null,
+            ...sanitizedInitialAuthResources.rest,
+          },
+        },
+        storage: {
+          resources: {
+            compute: {
+              cpu: sanitizedValues.storage.vcpu,
+              memory: sanitizedValues.storage.memory,
+            },
+            replicas: sanitizedValues.storage.replicas,
+            autoscaler: sanitizedValues.storage.autoscale
+              ? {
+                  maxReplicas: sanitizedValues.storage.maxReplicas,
+                }
+              : null,
+            ...sanitizedInitialStorageResources.rest,
+          },
+        },
+      };
+    }
+
+    return {
+      postgres: {
+        resources: {
+          compute: null,
+          replicas: null,
+          autoscaler: null,
+          ...sanitizedInitialDatabaseResources.rest,
+        },
+      },
+      hasura: {
+        resources: {
+          compute: null,
+          replicas: null,
+          autoscaler: null,
+          ...sanitizedInitialHasuraResources.rest,
+        },
+      },
+      auth: {
+        resources: {
+          compute: null,
+          replicas: null,
+          autoscaler: null,
+          ...sanitizedInitialAuthResources.rest,
+        },
+      },
+      storage: {
+        resources: {
+          compute: null,
+          replicas: null,
+          autoscaler: null,
+          ...sanitizedInitialStorageResources.rest,
+        },
+      },
+    };
+  };
+
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: project?.id,
-        config: {
-          postgres: {
-            resources: formValues.enabled
-              ? {
-                  compute: {
-                    cpu: formValues.database.vcpu,
-                    memory: formValues.database.memory,
-                  },
-                  replicas: formValues.database.replicas,
-                  autoscaler: formValues.database.autoscale
-                    ? {
-                        maxReplicas: formValues.database.maxReplicas,
-                      }
-                    : null,
-                }
-              : null,
-          },
-          hasura: {
-            resources: formValues.enabled
-              ? {
-                  compute: {
-                    cpu: formValues.hasura.vcpu,
-                    memory: formValues.hasura.memory,
-                  },
-                  replicas: formValues.hasura.replicas,
-                  autoscaler: formValues.hasura.autoscale
-                    ? {
-                        maxReplicas: formValues.hasura.maxReplicas,
-                      }
-                    : null,
-                }
-              : null,
-          },
-          auth: {
-            resources: formValues.enabled
-              ? {
-                  compute: {
-                    cpu: formValues.auth.vcpu,
-                    memory: formValues.auth.memory,
-                  },
-                  replicas: formValues.auth.replicas,
-                  autoscaler: formValues.auth.autoscale
-                    ? {
-                        maxReplicas: formValues.auth.maxReplicas,
-                      }
-                    : null,
-                }
-              : null,
-          },
-          storage: {
-            resources: formValues.enabled
-              ? {
-                  compute: {
-                    cpu: formValues.storage.vcpu,
-                    memory: formValues.storage.memory,
-                  },
-                  replicas: formValues.storage.replicas,
-                  autoscaler: formValues.storage.autoscale
-                    ? {
-                        maxReplicas: formValues.storage.maxReplicas,
-                      }
-                    : null,
-                }
-              : null,
-          },
-        },
+        config: getFormattedConfig(formValues),
       },
     });
 
