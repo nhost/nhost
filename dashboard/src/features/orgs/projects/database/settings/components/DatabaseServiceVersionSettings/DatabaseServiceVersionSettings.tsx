@@ -196,9 +196,13 @@ export default function DatabaseServiceVersionSettings() {
 
   const applicationLive = state === ApplicationStatus.Live;
   const applicationPaused = state === ApplicationStatus.Paused;
+  const applicationPausing = state === ApplicationStatus.Pausing;
 
   const applicationUnhealthy =
-    !applicationLive && !applicationPaused && !applicationUpdating;
+    !applicationLive &&
+    !applicationPaused &&
+    !applicationPausing &&
+    !applicationUpdating;
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;

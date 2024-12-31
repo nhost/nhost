@@ -13,6 +13,9 @@ export default function DatabaseStorageCapacityWarning({
   decreasingSize,
   isDirty,
 }: DatabaseStorageCapacityWarningProps) {
+  const applicationPause =
+    state === ApplicationStatus.Paused || state === ApplicationStatus.Pausing;
+
   if (!isDirty) {
     return null;
   }
@@ -47,7 +50,7 @@ export default function DatabaseStorageCapacityWarning({
       </Alert>
     );
   }
-  if (state === ApplicationStatus.Paused && decreasingSize) {
+  if (applicationPause && decreasingSize) {
     return (
       <Alert severity="warning" className="flex flex-col gap-3 text-left">
         <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
