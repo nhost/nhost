@@ -9,6 +9,11 @@ fragment ServiceResources on ConfigConfig {
       autoscaler {
         maxReplicas
       }
+      networking {
+        ingresses {
+          fqdn
+        }
+      }
     }
   }
   hasura {
@@ -21,10 +26,19 @@ fragment ServiceResources on ConfigConfig {
       autoscaler {
         maxReplicas
       }
+      networking {
+        ingresses {
+          fqdn
+        }
+      }
     }
   }
   postgres {
     resources {
+      storage {
+        capacity
+      }
+      enablePublicAccess
       compute {
         cpu
         memory
