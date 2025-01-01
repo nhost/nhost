@@ -186,7 +186,7 @@ export const dateFunctions = [
  * Relevant functions for PostgreSQL types.
  */
 export const postgresFunctions = {
-  text: ['version()', 'timeofday()'],
+  text: ['version()', 'timeofday()', "''::text"],
   json: ['json_build_object()', 'json_build_array()'],
   jsonb: ['jsonb_build_object()', 'jsonb_build_array()'],
   date: dateFunctions,
