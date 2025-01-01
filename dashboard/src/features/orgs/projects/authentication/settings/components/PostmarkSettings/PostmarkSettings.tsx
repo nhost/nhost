@@ -19,7 +19,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 
 const validationSchema = yup
   .object({
-    sender: yup.string().label('SMTP Sender').email().required(),
+    sender: yup.string().label('SMTP Sender').required(),
     password: yup.string().label('Password').required(),
   })
   .required();
