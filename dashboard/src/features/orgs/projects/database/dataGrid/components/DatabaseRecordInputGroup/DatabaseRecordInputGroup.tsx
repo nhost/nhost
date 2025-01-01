@@ -45,6 +45,10 @@ function getPlaceholder(
     return 'NULL';
   }
 
+  if (defaultValue === '') {
+    return `Automatically generated value: ''`;
+  }
+
   if (!defaultValue) {
     return '';
   }

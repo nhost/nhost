@@ -140,7 +140,6 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
   const { errors } = useFormState({ name: `columns.${index}.defaultValue` });
 
   const defaultValue = useWatch({ name: `columns.${index}.defaultValue` });
-  console.log('defaultValue', defaultValue);
   const type = useWatch({ name: `columns.${index}.type` });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
   const isIdentity = identityColumnIndex === index;
