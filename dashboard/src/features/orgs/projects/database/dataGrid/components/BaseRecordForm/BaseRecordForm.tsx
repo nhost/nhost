@@ -44,7 +44,10 @@ export default function BaseRecordForm({
     (accumulator, column) => {
       if (
         column.isPrimary ||
-        (!column.isNullable && !column.defaultValue && !column.isIdentity)
+        (!column.isNullable &&
+          !column.defaultValue &&
+          column.defaultValue !== '' &&
+          !column.isIdentity)
       ) {
         return {
           ...accumulator,
@@ -96,7 +99,12 @@ export default function BaseRecordForm({
         const gridColumn = gridColumnMap.get(columnId);
         const value = columnValues[columnId];
 
-        if (!value && (gridColumn?.defaultValue || gridColumn?.isIdentity)) {
+        if (
+          !value &&
+          (gridColumn?.defaultValue ||
+            gridColumn?.defaultValue === '' ||
+            gridColumn?.isIdentity)
+        ) {
           return {
             ...options,
             [columnId]: {
@@ -147,7 +155,7 @@ export default function BaseRecordForm({
         {optionalColumns.length > 0 && (
           <DatabaseRecordInputGroup
             title="Optional columns"
-            description="These columns are nullable and don't require a value."
+            description="These columns are nullable or have a default value."
             columns={optionalColumns}
             autoFocusFirstInput={requiredColumns.length === 0}
             sx={{ borderTopWidth: requiredColumns.length > 0 ? 1 : 0 }}
