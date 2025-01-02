@@ -2,5 +2,5 @@
   // $schema provides code completion hints to IDEs.
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "moderate": true,
-  "allowlist": ["vue-template-compiler", "micromatch", "path-to-regexp"]
+  "allowlist": ["vue-template-compiler"]
 }
