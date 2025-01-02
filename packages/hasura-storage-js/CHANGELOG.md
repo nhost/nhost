@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.6.0
+
+### Minor Changes
+
+- 4148964: fix: stack overflow on storage client getHeaders method call
+
 ## 2.5.1
 
 ### Patch Changes
