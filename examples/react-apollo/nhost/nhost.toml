@@ -47,6 +47,27 @@ disableNewUsers = false
 default = 'user'
 allowed = ['user', 'me']
 
+[auth.rateLimit]
+[auth.rateLimit.emails]
+limit = 100
+interval = '1h'
+
+[auth.rateLimit.sms]
+limit = 100
+interval = '1h'
+
+[auth.rateLimit.bruteForce]
+limit = 100
+interval = '5m'
+
+[auth.rateLimit.signups]
+limit = 100
+interval = '5m'
+
+[auth.rateLimit.global]
+limit = 1000
+interval = '1m'
+
 [auth.user.locale]
 default = 'en'
 allowed = ['en']
@@ -158,6 +179,14 @@ issuer = 'nhost'
 version = '16.2-20240718-1'
 
 [provider]
+[provider.smtp]
+host = "smtp.test.com"
+method = "LOGIN"
+password = "test123123"
+port = 587
+secure = false
+sender = "test@nhost.io"
+user = "test"
 
 [storage]
 version = '0.6.1'
