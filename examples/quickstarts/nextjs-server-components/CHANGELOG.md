@@ -1,5 +1,15 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.5.0
+
+### Minor Changes
+
+- b944d05: chore: simplify Nhost client initialization with session and remove xstate dependency
+
+### Patch Changes
+
+- @nhost/nhost-js@3.2.2
+
 ## 0.4.16
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.9.0
+
+### Minor Changes
+
+- b944d05: feat: introduce `initWithSession` to initialize auth client with an existing session
+
 ## 2.8.0
 
 ### Minor Changes
