@@ -30,7 +30,7 @@ const smtpValidationSchema = yup
     user: yup.string().label('Username').required(),
     password: yup.string().label('Password'),
     method: yup.string().required(),
-    sender: yup.string().label('SMTP Sender').email().required(),
+    sender: yup.string().label('SMTP Sender').required(),
   })
   .required();
 
