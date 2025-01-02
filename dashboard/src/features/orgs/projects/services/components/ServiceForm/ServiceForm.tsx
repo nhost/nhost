@@ -29,16 +29,15 @@ import {
 
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import {
+  useInsertRunServiceConfigMutation,
+  useReplaceRunServiceConfigMutation,
+  type ConfigRunServiceConfigInsertInput,
+} from '@/utils/__generated__/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { removeTypename } from '@/utils/helpers';
-import {
-  useInsertRunServiceConfigMutation,
-  useInsertRunServiceMutation,
-  useReplaceRunServiceConfigMutation,
-  type ConfigRunServiceConfigInsertInput,
-} from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -58,9 +57,10 @@ export default function ServiceForm({
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { onDirtyStateChange, openDialog, closeDialog } = useDialog();
-  const [insertRunService] = useInsertRunServiceMutation();
   const { project } = useProject();
-  const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
+  const [insertRunServiceConfig] = useInsertRunServiceConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
   const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -226,23 +226,25 @@ export default function ServiceForm({
       }
     } else {
       // Insert service config
-      const {
-        data: {
-          insertRunService: { id },
-        },
-      } = await insertRunService({
-        variables: {
-          object: {
-            appID: project.id,
-            id: newServiceID,
-          },
-        },
-      });
+      // const {
+      //   data: {
+      //     insertRunService: { id },
+      //   },
+      // } = await insertRunService({
+      //   variables: {
+      //     object: {
+      //       appID: project.id,
+      //       id: newServiceID,
+      //     },
+      //   },
+      // });
+
+      console.log('inserting config', config);
 
       await insertRunServiceConfig({
         variables: {
           appID: project.id,
-          serviceID: id,
+          serviceID: newServiceID,
           config: {
             ...config,
             image: {
@@ -335,7 +337,7 @@ export default function ServiceForm({
               <Tooltip title="Name of the service, must be unique per project.">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -359,7 +361,7 @@ export default function ServiceForm({
               <Tooltip title="Command to run when to start the service. This is optional as the image may already have a baked-in command.">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -414,7 +416,7 @@ export default function ServiceForm({
         {createServiceFormError && (
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}
