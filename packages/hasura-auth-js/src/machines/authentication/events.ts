@@ -13,6 +13,7 @@ export type AuthEvents =
   | { type: 'SIGNIN_ANONYMOUS' }
   | { type: 'SIGNIN_PAT'; pat: string }
   | { type: 'SIGNIN_SECURITY_KEY_EMAIL'; email?: string }
+  | { type: 'SIGNIN_SECURITY_KEY' }
   | { type: 'SIGNIN_PASSWORD'; email?: string; password?: string }
   | {
       type: 'PASSWORDLESS_EMAIL'
