@@ -43,7 +43,8 @@ const validationSchema = Yup.object({
     value: Yup.string().required('Major version is a required field'),
   })
     .label('Postgres major version')
-    .required(),
+    .required()
+    .test('not-zero', 'Invalid major version', (value) => value?.value !== '0'),
   minorVersion: Yup.object({
     label: Yup.string().required(),
     value: Yup.string().required('Minor version is a required field'),
@@ -186,9 +187,6 @@ export default function DatabaseServiceVersionSettings() {
     shouldPoll: true,
   });
 
-  const showMigrateWarning =
-    Number(selectedMajor) > Number(currentPostgresMajor);
-
   const { state } = useAppState();
   const applicationUpdating =
     state === ApplicationStatus.Updating ||
@@ -197,6 +195,11 @@ export default function DatabaseServiceVersionSettings() {
   const applicationLive = state === ApplicationStatus.Live;
   const applicationPaused = state === ApplicationStatus.Paused;
   const applicationPausing = state === ApplicationStatus.Pausing;
+
+  const showMigrateWarning =
+    !applicationPaused &&
+    !applicationPausing &&
+    Number(selectedMajor) > Number(currentPostgresMajor);
 
   const applicationUnhealthy =
     !applicationLive &&
@@ -237,7 +240,7 @@ export default function DatabaseServiceVersionSettings() {
       return;
     }
 
-    // Only minor version change or project is paused
+    // Only minor version change or project is paused/pausing
     const updateConfigPromise = updateConfig({
       variables: {
         appId: project.id,
@@ -347,7 +350,6 @@ export default function DatabaseServiceVersionSettings() {
                 return option.value;
               }}
               showCustomOption="auto"
-              isOptionEqualToValue={() => false}
               filterOptions={(options, { inputValue }) => {
                 const inputValueLower = inputValue.toLowerCase();
                 const matched = [];
@@ -392,12 +394,13 @@ export default function DatabaseServiceVersionSettings() {
                   form.setValue('majorVersion', value);
                 }
               }}
+              clearOnBlur
               fullWidth
               className="lg:col-span-1"
               label="MAJOR"
               options={availableMajorVersions}
-              error={!!formState.errors?.majorVersion?.value?.message}
-              helperText={formState.errors?.majorVersion?.value?.message}
+              error={!!formState.errors?.majorVersion?.message}
+              helperText={formState.errors?.majorVersion?.message}
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
             <ControlledAutocomplete
@@ -433,12 +436,13 @@ export default function DatabaseServiceVersionSettings() {
 
                 return result;
               }}
+              clearOnBlur
               fullWidth
               className="lg:col-span-2"
               label="MINOR"
               options={availableMinorVersions}
-              error={!!formState.errors?.minorVersion?.value?.message}
-              helperText={formState.errors?.minorVersion?.value?.message}
+              error={!!formState.errors?.minorVersion?.message}
+              helperText={formState.errors?.minorVersion?.message}
               showCustomOption="auto"
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
