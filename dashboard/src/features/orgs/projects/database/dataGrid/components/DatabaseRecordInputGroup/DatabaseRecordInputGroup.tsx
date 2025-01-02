@@ -209,7 +209,7 @@ export default function DatabaseRecordInputGroup({
                 autoFocus={index === 0 && autoFocusFirstInput}
                 slotProps={{
                   label: commonLabelProps,
-                  inputRoot: { step: 1 },
+                  inputRoot: { step: 'any' },
                 }}
               />
             );
