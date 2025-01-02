@@ -21,9 +21,7 @@ import {
   INVALID_PHONE_NUMBER_ERROR,
   NETWORK_ERROR_CODE,
   NO_MFA_TICKET_ERROR,
-  NO_USER_HANDLE,
-  VALIDATION_ERROR_CODE,
-  WEBAUTHN_NOT_AVAILABLE
+  VALIDATION_ERROR_CODE
 } from '../../errors'
 import { localStorageGetter, localStorageSetter } from '../../local-storage'
 import {
@@ -997,60 +995,20 @@ export const createAuthMachine = ({
           })
           return { session, error: null }
         },
-        signInSecurityKey: async () => {
+        signInSecurityKey: async (): Promise<SignInResponse> => {
           try {
-            const credential = (await navigator.credentials.get({
-              publicKey: {
-                challenge: crypto.getRandomValues(new Uint8Array(32)), // Temporary fallback
-                timeout: 60000,
-                userVerification: 'preferred',
-                rpId: window.location.hostname
-              }
-            })) as PublicKeyCredential
-
-            if (!credential) {
-              throw new CodifiedError(WEBAUTHN_NOT_AVAILABLE)
-            }
-
-            const userHandle = (credential.response as AuthenticatorAssertionResponse).userHandle
-
-            if (!userHandle) {
-              throw new CodifiedError(NO_USER_HANDLE)
-            }
-
-            const decodedUserHandle = new TextDecoder().decode(userHandle)
-
-            const options = await postRequest<PublicKeyCredentialRequestOptionsJSON>(
+            const options: PublicKeyCredentialRequestOptionsJSON = await postRequest(
               '/signin/webauthn',
-              {
-                userHandle: decodedUserHandle
-              }
+              {}
             )
 
-            const assertion = (await navigator.credentials.get({
-              publicKey: {
-                challenge: Uint8Array.from(
-                  atob(
-                    options.challenge
-                      .replace(/-/g, '+')
-                      .replace(/_/g, '/')
-                      .padEnd(
-                        options.challenge.length + ((4 - (options.challenge.length % 4)) % 4),
-                        '='
-                      )
-                  ),
-                  (c) => c.charCodeAt(0)
-                ),
-                timeout: options.timeout,
-                rpId: options.rpId,
-                userVerification: options.userVerification,
-                extensions: options.extensions
-              }
-            })) as PublicKeyCredential
-
-            return await postRequest<SignInResponse>('/signin/webauthn/verify', {
-              credential: assertion
-            })
+            let credential: AuthenticationCredentialJSON
+            try {
+              credential = await startAuthentication(options)
+            } catch (e) {
+              throw new CodifiedError(e as Error)
+            }
+            return postRequest<SignInResponse>('/signin/webauthn/verify', { credential })
           } catch (error) {
             throw new CodifiedError(error as Error)
           }
