@@ -19,18 +19,21 @@ export const POSTGRESQL_ERROR_CODES = {
  *
  * @docs https://www.postgresql.org/docs/current/datatype-numeric.html
  */
-export const POSTGRESQL_NUMERIC_TYPES = [
+export const POSTGRESQL_INTEGER_TYPES = [
   'smallint',
   'integer',
   'bigint',
-  'decimal',
-  'numeric',
-  'real',
-  'double precision',
   'smallserial',
   'serial',
   'bigserial',
   'oid',
+];
+
+export const POSTGRESQL_DECIMAL_TYPES = [
+  'decimal',
+  'numeric',
+  'real',
+  'double precision',
 ];
 
 /**

@@ -4,15 +4,15 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 
-export type DataGridNumericCellProps<TData extends object> =
+export type DataGridIntegerCellProps<TData extends object> =
   CommonDataGridCellProps<TData, number>;
 
-export default function DataGridNumericCell<TData extends object>({
+export default function DataGridIntegerCell<TData extends object>({
   onSave,
   optimisticValue,
   temporaryValue,
   onTemporaryValueChange,
-}: DataGridNumericCellProps<TData>) {
+}: DataGridIntegerCellProps<TData>) {
   const { inputRef, focusCell, isEditing, cancelEditCell } =
     useDataGridCell<HTMLInputElement>();
 
@@ -51,7 +51,7 @@ export default function DataGridNumericCell<TData extends object>({
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     if (onTemporaryValueChange) {
       if (event.target.value) {
-        onTemporaryValueChange(parseFloat(event.target.value));
+        onTemporaryValueChange(parseInt(event.target.value, 10));
       } else {
         onTemporaryValueChange(null);
       }
@@ -90,7 +90,6 @@ export default function DataGridNumericCell<TData extends object>({
           inputWrapper: { className: 'h-full' },
           input: { className: 'h-full' },
           inputRoot: {
-            step: 'any',
             className:
               'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
           },
