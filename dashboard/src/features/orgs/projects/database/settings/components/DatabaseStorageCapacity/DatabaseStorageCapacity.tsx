@@ -4,6 +4,7 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
+import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -23,7 +24,10 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  capacity: Yup.number().required().min(10),
+  capacity: Yup.number()
+    .typeError('You must specify a number')
+    .min(1, 'Capacity must be greater than 0')
+    .required('Capacity is required'),
 });
 
 export type DatabaseStorageCapacityFormValues = Yup.InferType<
@@ -162,17 +166,17 @@ export default function DatabaseStorageCapacity() {
               {...register('capacity')}
               id="capacity"
               name="capacity"
-              type="number"
+              type="text"
+              endAdornment={
+                <InputAdornment className="absolute right-2" position="end">
+                  GB
+                </InputAdornment>
+              }
               fullWidth
               disabled={project.legacyPlan?.isFree}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
-              slotProps={{
-                inputRoot: {
-                  min: 10,
-                },
-              }}
             />
           </Box>
           {!project.legacyPlan?.isFree && (
