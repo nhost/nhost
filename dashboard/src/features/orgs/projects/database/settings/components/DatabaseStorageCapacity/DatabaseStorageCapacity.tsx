@@ -25,6 +25,7 @@ import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   capacity: Yup.number()
+    .integer('Capacity must be an integer')
     .typeError('You must specify a number')
     .min(1, 'Capacity must be greater than 0')
     .required('Capacity is required'),
