@@ -1,10 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import type { DataGridProps } from '@/components/dataGrid/DataGrid';
-import { DataGrid } from '@/components/dataGrid/DataGrid';
-import { DataGridBooleanCell } from '@/components/dataGrid/DataGridBooleanCell';
-import { DataGridDateCell } from '@/components/dataGrid/DataGridDateCell';
-import { DataGridNumericCell } from '@/components/dataGrid/DataGridNumericCell';
-import { DataGridTextCell } from '@/components/dataGrid/DataGridTextCell';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { KeyIcon } from '@/components/ui/v2/icons/KeyIcon';
@@ -23,11 +17,19 @@ import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGri
 import {
   POSTGRESQL_CHARACTER_TYPES,
   POSTGRESQL_DATE_TIME_TYPES,
+  POSTGRESQL_DECIMAL_TYPES,
+  POSTGRESQL_INTEGER_TYPES,
   POSTGRESQL_JSON_TYPES,
-  POSTGRESQL_NUMERIC_TYPES,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
+import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
+import { DataGridDecimalCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDecimalCell';
+import { DataGridIntegerCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridIntegerCell';
+import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -68,10 +70,10 @@ export function createDataGridColumn(
 
   const defaultColumnConfiguration = {
     Header: () => (
-      <div className="grid items-center justify-start grid-flow-col gap-1 font-normal">
+      <div className="grid grid-flow-col items-center justify-start gap-1 font-normal">
         {column.is_primary && <KeyIcon className="text-sm" />}
 
-        <span className="font-bold truncate" title={column.column_name}>
+        <span className="truncate font-bold" title={column.column_name}>
           {column.column_name}
         </span>
 
@@ -104,12 +106,21 @@ export function createDataGridColumn(
     foreignKeyRelation: column.foreign_key_relation,
   };
 
-  if (POSTGRESQL_NUMERIC_TYPES.includes(column.data_type)) {
+  if (POSTGRESQL_INTEGER_TYPES.includes(column.data_type)) {
     return {
       ...defaultColumnConfiguration,
       type: 'number',
       width: 200,
-      Cell: DataGridNumericCell,
+      Cell: DataGridIntegerCell,
+    };
+  }
+
+  if (POSTGRESQL_DECIMAL_TYPES.includes(column.data_type)) {
+    return {
+      ...defaultColumnConfiguration,
+      type: 'text',
+      width: 200,
+      Cell: DataGridDecimalCell,
     };
   }
 
