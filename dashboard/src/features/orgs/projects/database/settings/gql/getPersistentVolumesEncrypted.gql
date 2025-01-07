@@ -1,0 +1,5 @@
+query GetPersistentVolumesEncrypted($appId: uuid!) {
+  systemConfig(appID: $appId) {
+    persistentVolumesEncrypted
+  }
+}

@@ -2,9 +2,12 @@ import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -14,6 +17,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
+  useGetPersistentVolumesEncryptedQuery,
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -56,6 +60,14 @@ export default function DatabaseStorageCapacity() {
     (data?.config?.postgres?.resources?.storage?.capacity ??
       org?.plan?.featureMaxDbSize) ||
     0;
+
+  const { data: encryptedVolumesData } = useGetPersistentVolumesEncryptedQuery({
+    variables: { appId: project?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  const isEncrypted =
+    encryptedVolumesData?.systemConfig?.persistentVolumesEncrypted;
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -186,6 +198,28 @@ export default function DatabaseStorageCapacity() {
               decreasingSize={decreasingSize}
               isDirty={isDirty}
             />
+          )}
+          {isEncrypted && (
+            <Alert severity="warning" className="flex flex-col gap-3 text-left">
+              <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
+                <Text className="flex items-start gap-1 font-semibold">
+                  Disk encryption is now available!
+                </Text>
+              </div>
+              <div>
+                <Text>
+                  To enable encryption in this project all you have to do is
+                  pause & unpause it in{' '}
+                  <Link
+                    href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
+                    underline="hover"
+                  >
+                    General Settings
+                  </Link>
+                  .
+                </Text>
+              </div>
+            </Alert>
           )}
         </SettingsContainer>
       </Form>

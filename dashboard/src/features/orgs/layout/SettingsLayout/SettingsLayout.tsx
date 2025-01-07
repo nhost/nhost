@@ -13,23 +13,22 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const theme = useTheme();
   const { project } = useProject();
   const hasGitRepo = !!project?.githubRepository;
-  const isDiskEncrypted = false;
 
   return (
     <Box
       sx={{ backgroundColor: 'background.default' }}
-      className="flex h-full w-full flex-auto flex-col overflow-y-auto overflow-x-hidden"
+      className="flex flex-col flex-auto w-full h-full overflow-x-hidden overflow-y-auto"
     >
       <Box
         sx={{ backgroundColor: 'background.default' }}
-        className="flex h-full flex-col"
+        className="flex flex-col h-full"
       >
         <RetryableErrorBoundary>
           <div className="flex flex-col space-y-2">
             {hasGitRepo && (
               <Alert
                 severity="warning"
-                className="grid grid-flow-row place-content-center gap-2"
+                className="grid grid-flow-row gap-2 place-content-center"
               >
                 <Text color="warning" className="text-sm">
                   As you have a connected repository, make sure to synchronize

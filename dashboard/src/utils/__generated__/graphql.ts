@@ -27682,6 +27682,13 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
 
 export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
 
+export type GetPersistentVolumesEncryptedQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetPersistentVolumesEncryptedQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', persistentVolumesEncrypted?: boolean | null } | null };
+
 export type GetJwtSecretsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -29655,6 +29662,44 @@ export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetB
 export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
 export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
       return { query: GetBackupPresignedUrlDocument, variables: variables }
+    }
+export const GetPersistentVolumesEncryptedDocument = gql`
+    query GetPersistentVolumesEncrypted($appId: uuid!) {
+  systemConfig(appID: $appId) {
+    persistentVolumesEncrypted
+  }
+}
+    `;
+
+/**
+ * __useGetPersistentVolumesEncryptedQuery__
+ *
+ * To run a query within a React component, call `useGetPersistentVolumesEncryptedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPersistentVolumesEncryptedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPersistentVolumesEncryptedQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetPersistentVolumesEncryptedQuery(baseOptions: Apollo.QueryHookOptions<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>(GetPersistentVolumesEncryptedDocument, options);
+      }
+export function useGetPersistentVolumesEncryptedLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>(GetPersistentVolumesEncryptedDocument, options);
+        }
+export type GetPersistentVolumesEncryptedQueryHookResult = ReturnType<typeof useGetPersistentVolumesEncryptedQuery>;
+export type GetPersistentVolumesEncryptedLazyQueryHookResult = ReturnType<typeof useGetPersistentVolumesEncryptedLazyQuery>;
+export type GetPersistentVolumesEncryptedQueryResult = Apollo.QueryResult<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>;
+export function refetchGetPersistentVolumesEncryptedQuery(variables: GetPersistentVolumesEncryptedQueryVariables) {
+      return { query: GetPersistentVolumesEncryptedDocument, variables: variables }
     }
 export const GetJwtSecretsDocument = gql`
     query GetJWTSecrets($appId: uuid!) {
