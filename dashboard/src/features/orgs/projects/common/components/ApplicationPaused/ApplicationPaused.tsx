@@ -36,8 +36,8 @@ export default function ApplicationPaused() {
       >
         <RemoveApplicationModal
           close={() => setShowDeletingModal(false)}
-          title={`Remove project ${project.name}?`}
-          description={`The project ${project.name} will be removed. All data will be lost and there will be no way to
+          title={`Remove project ${project?.name}?`}
+          description={`The project ${project?.name} will be removed. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
           className="z-50"
         />
