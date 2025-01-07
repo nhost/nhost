@@ -20,7 +20,7 @@ runs:
       id: pnpm-cache-dir
       shell: bash
       run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       id: pnpm-cache
       with:
         path: ${{ steps.pnpm-cache-dir.outputs.dir }}
