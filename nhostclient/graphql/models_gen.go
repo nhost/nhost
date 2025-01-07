@@ -3163,7 +3163,7 @@ type OrganizationMemberInvites struct {
 	Role           OrganizationMembersRoleEnum `json:"role"`
 	UpdateAt       time.Time                   `json:"updateAt"`
 	// An object relationship
-	User *Users `json:"user"`
+	User *Users `json:"user,omitempty"`
 }
 
 // order by aggregate values of table "organization_member_invites"
