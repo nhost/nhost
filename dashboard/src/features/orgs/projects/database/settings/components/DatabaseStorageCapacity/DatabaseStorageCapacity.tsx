@@ -2,11 +2,13 @@ import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
+import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { DatabaseStorageCapacityWarning } from '@/features/orgs/projects/database/settings/components/DatabaseStorageCapacityWarning';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -15,18 +17,25 @@ import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { ApplicationStatus } from '@/types/application';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  capacity: Yup.number().required().min(10),
+  capacity: Yup.number()
+    .integer('Capacity must be an integer')
+    .typeError('You must specify a number')
+    .min(1, 'Capacity must be greater than 0')
+    .required('Capacity is required'),
 });
 
-export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
+export type DatabaseStorageCapacityFormValues = Yup.InferType<
+  typeof validationSchema
+>;
 
-export default function AuthDomain() {
+export default function DatabaseStorageCapacity() {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
   const { maintenanceActive } = useUI();
@@ -58,8 +67,32 @@ export default function AuthDomain() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { formState, register, reset } = form;
+  const { state } = useAppState();
+
+  const applicationPause =
+    state === ApplicationStatus.Paused || state === ApplicationStatus.Pausing;
+
+  const { formState, register, reset, watch } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
+  const newCapacity = watch('capacity');
+
+  const decreasingSize = newCapacity < capacity;
+
+  const submitDisabled = useMemo(() => {
+    if (!isDirty) {
+      return true;
+    }
+
+    if (maintenanceActive) {
+      return true;
+    }
+
+    if (decreasingSize && !applicationPause) {
+      return true;
+    }
+
+    return false;
+  }, [isDirty, maintenanceActive, decreasingSize, applicationPause]);
 
   useEffect(() => {
     if (data && !loading) {
@@ -81,7 +114,7 @@ export default function AuthDomain() {
     throw error;
   }
 
-  async function handleSubmit(formValues: AuthDomainFormValues) {
+  async function handleSubmit(formValues: DatabaseStorageCapacityFormValues) {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfig({
@@ -120,7 +153,7 @@ export default function AuthDomain() {
           description="Specify the storage capacity for your PostgreSQL database."
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive,
+              disabled: submitDisabled,
               loading: formState.isSubmitting,
             },
           }}
@@ -134,25 +167,25 @@ export default function AuthDomain() {
               {...register('capacity')}
               id="capacity"
               name="capacity"
-              type="number"
+              type="text"
+              endAdornment={
+                <InputAdornment className="absolute right-2" position="end">
+                  GB
+                </InputAdornment>
+              }
               fullWidth
               disabled={project.legacyPlan?.isFree}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
-              slotProps={{
-                inputRoot: {
-                  min: capacity,
-                },
-              }}
             />
           </Box>
           {!project.legacyPlan?.isFree && (
-            <Alert severity="info" className="col-span-6 text-left">
-              Note that volumes can only be increased (not decreased). Also, due
-              to an AWS limitation, the same volume can only be increased once
-              every 6 hours.
-            </Alert>
+            <DatabaseStorageCapacityWarning
+              state={state}
+              decreasingSize={decreasingSize}
+              isDirty={isDirty}
+            />
           )}
         </SettingsContainer>
       </Form>
