@@ -1,4 +1,4 @@
-mutation insertRunServiceConfig(
+mutation InsertRunServiceConfig(
   $appID: uuid!
   $config: ConfigRunServiceConfigInsertInput!
 ) {

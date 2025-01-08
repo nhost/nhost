@@ -28550,6 +28550,13 @@ export type GetLocalRunServiceRateLimitQueryVariables = Exact<{
 
 export type GetLocalRunServiceRateLimitQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } }> };
 
+export type InsertRunServiceMutationVariables = Exact<{
+  object: Run_Service_Insert_Input;
+}>;
+
+
+export type InsertRunServiceMutation = { __typename?: 'mutation_root', insertRunService?: { __typename?: 'run_service', id: any, subdomain: string } | null };
+
 export type InsertRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
   config: ConfigRunServiceConfigInsertInput;
@@ -34660,8 +34667,42 @@ export type GetLocalRunServiceRateLimitQueryResult = Apollo.QueryResult<GetLocal
 export function refetchGetLocalRunServiceRateLimitQuery(variables: GetLocalRunServiceRateLimitQueryVariables) {
       return { query: GetLocalRunServiceRateLimitDocument, variables: variables }
     }
+export const InsertRunServiceDocument = gql`
+    mutation InsertRunService($object: run_service_insert_input!) {
+  insertRunService(object: $object) {
+    id
+    subdomain
+  }
+}
+    `;
+export type InsertRunServiceMutationFn = Apollo.MutationFunction<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
+
+/**
+ * __useInsertRunServiceMutation__
+ *
+ * To run a mutation, you first call `useInsertRunServiceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertRunServiceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertRunServiceMutation, { data, loading, error }] = useInsertRunServiceMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertRunServiceMutation, InsertRunServiceMutationVariables>(InsertRunServiceDocument, options);
+      }
+export type InsertRunServiceMutationHookResult = ReturnType<typeof useInsertRunServiceMutation>;
+export type InsertRunServiceMutationResult = Apollo.MutationResult<InsertRunServiceMutation>;
+export type InsertRunServiceMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
 export const InsertRunServiceConfigDocument = gql`
-    mutation insertRunServiceConfig($appID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
+    mutation InsertRunServiceConfig($appID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
   insertRunServiceConfig(appID: $appID, config: $config) {
     serviceID
     config {
