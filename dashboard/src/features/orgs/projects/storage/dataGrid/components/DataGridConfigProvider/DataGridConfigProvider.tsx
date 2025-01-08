@@ -1,4 +1,4 @@
-import type { UseDataGridReturn } from '@/components/dataGrid/DataGrid';
+import type { UseDataGridReturn } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import type { PropsWithChildren } from 'react';
 import DataGridConfigContext from './DataGridConfigContext';
 

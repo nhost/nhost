@@ -1,5 +1,3 @@
-import type { DataGridProps } from '@/components/dataGrid/DataGrid';
-import { useDataGridConfig } from '@/components/dataGrid/DataGridConfigProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -9,7 +7,10 @@ import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
+import { Switch } from '@/components/ui/v2/Switch';
+import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -23,7 +24,7 @@ export interface DataGridHeaderProps<T extends object>
     >,
     Pick<
       DataGridProps<T>,
-      'onRemoveColumn' | 'onEditColumn' | 'onInsertColumn'
+      'onRemoveColumn' | 'onEditColumn' | 'onInsertColumn' | 'onToggleColumn'
     > {
   /**
    * Props to be passed to component slots.
@@ -51,6 +52,7 @@ export default function DataGridHeader<T extends object>({
   onRemoveColumn,
   onEditColumn,
   onInsertColumn,
+  onToggleColumn,
   componentsProps,
   ...props
 }: DataGridHeaderProps<T>) {
@@ -119,6 +121,12 @@ export default function DataGridHeader<T extends object>({
                 >
                   {column.render('Header')}
 
+                  {onToggleColumn && (
+                    <Switch
+                      checked={column.isVisible}
+                      className="self-center"
+                    />
+                  )}
                   {allowSort && (
                     <Box component="span" sx={{ color: 'text.primary' }}>
                       {column.isSorted && !column.isSortedDesc && (

@@ -1,13 +1,13 @@
-import type { UseDataGridOptions } from '@/components/dataGrid/DataGrid/useDataGrid';
-import { DataGridBody } from '@/components/dataGrid/DataGridBody';
-import { DataGridConfigProvider } from '@/components/dataGrid/DataGridConfigProvider';
-import { DataGridFrame } from '@/components/dataGrid/DataGridFrame';
-import type { DataGridHeaderProps } from '@/components/dataGrid/DataGridHeader';
-import { DataGridHeader } from '@/components/dataGrid/DataGridHeader';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
-import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
+import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
+import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { UseDataGridOptions } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
+import { DataGridBody } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBody';
+import { DataGridConfigProvider } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import { DataGridFrame } from '@/features/orgs/projects/storage/dataGrid/components/DataGridFrame';
+import type { DataGridHeaderProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
+import { DataGridHeader } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
 import type { ForwardedRef } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
 import mergeRefs from 'react-merge-refs';
@@ -63,6 +63,10 @@ export interface DataGridProps<TColumnData extends object>
    */
   onEditColumn?: (column: DataBrowserGridColumn<TColumnData>) => void;
   /**
+   * Function to be called when the user wants to toggle a column.
+   */
+  onToggleColumn?: (column: DataBrowserGridColumn<TColumnData>) => void;
+  /**
    * Determines whether or not data is loading.
    */
   loading?: boolean;
@@ -97,6 +101,7 @@ function DataGrid<TColumnData extends object>(
     onInsertColumn,
     onEditColumn,
     onRemoveColumn,
+    onToggleColumn,
     loading,
     className,
   }: DataGridProps<TColumnData>,
@@ -161,6 +166,7 @@ function DataGrid<TColumnData extends object>(
                 onInsertColumn={onInsertColumn}
                 onEditColumn={onEditColumn}
                 onRemoveColumn={onRemoveColumn}
+                onToggleColumn={onToggleColumn}
                 {...headerProps}
               />
 

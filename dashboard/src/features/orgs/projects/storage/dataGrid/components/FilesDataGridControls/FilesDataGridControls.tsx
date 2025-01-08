@@ -1,7 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { useDataGridConfig } from '@/components/dataGrid/DataGridConfigProvider';
-import type { DataGridPaginationProps } from '@/components/dataGrid/DataGridPagination';
-import { DataGridPagination } from '@/components/dataGrid/DataGridPagination';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -10,6 +7,9 @@ import type { InputProps } from '@/components/ui/v2/Input';
 import { Input } from '@/components/ui/v2/Input';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
+import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import type { FileUploadButtonProps } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
 import { FileUploadButton } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
 import type { Files } from '@/utils/__generated__/graphql';
