@@ -3191,6 +3191,12 @@ export type ContainerError = {
   name: Scalars['String'];
 };
 
+export type InsertRunServiceConfigResponse = {
+  __typename?: 'InsertRunServiceConfigResponse';
+  config: ConfigRunServiceConfig;
+  serviceID: Scalars['uuid'];
+};
+
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type Int_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['Int']>;
@@ -13530,7 +13536,7 @@ export type Mutation_Root = {
   insertRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
   /** insert a single row into the table: "run_service" */
   insertRunService?: Maybe<Run_Service>;
-  insertRunServiceConfig: ConfigRunServiceConfig;
+  insertRunServiceConfig: InsertRunServiceConfigResponse;
   /** insert data into the table: "run_service" */
   insertRunServices?: Maybe<Run_Service_Mutation_Response>;
   insertSecret: ConfigEnvironmentVariable;
@@ -15213,7 +15219,6 @@ export type Mutation_RootInsertRunServiceArgs = {
 export type Mutation_RootInsertRunServiceConfigArgs = {
   appID: Scalars['uuid'];
   config: ConfigRunServiceConfigInsertInput;
-  serviceID: Scalars['uuid'];
 };
 
 
@@ -16986,7 +16991,7 @@ export type Organization_Member_Invites = {
   role: Organization_Members_Role_Enum;
   updateAt: Scalars['timestamptz'];
   /** An object relationship */
-  user: Users;
+  user?: Maybe<Users>;
 };
 
 /** aggregated selection of "organization_member_invites" */
@@ -22517,9 +22522,6 @@ export type Run_Service = {
   appID: Scalars['uuid'];
   config?: Maybe<ConfigRunServiceConfig>;
   createdAt: Scalars['timestamptz'];
-  /** An object relationship */
-  creator: Users;
-  creatorUserId: Scalars['uuid'];
   id: Scalars['uuid'];
   mimirConfigEnc?: Maybe<Scalars['String']>;
   subdomain: Scalars['String'];
@@ -22587,8 +22589,6 @@ export type Run_Service_Bool_Exp = {
   app?: InputMaybe<Apps_Bool_Exp>;
   appID?: InputMaybe<Uuid_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  creator?: InputMaybe<Users_Bool_Exp>;
-  creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
   subdomain?: InputMaybe<String_Comparison_Exp>;
@@ -22608,8 +22608,6 @@ export type Run_Service_Insert_Input = {
   app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  creatorUserId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
@@ -22621,7 +22619,6 @@ export type Run_Service_Max_Fields = {
   __typename?: 'run_service_max_fields';
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
-  creatorUserId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   subdomain?: Maybe<Scalars['String']>;
@@ -22632,7 +22629,6 @@ export type Run_Service_Max_Fields = {
 export type Run_Service_Max_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  creatorUserId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
@@ -22644,7 +22640,6 @@ export type Run_Service_Min_Fields = {
   __typename?: 'run_service_min_fields';
   appID?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
-  creatorUserId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   subdomain?: Maybe<Scalars['String']>;
@@ -22655,7 +22650,6 @@ export type Run_Service_Min_Fields = {
 export type Run_Service_Min_Order_By = {
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  creatorUserId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
@@ -22683,8 +22677,6 @@ export type Run_Service_Order_By = {
   app?: InputMaybe<Apps_Order_By>;
   appID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  creator?: InputMaybe<Users_Order_By>;
-  creatorUserId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
@@ -22703,8 +22695,6 @@ export enum Run_Service_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
-  CreatorUserId = 'creatorUserId',
-  /** column name */
   Id = 'id',
   /** column name */
   MimirConfigEnc = 'mimirConfigEnc',
@@ -22718,7 +22708,6 @@ export enum Run_Service_Select_Column {
 export type Run_Service_Set_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  creatorUserId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
@@ -22737,7 +22726,6 @@ export type Run_Service_Stream_Cursor_Input = {
 export type Run_Service_Stream_Cursor_Value_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  creatorUserId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
@@ -22750,8 +22738,6 @@ export enum Run_Service_Update_Column {
   AppId = 'appID',
   /** column name */
   CreatedAt = 'createdAt',
-  /** column name */
-  CreatorUserId = 'creatorUserId',
   /** column name */
   Id = 'id',
   /** column name */
@@ -25315,10 +25301,6 @@ export type Users = {
   /** An aggregate relationship */
   roles_aggregate: AuthUserRoles_Aggregate;
   /** An array relationship */
-  runServices: Array<Run_Service>;
-  /** An aggregate relationship */
-  runServices_aggregate: Run_Service_Aggregate;
-  /** An array relationship */
   securityKeys: Array<AuthUserSecurityKeys>;
   /** An aggregate relationship */
   securityKeys_aggregate: AuthUserSecurityKeys_Aggregate;
@@ -25508,26 +25490,6 @@ export type UsersRoles_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersRunServicesArgs = {
-  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
-  where?: InputMaybe<Run_Service_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersRunServices_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
-  where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
 
@@ -25742,8 +25704,6 @@ export type Users_Bool_Exp = {
   role?: InputMaybe<AuthRoles_Bool_Exp>;
   roles?: InputMaybe<AuthUserRoles_Bool_Exp>;
   roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp>;
-  runServices?: InputMaybe<Run_Service_Bool_Exp>;
-  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Bool_Exp>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Bool_Exp>;
   ticket?: InputMaybe<String_Comparison_Exp>;
@@ -25818,7 +25778,6 @@ export type Users_Insert_Input = {
   refreshTokens?: InputMaybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   role?: InputMaybe<AuthRoles_Obj_Rel_Insert_Input>;
   roles?: InputMaybe<AuthUserRoles_Arr_Rel_Insert_Input>;
-  runServices?: InputMaybe<Run_Service_Arr_Rel_Insert_Input>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Arr_Rel_Insert_Input>;
   ticket?: InputMaybe<Scalars['String']>;
   ticketExpiresAt?: InputMaybe<Scalars['timestamptz']>;
@@ -25984,7 +25943,6 @@ export type Users_Order_By = {
   refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Order_By>;
   role?: InputMaybe<AuthRoles_Order_By>;
   roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Order_By>;
-  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Order_By>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
@@ -28592,21 +28550,13 @@ export type GetLocalRunServiceRateLimitQueryVariables = Exact<{
 
 export type GetLocalRunServiceRateLimitQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } }> };
 
-export type InsertRunServiceMutationVariables = Exact<{
-  object: Run_Service_Insert_Input;
-}>;
-
-
-export type InsertRunServiceMutation = { __typename?: 'mutation_root', insertRunService?: { __typename?: 'run_service', id: any, subdomain: string } | null };
-
 export type InsertRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
-  serviceID: Scalars['uuid'];
   config: ConfigRunServiceConfigInsertInput;
 }>;
 
 
-export type InsertRunServiceConfigMutation = { __typename?: 'mutation_root', insertRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: any } };
+export type InsertRunServiceConfigMutation = { __typename?: 'mutation_root', insertRunServiceConfig: { __typename?: 'InsertRunServiceConfigResponse', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any } } };
 
 export type ReplaceRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
@@ -34710,44 +34660,13 @@ export type GetLocalRunServiceRateLimitQueryResult = Apollo.QueryResult<GetLocal
 export function refetchGetLocalRunServiceRateLimitQuery(variables: GetLocalRunServiceRateLimitQueryVariables) {
       return { query: GetLocalRunServiceRateLimitDocument, variables: variables }
     }
-export const InsertRunServiceDocument = gql`
-    mutation insertRunService($object: run_service_insert_input!) {
-  insertRunService(object: $object) {
-    id
-    subdomain
-  }
-}
-    `;
-export type InsertRunServiceMutationFn = Apollo.MutationFunction<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
-
-/**
- * __useInsertRunServiceMutation__
- *
- * To run a mutation, you first call `useInsertRunServiceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertRunServiceMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertRunServiceMutation, { data, loading, error }] = useInsertRunServiceMutation({
- *   variables: {
- *      object: // value for 'object'
- *   },
- * });
- */
-export function useInsertRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertRunServiceMutation, InsertRunServiceMutationVariables>(InsertRunServiceDocument, options);
-      }
-export type InsertRunServiceMutationHookResult = ReturnType<typeof useInsertRunServiceMutation>;
-export type InsertRunServiceMutationResult = Apollo.MutationResult<InsertRunServiceMutation>;
-export type InsertRunServiceMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
 export const InsertRunServiceConfigDocument = gql`
-    mutation insertRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
-  insertRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
-    name
+    mutation insertRunServiceConfig($appID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
+  insertRunServiceConfig(appID: $appID, config: $config) {
+    serviceID
+    config {
+      name
+    }
   }
 }
     `;
@@ -34767,7 +34686,6 @@ export type InsertRunServiceConfigMutationFn = Apollo.MutationFunction<InsertRun
  * const [insertRunServiceConfigMutation, { data, loading, error }] = useInsertRunServiceConfigMutation({
  *   variables: {
  *      appID: // value for 'appID'
- *      serviceID: // value for 'serviceID'
  *      config: // value for 'config'
  *   },
  * });

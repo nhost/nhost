@@ -19,7 +19,6 @@ import { StorageFormSection } from '@/features/orgs/projects/services/components
 import { useHostName } from '@/features/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { v4 as uuidv4 } from 'uuid';
 
 import {
   validationSchema,
@@ -96,14 +95,14 @@ export default function ServiceForm({
     if (serviceID) {
       return serviceID;
     }
-    return uuidv4();
+    return '<uuid-to-be-generated-on-creation>';
   }, [serviceID]);
 
   const privateRegistryImage = `registry.${project?.region.name}.${project?.region.domain}/${newServiceID}`;
 
   let initialImageType: 'public' | 'private' | 'nhost' = 'public';
 
-  if (initialData?.image?.startsWith(privateRegistryImage)) {
+  if (initialData?.image?.startsWith(privateRegistryImage.split('/')[0])) {
     initialImageType = 'nhost';
   }
 
@@ -225,35 +224,14 @@ export default function ServiceForm({
         });
       }
     } else {
-      // Insert service config
-      // const {
-      //   data: {
-      //     insertRunService: { id },
-      //   },
-      // } = await insertRunService({
-      //   variables: {
-      //     object: {
-      //       appID: project.id,
-      //       id: newServiceID,
-      //     },
-      //   },
-      // });
-
-      console.log('inserting config', config);
-
+      // Create service
       await insertRunServiceConfig({
         variables: {
           appID: project.id,
-          serviceID: newServiceID,
           config: {
             ...config,
             image: {
-              // If the image field left empty then we auto-populate following this format
-              // registry.<region>.<nhost_domain>/<service_id>
-              image:
-                values.image.length > 0
-                  ? values.image
-                  : `registry.${project.region.name}.${project.region.domain}/${newServiceID}`,
+              image: values.image,
               pullCredentials:
                 values.pullCredentials?.length > 0
                   ? values.pullCredentials

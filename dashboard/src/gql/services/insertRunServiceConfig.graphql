@@ -1,13 +1,11 @@
 mutation insertRunServiceConfig(
   $appID: uuid!
-  $serviceID: uuid!
   $config: ConfigRunServiceConfigInsertInput!
 ) {
-  insertRunServiceConfig(
-    appID: $appID
-    serviceID: $serviceID
-    config: $config
-  ) {
-    name
+  insertRunServiceConfig(appID: $appID, config: $config) {
+    serviceID
+    config {
+      name
+    }
   }
 }
