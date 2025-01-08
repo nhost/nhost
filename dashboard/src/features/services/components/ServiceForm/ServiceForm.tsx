@@ -28,16 +28,15 @@ import {
   type ServiceFormValues,
 } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import {
+  useInsertRunServiceConfigMutation,
+  useReplaceRunServiceConfigMutation,
+  type ConfigRunServiceConfigInsertInput,
+} from '@/utils/__generated__/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { removeTypename } from '@/utils/helpers';
-import {
-  useInsertRunServiceConfigMutation,
-  useInsertRunServiceMutation,
-  useReplaceRunServiceConfigMutation,
-  type ConfigRunServiceConfigInsertInput,
-} from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -57,7 +56,6 @@ export default function ServiceForm({
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { onDirtyStateChange, openDialog, closeDialog } = useDialog();
-  const [insertRunService] = useInsertRunServiceMutation();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
   const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation({
@@ -187,20 +185,11 @@ export default function ServiceForm({
       // Insert service config
       const {
         data: {
-          insertRunService: { id: newServiceID, subdomain },
+          insertRunServiceConfig: { serviceID: newServiceID },
         },
-      } = await insertRunService({
-        variables: {
-          object: {
-            appID: currentProject.id,
-          },
-        },
-      });
-
-      await insertRunServiceConfig({
+      } = await insertRunServiceConfig({
         variables: {
           appID: currentProject.id,
-          serviceID: newServiceID,
           config: {
             ...config,
             image: {
@@ -209,14 +198,14 @@ export default function ServiceForm({
               image:
                 values.image.length > 0
                   ? values.image
-                  : `registry.${currentProject.region.name}.${currentProject.region.domain}/${newServiceID}`,
+                  : `registry.${currentProject.region.name}.${currentProject.region.domain}/<uuid-to-be-generated-on-creation>`,
             },
           },
         },
       });
 
       setDetailsServiceId(newServiceID);
-      setDetailsServiceSubdomain(subdomain);
+      setDetailsServiceSubdomain('');
     }
   };
 
@@ -322,7 +311,7 @@ export default function ServiceForm({
               <Tooltip title="Name of the service, must be unique per project.">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -362,7 +351,7 @@ export default function ServiceForm({
               >
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -393,7 +382,7 @@ export default function ServiceForm({
               <Tooltip title="Command to run when to start the service. This is optional as the image may already have a baked-in command.">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -441,7 +430,7 @@ export default function ServiceForm({
         {createServiceFormError && (
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}
