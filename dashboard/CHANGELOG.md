@@ -1,5 +1,27 @@
 # @nhost/dashboard
 
+## 2.13.0
+
+### Minor Changes
+
+- 21e90da: chore: remove restrictions on SMTP sender so My Name <name@acme.com> can be added
+- 865dd93: fix: duplicate Run placeholders when there is an error in the backend
+- 6902a36: fix: can remove resources if postgres capacity is higher than 10
+- a535aa3: fix: fetch user roles locally in auth section
+- 0c50816: fix: allow decimal numbers in database row insert
+- aea6d18: chore: add warning when pausing a project about losing Run services persistent volume data
+- d3b4fc3: feat: allow to change postgres settings if project is paused
+- 29d27e1: chore: update `next` to v14.2.22 to fix vulnerabilities
+- c9dca09: feat: add reset password form
+- b3bcacb: fix: paused project banner cannot read null project name
+
+### Patch Changes
+
+- Updated dependencies [46fc520]
+- Updated dependencies [29d27e1]
+  - @nhost/nextjs@2.2.0
+  - @nhost/react-apollo@15.0.1
+
 ## 2.12.0
 
 ### Minor Changes

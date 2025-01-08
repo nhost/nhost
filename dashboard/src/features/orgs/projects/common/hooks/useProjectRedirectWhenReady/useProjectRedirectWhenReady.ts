@@ -24,7 +24,7 @@ export default function useProjectRedirectWhenReady(
   const { data, client, startPolling, ...rest } = useGetApplicationStateQuery({
     ...options,
     variables: { ...options.variables, appId: project?.id },
-    skip: !project.id,
+    skip: !project?.id,
   });
 
   useEffect(() => {

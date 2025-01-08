@@ -1,5 +1,19 @@
 # @nhost-examples/nextjs
 
+## 0.4.0
+
+### Minor Changes
+
+- 29d27e1: chore: update `next` to v14.2.22 to fix vulnerabilities
+
+### Patch Changes
+
+- Updated dependencies [46fc520]
+- Updated dependencies [29d27e1]
+  - @nhost/nextjs@2.2.0
+  - @nhost/react@3.8.1
+  - @nhost/react-apollo@15.0.1
+
 ## 0.3.15
 
 ### Patch Changes

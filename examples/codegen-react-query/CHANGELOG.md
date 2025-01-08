@@ -1,5 +1,11 @@
 # @nhost-examples/codegen-react-query
 
+## 0.4.16
+
+### Patch Changes
+
+- @nhost/react@3.8.1
+
 ## 0.4.15
 
 ### Patch Changes

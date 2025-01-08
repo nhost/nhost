@@ -4,15 +4,15 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 
-export type DataGridNumericCellProps<TData extends object> =
+export type DataGridIntegerCellProps<TData extends object> =
   CommonDataGridCellProps<TData, number>;
 
-export default function DataGridNumericCell<TData extends object>({
+export default function DataGridIntegerCell<TData extends object>({
   onSave,
   optimisticValue,
   temporaryValue,
   onTemporaryValueChange,
-}: DataGridNumericCellProps<TData>) {
+}: DataGridIntegerCellProps<TData>) {
   const { inputRef, focusCell, isEditing, cancelEditCell } =
     useDataGridCell<HTMLInputElement>();
 
