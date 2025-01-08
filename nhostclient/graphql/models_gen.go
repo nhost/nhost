@@ -1300,6 +1300,11 @@ type ContainerError struct {
 	Name      string     `json:"name"`
 }
 
+type InsertRunServiceConfigResponse struct {
+	Config    *ConfigRunServiceConfig `json:"config"`
+	ServiceID string                  `json:"serviceID"`
+}
+
 // Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
 type IntComparisonExp struct {
 	Eq     *int64  `json:"_eq,omitempty"`
@@ -1792,7 +1797,6 @@ type AppsInsertInput struct {
 	Name           *string                        `json:"name,omitempty"`
 	OrganizationID *string                        `json:"organizationID,omitempty"`
 	RegionID       *string                        `json:"regionId,omitempty"`
-	RunServices    *RunServiceArrRelInsertInput   `json:"runServices,omitempty"`
 	Slug           *string                        `json:"slug,omitempty"`
 	Workspace      *WorkspacesObjRelInsertInput   `json:"workspace,omitempty"`
 }
@@ -4278,12 +4282,9 @@ type RunService struct {
 	AppID     string                  `json:"appID"`
 	Config    *ConfigRunServiceConfig `json:"config,omitempty"`
 	CreatedAt time.Time               `json:"createdAt"`
-	// An object relationship
-	Creator       *Users    `json:"creator"`
-	CreatorUserID string    `json:"creatorUserId"`
-	ID            string    `json:"id"`
-	Subdomain     string    `json:"subdomain"`
-	UpdatedAt     time.Time `json:"updatedAt"`
+	ID        string                  `json:"id"`
+	Subdomain string                  `json:"subdomain"`
+	UpdatedAt time.Time               `json:"updatedAt"`
 }
 
 // aggregated selection of "run_service"
@@ -4317,73 +4318,53 @@ type RunServiceAggregateOrderBy struct {
 	Min   *RunServiceMinOrderBy `json:"min,omitempty"`
 }
 
-// input type for inserting array relation for remote table "run_service"
-type RunServiceArrRelInsertInput struct {
-	Data []*RunServiceInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *RunServiceOnConflict `json:"on_conflict,omitempty"`
-}
-
 // Boolean expression to filter rows from the table "run_service". All fields are combined with a logical 'AND'.
 type RunServiceBoolExp struct {
-	And           []*RunServiceBoolExp      `json:"_and,omitempty"`
-	Not           *RunServiceBoolExp        `json:"_not,omitempty"`
-	Or            []*RunServiceBoolExp      `json:"_or,omitempty"`
-	App           *AppsBoolExp              `json:"app,omitempty"`
-	AppID         *UUIDComparisonExp        `json:"appID,omitempty"`
-	CreatedAt     *TimestamptzComparisonExp `json:"createdAt,omitempty"`
-	Creator       *UsersBoolExp             `json:"creator,omitempty"`
-	CreatorUserID *UUIDComparisonExp        `json:"creatorUserId,omitempty"`
-	ID            *UUIDComparisonExp        `json:"id,omitempty"`
-	Subdomain     *StringComparisonExp      `json:"subdomain,omitempty"`
-	UpdatedAt     *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
-}
-
-// input type for inserting data into table "run_service"
-type RunServiceInsertInput struct {
-	App   *AppsObjRelInsertInput `json:"app,omitempty"`
-	AppID *string                `json:"appID,omitempty"`
-	ID    *string                `json:"id,omitempty"`
+	And       []*RunServiceBoolExp      `json:"_and,omitempty"`
+	Not       *RunServiceBoolExp        `json:"_not,omitempty"`
+	Or        []*RunServiceBoolExp      `json:"_or,omitempty"`
+	App       *AppsBoolExp              `json:"app,omitempty"`
+	AppID     *UUIDComparisonExp        `json:"appID,omitempty"`
+	CreatedAt *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	ID        *UUIDComparisonExp        `json:"id,omitempty"`
+	Subdomain *StringComparisonExp      `json:"subdomain,omitempty"`
+	UpdatedAt *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
 }
 
 // aggregate max on columns
 type RunServiceMaxFields struct {
-	AppID         *string    `json:"appID,omitempty"`
-	CreatedAt     *time.Time `json:"createdAt,omitempty"`
-	CreatorUserID *string    `json:"creatorUserId,omitempty"`
-	ID            *string    `json:"id,omitempty"`
-	Subdomain     *string    `json:"subdomain,omitempty"`
-	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
+	AppID     *string    `json:"appID,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	Subdomain *string    `json:"subdomain,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 }
 
 // order by max() on columns of table "run_service"
 type RunServiceMaxOrderBy struct {
-	AppID         *OrderBy `json:"appID,omitempty"`
-	CreatedAt     *OrderBy `json:"createdAt,omitempty"`
-	CreatorUserID *OrderBy `json:"creatorUserId,omitempty"`
-	ID            *OrderBy `json:"id,omitempty"`
-	Subdomain     *OrderBy `json:"subdomain,omitempty"`
-	UpdatedAt     *OrderBy `json:"updatedAt,omitempty"`
+	AppID     *OrderBy `json:"appID,omitempty"`
+	CreatedAt *OrderBy `json:"createdAt,omitempty"`
+	ID        *OrderBy `json:"id,omitempty"`
+	Subdomain *OrderBy `json:"subdomain,omitempty"`
+	UpdatedAt *OrderBy `json:"updatedAt,omitempty"`
 }
 
 // aggregate min on columns
 type RunServiceMinFields struct {
-	AppID         *string    `json:"appID,omitempty"`
-	CreatedAt     *time.Time `json:"createdAt,omitempty"`
-	CreatorUserID *string    `json:"creatorUserId,omitempty"`
-	ID            *string    `json:"id,omitempty"`
-	Subdomain     *string    `json:"subdomain,omitempty"`
-	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
+	AppID     *string    `json:"appID,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	Subdomain *string    `json:"subdomain,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 }
 
 // order by min() on columns of table "run_service"
 type RunServiceMinOrderBy struct {
-	AppID         *OrderBy `json:"appID,omitempty"`
-	CreatedAt     *OrderBy `json:"createdAt,omitempty"`
-	CreatorUserID *OrderBy `json:"creatorUserId,omitempty"`
-	ID            *OrderBy `json:"id,omitempty"`
-	Subdomain     *OrderBy `json:"subdomain,omitempty"`
-	UpdatedAt     *OrderBy `json:"updatedAt,omitempty"`
+	AppID     *OrderBy `json:"appID,omitempty"`
+	CreatedAt *OrderBy `json:"createdAt,omitempty"`
+	ID        *OrderBy `json:"id,omitempty"`
+	Subdomain *OrderBy `json:"subdomain,omitempty"`
+	UpdatedAt *OrderBy `json:"updatedAt,omitempty"`
 }
 
 // response of any mutation on the table "run_service"
@@ -4394,23 +4375,14 @@ type RunServiceMutationResponse struct {
 	Returning []*RunService `json:"returning"`
 }
 
-// on_conflict condition type for table "run_service"
-type RunServiceOnConflict struct {
-	Constraint    RunServiceConstraint     `json:"constraint"`
-	UpdateColumns []RunServiceUpdateColumn `json:"update_columns"`
-	Where         *RunServiceBoolExp       `json:"where,omitempty"`
-}
-
 // Ordering options when selecting data from "run_service".
 type RunServiceOrderBy struct {
-	App           *AppsOrderBy  `json:"app,omitempty"`
-	AppID         *OrderBy      `json:"appID,omitempty"`
-	CreatedAt     *OrderBy      `json:"createdAt,omitempty"`
-	Creator       *UsersOrderBy `json:"creator,omitempty"`
-	CreatorUserID *OrderBy      `json:"creatorUserId,omitempty"`
-	ID            *OrderBy      `json:"id,omitempty"`
-	Subdomain     *OrderBy      `json:"subdomain,omitempty"`
-	UpdatedAt     *OrderBy      `json:"updatedAt,omitempty"`
+	App       *AppsOrderBy `json:"app,omitempty"`
+	AppID     *OrderBy     `json:"appID,omitempty"`
+	CreatedAt *OrderBy     `json:"createdAt,omitempty"`
+	ID        *OrderBy     `json:"id,omitempty"`
+	Subdomain *OrderBy     `json:"subdomain,omitempty"`
+	UpdatedAt *OrderBy     `json:"updatedAt,omitempty"`
 }
 
 // Streaming cursor of the table "run_service"
@@ -4423,12 +4395,11 @@ type RunServiceStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type RunServiceStreamCursorValueInput struct {
-	AppID         *string    `json:"appID,omitempty"`
-	CreatedAt     *time.Time `json:"createdAt,omitempty"`
-	CreatorUserID *string    `json:"creatorUserId,omitempty"`
-	ID            *string    `json:"id,omitempty"`
-	Subdomain     *string    `json:"subdomain,omitempty"`
-	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
+	AppID     *string    `json:"appID,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	Subdomain *string    `json:"subdomain,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 }
 
 // Boolean expression to compare columns of type "software_type_enum". All fields are combined with logical 'AND'.
@@ -4698,10 +4669,6 @@ type Users struct {
 	// An array relationship
 	RefreshTokens []*AuthRefreshTokens `json:"refreshTokens"`
 	// An array relationship
-	RunServices []*RunService `json:"runServices"`
-	// An aggregate relationship
-	RunServicesAggregate *RunServiceAggregate `json:"runServices_aggregate"`
-	// An array relationship
 	UserProviders []*AuthUserProviders `json:"userProviders"`
 	// An array relationship
 	WorkspaceMemberInvitesByInvitedByUserID []*WorkspaceMemberInvites `json:"workspaceMemberInvitesByInvitedByUserId"`
@@ -4727,8 +4694,6 @@ type UsersBoolExp struct {
 	OrganizationMembership                  *OrganizationMembersBoolExp    `json:"organizationMembership,omitempty"`
 	PaymentMethods                          *PaymentMethodsBoolExp         `json:"payment_methods,omitempty"`
 	RefreshTokens                           *AuthRefreshTokensBoolExp      `json:"refreshTokens,omitempty"`
-	RunServices                             *RunServiceBoolExp             `json:"runServices,omitempty"`
-	RunServicesAggregate                    *RunServiceAggregateBoolExp    `json:"runServices_aggregate,omitempty"`
 	UserProviders                           *AuthUserProvidersBoolExp      `json:"userProviders,omitempty"`
 	WorkspaceMemberInvitesByInvitedByUserID *WorkspaceMemberInvitesBoolExp `json:"workspaceMemberInvitesByInvitedByUserId,omitempty"`
 	WorkspaceMembers                        *WorkspaceMembersBoolExp       `json:"workspaceMembers,omitempty"`
@@ -4756,7 +4721,6 @@ type UsersOrderBy struct {
 	OrganizationMembershipAggregate                  *OrganizationMembersAggregateOrderBy    `json:"organizationMembership_aggregate,omitempty"`
 	PaymentMethodsAggregate                          *PaymentMethodsAggregateOrderBy         `json:"payment_methods_aggregate,omitempty"`
 	RefreshTokensAggregate                           *AuthRefreshTokensAggregateOrderBy      `json:"refreshTokens_aggregate,omitempty"`
-	RunServicesAggregate                             *RunServiceAggregateOrderBy             `json:"runServices_aggregate,omitempty"`
 	UserProvidersAggregate                           *AuthUserProvidersAggregateOrderBy      `json:"userProviders_aggregate,omitempty"`
 	WorkspaceMemberInvitesByInvitedByUserIDAggregate *WorkspaceMemberInvitesAggregateOrderBy `json:"workspaceMemberInvitesByInvitedByUserId_aggregate,omitempty"`
 	WorkspaceMembersAggregate                        *WorkspaceMembersAggregateOrderBy       `json:"workspaceMembers_aggregate,omitempty"`
@@ -7804,50 +7768,6 @@ func (e RegionsSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-// unique or primary key constraints on table "run_service"
-type RunServiceConstraint string
-
-const (
-	// unique or primary key constraint on columns "id"
-	RunServiceConstraintRunServicePkey RunServiceConstraint = "run_service_pkey"
-	// unique or primary key constraint on columns "subdomain"
-	RunServiceConstraintRunServiceSubdomainKey RunServiceConstraint = "run_service_subdomain_key"
-)
-
-var AllRunServiceConstraint = []RunServiceConstraint{
-	RunServiceConstraintRunServicePkey,
-	RunServiceConstraintRunServiceSubdomainKey,
-}
-
-func (e RunServiceConstraint) IsValid() bool {
-	switch e {
-	case RunServiceConstraintRunServicePkey, RunServiceConstraintRunServiceSubdomainKey:
-		return true
-	}
-	return false
-}
-
-func (e RunServiceConstraint) String() string {
-	return string(e)
-}
-
-func (e *RunServiceConstraint) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = RunServiceConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid run_service_constraint", str)
-	}
-	return nil
-}
-
-func (e RunServiceConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 // select columns of table "run_service"
 type RunServiceSelectColumn string
 
@@ -7856,8 +7776,6 @@ const (
 	RunServiceSelectColumnAppID RunServiceSelectColumn = "appID"
 	// column name
 	RunServiceSelectColumnCreatedAt RunServiceSelectColumn = "createdAt"
-	// column name
-	RunServiceSelectColumnCreatorUserID RunServiceSelectColumn = "creatorUserId"
 	// column name
 	RunServiceSelectColumnID RunServiceSelectColumn = "id"
 	// column name
@@ -7869,7 +7787,6 @@ const (
 var AllRunServiceSelectColumn = []RunServiceSelectColumn{
 	RunServiceSelectColumnAppID,
 	RunServiceSelectColumnCreatedAt,
-	RunServiceSelectColumnCreatorUserID,
 	RunServiceSelectColumnID,
 	RunServiceSelectColumnSubdomain,
 	RunServiceSelectColumnUpdatedAt,
@@ -7877,7 +7794,7 @@ var AllRunServiceSelectColumn = []RunServiceSelectColumn{
 
 func (e RunServiceSelectColumn) IsValid() bool {
 	switch e {
-	case RunServiceSelectColumnAppID, RunServiceSelectColumnCreatedAt, RunServiceSelectColumnCreatorUserID, RunServiceSelectColumnID, RunServiceSelectColumnSubdomain, RunServiceSelectColumnUpdatedAt:
+	case RunServiceSelectColumnAppID, RunServiceSelectColumnCreatedAt, RunServiceSelectColumnID, RunServiceSelectColumnSubdomain, RunServiceSelectColumnUpdatedAt:
 		return true
 	}
 	return false
@@ -7901,47 +7818,6 @@ func (e *RunServiceSelectColumn) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RunServiceSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// placeholder for update columns of table "run_service" (current role has no relevant permissions)
-type RunServiceUpdateColumn string
-
-const (
-	// placeholder (do not use)
-	RunServiceUpdateColumnPlaceholder RunServiceUpdateColumn = "_PLACEHOLDER"
-)
-
-var AllRunServiceUpdateColumn = []RunServiceUpdateColumn{
-	RunServiceUpdateColumnPlaceholder,
-}
-
-func (e RunServiceUpdateColumn) IsValid() bool {
-	switch e {
-	case RunServiceUpdateColumnPlaceholder:
-		return true
-	}
-	return false
-}
-
-func (e RunServiceUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *RunServiceUpdateColumn) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = RunServiceUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid run_service_update_column", str)
-	}
-	return nil
-}
-
-func (e RunServiceUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

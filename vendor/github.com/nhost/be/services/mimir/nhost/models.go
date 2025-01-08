@@ -618,7 +618,6 @@ type RunService struct {
 	UpdatedAt      pgtype.Timestamptz
 	AppID          uuid.UUID
 	MimirConfigEnc pgtype.Text
-	CreatorUserID  uuid.UUID
 	Subdomain      string
 }
 
@@ -656,11 +655,22 @@ type StorageFile struct {
 	Etag             pgtype.Text
 	IsUploaded       pgtype.Bool
 	UploadedByUserID pgtype.UUID
+	Metadata         []byte
 }
 
 type StorageSchemaMigration struct {
 	Version int64
 	Dirty   bool
+}
+
+type StorageVirus struct {
+	ID          uuid.UUID
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	FileID      uuid.UUID
+	Filename    string
+	Virus       string
+	UserSession []byte
 }
 
 type Workspace struct {

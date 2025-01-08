@@ -30,6 +30,11 @@ type ConfigRunServiceConfigWithID {
     config: ConfigRunServiceConfig!
 }
 
+type InsertRunServiceConfigResponse {
+    serviceID: uuid!
+    config: ConfigRunServiceConfig!
+}
+
 type Query {
     configRawJSON(
         appID: uuid! @hasAppVisibility,
@@ -127,9 +132,8 @@ type Mutation {
 
     insertRunServiceConfig(
         appID: uuid! @hasAppVisibility,
-        serviceID: uuid!,
         config: ConfigRunServiceConfigInsertInput!,
-    ): ConfigRunServiceConfig!
+    ): InsertRunServiceConfigResponse!
     updateRunServiceConfig(
         appID: uuid! @hasAppVisibility,
         serviceID: uuid!,

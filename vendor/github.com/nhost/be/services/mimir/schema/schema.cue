@@ -147,7 +147,7 @@ import (
 #Hasura: {
 	// Version of hasura, you can see available versions in the URL below:
 	// https://hub.docker.com/r/hasura/graphql-engine/tags
-	version: string | *"v2.38.0-ce"
+	version: string | *"v2.36.9-ce"
 
 	// JWT Secrets configuration
 	jwtSecrets: [#JWTSecret]
@@ -252,7 +252,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.13-20240909-1"
+	version: string | *"14.13-20250108-1"
 
 	// Resources for the service
 	resources?: {
@@ -303,7 +303,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.33.0"
+	version: string | *"0.36.1"
 
 	// Resources for the service
 	resources?: #Resources
@@ -644,7 +644,7 @@ import (
 }
 
 #AI: {
-	version: string | *"0.6.1"
+	version: string | *"0.7.1"
 	resources: {
 		compute: #ComputeResources
 	}

@@ -3,7 +3,9 @@ package graph
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/google/uuid"
 	nhcontext "github.com/nhost/be/lib/graphql/context"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema"
@@ -42,9 +44,8 @@ func nameMustBeUnique(svcs Services, serviceID, name string) error {
 func (r *mutationResolver) insertRunServiceConfig(
 	ctx context.Context,
 	appID string,
-	serviceID string,
 	configInput model.ConfigRunServiceConfigInsertInput,
-) (*model.ConfigRunServiceConfig, error) {
+) (*model.InsertRunServiceConfigResponse, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -53,6 +54,8 @@ func (r *mutationResolver) insertRunServiceConfig(
 		return nil, err
 	}
 	app := r.data[i]
+
+	serviceID := uuid.NewString()
 
 	if _, err := app.IndexService(serviceID); err == nil {
 		return nil, ErrServiceAlreadyExists
@@ -64,6 +67,12 @@ func (r *mutationResolver) insertRunServiceConfig(
 
 	config := &model.ConfigRunServiceConfig{} //nolint:exhaustruct
 	config.Insert(&configInput)
+
+	config.Image.Image = strings.ReplaceAll(
+		config.Image.Image,
+		"<uuid-to-be-generated-on-creation>",
+		serviceID,
+	)
 
 	svc := &Service{
 		ServiceID:      serviceID,
@@ -85,5 +94,8 @@ func (r *mutationResolver) insertRunServiceConfig(
 
 	app.Services = append(app.Services, svc)
 
-	return config, nil
+	return &model.InsertRunServiceConfigResponse{
+		ServiceID: serviceID,
+		Config:    config,
+	}, nil
 }

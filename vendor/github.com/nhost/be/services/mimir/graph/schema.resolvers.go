@@ -62,8 +62,8 @@ func (r *mutationResolver) UpdateSystemConfig(ctx context.Context, appID string,
 }
 
 // InsertRunServiceConfig is the resolver for the insertRunServiceConfig field.
-func (r *mutationResolver) InsertRunServiceConfig(ctx context.Context, appID string, serviceID string, config model.ConfigRunServiceConfigInsertInput) (*model.ConfigRunServiceConfig, error) {
-	return r.insertRunServiceConfig(ctx, appID, serviceID, config)
+func (r *mutationResolver) InsertRunServiceConfig(ctx context.Context, appID string, config model.ConfigRunServiceConfigInsertInput) (*model.InsertRunServiceConfigResponse, error) {
+	return r.insertRunServiceConfig(ctx, appID, config)
 }
 
 // UpdateRunServiceConfig is the resolver for the updateRunServiceConfig field.

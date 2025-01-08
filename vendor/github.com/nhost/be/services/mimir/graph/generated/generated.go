@@ -693,13 +693,18 @@ type ComplexityRoot struct {
 		Tput func(childComplexity int) int
 	}
 
+	InsertRunServiceConfigResponse struct {
+		Config    func(childComplexity int) int
+		ServiceID func(childComplexity int) int
+	}
+
 	Mutation struct {
 		ChangeDatabaseVersion   func(childComplexity int, appID string, version string, force *bool) int
 		DeleteConfig            func(childComplexity int, appID string) int
 		DeleteRunServiceConfig  func(childComplexity int, appID string, serviceID string) int
 		DeleteSecret            func(childComplexity int, appID string, key string) int
 		InsertConfig            func(childComplexity int, appID string, config model.ConfigConfigInsertInput, systemConfig model.ConfigSystemConfigInsertInput, secrets []*model.ConfigEnvironmentVariableInsertInput) int
-		InsertRunServiceConfig  func(childComplexity int, appID string, serviceID string, config model.ConfigRunServiceConfigInsertInput) int
+		InsertRunServiceConfig  func(childComplexity int, appID string, config model.ConfigRunServiceConfigInsertInput) int
 		InsertSecret            func(childComplexity int, appID string, secret model.ConfigEnvironmentVariableInsertInput) int
 		ReplaceConfig           func(childComplexity int, appID string, config model.ConfigConfigInsertInput) int
 		ReplaceConfigRawJSON    func(childComplexity int, appID string, rawJSON string) int
@@ -736,7 +741,7 @@ type MutationResolver interface {
 	UpdateSecret(ctx context.Context, appID string, secret model.ConfigEnvironmentVariableInsertInput) (*model.ConfigEnvironmentVariable, error)
 	DeleteSecret(ctx context.Context, appID string, key string) (*model.ConfigEnvironmentVariable, error)
 	UpdateSystemConfig(ctx context.Context, appID string, systemConfig model.ConfigSystemConfigUpdateInput) (*model.ConfigSystemConfig, error)
-	InsertRunServiceConfig(ctx context.Context, appID string, serviceID string, config model.ConfigRunServiceConfigInsertInput) (*model.ConfigRunServiceConfig, error)
+	InsertRunServiceConfig(ctx context.Context, appID string, config model.ConfigRunServiceConfigInsertInput) (*model.InsertRunServiceConfigResponse, error)
 	UpdateRunServiceConfig(ctx context.Context, appID string, serviceID string, config model.ConfigRunServiceConfigUpdateInput) (*model.ConfigRunServiceConfig, error)
 	ReplaceRunServiceConfig(ctx context.Context, appID string, serviceID string, config model.ConfigRunServiceConfigInsertInput) (*model.ConfigRunServiceConfig, error)
 	DeleteRunServiceConfig(ctx context.Context, appID string, serviceID string) (*model.ConfigRunServiceConfig, error)
@@ -3182,6 +3187,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigSystemConfigPostgresDisk.Tput(childComplexity), true
 
+	case "InsertRunServiceConfigResponse.config":
+		if e.complexity.InsertRunServiceConfigResponse.Config == nil {
+			break
+		}
+
+		return e.complexity.InsertRunServiceConfigResponse.Config(childComplexity), true
+
+	case "InsertRunServiceConfigResponse.serviceID":
+		if e.complexity.InsertRunServiceConfigResponse.ServiceID == nil {
+			break
+		}
+
+		return e.complexity.InsertRunServiceConfigResponse.ServiceID(childComplexity), true
+
 	case "Mutation.changeDatabaseVersion":
 		if e.complexity.Mutation.ChangeDatabaseVersion == nil {
 			break
@@ -3252,7 +3271,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InsertRunServiceConfig(childComplexity, args["appID"].(string), args["serviceID"].(string), args["config"].(model.ConfigRunServiceConfigInsertInput)), true
+		return e.complexity.Mutation.InsertRunServiceConfig(childComplexity, args["appID"].(string), args["config"].(model.ConfigRunServiceConfigInsertInput)), true
 
 	case "Mutation.insertSecret":
 		if e.complexity.Mutation.InsertSecret == nil {
@@ -3824,6 +3843,11 @@ type ConfigRunServiceConfigWithID {
     config: ConfigRunServiceConfig!
 }
 
+type InsertRunServiceConfigResponse {
+    serviceID: uuid!
+    config: ConfigRunServiceConfig!
+}
+
 type Query {
     configRawJSON(
         appID: uuid! @hasAppVisibility,
@@ -3921,9 +3945,8 @@ type Mutation {
 
     insertRunServiceConfig(
         appID: uuid! @hasAppVisibility,
-        serviceID: uuid!,
         config: ConfigRunServiceConfigInsertInput!,
-    ): ConfigRunServiceConfig!
+    ): InsertRunServiceConfigResponse!
     updateRunServiceConfig(
         appID: uuid! @hasAppVisibility,
         serviceID: uuid!,
@@ -8647,16 +8670,11 @@ func (ec *executionContext) field_Mutation_insertRunServiceConfig_args(ctx conte
 		return nil, err
 	}
 	args["appID"] = arg0
-	arg1, err := ec.field_Mutation_insertRunServiceConfig_argsServiceID(ctx, rawArgs)
+	arg1, err := ec.field_Mutation_insertRunServiceConfig_argsConfig(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["serviceID"] = arg1
-	arg2, err := ec.field_Mutation_insertRunServiceConfig_argsConfig(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["config"] = arg2
+	args["config"] = arg1
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsAppID(
@@ -8701,28 +8719,6 @@ func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsAppID(
 		var zeroVal string
 		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 	}
-}
-
-func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsServiceID(
-	ctx context.Context,
-	rawArgs map[string]interface{},
-) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["serviceID"]
-	if !ok {
-		var zeroVal string
-		return zeroVal, nil
-	}
-
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceID"))
-	if tmp, ok := rawArgs["serviceID"]; ok {
-		return ec.unmarshalNuuid2string(ctx, tmp)
-	}
-
-	var zeroVal string
-	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsConfig(
@@ -25857,6 +25853,110 @@ func (ec *executionContext) fieldContext_ConfigSystemConfigPostgresDisk_tput(_ c
 	return fc, nil
 }
 
+func (ec *executionContext) _InsertRunServiceConfigResponse_serviceID(ctx context.Context, field graphql.CollectedField, obj *model.InsertRunServiceConfigResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InsertRunServiceConfigResponse_serviceID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNuuid2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_InsertRunServiceConfigResponse_serviceID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InsertRunServiceConfigResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type uuid does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _InsertRunServiceConfigResponse_config(ctx context.Context, field graphql.CollectedField, obj *model.InsertRunServiceConfigResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InsertRunServiceConfigResponse_config(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Config, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRunServiceConfig)
+	fc.Result = res
+	return ec.marshalNConfigRunServiceConfig2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_InsertRunServiceConfigResponse_config(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InsertRunServiceConfigResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_ConfigRunServiceConfig_name(ctx, field)
+			case "image":
+				return ec.fieldContext_ConfigRunServiceConfig_image(ctx, field)
+			case "command":
+				return ec.fieldContext_ConfigRunServiceConfig_command(ctx, field)
+			case "environment":
+				return ec.fieldContext_ConfigRunServiceConfig_environment(ctx, field)
+			case "ports":
+				return ec.fieldContext_ConfigRunServiceConfig_ports(ctx, field)
+			case "resources":
+				return ec.fieldContext_ConfigRunServiceConfig_resources(ctx, field)
+			case "healthCheck":
+				return ec.fieldContext_ConfigRunServiceConfig_healthCheck(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRunServiceConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_updateConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_updateConfig(ctx, field)
 	if err != nil {
@@ -26517,7 +26617,7 @@ func (ec *executionContext) _Mutation_insertRunServiceConfig(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InsertRunServiceConfig(rctx, fc.Args["appID"].(string), fc.Args["serviceID"].(string), fc.Args["config"].(model.ConfigRunServiceConfigInsertInput))
+		return ec.resolvers.Mutation().InsertRunServiceConfig(rctx, fc.Args["appID"].(string), fc.Args["config"].(model.ConfigRunServiceConfigInsertInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26529,9 +26629,9 @@ func (ec *executionContext) _Mutation_insertRunServiceConfig(ctx context.Context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ConfigRunServiceConfig)
+	res := resTmp.(*model.InsertRunServiceConfigResponse)
 	fc.Result = res
-	return ec.marshalNConfigRunServiceConfig2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfig(ctx, field.Selections, res)
+	return ec.marshalNInsertRunServiceConfigResponse2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐInsertRunServiceConfigResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_insertRunServiceConfig(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -26542,22 +26642,12 @@ func (ec *executionContext) fieldContext_Mutation_insertRunServiceConfig(ctx con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "name":
-				return ec.fieldContext_ConfigRunServiceConfig_name(ctx, field)
-			case "image":
-				return ec.fieldContext_ConfigRunServiceConfig_image(ctx, field)
-			case "command":
-				return ec.fieldContext_ConfigRunServiceConfig_command(ctx, field)
-			case "environment":
-				return ec.fieldContext_ConfigRunServiceConfig_environment(ctx, field)
-			case "ports":
-				return ec.fieldContext_ConfigRunServiceConfig_ports(ctx, field)
-			case "resources":
-				return ec.fieldContext_ConfigRunServiceConfig_resources(ctx, field)
-			case "healthCheck":
-				return ec.fieldContext_ConfigRunServiceConfig_healthCheck(ctx, field)
+			case "serviceID":
+				return ec.fieldContext_InsertRunServiceConfigResponse_serviceID(ctx, field)
+			case "config":
+				return ec.fieldContext_InsertRunServiceConfigResponse_config(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigRunServiceConfig", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type InsertRunServiceConfigResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -45156,6 +45246,50 @@ func (ec *executionContext) _ConfigSystemConfigPostgresDisk(ctx context.Context,
 	return out
 }
 
+var insertRunServiceConfigResponseImplementors = []string{"InsertRunServiceConfigResponse"}
+
+func (ec *executionContext) _InsertRunServiceConfigResponse(ctx context.Context, sel ast.SelectionSet, obj *model.InsertRunServiceConfigResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, insertRunServiceConfigResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("InsertRunServiceConfigResponse")
+		case "serviceID":
+			out.Values[i] = ec._InsertRunServiceConfigResponse_serviceID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "config":
+			out.Values[i] = ec._InsertRunServiceConfigResponse_config(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -47352,6 +47486,20 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) marshalNInsertRunServiceConfigResponse2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐInsertRunServiceConfigResponse(ctx context.Context, sel ast.SelectionSet, v model.InsertRunServiceConfigResponse) graphql.Marshaler {
+	return ec._InsertRunServiceConfigResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNInsertRunServiceConfigResponse2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐInsertRunServiceConfigResponse(ctx context.Context, sel ast.SelectionSet, v *model.InsertRunServiceConfigResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._InsertRunServiceConfigResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
