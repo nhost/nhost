@@ -44,6 +44,7 @@ In the table below you can find a list of available extensions with Nhost Postgr
 | pg_freespacemap              | 1.2     | examine the free space map (FSM) |
 | pg_hashids                   | 1.3     | pg_hashids |
 | pg_ivm                       | 1.9     | incremental view maintenance on PostgreSQL |
+| pg_jsonschema                | 0.3.3   | pg_jsonschema |
 | pg_prewarm                   | 1.2     | prewarm relation data |
 | pg_repack                    | 1.5.1   | Reorganize tables in PostgreSQL databases with minimal locks |
 | pg_squeeze                   | 1.7     | A tool to remove unused space from a relation. |
@@ -74,7 +75,6 @@ In the table below you can find a list of available extensions with Nhost Postgr
 | xml2                         | 1.1     | XPath querying and XSLT |
 
 In addition, you can find more information about some of the extensions below
-
 
 ## hypopg
 
@@ -276,6 +276,30 @@ DROP EXTENSION pg_ivm;
 ### Resources
 
 - [GitHub](https://github.com/sraoss/pg_ivm)
+
+## pg_jsonschema
+
+pg_jsonschema is a PostgreSQL extension adding support for JSON schema validation on json and jsonb data types.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_jsonschema;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_jsonschema;
+```
+
+### Resources
+
+- [GitHub](https://github.com/supabase/pg_jsonschema)
 
 ## pg_repack
 
