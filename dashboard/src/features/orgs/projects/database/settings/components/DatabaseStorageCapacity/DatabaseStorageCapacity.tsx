@@ -100,18 +100,12 @@ export default function DatabaseStorageCapacity() {
       return true;
     }
 
-    if (decreasingSize && !applicationPause && !showEncryptionWarning) {
+    if (decreasingSize && !applicationPause) {
       return true;
     }
 
     return false;
-  }, [
-    isDirty,
-    maintenanceActive,
-    decreasingSize,
-    applicationPause,
-    showEncryptionWarning,
-  ]);
+  }, [isDirty, maintenanceActive, decreasingSize, applicationPause]);
 
   useEffect(() => {
     if (data && !loading) {
