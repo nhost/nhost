@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.25.0
+
+### Minor Changes
+
+- 46fc520: chore: add support to next.js 15, update quickstart template commands in docs
+- cdf6776: fix: update links to create new project in dashboard
+
 ## 2.24.0
 
 ### Minor Changes

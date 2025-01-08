@@ -1,5 +1,16 @@
 # @nhost/nextjs
 
+## 2.2.0
+
+### Minor Changes
+
+- 46fc520: chore: add support to next.js 15, update quickstart template commands in docs
+- 29d27e1: chore: update `next` to v14.2.22 to fix vulnerabilities
+
+### Patch Changes
+
+- @nhost/react@3.8.1
+
 ## 2.1.24
 
 ### Patch Changes
