@@ -63,11 +63,12 @@ export default function DatabaseStorageCapacity() {
 
   const { data: encryptedVolumesData } = useGetPersistentVolumesEncryptedQuery({
     variables: { appId: project?.id },
-    ...(!isPlatform ? { client: localMimirClient } : {}),
+    skip: !isPlatform,
   });
 
-  const isEncrypted =
-    encryptedVolumesData?.systemConfig?.persistentVolumesEncrypted;
+  const showEncryptionWarning = encryptedVolumesData
+    ? !encryptedVolumesData?.systemConfig?.persistentVolumesEncrypted
+    : false;
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -99,12 +100,18 @@ export default function DatabaseStorageCapacity() {
       return true;
     }
 
-    if (decreasingSize && !applicationPause) {
+    if (decreasingSize && !applicationPause && !showEncryptionWarning) {
       return true;
     }
 
     return false;
-  }, [isDirty, maintenanceActive, decreasingSize, applicationPause]);
+  }, [
+    isDirty,
+    maintenanceActive,
+    decreasingSize,
+    applicationPause,
+    showEncryptionWarning,
+  ]);
 
   useEffect(() => {
     if (data && !loading) {
@@ -199,7 +206,7 @@ export default function DatabaseStorageCapacity() {
               isDirty={isDirty}
             />
           )}
-          {!isEncrypted && (
+          {showEncryptionWarning ? (
             <Alert severity="warning" className="flex flex-col gap-3 text-left">
               <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
                 <Text className="flex items-start gap-1 font-semibold">
@@ -220,7 +227,7 @@ export default function DatabaseStorageCapacity() {
                 </Text>
               </div>
             </Alert>
-          )}
+          ) : null}
         </SettingsContainer>
       </Form>
     </FormProvider>
