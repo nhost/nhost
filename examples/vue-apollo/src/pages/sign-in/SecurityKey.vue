@@ -1,6 +1,5 @@
 <template>
   <form @submit="handleSignIn">
-    <v-text-field v-model="email" label="Email" />
     <v-btn
       block
       color="primary"
@@ -23,17 +22,15 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { useSignInEmailSecurityKey } from '@nhost/vue'
-
-const email = ref('')
+import { useSignInSecurityKey } from '@nhost/vue'
 const emailVerificationDialog = ref(false)
 
 const router = useRouter()
-const { signInEmailSecurityKey, error, isLoading } = useSignInEmailSecurityKey()
+const { signInSecurityKey, error, isLoading } = useSignInSecurityKey()
 
 const handleSignIn = async (e: Event) => {
   e.preventDefault()
-  const { isSuccess, needsEmailVerification } = await signInEmailSecurityKey(email)
+  const { isSuccess, needsEmailVerification } = await signInSecurityKey()
   if (isSuccess) {
     router.replace('/')
   }
