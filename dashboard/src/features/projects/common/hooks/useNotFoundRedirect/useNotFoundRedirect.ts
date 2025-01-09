@@ -1,3 +1,5 @@
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -8,9 +10,21 @@ import { useEffect } from 'react';
 export default function useNotFoundRedirect() {
   const router = useRouter();
   const {
-    query: { orgSlug, workspaceSlug, appSubdomain, updating, appSlug },
+    query: {
+      orgSlug: urlOrgSlug,
+      workspaceSlug: urlWorkspaceSlug,
+      appSubdomain: urlAppSubdomain,
+      updating,
+      appSlug: urlAppSlug,
+    },
     isReady,
   } = router;
+
+  const { project, loading: projectLoading } = useProject();
+  const { org, loading: orgLoading } = useCurrentOrg();
+
+  const { subdomain: projectSubdomain } = project || {};
+  const { slug: currentOrgSlug } = org || {};
 
   const { currentProject, currentWorkspace, loading } =
     useCurrentWorkspaceAndProject();
@@ -23,6 +37,10 @@ export default function useNotFoundRedirect() {
       !isReady ||
       // If the current workspace and project are not loaded, we don't want to redirect to 404
       loading ||
+      // If the project is loading, we don't want to redirect to 404
+      projectLoading ||
+      // If the org is loading, we don't want to redirect to 404
+      orgLoading ||
       // If we're already on the 404 page, we don't want to redirect to 404
       router.pathname === '/404' ||
       router.pathname === '/' ||
@@ -31,12 +49,12 @@ export default function useNotFoundRedirect() {
       router.pathname === '/run-one-click-install' ||
       router.pathname.includes('/orgs/_') ||
       router.pathname.includes('/orgs/_/projects/_') ||
-      orgSlug ||
-      (orgSlug && appSubdomain) ||
+      (urlOrgSlug === currentOrgSlug && !urlAppSubdomain) ||
+      (urlOrgSlug === currentOrgSlug && urlAppSubdomain === projectSubdomain) ||
       // If we are on a valid workspace and project, we don't want to redirect to 404
-      (workspaceSlug && currentWorkspace && appSlug && currentProject) ||
+      (urlWorkspaceSlug && currentWorkspace && urlAppSlug && currentProject) ||
       // If we are on a valid workspace and no project is selected, we don't want to redirect to 404
-      (workspaceSlug && currentWorkspace && !appSlug && !currentProject)
+      (urlWorkspaceSlug && currentWorkspace && !urlAppSlug && !currentProject)
     ) {
       return;
     }
@@ -47,11 +65,15 @@ export default function useNotFoundRedirect() {
     currentWorkspace,
     isReady,
     loading,
-    appSubdomain,
-    appSlug,
+    urlAppSubdomain,
+    urlAppSlug,
     router,
     updating,
-    workspaceSlug,
-    orgSlug,
+    projectLoading,
+    orgLoading,
+    currentOrgSlug,
+    projectSubdomain,
+    urlWorkspaceSlug,
+    urlOrgSlug,
   ]);
 }
