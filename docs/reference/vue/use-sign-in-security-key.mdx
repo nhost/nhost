@@ -1,0 +1,25 @@
+---
+title: useSignInSecurityKey()
+sidebarTitle: useSignInSecurityKey()
+---
+
+Use the composable `useSignInSecurityKey` to sign in a user with a security key using the WebAuthn API
+
+```tsx
+const {
+  signInSecurityKey,
+  needsEmailVerification,
+  isLoading,
+  isSuccess,
+  isError,
+  error
+} = useSignInSecurityKey()
+
+console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await signInSecurityKey()
+}
+```
