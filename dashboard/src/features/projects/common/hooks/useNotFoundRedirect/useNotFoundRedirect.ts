@@ -51,7 +51,6 @@ export default function useNotFoundRedirect() {
       router.pathname.includes('/orgs/_/projects/_') ||
       (urlOrgSlug === currentOrgSlug && !urlAppSubdomain) ||
       (urlOrgSlug === currentOrgSlug && urlAppSubdomain === projectSubdomain) ||
-      (urlOrgSlug === currentOrgSlug && urlAppSubdomain === projectSubdomain) ||
       // If we are on a valid workspace and project, we don't want to redirect to 404
       (urlWorkspaceSlug && currentWorkspace && urlAppSlug && currentProject) ||
       // If we are on a valid workspace and no project is selected, we don't want to redirect to 404
