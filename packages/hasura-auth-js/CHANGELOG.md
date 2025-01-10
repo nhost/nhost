@@ -1,5 +1,15 @@
 # @nhost/hasura-auth-js
 
+## 2.10.0
+
+### Minor Changes
+
+- 04d2ce1: feat: add signin security key with user handle
+
+### Patch Changes
+
+- 44c1e17: chore: update `msw` to v1.3.5 to fix vulnerabilities
+
 ## 2.9.0
 
 ### Minor Changes

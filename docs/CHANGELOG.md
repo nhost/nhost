@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.26.0
+
+### Minor Changes
+
+- 04d2ce1: feat: add reference documentation for signin security key
+
+### Patch Changes
+
+- 1fa6cc4: chore: added docs for pg_jsonschema
+
 ## 2.25.0
 
 ### Minor Changes

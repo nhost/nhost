@@ -1,5 +1,12 @@
 # @nhost/nextjs
 
+## 2.2.1
+
+### Patch Changes
+
+- Updated dependencies [04d2ce1]
+  - @nhost/react@3.9.0
+
 ## 2.2.0
 
 ### Minor Changes
