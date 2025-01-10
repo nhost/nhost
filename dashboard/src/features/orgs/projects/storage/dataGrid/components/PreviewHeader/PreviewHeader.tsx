@@ -1,12 +1,12 @@
 import { Switch } from '@/components/ui/v2/Switch';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
+import { usePreviewToggle } from '@/features/orgs/projects/storage/dataGrid/hooks/usePreviewToggle';
 import { type ChangeEvent } from 'react';
 
 export default function PreviewHeader() {
-  const [preview, setPreview] = useSSRLocalStorage('preview', true);
+  const { previewEnabled, setPreviewEnabled } = usePreviewToggle();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPreview(e.target.checked);
+    setPreviewEnabled(e.target.checked);
   };
 
   return (
@@ -14,8 +14,7 @@ export default function PreviewHeader() {
       Preview
       <Switch
         className="self-center"
-        checked={preview}
-        defaultChecked
+        checked={previewEnabled}
         onChange={handleChange}
       />
     </div>

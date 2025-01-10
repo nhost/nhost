@@ -9,6 +9,7 @@ import { VideoPreviewIcon } from '@/components/ui/v2/icons/VideoPreviewIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { usePreviewToggle } from '@/features/orgs/projects/storage/dataGrid/hooks/usePreviewToggle';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
@@ -180,7 +181,7 @@ export default function DataGridPreviewCell<TData extends object>({
     mimeType,
   });
   const [showModal, setShowModal] = useState(false);
-  const [previewEnabled] = useSSRLocalStorage('preview', true);
+  const { previewEnabled } = usePreviewToggle();
 
   const [
     { loading: previewLoading, error: previewError, data: previewUrl },
