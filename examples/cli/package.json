@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/cli",
-  "version": "0.3.15",
+  "version": "0.3.16",
   "main": "src/index.mjs",
   "private": true,
   "scripts": {

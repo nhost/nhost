@@ -1,5 +1,12 @@
 # @nhost-examples/react-gqty
 
+## 1.2.17
+
+### Patch Changes
+
+- Updated dependencies [04d2ce1]
+  - @nhost/react@3.9.0
+
 ## 1.2.16
 
 ### Patch Changes

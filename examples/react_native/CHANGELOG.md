@@ -1,5 +1,13 @@
 # @nhost-examples/react-native
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [04d2ce1]
+  - @nhost/react@3.9.0
+  - @nhost/react-apollo@16.0.0
+
 ## 0.1.1
 
 ### Patch Changes

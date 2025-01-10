@@ -1,5 +1,15 @@
 # @nhost/react
 
+## 3.9.0
+
+### Minor Changes
+
+- 04d2ce1: feat: add signin security key with user handle
+
+### Patch Changes
+
+- @nhost/nhost-js@3.2.3
+
 ## 3.8.1
 
 ### Patch Changes

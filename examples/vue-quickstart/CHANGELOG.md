@@ -1,5 +1,13 @@
 # @nhost-examples/vue-quickstart
 
+## 0.2.17
+
+### Patch Changes
+
+- Updated dependencies [04d2ce1]
+  - @nhost/vue@2.9.0
+  - @nhost/apollo@8.0.3
+
 ## 0.2.16
 
 ### Patch Changes

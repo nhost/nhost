@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 2.14.0
+
+### Minor Changes
+
+- d43931e: fix: invalid organization slug/project subdomain doesn't open 404 page
+- 5df6fa2: feat: add unencrypted disk warning in storage capacity settings
+
+### Patch Changes
+
+- 44c1e17: chore: update `msw` to v1.3.5 to fix vulnerabilities
+  - @nhost/react-apollo@16.0.0
+  - @nhost/nextjs@2.2.1
+
 ## 2.13.0
 
 ### Minor Changes

@@ -1,5 +1,18 @@
 # @nhost-examples/vue-apollo
 
+## 0.8.0
+
+### Minor Changes
+
+- 04d2ce1: feat: update signin components to use `useSignInSecuritykey` with user handle
+
+### Patch Changes
+
+- Updated dependencies [04d2ce1]
+  - @nhost/vue@2.9.0
+  - @nhost/nhost-js@3.2.3
+  - @nhost/apollo@8.0.3
+
 ## 0.7.2
 
 ### Patch Changes

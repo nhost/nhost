@@ -1,5 +1,17 @@
 # @nhost-examples/react-apollo
 
+## 1.2.0
+
+### Minor Changes
+
+- 04d2ce1: feat: update signin components to use `useSignInSecuritykey` with user handle
+
+### Patch Changes
+
+- Updated dependencies [04d2ce1]
+  - @nhost/react@3.9.0
+  - @nhost/react-apollo@16.0.0
+
 ## 1.1.2
 
 ### Patch Changes
