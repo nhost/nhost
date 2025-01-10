@@ -1,9 +1,9 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 
-interface PreviewLocalStorage {
+type PreviewLocalStorage = {
   [key: string]: boolean | undefined;
-}
+};
 
 export default function usePreviewToggle() {
   const [preview, setPreview] = useSSRLocalStorage<PreviewLocalStorage>(
