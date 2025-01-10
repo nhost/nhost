@@ -63,10 +63,6 @@ export interface DataGridProps<TColumnData extends object>
    */
   onEditColumn?: (column: DataBrowserGridColumn<TColumnData>) => void;
   /**
-   * Function to be called when the user wants to toggle a column.
-   */
-  onToggleColumn?: (column: DataBrowserGridColumn<TColumnData>) => void;
-  /**
    * Determines whether or not data is loading.
    */
   loading?: boolean;
@@ -101,7 +97,6 @@ function DataGrid<TColumnData extends object>(
     onInsertColumn,
     onEditColumn,
     onRemoveColumn,
-    onToggleColumn,
     loading,
     className,
   }: DataGridProps<TColumnData>,
@@ -166,7 +161,6 @@ function DataGrid<TColumnData extends object>(
                 onInsertColumn={onInsertColumn}
                 onEditColumn={onEditColumn}
                 onRemoveColumn={onRemoveColumn}
-                onToggleColumn={onToggleColumn}
                 {...headerProps}
               />
 

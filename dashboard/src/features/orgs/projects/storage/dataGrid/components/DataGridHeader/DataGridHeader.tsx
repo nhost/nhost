@@ -7,10 +7,10 @@ import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { Switch } from '@/components/ui/v2/Switch';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import { DataGridHeaderButton } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeaderButton';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -24,7 +24,7 @@ export interface DataGridHeaderProps<T extends object>
     >,
     Pick<
       DataGridProps<T>,
-      'onRemoveColumn' | 'onEditColumn' | 'onInsertColumn' | 'onToggleColumn'
+      'onRemoveColumn' | 'onEditColumn' | 'onInsertColumn'
     > {
   /**
    * Props to be passed to component slots.
@@ -52,11 +52,10 @@ export default function DataGridHeader<T extends object>({
   onRemoveColumn,
   onEditColumn,
   onInsertColumn,
-  onToggleColumn,
   componentsProps,
   ...props
 }: DataGridHeaderProps<T>) {
-  const { flatHeaders, allowSort, allowResize } = useDataGridConfig<T>();
+  const { flatHeaders } = useDataGridConfig<T>();
 
   return (
     <div
@@ -98,59 +97,11 @@ export default function DataGridHeader<T extends object>({
             }}
             key={column.id}
           >
-            {column.id === 'selection' ? (
-              <span
-                {...headerProps}
-                className="relative grid w-full grid-flow-col items-center justify-between p-2"
-              >
-                {column.render('Header')}
-              </span>
-            ) : (
-              <Dropdown.Trigger
-                className={twMerge(
-                  'focus:outline-none motion-safe:transition-colors',
-                )}
-                disabled={
-                  column.isDisabled || (column.disableSortBy && !onRemoveColumn)
-                }
-                hideChevron
-              >
-                <span
-                  {...headerProps}
-                  className="relative grid w-full grid-flow-col items-center justify-between p-2"
-                >
-                  {column.render('Header')}
-
-                  {onToggleColumn && (
-                    <Switch
-                      checked={column.isVisible}
-                      className="self-center"
-                    />
-                  )}
-                  {allowSort && (
-                    <Box component="span" sx={{ color: 'text.primary' }}>
-                      {column.isSorted && !column.isSortedDesc && (
-                        <ArrowUpIcon className="h-3 w-3" />
-                      )}
-
-                      {column.isSorted && column.isSortedDesc && (
-                        <ArrowDownIcon className="h-3 w-3" />
-                      )}
-                    </Box>
-                  )}
-                </span>
-
-                {allowResize && !column.disableResizing && (
-                  <span
-                    {...column.getResizerProps({
-                      onClick: (event: Event) => event.stopPropagation(),
-                    })}
-                    className="absolute -right-0.5 bottom-0 top-0 z-10 h-full w-1.5 group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
-                  />
-                )}
-              </Dropdown.Trigger>
-            )}
-
+            <DataGridHeaderButton
+              column={column}
+              headerProps={headerProps}
+              onRemoveColumn={onRemoveColumn}
+            />
             <Dropdown.Content
               menu
               PaperProps={{ className: 'w-52 mt-1' }}

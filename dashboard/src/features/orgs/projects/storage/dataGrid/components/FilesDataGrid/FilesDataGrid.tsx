@@ -10,6 +10,7 @@ import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { FilesDataGridControls } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGridControls';
+import { PreviewHeader } from '@/features/orgs/projects/storage/dataGrid/components/PreviewHeader';
 import { useBuckets } from '@/features/orgs/projects/storage/dataGrid/hooks/useBuckets';
 import { useFiles } from '@/features/orgs/projects/storage/dataGrid/hooks/useFiles';
 import { useFilesAggregate } from '@/features/orgs/projects/storage/dataGrid/hooks/useFilesAggregate';
@@ -112,7 +113,8 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
   const memoizedColumns: Column<StoredFile>[] = useMemo(
     () => [
       {
-        Header: 'Preview',
+        id: 'preview',
+        Header: PreviewHeader,
         accessor: 'preview',
         Cell: (cellProps) =>
           DataGridPreviewCell({
@@ -121,8 +123,8 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
               <FilePreviewIcon className="h-5 w-5 fill-current" />
             ),
           }),
-        minWidth: 80,
-        width: 80,
+        minWidth: 120,
+        width: 120,
         disableSortBy: true,
         disableResizing: true,
       },
