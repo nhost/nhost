@@ -1043,18 +1043,6 @@ components:
           example: john.smith@nhost.io
           format: email
           type: string
-        userHandle:
-          description: User identifier for webauthn
-          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
-          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
-          type: string
-          x-go-type-import:
-            name: uuid
-            path: "github.com/google/uuid"
-          x-go-type: uuid.UUID
-      oneOf:
-        - required: [email]
-        - required: [userHandle]
 
     SignUpWebauthnRequest:
       type: object

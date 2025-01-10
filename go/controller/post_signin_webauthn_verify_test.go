@@ -47,8 +47,8 @@ func TestPostSigninWebauthnVerify(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				config := getConfig()
 				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
-				config.WebauthnRPID = "localhost"
-				config.WebauthnRPName = "React pollo Example"
+				config.WebauthnRPID = "localhost"             //nolint:goconst
+				config.WebauthnRPName = "React pollo Example" //nolint:goconst
 
 				return config
 			},
@@ -236,6 +236,126 @@ func TestPostSigninWebauthnVerify(t *testing.T) { //nolint:maintidx
 			jwtTokenFn:        nil,
 			getControllerOpts: []getControllerOptsFunc{},
 		},
+
+		{
+			name: "success - discoverable",
+			config: func() *controller.Config {
+				config := getConfig()
+				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
+				config.WebauthnRPID = "localhost"
+				config.WebauthnRPName = "React pollo Example"
+
+				return config
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				userID := uuid.MustParse("176ce216-38af-4223-af49-6be702f4676c")
+
+				mock.EXPECT().GetSecurityKeys(
+					gomock.Any(), userID,
+				).Return([]sql.AuthUserSecurityKey{
+					{
+						ID:           uuid.MustParse("85a4af56-6c7d-4371-ae66-d4682a660900"),
+						UserID:       userID,
+						CredentialID: "4OXfDI7QSSQQsmOV4-sz6LlS8_8",
+						CredentialPublicKey: []byte{
+							165, 1, 2, 3, 38, 32, 1, 33, 88, 32, 7, 40, 121, 244, 90, 63, 43, 44, 129,
+							197, 142, 82, 36, 179, 48, 89, 160, 215, 253, 76, 155, 37, 77, 251, 237,
+							219, 111, 246, 205, 183, 77, 240, 34, 88, 32, 78, 37, 134, 117, 44, 128,
+							33, 35, 73, 244, 164, 148, 110, 102, 244, 44, 7, 141, 69, 207, 34, 211,
+							72, 24, 53, 58, 130, 205, 150, 71, 200, 204,
+						},
+						Counter:    0,
+						Transports: "",
+						Nickname:   pgtype.Text{}, //nolint:exhaustruct
+					},
+				}, nil)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(getSigninUser(userID), nil)
+
+				mock.EXPECT().GetUserRoles(
+					gomock.Any(), userID,
+				).Return([]sql.AuthUserRole{
+					{UserID: userID, Role: "user"}, //nolint:exhaustruct
+					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+				}, nil)
+
+				mock.EXPECT().InsertRefreshtoken(
+					gomock.Any(),
+					cmpDBParams(sql.InsertRefreshtokenParams{
+						UserID:           userID,
+						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						Type:             sql.RefreshTokenTypeRegular,
+						Metadata:         nil,
+					}),
+				).Return(refreshTokenID, nil)
+
+				mock.EXPECT().UpdateUserLastSeen(
+					gomock.Any(), userID,
+				).Return(sql.TimestampTz(time.Now()), nil)
+
+				return mock
+			},
+			request: api.PostSigninWebauthnVerifyRequestObject{
+				Body: unmarshalRequest(
+					t,
+					[]byte(
+						`{"credential":{"id":"4OXfDI7QSSQQsmOV4-sz6LlS8_8","rawId":"4OXfDI7QSSQQsmOV4-sz6LlS8_8","response":{"authenticatorData":"SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MdAAAAAA","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiMndUMjlCM0RhUmlIbmEzYWoxNEpsVEMtT1hqZ0lja3dCQzM1bXl6X1RfbyIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","signature":"MEUCIFTNIExdczBeaM8MrMlBYVe1mAAzBBoTAaMzK2Mzo7geAiEAuIQH3CfMo1hRXWayZ-TXxu3m6evTBZBhJWvsI_d7ypI","userHandle":"176ce216-38af-4223-af49-6be702f4676c"},"type":"public-key"}}`, //nolint:lll
+					),
+				),
+			},
+			expectedResponse: api.PostSigninWebauthnVerify200JSONResponse{
+				Session: &api.Session{
+					AccessToken:          "",
+					AccessTokenExpiresIn: 900,
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
+					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
+					User: &api.User{
+						AvatarUrl:           "",
+						CreatedAt:           time.Now(),
+						DefaultRole:         "user",
+						DisplayName:         "Jane Doe",
+						Email:               ptr(types.Email("jane@acme.com")),
+						EmailVerified:       true,
+						Id:                  "176ce216-38af-4223-af49-6be702f4676c",
+						IsAnonymous:         false,
+						Locale:              "en",
+						Metadata:            map[string]any{},
+						PhoneNumber:         nil,
+						PhoneNumberVerified: false,
+						Roles:               []string{"user", "me"},
+					},
+				},
+			},
+			expectedJWT: &jwt.Token{
+				Raw:    "",
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{
+					"alg": "HS256",
+					"typ": "JWT",
+				},
+				Claims: jwt.MapClaims{
+					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":     []any{"user", "me"},
+						"x-hasura-default-role":      "user",
+						"x-hasura-user-id":           "176ce216-38af-4223-af49-6be702f4676c",
+						"x-hasura-user-is-anonymous": "false",
+					},
+					"iat": float64(time.Now().Unix()),
+					"iss": "hasura-auth",
+					"sub": "176ce216-38af-4223-af49-6be702f4676c",
+				},
+				Signature: []byte{},
+				Valid:     true,
+			},
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
 	}
 
 	for _, tc := range cases {
@@ -297,8 +417,31 @@ func TestPostSigninWebauthnVerify(t *testing.T) { //nolint:maintidx
 				t.Fatal(err)
 			}
 
+			b = []byte(`{
+                  "Session": {
+                    "challenge": "2wT29B3DaRiHna3aj14JlTC-OXjgIckwBC35myz_T_o",
+                    "rpId": "localhost",
+                    "user_id": null,
+                    "expires": "2025-01-08T12:25:01.688438+01:00",
+                    "userVerification": "preferred"
+                  },
+                  "User": {
+                    "ID": "00000000-0000-0000-0000-000000000000",
+                    "Name": "",
+                    "Email": "",
+                    "Credentials": [],
+                    "Discoverable": true
+                  },
+                  "Options": null
+                }`)
+			var sessionDataDiscoverable controller.WebauthnChallenge
+			if err := json.Unmarshal(b, &sessionDataDiscoverable); err != nil {
+				t.Fatal(err)
+			}
+
 			if c.Webauthn != nil {
 				c.Webauthn.Storage["nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs"] = sessionData
+				c.Webauthn.Storage["2wT29B3DaRiHna3aj14JlTC-OXjgIckwBC35myz_T_o"] = sessionDataDiscoverable
 			}
 
 			resp := assertRequest(

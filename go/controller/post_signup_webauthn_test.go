@@ -99,10 +99,11 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
 				User: controller.WebauthnUser{
-					ID:          uuid.UUID{},
-					Name:        "jane@acme.com",
-					Email:       "jane@acme.com",
-					Credentials: nil,
+					ID:           uuid.UUID{},
+					Name:         "jane@acme.com",
+					Email:        "jane@acme.com",
+					Credentials:  nil,
+					Discoverable: false,
 				},
 				Options: &api.SignUpOptions{
 					AllowedRoles: &[]string{"user", "me"},
@@ -195,10 +196,11 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
 				User: controller.WebauthnUser{
-					ID:          uuid.UUID{},
-					Name:        "Jane Doe",
-					Email:       "jane@acme.com",
-					Credentials: nil,
+					ID:           uuid.UUID{},
+					Name:         "Jane Doe",
+					Email:        "jane@acme.com",
+					Credentials:  nil,
+					Discoverable: false,
 				},
 				Options: &api.SignUpOptions{
 					AllowedRoles: &[]string{"user"},
@@ -342,10 +344,11 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
 				User: controller.WebauthnUser{
-					ID:          uuid.UUID{},
-					Name:        "jane@acme.com",
-					Email:       "jane@acme.com",
-					Credentials: nil,
+					ID:           uuid.UUID{},
+					Name:         "jane@acme.com",
+					Email:        "jane@acme.com",
+					Credentials:  nil,
+					Discoverable: false,
 				},
 				Options: &api.SignUpOptions{
 					AllowedRoles: &[]string{"user", "me"},

@@ -38,6 +38,17 @@ func webauthnCredentials(
 	return creds, nil
 }
 
+func (ctrl *Controller) postSigninWebauthnDiscoverableLogin( //nolint:ireturn
+	logger *slog.Logger,
+) (api.PostSigninWebauthnResponseObject, error) {
+	creation, apiErr := ctrl.Webauthn.BeginDiscoverableLogin(logger)
+	if apiErr != nil {
+		return ctrl.sendError(apiErr), nil
+	}
+
+	return api.PostSigninWebauthn200JSONResponse(creation.Response), nil
+}
+
 func (ctrl *Controller) PostSigninWebauthn( //nolint:ireturn
 	ctx context.Context,
 	request api.PostSigninWebauthnRequestObject,
@@ -49,16 +60,11 @@ func (ctrl *Controller) PostSigninWebauthn( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
-	var user sql.AuthUser
-	var apiErr *APIError
-	switch {
-	case request.Body.UserHandle != nil:
-		user, apiErr = ctrl.wf.GetUser(ctx, *request.Body.UserHandle, logger)
-	case request.Body.Email != nil:
-		user, apiErr = ctrl.wf.GetUserByEmail(ctx, string(*request.Body.Email), logger)
-	default:
-		return ctrl.sendError(ErrInvalidRequest), nil
+	if request.Body.Email == nil {
+		return ctrl.postSigninWebauthnDiscoverableLogin(logger)
 	}
+
+	user, apiErr := ctrl.wf.GetUserByEmail(ctx, string(*request.Body.Email), logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
@@ -74,10 +80,11 @@ func (ctrl *Controller) PostSigninWebauthn( //nolint:ireturn
 	}
 
 	waUser := WebauthnUser{
-		ID:          user.ID,
-		Name:        user.DisplayName,
-		Email:       user.Email.String,
-		Credentials: creds,
+		ID:           user.ID,
+		Name:         user.DisplayName,
+		Email:        user.Email.String,
+		Credentials:  creds,
+		Discoverable: false,
 	}
 
 	creation, apiErr := ctrl.Webauthn.BeginLogin(waUser, logger)

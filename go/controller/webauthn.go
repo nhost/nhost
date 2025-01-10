@@ -14,10 +14,11 @@ import (
 )
 
 type WebauthnUser struct {
-	ID          uuid.UUID
-	Name        string
-	Email       string
-	Credentials []webauthn.Credential
+	ID           uuid.UUID
+	Name         string
+	Email        string
+	Credentials  []webauthn.Credential
+	Discoverable bool
 }
 
 func (u WebauthnUser) WebAuthnID() []byte {
@@ -181,6 +182,7 @@ func (w *Webauthn) BeginLogin(
 
 func (w *Webauthn) FinishLogin(
 	response *protocol.ParsedCredentialAssertionData,
+	userHandler webauthn.DiscoverableUserHandler,
 	logger *slog.Logger,
 ) (*webauthn.Credential, WebauthnUser, *APIError) {
 	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
@@ -189,13 +191,8 @@ func (w *Webauthn) FinishLogin(
 		return nil, WebauthnUser{}, ErrInvalidRequest
 	}
 
-	// we do this in case the userHandle hasn't been urlencoded by the library
-	b, err := json.Marshal(protocol.URLEncodedBase64(response.Response.UserHandle))
-	if err == nil {
-		potentialUUID, err := uuid.Parse(string(b))
-		if err == nil && bytes.Equal(potentialUUID[:], challenge.User.ID[:]) {
-			response.Response.UserHandle = challenge.User.WebAuthnID()
-		}
+	if challenge.User.Discoverable {
+		return w.FinishDiscoverableLogin(response, userHandler, logger)
 	}
 
 	// we don't track the flags so we just copy them
@@ -211,9 +208,66 @@ func (w *Webauthn) FinishLogin(
 		}
 	}
 
+	// we do this in case the userHandle hasn't been urlencoded by the library
+	b, err := json.Marshal(protocol.URLEncodedBase64(response.Response.UserHandle))
+	if err == nil {
+		potentialUUID, err := uuid.Parse(string(b))
+		if err == nil && bytes.Equal(potentialUUID[:], challenge.User.ID[:]) {
+			response.Response.UserHandle = challenge.User.WebAuthnID()
+		}
+	}
+
 	cred, err := w.wa.ValidateLogin(challenge.User, challenge.Session, response)
 	if err != nil {
-		logger.Info("failed to create webauthn credential", logError(err))
+		logger.Info("failed to validate webauthn login", logError(err))
+		return nil, WebauthnUser{}, ErrInvalidRequest
+	}
+
+	w.cleanCache()
+
+	return cred, challenge.User, nil
+}
+
+func (w *Webauthn) BeginDiscoverableLogin(
+	logger *slog.Logger,
+) (*protocol.CredentialAssertion, *APIError) {
+	w.cleanCache()
+
+	challenge, sessionData, err := w.wa.BeginDiscoverableLogin()
+	if err != nil {
+		logger.Error("failed to begin discoverable webauthn login", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	w.Storage[challenge.Response.Challenge.String()] = WebauthnChallenge{
+		Session: *sessionData,
+		User: WebauthnUser{
+			ID:           uuid.Nil,
+			Name:         "",
+			Email:        "",
+			Credentials:  []webauthn.Credential{},
+			Discoverable: true,
+		},
+		Options: nil,
+	}
+
+	return challenge, nil
+}
+
+func (w *Webauthn) FinishDiscoverableLogin(
+	response *protocol.ParsedCredentialAssertionData,
+	userHandler webauthn.DiscoverableUserHandler,
+	logger *slog.Logger,
+) (*webauthn.Credential, WebauthnUser, *APIError) {
+	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
+	if !ok {
+		logger.Info("webauthn challenge not found")
+		return nil, WebauthnUser{}, ErrInvalidRequest
+	}
+
+	cred, err := w.wa.ValidateDiscoverableLogin(userHandler, challenge.Session, response)
+	if err != nil {
+		logger.Info("failed to validate webauthn discoverable login", logError(err))
 		return nil, WebauthnUser{}, ErrInvalidRequest
 	}
 
