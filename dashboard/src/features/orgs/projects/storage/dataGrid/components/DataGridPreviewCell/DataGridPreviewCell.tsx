@@ -394,7 +394,9 @@ export default function DataGridPreviewCell<TData extends object>({
           </button>
         ) : null}
 
-        {(!previewableImages.includes(mimeType) || !objectUrl) && (
+        {(!previewableImages.includes(mimeType) ||
+          !objectUrl ||
+          !previewEnabled) && (
           <button
             type="button"
             onClick={handleOpenPreview}
