@@ -394,28 +394,27 @@ export default function DataGridPreviewCell<TData extends object>({
           </button>
         ) : null}
 
-        {(!previewableImages.includes(mimeType) || !objectUrl) &&
-          previewEnabled && (
-            <button
-              type="button"
-              onClick={handleOpenPreview}
-              aria-label={alt}
-              className="grid h-full w-full items-center justify-center self-center"
-            >
-              {isVideo && <VideoPreviewIcon className="h-5 w-5" />}
+        {(!previewableImages.includes(mimeType) || !objectUrl) && (
+          <button
+            type="button"
+            onClick={handleOpenPreview}
+            aria-label={alt}
+            className="grid h-full w-full items-center justify-center self-center"
+          >
+            {isVideo && <VideoPreviewIcon className="h-5 w-5" />}
 
-              {isAudio && <AudioPreviewIcon className="h-5 w-5" />}
+            {isAudio && <AudioPreviewIcon className="h-5 w-5" />}
 
-              {mimeType === 'application/pdf' && (
-                <PDFPreviewIcon className="h-5 w-5" />
-              )}
+            {mimeType === 'application/pdf' && (
+              <PDFPreviewIcon className="h-5 w-5" />
+            )}
 
-              {!isVideo &&
-                !isAudio &&
-                mimeType !== 'application/pdf' &&
-                fallbackPreview}
-            </button>
-          )}
+            {!isVideo &&
+              !isAudio &&
+              mimeType !== 'application/pdf' &&
+              fallbackPreview}
+          </button>
+        )}
       </div>
     </>
   );
