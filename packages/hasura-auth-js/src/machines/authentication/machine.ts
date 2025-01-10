@@ -76,6 +76,7 @@ type AuthServices = {
   signInIdToken: { data: SignInResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
   signInSecurityKeyEmail: { data: SignInResponse }
+  signInSecurityKey: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
   signout: { data: SignOutResponse }
   signUpEmailPassword: { data: SignUpResponse }
@@ -191,6 +192,7 @@ export const createAuthMachine = ({
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
                 SIGNIN_SECURITY_KEY_EMAIL: 'authenticating.securityKeyEmail',
+                SIGNIN_SECURITY_KEY: 'authenticating.securityKey',
                 SIGNIN_MFA_TOTP: 'authenticating.mfa.totp',
                 SIGNIN_PAT: 'authenticating.pat',
                 SIGNIN_ID_TOKEN: 'authenticating.idToken'
@@ -292,6 +294,29 @@ export const createAuthMachine = ({
                 securityKeyEmail: {
                   invoke: {
                     src: 'signInSecurityKeyEmail',
+                    id: 'authenticateUserWithSecurityKey',
+                    onDone: {
+                      actions: ['saveSession', 'reportTokenChanged'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: [
+                      {
+                        cond: 'unverified',
+                        target: [
+                          '#nhost.authentication.signedOut',
+                          '#nhost.registration.incomplete.needsEmailVerification'
+                        ]
+                      },
+                      {
+                        actions: 'saveAuthenticationError',
+                        target: '#nhost.authentication.signedOut.failed'
+                      }
+                    ]
+                  }
+                },
+                securityKey: {
+                  invoke: {
+                    src: 'signInSecurityKey',
                     id: 'authenticateUserWithSecurityKey',
                     onDone: {
                       actions: ['saveSession', 'reportTokenChanged'],
@@ -965,10 +990,28 @@ export const createAuthMachine = ({
         },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
-          const session = await postRequest<RefreshSessionResponse>('/token', {
+          const session: NhostSession = await postRequest<RefreshSessionResponse>('/token', {
             refreshToken
           })
           return { session, error: null }
+        },
+        signInSecurityKey: async (): Promise<SignInResponse> => {
+          try {
+            const options: PublicKeyCredentialRequestOptionsJSON = await postRequest(
+              '/signin/webauthn',
+              {}
+            )
+
+            let credential: AuthenticationCredentialJSON
+            try {
+              credential = await startAuthentication(options)
+            } catch (e) {
+              throw new CodifiedError(e as Error)
+            }
+            return postRequest<SignInResponse>('/signin/webauthn/verify', { credential })
+          } catch (error) {
+            throw new CodifiedError(error as Error)
+          }
         },
         signout: async (ctx, e) => {
           const signOutResponse = await postRequest(

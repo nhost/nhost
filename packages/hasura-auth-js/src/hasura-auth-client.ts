@@ -29,6 +29,7 @@ import {
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
   signInPATPromise,
+  signInSecurityKeyPromise,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
@@ -422,6 +423,24 @@ export class HasuraAuthClient {
     const interpreter = await this.waitUntilReady()
 
     const res = await verifyEmailOTPPromise(interpreter, email, otp)
+
+    return { ...getAuthenticationResult(res), mfa: null }
+  }
+
+  /**
+   * Use `nhost.auth.signInSecurityKey` to sign in a user with a security key using the WebAuthn API
+   *
+   * @example
+   * ```ts
+   * nhost.auth.signInSecurityKey()
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/sign-in-security-key
+   */
+  async signInSecurityKey(): Promise<SignInResponse> {
+    const interpreter = await this.waitUntilReady()
+
+    const res = await signInSecurityKeyPromise(interpreter)
 
     return { ...getAuthenticationResult(res), mfa: null }
   }
