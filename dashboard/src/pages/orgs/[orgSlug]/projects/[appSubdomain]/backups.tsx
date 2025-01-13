@@ -11,7 +11,7 @@ import type { ReactElement } from 'react';
 
 function BackupsContent() {
   return (
-    <div className="grid w-full grid-flow-row gap-6 mt-6">
+    <div className="mt-6 grid w-full grid-flow-row gap-6">
       <div>
         <Text className="font-medium">Database</Text>
         <Text color="secondary">
@@ -27,11 +27,12 @@ function BackupsContent() {
 
 export default function BackupsPage() {
   const { currentOrg: org, loading } = useOrgs();
-  const isPlanFree = org.plan.isFree;
 
   if (loading) {
     return <ActivityIndicator label="Loading project..." delay={1000} />;
   }
+
+  const isPlanFree = org.plan.isFree;
 
   if (isPlanFree) {
     return (
@@ -44,20 +45,19 @@ export default function BackupsPage() {
           description=""
         />
       </Container>
-    )
+    );
   }
 
-
   return (
-    <Container className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6">
-      <div className="grid justify-between grid-flow-col gap-2">
+    <Container className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent">
+      <div className="grid grid-flow-col justify-between gap-2">
         <Text className="text-2xl font-medium" variant="h1">
           Backups
         </Text>
 
         <Chip
-          color={org?.plan.isFree ? 'default' : 'success'}
-          label={org?.plan.isFree ? 'Off' : 'Live'}
+          color={isPlanFree ? 'default' : 'success'}
+          label={isPlanFree ? 'Off' : 'Live'}
           size="small"
         />
       </div>
