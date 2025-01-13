@@ -1,4 +1,5 @@
 import { ContactUs } from '@/components/common/ContactUs';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
@@ -33,9 +34,23 @@ export default function AppLoader({
   date,
   restoring,
 }: AppLoaderProps) {
-  const { project } = useProject();
+  const { project, loading } = useProject();
 
   let timeElapsedSinceEventCreation: number;
+
+  const [timeElapsed, setTimeElapsed] = useState(timeElapsedSinceEventCreation);
+
+  // Would be also valuable to check the appCreatedTime so this doesn't ever appear if not created under a time limit. @GC
+  useInterval(
+    () => {
+      setTimeElapsed(timeElapsed + 1);
+    },
+    startLoader ? 1000 : null,
+  );
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   if (date) {
     timeElapsedSinceEventCreation = getRelativeDateByApplicationState(date);
@@ -48,16 +63,6 @@ export default function AppLoader({
       project.createdAt,
     );
   }
-
-  const [timeElapsed, setTimeElapsed] = useState(timeElapsedSinceEventCreation);
-
-  // Would be also valuable to check the appCreatedTime so this doesn't ever appear if not created under a time limit. @GC
-  useInterval(
-    () => {
-      setTimeElapsed(timeElapsed + 1);
-    },
-    startLoader ? 1000 : null,
-  );
 
   return (
     <div className="grid grid-flow-row gap-2">
@@ -86,9 +91,9 @@ export default function AppLoader({
       <ActivityIndicator className="mx-auto" />
 
       {timeElapsed > 180 && (
-        <Dropdown.Root className="flex flex-col mx-auto">
+        <Dropdown.Root className="mx-auto flex flex-col">
           <Dropdown.Trigger
-            className="flex mx-auto font-medium"
+            className="mx-auto flex font-medium"
             hideChevron
             asChild
           >

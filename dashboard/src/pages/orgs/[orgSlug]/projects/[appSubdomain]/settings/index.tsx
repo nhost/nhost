@@ -3,7 +3,7 @@ import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
 import { Link } from '@/components/ui/v2/Link';
@@ -29,7 +29,7 @@ import { ApplicationStatus } from '@/types/application';
 import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
-import { useMemo, type ReactElement } from 'react';
+import { useEffect, useMemo, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -95,6 +95,14 @@ export default function SettingsGeneralPage() {
   });
 
   const { register, formState } = form;
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        name: project?.name,
+      });
+    }
+  }, [loading, project?.name, form]);
 
   async function handleProjectNameChange(data: ProjectNameValidationSchema) {
     const newProjectSlug = slugifyString(data.name);
@@ -186,7 +194,7 @@ export default function SettingsGeneralPage() {
   }
 
   if (loading) {
-    return <ActivityIndicator label="Loading project..." />;
+    return <LoadingScreen />;
   }
 
   return (

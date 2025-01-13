@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   Form,
@@ -53,8 +54,8 @@ export default function TransferProjectDialog({
 }: TransferProjectDialogProps) {
   const { push } = useRouter();
   const currentUserId = useUserId();
-  const { project } = useProject();
-  const { orgs, currentOrg } = useOrgs();
+  const { project, loading: projectLoading } = useProject();
+  const { orgs, currentOrg, loading: orgsLoading } = useOrgs();
   const [transferProject] = useBillingTransferAppMutation();
 
   const form = useForm<z.infer<typeof transferProjectFormSchema>>({
@@ -95,6 +96,10 @@ export default function TransferProjectDialog({
         member.role === Organization_Members_Role_Enum.Admin &&
         member.user.id === userId,
     );
+
+  if (projectLoading || orgsLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <Dialog

@@ -33,15 +33,24 @@ export default function MetricsSettings() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project, refetch: refetchProject } = useProject();
+  const {
+    project,
+    refetch: refetchProject,
+    loading: loadingProject,
+  } = useProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetObservabilitySettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { data, loading, error } = useGetObservabilitySettingsQuery({
+  const {
+    data,
+    loading: loadingObservabilitySettings,
+    error,
+  } = useGetObservabilitySettingsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
+    skip: !project?.id,
   });
 
   const { enabled: alertingEnabled } =
@@ -59,14 +68,14 @@ export default function MetricsSettings() {
   const alerting = watch('enabled');
 
   useEffect(() => {
-    if (!loading) {
+    if (!loadingObservabilitySettings) {
       alertingForm.reset({
         enabled: alertingEnabled,
       });
     }
-  }, [loading, alertingEnabled, alertingForm]);
+  }, [loadingObservabilitySettings, alertingEnabled, alertingForm]);
 
-  if (loading) {
+  if (loadingProject || loadingObservabilitySettings) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -124,7 +133,7 @@ export default function MetricsSettings() {
   }
 
   return (
-    <div className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6">
+    <div className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent">
       <FormProvider {...alertingForm}>
         <Form onSubmit={handleSubmit}>
           <SettingsContainer
