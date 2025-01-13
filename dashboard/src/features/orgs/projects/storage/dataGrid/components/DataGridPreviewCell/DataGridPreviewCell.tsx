@@ -9,6 +9,8 @@ import { VideoPreviewIcon } from '@/components/ui/v2/icons/VideoPreviewIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { usePreviewToggle } from '@/features/orgs/projects/storage/dataGrid/hooks/usePreviewToggle';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useEffect, useReducer, useState } from 'react';
@@ -46,11 +48,16 @@ function useBlob({
   const [objectUrl, setObjectUrl] = useState<string>();
   const [error, setError] = useState<Error>();
   const [loading, setLoading] = useState<boolean>(false);
+  const [preview] = useSSRLocalStorage('preview', true);
 
   // This side-effect fetches the blob of the file from the server and sets the
   // relevant `objectUrl` state. Abort controller is reponsible for cancelling
   // the fetch if the component is unmounted.
   useEffect(() => {
+    if (!preview) {
+      return undefined;
+    }
+
     const abortController = new AbortController();
 
     async function generateOptimizedObjectUrl() {
@@ -104,7 +111,7 @@ function useBlob({
     generateObjectUrl();
 
     return () => abortController.abort();
-  }, [blob, fetchBlob, objectUrl, mimeType]);
+  }, [blob, fetchBlob, objectUrl, mimeType, preview]);
 
   return { objectUrl, error, loading };
 }
@@ -168,8 +175,13 @@ export default function DataGridPreviewCell<TData extends object>({
 }: DataGridPreviewCellProps<TData>) {
   const { project } = useProject();
   const appClient = useAppClient();
-  const { objectUrl, loading, error } = useBlob({ fetchBlob, blob, mimeType });
+  const { objectUrl, loading, error } = useBlob({
+    fetchBlob,
+    blob,
+    mimeType,
+  });
   const [showModal, setShowModal] = useState(false);
+  const { previewEnabled } = usePreviewToggle();
 
   const [
     { loading: previewLoading, error: previewError, data: previewUrl },
@@ -365,7 +377,7 @@ export default function DataGridPreviewCell<TData extends object>({
       </Modal>
 
       <div className="flex h-full w-full justify-center">
-        {previewableImages.includes(mimeType) && objectUrl && (
+        {previewEnabled && previewableImages.includes(mimeType) && objectUrl ? (
           <button
             type="button"
             aria-label={alt}
@@ -381,9 +393,11 @@ export default function DataGridPreviewCell<TData extends object>({
               />
             </picture>
           </button>
-        )}
+        ) : null}
 
-        {(!previewableImages.includes(mimeType) || !objectUrl) && (
+        {(!previewableImages.includes(mimeType) ||
+          !objectUrl ||
+          !previewEnabled) && (
           <button
             type="button"
             onClick={handleOpenPreview}

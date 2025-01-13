@@ -1,7 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { useDataGridConfig } from '@/components/dataGrid/DataGridConfigProvider';
-import type { DataGridPaginationProps } from '@/components/dataGrid/DataGridPagination';
-import { DataGridPagination } from '@/components/dataGrid/DataGridPagination';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -13,6 +10,9 @@ import { RowIcon } from '@/components/ui/v2/icons/RowIcon';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
+import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { triggerToast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -120,7 +120,7 @@ export default function DataBrowserGridControls({
         )}
       >
         {numberOfSelectedRows > 0 && (
-          <div className="grid items-center grid-flow-col gap-2 place-content-start">
+          <div className="grid grid-flow-col place-content-start items-center gap-2">
             <Chip
               size="small"
               color="info"
@@ -161,7 +161,7 @@ export default function DataBrowserGridControls({
         )}
 
         {numberOfSelectedRows === 0 && (
-          <div className="grid items-center grid-flow-col col-span-6 gap-2">
+          <div className="col-span-6 grid grid-flow-col items-center gap-2">
             {columns.length > 0 && (
               <DataGridPagination
                 className={twMerge(
@@ -177,7 +177,7 @@ export default function DataBrowserGridControls({
               <Dropdown.Root>
                 <Dropdown.Trigger asChild hideChevron>
                   <Button
-                    startIcon={<PlusIcon className="w-4 h-4" />}
+                    startIcon={<PlusIcon className="h-4 w-4" />}
                     size="small"
                   >
                     Insert

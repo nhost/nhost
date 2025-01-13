@@ -6,7 +6,7 @@ import type {
   ColumnType,
   DataBrowserGridCell,
   DataBrowserGridCellProps,
-} from '@/features/database/dataGrid/types/dataBrowser';
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { triggerToast } from '@/utils/toast';
 import type {
   FocusEvent,

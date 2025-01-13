@@ -1,8 +1,8 @@
-import type { CommonDataGridCellProps } from '@/components/dataGrid/DataGridCell';
-import { useDataGridCell } from '@/components/dataGrid/DataGridCell';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import type { TextProps } from '@/components/ui/v2/Text';
 import { Text } from '@/components/ui/v2/Text';
+import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
+import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { getDateComponents } from '@/utils/getDateComponents';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { twMerge } from 'tailwind-merge';

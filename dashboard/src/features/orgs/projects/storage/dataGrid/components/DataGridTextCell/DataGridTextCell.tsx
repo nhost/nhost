@@ -1,9 +1,11 @@
-import type { CommonDataGridCellProps } from '@/components/dataGrid/DataGridCell';
-import { useDataGridCell } from '@/components/dataGrid/DataGridCell';
 import { Button } from '@/components/ui/v2/Button';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  useDataGridCell,
+  type CommonDataGridCellProps,
+} from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { copy } from '@/utils/copy';
 import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { useEffect } from 'react';

@@ -1,4 +1,4 @@
-import { useDataGridConfig } from '@/components/dataGrid/DataGridConfigProvider';
+import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import clsx from 'clsx';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 
