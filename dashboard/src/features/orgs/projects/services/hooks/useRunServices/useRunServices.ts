@@ -46,7 +46,7 @@ export default function useRunServices() {
     refetch: refetchPlatformServices,
   } = useGetRunServicesQuery({
     variables: {
-      appID: project.id,
+      appID: project?.id,
       resolve: false,
       limit: limit.current,
       offset,

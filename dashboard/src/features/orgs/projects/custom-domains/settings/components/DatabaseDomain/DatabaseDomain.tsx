@@ -14,9 +14,13 @@ const validationSchema = Yup.object({
 export type DatabaseDomainFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function DatabaseDomain() {
-  const { project } = useProject();
+  const { project, loading } = useProject();
 
   const [dbFQDN, setDbFQDN] = useState('');
+
+  if (loading) {
+    return null;
+  }
 
   const postgresHost = generateAppServiceUrl(
     project.subdomain,
@@ -36,7 +40,7 @@ export default function DatabaseDomain() {
           className: 'hidden',
         },
       }}
-      className="grid grid-flow-row px-4 gap-x-4 gap-y-4 lg:grid-cols-5"
+      className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
     >
       <Input
         id="database_fqdn"
