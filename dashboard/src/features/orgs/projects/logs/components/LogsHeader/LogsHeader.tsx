@@ -55,7 +55,7 @@ export default function LogsHeader({
 
   const { data, loading: loadingServiceLabelValues } =
     useGetServiceLabelValuesQuery({
-      variables: { appID: project.id },
+      variables: { appID: project?.id },
     });
 
   useEffect(() => {
