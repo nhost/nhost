@@ -13,8 +13,8 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
 import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
-import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
+import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
@@ -121,7 +121,7 @@ export default function LogsHeader({
           <Box className="flex flex-row space-x-2">
             <ControlledSelect
               {...register('service')}
-              className="w-full text-sm font-normal min-w-fit"
+              className="w-full min-w-fit text-sm font-normal"
               placeholder="All Services"
               aria-label="Select service"
               hideEmptyHelperText
@@ -165,12 +165,12 @@ export default function LogsHeader({
                   },
                 }}
                 title={
-                  <div className="p-2 space-y-4">
+                  <div className="space-y-4 p-2">
                     <h2>Here are some useful regular expressions:</h2>
-                    <ul className="pl-3 space-y-2 list-disc">
+                    <ul className="list-disc space-y-2 pl-3">
                       <li>
                         use
-                        <code className="px-1 py-px mx-1 rounded-md bg-slate-500 text-slate-100">
+                        <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
                           (?i)error
                         </code>
                         to search for lines with the word <b>error</b> (case
@@ -178,7 +178,7 @@ export default function LogsHeader({
                       </li>
                       <li>
                         use
-                        <code className="px-1 py-px mx-1 rounded-md bg-slate-500 text-slate-100">
+                        <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
                           error
                         </code>
                         to search for lines with the word <b>error</b> (case
@@ -186,7 +186,7 @@ export default function LogsHeader({
                       </li>
                       <li>
                         use
-                        <code className="px-1 py-px mx-1 rounded-md bg-slate-500 text-slate-100">
+                        <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
                           /metadata.*error
                         </code>
                         to search for errors in hasura&apos;s metadata endpoint
@@ -208,10 +208,10 @@ export default function LogsHeader({
                   </div>
                 }
               >
-                <Box className="ml-2 rounded-full cursor-pointer">
+                <Box className="ml-2 cursor-pointer rounded-full">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-5 h-5"
+                    className="h-5 w-5"
                     color="info"
                   />
                 </Box>
@@ -224,7 +224,7 @@ export default function LogsHeader({
             className="h-10"
             startIcon={
               loading ? (
-                <ActivityIndicator className="w-4 h-4" />
+                <ActivityIndicator className="h-4 w-4" />
               ) : (
                 <SearchIcon />
               )

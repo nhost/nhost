@@ -22,18 +22,18 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function SettingsAuthenticationPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
-    skip: !project,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (!data && loading) {
+  if (!data || loadingProject || loading) {
     return (
       <ActivityIndicator
         delay={1000}

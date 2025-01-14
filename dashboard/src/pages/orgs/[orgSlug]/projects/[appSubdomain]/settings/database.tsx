@@ -15,15 +15,15 @@ import type { ReactElement } from 'react';
 export default function DatabaseSettingsPage() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
 
   const { loading, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
-    skip: !project,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading) {
+  if (loadingProject || loading) {
     return (
       <ActivityIndicator
         delay={1000}

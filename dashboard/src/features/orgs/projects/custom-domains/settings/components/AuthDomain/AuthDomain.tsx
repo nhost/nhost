@@ -34,7 +34,11 @@ export default function AuthDomain() {
   const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
 
-  const { project, refetch: refetchProject } = useProject();
+  const {
+    project,
+    refetch: refetchProject,
+    loading: loadingProject,
+  } = useProject();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -48,7 +52,7 @@ export default function AuthDomain() {
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: {
-      appId: project.id,
+      appId: project?.id,
     },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -62,7 +66,7 @@ export default function AuthDomain() {
     }
   }, [data, loading, form, initialValue]);
 
-  if (loading) {
+  if (loadingProject || loading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -147,7 +151,7 @@ export default function AuthDomain() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row px-4 gap-x-4 gap-y-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
         >
           <Input
             {...register('auth_fqdn')}

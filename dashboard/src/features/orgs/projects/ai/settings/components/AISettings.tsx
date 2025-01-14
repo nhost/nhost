@@ -61,7 +61,7 @@ export default function AISettings() {
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
 
   const [aiServiceEnabled, setAIServiceEnabled] = useState(true);
 
@@ -73,9 +73,10 @@ export default function AISettings() {
     error: errorGettingAiSettings,
   } = useGetAiSettingsQuery({
     variables: {
-      appId: project.id,
+      appId: project?.id,
     },
     ...(!isPlatform ? { client: localMimirClient } : {}),
+    skip: !project?.id,
   });
 
   const { data: graphiteVersionsData, loading: loadingGraphiteVersionsData } =
@@ -192,11 +193,11 @@ export default function AISettings() {
     }
   };
 
-  if (loadingAiSettings || loadingGraphiteVersionsData) {
+  if (loadingProject || loadingAiSettings || loadingGraphiteVersionsData) {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Postgres version..."
+        label="Loading AI settings..."
         className="justify-center"
       />
     );
@@ -269,7 +270,7 @@ export default function AISettings() {
 
   return (
     <Box className="space-y-4" sx={{ backgroundColor: 'background.default' }}>
-      <Box className="flex flex-row items-center justify-between p-4 rounded-lg border-1">
+      <Box className="flex flex-row items-center justify-between rounded-lg border-1 p-4">
         <Text className="text-lg font-semibold">Enable AI service</Text>
         <Switch
           checked={aiServiceEnabled}
@@ -298,7 +299,7 @@ export default function AISettings() {
                     <Tooltip title="Version of the service to use.">
                       <InfoIcon
                         aria-label="Info"
-                        className="w-4 h-4"
+                        className="h-4 w-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -353,7 +354,7 @@ export default function AISettings() {
                     <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
                       <InfoIcon
                         aria-label="Info"
-                        className="w-4 h-4"
+                        className="h-4 w-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -377,7 +378,7 @@ export default function AISettings() {
                     <Tooltip title="Dedicated resources allocated for the service.">
                       <InfoIcon
                         aria-label="Info"
-                        className="w-4 h-4"
+                        className="h-4 w-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -417,7 +418,7 @@ export default function AISettings() {
                         <Tooltip title="Key to use for authenticating API requests to OpenAI">
                           <InfoIcon
                             aria-label="Info"
-                            className="w-4 h-4"
+                            className="h-4 w-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -440,7 +441,7 @@ export default function AISettings() {
                         <Tooltip title="Optional. OpenAI organization to use.">
                           <InfoIcon
                             aria-label="Info"
-                            className="w-4 h-4"
+                            className="h-4 w-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -468,7 +469,7 @@ export default function AISettings() {
                         <Tooltip title="How often to run the job that keeps embeddings up to date.">
                           <InfoIcon
                             aria-label="Info"
-                            className="w-4 h-4"
+                            className="h-4 w-4"
                             color="primary"
                           />
                         </Tooltip>
