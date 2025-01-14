@@ -8,11 +8,11 @@ import {
 } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
-import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import {
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
+import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { subMinutes } from 'date-fns';
 import {
   useCallback,
@@ -45,7 +45,7 @@ export default function LogsPage() {
 
   const { data, error, subscribeToMore, client, loading, refetch } =
     useGetProjectLogsQuery({
-      variables: { appID: project.id, ...filters },
+      variables: { appID: project?.id, ...filters },
       client: clientWithSplit,
       fetchPolicy: 'cache-and-network',
       notifyOnNetworkStatusChange: true,
@@ -56,7 +56,7 @@ export default function LogsPage() {
       subscribeToMore({
         document: GetLogsSubscriptionDocument,
         variables: {
-          appID: project.id,
+          appID: project?.id,
           service: filters.service,
           from: filters.from,
           regexFilter: filters.regexFilter,
@@ -98,7 +98,7 @@ export default function LogsPage() {
           };
         },
       }),
-    [subscribeToMore, project.id, filters],
+    [subscribeToMore, project?.id, filters],
   );
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export default function LogsPage() {
   );
 
   return (
-    <div className="flex flex-col w-full h-full">
+    <div className="flex h-full w-full flex-col">
       <RetryableErrorBoundary>
         <LogsHeader
           loading={loading}
