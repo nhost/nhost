@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useInterval } from '@/hooks/useInterval';
 import { getRelativeDateByApplicationState } from '@/utils/helpers';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface AppLoaderProps {
   /**
@@ -35,12 +35,30 @@ export default function AppLoader({
   restoring,
 }: AppLoaderProps) {
   const { project, loading } = useProject();
+  const [timeElapsed, setTimeElapsed] = useState<number>(0);
 
-  let timeElapsedSinceEventCreation: number;
+  useEffect(() => {
+    if (!project || loading) {
+      return;
+    }
 
-  const [timeElapsed, setTimeElapsed] = useState(timeElapsedSinceEventCreation);
+    let timeElapsedSinceEventCreation: number;
 
-  // Would be also valuable to check the appCreatedTime so this doesn't ever appear if not created under a time limit. @GC
+    if (date) {
+      timeElapsedSinceEventCreation = getRelativeDateByApplicationState(date);
+    } else if (unpause) {
+      timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
+        project.appStates[0].createdAt,
+      );
+    } else {
+      timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
+        project.createdAt,
+      );
+    }
+
+    setTimeElapsed(timeElapsedSinceEventCreation);
+  }, [project, date, unpause, loading]);
+
   useInterval(
     () => {
       setTimeElapsed(timeElapsed + 1);
@@ -50,18 +68,6 @@ export default function AppLoader({
 
   if (loading) {
     return <LoadingScreen />;
-  }
-
-  if (date) {
-    timeElapsedSinceEventCreation = getRelativeDateByApplicationState(date);
-  } else if (unpause) {
-    timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
-      project.appStates[0].createdAt,
-    );
-  } else {
-    timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
-      project.createdAt,
-    );
   }
 
   return (
