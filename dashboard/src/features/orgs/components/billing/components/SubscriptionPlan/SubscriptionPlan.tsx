@@ -56,10 +56,10 @@ export default function SubscriptionPlan() {
   });
 
   useEffect(() => {
-    if (org?.plan?.id) {
+    if (org) {
       form.setValue('plan', org.plan.id, { shouldDirty: false });
     }
-  }, [form, org?.plan?.id]);
+  }, [form, org]);
 
   const selectedPlan = form.watch('plan');
 
