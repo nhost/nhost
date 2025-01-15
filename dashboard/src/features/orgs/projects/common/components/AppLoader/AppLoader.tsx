@@ -1,4 +1,5 @@
 import { ContactUs } from '@/components/common/ContactUs';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
@@ -6,7 +7,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useInterval } from '@/hooks/useInterval';
 import { getRelativeDateByApplicationState } from '@/utils/helpers';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface AppLoaderProps {
   /**
@@ -33,31 +34,41 @@ export default function AppLoader({
   date,
   restoring,
 }: AppLoaderProps) {
-  const { project } = useProject();
+  const { project, loading } = useProject();
+  const [timeElapsed, setTimeElapsed] = useState<number>(0);
 
-  let timeElapsedSinceEventCreation: number;
+  useEffect(() => {
+    if (!project || loading) {
+      return;
+    }
 
-  if (date) {
-    timeElapsedSinceEventCreation = getRelativeDateByApplicationState(date);
-  } else if (unpause) {
-    timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
-      project.appStates[0].createdAt,
-    );
-  } else {
-    timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
-      project.createdAt,
-    );
-  }
+    let timeElapsedSinceEventCreation: number;
 
-  const [timeElapsed, setTimeElapsed] = useState(timeElapsedSinceEventCreation);
+    if (date) {
+      timeElapsedSinceEventCreation = getRelativeDateByApplicationState(date);
+    } else if (unpause) {
+      timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
+        project.appStates[0].createdAt,
+      );
+    } else {
+      timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
+        project.createdAt,
+      );
+    }
 
-  // Would be also valuable to check the appCreatedTime so this doesn't ever appear if not created under a time limit. @GC
+    setTimeElapsed(timeElapsedSinceEventCreation);
+  }, [project, date, unpause, loading]);
+
   useInterval(
     () => {
       setTimeElapsed(timeElapsed + 1);
     },
     startLoader ? 1000 : null,
   );
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="grid grid-flow-row gap-2">
@@ -86,9 +97,9 @@ export default function AppLoader({
       <ActivityIndicator className="mx-auto" />
 
       {timeElapsed > 180 && (
-        <Dropdown.Root className="flex flex-col mx-auto">
+        <Dropdown.Root className="mx-auto flex flex-col">
           <Dropdown.Trigger
-            className="flex mx-auto font-medium"
+            className="mx-auto flex font-medium"
             hideChevron
             asChild
           >

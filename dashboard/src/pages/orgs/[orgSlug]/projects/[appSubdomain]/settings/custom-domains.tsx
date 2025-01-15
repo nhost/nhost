@@ -1,5 +1,6 @@
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
@@ -15,7 +16,11 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { type ReactElement } from 'react';
 
 export default function CustomDomains() {
-  const { org } = useCurrentOrg();
+  const { org, loading: loadingOrg } = useCurrentOrg();
+
+  if (loadingOrg) {
+    return <ActivityIndicator delay={1000} label="Loading project..." />;
+  }
 
   if (org?.plan?.isFree) {
     return (

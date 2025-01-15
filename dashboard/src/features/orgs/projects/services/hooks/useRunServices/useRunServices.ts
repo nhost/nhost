@@ -46,7 +46,7 @@ export default function useRunServices() {
     refetch: refetchPlatformServices,
   } = useGetRunServicesQuery({
     variables: {
-      appID: project.id,
+      appID: project?.id,
       resolve: false,
       limit: limit.current,
       offset,
@@ -59,7 +59,7 @@ export default function useRunServices() {
     data: localServicesData,
     refetch: refetchLocalServices,
   } = useGetLocalRunServiceConfigsQuery({
-    variables: { appID: project.id as any, resolve: false },
+    variables: { appID: project?.id as any, resolve: false },
     skip: isPlatform,
     client: localMimirClient,
   });

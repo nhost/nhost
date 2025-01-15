@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -12,21 +12,17 @@ import type { ReactElement } from 'react';
 export default function MetricsSettingsPage() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
 
-  const { loading, error } = useGetObservabilitySettingsQuery({
-    variables: { appId: project?.id },
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
+  const { loading: loadingObservabilitySettings, error } =
+    useGetObservabilitySettingsQuery({
+      variables: { appId: project?.id },
+      ...(!isPlatform ? { client: localMimirClient } : {}),
+      skip: !project?.id,
+    });
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Observability settings..."
-        className="justify-center"
-      />
-    );
+  if (loadingProject || loadingObservabilitySettings) {
+    return <LoadingScreen />;
   }
 
   if (error) {
@@ -35,7 +31,7 @@ export default function MetricsSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <MetricsSettings />
