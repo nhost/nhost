@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 2.15.0
+
+### Minor Changes
+
+- f1052a8: fix: improve stability of the dashboard when pausing projects
+- 30daa41: fix: update links to docs in overview page
+- 7537237: feat: add image preview toggle in storage
+
 ## 2.14.0
 
 ### Minor Changes
