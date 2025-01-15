@@ -57,7 +57,7 @@ export default function SubscriptionPlan() {
 
   useEffect(() => {
     if (org) {
-      form.setValue('plan', org.plan.id, { shouldDirty: false });
+      form.setValue('plan', org?.plan.id, { shouldDirty: false });
     }
   }, [form, org]);
 
