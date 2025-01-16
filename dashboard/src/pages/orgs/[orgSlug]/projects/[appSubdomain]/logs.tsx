@@ -55,6 +55,7 @@ export default function LogsPage() {
     client: clientWithSplit,
     fetchPolicy: 'cache-and-network',
     notifyOnNetworkStatusChange: true,
+    skip: !project,
   });
 
   const subscribeToMoreLogs = useCallback(
@@ -62,7 +63,7 @@ export default function LogsPage() {
       subscribeToMore({
         document: GetLogsSubscriptionDocument,
         variables: {
-          appID: project.id,
+          appID: project?.id,
           service: filters.service,
           from: filters.from,
           regexFilter: filters.regexFilter,
@@ -108,6 +109,10 @@ export default function LogsPage() {
   );
 
   useEffect(() => {
+    if (!project || loadingProject) {
+      return () => {};
+    }
+
     if (filters.to && subscriptionReturn.current !== null) {
       subscriptionReturn.current();
       subscriptionReturn.current = null;
@@ -128,7 +133,7 @@ export default function LogsPage() {
     subscriptionReturn.current = subscribeToMoreLogs();
 
     return () => {};
-  }, [filters, subscribeToMoreLogs, client]);
+  }, [filters, subscribeToMoreLogs, client, project, loadingProject]);
 
   const onSubmitFilterValues = useCallback(
     async (values: LogsFilterFormValues) => {
