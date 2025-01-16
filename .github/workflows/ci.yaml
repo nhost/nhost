@@ -163,7 +163,7 @@ jobs:
       # * Run this step only if the previous step failed, and Playwright generated a report
       - name: Upload Playwright Report
         if: ${{ failure() && hashFiles(format('{0}/playwright-report/**', matrix.package.path)) != ''}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-${{ steps.file-name.outputs.fileName }}
           path: ${{format('{0}/playwright-report/**', matrix.package.path)}}
