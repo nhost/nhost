@@ -13,8 +13,8 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
 import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
-import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
+import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
@@ -59,14 +59,14 @@ export default function LogsHeader({
     });
 
   useEffect(() => {
-    if (!loadingServiceLabelValues) {
+    if (!loadingServiceLabelValues && data) {
       const labels = data.getServiceLabelValues ?? [];
       setServiceLabels(labels.map((l) => ({ label: l, value: l })));
     }
   }, [loadingServiceLabelValues, data]);
 
   useEffect(() => {
-    if (!loadingServiceLabelValues) {
+    if (!loadingServiceLabelValues && data) {
       const labels = data.getServiceLabelValues ?? [];
 
       const labelMappings = {
