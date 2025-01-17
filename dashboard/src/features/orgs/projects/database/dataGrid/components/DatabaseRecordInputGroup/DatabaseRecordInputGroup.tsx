@@ -34,6 +34,7 @@ export interface DatabaseRecordInputGroupProps extends BoxProps {
 
 function getPlaceholder(
   defaultValue?: string,
+  isDefaultValueCustom?: boolean,
   isIdentity?: boolean,
   isNullable?: boolean,
 ) {
@@ -45,7 +46,7 @@ function getPlaceholder(
     return 'NULL';
   }
 
-  if (defaultValue === '') {
+  if (defaultValue === '' && isDefaultValueCustom) {
     return `Automatically generated value: ''`;
   }
 
@@ -106,6 +107,7 @@ export default function DatabaseRecordInputGroup({
               specificType,
               maxLength,
               defaultValue,
+              isDefaultValueCustom,
               isPrimary,
               isNullable,
               isIdentity,
@@ -122,6 +124,7 @@ export default function DatabaseRecordInputGroup({
 
             const placeholder = getPlaceholder(
               defaultValue,
+              isDefaultValueCustom,
               isIdentity,
               isNullable,
             );
