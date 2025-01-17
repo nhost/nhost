@@ -71,18 +71,6 @@ func HasuraStorageEnv( //nolint:funlen
 			IsSecret:   true,
 		},
 		{
-			Name:       "S3_ACCESS_KEY",
-			Value:      s3AccessKey,
-			SecretName: secretHasuraStorageS3AccessKey,
-			IsSecret:   true,
-		},
-		{
-			Name:       "S3_SECRET_KEY",
-			Value:      s3SecretKey,
-			SecretName: secretHasuraStorageS3SecretKey,
-			IsSecret:   true,
-		},
-		{
 			Name:       "S3_ENDPOINT",
 			Value:      s3Endpoint,
 			IsSecret:   false,
@@ -112,6 +100,23 @@ func HasuraStorageEnv( //nolint:funlen
 			IsSecret:   false,
 			SecretName: "",
 		},
+	}
+
+	if s3AccessKey != "" {
+		env = append(env,
+			EnvVar{
+				Name:       "S3_ACCESS_KEY",
+				Value:      s3AccessKey,
+				SecretName: secretHasuraStorageS3AccessKey,
+				IsSecret:   true,
+			},
+			EnvVar{
+				Name:       "S3_SECRET_KEY",
+				Value:      s3SecretKey,
+				SecretName: secretHasuraStorageS3SecretKey,
+				IsSecret:   true,
+			},
+		)
 	}
 
 	if antivirusServer != "" {

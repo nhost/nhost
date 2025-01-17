@@ -238,7 +238,7 @@ import (
 // Configuration for functions service
 #Functions: {
 	node: {
-		version: 20 | *18
+		version: *18 | 20 | 22
 	}
 
 	resources?: {

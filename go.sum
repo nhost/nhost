@@ -538,6 +538,8 @@ github.com/nhost/be v0.0.0-20250108133629-afef8c60957d h1:Qpm1om9RfHMFILg9LTZchP
 github.com/nhost/be v0.0.0-20250108133629-afef8c60957d/go.mod h1:6lkCTKviZ+ZQDaYed7QFz4MoFb5sg10tlaux2AHeBEQ=
 github.com/nhost/be v0.0.0-20250108140619-2d5cbe3d8d53 h1:a/HtPyxfMQCOUtCuFPfBCDiwXQe0qXHa2TN/zZ8QuSg=
 github.com/nhost/be v0.0.0-20250108140619-2d5cbe3d8d53/go.mod h1:6lkCTKviZ+ZQDaYed7QFz4MoFb5sg10tlaux2AHeBEQ=
+github.com/nhost/be v0.0.0-20250116151339-605671e870a1 h1:Ot50lURnX/giULeCXO2Q3dl+F144l4anQ9smEEtIFtI=
+github.com/nhost/be v0.0.0-20250116151339-605671e870a1/go.mod h1:SgL7alnP/yxHF4Un46J+jowx+bi5e4kajmo1EI3C9QA=
 github.com/onsi/gomega v1.27.10 h1:naR28SdDFlqrG6kScpT8VWpu1xWY5nJRCF3XaYyBjhI=
 github.com/onsi/gomega v1.27.10/go.mod h1:RsS8tutOdbdgzbPtzzATp12yT7kM5I5aElG3evPbQ0M=
 github.com/onsi/gomega v1.34.1 h1:EUMJIKUjM8sKjYbtxQI9A4z2o+rruxnzNvpknOXie6k=
