@@ -92,13 +92,14 @@ export const fetchUpload = async (
 
     xhr.onload = () => {
       if (xhr.status < 200 || xhr.status >= 300) {
+        const error: StorageErrorPayload = {
+          error: xhr.response?.error?.message ?? xhr.response?.error ?? xhr.response,
+          message: xhr.response?.error?.message ?? xhr.response,
+          status: xhr.status
+        }
         return resolve({
           fileMetadata: null,
-          error: {
-            error: xhr.response?.error?.message ?? xhr.response?.error ?? xhr.response,
-            message: xhr.response?.error?.message ?? xhr.response,
-            status: xhr.status
-          }
+          error
         })
       }
       return resolve({ fileMetadata: xhr.response, error: null })
@@ -106,9 +107,14 @@ export const fetchUpload = async (
 
     xhr.onerror = () => {
       // only triggers if the request couldn't be made at all e.g. network error
+      const error: StorageErrorPayload = {
+        error: xhr.statusText,
+        message: xhr.statusText,
+        status: xhr.status
+      }
       return resolve({
         fileMetadata: null,
-        error: { error: xhr.statusText, message: xhr.statusText, status: xhr.status }
+        error
       })
     }
 
