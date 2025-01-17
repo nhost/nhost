@@ -46,7 +46,7 @@ export default function BaseRecordForm({
         column.isPrimary ||
         (!column.isNullable &&
           !column.defaultValue &&
-          column.defaultValue !== '' &&
+          !column.isDefaultValueCustom &&
           !column.isIdentity)
       ) {
         return {
