@@ -95,7 +95,7 @@ export const fetchUpload = async (
         return resolve({
           fileMetadata: null,
           error: {
-            error: xhr.response?.error ?? xhr.response,
+            error: xhr.response?.error?.message ?? xhr.response?.error ?? xhr.response,
             message: xhr.response?.error?.message ?? xhr.response,
             status: xhr.status
           }
