@@ -97,3 +97,11 @@ This borrowing of resources is convenient in case of short and unexpected bursts
 ## Disk Performance
 
 By default disks are provisioned with a capacity for 3000 IOPS and 125 Mbps of throughput. If you need higher performance don't hesitate to contact us.
+
+## Encryption at Rest
+
+All files uploaded to the [storage](/product/storage) service are encrypted at rest using AES-256 encryption. Similarly, any volumes provisioned for your [database](/product/database) and [Run services](/product/run) are also encrypted using AES-256.
+
+<Warning>
+Only volumes provisioned after December 2024 are encrypted with AES-256. You can verify your volume's encryption status by navigating to your project's settings -> Database -> Storage capacity. If your volume is not encrypted, you'll see a warning message indicating this. To enable encryption on your volume, you can pause and then unpause your project. This action will provision new volumes with encryption enabled.
+</Warning>
