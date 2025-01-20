@@ -48,6 +48,8 @@ export default function prepareCreateColumnQuery({
     );
   }
 
+  console.log('schema, table, column', schema, table, column);
+
   let args: ReturnType<typeof getPreparedHasuraQuery>[] = [
     getPreparedHasuraQuery(
       dataSource,
@@ -61,6 +63,8 @@ export default function prepareCreateColumnQuery({
       uniqueClause,
     ),
   ];
+
+  console.log('args', args);
 
   if (column.comment) {
     args = args.concat(

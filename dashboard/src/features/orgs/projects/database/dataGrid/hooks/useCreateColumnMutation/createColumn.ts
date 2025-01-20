@@ -25,11 +25,18 @@ export default async function createColumn({
   adminSecret,
   column,
 }: CreateColumnOptions & CreateColumnVariables) {
+  const actualColumn = {
+    ...column,
+    type: {
+      ...column.type,
+      // value: 'varchar(10)' as ColumnType,
+    },
+  };
   const args = prepareCreateColumnQuery({
     dataSource,
     schema,
     table,
-    column,
+    column: actualColumn,
   });
 
   const response = await fetch(`${appUrl}/v2/query`, {

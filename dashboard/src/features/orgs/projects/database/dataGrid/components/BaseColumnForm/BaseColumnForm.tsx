@@ -136,6 +136,9 @@ export default function BaseColumnForm({
             fullWidth
             placeholder="Select a column type"
             label="Type"
+            freeSolo
+            showCustomOption="auto"
+            customOptionLabel={(value) => `Use custom value: "${value}"`}
             helperText={errors.type?.message}
             error={Boolean(errors.type)}
             hideEmptyHelperText
@@ -156,7 +159,6 @@ export default function BaseColumnForm({
                 setValue('defaultValue', null);
               }
             }}
-            noOptionsText="No types found"
             renderOption={(props, { label, value }) => (
               <OptionBase {...props}>
                 <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
