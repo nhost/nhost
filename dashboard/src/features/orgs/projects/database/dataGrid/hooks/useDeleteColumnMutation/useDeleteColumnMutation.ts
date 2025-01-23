@@ -1,5 +1,5 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type { MutationOptions } from '@tanstack/react-query';
@@ -39,10 +39,10 @@ export default function useDeleteColumnMutation({
   const {
     query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const appUrl = generateAppServiceUrl(
-    currentProject?.subdomain,
-    currentProject?.region,
+    project?.subdomain,
+    project?.region,
     'hasura',
   );
   const mutationFn = isPlatform ? deleteColumn : deleteColumnMigration;
@@ -55,7 +55,7 @@ export default function useDeleteColumnMutation({
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || currentProject?.config?.hasura.adminSecret,
+            : customAdminSecret || project?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
         table: customTable || (tableSlug as string),
