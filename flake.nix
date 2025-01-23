@@ -36,7 +36,7 @@
           pname = "node_modules";
 
           nativeBuildInputs = with pkgs; [
-            nodePackages.pnpm
+            pnpm_9
             cacert
             nodejs
           ];
@@ -131,7 +131,7 @@
             buildInputs = with pkgs; [
               nhost-cli
               nodejs
-              nodePackages.pnpm
+              pnpm_9
               go
               golangci-lint
             ] ++ buildInputs ++ nativeBuildInputs;
