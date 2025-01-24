@@ -1,3 +1,4 @@
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -5,7 +6,9 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 /**
- * Redirects to 404 page if either currentWorkspace/currentProject resolves to undefined.
+ * Redirects to 404 page if either currentWorkspace/currentProject resolves to undefined
+ * or if the current pathname is not a valid organization/project.
+ * Not applicable if running dashboard with local Nhost backend.
  */
 export default function useNotFoundRedirect() {
   const router = useRouter();
@@ -21,6 +24,7 @@ export default function useNotFoundRedirect() {
   } = router;
 
   const { project, loading: projectLoading } = useProject();
+  const isPlatform = useIsPlatform();
   const { org, loading: orgLoading } = useCurrentOrg();
 
   const { subdomain: projectSubdomain } = project || {};
@@ -49,6 +53,8 @@ export default function useNotFoundRedirect() {
       router.pathname === '/run-one-click-install' ||
       router.pathname.includes('/orgs/_') ||
       router.pathname.includes('/orgs/_/projects/_') ||
+      (!isPlatform &&
+        router.pathname.includes('/orgs/[orgSlug]/projects/[appSubdomain]')) ||
       (urlOrgSlug === currentOrgSlug && !urlAppSubdomain) ||
       (urlOrgSlug === currentOrgSlug && urlAppSubdomain === projectSubdomain) ||
       // If we are on a valid workspace and project, we don't want to redirect to 404
@@ -75,5 +81,6 @@ export default function useNotFoundRedirect() {
     projectSubdomain,
     urlWorkspaceSlug,
     urlOrgSlug,
+    isPlatform,
   ]);
 }
