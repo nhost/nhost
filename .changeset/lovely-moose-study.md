@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-fix: can add rule group in permissions for database
+fix: can add rule groups in table permissions
