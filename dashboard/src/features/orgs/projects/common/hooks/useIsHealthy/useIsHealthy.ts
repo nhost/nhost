@@ -17,7 +17,7 @@ export default function useIsHealthy() {
   );
 
   const { failureCount, status } = useQuery(
-    ['/version'],
+    ['/v1/version'],
     () => fetch(`${appUrl}/v1/version`),
     {
       enabled: !isPlatform && !!project,
