@@ -13,12 +13,12 @@ export default function useIsHealthy() {
   const appUrl = generateAppServiceUrl(
     project?.subdomain,
     project?.region,
-    'auth',
+    'hasura',
   );
 
   const { failureCount, status } = useQuery(
-    ['/healthz'],
-    () => fetch(`${appUrl}/healthz`),
+    ['/version'],
+    () => fetch(`${appUrl}/v1/version`),
     {
       enabled: !isPlatform && !!project,
       retry: true,
