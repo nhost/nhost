@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import type {
   Rule,
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -68,7 +68,7 @@ export default function RuleGroupEditor({
   sx,
   ...props
 }: RuleGroupEditorProps) {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
   const form = useFormContext();
 
   const { control, getValues } = form;
@@ -185,13 +185,13 @@ export default function RuleGroupEditor({
               <Text>
                 This rule group contains one or more objects (e.g: _exists) that
                 are not supported by our dashboard yet.{' '}
-                {currentProject && (
+                {project && (
                   <span>
                     Please{' '}
                     <Link
                       href={`${generateAppServiceUrl(
-                        currentProject.subdomain,
-                        currentProject.region,
+                        project.subdomain,
+                        project.region,
                         'hasura',
                       )}/console/data/default/schema/${schema}/tables/${table}/permissions`}
                       underline="hover"
