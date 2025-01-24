@@ -1,3 +1,4 @@
+import type { ProjectFragment } from '@/utils/__generated__/graphql';
 import {
   getAuthServiceUrl,
   getDatabaseServiceUrl,
@@ -7,7 +8,6 @@ import {
   getStorageServiceUrl,
   isPlatform,
 } from '@/utils/env';
-import type { ProjectFragment } from '@/utils/__generated__/graphql';
 
 export type NhostService =
   | 'auth'
@@ -17,21 +17,6 @@ export type NhostService =
   | 'storage'
   | 'hasura'
   | 'grafana';
-
-/**
- * The default slugs that are used when running the dashboard locally. These
- * values are used both in local mode and when running the dashboard locally
- * against the remote (either staging or production) backend.
- */
-export const defaultLocalBackendSlugs: Record<NhostService, string> = {
-  auth: '/v1/auth',
-  db: '',
-  graphql: '/v1/graphql',
-  functions: '/v1/functions',
-  storage: '/v1/files',
-  hasura: '',
-  grafana: '',
-};
 
 /**
  * The default slugs that are used when running the dashboard against the
