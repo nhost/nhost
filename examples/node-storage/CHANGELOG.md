@@ -1,5 +1,11 @@
 # @nhost-examples/node-storage
 
+## 0.2.17
+
+### Patch Changes
+
+- @nhost/nhost-js@3.2.4
+
 ## 0.2.16
 
 ### Patch Changes

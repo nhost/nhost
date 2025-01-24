@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.7.0
+
+### Minor Changes
+
+- 5c6ff6e: fix: correct StorageErrorPayload TypeScript typing
+
 ## 2.6.0
 
 ### Minor Changes
