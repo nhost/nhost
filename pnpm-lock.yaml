@@ -2285,10 +2285,18 @@ importers:
       '@nhost/react-apollo':
         specifier: ^12.0.2
 <<<<<<< HEAD
+<<<<<<< HEAD
         version: 12.0.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.4(encoding@0.1.13)(graphql@16.8.1))(@nhost/react@3.5.5(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
 =======
         version: 12.0.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1))(@nhost/react@3.8.0(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
 >>>>>>> 1b7c47751 (chore: update prettier and tailwindcss plugin)
+=======
+<<<<<<< Updated upstream
+        version: 12.0.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1))(@nhost/react@3.8.0(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+=======
+        version: 12.0.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1))(@nhost/react@3.5.5(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+>>>>>>> Stashed changes
+>>>>>>> fa61f6d96 (chore: update pnpm-lock.yaml)
       '@react-native-async-storage/async-storage':
         specifier: ^1.23.1
         version: 1.23.1(react-native@0.73.7(@babel/core@7.24.7)(@babel/preset-env@7.24.7(@babel/core@7.24.7))(encoding@0.1.13)(react@18.2.0))
@@ -2493,7 +2501,7 @@ packages:
     resolution: {integrity: sha512-9anThAaj1dQr6IGmzBMcfzOQKTa5artjuPmw8NYK/fiGEMjADbSguBY2FMDykt+QhilR3wc9VA/3yVju7JHg7Q==}
     hasBin: true
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
 
   '@ardatan/sync-fetch@0.0.1':
     resolution: {integrity: sha512-xhlTqH0m31mnsG0tIP4ETgfSB6gXDaYYsUWTrlUV93fFQPI9dd8hE0Ot6MHLCtqgB32hwJAC3YZMWlXZw7AleA==}
@@ -4295,7 +4303,7 @@ packages:
     hasBin: true
     peerDependencies:
       '@parcel/watcher': ^2.1.0
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
     peerDependenciesMeta:
       '@parcel/watcher':
         optional: true
@@ -4303,7 +4311,7 @@ packages:
   '@graphql-codegen/client-preset@1.3.0':
     resolution: {integrity: sha512-aUdOvpFszAvDu4TdiucO/Jl1d/spCwZaYLnmrYFD6wKjzLlRAuHiLYV/UEcviTiLNX5vxpJ9lLMnoeuJXnBw2w==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
 
   '@graphql-codegen/client-preset@4.2.5':
     resolution: {integrity: sha512-hAdB6HN8EDmkoBtr0bPUN/7NH6svzqbcTDMWBCRXPESXkl7y80po+IXrXUjsSrvhKG8xkNXgJNz/2mjwHzywcA==}
@@ -4472,7 +4480,7 @@ packages:
     resolution: {integrity: sha512-+NXaZd2MWbbrWHqU4EhXcrDbogeiCDmEbrAN+rMn4Nu2okDjn2MTFDbTIab87oEubQCH4Te1wDkWPKrzXup7+Q==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
 
   '@graphql-tools/executor-legacy-ws@1.0.6':
     resolution: {integrity: sha512-lDSxz9VyyquOrvSuCCnld3256Hmd+QI2lkmkEv7d4mdzkxkK4ddAWW1geQiWrQvWmdsmcnGGlZ7gDGbhEExwqg==}
@@ -4603,7 +4611,7 @@ packages:
   '@graphql-tools/utils@9.2.1':
     resolution: {integrity: sha512-WUw506Ql6xzmOORlriNrD6Ugx+HjVgYxt9KCXD9mHAak+eaXSwuGGPyE60hy9xaDEoXKBsG7SkG69ybitaVl6A==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
 
   '@graphql-tools/wrap@10.0.5':
     resolution: {integrity: sha512-Cbr5aYjr3HkwdPvetZp1cpDWTGdD1Owgsb3z/ClzhmrboiK86EnQDxDvOJiQkDCPWE9lNBwj8Y4HfxroY0D9DQ==}
@@ -4632,7 +4640,7 @@ packages:
   '@graphql-yoga/node@2.13.13':
     resolution: {integrity: sha512-3NmdEq3BkuVLRbo5yUi401sBiwowSKgY8O1DN1RwYdHRr0nu2dXzlYEETf4XLymyP6mKsVfQgsy7HQjwsc1oNw==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
 
   '@graphql-yoga/subscription@2.2.3':
     resolution: {integrity: sha512-It/Dfh+nW2ClTtmOylAa+o7fbKIRYRTH6jfKLj3YB75tkv/rFZ70bjlChDCrEMa46I+zDMg7+cdkrQOXov2fDg==}
@@ -5418,11 +5426,20 @@ packages:
     peerDependencies:
       graphql: '>=16.8.1'
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   '@nhost/hasura-auth-js@2.10.0':
     resolution: {integrity: sha512-vsLNypZFu82W1FhjVYwTkE6xc/k3ZBqIn2qJOzkfTh5L8DhpFZ/po4wGBgszZC3YxG/7bYhSMaYXqcub7NwubQ==}
 =======
 >>>>>>> 1b7c47751 (chore: update prettier and tailwindcss plugin)
+=======
+<<<<<<< Updated upstream
+=======
+
+  '@nhost/hasura-auth-js@2.10.0':
+    resolution: {integrity: sha512-vsLNypZFu82W1FhjVYwTkE6xc/k3ZBqIn2qJOzkfTh5L8DhpFZ/po4wGBgszZC3YxG/7bYhSMaYXqcub7NwubQ==}
+>>>>>>> Stashed changes
+>>>>>>> fa61f6d96 (chore: update pnpm-lock.yaml)
 
   '@nhost/hasura-auth-js@2.10.0':
     resolution: {integrity: sha512-vsLNypZFu82W1FhjVYwTkE6xc/k3ZBqIn2qJOzkfTh5L8DhpFZ/po4wGBgszZC3YxG/7bYhSMaYXqcub7NwubQ==}
@@ -5444,7 +5461,18 @@ packages:
 =======
   '@nhost/hasura-storage-js@2.6.0':
     resolution: {integrity: sha512-cOUeIv8O0LdcOXddLyl4voZxCBtdBeIXSOdN90yy/hOPImH6qS3IBNefWaSjzKYidA9CJKGUKRdy08vhmfukgw==}
+<<<<<<< HEAD
 >>>>>>> 1b7c47751 (chore: update prettier and tailwindcss plugin)
+=======
+<<<<<<< Updated upstream
+=======
+
+  '@nhost/nhost-js@3.1.8':
+    resolution: {integrity: sha512-E09byZVyuUdaRMKjk+Xdrhoz3RdV/IYhIMN/i7pIzArqiE2Qx2RIE8BMQmDFEyuemiCmUg0sXdU6l60qwV8ueA==}
+    peerDependencies:
+      graphql: '>=16.8.1'
+>>>>>>> Stashed changes
+>>>>>>> fa61f6d96 (chore: update pnpm-lock.yaml)
 
   '@nhost/nhost-js@3.2.1':
     resolution: {integrity: sha512-MfTIJXatm+J27SL8UPNVjckH6dR9dY3zLmJKnnI3XpBRYpkhrhmnn4W9JvxjlOywRdTE0WWhgSUEuN1VherdTw==}
@@ -5642,7 +5670,7 @@ packages:
   '@pothos/core@3.41.0':
     resolution: {integrity: sha512-Nb7uPDTXVjdrWqHs5aoD1r6JEdQ9FnJYlf7gv47o1b/bb8rVDAZQaviVvaChal7YQcyFGgCFb0/YNNHLNBEjNw==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -8272,7 +8300,7 @@ packages:
     resolution: {integrity: sha512-AfgcRL8ZBhAlc3BFdigClmTUMISmmzHn7sB2h9U1odvc5U/MjWXsAaz18b/WoppUTDBzxOJwo2VdClfUcItu9g==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: '>=4.5.1'
+      vite: '>=4.3.9'
 
   '@vitejs/plugin-react@4.3.1':
     resolution: {integrity: sha512-m/V2syj5CuVnaxcUJOQRel/Wr31FFXRFlnOoq1TVtkCxsY5veGMTEmpWHndrhB2U8ScHtCQB1e+4hWYExQc6Lg==}
@@ -8335,7 +8363,7 @@ packages:
     peerDependencies:
       '@apollo/client': ^3.4.13
       '@vue/composition-api': ^1.0.0
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
       vue: ^2.6.0 || ^3.1.0
     peerDependenciesMeta:
       '@vue/composition-api':
@@ -23109,6 +23137,22 @@ snapshots:
 
   '@nhost/hasura-auth-js@2.10.0(encoding@0.1.13)':
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+    dependencies:
+      '@simplewebauthn/browser': 9.0.1
+      fetch-ponyfill: 7.1.0(encoding@0.1.13)
+      js-cookie: 3.0.5
+      jwt-decode: 4.0.0
+      xstate: 4.38.3
+    transitivePeerDependencies:
+      - encoding
+
+  '@nhost/hasura-auth-js@2.5.5(encoding@0.1.13)':
+>>>>>>> Stashed changes
+>>>>>>> fa61f6d96 (chore: update pnpm-lock.yaml)
     dependencies:
       '@simplewebauthn/browser': 9.0.1
       fetch-ponyfill: 7.1.0(encoding@0.1.13)
@@ -23150,7 +23194,23 @@ snapshots:
       - encoding
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   '@nhost/hasura-storage-js@2.7.0(encoding@0.1.13)':
+=======
+  '@nhost/hasura-storage-js@2.6.0(encoding@0.1.13)':
+<<<<<<< Updated upstream
+=======
+    dependencies:
+      fetch-ponyfill: 7.1.0(encoding@0.1.13)
+      form-data: 4.0.0
+      graphql: 16.8.1
+      xstate: 4.38.3
+    transitivePeerDependencies:
+      - encoding
+
+  '@nhost/nhost-js@3.1.8(encoding@0.1.13)(graphql@16.8.1)':
+>>>>>>> Stashed changes
+>>>>>>> fa61f6d96 (chore: update pnpm-lock.yaml)
     dependencies:
       fetch-ponyfill: 7.1.0(encoding@0.1.13)
       form-data: 4.0.0
@@ -23182,7 +23242,17 @@ snapshots:
       - encoding
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   '@nhost/nhost-js@3.2.4(encoding@0.1.13)(graphql@16.8.1)':
+=======
+  '@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1)':
+<<<<<<< Updated upstream
+    dependencies:
+      '@nhost/graphql-js': 0.3.0(encoding@0.1.13)(graphql@16.8.1)
+      '@nhost/hasura-auth-js': 2.10.0(encoding@0.1.13)
+      '@nhost/hasura-storage-js': 2.6.0(encoding@0.1.13)
+=======
+>>>>>>> fa61f6d96 (chore: update pnpm-lock.yaml)
     dependencies:
       '@nhost/graphql-js': 0.3.0(encoding@0.1.13)(graphql@16.8.1)
       '@nhost/hasura-auth-js': 2.10.0(encoding@0.1.13)
@@ -23192,6 +23262,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+<<<<<<< HEAD
   '@nhost/react-apollo@12.0.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.4(encoding@0.1.13)(graphql@16.8.1))(@nhost/react@3.5.5(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@apollo/client': 3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -23239,6 +23310,21 @@ snapshots:
 <<<<<<< HEAD
   '@nhost/react@3.9.1(@types/react@18.3.4)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
 =======
+=======
+  '@nhost/react-apollo@12.0.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1))(@nhost/react@3.5.5(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@apollo/client': 3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nhost/apollo': 7.1.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1))
+      '@nhost/react': 3.5.5(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+>>>>>>> Stashed changes
+      graphql: 16.8.1
+      isomorphic-unfetch: 3.1.0(encoding@0.1.13)
+    transitivePeerDependencies:
+<<<<<<< Updated upstream
+=======
+      - '@nhost/nhost-js'
+
+>>>>>>> fa61f6d96 (chore: update pnpm-lock.yaml)
   '@nhost/react-apollo@12.0.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1))(@nhost/react@3.8.0(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@apollo/client': 3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -23250,6 +23336,34 @@ snapshots:
     transitivePeerDependencies:
       - '@nhost/nhost-js'
 
+  '@nhost/react@3.5.5(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@nhost/nhost-js': 3.1.8(encoding@0.1.13)(graphql@16.8.1)
+      '@xstate/react': 3.2.2(@types/react@18.3.4)(react@18.2.0)(xstate@4.38.3)
+      jwt-decode: 4.0.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      xstate: 4.38.3
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@xstate/fsm'
+>>>>>>> Stashed changes
+      - encoding
+
+<<<<<<< Updated upstream
+  '@nhost/react-apollo@12.0.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1))(@nhost/react@3.8.0(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@apollo/client': 3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nhost/apollo': 7.1.5(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.3(encoding@0.1.13)(graphql@16.8.1))
+      '@nhost/react': 3.8.0(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      graphql: 16.8.1
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    transitivePeerDependencies:
+      - '@nhost/nhost-js'
+
+=======
+>>>>>>> Stashed changes
   '@nhost/react@3.8.0(@types/react@18.3.4)(encoding@0.1.13)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
 >>>>>>> 1b7c47751 (chore: update prettier and tailwindcss plugin)
     dependencies:
