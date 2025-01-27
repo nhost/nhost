@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -98,12 +98,12 @@ func (a AutomaticPersistedQuery) MutateOperationParameters(ctx context.Context, 
 }
 
 func GetApqStats(ctx context.Context) *ApqStats {
-	rc := graphql.GetOperationContext(ctx)
-	if rc == nil {
+	opCtx := graphql.GetOperationContext(ctx)
+	if opCtx == nil {
 		return nil
 	}
 
-	s, _ := rc.Stats.GetExtension(apqExtension).(*ApqStats)
+	s, _ := opCtx.Stats.GetExtension(apqExtension).(*ApqStats)
 	return s
 }
 

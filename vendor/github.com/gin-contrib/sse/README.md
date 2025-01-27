@@ -1,7 +1,7 @@
 # Server-Sent Events
 
-[![GoDoc](https://godoc.org/github.com/gin-contrib/sse?status.svg)](https://godoc.org/github.com/gin-contrib/sse)
-[![Build Status](https://travis-ci.org/gin-contrib/sse.svg)](https://travis-ci.org/gin-contrib/sse)
+[![Go Reference](https://pkg.go.dev/badge/github.com/gin-contrib/sse.svg)](https://pkg.go.dev/github.com/gin-contrib/sse)
+[![Run Tests](https://github.com/gin-contrib/sse/actions/workflows/go.yml/badge.svg)](https://github.com/gin-contrib/sse/actions/workflows/go.yml)
 [![codecov](https://codecov.io/gh/gin-contrib/sse/branch/master/graph/badge.svg)](https://codecov.io/gh/gin-contrib/sse)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gin-contrib/sse)](https://goreportcard.com/report/github.com/gin-contrib/sse)
 
@@ -16,32 +16,33 @@ Server-sent events (SSE) is a technology where a browser receives automatic upda
 import "github.com/gin-contrib/sse"
 
 func httpHandler(w http.ResponseWriter, req *http.Request) {
-	// data can be a primitive like a string, an integer or a float
-	sse.Encode(w, sse.Event{
-		Event: "message",
-		Data:  "some data\nmore data",
-	})
+  // data can be a primitive like a string, an integer or a float
+  sse.Encode(w, sse.Event{
+    Event: "message",
+    Data:  "some data\nmore data",
+  })
 
-	// also a complex type, like a map, a struct or a slice
-	sse.Encode(w, sse.Event{
-		Id:    "124",
-		Event: "message",
-		Data: map[string]interface{}{
-			"user":    "manu",
-			"date":    time.Now().Unix(),
-			"content": "hi!",
-		},
-	})
+  // also a complex type, like a map, a struct or a slice
+  sse.Encode(w, sse.Event{
+    Id:    "124",
+    Event: "message",
+    Data: map[string]interface{}{
+      "user":    "manu",
+      "date":    time.Now().Unix(),
+      "content": "hi!",
+    },
+  })
 }
 ```
-```
+
+```sh
 event: message
 data: some data\\nmore data
 
 id: 124
 event: message
 data: {"content":"hi!","date":1431540810,"user":"manu"}
- 
+
 ```
 
 ## Content-Type
@@ -49,7 +50,8 @@ data: {"content":"hi!","date":1431540810,"user":"manu"}
 ```go
 fmt.Println(sse.ContentType)
 ```
-```
+
+```sh
 text/event-stream
 ```
 

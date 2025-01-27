@@ -118,7 +118,10 @@ func (p *Patch) append(typ string, from, path string, src, tgt interface{}, vl i
 	})
 }
 
-func (p *Patch) prepend(startIdx int, typ string, from, path string, src, tgt interface{}, vl int) Patch {
+func (p *Patch) insert(pos int, typ string, from, path string, src, tgt interface{}, vl int) Patch {
+	if pos > len(*p) {
+		return p.append(typ, from, path, src, tgt, vl)
+	}
 	op := Operation{
 		Type:     typ,
 		From:     from,
@@ -127,7 +130,7 @@ func (p *Patch) prepend(startIdx int, typ string, from, path string, src, tgt in
 		Value:    tgt,
 		valueLen: vl,
 	}
-	return append((*p)[:startIdx], append([]Operation{op}, (*p)[startIdx:]...)...)
+	return append((*p)[:pos], append([]Operation{op}, (*p)[pos:]...)...)
 }
 
 func (p *Patch) jsonLength() int {

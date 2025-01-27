@@ -3,8 +3,7 @@ package ansi
 import (
 	"bytes"
 	"strconv"
-
-	"github.com/charmbracelet/x/ansi/parser"
+	"strings"
 )
 
 // DcsSequence represents a Device Control String (DCS) escape sequence.
@@ -22,7 +21,7 @@ type DcsSequence struct {
 	// This is a slice of integers, where each integer is a 32-bit integer
 	// containing the parameter value in the lower 31 bits and a flag in the
 	// most significant bit indicating whether there are more sub-parameters.
-	Params []int
+	Params []Parameter
 
 	// Data contains the string raw data of the sequence.
 	// This is the data between the final byte and the escape sequence terminator.
@@ -38,17 +37,31 @@ type DcsSequence struct {
 	// Is represented as:
 	//
 	//  'r' | '>' << 8 | '$' << 16
-	Cmd int
+	Cmd Command
 }
 
 var _ Sequence = DcsSequence{}
+
+// Clone returns a deep copy of the DCS sequence.
+func (s DcsSequence) Clone() Sequence {
+	return DcsSequence{
+		Params: append([]Parameter(nil), s.Params...),
+		Data:   append([]byte(nil), s.Data...),
+		Cmd:    s.Cmd,
+	}
+}
+
+// Split returns a slice of data split by the semicolon.
+func (s DcsSequence) Split() []string {
+	return strings.Split(string(s.Data), ";")
+}
 
 // Marker returns the marker byte of the DCS sequence.
 // This is always gonna be one of the following '<' '=' '>' '?' and in the
 // range of 0x3C-0x3F.
 // Zero is returned if the sequence does not have a marker.
 func (s DcsSequence) Marker() int {
-	return parser.Marker(s.Cmd)
+	return s.Cmd.Marker()
 }
 
 // Intermediate returns the intermediate byte of the DCS sequence.
@@ -57,52 +70,22 @@ func (s DcsSequence) Marker() int {
 // ',', '-', '.', '/'.
 // Zero is returned if the sequence does not have an intermediate byte.
 func (s DcsSequence) Intermediate() int {
-	return parser.Intermediate(s.Cmd)
+	return s.Cmd.Intermediate()
 }
 
 // Command returns the command byte of the CSI sequence.
 func (s DcsSequence) Command() int {
-	return parser.Command(s.Cmd)
+	return s.Cmd.Command()
 }
 
-// Param returns the parameter at the given index.
-// It returns -1 if the parameter does not exist.
-func (s DcsSequence) Param(i int) int {
-	return parser.Param(s.Params, i)
-}
-
-// HasMore returns true if the parameter has more sub-parameters.
-func (s DcsSequence) HasMore(i int) bool {
-	return parser.HasMore(s.Params, i)
-}
-
-// Subparams returns the sub-parameters of the given parameter.
-// It returns nil if the parameter does not exist.
-func (s DcsSequence) Subparams(i int) []int {
-	return parser.Subparams(s.Params, i)
-}
-
-// Len returns the number of parameters in the sequence.
-// This will return the number of parameters in the sequence, excluding any
-// sub-parameters.
-func (s DcsSequence) Len() int {
-	return parser.Len(s.Params)
-}
-
-// Range iterates over the parameters of the sequence and calls the given
-// function for each parameter.
-// The function should return false to stop the iteration.
-func (s DcsSequence) Range(fn func(i int, param int, hasMore bool) bool) {
-	parser.Range(s.Params, fn)
-}
-
-// Clone returns a copy of the DCS sequence.
-func (s DcsSequence) Clone() Sequence {
-	return DcsSequence{
-		Params: append([]int(nil), s.Params...),
-		Data:   append([]byte(nil), s.Data...),
-		Cmd:    s.Cmd,
+// Param is a helper that returns the parameter at the given index and falls
+// back to the default value if the parameter is missing. If the index is out
+// of bounds, it returns the default value and false.
+func (s DcsSequence) Param(i, def int) (int, bool) {
+	if i < 0 || i >= len(s.Params) {
+		return def, false
 	}
+	return s.Params[i].Param(def), true
 }
 
 // String returns a string representation of the sequence.
@@ -118,23 +101,25 @@ func (s DcsSequence) buffer() *bytes.Buffer {
 	if m := s.Marker(); m != 0 {
 		b.WriteByte(byte(m))
 	}
-	s.Range(func(i, param int, hasMore bool) bool {
-		if param >= -1 {
+	for i, p := range s.Params {
+		param := p.Param(-1)
+		if param >= 0 {
 			b.WriteString(strconv.Itoa(param))
 		}
 		if i < len(s.Params)-1 {
-			if hasMore {
+			if p.HasMore() {
 				b.WriteByte(':')
 			} else {
 				b.WriteByte(';')
 			}
 		}
-		return true
-	})
+	}
 	if i := s.Intermediate(); i != 0 {
 		b.WriteByte(byte(i))
 	}
-	b.WriteByte(byte(s.Command()))
+	if cmd := s.Command(); cmd != 0 {
+		b.WriteByte(byte(cmd))
+	}
 	b.Write(s.Data)
 	b.WriteByte(ESC)
 	b.WriteByte('\\')

@@ -72,7 +72,7 @@ func PushKittyKeyboard(flags int) string {
 // Keyboard stack to disable the protocol.
 //
 // This is equivalent to PushKittyKeyboard(0).
-const DisableKittyKeyboard = "\x1b[>0u"
+const DisableKittyKeyboard = "\x1b[>u"
 
 // PopKittyKeyboard returns a sequence to pop n number of flags from the
 // terminal Kitty Keyboard stack.

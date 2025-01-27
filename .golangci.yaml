@@ -7,8 +7,6 @@ linters:
       - nlreturn
       - wsl
       - depguard
-      - gomnd
-      - execinquery
       - exportloopref
 
 issues:

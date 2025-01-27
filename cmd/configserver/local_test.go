@@ -106,7 +106,7 @@ func TestLocalGetApps(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			configF, err := os.CreateTemp("", "TestLocalGetApps")
+			configF, err := os.CreateTemp(t.TempDir(), "TestLocalGetApps")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}
@@ -116,7 +116,7 @@ func TestLocalGetApps(t *testing.T) {
 				t.Fatalf("failed to write to temp file: %v", err)
 			}
 
-			secretsF, err := os.CreateTemp("", "TestLocalGetApps")
+			secretsF, err := os.CreateTemp(t.TempDir(), "TestLocalGetApps")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}
@@ -168,7 +168,7 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			configF, err := os.CreateTemp("", "TestLocalGetApps")
+			configF, err := os.CreateTemp(t.TempDir(), "TestLocalGetApps")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}
@@ -178,7 +178,7 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 				t.Fatalf("failed to write to temp file: %v", err)
 			}
 
-			secretsF, err := os.CreateTemp("", "TestLocalGetApps")
+			secretsF, err := os.CreateTemp(t.TempDir(), "TestLocalGetApps")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}
@@ -238,7 +238,7 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			configF, err := os.CreateTemp("", "TestLocalGetApps")
+			configF, err := os.CreateTemp(t.TempDir(), "TestLocalGetApps")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}
@@ -248,7 +248,7 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 				t.Fatalf("failed to write to temp file: %v", err)
 			}
 
-			secretsF, err := os.CreateTemp("", "TestLocalGetApps")
+			secretsF, err := os.CreateTemp(t.TempDir(), "TestLocalGetApps")
 			if err != nil {
 				t.Fatalf("failed to create temp file: %v", err)
 			}

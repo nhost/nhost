@@ -1699,10 +1699,10 @@ type Apps struct {
 	IsLocked           *bool               `json:"isLocked,omitempty"`
 	IsLockedReason     *string             `json:"isLockedReason,omitempty"`
 	// An object relationship
-	LegacyPlan        *Plans                 `json:"legacyPlan,omitempty"`
-	MetadataFunctions map[string]interface{} `json:"metadataFunctions"`
-	Name              string                 `json:"name"`
-	NhostBaseFolder   string                 `json:"nhostBaseFolder"`
+	LegacyPlan        *Plans         `json:"legacyPlan,omitempty"`
+	MetadataFunctions map[string]any `json:"metadataFunctions"`
+	Name              string         `json:"name"`
+	NhostBaseFolder   string         `json:"nhostBaseFolder"`
 	// An object relationship
 	Organization   *Organizations `json:"organization,omitempty"`
 	OrganizationID *string        `json:"organizationID,omitempty"`
@@ -1932,23 +1932,23 @@ type AppsStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AppsStreamCursorValueInput struct {
-	AutomaticDeploys           *bool                  `json:"automaticDeploys,omitempty"`
-	CreatedAt                  *time.Time             `json:"createdAt,omitempty"`
-	CreatorUserID              *string                `json:"creatorUserId,omitempty"`
-	DesiredState               *int64                 `json:"desiredState,omitempty"`
-	GithubRepositoryID         *string                `json:"githubRepositoryId,omitempty"`
-	ID                         *string                `json:"id,omitempty"`
-	IsLocked                   *bool                  `json:"isLocked,omitempty"`
-	IsLockedReason             *string                `json:"isLockedReason,omitempty"`
-	MetadataFunctions          map[string]interface{} `json:"metadataFunctions,omitempty"`
-	Name                       *string                `json:"name,omitempty"`
-	NhostBaseFolder            *string                `json:"nhostBaseFolder,omitempty"`
-	OrganizationID             *string                `json:"organizationID,omitempty"`
-	RepositoryProductionBranch *string                `json:"repositoryProductionBranch,omitempty"`
-	Slug                       *string                `json:"slug,omitempty"`
-	Subdomain                  *string                `json:"subdomain,omitempty"`
-	UpdatedAt                  *time.Time             `json:"updatedAt,omitempty"`
-	WorkspaceID                *string                `json:"workspaceId,omitempty"`
+	AutomaticDeploys           *bool          `json:"automaticDeploys,omitempty"`
+	CreatedAt                  *time.Time     `json:"createdAt,omitempty"`
+	CreatorUserID              *string        `json:"creatorUserId,omitempty"`
+	DesiredState               *int64         `json:"desiredState,omitempty"`
+	GithubRepositoryID         *string        `json:"githubRepositoryId,omitempty"`
+	ID                         *string        `json:"id,omitempty"`
+	IsLocked                   *bool          `json:"isLocked,omitempty"`
+	IsLockedReason             *string        `json:"isLockedReason,omitempty"`
+	MetadataFunctions          map[string]any `json:"metadataFunctions,omitempty"`
+	Name                       *string        `json:"name,omitempty"`
+	NhostBaseFolder            *string        `json:"nhostBaseFolder,omitempty"`
+	OrganizationID             *string        `json:"organizationID,omitempty"`
+	RepositoryProductionBranch *string        `json:"repositoryProductionBranch,omitempty"`
+	Slug                       *string        `json:"slug,omitempty"`
+	Subdomain                  *string        `json:"subdomain,omitempty"`
+	UpdatedAt                  *time.Time     `json:"updatedAt,omitempty"`
+	WorkspaceID                *string        `json:"workspaceId,omitempty"`
 }
 
 // order by sum() on columns of table "apps"
@@ -1994,7 +1994,7 @@ type AuthRefreshTokens struct {
 	CreatedAt time.Time                 `json:"createdAt"`
 	ExpiresAt time.Time                 `json:"expiresAt"`
 	ID        string                    `json:"id"`
-	Metadata  map[string]interface{}    `json:"metadata,omitempty"`
+	Metadata  map[string]any            `json:"metadata,omitempty"`
 	Type      AuthRefreshTokenTypesEnum `json:"type"`
 	// An object relationship
 	User   *Users `json:"user"`
@@ -2070,7 +2070,7 @@ type AuthRefreshTokensStreamCursorValueInput struct {
 	CreatedAt *time.Time                 `json:"createdAt,omitempty"`
 	ExpiresAt *time.Time                 `json:"expiresAt,omitempty"`
 	ID        *string                    `json:"id,omitempty"`
-	Metadata  map[string]interface{}     `json:"metadata,omitempty"`
+	Metadata  map[string]any             `json:"metadata,omitempty"`
 	Type      *AuthRefreshTokenTypesEnum `json:"type,omitempty"`
 	UserID    *string                    `json:"userId,omitempty"`
 }
@@ -2943,13 +2943,13 @@ type GithubAppInstallationsBoolExp struct {
 
 // input type for inserting data into table "github_app_installations"
 type GithubAppInstallationsInsertInput struct {
-	AccountAvatarURL                *string                `json:"accountAvatarUrl,omitempty"`
-	AccountLogin                    *string                `json:"accountLogin,omitempty"`
-	AccountNodeID                   *string                `json:"accountNodeId,omitempty"`
-	AccountType                     *string                `json:"accountType,omitempty"`
-	ExternalGithubAppInstallationID *int64                 `json:"externalGithubAppInstallationId,omitempty"`
-	GithubData                      map[string]interface{} `json:"githubData,omitempty"`
-	UserID                          *string                `json:"userId,omitempty"`
+	AccountAvatarURL                *string        `json:"accountAvatarUrl,omitempty"`
+	AccountLogin                    *string        `json:"accountLogin,omitempty"`
+	AccountNodeID                   *string        `json:"accountNodeId,omitempty"`
+	AccountType                     *string        `json:"accountType,omitempty"`
+	ExternalGithubAppInstallationID *int64         `json:"externalGithubAppInstallationId,omitempty"`
+	GithubData                      map[string]any `json:"githubData,omitempty"`
+	UserID                          *string        `json:"userId,omitempty"`
 }
 
 // order by max() on columns of table "github_app_installations"
@@ -3119,24 +3119,24 @@ type JsonbCastExp struct {
 type JsonbComparisonExp struct {
 	Cast *JsonbCastExp `json:"_cast,omitempty"`
 	// is the column contained in the given json value
-	ContainedIn map[string]interface{} `json:"_contained_in,omitempty"`
+	ContainedIn map[string]any `json:"_contained_in,omitempty"`
 	// does the column contain the given json value at the top level
-	Contains map[string]interface{} `json:"_contains,omitempty"`
-	Eq       map[string]interface{} `json:"_eq,omitempty"`
-	Gt       map[string]interface{} `json:"_gt,omitempty"`
-	Gte      map[string]interface{} `json:"_gte,omitempty"`
+	Contains map[string]any `json:"_contains,omitempty"`
+	Eq       map[string]any `json:"_eq,omitempty"`
+	Gt       map[string]any `json:"_gt,omitempty"`
+	Gte      map[string]any `json:"_gte,omitempty"`
 	// does the string exist as a top-level key in the column
 	HasKey *string `json:"_has_key,omitempty"`
 	// do all of these strings exist as top-level keys in the column
 	HasKeysAll []string `json:"_has_keys_all,omitempty"`
 	// do any of these strings exist as top-level keys in the column
-	HasKeysAny []string                 `json:"_has_keys_any,omitempty"`
-	In         []map[string]interface{} `json:"_in,omitempty"`
-	IsNull     *bool                    `json:"_is_null,omitempty"`
-	Lt         map[string]interface{}   `json:"_lt,omitempty"`
-	Lte        map[string]interface{}   `json:"_lte,omitempty"`
-	Neq        map[string]interface{}   `json:"_neq,omitempty"`
-	Nin        []map[string]interface{} `json:"_nin,omitempty"`
+	HasKeysAny []string         `json:"_has_keys_any,omitempty"`
+	In         []map[string]any `json:"_in,omitempty"`
+	IsNull     *bool            `json:"_is_null,omitempty"`
+	Lt         map[string]any   `json:"_lt,omitempty"`
+	Lte        map[string]any   `json:"_lte,omitempty"`
+	Neq        map[string]any   `json:"_neq,omitempty"`
+	Nin        []map[string]any `json:"_nin,omitempty"`
 }
 
 // mutation root
@@ -3996,7 +3996,7 @@ type Regions struct {
 	AllowedWorkspaces *RegionsAllowedWorkspace `json:"allowedWorkspaces,omitempty"`
 	// An array relationship
 	Apps    []*Apps `json:"apps"`
-	AwsName string  `json:"awsName"`
+	AWSName string  `json:"awsName"`
 	City    string  `json:"city"`
 	// An object relationship
 	Country         *Countries `json:"country"`
@@ -4199,7 +4199,7 @@ type RegionsBoolExp struct {
 	AllowedOrganizations     *RegionsAllowedOrganizationBoolExp `json:"allowedOrganizations,omitempty"`
 	AllowedWorkspaces        *RegionsAllowedWorkspaceBoolExp    `json:"allowedWorkspaces,omitempty"`
 	Apps                     *AppsBoolExp                       `json:"apps,omitempty"`
-	AwsName                  *StringComparisonExp               `json:"awsName,omitempty"`
+	AWSName                  *StringComparisonExp               `json:"awsName,omitempty"`
 	City                     *StringComparisonExp               `json:"city,omitempty"`
 	Country                  *CountriesBoolExp                  `json:"country,omitempty"`
 	CountryCode              *StringComparisonExp               `json:"countryCode,omitempty"`
@@ -4214,7 +4214,7 @@ type RegionsBoolExp struct {
 
 // order by max() on columns of table "regions"
 type RegionsMaxOrderBy struct {
-	AwsName     *OrderBy `json:"awsName,omitempty"`
+	AWSName     *OrderBy `json:"awsName,omitempty"`
 	City        *OrderBy `json:"city,omitempty"`
 	CountryCode *OrderBy `json:"countryCode,omitempty"`
 	Description *OrderBy `json:"description,omitempty"`
@@ -4225,7 +4225,7 @@ type RegionsMaxOrderBy struct {
 
 // order by min() on columns of table "regions"
 type RegionsMinOrderBy struct {
-	AwsName     *OrderBy `json:"awsName,omitempty"`
+	AWSName     *OrderBy `json:"awsName,omitempty"`
 	City        *OrderBy `json:"city,omitempty"`
 	CountryCode *OrderBy `json:"countryCode,omitempty"`
 	Description *OrderBy `json:"description,omitempty"`
@@ -4240,7 +4240,7 @@ type RegionsOrderBy struct {
 	AllowedOrganizationsAggregate     *RegionsAllowedOrganizationAggregateOrderBy `json:"allowedOrganizations_aggregate,omitempty"`
 	AllowedWorkspaces                 *RegionsAllowedWorkspaceOrderBy             `json:"allowedWorkspaces,omitempty"`
 	AppsAggregate                     *AppsAggregateOrderBy                       `json:"apps_aggregate,omitempty"`
-	AwsName                           *OrderBy                                    `json:"awsName,omitempty"`
+	AWSName                           *OrderBy                                    `json:"awsName,omitempty"`
 	City                              *OrderBy                                    `json:"city,omitempty"`
 	Country                           *CountriesOrderBy                           `json:"country,omitempty"`
 	CountryCode                       *OrderBy                                    `json:"countryCode,omitempty"`
@@ -4264,7 +4264,7 @@ type RegionsStreamCursorInput struct {
 // Initial value of the column from where the streaming should start
 type RegionsStreamCursorValueInput struct {
 	Active          *bool           `json:"active,omitempty"`
-	AwsName         *string         `json:"awsName,omitempty"`
+	AWSName         *string         `json:"awsName,omitempty"`
 	City            *string         `json:"city,omitempty"`
 	CountryCode     *string         `json:"countryCode,omitempty"`
 	Description     *string         `json:"description,omitempty"`
@@ -5354,7 +5354,7 @@ func (e CheckoutStatus) String() string {
 	return string(e)
 }
 
-func (e *CheckoutStatus) UnmarshalGQL(v interface{}) error {
+func (e *CheckoutStatus) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5401,7 +5401,7 @@ func (e ServiceState) String() string {
 	return string(e)
 }
 
-func (e *ServiceState) UnmarshalGQL(v interface{}) error {
+func (e *ServiceState) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5445,7 +5445,7 @@ func (e AnnouncementsReadConstraint) String() string {
 	return string(e)
 }
 
-func (e *AnnouncementsReadConstraint) UnmarshalGQL(v interface{}) error {
+func (e *AnnouncementsReadConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5495,7 +5495,7 @@ func (e AnnouncementsReadSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *AnnouncementsReadSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *AnnouncementsReadSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5536,7 +5536,7 @@ func (e AnnouncementsReadUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *AnnouncementsReadUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *AnnouncementsReadUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5592,7 +5592,7 @@ func (e AnnouncementsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *AnnouncementsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *AnnouncementsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5645,7 +5645,7 @@ func (e AppStateHistorySelectColumn) String() string {
 	return string(e)
 }
 
-func (e *AppStateHistorySelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *AppStateHistorySelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5692,7 +5692,7 @@ func (e AppsConstraint) String() string {
 	return string(e)
 }
 
-func (e *AppsConstraint) UnmarshalGQL(v interface{}) error {
+func (e *AppsConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5781,7 +5781,7 @@ func (e AppsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *AppsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *AppsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5840,7 +5840,7 @@ func (e AppsUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *AppsUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *AppsUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5883,7 +5883,7 @@ func (e AuthRefreshTokenTypesEnum) String() string {
 	return string(e)
 }
 
-func (e *AuthRefreshTokenTypesEnum) UnmarshalGQL(v interface{}) error {
+func (e *AuthRefreshTokenTypesEnum) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5939,7 +5939,7 @@ func (e AuthRefreshTokensSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *AuthRefreshTokensSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *AuthRefreshTokensSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -5983,7 +5983,7 @@ func (e AuthUserProvidersSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *AuthUserProvidersSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *AuthUserProvidersSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6036,7 +6036,7 @@ func (e BackupsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *BackupsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *BackupsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6083,7 +6083,7 @@ func (e CliTokensSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *CliTokensSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *CliTokensSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6127,7 +6127,7 @@ func (e ContinentsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *ContinentsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *ContinentsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6177,7 +6177,7 @@ func (e CountriesSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *CountriesSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *CountriesSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6221,7 +6221,7 @@ func (e CursorOrdering) String() string {
 	return string(e)
 }
 
-func (e *CursorOrdering) UnmarshalGQL(v interface{}) error {
+func (e *CursorOrdering) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6271,7 +6271,7 @@ func (e DeploymentLogsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *DeploymentLogsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *DeploymentLogsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6312,7 +6312,7 @@ func (e DeploymentsConstraint) String() string {
 	return string(e)
 }
 
-func (e *DeploymentsConstraint) UnmarshalGQL(v interface{}) error {
+func (e *DeploymentsConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6404,7 +6404,7 @@ func (e DeploymentsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *DeploymentsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *DeploymentsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6445,7 +6445,7 @@ func (e DeploymentsUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *DeploymentsUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *DeploymentsUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6486,7 +6486,7 @@ func (e FeatureFlagsConstraint) String() string {
 	return string(e)
 }
 
-func (e *FeatureFlagsConstraint) UnmarshalGQL(v interface{}) error {
+func (e *FeatureFlagsConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6539,7 +6539,7 @@ func (e FeatureFlagsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *FeatureFlagsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *FeatureFlagsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6580,7 +6580,7 @@ func (e FeatureFlagsUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *FeatureFlagsUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *FeatureFlagsUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6624,7 +6624,7 @@ func (e GithubAppInstallationsConstraint) String() string {
 	return string(e)
 }
 
-func (e *GithubAppInstallationsConstraint) UnmarshalGQL(v interface{}) error {
+func (e *GithubAppInstallationsConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6680,7 +6680,7 @@ func (e GithubAppInstallationsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *GithubAppInstallationsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *GithubAppInstallationsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6721,7 +6721,7 @@ func (e GithubAppInstallationsUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *GithubAppInstallationsUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *GithubAppInstallationsUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6777,7 +6777,7 @@ func (e GithubRepositoriesSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *GithubRepositoriesSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *GithubRepositoriesSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6833,7 +6833,7 @@ func (e OrderBy) String() string {
 	return string(e)
 }
 
-func (e *OrderBy) UnmarshalGQL(v interface{}) error {
+func (e *OrderBy) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6882,7 +6882,7 @@ func (e OrganizationCostsThresholdsEnum) String() string {
 	return string(e)
 }
 
-func (e *OrganizationCostsThresholdsEnum) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationCostsThresholdsEnum) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6926,7 +6926,7 @@ func (e OrganizationMemberInvitesConstraint) String() string {
 	return string(e)
 }
 
-func (e *OrganizationMemberInvitesConstraint) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationMemberInvitesConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -6982,7 +6982,7 @@ func (e OrganizationMemberInvitesSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *OrganizationMemberInvitesSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationMemberInvitesSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7023,7 +7023,7 @@ func (e OrganizationMemberInvitesUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *OrganizationMemberInvitesUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationMemberInvitesUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7066,7 +7066,7 @@ func (e OrganizationMembersRoleEnum) String() string {
 	return string(e)
 }
 
-func (e *OrganizationMembersRoleEnum) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationMembersRoleEnum) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7122,7 +7122,7 @@ func (e OrganizationMembersSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *OrganizationMembersSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationMembersSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7178,7 +7178,7 @@ func (e OrganizationNewRequestSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *OrganizationNewRequestSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationNewRequestSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7230,7 +7230,7 @@ func (e OrganizationStatusEnum) String() string {
 	return string(e)
 }
 
-func (e *OrganizationStatusEnum) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationStatusEnum) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7295,7 +7295,7 @@ func (e OrganizationsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *OrganizationsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *OrganizationsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7336,7 +7336,7 @@ func (e PaymentMethodsConstraint) String() string {
 	return string(e)
 }
 
-func (e *PaymentMethodsConstraint) UnmarshalGQL(v interface{}) error {
+func (e *PaymentMethodsConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7404,7 +7404,7 @@ func (e PaymentMethodsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *PaymentMethodsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *PaymentMethodsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7445,7 +7445,7 @@ func (e PaymentMethodsUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *PaymentMethodsUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *PaymentMethodsUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7528,7 +7528,7 @@ func (e PlansSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *PlansSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *PlansSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7571,7 +7571,7 @@ func (e RegionTypeEnum) String() string {
 	return string(e)
 }
 
-func (e *RegionTypeEnum) UnmarshalGQL(v interface{}) error {
+func (e *RegionTypeEnum) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7627,7 +7627,7 @@ func (e RegionsAllowedOrganizationSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *RegionsAllowedOrganizationSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *RegionsAllowedOrganizationSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7683,7 +7683,7 @@ func (e RegionsAllowedWorkspaceSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *RegionsAllowedWorkspaceSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *RegionsAllowedWorkspaceSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7707,7 +7707,7 @@ const (
 	// column name
 	RegionsSelectColumnActive RegionsSelectColumn = "active"
 	// column name
-	RegionsSelectColumnAwsName RegionsSelectColumn = "awsName"
+	RegionsSelectColumnAWSName RegionsSelectColumn = "awsName"
 	// column name
 	RegionsSelectColumnCity RegionsSelectColumn = "city"
 	// column name
@@ -7728,7 +7728,7 @@ const (
 
 var AllRegionsSelectColumn = []RegionsSelectColumn{
 	RegionsSelectColumnActive,
-	RegionsSelectColumnAwsName,
+	RegionsSelectColumnAWSName,
 	RegionsSelectColumnCity,
 	RegionsSelectColumnCountryCode,
 	RegionsSelectColumnDescription,
@@ -7741,7 +7741,7 @@ var AllRegionsSelectColumn = []RegionsSelectColumn{
 
 func (e RegionsSelectColumn) IsValid() bool {
 	switch e {
-	case RegionsSelectColumnActive, RegionsSelectColumnAwsName, RegionsSelectColumnCity, RegionsSelectColumnCountryCode, RegionsSelectColumnDescription, RegionsSelectColumnDomain, RegionsSelectColumnID, RegionsSelectColumnIsGdprCompliant, RegionsSelectColumnName, RegionsSelectColumnType:
+	case RegionsSelectColumnActive, RegionsSelectColumnAWSName, RegionsSelectColumnCity, RegionsSelectColumnCountryCode, RegionsSelectColumnDescription, RegionsSelectColumnDomain, RegionsSelectColumnID, RegionsSelectColumnIsGdprCompliant, RegionsSelectColumnName, RegionsSelectColumnType:
 		return true
 	}
 	return false
@@ -7751,7 +7751,7 @@ func (e RegionsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *RegionsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *RegionsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7804,7 +7804,7 @@ func (e RunServiceSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *RunServiceSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *RunServiceSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7856,7 +7856,7 @@ func (e SoftwareTypeEnum) String() string {
 	return string(e)
 }
 
-func (e *SoftwareTypeEnum) UnmarshalGQL(v interface{}) error {
+func (e *SoftwareTypeEnum) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7903,7 +7903,7 @@ func (e SoftwareVersionsSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *SoftwareVersionsSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *SoftwareVersionsSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7953,7 +7953,7 @@ func (e UsersSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *UsersSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *UsersSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -7997,7 +7997,7 @@ func (e WorkspaceMemberInvitesConstraint) String() string {
 	return string(e)
 }
 
-func (e *WorkspaceMemberInvitesConstraint) UnmarshalGQL(v interface{}) error {
+func (e *WorkspaceMemberInvitesConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -8056,7 +8056,7 @@ func (e WorkspaceMemberInvitesSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *WorkspaceMemberInvitesSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *WorkspaceMemberInvitesSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -8097,7 +8097,7 @@ func (e WorkspaceMemberInvitesUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *WorkspaceMemberInvitesUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *WorkspaceMemberInvitesUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -8141,7 +8141,7 @@ func (e WorkspaceMembersConstraint) String() string {
 	return string(e)
 }
 
-func (e *WorkspaceMembersConstraint) UnmarshalGQL(v interface{}) error {
+func (e *WorkspaceMembersConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -8197,7 +8197,7 @@ func (e WorkspaceMembersSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *WorkspaceMembersSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *WorkspaceMembersSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -8238,7 +8238,7 @@ func (e WorkspaceMembersUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *WorkspaceMembersUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *WorkspaceMembersUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -8282,7 +8282,7 @@ func (e WorkspacesConstraint) String() string {
 	return string(e)
 }
 
-func (e *WorkspacesConstraint) UnmarshalGQL(v interface{}) error {
+func (e *WorkspacesConstraint) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -8368,7 +8368,7 @@ func (e WorkspacesSelectColumn) String() string {
 	return string(e)
 }
 
-func (e *WorkspacesSelectColumn) UnmarshalGQL(v interface{}) error {
+func (e *WorkspacesSelectColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -8442,7 +8442,7 @@ func (e WorkspacesUpdateColumn) String() string {
 	return string(e)
 }
 
-func (e *WorkspacesUpdateColumn) UnmarshalGQL(v interface{}) error {
+func (e *WorkspacesUpdateColumn) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")

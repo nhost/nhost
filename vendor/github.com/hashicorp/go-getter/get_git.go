@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package getter
 
 import (
@@ -223,7 +226,12 @@ func (g *GitGetter) clone(ctx context.Context, dst, sshKeyFile string, u *url.UR
 		// If we didn't add --depth and --branch above then we will now be
 		// on the remote repository's default branch, rather than the selected
 		// ref, so we'll need to fix that before we return.
-		return g.checkout(ctx, dst, originalRef)
+		err := g.checkout(ctx, dst, originalRef)
+		if err != nil {
+			// Clean up git repository on disk
+			_ = os.RemoveAll(dst)
+			return err
+		}
 	}
 	return nil
 }

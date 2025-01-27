@@ -14,7 +14,7 @@ import (
 //
 // See: https://man7.org/linux/man-pages/man5/terminfo.5.html
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
-func RequestTermcap(caps ...string) string {
+func XTGETTCAP(caps ...string) string {
 	if len(caps) == 0 {
 		return ""
 	}
@@ -28,4 +28,14 @@ func RequestTermcap(caps ...string) string {
 	}
 
 	return s + "\x1b\\"
+}
+
+// RequestTermcap is an alias for [XTGETTCAP].
+func RequestTermcap(caps ...string) string {
+	return XTGETTCAP(caps...)
+}
+
+// RequestTerminfo is an alias for [XTGETTCAP].
+func RequestTerminfo(caps ...string) string {
+	return XTGETTCAP(caps...)
 }

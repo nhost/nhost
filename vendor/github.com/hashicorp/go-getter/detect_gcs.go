@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package getter
 
 import (
@@ -15,7 +18,7 @@ func (d *GCSDetector) Detect(src, _ string) (string, bool, error) {
 		return "", false, nil
 	}
 
-	if strings.Contains(src, "googleapis.com/") {
+	if strings.Contains(src, ".googleapis.com/") {
 		return d.detectHTTP(src)
 	}
 

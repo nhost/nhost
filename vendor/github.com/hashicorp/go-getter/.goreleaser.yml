@@ -1,3 +1,8 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+version: 2
+
 env:
   - GOPRIVATE=github.com/hashicorp
 
@@ -46,4 +51,4 @@ signs:
     artifacts: checksum
 
 changelog:
-  skip: true
+  disable: true

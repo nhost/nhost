@@ -20,130 +20,200 @@ type ParserDispatcher func(Sequence)
 //
 //go:generate go run ./gen.go
 type Parser struct {
-	// Params contains the raw parameters of the sequence.
+	// the dispatch function to call when a sequence is complete
+	dispatcher ParserDispatcher
+
+	// params contains the raw parameters of the sequence.
 	// These parameters used when constructing CSI and DCS sequences.
-	Params []int
+	params []int
 
-	// Data contains the raw data of the sequence.
+	// data contains the raw data of the sequence.
 	// These data used when constructing OSC, DCS, SOS, PM, and APC sequences.
-	Data []byte
+	data []byte
 
-	// DataLen keeps track of the length of the data buffer.
-	// If DataLen is -1, the data buffer is unlimited and will grow as needed.
-	// Otherwise, DataLen is limited by the size of the Data buffer.
-	DataLen int
+	// dataLen keeps track of the length of the data buffer.
+	// If dataLen is -1, the data buffer is unlimited and will grow as needed.
+	// Otherwise, dataLen is limited by the size of the data buffer.
+	dataLen int
 
-	// ParamsLen keeps track of the number of parameters.
-	// This is limited by the size of the Params buffer.
+	// paramsLen keeps track of the number of parameters.
+	// This is limited by the size of the params buffer.
 	//
 	// This is also used when collecting UTF-8 runes to keep track of the
 	// number of rune bytes collected.
-	ParamsLen int
+	paramsLen int
 
-	// Cmd contains the raw command along with the private marker and
+	// cmd contains the raw command along with the private marker and
 	// intermediate bytes of the sequence.
 	// The first lower byte contains the command byte, the next byte contains
 	// the private marker, and the next byte contains the intermediate byte.
 	//
 	// This is also used when collecting UTF-8 runes treating it as a slice of
 	// 4 bytes.
-	Cmd int
+	cmd int
 
-	// State is the current state of the parser.
-	State byte
+	// state is the current state of the parser.
+	state byte
 }
 
-// NewParser returns a new parser with the given sizes allocated.
-// If dataSize is zero, the underlying data buffer will be unlimited and will
+// NewParser returns a new parser with an optional [ParserDispatcher].
+// The [Parser] uses a default size of 32 for the parameters and 64KB for the
+// data buffer. Use [Parser.SetParamsSize] and [Parser.SetDataSize] to set the
+// size of the parameters and data buffer respectively.
+func NewParser(d ParserDispatcher) *Parser {
+	p := new(Parser)
+	p.SetDispatcher(d)
+	p.SetParamsSize(parser.MaxParamsSize)
+	p.SetDataSize(1024 * 64) // 64KB data buffer
+	return p
+}
+
+// SetDispatcher sets the dispatcher function to call when a sequence is
+// complete.
+func (p *Parser) SetDispatcher(d ParserDispatcher) {
+	p.dispatcher = d
+}
+
+// SetParamsSize sets the size of the parameters buffer.
+// This is used when constructing CSI and DCS sequences.
+func (p *Parser) SetParamsSize(size int) {
+	p.params = make([]int, size)
+}
+
+// SetDataSize sets the size of the data buffer.
+// This is used when constructing OSC, DCS, SOS, PM, and APC sequences.
+// If size is less than or equal to 0, the data buffer is unlimited and will
 // grow as needed.
-func NewParser(paramsSize, dataSize int) *Parser {
-	s := new(Parser)
-	if dataSize <= 0 {
-		dataSize = 0
-		s.DataLen = -1
+func (p *Parser) SetDataSize(size int) {
+	if size <= 0 {
+		size = 0
+		p.dataLen = -1
 	}
-	s.Params = make([]int, paramsSize)
-	s.Data = make([]byte, dataSize)
-	return s
+	p.data = make([]byte, size)
+}
+
+// Params returns the list of parsed packed parameters.
+func (p *Parser) Params() []Parameter {
+	return unsafe.Slice((*Parameter)(unsafe.Pointer(&p.params[0])), p.paramsLen)
+}
+
+// Param returns the parameter at the given index and falls back to the default
+// value if the parameter is missing. If the index is out of bounds, it returns
+// the default value and false.
+func (p *Parser) Param(i, def int) (int, bool) {
+	if i < 0 || i >= p.paramsLen {
+		return def, false
+	}
+	return Parameter(p.params[i]).Param(def), true
+}
+
+// Cmd returns the packed command of the last dispatched sequence.
+func (p *Parser) Cmd() Command {
+	return Command(p.cmd)
+}
+
+// Rune returns the last dispatched sequence as a rune.
+func (p *Parser) Rune() rune {
+	rw := utf8ByteLen(byte(p.cmd & 0xff))
+	if rw == -1 {
+		return utf8.RuneError
+	}
+	r, _ := utf8.DecodeRune((*[utf8.UTFMax]byte)(unsafe.Pointer(&p.cmd))[:rw])
+	return r
+}
+
+// Data returns the raw data of the last dispatched sequence.
+func (p *Parser) Data() []byte {
+	return p.data[:p.dataLen]
 }
 
 // Reset resets the parser to its initial state.
 func (p *Parser) Reset() {
 	p.clear()
-	p.State = parser.GroundState
+	p.state = parser.GroundState
 }
 
 // clear clears the parser parameters and command.
 func (p *Parser) clear() {
-	if len(p.Params) > 0 {
-		p.Params[0] = parser.MissingParam
+	if len(p.params) > 0 {
+		p.params[0] = parser.MissingParam
 	}
-	p.ParamsLen = 0
-	p.Cmd = 0
+	p.paramsLen = 0
+	p.cmd = 0
+}
+
+// State returns the current state of the parser.
+func (p *Parser) State() parser.State {
+	return p.state
 }
 
 // StateName returns the name of the current state.
 func (p *Parser) StateName() string {
-	return parser.StateNames[p.State]
+	return parser.StateNames[p.state]
 }
 
 // Parse parses the given dispatcher and byte buffer.
-func (p *Parser) Parse(dispatcher ParserDispatcher, b []byte) {
+// Deprecated: Loop over the buffer and call [Parser.Advance] instead.
+func (p *Parser) Parse(b []byte) {
 	for i := 0; i < len(b); i++ {
-		p.Advance(dispatcher, b[i], i < len(b)-1)
+		p.Advance(b[i])
 	}
 }
 
-// Advance advances the parser with the given dispatcher and byte.
-func (p *Parser) Advance(dispatcher ParserDispatcher, b byte, more bool) parser.Action {
-	switch p.State {
+// Advance advances the parser using the given byte. It	returns the action
+// performed by the parser.
+func (p *Parser) Advance(b byte) parser.Action {
+	switch p.state {
 	case parser.Utf8State:
 		// We handle UTF-8 here.
-		return p.advanceUtf8(dispatcher, b)
+		return p.advanceUtf8(b)
 	default:
-		return p.advance(dispatcher, b, more)
+		return p.advance(b)
 	}
 }
 
 func (p *Parser) collectRune(b byte) {
-	if p.ParamsLen >= utf8.UTFMax {
+	if p.paramsLen >= utf8.UTFMax {
 		return
 	}
 
-	shift := p.ParamsLen * 8
-	p.Cmd &^= 0xff << shift
-	p.Cmd |= int(b) << shift
-	p.ParamsLen++
+	shift := p.paramsLen * 8
+	p.cmd &^= 0xff << shift
+	p.cmd |= int(b) << shift
+	p.paramsLen++
 }
 
-func (p *Parser) advanceUtf8(dispatcher ParserDispatcher, b byte) parser.Action {
+func (p *Parser) dispatch(s Sequence) {
+	if p.dispatcher != nil {
+		p.dispatcher(s)
+	}
+}
+
+func (p *Parser) advanceUtf8(b byte) parser.Action {
 	// Collect UTF-8 rune bytes.
 	p.collectRune(b)
-	rw := utf8ByteLen(byte(p.Cmd & 0xff))
+	rw := utf8ByteLen(byte(p.cmd & 0xff))
 	if rw == -1 {
 		// We panic here because the first byte comes from the state machine,
 		// if this panics, it means there is a bug in the state machine!
 		panic("invalid rune") // unreachable
 	}
 
-	if p.ParamsLen < rw {
+	if p.paramsLen < rw {
 		return parser.CollectAction
 	}
 
 	// We have enough bytes to decode the rune using unsafe
-	r, _ := utf8.DecodeRune((*[utf8.UTFMax]byte)(unsafe.Pointer(&p.Cmd))[:rw])
-	if dispatcher != nil {
-		dispatcher(Rune(r))
-	}
+	p.dispatch(Rune(p.Rune()))
 
-	p.State = parser.GroundState
-	p.ParamsLen = 0
+	p.state = parser.GroundState
+	p.paramsLen = 0
 
 	return parser.PrintAction
 }
 
-func (p *Parser) advance(d ParserDispatcher, b byte, more bool) parser.Action {
-	state, action := parser.Table.Transition(p.State, b)
+func (p *Parser) advance(b byte) parser.Action {
+	state, action := parser.Table.Transition(p.state, b)
 
 	// We need to clear the parser state if the state changes from EscapeState.
 	// This is because when we enter the EscapeState, we don't get a chance to
@@ -151,59 +221,53 @@ func (p *Parser) advance(d ParserDispatcher, b byte, more bool) parser.Action {
 	// ST (\x1b\\ or \x9c), we dispatch the current sequence and transition to
 	// EscapeState. However, the parser state is not cleared in this case and
 	// we need to clear it here before dispatching the esc sequence.
-	if p.State != state {
-		if p.State == parser.EscapeState {
-			p.performAction(d, parser.ClearAction, state, b)
+	if p.state != state {
+		if p.state == parser.EscapeState {
+			p.performAction(parser.ClearAction, state, b)
 		}
 		if action == parser.PutAction &&
-			p.State == parser.DcsEntryState && state == parser.DcsStringState {
+			p.state == parser.DcsEntryState && state == parser.DcsStringState {
 			// XXX: This is a special case where we need to start collecting
 			// non-string parameterized data i.e. doesn't follow the ECMA-48 §
 			// 5.4.1 string parameters format.
-			p.performAction(d, parser.StartAction, state, 0)
+			p.performAction(parser.StartAction, state, 0)
 		}
 	}
 
 	// Handle special cases
 	switch {
-	case b == ESC && p.State == parser.EscapeState:
+	case b == ESC && p.state == parser.EscapeState:
 		// Two ESCs in a row
-		p.performAction(d, parser.ExecuteAction, state, b)
-		if !more {
-			// Two ESCs at the end of the buffer
-			p.performAction(d, parser.ExecuteAction, state, b)
-		}
-	case b == ESC && !more:
-		// Last byte is an ESC
-		p.performAction(d, parser.ExecuteAction, state, b)
-	case p.State == parser.EscapeState && b == 'P' && !more:
-		// ESC P (DCS) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, state, b)
-	case p.State == parser.EscapeState && b == 'X' && !more:
-		// ESC X (SOS) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, state, b)
-	case p.State == parser.EscapeState && b == '[' && !more:
-		// ESC [ (CSI) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, state, b)
-	case p.State == parser.EscapeState && b == ']' && !more:
-		// ESC ] (OSC) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, state, b)
-	case p.State == parser.EscapeState && b == '^' && !more:
-		// ESC ^ (PM) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, state, b)
-	case p.State == parser.EscapeState && b == '_' && !more:
-		// ESC _ (APC) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, state, b)
+		p.performAction(parser.ExecuteAction, state, b)
 	default:
-		p.performAction(d, action, state, b)
+		p.performAction(action, state, b)
 	}
 
-	p.State = state
+	p.state = state
 
 	return action
 }
 
-func (p *Parser) performAction(dispatcher ParserDispatcher, action parser.Action, state parser.State, b byte) {
+func (p *Parser) parseStringCmd() {
+	// Try to parse the command
+	datalen := len(p.data)
+	if p.dataLen >= 0 {
+		datalen = p.dataLen
+	}
+	for i := 0; i < datalen; i++ {
+		d := p.data[i]
+		if d < '0' || d > '9' {
+			break
+		}
+		if p.cmd == parser.MissingCommand {
+			p.cmd = 0
+		}
+		p.cmd *= 10
+		p.cmd += int(d - '0')
+	}
+}
+
+func (p *Parser) performAction(action parser.Action, state parser.State, b byte) {
 	switch action {
 	case parser.IgnoreAction:
 		break
@@ -212,131 +276,117 @@ func (p *Parser) performAction(dispatcher ParserDispatcher, action parser.Action
 		p.clear()
 
 	case parser.PrintAction:
-		if dispatcher != nil {
-			dispatcher(Rune(b))
-		}
+		p.dispatch(Rune(b))
 
 	case parser.ExecuteAction:
-		if dispatcher != nil {
-			dispatcher(ControlCode(b))
-		}
+		p.dispatch(ControlCode(b))
 
 	case parser.MarkerAction:
 		// Collect private marker
 		// we only store the last marker
-		p.Cmd &^= 0xff << parser.MarkerShift
-		p.Cmd |= int(b) << parser.MarkerShift
+		p.cmd &^= 0xff << parser.MarkerShift
+		p.cmd |= int(b) << parser.MarkerShift
 
 	case parser.CollectAction:
 		if state == parser.Utf8State {
 			// Reset the UTF-8 counter
-			p.ParamsLen = 0
+			p.paramsLen = 0
 			p.collectRune(b)
 		} else {
 			// Collect intermediate bytes
 			// we only store the last intermediate byte
-			p.Cmd &^= 0xff << parser.IntermedShift
-			p.Cmd |= int(b) << parser.IntermedShift
+			p.cmd &^= 0xff << parser.IntermedShift
+			p.cmd |= int(b) << parser.IntermedShift
 		}
 
 	case parser.ParamAction:
 		// Collect parameters
-		if p.ParamsLen >= len(p.Params) {
+		if p.paramsLen >= len(p.params) {
 			break
 		}
 
 		if b >= '0' && b <= '9' {
-			if p.Params[p.ParamsLen] == parser.MissingParam {
-				p.Params[p.ParamsLen] = 0
+			if p.params[p.paramsLen] == parser.MissingParam {
+				p.params[p.paramsLen] = 0
 			}
 
-			p.Params[p.ParamsLen] *= 10
-			p.Params[p.ParamsLen] += int(b - '0')
+			p.params[p.paramsLen] *= 10
+			p.params[p.paramsLen] += int(b - '0')
 		}
 
 		if b == ':' {
-			p.Params[p.ParamsLen] |= parser.HasMoreFlag
+			p.params[p.paramsLen] |= parser.HasMoreFlag
 		}
 
 		if b == ';' || b == ':' {
-			p.ParamsLen++
-			if p.ParamsLen < len(p.Params) {
-				p.Params[p.ParamsLen] = parser.MissingParam
+			p.paramsLen++
+			if p.paramsLen < len(p.params) {
+				p.params[p.paramsLen] = parser.MissingParam
 			}
 		}
 
 	case parser.StartAction:
-		if p.DataLen < 0 && p.Data != nil {
-			p.Data = p.Data[:0]
+		if p.dataLen < 0 && p.data != nil {
+			p.data = p.data[:0]
 		} else {
-			p.DataLen = 0
+			p.dataLen = 0
 		}
-		if p.State >= parser.DcsEntryState && p.State <= parser.DcsStringState {
+		if p.state >= parser.DcsEntryState && p.state <= parser.DcsStringState {
 			// Collect the command byte for DCS
-			p.Cmd |= int(b)
+			p.cmd |= int(b)
 		} else {
-			p.Cmd = parser.MissingCommand
+			p.cmd = parser.MissingCommand
 		}
 
 	case parser.PutAction:
-		switch p.State {
+		switch p.state {
 		case parser.OscStringState:
-			if b == ';' && p.Cmd == parser.MissingCommand {
-				// Try to parse the command
-				datalen := len(p.Data)
-				if p.DataLen >= 0 {
-					datalen = p.DataLen
-				}
-				for i := 0; i < datalen; i++ {
-					d := p.Data[i]
-					if d < '0' || d > '9' {
-						break
-					}
-					if p.Cmd == parser.MissingCommand {
-						p.Cmd = 0
-					}
-					p.Cmd *= 10
-					p.Cmd += int(d - '0')
-				}
+			if b == ';' && p.cmd == parser.MissingCommand {
+				p.parseStringCmd()
 			}
 		}
 
-		if p.DataLen < 0 {
-			p.Data = append(p.Data, b)
+		if p.dataLen < 0 {
+			p.data = append(p.data, b)
 		} else {
-			if p.DataLen < len(p.Data) {
-				p.Data[p.DataLen] = b
-				p.DataLen++
+			if p.dataLen < len(p.data) {
+				p.data[p.dataLen] = b
+				p.dataLen++
 			}
 		}
 
 	case parser.DispatchAction:
 		// Increment the last parameter
-		if p.ParamsLen > 0 && p.ParamsLen < len(p.Params)-1 ||
-			p.ParamsLen == 0 && len(p.Params) > 0 && p.Params[0] != parser.MissingParam {
-			p.ParamsLen++
+		if p.paramsLen > 0 && p.paramsLen < len(p.params)-1 ||
+			p.paramsLen == 0 && len(p.params) > 0 && p.params[0] != parser.MissingParam {
+			p.paramsLen++
 		}
 
-		if dispatcher == nil {
+		if p.state == parser.OscStringState && p.cmd == parser.MissingCommand {
+			// Ensure we have a command for OSC
+			p.parseStringCmd()
+		}
+
+		if p.dispatcher == nil {
 			break
 		}
 
 		var seq Sequence
-		data := p.Data
-		if p.DataLen >= 0 {
-			data = data[:p.DataLen]
+		data := p.data
+		if p.dataLen >= 0 {
+			data = data[:p.dataLen]
 		}
-		switch p.State {
+		switch p.state {
 		case parser.CsiEntryState, parser.CsiParamState, parser.CsiIntermediateState:
-			p.Cmd |= int(b)
-			seq = CsiSequence{Cmd: p.Cmd, Params: p.Params[:p.ParamsLen]}
+			p.cmd |= int(b)
+			seq = CsiSequence{Cmd: Command(p.cmd), Params: p.Params()}
 		case parser.EscapeState, parser.EscapeIntermediateState:
-			p.Cmd |= int(b)
-			seq = EscSequence(p.Cmd)
+			p.cmd |= int(b)
+			seq = EscSequence(p.cmd)
 		case parser.DcsEntryState, parser.DcsParamState, parser.DcsIntermediateState, parser.DcsStringState:
-			seq = DcsSequence{Cmd: p.Cmd, Params: p.Params[:p.ParamsLen], Data: data}
+			seq = DcsSequence{Cmd: Command(p.cmd), Params: p.Params(), Data: data}
 		case parser.OscStringState:
-			seq = OscSequence{Cmd: p.Cmd, Data: data}
+			seq = OscSequence{Cmd: p.cmd, Data: data}
 		case parser.SosStringState:
 			seq = SosSequence{Data: data}
 		case parser.PmStringState:
@@ -345,7 +395,7 @@ func (p *Parser) performAction(dispatcher ParserDispatcher, action parser.Action
 			seq = ApcSequence{Data: data}
 		}
 
-		dispatcher(seq)
+		p.dispatch(seq)
 	}
 }
 

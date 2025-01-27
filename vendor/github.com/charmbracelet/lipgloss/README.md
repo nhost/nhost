@@ -10,7 +10,7 @@
 
 Style definitions for nice terminal layouts. Built with TUIs in mind.
 
-![Lip Gloss example](https://stuff.charm.sh/lipgloss/lipgloss-example.png)
+![Lip Gloss example](https://github.com/user-attachments/assets/99c5c015-551b-4897-8cd1-bcaafa0aad5a)
 
 Lip Gloss takes an expressive, declarative approach to terminal rendering.
 Users familiar with CSS will feel at home with Lip Gloss.
@@ -402,7 +402,7 @@ block := lipgloss.Place(30, 80, lipgloss.Right, lipgloss.Bottom, fancyStyledPara
 
 You can also style the whitespace. For details, see [the docs][docs].
 
-### Rendering Tables
+## Rendering Tables
 
 Lip Gloss ships with a table rendering sub-package.
 
@@ -483,15 +483,15 @@ Lists have the ability to nest.
 
 ```go
 l := list.New(
-  "A", list.New("Artichoke"),
-  "B", list.New("Baking Flour", "Bananas", "Barley", "Bean Sprouts"),
-  "C", list.New("Cashew Apple", "Cashews", "Coconut Milk", "Curry Paste", "Currywurst"),
-  "D", list.New("Dill", "Dragonfruit", "Dried Shrimp"),
-  "E", list.New("Eggs"),
-  "F", list.New("Fish Cake", "Furikake"),
-  "J", list.New("Jicama"),
-  "K", list.New("Kohlrabi"),
-  "L", list.New("Leeks", "Lentils", "Licorice Root"),
+    "A", list.New("Artichoke"),
+    "B", list.New("Baking Flour", "Bananas", "Barley", "Bean Sprouts"),
+    "C", list.New("Cashew Apple", "Cashews", "Coconut Milk", "Curry Paste", "Currywurst"),
+    "D", list.New("Dill", "Dragonfruit", "Dried Shrimp"),
+    "E", list.New("Eggs"),
+    "F", list.New("Fish Cake", "Furikake"),
+    "J", list.New("Jicama"),
+    "K", list.New("Kohlrabi"),
+    "L", list.New("Leeks", "Lentils", "Licorice Root"),
 )
 ```
 
@@ -513,15 +513,15 @@ enumeratorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("99")).MarginRi
 itemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("212")).MarginRight(1)
 
 l := list.New(
-  "Glossier",
-  "Claire’s Boutique",
-  "Nyx",
-  "Mac",
-  "Milk",
-).
-  Enumerator(list.Roman).
-  EnumeratorStyle(enumeratorStyle).
-  ItemStyle(itemStyle)
+    "Glossier",
+    "Claire’s Boutique",
+    "Nyx",
+    "Mac",
+    "Milk",
+    ).
+    Enumerator(list.Roman).
+    EnumeratorStyle(enumeratorStyle).
+    ItemStyle(itemStyle)
 ```
 
 Print the list.
@@ -574,7 +574,7 @@ Define a new tree.
 
 ```go
 t := tree.Root(".").
-  Child("A", "B", "C")
+    Child("A", "B", "C")
 ```
 
 Print the tree.
@@ -592,18 +592,20 @@ Trees have the ability to nest.
 
 ```go
 t := tree.Root(".").
-  Child("Item 1").
-  Child(
-    tree.Root("Item 2").
-      Child("Item 2.1").
-      Child("Item 2.2").
-      Child("Item 2.3"),
-  ).
-  Child(
-    tree.Root("Item 3").
-      Child("Item 3.1").
-      Child("Item 3.2"),
-  )
+    Child("macOS").
+    Child(
+        tree.New().
+            Root("Linux").
+            Child("NixOS").
+            Child("Arch Linux (btw)").
+            Child("Void Linux"),
+        ).
+    Child(
+        tree.New().
+            Root("BSD").
+            Child("FreeBSD").
+            Child("OpenBSD"),
+    )
 ```
 
 Print the tree.
@@ -613,34 +615,40 @@ fmt.Println(t)
 ```
 
 <p align="center">
-<img width="400" alt="Tree Example (simple)" src="https://stuff.charm.sh/lipgloss/tree/simple.png">
+<img width="663" alt="Tree Example (simple)" src="https://github.com/user-attachments/assets/5ef14eb8-a5d4-4f94-8834-e15d1e714f89">
 </p>
 
 Trees can be customized via their enumeration function as well as using
 `lipgloss.Style`s.
 
 ```go
-enumeratorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("99")).MarginRight(1)
-itemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("212")).MarginRight(1)
+enumeratorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("63")).MarginRight(1)
+rootStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
+itemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("212"))
 
-t := tree.Root("Makeup").
-  Child(
-    "Glossier",
-    "Claire’s Boutique",
-    "Nyx",
-    "Mac",
-    "Milk",
-  ).
-  Enumerator(tree.RoundedEnumerator).
-  EnumeratorStyle(enumeratorStyle).
-  ItemStyle(itemStyle).
-  RootStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575")))
+t := tree.
+    Root("⁜ Makeup").
+    Child(
+        "Glossier",
+        "Fenty Beauty",
+        tree.New().Child(
+            "Gloss Bomb Universal Lip Luminizer",
+            "Hot Cheeks Velour Blushlighter",
+        ),
+        "Nyx",
+        "Mac",
+        "Milk",
+    ).
+    Enumerator(tree.RoundedEnumerator).
+    EnumeratorStyle(enumeratorStyle).
+    RootStyle(rootStyle).
+    ItemStyle(itemStyle)
 ```
 
 Print the tree.
 
 <p align="center">
-<img width="600" alt="Tree Example (makeup)" src="https://stuff.charm.sh/lipgloss/tree/makeup.png">
+<img width="663" alt="Tree Example (makeup)" src="https://github.com/user-attachments/assets/06d12d87-744a-4c89-bd98-45de9094a97e">
 </p>
 
 The predefined enumerators for trees are `DefaultEnumerator` and `RoundedEnumerator`.
@@ -725,6 +733,12 @@ lists, tables, and syntax-highlighted code have a look at [Glamour][glamour],
 the stylesheet-based Markdown renderer.
 
 [glamour]: https://github.com/charmbracelet/glamour
+
+## Contributing
+
+See [contributing][contribute].
+
+[contribute]: https://github.com/charmbracelet/lipgloss/contribute
 
 ## Feedback
 

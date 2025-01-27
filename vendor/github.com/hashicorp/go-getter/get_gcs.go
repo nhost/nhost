@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package getter
 
 import (
@@ -190,7 +193,7 @@ func (g *GCSGetter) getObject(ctx context.Context, client *storage.Client, dst, 
 }
 
 func (g *GCSGetter) parseURL(u *url.URL) (bucket, path, fragment string, err error) {
-	if strings.Contains(u.Host, "googleapis.com") {
+	if strings.HasSuffix(u.Host, ".googleapis.com") {
 		hostParts := strings.Split(u.Host, ".")
 		if len(hostParts) != 3 {
 			err = fmt.Errorf("URL is not a valid GCS URL")
@@ -205,6 +208,8 @@ func (g *GCSGetter) parseURL(u *url.URL) (bucket, path, fragment string, err err
 		bucket = pathParts[3]
 		path = pathParts[4]
 		fragment = u.Fragment
+	} else {
+		err = fmt.Errorf("URL is not a valid GCS URL")
 	}
 	return
 }

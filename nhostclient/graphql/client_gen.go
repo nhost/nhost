@@ -4,7 +4,6 @@ package graphql
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
@@ -14,7 +13,7 @@ type Client struct {
 	Client *clientv2.Client
 }
 
-func NewClient(cli *http.Client, baseURL string, options *clientv2.Options, interceptors ...clientv2.RequestInterceptor) *Client {
+func NewClient(cli clientv2.HttpClient, baseURL string, options *clientv2.Options, interceptors ...clientv2.RequestInterceptor) *Client {
 	return &Client{Client: clientv2.NewClient(cli, baseURL, options, interceptors...)}
 }
 
@@ -73,21 +72,21 @@ func (t *GetOrganizationsAndWorkspacesApps_Organizations_Apps_AppSummaryFragment
 }
 
 type GetOrganizationsAndWorkspacesApps_Organizations struct {
-	Name string                "json:\"name\" graphql:\"name\""
 	Apps []*AppSummaryFragment "json:\"apps\" graphql:\"apps\""
+	Name string                "json:\"name\" graphql:\"name\""
 }
 
-func (t *GetOrganizationsAndWorkspacesApps_Organizations) GetName() string {
-	if t == nil {
-		t = &GetOrganizationsAndWorkspacesApps_Organizations{}
-	}
-	return t.Name
-}
 func (t *GetOrganizationsAndWorkspacesApps_Organizations) GetApps() []*AppSummaryFragment {
 	if t == nil {
 		t = &GetOrganizationsAndWorkspacesApps_Organizations{}
 	}
 	return t.Apps
+}
+func (t *GetOrganizationsAndWorkspacesApps_Organizations) GetName() string {
+	if t == nil {
+		t = &GetOrganizationsAndWorkspacesApps_Organizations{}
+	}
+	return t.Name
 }
 
 type GetOrganizationsAndWorkspacesApps_Workspaces_Apps_AppSummaryFragment_Region struct {
@@ -102,39 +101,39 @@ func (t *GetOrganizationsAndWorkspacesApps_Workspaces_Apps_AppSummaryFragment_Re
 }
 
 type GetOrganizationsAndWorkspacesApps_Workspaces struct {
-	Name string                "json:\"name\" graphql:\"name\""
 	Apps []*AppSummaryFragment "json:\"apps\" graphql:\"apps\""
+	Name string                "json:\"name\" graphql:\"name\""
 }
 
-func (t *GetOrganizationsAndWorkspacesApps_Workspaces) GetName() string {
-	if t == nil {
-		t = &GetOrganizationsAndWorkspacesApps_Workspaces{}
-	}
-	return t.Name
-}
 func (t *GetOrganizationsAndWorkspacesApps_Workspaces) GetApps() []*AppSummaryFragment {
 	if t == nil {
 		t = &GetOrganizationsAndWorkspacesApps_Workspaces{}
 	}
 	return t.Apps
 }
+func (t *GetOrganizationsAndWorkspacesApps_Workspaces) GetName() string {
+	if t == nil {
+		t = &GetOrganizationsAndWorkspacesApps_Workspaces{}
+	}
+	return t.Name
+}
 
 type GetHasuraAdminSecret_App_Config_Hasura struct {
-	Version     *string "json:\"version,omitempty\" graphql:\"version\""
 	AdminSecret string  "json:\"adminSecret\" graphql:\"adminSecret\""
+	Version     *string "json:\"version,omitempty\" graphql:\"version\""
 }
 
-func (t *GetHasuraAdminSecret_App_Config_Hasura) GetVersion() *string {
-	if t == nil {
-		t = &GetHasuraAdminSecret_App_Config_Hasura{}
-	}
-	return t.Version
-}
 func (t *GetHasuraAdminSecret_App_Config_Hasura) GetAdminSecret() string {
 	if t == nil {
 		t = &GetHasuraAdminSecret_App_Config_Hasura{}
 	}
 	return t.AdminSecret
+}
+func (t *GetHasuraAdminSecret_App_Config_Hasura) GetVersion() *string {
+	if t == nil {
+		t = &GetHasuraAdminSecret_App_Config_Hasura{}
+	}
+	return t.Version
 }
 
 type GetHasuraAdminSecret_App_Config struct {
@@ -160,38 +159,20 @@ func (t *GetHasuraAdminSecret_App) GetConfig() *GetHasuraAdminSecret_App_Config 
 }
 
 type ListDeployments_Deployments struct {
-	ID                  string     "json:\"id\" graphql:\"id\""
-	DeploymentStartedAt *time.Time "json:\"deploymentStartedAt,omitempty\" graphql:\"deploymentStartedAt\""
-	DeploymentEndedAt   *time.Time "json:\"deploymentEndedAt,omitempty\" graphql:\"deploymentEndedAt\""
-	DeploymentStatus    *string    "json:\"deploymentStatus,omitempty\" graphql:\"deploymentStatus\""
-	CommitSha           string     "json:\"commitSHA\" graphql:\"commitSHA\""
 	CommitMessage       *string    "json:\"commitMessage,omitempty\" graphql:\"commitMessage\""
+	CommitSha           string     "json:\"commitSHA\" graphql:\"commitSHA\""
 	CommitUserName      *string    "json:\"commitUserName,omitempty\" graphql:\"commitUserName\""
+	DeploymentEndedAt   *time.Time "json:\"deploymentEndedAt,omitempty\" graphql:\"deploymentEndedAt\""
+	DeploymentStartedAt *time.Time "json:\"deploymentStartedAt,omitempty\" graphql:\"deploymentStartedAt\""
+	DeploymentStatus    *string    "json:\"deploymentStatus,omitempty\" graphql:\"deploymentStatus\""
+	ID                  string     "json:\"id\" graphql:\"id\""
 }
 
-func (t *ListDeployments_Deployments) GetID() string {
+func (t *ListDeployments_Deployments) GetCommitMessage() *string {
 	if t == nil {
 		t = &ListDeployments_Deployments{}
 	}
-	return t.ID
-}
-func (t *ListDeployments_Deployments) GetDeploymentStartedAt() *time.Time {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentStartedAt
-}
-func (t *ListDeployments_Deployments) GetDeploymentEndedAt() *time.Time {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentEndedAt
-}
-func (t *ListDeployments_Deployments) GetDeploymentStatus() *string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.DeploymentStatus
+	return t.CommitMessage
 }
 func (t *ListDeployments_Deployments) GetCommitSha() string {
 	if t == nil {
@@ -199,36 +180,54 @@ func (t *ListDeployments_Deployments) GetCommitSha() string {
 	}
 	return t.CommitSha
 }
-func (t *ListDeployments_Deployments) GetCommitMessage() *string {
-	if t == nil {
-		t = &ListDeployments_Deployments{}
-	}
-	return t.CommitMessage
-}
 func (t *ListDeployments_Deployments) GetCommitUserName() *string {
 	if t == nil {
 		t = &ListDeployments_Deployments{}
 	}
 	return t.CommitUserName
 }
-
-type GetDeploymentLogs_DeploymentLogs struct {
-	ID        string    "json:\"id\" graphql:\"id\""
-	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
-	Message   string    "json:\"message\" graphql:\"message\""
-}
-
-func (t *GetDeploymentLogs_DeploymentLogs) GetID() string {
+func (t *ListDeployments_Deployments) GetDeploymentEndedAt() *time.Time {
 	if t == nil {
-		t = &GetDeploymentLogs_DeploymentLogs{}
+		t = &ListDeployments_Deployments{}
+	}
+	return t.DeploymentEndedAt
+}
+func (t *ListDeployments_Deployments) GetDeploymentStartedAt() *time.Time {
+	if t == nil {
+		t = &ListDeployments_Deployments{}
+	}
+	return t.DeploymentStartedAt
+}
+func (t *ListDeployments_Deployments) GetDeploymentStatus() *string {
+	if t == nil {
+		t = &ListDeployments_Deployments{}
+	}
+	return t.DeploymentStatus
+}
+func (t *ListDeployments_Deployments) GetID() string {
+	if t == nil {
+		t = &ListDeployments_Deployments{}
 	}
 	return t.ID
 }
+
+type GetDeploymentLogs_DeploymentLogs struct {
+	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
+	ID        string    "json:\"id\" graphql:\"id\""
+	Message   string    "json:\"message\" graphql:\"message\""
+}
+
 func (t *GetDeploymentLogs_DeploymentLogs) GetCreatedAt() *time.Time {
 	if t == nil {
 		t = &GetDeploymentLogs_DeploymentLogs{}
 	}
 	return &t.CreatedAt
+}
+func (t *GetDeploymentLogs_DeploymentLogs) GetID() string {
+	if t == nil {
+		t = &GetDeploymentLogs_DeploymentLogs{}
+	}
+	return t.ID
 }
 func (t *GetDeploymentLogs_DeploymentLogs) GetMessage() string {
 	if t == nil {

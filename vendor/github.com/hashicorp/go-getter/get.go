@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // getter is a package for downloading files or directories from a variety of
 // protocols.
 //

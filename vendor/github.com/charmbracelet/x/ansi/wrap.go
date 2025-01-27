@@ -83,7 +83,9 @@ func Hardwrap(s string, limit int, preserveSpace bool) string {
 			}
 
 			buf.WriteByte(b[i])
-			curWidth++
+			if action == parser.PrintAction {
+				curWidth++
+			}
 		default:
 			buf.WriteByte(b[i])
 		}
@@ -349,6 +351,9 @@ func Wrap(s string, limit int, breakpoints string) string {
 					curWidth++
 				}
 			default:
+				if curWidth == limit {
+					addNewline()
+				}
 				word.WriteRune(r)
 				wordLen++
 
@@ -373,14 +378,17 @@ func Wrap(s string, limit int, breakpoints string) string {
 		i++
 	}
 
-	if word.Len() != 0 {
-		// Preserve ANSI wrapped spaces at the end of string
+	if wordLen == 0 {
 		if curWidth+space.Len() > limit {
-			buf.WriteByte('\n')
+			curWidth = 0
+		} else {
+			// preserve whitespaces
+			buf.Write(space.Bytes())
 		}
-		addSpace()
+		space.Reset()
 	}
-	buf.Write(word.Bytes())
+
+	addWord()
 
 	return buf.String()
 }

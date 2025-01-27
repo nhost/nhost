@@ -3,8 +3,6 @@ package ansi
 import (
 	"bytes"
 	"strconv"
-
-	"github.com/charmbracelet/x/ansi/parser"
 )
 
 // CsiSequence represents a control sequence introducer (CSI) sequence.
@@ -23,7 +21,7 @@ type CsiSequence struct {
 	// This is a slice of integers, where each integer is a 32-bit integer
 	// containing the parameter value in the lower 31 bits and a flag in the
 	// most significant bit indicating whether there are more sub-parameters.
-	Params []int
+	Params []Parameter
 
 	// Cmd contains the raw command of the sequence.
 	// The command is a 32-bit integer containing the CSI command byte in the
@@ -35,17 +33,25 @@ type CsiSequence struct {
 	// Is represented as:
 	//
 	//  'u' | '?' << 8
-	Cmd int
+	Cmd Command
 }
 
 var _ Sequence = CsiSequence{}
+
+// Clone returns a deep copy of the CSI sequence.
+func (s CsiSequence) Clone() Sequence {
+	return CsiSequence{
+		Params: append([]Parameter(nil), s.Params...),
+		Cmd:    s.Cmd,
+	}
+}
 
 // Marker returns the marker byte of the CSI sequence.
 // This is always gonna be one of the following '<' '=' '>' '?' and in the
 // range of 0x3C-0x3F.
 // Zero is returned if the sequence does not have a marker.
 func (s CsiSequence) Marker() int {
-	return parser.Marker(s.Cmd)
+	return s.Cmd.Marker()
 }
 
 // Intermediate returns the intermediate byte of the CSI sequence.
@@ -54,51 +60,22 @@ func (s CsiSequence) Marker() int {
 // ',', '-', '.', '/'.
 // Zero is returned if the sequence does not have an intermediate byte.
 func (s CsiSequence) Intermediate() int {
-	return parser.Intermediate(s.Cmd)
+	return s.Cmd.Intermediate()
 }
 
 // Command returns the command byte of the CSI sequence.
 func (s CsiSequence) Command() int {
-	return parser.Command(s.Cmd)
+	return s.Cmd.Command()
 }
 
-// Param returns the parameter at the given index.
-// It returns -1 if the parameter does not exist.
-func (s CsiSequence) Param(i int) int {
-	return parser.Param(s.Params, i)
-}
-
-// HasMore returns true if the parameter has more sub-parameters.
-func (s CsiSequence) HasMore(i int) bool {
-	return parser.HasMore(s.Params, i)
-}
-
-// Subparams returns the sub-parameters of the given parameter.
-// It returns nil if the parameter does not exist.
-func (s CsiSequence) Subparams(i int) []int {
-	return parser.Subparams(s.Params, i)
-}
-
-// Len returns the number of parameters in the sequence.
-// This will return the number of parameters in the sequence, excluding any
-// sub-parameters.
-func (s CsiSequence) Len() int {
-	return parser.Len(s.Params)
-}
-
-// Range iterates over the parameters of the sequence and calls the given
-// function for each parameter.
-// The function should return false to stop the iteration.
-func (s CsiSequence) Range(fn func(i int, param int, hasMore bool) bool) {
-	parser.Range(s.Params, fn)
-}
-
-// Clone returns a copy of the CSI sequence.
-func (s CsiSequence) Clone() Sequence {
-	return CsiSequence{
-		Params: append([]int(nil), s.Params...),
-		Cmd:    s.Cmd,
+// Param is a helper that returns the parameter at the given index and falls
+// back to the default value if the parameter is missing. If the index is out
+// of bounds, it returns the default value and false.
+func (s CsiSequence) Param(i, def int) (int, bool) {
+	if i < 0 || i >= len(s.Params) {
+		return def, false
 	}
+	return s.Params[i].Param(def), true
 }
 
 // String returns a string representation of the sequence.
@@ -114,23 +91,25 @@ func (s CsiSequence) buffer() *bytes.Buffer {
 	if m := s.Marker(); m != 0 {
 		b.WriteByte(byte(m))
 	}
-	s.Range(func(i, param int, hasMore bool) bool {
+	for i, p := range s.Params {
+		param := p.Param(-1)
 		if param >= 0 {
 			b.WriteString(strconv.Itoa(param))
 		}
 		if i < len(s.Params)-1 {
-			if hasMore {
+			if p.HasMore() {
 				b.WriteByte(':')
 			} else {
 				b.WriteByte(';')
 			}
 		}
-		return true
-	})
+	}
 	if i := s.Intermediate(); i != 0 {
 		b.WriteByte(byte(i))
 	}
-	b.WriteByte(byte(s.Command()))
+	if cmd := s.Command(); cmd != 0 {
+		b.WriteByte(byte(cmd))
+	}
 	return &b
 }
 

@@ -69,4 +69,11 @@ const (
 	RS = 0x1E
 	// US is the unit separator character (Caret: ^_).
 	US = 0x1F
+
+	// LS0 is the locking shift 0 character.
+	// This is an alias for [SI].
+	LS0 = SI
+	// LS1 is the locking shift 1 character.
+	// This is an alias for [SO].
+	LS1 = SO
 )

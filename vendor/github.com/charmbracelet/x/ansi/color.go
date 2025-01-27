@@ -178,7 +178,7 @@ func ansiToRGB(ansi uint32) (uint32, uint32, uint32) {
 //
 //	r, g, b := hexToRGB(0x0000FF)
 func hexToRGB(hex uint32) (uint32, uint32, uint32) {
-	return hex >> 16, hex >> 8 & 0xff, hex & 0xff
+	return hex >> 16 & 0xff, hex >> 8 & 0xff, hex & 0xff
 }
 
 // toRGBA converts an RGB 8-bit color values to 32-bit color values suitable

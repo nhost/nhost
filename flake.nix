@@ -1,6 +1,7 @@
 {
   inputs = {
-    nixops.url = "github:nhost/nixops";
+    nixops.url = "github:nhost/nixops/qwe";
+    # nixops.url = "path:////Users/dbarroso/workspace/nhost/nixops";
     nixpkgs.follows = "nixops/nixpkgs";
     flake-utils.follows = "nixops/flake-utils";
     nix-filter.follows = "nixops/nix-filter";
@@ -104,27 +105,26 @@
 
           cli-arm64-darwin = (nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
-
             cgoEnabled = 0;
-          }).overrideAttrs (old: old // { GOOS = "darwin"; GOARCH = "arm64"; });
+          }).overrideAttrs (old: old // { env = { GOOS = "darwin"; GOARCH = "arm64"; }; });
 
           cli-amd64-darwin = (nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
 
             cgoEnabled = 0;
-          }).overrideAttrs (old: old // { GOOS = "darwin"; GOARCH = "amd64"; });
+          }).overrideAttrs (old: old // { env = { GOOS = "darwin"; GOARCH = "amd64"; }; });
 
           cli-arm64-linux = (nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
 
             cgoEnabled = 0;
-          }).overrideAttrs (old: old // { GOOS = "linux"; GOARCH = "arm64"; });
+          }).overrideAttrs (old: old // { env = { GOOS = "linux"; GOARCH = "arm64"; }; });
 
           cli-amd64-linux = (nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
 
             cgoEnabled = 0;
-          }).overrideAttrs (old: old // { GOOS = "linux"; GOARCH = "amd64"; });
+          }).overrideAttrs (old: old // { env = { GOOS = "linux"; GOARCH = "amd64"; }; });
 
           docker-image-arm64 = nixops-lib.go.docker-image {
             inherit name version buildInputs;

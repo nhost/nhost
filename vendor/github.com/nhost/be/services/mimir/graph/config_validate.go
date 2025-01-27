@@ -45,8 +45,18 @@ func (r *mutationResolver) configValidateVerifyPostgresVersionChange(
 		return nil
 	}
 
-	oldMajorVersion := deptr(oldApp.Config.GetPostgres().GetVersion())[:3]
-	newMajorVersion := deptr(newApp.Config.GetPostgres().GetVersion())[:3]
+	oldConfig, err := oldApp.ResolveConfig(r.schema, false)
+	if err != nil {
+		return fmt.Errorf("failed to resolve old app config: %w", err)
+	}
+
+	newConfig, err := newApp.ResolveConfig(r.schema, false)
+	if err != nil {
+		return fmt.Errorf("failed to resolve new app config: %w", err)
+	}
+
+	oldMajorVersion := deptr(oldConfig.GetPostgres().GetVersion())[:3]
+	newMajorVersion := deptr(newConfig.GetPostgres().GetVersion())[:3]
 
 	if oldMajorVersion > newMajorVersion {
 		return ErrDatabaseVersionMustBeGreater
