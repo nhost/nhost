@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 2.17.0
+
+### Minor Changes
+
+- fd59918: fix: redirect to 404 with nhost cli dashboard
+
 ## 2.16.0
 
 ### Minor Changes
