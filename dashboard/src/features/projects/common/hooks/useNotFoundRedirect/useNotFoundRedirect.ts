@@ -1,34 +1,16 @@
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 /**
- * Redirects to 404 page if either currentWorkspace/currentProject resolves to undefined
- * or if the current pathname is not a valid organization/project.
- * Not applicable if running dashboard with local Nhost backend.
+ * Redirects to 404 page if either currentWorkspace/currentProject resolves to undefined.
  */
 export default function useNotFoundRedirect() {
   const router = useRouter();
   const {
-    query: {
-      orgSlug: urlOrgSlug,
-      workspaceSlug: urlWorkspaceSlug,
-      appSubdomain: urlAppSubdomain,
-      updating,
-      appSlug: urlAppSlug,
-    },
+    query: { orgSlug, workspaceSlug, appSubdomain, updating, appSlug },
     isReady,
   } = router;
-
-  const { project, loading: projectLoading } = useProject();
-  const isPlatform = useIsPlatform();
-  const { org, loading: orgLoading } = useCurrentOrg();
-
-  const { subdomain: projectSubdomain } = project || {};
-  const { slug: currentOrgSlug } = org || {};
 
   const { currentProject, currentWorkspace, loading } =
     useCurrentWorkspaceAndProject();
@@ -41,10 +23,6 @@ export default function useNotFoundRedirect() {
       !isReady ||
       // If the current workspace and project are not loaded, we don't want to redirect to 404
       loading ||
-      // If the project is loading, we don't want to redirect to 404
-      projectLoading ||
-      // If the org is loading, we don't want to redirect to 404
-      orgLoading ||
       // If we're already on the 404 page, we don't want to redirect to 404
       router.pathname === '/404' ||
       router.pathname === '/' ||
@@ -53,14 +31,12 @@ export default function useNotFoundRedirect() {
       router.pathname === '/run-one-click-install' ||
       router.pathname.includes('/orgs/_') ||
       router.pathname.includes('/orgs/_/projects/_') ||
-      (!isPlatform &&
-        router.pathname.includes('/orgs/[orgSlug]/projects/[appSubdomain]')) ||
-      (urlOrgSlug === currentOrgSlug && !urlAppSubdomain) ||
-      (urlOrgSlug === currentOrgSlug && urlAppSubdomain === projectSubdomain) ||
+      orgSlug ||
+      (orgSlug && appSubdomain) ||
       // If we are on a valid workspace and project, we don't want to redirect to 404
-      (urlWorkspaceSlug && currentWorkspace && urlAppSlug && currentProject) ||
+      (workspaceSlug && currentWorkspace && appSlug && currentProject) ||
       // If we are on a valid workspace and no project is selected, we don't want to redirect to 404
-      (urlWorkspaceSlug && currentWorkspace && !urlAppSlug && !currentProject)
+      (workspaceSlug && currentWorkspace && !appSlug && !currentProject)
     ) {
       return;
     }
@@ -71,16 +47,11 @@ export default function useNotFoundRedirect() {
     currentWorkspace,
     isReady,
     loading,
-    urlAppSubdomain,
-    urlAppSlug,
+    appSubdomain,
+    appSlug,
     router,
     updating,
-    projectLoading,
-    orgLoading,
-    currentOrgSlug,
-    projectSubdomain,
-    urlWorkspaceSlug,
-    urlOrgSlug,
-    isPlatform,
+    workspaceSlug,
+    orgSlug,
   ]);
 }
