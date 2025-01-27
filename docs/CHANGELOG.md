@@ -1,5 +1,17 @@
 # @nhost/docs
 
+## 2.27.0
+
+### Minor Changes
+
+- 81cc9b3: chore: add missing images to permissions API
+
+### Patch Changes
+
+- af34015: chore: add note about encryption at rest
+- 1956ed2: chore: added pgmq extension to postgres docs
+- 88919a3: chore: added support for nodejs22 to functions
+
 ## 2.26.0
 
 ### Minor Changes

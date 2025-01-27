@@ -1,5 +1,19 @@
 # @nhost/dashboard
 
+## 2.16.0
+
+### Minor Changes
+
+- f8e6b61: fix: can add rule groups in table permissions
+- 9e404c8: fix: not redirect to 404 page if using local Nhost backend
+- ac4aa01: fix: can delete column in database page
+- 4385524: fix: update url to check service health in local dashboard
+
+### Patch Changes
+
+- @nhost/react-apollo@16.0.1
+- @nhost/nextjs@2.2.2
+
 ## 2.15.0
 
 ### Minor Changes
