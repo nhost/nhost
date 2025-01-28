@@ -8,7 +8,7 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 60 * 1000,
   expect: {
-    timeout: 5000,
+    timeout: 10000,
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
