@@ -3,12 +3,12 @@ import { Header } from '@/components/layout/Header';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   CheckoutStatus,
   useGetOrganizationByIdLazyQuery,
   usePostOrganizationRequestMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -85,13 +85,13 @@ export default function PostCheckout() {
   }, [session_id, postOrganizationRequest, router, fetchOrg, isAuthenticated]);
 
   return (
-    <BaseLayout className="flex flex-col h-screen">
+    <BaseLayout className="flex h-screen flex-col">
       <Header className="flex py-1" />
-      <div className="flex flex-col w-full h-screen">
+      <div className="flex h-screen w-full flex-col">
         <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
           <div className="relative flex flex-auto overflow-x-hidden">
             {loading && (
-              <div className="flex flex-col items-center justify-center w-full h-full space-y-2">
+              <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
                 <ActivityIndicator
                   circularProgressProps={{ className: 'w-6 h-6' }}
                 />
@@ -101,7 +101,7 @@ export default function PostCheckout() {
 
             {!loading &&
               postOrganizationRequestStatus === CheckoutStatus.Completed && (
-                <div className="flex flex-col items-center justify-center w-full h-full space-y-2">
+                <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
                   <ActivityIndicator
                     circularProgressProps={{ className: 'w-6 h-6' }}
                   />
@@ -111,7 +111,7 @@ export default function PostCheckout() {
 
             {!loading &&
               postOrganizationRequestStatus === CheckoutStatus.Expired && (
-                <div className="flex flex-col items-center justify-center w-full h-full space-y-2">
+                <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
                   <span>
                     Error occurred while creating the organization. Please try
                     again.
@@ -121,7 +121,7 @@ export default function PostCheckout() {
 
             {!loading &&
               postOrganizationRequestStatus === CheckoutStatus.Open && (
-                <div className="flex flex-col items-center justify-center w-full h-full space-y-2">
+                <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
                   <span>Organization creation is pending...</span>
                 </div>
               )}

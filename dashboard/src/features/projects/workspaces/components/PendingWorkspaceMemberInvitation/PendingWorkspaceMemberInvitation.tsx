@@ -15,7 +15,7 @@ export default function PendingWorkspaceMemberInvitation({
 }: PendingWorkspaceMemberInvitationProps) {
   return (
     <div className="flex flex-row place-content-between">
-      <div className=" flex flex-row">
+      <div className="flex flex-row">
         <Avatar className="h-12 w-12" name={workspaceMemberInvite.email} />
         <div className="ml-3 self-center">
           <div className="grid grid-flow-col justify-start gap-2">
@@ -27,7 +27,7 @@ export default function PendingWorkspaceMemberInvitation({
           </Text>
         </div>
       </div>
-      <div className=" right-0 flex flex-row self-center">
+      <div className="right-0 flex flex-row self-center">
         {isOwner ? (
           <ManageWorkspaceMemberInviteMenu
             workspaceMemberInvite={workspaceMemberInvite}

@@ -48,7 +48,7 @@ export default function ServicesPage() {
           openDrawer({
             title: (
               <Box className="flex flex-row items-center space-x-2">
-                <CubeIcon className="w-5 h-5" />
+                <CubeIcon className="h-5 w-5" />
                 <Text>Create a new run service</Text>
               </Box>
             ),
@@ -105,7 +105,7 @@ export default function ServicesPage() {
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="w-5 h-5" />
+          <CubeIcon className="h-5 w-5" />
           <Text>Create a new service</Text>
         </Box>
       ),
@@ -126,23 +126,23 @@ export default function ServicesPage() {
 
   if (services.length === 0 && !loading) {
     return (
-      <Container className="mx-auto space-y-5 overflow-x-hidden max-w-9xl">
+      <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
         <div className="flex flex-row place-content-end">
           <Button
             variant="contained"
             color="primary"
             onClick={openCreateServiceDialog}
-            startIcon={<PlusIcon className="w-4 h-4" />}
+            startIcon={<PlusIcon className="h-4 w-4" />}
             disabled={!isPlatform}
           >
             Add service
           </Button>
         </div>
 
-        <Box className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm">
-          <ServicesIcon className="w-10 h-10" />
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+          <ServicesIcon className="h-10 w-10" />
           <div className="flex flex-col space-y-1">
-            <Text className="font-medium text-center" variant="h3">
+            <Text className="text-center font-medium" variant="h3">
               No custom services are available
             </Text>
             <Text variant="subtitle1" className="text-center">
@@ -150,13 +150,13 @@ export default function ServicesPage() {
             </Text>
           </div>
           {isPlatform ? (
-            <div className="flex flex-row rounded-lg place-content-between">
+            <div className="flex flex-row place-content-between rounded-lg">
               <Button
                 variant="contained"
                 color="primary"
                 className="w-full"
                 onClick={openCreateServiceDialog}
-                startIcon={<PlusIcon className="w-4 h-4" />}
+                startIcon={<PlusIcon className="h-4 w-4" />}
               >
                 Add service
               </Button>
@@ -169,12 +169,12 @@ export default function ServicesPage() {
 
   return (
     <div className="flex flex-col">
-      <Box className="flex flex-row p-4 place-content-end border-b-1">
+      <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"
           color="primary"
           onClick={openCreateServiceDialog}
-          startIcon={<PlusIcon className="w-4 h-4" />}
+          startIcon={<PlusIcon className="h-4 w-4" />}
           disabled={!isPlatform}
         >
           Add service

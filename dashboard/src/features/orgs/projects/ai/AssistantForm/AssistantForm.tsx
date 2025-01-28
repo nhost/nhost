@@ -124,8 +124,9 @@ export default function AssistantForm({
     : [];
 
   const assistantFileStore = initialData?.fileStores
-    ? fileStores?.find((fileStore: GraphiteFileStore) =>
-      fileStore.id === initialData?.fileStores[0]
+    ? fileStores?.find(
+        (fileStore: GraphiteFileStore) =>
+          fileStore.id === initialData?.fileStores[0],
       )
     : null;
 
@@ -149,10 +150,10 @@ export default function AssistantForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-    const createOrUpdateAssistant = async (
-      values: DeepRequired<AssistantFormValues> & {
-        assistantID: string;
-      },
+  const createOrUpdateAssistant = async (
+    values: DeepRequired<AssistantFormValues> & {
+      assistantID: string;
+    },
   ) => {
     // remove any __typename from the form values
     const payload = removeTypename(values);
@@ -215,16 +216,16 @@ export default function AssistantForm({
   };
 
   const fileStoreTooltip = isFileStoreSupported
-    ? "If specified, all text documents in this file store will be available to the assistant."
-    : "Please upgrade Graphite to its latest version in order to use file stores.";
+    ? 'If specified, all text documents in this file store will be available to the assistant.'
+    : 'Please upgrade Graphite to its latest version in order to use file stores.';
 
   return (
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col h-full overflow-hidden border-t"
+        className="flex h-full flex-col overflow-hidden border-t"
       >
-        <div className="flex flex-col flex-1 p-4 space-y-4 overflow-auto">
+        <div className="flex flex-1 flex-col space-y-4 overflow-auto p-4">
           <Input
             {...register('name')}
             id="name"
@@ -234,7 +235,7 @@ export default function AssistantForm({
                 <Tooltip title="Name of the assistant">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -258,7 +259,7 @@ export default function AssistantForm({
                 <Tooltip title={<span>Description of the assistant</span>}>
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -285,7 +286,7 @@ export default function AssistantForm({
                 <Tooltip title="Instructions for the assistant. This is used to instruct the AI assistant on how to behave and respond to the user">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -312,7 +313,7 @@ export default function AssistantForm({
                 <Tooltip title="Model to use for the assistant.">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -360,7 +361,7 @@ export default function AssistantForm({
           </ControlledSelect>
         </div>
 
-        <Box className="flex flex-row justify-between w-full p-4 border-t rounded">
+        <Box className="flex w-full flex-row justify-between rounded border-t p-4">
           <Button variant="outlined" color="secondary" onClick={onCancel}>
             Cancel
           </Button>

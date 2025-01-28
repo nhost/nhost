@@ -10,12 +10,12 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useInsertDeploymentMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import type { MouseEvent } from 'react';
 import { twMerge } from 'tailwind-merge';

@@ -267,7 +267,7 @@ export default function DataGridPreviewCell<TData extends object>({
               aria-label="Close"
               variant="borderless"
               color="secondary"
-              className="absolute top-2 right-2 z-50 p-2"
+              className="absolute right-2 top-2 z-50 p-2"
               sx={{
                 [`&:hover, &:active, &:focus`]: {
                   backgroundColor: (theme) => {

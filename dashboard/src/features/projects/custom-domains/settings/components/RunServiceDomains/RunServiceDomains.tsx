@@ -41,7 +41,7 @@ export default function RunServiceDomains() {
                   underline="hover"
                   className="font-medium"
                 >
-                  <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
+                  <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
                 </Link>
               </div>
             }
@@ -55,7 +55,7 @@ export default function RunServiceDomains() {
                 className: 'hidden',
               },
             }}
-            className="grid px-4 gap-x-4 gap-y-4"
+            className="grid gap-x-4 gap-y-4 px-4"
           >
             {service.config?.ports?.map((port) => (
               <RunServicePortDomain

@@ -6,8 +6,7 @@ import Image from 'next/image';
 export default function OverviewProjectInfo() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { region, subdomain } = currentProject || {};
-  const isRegionAvailable =
-    region?.name && region?.countryCode && region?.city;
+  const isRegionAvailable = region?.name && region?.countryCode && region?.city;
 
   return (
     <div className="grid grid-flow-row content-start gap-6">

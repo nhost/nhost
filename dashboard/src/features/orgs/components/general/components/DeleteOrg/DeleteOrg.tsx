@@ -56,8 +56,8 @@ export default function DeleteOrg() {
   };
 
   return (
-    <div className="flex flex-col w-full border rounded-md border-destructive bg-background">
-      <div className="flex flex-col w-full gap-2 p-4 font-medium border-b">
+    <div className="flex w-full flex-col rounded-md border border-destructive bg-background">
+      <div className="flex w-full flex-col gap-2 border-b p-4 font-medium">
         <h3>Delete Organization</h3>
         <p className="text-sm font-normal text-muted-foreground">
           Proceed with caution, as this action is irreversible and will
@@ -75,7 +75,7 @@ export default function DeleteOrg() {
               Delete
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="flex flex-col w-full max-w-sm gap-6 p-6 text-left text-foreground">
+          <AlertDialogContent className="flex w-full max-w-sm flex-col gap-6 p-6 text-left text-foreground">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Organization</AlertDialogTitle>
               <AlertDialogDescription className="flex flex-col gap-1">

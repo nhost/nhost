@@ -10,7 +10,7 @@ export default function ApplyLocalSettingsDialog() {
       <div className="flex flex-col gap-2">
         <Text color="secondary">
           Run{' '}
-          <code className="px-1 py-px mx-1 rounded-md bg-slate-500 text-slate-100">
+          <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
             $ nhost up
           </code>{' '}
           using the cli to apply your changes

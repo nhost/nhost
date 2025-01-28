@@ -149,7 +149,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between w-full">
+      <div className="flex w-full flex-row items-center justify-between">
         <span className="text-sm text-foreground">{invite.email}</span>
 
         <div className="flex flex-row items-center gap-4 text-foreground">
@@ -226,7 +226,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex flex-col gap-4 mb-4">
+              <div className="mb-4 flex flex-col gap-4">
                 <FormField
                   control={form.control}
                   name="email"

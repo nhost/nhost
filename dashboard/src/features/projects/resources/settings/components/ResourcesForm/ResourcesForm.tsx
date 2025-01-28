@@ -17,17 +17,17 @@ import { calculateBillableResources } from '@/features/projects/resources/settin
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import {
-  RESOURCE_VCPU_MULTIPLIER,
-  RESOURCE_VCPU_PRICE,
-} from '@/utils/constants/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {
   GetResourcesDocument,
   useGetResourcesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import {
+  RESOURCE_VCPU_MULTIPLIER,
+  RESOURCE_VCPU_PRICE,
+} from '@/utils/constants/common';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';

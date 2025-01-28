@@ -202,7 +202,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                 Showing repositories from {data.githubAppInstallations.length}{' '}
                 GitHub account(s)
               </Text>
-              <div className="mt-6 mb-2 flex w-full">
+              <div className="mb-2 mt-6 flex w-full">
                 <Input
                   placeholder="Search..."
                   onChange={handleFilterChange}

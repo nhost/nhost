@@ -55,7 +55,7 @@ export default function SQLEditor() {
     <Box className="flex flex-1 flex-col justify-center overflow-hidden">
       <Box className="flex flex-col space-y-2 border-b p-4">
         <Text className="font-semibold">Raw SQL</Text>
-        <Box className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-y-0 lg:space-x-4">
+        <Box className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0">
           <Box className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-10">
             <Box className="flex items-center space-x-2">
               <Switch

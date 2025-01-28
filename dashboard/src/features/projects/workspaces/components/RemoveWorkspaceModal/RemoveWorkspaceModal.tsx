@@ -3,12 +3,12 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { getErrorMessage } from '@/utils/getErrorMessage';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteWorkspaceMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 import router from 'next/router';
 import { useState } from 'react';
 

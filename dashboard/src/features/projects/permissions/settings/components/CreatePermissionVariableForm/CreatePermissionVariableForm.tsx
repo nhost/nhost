@@ -13,12 +13,12 @@ import {
 } from '@/features/projects/permissions/settings/components/BasePermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 

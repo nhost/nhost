@@ -7,8 +7,8 @@ import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { triggerToast } from '@/utils/toast';
 import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
+import { triggerToast } from '@/utils/toast';
 
 export default function GitConnectionSettings() {
   const { maintenanceActive } = useUI();
@@ -59,14 +59,14 @@ export default function GitConnectionSettings() {
         <Button
           onClick={openGitHubModal}
           className="col-span-5 grid grid-flow-col gap-1.5 xs:col-span-3 lg:col-span-2"
-          startIcon={<GitHubIcon className="self-center w-4 h-4" />}
+          startIcon={<GitHubIcon className="h-4 w-4 self-center" />}
           disabled={maintenanceActive}
         >
           Connect to GitHub
         </Button>
       ) : (
-        <Box className="flex flex-row items-center col-span-5 px-4 py-4 border rounded-lg place-content-between">
-          <div className="flex flex-row ml-2">
+        <Box className="col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
+          <div className="ml-2 flex flex-row">
             <GitHubIcon className="mr-1.5 h-7 w-7 self-center" />
             <Text className="self-center font-normal">
               {project?.githubRepository.fullName}

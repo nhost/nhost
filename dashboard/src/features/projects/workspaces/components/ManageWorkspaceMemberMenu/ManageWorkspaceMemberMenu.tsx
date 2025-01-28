@@ -4,14 +4,14 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { RemoveWorkspaceMemberModal } from '@/features/projects/workspaces/components/RemoveWorkspaceMemberModal';
-import { capitalize } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
 import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
 import {
   refetchGetWorkspaceMembersQuery,
   useDeleteWorkspaceMemberMutation,
   useUpdateWorkspaceMemberMutation,
 } from '@/utils/__generated__/graphql';
+import { capitalize } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 
 export type ManageWorkspaceMemberMenuProps = {

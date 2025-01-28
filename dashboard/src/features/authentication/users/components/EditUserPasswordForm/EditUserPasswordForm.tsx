@@ -6,12 +6,12 @@ import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useGetSignInMethodsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import bcrypt from 'bcryptjs';
 import { useState } from 'react';

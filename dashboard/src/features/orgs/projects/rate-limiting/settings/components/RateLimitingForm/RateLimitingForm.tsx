@@ -141,7 +141,7 @@ export default function RateLimitingForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col h-full overflow-hidden"
+        className="flex h-full flex-col overflow-hidden"
       >
         <SettingsContainer
           title={title}

@@ -27,12 +27,12 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import { cn } from '@/lib/utils';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useCreateOrganizationRequestMutation,
   usePrefetchNewAppQuery,
   type PrefetchNewAppPlansFragment,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useUserData } from '@nhost/nextjs';
 import { DialogDescription } from '@radix-ui/react-dialog';

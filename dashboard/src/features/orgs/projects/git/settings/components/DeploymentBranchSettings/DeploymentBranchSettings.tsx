@@ -104,7 +104,7 @@ export default function DeploymentBranchSettings() {
               hideEmptyHelperText
             />
           ) : (
-            <Alert className="w-full col-span-5 text-left">
+            <Alert className="col-span-5 w-full text-left">
               To change the Deployment Branch, you first need to connect your
               project to a GitHub repository.
             </Alert>

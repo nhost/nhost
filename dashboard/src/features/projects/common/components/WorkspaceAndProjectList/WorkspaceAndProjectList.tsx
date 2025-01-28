@@ -102,7 +102,7 @@ export default function WorkspaceAndProjectList({
           placeholder="Find Project"
           startAdornment={
             <SearchIcon
-              className="w-4 h-4 ml-2 -mr-1 shrink-0"
+              className="-mr-1 ml-2 h-4 w-4 shrink-0"
               sx={{ color: 'text.disabled' }}
             />
           }
@@ -123,7 +123,7 @@ export default function WorkspaceAndProjectList({
         </NavLink>
       </Box>
 
-      <Box className="grid grid-flow-row gap-8 my-8">
+      <Box className="my-8 grid grid-flow-row gap-8">
         {filteredWorkspaces.map((workspace) => (
           <div key={workspace.slug}>
             <NavLink href={`/${workspace.slug}`} passHref legacyBehavior>
@@ -147,7 +147,7 @@ export default function WorkspaceAndProjectList({
                       secondaryAction={
                         <div className="grid grid-flow-col gap-px">
                           {latestDeployment && (
-                            <div className="flex self-center mr-2 align-middle">
+                            <div className="mr-2 flex self-center align-middle">
                               <StatusCircle
                                 status={
                                   latestDeployment.deploymentStatus as DeploymentStatus
@@ -171,11 +171,12 @@ export default function WorkspaceAndProjectList({
                       <NavLink
                         href={`${workspace?.slug}/${project.slug}`}
                         passHref
-                        className='w-full'
-                        legacyBehavior>
+                        className="w-full"
+                        legacyBehavior
+                      >
                         <ListItem.Button className="rounded-none">
                           <ListItem.Avatar>
-                            <div className="w-10 h-10 overflow-hidden rounded-lg">
+                            <div className="h-10 w-10 overflow-hidden rounded-lg">
                               <Image
                                 src="/logos/new.svg"
                                 alt="Nhost Logo"

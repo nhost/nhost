@@ -6,12 +6,12 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
 } from '@/utils/__generated__/graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';

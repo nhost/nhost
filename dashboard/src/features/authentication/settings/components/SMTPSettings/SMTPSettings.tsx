@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { type Optional } from 'utility-types';

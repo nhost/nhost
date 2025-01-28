@@ -2,9 +2,9 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { MetricsCardProps } from '@/features/projects/overview/components/MetricsCard';
 import { MetricsCard } from '@/features/projects/overview/components/MetricsCard';
+import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
 import { prettifyNumber } from '@/utils/prettifyNumber';
 import { prettifySize } from '@/utils/prettifySize';
-import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
 import { twMerge } from 'tailwind-merge';
 
 const now = new Date();

@@ -13,12 +13,12 @@ import {
 } from '@/features/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 

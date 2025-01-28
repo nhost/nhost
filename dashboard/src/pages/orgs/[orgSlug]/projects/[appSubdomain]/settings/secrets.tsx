@@ -159,7 +159,7 @@ export default function SecretsPage() {
           footer: { className: 'hidden' },
         }}
       >
-        <Box className="grid grid-cols-2 gap-2 px-4 py-3 border-b-1">
+        <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
           <Text className="font-medium">Secret Name</Text>
         </Box>
 
@@ -175,7 +175,7 @@ export default function SecretsPage() {
                         <Dropdown.Trigger
                           asChild
                           hideChevron
-                          className="absolute -translate-y-1/2 right-4 top-1/2"
+                          className="absolute right-4 top-1/2 -translate-y-1/2"
                         >
                           <IconButton
                             variant="borderless"

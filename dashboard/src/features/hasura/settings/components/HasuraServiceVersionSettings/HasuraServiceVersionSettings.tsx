@@ -159,7 +159,7 @@ export default function HasuraServiceVersionSettings() {
           }}
           docsLink="https://hub.docker.com/r/nhost/graphql-engine/tags"
           docsTitle="the latest releases"
-          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="version"

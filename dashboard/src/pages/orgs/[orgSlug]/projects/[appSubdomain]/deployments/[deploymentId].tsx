@@ -44,7 +44,7 @@ export default function DeploymentDetailsPage() {
   if (!deployment) {
     return (
       <Container>
-        <Text variant="h1" className="text-4xl font-semibold text">
+        <Text variant="h1" className="text text-4xl font-semibold">
           Not found
         </Text>
         <Text className="text-sm" color="disabled">
@@ -92,12 +92,12 @@ export default function DeploymentDetailsPage() {
           </div>
         </div>
       </div>
-      <div className="flex justify-between my-8">
-        <div className="grid items-center grid-flow-col gap-4">
+      <div className="my-8 flex justify-between">
+        <div className="grid grid-flow-col items-center gap-4">
           <Avatar
             name={deployment.commitUserName}
             avatarUrl={deployment.commitUserAvatarUrl}
-            className="w-8 h-8"
+            className="h-8 w-8"
           />
 
           <div>
@@ -126,7 +126,7 @@ export default function DeploymentDetailsPage() {
       </div>
       <div>
         <Box
-          className="p-4 rounded-lg text-sm-"
+          className="rounded-lg p-4 text-sm-"
           sx={{
             color: 'common.white',
             backgroundColor: (theme) =>
@@ -139,7 +139,7 @@ export default function DeploymentDetailsPage() {
 
           {deployment.deploymentLogs.map((log) => (
             <div key={log.id} className="flex font-mono">
-              <div className="flex-shrink-0 mr-2">
+              <div className="mr-2 flex-shrink-0">
                 {format(parseISO(log.createdAt), 'HH:mm:ss')}:
               </div>
               <div className="break-all">{log.message}</div>

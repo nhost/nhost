@@ -48,7 +48,7 @@ export default function MainNav({ container }: MainNavProps) {
         className="min- absolute left-0 z-50 flex h-full w-6 justify-center border-r-[1px] bg-background pt-1 hover:bg-accent"
         onMouseEnter={() => setOpen(true)}
       >
-        <Menu className="w-4 h-4" />
+        <Menu className="h-4 w-4" />
       </div>
 
       <SheetContent
@@ -65,16 +65,16 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-row items-center justify-end w-full h-12 px-1 border-b bg-background">
+        <div className="flex h-12 w-full flex-row items-center justify-end border-b bg-background px-1">
           <Button
             variant="ghost"
             className="hidden sm:flex"
             onClick={() => setMainNavPinned(!mainNavPinned)}
           >
             {mainNavPinned ? (
-              <PinOff className="w-5 h-5" />
+              <PinOff className="h-5 w-5" />
             ) : (
-              <Pin className="w-5 h-5" />
+              <Pin className="h-5 w-5" />
             )}
           </Button>
 
@@ -83,7 +83,7 @@ export default function MainNav({ container }: MainNavProps) {
             className="flex sm:hidden"
             onClick={() => setOpen(false)}
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
 

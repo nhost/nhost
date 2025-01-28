@@ -11,13 +11,13 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient'
+import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
@@ -73,7 +73,7 @@ export interface AssistantFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AssistantFormValues
+  initialData?: AssistantFormValues;
 
   /**
    * Function to be called when the operation is cancelled.

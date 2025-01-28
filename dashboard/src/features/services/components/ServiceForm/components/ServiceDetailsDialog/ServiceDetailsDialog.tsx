@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
-import { getRunServicePortURL } from '@/utils/helpers';
 import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
+import { getRunServicePortURL } from '@/utils/helpers';
 
 export interface ServiceDetailsDialogProps {
   /**

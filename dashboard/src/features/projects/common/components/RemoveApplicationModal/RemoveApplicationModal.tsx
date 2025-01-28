@@ -4,12 +4,12 @@ import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { triggerToast } from '@/utils/toast';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
 } from '@/utils/__generated__/graphql';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { triggerToast } from '@/utils/toast';
 import router from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';

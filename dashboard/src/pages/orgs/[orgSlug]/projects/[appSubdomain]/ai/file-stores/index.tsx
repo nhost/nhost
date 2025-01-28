@@ -17,7 +17,7 @@ import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApo
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetGraphiteFileStoresQuery,
-  type GetGraphiteFileStoresQuery
+  type GetGraphiteFileStoresQuery,
 } from '@/utils/__generated__/graphite.graphql';
 import { useMemo, type ReactElement } from 'react';
 
@@ -41,7 +41,7 @@ export default function FileStoresPage() {
   const { adminClient } = useAdminApolloClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
   const { isFileStoreSupported } = useIsFileStoreSupported();
-  
+
   const { data, loading, refetch } = useGetGraphiteFileStoresQuery({
     client: adminClient,
   });
@@ -57,7 +57,7 @@ export default function FileStoresPage() {
 
   if (loadingOrg || loadingProject || loading) {
     return (
-      <Box className="flex items-center justify-center w-full h-full">
+      <Box className="flex h-full w-full items-center justify-center">
         <ActivityIndicator
           delay={1000}
           label="Loading File Stores..."
@@ -84,9 +84,7 @@ export default function FileStoresPage() {
   }
 
   if (
-    (isPlatform &&
-      !org?.plan?.isFree &&
-      !project.config?.ai) ||
+    (isPlatform && !org?.plan?.isFree && !project.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
@@ -127,8 +125,8 @@ export default function FileStoresPage() {
               No File Stores are configured
             </Text>
             <Text variant="subtitle1" className="text-center">
-              File Stores are used to share storage documents with your
-              AI assistants.
+              File Stores are used to share storage documents with your AI
+              assistants.
             </Text>
             {!isFileStoreSupported && (
               <Box className="px-4 pb-4">
@@ -157,7 +155,7 @@ export default function FileStoresPage() {
   }
 
   return (
-    <Box className="flex flex-col w-full overflow-hidden">
+    <Box className="flex w-full flex-col overflow-hidden">
       <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"
@@ -188,5 +186,4 @@ FileStoresPage.getLayout = function getLayout(page: ReactElement) {
       <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
     </ProjectLayout>
   );
-
 };

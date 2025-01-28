@@ -15,15 +15,15 @@ import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCur
 import { getPreviousApplicationState } from '@/features/projects/common/utils/getPreviousApplicationState';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getApplicationStatusString } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
 import {
   useDeleteApplicationMutation,
   useGetApplicationStateQuery,
   useInsertApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/utils/__generated__/graphql';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getApplicationStatusString } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -136,11 +136,11 @@ export default function ApplicationErrored() {
 
   if (loading || previousState === null) {
     return (
-      <Container className="max-w-sm mx-auto mt-12 text-center">
+      <Container className="mx-auto mt-12 max-w-sm text-center">
         <ActivityIndicator
           delay={500}
           label="Loading application state..."
-          className="inline-grid mx-auto"
+          className="mx-auto inline-grid"
         />
       </Container>
     );
@@ -188,8 +188,8 @@ export default function ApplicationErrored() {
         />
       </Modal>
 
-      <Container className="max-w-sm mx-auto mt-12 text-center">
-        <div className="flex flex-col mx-auto text-center w-centImage">
+      <Container className="mx-auto mt-12 max-w-sm text-center">
+        <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
             src="/assets/ProvisioningFailed.svg"
             alt="Danger sign"
@@ -206,7 +206,7 @@ export default function ApplicationErrored() {
           keeps happening, contact support.
         </Text>
 
-        <div className="grid grid-flow-row gap-2 mx-auto mt-6">
+        <div className="mx-auto mt-6 grid grid-flow-row gap-2">
           {(previousState === ApplicationStatus.Provisioning ||
             previousState === ApplicationStatus.Unpausing) &&
           currentDate - appCreatedAt < FIVE_DAYS_IN_MILLISECONDS ? (

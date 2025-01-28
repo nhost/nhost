@@ -29,7 +29,7 @@ export default function HealthCheckFormSection() {
 
   return (
     <Box className="space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-row items-center justify-between ">
+      <Box className="flex flex-row items-center justify-between">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
             Health Check

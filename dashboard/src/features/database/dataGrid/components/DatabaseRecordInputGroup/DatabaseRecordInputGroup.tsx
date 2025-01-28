@@ -82,7 +82,7 @@ export default function DatabaseRecordInputGroup({
   return (
     <Box component="section" className={twMerge('py-3', className)} {...props}>
       {title && (
-        <Text variant="h2" className="mt-3 mb-1.5 text-sm+ font-bold">
+        <Text variant="h2" className="mb-1.5 mt-3 text-sm+ font-bold">
           {title}
         </Text>
       )}

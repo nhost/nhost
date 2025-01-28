@@ -2,8 +2,8 @@ import { Avatar } from '@/components/ui/v1/Avatar';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Text } from '@/components/ui/v2/Text';
 import { ManageWorkspaceMemberMenu } from '@/features/projects/workspaces/components/ManageWorkspaceMemberMenu';
-import { capitalize } from '@/utils/helpers';
 import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
+import { capitalize } from '@/utils/helpers';
 import { useUserData } from '@nhost/nextjs';
 
 export interface WorkspaceMemberProps {
@@ -20,7 +20,7 @@ export default function WorkspaceMember({
 
   return (
     <div className="mt-6 flex flex-row place-content-between">
-      <div className=" flex flex-row">
+      <div className="flex flex-row">
         <Avatar
           className="h-12 w-12"
           name={workspaceMember.user.displayName}

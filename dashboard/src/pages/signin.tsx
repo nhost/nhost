@@ -27,7 +27,7 @@ export default function SignUpPage() {
         It&apos;s time to build
       </Text>
 
-      <Box className="grid grid-flow-row gap-4 p-6 bg-transparent border rounded-md lg:p-12">
+      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <Button
           className="!bg-white !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
           startIcon={<GitHubIcon />}
@@ -67,7 +67,7 @@ export default function SignUpPage() {
 
         <Divider className="!my-2" />
 
-        <Text color="secondary" className="text-sm text-center">
+        <Text color="secondary" className="text-center text-sm">
           By clicking continue, you agree to our{' '}
           <NavLink
             href="https://nhost.io/legal/terms-of-service"

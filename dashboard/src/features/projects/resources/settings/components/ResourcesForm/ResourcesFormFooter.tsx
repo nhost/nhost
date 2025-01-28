@@ -86,7 +86,7 @@ export default function ResourcesFormFooter() {
 
   return (
     <Box
-      className="grid items-center gap-4 px-4 pt-4 border-t lg:grid-flow-col lg:justify-between lg:gap-2"
+      className="grid items-center gap-4 border-t px-4 pt-4 lg:grid-flow-col lg:justify-between lg:gap-2"
       component="footer"
     >
       <Text>
@@ -99,12 +99,12 @@ export default function ResourcesFormFooter() {
           className="font-medium"
         >
           Compute Resources
-          <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+          <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
         </Link>
       </Text>
 
       {(enabled || isDirty) && (
-        <Box className="grid items-center justify-between grid-flow-col gap-4">
+        <Box className="grid grid-flow-col items-center justify-between gap-4">
           <Box className="grid grid-flow-col items-center gap-1.5">
             <Text>
               Approximate cost:{' '}
@@ -114,7 +114,7 @@ export default function ResourcesFormFooter() {
             </Text>
 
             <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
-              <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>
 

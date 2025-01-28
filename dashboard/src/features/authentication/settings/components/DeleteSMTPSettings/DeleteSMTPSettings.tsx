@@ -8,11 +8,11 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSmtpSettingsDocument,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 

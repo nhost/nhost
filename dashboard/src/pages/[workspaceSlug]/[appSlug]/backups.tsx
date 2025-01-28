@@ -23,7 +23,7 @@ function BackupsContent() {
   }
 
   return (
-    <div className="grid w-full grid-flow-row gap-6 mt-6">
+    <div className="mt-6 grid w-full grid-flow-row gap-6">
       <div>
         <Text className="font-medium">Database</Text>
         <Text color="secondary">
@@ -48,7 +48,7 @@ export default function BackupsPage() {
 
   return (
     <Container className="max-w-2.5xl">
-      <div className="grid justify-between grid-flow-col gap-2">
+      <div className="grid grid-flow-col justify-between gap-2">
         <Text className="text-2xl font-medium" variant="h1">
           Backups
         </Text>

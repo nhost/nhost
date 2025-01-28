@@ -33,11 +33,11 @@ export const getToastStyleProps: () => DefaultToastOptions = () => ({
   },
   success: {
     duration: 5000,
-    icon: <CheckIcon className="w-4 h-4" />,
+    icon: <CheckIcon className="h-4 w-4" />,
   },
   error: {
     duration: 5000,
-    icon: <XIcon className="w-4 h-4" />,
+    icon: <XIcon className="h-4 w-4" />,
   },
 });
 

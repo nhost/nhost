@@ -7,12 +7,12 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';

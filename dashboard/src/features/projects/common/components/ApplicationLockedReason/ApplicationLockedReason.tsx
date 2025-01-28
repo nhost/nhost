@@ -11,7 +11,7 @@ export default function ApplicationLockedReason({
   reason,
 }: ApplicationLockedReasonProps) {
   return (
-    <Alert severity="warning" className="mx-auto max-w-xs gap-2 p-6 ">
+    <Alert severity="warning" className="mx-auto max-w-xs gap-2 p-6">
       <Text className="pb-4 text-left">
         Your project has been temporarily locked due to the following reason:
       </Text>

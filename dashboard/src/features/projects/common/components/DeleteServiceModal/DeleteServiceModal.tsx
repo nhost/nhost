@@ -4,11 +4,11 @@ import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { type RunService } from '@/hooks/useRunServices';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 

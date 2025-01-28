@@ -17,7 +17,6 @@ import { getReadableProviderName } from '@/features/authentication/users/utils/g
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useDeleteRemoteAppUserRolesMutation,
   useGetRolesPermissionsQuery,
@@ -25,6 +24,7 @@ import {
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useTheme } from '@mui/material';
 import { formatDistance } from 'date-fns';
 import kebabCase from 'just-kebab-case';

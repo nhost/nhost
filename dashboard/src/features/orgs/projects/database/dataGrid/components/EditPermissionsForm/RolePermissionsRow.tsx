@@ -101,7 +101,7 @@ export default function RolePermissions({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full rounded-none"
+            className="h-full w-full rounded-none"
             onClick={() => onActionSelect('insert')}
           >
             <AccessLevelIcon level={accessLevels.insert} />
@@ -123,7 +123,7 @@ export default function RolePermissions({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full rounded-none"
+            className="h-full w-full rounded-none"
             onClick={() => onActionSelect('select')}
           >
             <AccessLevelIcon level={accessLevels.select} />
@@ -145,7 +145,7 @@ export default function RolePermissions({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full rounded-none"
+            className="h-full w-full rounded-none"
             onClick={() => onActionSelect('update')}
           >
             <AccessLevelIcon level={accessLevels.update} />
@@ -167,7 +167,7 @@ export default function RolePermissions({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full rounded-none"
+            className="h-full w-full rounded-none"
             onClick={() => onActionSelect('delete')}
           >
             <AccessLevelIcon level={accessLevels.delete} />

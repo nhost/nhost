@@ -112,7 +112,7 @@ export default function SelectWorkspaceAndProject() {
                 {projectsToDisplay.map((project, index) => (
                   <Fragment key={project.value}>
                     <ListItem.Root
-                      className="grid grid-flow-col justify-start gap-2  py-2.5"
+                      className="grid grid-flow-col justify-start gap-2 py-2.5"
                       secondaryAction={
                         <Button
                           variant="borderless"

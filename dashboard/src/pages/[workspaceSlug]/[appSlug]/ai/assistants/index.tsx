@@ -17,7 +17,7 @@ import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGrap
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetAssistantsQuery,
-  type GetAssistantsQuery
+  type GetAssistantsQuery,
 } from '@/utils/__generated__/graphite.graphql';
 import { useMemo, type ReactElement } from 'react';
 
@@ -33,25 +33,16 @@ export default function AssistantsPage() {
   const { adminClient } = useAdminApolloClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
 
-  const {
-    data,
-    loading,
-    refetch,
-  } = useGetAssistantsQuery({
+  const { data, loading, refetch } = useGetAssistantsQuery({
     client: adminClient,
   });
-  
-  const assistants = useMemo(
-    () => data?.graphite?.assistants || [],
-    [data],
-  );
+
+  const assistants = useMemo(() => data?.graphite?.assistants || [], [data]);
 
   const openCreateAssistantForm = () => {
     openDrawer({
       title: 'Create a new Assistant',
-      component: (
-        <AssistantForm onSubmit={refetch} />
-      ),
+      component: <AssistantForm onSubmit={refetch} />,
     });
   };
 

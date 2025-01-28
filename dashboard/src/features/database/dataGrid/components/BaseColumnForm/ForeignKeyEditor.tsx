@@ -106,7 +106,7 @@ const ForeignKeyEditorInput = forwardRef(
               });
             }}
             variant="borderless"
-            className="min-w-[initial] py-1 px-2"
+            className="min-w-[initial] px-2 py-1"
           >
             Edit
           </Button>
@@ -114,7 +114,7 @@ const ForeignKeyEditorInput = forwardRef(
           <Button
             onClick={() => setValue('foreignKeyRelation', null)}
             variant="borderless"
-            className="min-w-[initial] py-1 px-2"
+            className="min-w-[initial] px-2 py-1"
           >
             Delete
           </Button>

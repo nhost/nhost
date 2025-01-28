@@ -137,7 +137,7 @@ export default function ColumnPresetsSection({
                   disableClearable={false}
                   clearIcon={
                     <XIcon
-                      className="w-4 h-4 mt-px"
+                      className="mt-px h-4 w-4"
                       sx={{ color: theme.palette.text.primary }}
                     />
                   }
@@ -200,7 +200,7 @@ export default function ColumnPresetsSection({
                     remove(index);
                   }}
                 >
-                  <XIcon className="w-4 h-4" />
+                  <XIcon className="h-4 w-4" />
                 </IconButton>
               </div>
             ))}

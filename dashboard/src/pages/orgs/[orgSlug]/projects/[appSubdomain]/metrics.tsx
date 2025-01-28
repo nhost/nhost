@@ -46,7 +46,7 @@ export default function MetricsPage() {
 
   return (
     <Container>
-      <div className="w-full max-w-md px-6 py-4 mx-auto text-left">
+      <div className="mx-auto w-full max-w-md px-6 py-4 text-left">
         <div className="grid grid-flow-row gap-1">
           <div className="mx-auto">
             <Image
@@ -68,13 +68,13 @@ export default function MetricsPage() {
             screen.
           </Text>
 
-          <Box className="grid grid-flow-row gap-0 mt-6 border-y-1">
-            <div className="grid items-center w-full grid-cols-1 py-2 place-content-between sm:grid-cols-3">
-              <Text className="col-span-1 font-medium text-center sm:justify-start sm:text-left">
+          <Box className="mt-6 grid grid-flow-row gap-0 border-y-1">
+            <div className="grid w-full grid-cols-1 place-content-between items-center py-2 sm:grid-cols-3">
+              <Text className="col-span-1 text-center font-medium sm:justify-start sm:text-left">
                 Username
               </Text>
 
-              <div className="grid items-center justify-center grid-flow-col col-span-1 gap-2 sm:col-span-2 sm:justify-end">
+              <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
                 <Text color="secondary" className="text-sm">
                   admin
                 </Text>
@@ -83,12 +83,12 @@ export default function MetricsPage() {
 
             <Divider />
 
-            <div className="grid items-center w-full grid-cols-1 py-2 place-content-between sm:grid-cols-3">
-              <Text className="col-span-1 font-medium text-center sm:justify-start sm:text-left">
+            <div className="grid w-full grid-cols-1 place-content-between items-center py-2 sm:grid-cols-3">
+              <Text className="col-span-1 text-center font-medium sm:justify-start sm:text-left">
                 Password
               </Text>
 
-              <div className="grid items-center justify-center grid-flow-col col-span-1 gap-2 sm:col-span-2 sm:justify-end">
+              <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
                 <Text className="font-medium" variant="subtitle2">
                   {adminPassword
                     ? Array(adminPassword.length).fill('•').join('')
@@ -103,14 +103,14 @@ export default function MetricsPage() {
                     className="min-w-0 p-1"
                     aria-label="Copy password"
                   >
-                    <CopyIcon className="w-4 h-4" />
+                    <CopyIcon className="h-4 w-4" />
                   </IconButton>
                 )}
               </div>
             </div>
           </Box>
 
-          <div className="grid grid-flow-row gap-2 mt-6">
+          <div className="mt-6 grid grid-flow-row gap-2">
             <Button
               href={generateAppServiceUrl(
                 project.subdomain,
@@ -122,7 +122,7 @@ export default function MetricsPage() {
               // @ts-ignore
               target="_blank"
               rel="noreferrer noopener"
-              endIcon={<ArrowSquareOutIcon className="w-4 h-4" />}
+              endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
             >
               Open Grafana
             </Button>

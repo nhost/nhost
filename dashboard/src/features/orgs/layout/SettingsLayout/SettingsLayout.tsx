@@ -17,18 +17,18 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <Box
       sx={{ backgroundColor: 'background.default' }}
-      className="flex flex-col flex-auto w-full h-full overflow-x-hidden overflow-y-auto"
+      className="flex h-full w-full flex-auto flex-col overflow-y-auto overflow-x-hidden"
     >
       <Box
         sx={{ backgroundColor: 'background.default' }}
-        className="flex flex-col h-full"
+        className="flex h-full flex-col"
       >
         <RetryableErrorBoundary>
           <div className="flex flex-col space-y-2">
             {hasGitRepo && (
               <Alert
                 severity="warning"
-                className="grid grid-flow-row gap-2 place-content-center"
+                className="grid grid-flow-row place-content-center gap-2"
               >
                 <Text color="warning" className="text-sm">
                   As you have a connected repository, make sure to synchronize
