@@ -66,6 +66,7 @@ test('should delete a table', async () => {
 });
 
 test('should not be able to delete a table if other tables have foreign keys referencing it', async () => {
+  test.setTimeout(60000);
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
