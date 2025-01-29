@@ -12,9 +12,15 @@ export type FinishOrgCreationOnCompletedCb = (
   data: PostOrganizationRequestMutation['billingPostOrganizationRequest'],
 ) => void;
 
-function useFinishOrgCreation(
-  onCompleted: FinishOrgCreationOnCompletedCb,
-): [boolean, CheckoutStatus] {
+interface UseFinishOrgCreationProps {
+  onCompleted: FinishOrgCreationOnCompletedCb;
+  onError?: () => void;
+}
+
+function useFinishOrgCreation({
+  onCompleted,
+  onError,
+}: UseFinishOrgCreationProps): [boolean, CheckoutStatus] {
   const router = useRouter();
   const { session_id } = router.query;
 
@@ -50,10 +56,12 @@ function useFinishOrgCreation(
                 break;
 
               case CheckoutStatus.Expired:
+                onError();
                 throw new Error('Request to create organization has expired');
 
               case CheckoutStatus.Open:
                 // TODO discuss what to do in this case
+                onError();
                 throw new Error(
                   'Request to create organization with status "Open"',
                 );
@@ -68,6 +76,7 @@ function useFinishOrgCreation(
               'The new organization has been created successfully.',
             errorMessage:
               'An error occurred while creating the new organization.',
+            onError,
           },
         );
       }
