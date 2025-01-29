@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import UpgradeProjectDialog from '@/features/orgs/projects/overview/components/OverviewTopBar/UpgradeProjectDialog';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,6 +15,8 @@ export default function OverviewTopBar() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
   const { maintenanceActive } = useUI();
+
+  const isFreeProject = org.plan.isFree;
 
   if (!isPlatform) {
     return (
@@ -87,22 +90,24 @@ export default function OverviewTopBar() {
           </div>
         </div>
       </div>
-
-      <Link
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
-        passHref
-        legacyBehavior
-      >
-        <Button
-          variant="outline"
-          className="gap-2"
-          color="secondary"
-          disabled={maintenanceActive}
+      <div className="flex content-center gap-4">
+        {isFreeProject && <UpgradeProjectDialog />}
+        <Link
+          href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
+          passHref
+          legacyBehavior
         >
-          Settings
-          <CogIcon className="h-4 w-4" />
-        </Button>
-      </Link>
+          <Button
+            variant="outline"
+            className="gap-2"
+            color="secondary"
+            disabled={maintenanceActive}
+          >
+            Settings
+            <CogIcon className="h-4 w-4" />
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
