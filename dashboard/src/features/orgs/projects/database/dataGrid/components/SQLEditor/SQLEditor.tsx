@@ -52,11 +52,11 @@ export default function SQLEditor() {
   });
 
   return (
-    <Box className="flex flex-col justify-center flex-1 overflow-hidden">
-      <Box className="flex flex-col p-4 space-y-2 border-b">
+    <Box className="flex flex-1 flex-col justify-center overflow-hidden">
+      <Box className="flex flex-col space-y-2 border-b p-4">
         <Text className="font-semibold">Raw SQL</Text>
         <Box className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0">
-          <Box className="flex flex-col w-full space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-10">
+          <Box className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-10">
             <Box className="flex items-center space-x-2">
               <Switch
                 label={
@@ -70,7 +70,7 @@ export default function SQLEditor() {
               <Tooltip title="If you are creating tables, views or functions, checking this will also expose them over the GraphQL API as top level fields. Functions only intended to be used as computed fields should not be tracked.">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -90,7 +90,7 @@ export default function SQLEditor() {
               <Tooltip title="Cascade actions on all dependent metadata references, like relationships and permissions">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -110,7 +110,7 @@ export default function SQLEditor() {
               <Tooltip title="When set to true, the request will be run in READ ONLY transaction access mode which means only select queries will be successful. This flag ensures that the GraphQL schema is not modified and is hence highly performant.">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -131,7 +131,7 @@ export default function SQLEditor() {
                   <Tooltip title="Create a migration file with the SQL statement">
                     <InfoIcon
                       aria-label="Info"
-                      className="w-4 h-4"
+                      className="h-4 w-4"
                       color="primary"
                     />
                   </Tooltip>
@@ -142,7 +142,7 @@ export default function SQLEditor() {
                     name="isMigration"
                     id="isMigration"
                     placeholder="migration_name"
-                    className="w-auto h-auto max-w-md"
+                    className="h-auto w-auto max-w-md"
                     fullWidth
                     hideEmptyHelperText
                     onChange={(e) => setMigrationName(e.target.value)}
@@ -181,12 +181,12 @@ export default function SQLEditor() {
       />
 
       <Box
-        className="flex items-start p-4 overflow-auto"
+        className="flex items-start overflow-auto p-4"
         style={{ height: position }}
       >
         {loading && (
           <ActivityIndicator
-            className="self-center mx-auto"
+            className="mx-auto self-center"
             circularProgressProps={{
               className: 'w-5 h-5',
             }}
@@ -196,7 +196,7 @@ export default function SQLEditor() {
         {errorMessage && (
           <Alert
             severity="error"
-            className="grid self-center grid-flow-row gap-2 mx-auto place-content-center"
+            className="mx-auto grid grid-flow-row place-content-center gap-2 self-center"
           >
             <code>{errorMessage}</code>
           </Alert>
@@ -205,7 +205,7 @@ export default function SQLEditor() {
         {!loading && !errorMessage && commandOk && (
           <Alert
             severity="success"
-            className="grid self-center grid-flow-row gap-2 mx-auto place-content-center"
+            className="mx-auto grid grid-flow-row place-content-center gap-2 self-center"
           >
             <code>Success, no rows returned</code>
           </Alert>
@@ -228,7 +228,7 @@ export default function SQLEditor() {
                   <TableCell
                     key={header}
                     scope="col"
-                    className="px-6 py-3 font-bold border whitespace-nowrap"
+                    className="whitespace-nowrap border px-6 py-3 font-bold"
                   >
                     {header}
                   </TableCell>
@@ -247,7 +247,7 @@ export default function SQLEditor() {
                     <TableCell
                       // eslint-disable-next-line react/no-array-index-key
                       key={`${value}-${valueIndex}`}
-                      className="px-6 py-4 border whitespace-nowrap"
+                      className="whitespace-nowrap border px-6 py-4"
                     >
                       {value}
                     </TableCell>

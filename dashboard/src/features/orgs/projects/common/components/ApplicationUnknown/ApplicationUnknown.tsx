@@ -30,8 +30,8 @@ export default function ApplicationUnknown() {
           recover the app once it has been deleted.`}
         />
       </Modal>
-      <Container className="grid max-w-sm grid-flow-row gap-4 mx-auto mt-8 text-center">
-        <div className="flex flex-col mx-auto text-center w-centImage">
+      <Container className="mx-auto mt-8 grid max-w-sm grid-flow-row gap-4 text-center">
+        <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
             src="/assets/ProvisioningFailed.svg"
             alt="Danger sign"
@@ -51,7 +51,7 @@ export default function ApplicationUnknown() {
           </Text>
         </div>
 
-        <div className="grid grid-flow-row gap-2 mx-auto">
+        <div className="mx-auto grid grid-flow-row gap-2">
           <Dropdown.Root>
             <Dropdown.Trigger
               hideChevron

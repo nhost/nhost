@@ -14,12 +14,12 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { copy } from '@/utils/copy';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { copy } from '@/utils/copy';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -206,7 +206,7 @@ export default function DatabaseConnectionInfo() {
                             copy(inputValue as string, `${label}`);
                           }}
                         >
-                          <CopyIcon className="w-4 h-4" />
+                          <CopyIcon className="h-4 w-4" />
                         </Button>
                       </InputAdornment>
                     }

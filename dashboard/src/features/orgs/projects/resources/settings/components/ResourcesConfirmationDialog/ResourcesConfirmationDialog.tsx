@@ -136,7 +136,7 @@ export default function ResourcesConfirmationDialog({
         </Box> */}
 
         <Box className="grid grid-flow-row gap-1.5">
-          <Box className="grid items-center justify-between grid-flow-col gap-2">
+          <Box className="grid grid-flow-col items-center justify-between gap-2">
             <Box className="grid grid-flow-row gap-0.5">
               <Text className="font-medium">Dedicated Resources</Text>
             </Box>
@@ -151,7 +151,7 @@ export default function ResourcesConfirmationDialog({
           </Box>
 
           <Box className="grid w-full grid-flow-row gap-1.5">
-            <Box className="grid justify-between grid-flow-col gap-2">
+            <Box className="grid grid-flow-col justify-between gap-2">
               <Text className="text-xs" color="secondary">
                 PostgreSQL Database
               </Text>
@@ -163,7 +163,7 @@ export default function ResourcesConfirmationDialog({
               </Text>
             </Box>
 
-            <Box className="grid justify-between grid-flow-col gap-2">
+            <Box className="grid grid-flow-col justify-between gap-2">
               <Text className="text-xs" color="secondary">
                 Hasura GraphQL
               </Text>
@@ -174,7 +174,7 @@ export default function ResourcesConfirmationDialog({
               </Text>
             </Box>
 
-            <Box className="grid justify-between grid-flow-col gap-2">
+            <Box className="grid grid-flow-col justify-between gap-2">
               <Text className="text-xs" color="secondary">
                 Auth
               </Text>
@@ -184,7 +184,7 @@ export default function ResourcesConfirmationDialog({
                   : authResources}
               </Text>
             </Box>
-            <Box className="grid justify-between grid-flow-col gap-2">
+            <Box className="grid grid-flow-col justify-between gap-2">
               <Text className="text-xs" color="secondary">
                 Storage
               </Text>
@@ -195,7 +195,7 @@ export default function ResourcesConfirmationDialog({
               </Text>
             </Box>
 
-            <Box className="grid justify-between grid-flow-col gap-2">
+            <Box className="grid grid-flow-col justify-between gap-2">
               <Text className="text-xs font-medium" color="secondary">
                 Total
               </Text>
@@ -209,12 +209,12 @@ export default function ResourcesConfirmationDialog({
 
         <Divider />
 
-        <Box className="grid justify-between grid-flow-col gap-2">
+        <Box className="grid grid-flow-col justify-between gap-2">
           <Box className="grid grid-flow-col items-center gap-1.5">
             <Text className="font-medium">Approximate Cost</Text>
 
             <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
-              <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>
 

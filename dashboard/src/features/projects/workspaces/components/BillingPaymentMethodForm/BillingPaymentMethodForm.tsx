@@ -152,7 +152,7 @@ function AddPaymentMethodForm({
   };
 
   return (
-    <Box className="w-modal2 rounded-lg px-6 pt-6 pb-6 text-left">
+    <Box className="w-modal2 rounded-lg px-6 pb-6 pt-6 text-left">
       <div className="flex flex-col">
         <form onSubmit={handleSubmit}>
           <Text className="text-center text-lg font-medium">

@@ -8,9 +8,9 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { OptionBase } from '@/components/ui/v2/Option';
 import { OptionGroupBase } from '@/components/ui/v2/OptionGroup';
 import type { StyledComponent } from '@emotion/styled';
+import { Popper } from '@mui/base';
 import type { UseAutocompleteProps } from '@mui/base/useAutocomplete';
 import { createFilterOptions } from '@mui/base/useAutocomplete';
-import { Popper } from '@mui/base'
 import { styled } from '@mui/material';
 import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete';
 import MaterialAutocomplete, {

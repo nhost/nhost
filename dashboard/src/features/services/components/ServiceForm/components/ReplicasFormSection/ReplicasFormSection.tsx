@@ -45,7 +45,7 @@ export default function ReplicasFormSection() {
   };
 
   return (
-    <Box className="p-4 space-y-4 rounded border-1">
+    <Box className="space-y-4 rounded border-1 p-4">
       <Box className="flex flex-row items-center space-x-2">
         <Text variant="h4" className="font-semibold">
           Replicas ({replicas})
@@ -65,7 +65,7 @@ export default function ReplicasFormSection() {
             </Text>
           }
         >
-          <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
         </Tooltip>
       </Box>
 
@@ -111,7 +111,7 @@ export default function ReplicasFormSection() {
           />
           <Text>Autoscaler</Text>
           <Tooltip title="Enable autoscaler to automatically provision extra run service replicas when needed.">
-            <InfoOutlinedIcon className="w-4 h-4 text-black" />
+            <InfoOutlinedIcon className="h-4 w-4 text-black" />
           </Tooltip>
         </Box>
       </Box>

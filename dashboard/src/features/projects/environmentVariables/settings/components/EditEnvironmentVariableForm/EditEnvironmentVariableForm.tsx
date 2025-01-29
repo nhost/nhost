@@ -13,12 +13,12 @@ import {
 } from '@/features/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { EnvironmentVariable } from '@/types/application';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 

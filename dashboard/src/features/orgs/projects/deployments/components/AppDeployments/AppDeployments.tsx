@@ -31,7 +31,7 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
 
   if (direction === 'prev') {
     if (!prevAllowed) {
-      return <ChevronLeftIcon className="w-4 h-4 cursor-not-allowed" />;
+      return <ChevronLeftIcon className="h-4 w-4 cursor-not-allowed" />;
     }
     return (
       <Link
@@ -40,13 +40,13 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
         legacyBehavior
       >
         <IconButton variant="borderless" color="secondary">
-          <ChevronLeftIcon className="w-4 h-4" />
+          <ChevronLeftIcon className="h-4 w-4" />
         </IconButton>
       </Link>
     );
   }
   if (!nextAllowed) {
-    return <ChevronRightIcon className="w-4 h-4 cursor-not-allowed" />;
+    return <ChevronRightIcon className="h-4 w-4 cursor-not-allowed" />;
   }
   return (
     <Link
@@ -55,7 +55,7 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
       legacyBehavior
     >
       <IconButton variant="borderless" color="secondary">
-        <ChevronRightIcon className="w-4 h-4" />
+        <ChevronRightIcon className="h-4 w-4" />
       </IconButton>
     </Link>
   );
@@ -153,8 +153,8 @@ export default function AppDeployments(props: AppDeploymentsProps) {
               </Fragment>
             ))}
           </List>
-          <div className="flex justify-center w-full mt-8">
-            <div className="grid items-center grid-flow-col gap-2">
+          <div className="mt-8 flex w-full justify-center">
+            <div className="grid grid-flow-col items-center gap-2">
               <NextPrevPageLink
                 direction="prev"
                 prevAllowed={page !== 1}

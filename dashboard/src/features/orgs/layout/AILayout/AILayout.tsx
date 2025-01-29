@@ -37,7 +37,7 @@ export default function AILayout({
 
       <Box
         sx={{ backgroundColor: 'background.default' }}
-        className="flex flex-col flex-auto w-full overflow-scroll overflow-x-hidden"
+        className="flex w-full flex-auto flex-col overflow-scroll overflow-x-hidden"
       >
         <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
       </Box>

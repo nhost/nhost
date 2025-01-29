@@ -43,8 +43,8 @@ export default function PortsFormSection() {
     formValues.ports[index]?.publish;
 
   return (
-    <Box className="p-4 space-y-4 rounded border-1">
-      <Box className="flex flex-row items-center justify-between ">
+    <Box className="space-y-4 rounded border-1 p-4">
+      <Box className="flex flex-row items-center justify-between">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
             Ports
@@ -65,14 +65,14 @@ export default function PortsFormSection() {
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
         <Button
           variant="borderless"
           onClick={() => append({ port: null, type: null, publish: false })}
         >
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
 
@@ -129,7 +129,7 @@ export default function PortsFormSection() {
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="w-4 h-4" />
+                <TrashIcon className="h-4 w-4" />
               </Button>
             </Box>
 

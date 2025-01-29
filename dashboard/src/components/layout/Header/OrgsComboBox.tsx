@@ -105,7 +105,7 @@ export default function OrgsComboBox() {
         <Button
           size="sm"
           variant="ghost"
-          className="justify-between w-full gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+          className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
           {selectedItem ? (
             <div className="flex flex-row items-center justify-center">
@@ -115,7 +115,7 @@ export default function OrgsComboBox() {
           ) : (
             'Select organization / workspace'
           )}
-          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">

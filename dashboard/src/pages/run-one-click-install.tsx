@@ -141,14 +141,14 @@ export default function SelectWorkspaceAndProject() {
 
   if (loadingWorkspaces || loadingOrgs) {
     return (
-      <div className="flex justify-center w-full">
+      <div className="flex w-full justify-center">
         <ActivityIndicator delay={500} label="Loading projects..." />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-start w-full h-full px-5 py-4 mx-auto bg-background">
+    <div className="mx-auto flex h-full w-full flex-col items-start bg-background px-5 py-4">
       <div className="mx-auto flex h-full w-full max-w-[760px] flex-col gap-4 py-6 sm:py-14">
         <h1 className="text-2xl font-medium">New Run Service</h1>
 
@@ -159,7 +159,7 @@ export default function SelectWorkspaceAndProject() {
         />
 
         <div>
-          <div className="flex w-full mb-2">
+          <div className="mb-2 flex w-full">
             <Input
               placeholder="Search..."
               onChange={handleFilterChange}
@@ -169,11 +169,11 @@ export default function SelectWorkspaceAndProject() {
           </div>
           <RetryableErrorBoundary>
             {projectsToDisplay.length === 0 ? (
-              <Box className="py-2 h-import">
+              <Box className="h-import py-2">
                 <Text variant="subtitle2">No results found.</Text>
               </Box>
             ) : (
-              <List className="flex flex-col gap-2 overflow-y-auto h-import">
+              <List className="flex h-import flex-col gap-2 overflow-y-auto">
                 {projectsToDisplay.map((project, index) => (
                   <Fragment key={project.projectPathDescriptor}>
                     <ListItem.Root
@@ -188,11 +188,11 @@ export default function SelectWorkspaceAndProject() {
                         </Button>
                       }
                     >
-                      <ListItem.Avatar className="flex items-center justify-center h-full">
+                      <ListItem.Avatar className="flex h-full items-center justify-center">
                         <Image
                           src="/logos/new.svg"
                           alt="Nhost Logo"
-                          className="w-10 h-10 rounded-md"
+                          className="h-10 w-10 rounded-md"
                           width={38}
                           height={38}
                         />

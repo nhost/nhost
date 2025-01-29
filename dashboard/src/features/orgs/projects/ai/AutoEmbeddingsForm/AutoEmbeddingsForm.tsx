@@ -144,9 +144,9 @@ export default function AutoEmbeddingsForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col h-full gap-4 overflow-hidden"
+        className="flex h-full flex-col gap-4 overflow-hidden"
       >
-        <div className="flex flex-col flex-1 px-6 space-y-6 overflow-auto">
+        <div className="flex flex-1 flex-col space-y-6 overflow-auto px-6">
           <Input
             {...register('name')}
             id="name"
@@ -156,7 +156,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Name of the Auto-Embeddings">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -183,7 +183,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Auto-Embeddings Model">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -209,7 +209,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title={<span>Schema where the table belongs to</span>}>
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -231,7 +231,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Table Name">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -253,7 +253,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Column name">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -275,7 +275,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Query">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -299,7 +299,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Mutation">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -316,7 +316,7 @@ export default function AutoEmbeddingsForm({
           />
         </div>
 
-        <Box className="flex flex-row justify-between w-full px-6 py-4 border-t rounded">
+        <Box className="flex w-full flex-row justify-between rounded border-t px-6 py-4">
           <Button variant="outlined" color="secondary" onClick={onCancel}>
             Cancel
           </Button>

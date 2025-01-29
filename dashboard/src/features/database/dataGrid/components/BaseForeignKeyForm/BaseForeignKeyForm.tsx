@@ -107,9 +107,9 @@ export default function BaseForeignKeyForm({
             selectedColumn?.isPrimary || selectedColumn?.isUnique || false,
         });
       }}
-      className="flex flex-col content-between flex-auto pb-4 overflow-hidden"
+      className="flex flex-auto flex-col content-between overflow-hidden pb-4"
     >
-      <Box className="grid flex-auto grid-flow-row gap-4 py-4 overflow-y-auto border-t-1">
+      <Box className="grid flex-auto grid-flow-row gap-4 overflow-y-auto border-t-1 py-4">
         <Box component="section" className="grid grid-flow-row gap-4 px-6">
           <Text variant="h3">From</Text>
 
@@ -185,7 +185,7 @@ export default function BaseForeignKeyForm({
         </Box>
       </Box>
 
-      <Box className="grid flex-shrink-0 grid-flow-row gap-2 px-6 pt-4 border-t-1">
+      <Box className="grid flex-shrink-0 grid-flow-row gap-2 border-t-1 px-6 pt-4">
         <Button loading={isSubmitting} disabled={isSubmitting} type="submit">
           {submitButtonText}
         </Button>

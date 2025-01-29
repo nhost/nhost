@@ -49,7 +49,7 @@ export default function SocialProvidersSettings() {
           className="flex flex-row items-center justify-start space-x-2 rounded-md p-2"
         >
           <GitHubIcon />
-          <Text className="font-medium ">Connected</Text>
+          <Text className="font-medium">Connected</Text>
         </Box>
       ) : (
         <Box>

@@ -143,7 +143,7 @@ export default function HasuraEnabledAPISettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-6"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-6"
         >
           <ControlledAutocomplete
             id="enabledAPIs"

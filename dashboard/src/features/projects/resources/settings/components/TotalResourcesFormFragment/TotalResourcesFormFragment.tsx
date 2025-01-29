@@ -2,10 +2,10 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Slider, sliderClasses } from '@/components/ui/v2/Slider';
-import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
+import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import { getAllocatedResources } from '@/features/projects/resources/settings/utils/getAllocatedResources';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
@@ -47,7 +47,7 @@ export default function TotalResourcesFormFragment({
     error: proPlanError,
     loading: proPlanLoading,
   } = useProPlan();
-  
+
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
 
@@ -138,8 +138,8 @@ export default function TotalResourcesFormFragment({
 
   return (
     <Box className="px-4 pb-4">
-      <Box className="border rounded-md">
-        <Box className="flex flex-col gap-4 p-4 bg-transparent">
+      <Box className="rounded-md border">
+        <Box className="flex flex-col gap-4 bg-transparent p-4">
           <Box className="flex flex-row items-center justify-between gap-4">
             <Text color="secondary">
               Total available compute for your project:

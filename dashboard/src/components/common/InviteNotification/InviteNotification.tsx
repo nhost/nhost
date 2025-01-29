@@ -60,7 +60,7 @@ export default function InviteNotification() {
 
   const handleInviteAccept = async (
     _event: React.SyntheticEvent<HTMLButtonElement>,
-    invite: typeof data.workspaceMemberInvites[number],
+    invite: (typeof data.workspaceMemberInvites)[number],
   ) => {
     setSubmitState({
       error: null,
@@ -99,7 +99,7 @@ export default function InviteNotification() {
   };
 
   async function handleIgnoreInvitation(
-    inviteId: typeof data.workspaceMemberInvites[number]['id'],
+    inviteId: (typeof data.workspaceMemberInvites)[number]['id'],
   ) {
     setIgnoreState({
       loading: true,
@@ -151,7 +151,7 @@ export default function InviteNotification() {
       }}
     >
       {data?.workspaceMemberInvites?.map(
-        (invite: typeof data.workspaceMemberInvites[number]) => (
+        (invite: (typeof data.workspaceMemberInvites)[number]) => (
           <div key={invite.id} className="grid grid-flow-row gap-4 text-center">
             <div className="grid grid-flow-row gap-1">
               <Text variant="h3" component="h2" sx={{ color: 'common.white' }}>

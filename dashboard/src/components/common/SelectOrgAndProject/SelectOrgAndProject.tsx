@@ -1,4 +1,3 @@
-
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,7 +7,7 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { } from '@/utils/__generated__/graphql';
+import {} from '@/utils/__generated__/graphql';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import Image from 'next/image';
@@ -47,14 +46,12 @@ export default function SelectOrganizationAndProject() {
   }) => {
     const { slug } = router.query;
     await router.push({
-      pathname: `${project.value}/${
-        (() => {
-          if (!slug) {
-            return '';
-          }
-          return Array.isArray(slug) ? slug.join('/') : slug;
-        })()
-      }`,
+      pathname: `${project.value}/${(() => {
+        if (!slug) {
+          return '';
+        }
+        return Array.isArray(slug) ? slug.join('/') : slug;
+      })()}`,
     });
   };
 
@@ -76,7 +73,7 @@ export default function SelectOrganizationAndProject() {
   }
 
   return (
-    <div className="flex flex-col items-start w-full h-full px-5 py-4 mx-auto bg-background">
+    <div className="mx-auto flex h-full w-full flex-col items-start bg-background px-5 py-4">
       <div className="mx-auto flex h-full w-full max-w-[760px] flex-col gap-4 py-6 sm:py-14">
         <Text variant="h2" component="h1" className="">
           Select a Project
@@ -101,7 +98,7 @@ export default function SelectOrganizationAndProject() {
                 {projectsToDisplay.map((project, index) => (
                   <Fragment key={project.value}>
                     <ListItem.Root
-                      className="grid grid-flow-col justify-start gap-2  py-2.5"
+                      className="grid grid-flow-col justify-start gap-2 py-2.5"
                       secondaryAction={
                         <Button
                           variant="borderless"

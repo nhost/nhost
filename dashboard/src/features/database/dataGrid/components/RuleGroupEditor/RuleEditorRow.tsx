@@ -74,7 +74,7 @@ function renderOption({
   value,
   label,
   helperText,
-}: typeof commonOperators[number]) {
+}: (typeof commonOperators)[number]) {
   return (
     <Option key={value} value={value} className="grid grid-flow-col gap-2">
       <Text component="span" className="inline-block w-16">

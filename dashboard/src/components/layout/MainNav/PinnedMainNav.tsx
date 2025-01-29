@@ -54,15 +54,15 @@ export default function PinnedMainNav() {
 
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r p-0 sm:max-w-[310px]">
-      <div className="flex justify-end w-full h-12 p-1 border-b bg-background">
+      <div className="flex h-12 w-full justify-end border-b bg-background p-1">
         <Button
           variant="ghost"
           onClick={() => setMainNavPinned(!mainNavPinned)}
         >
           {mainNavPinned ? (
-            <PinOff className="w-5 h-5" />
+            <PinOff className="h-5 w-5" />
           ) : (
-            <Pin className="w-5 h-5" />
+            <Pin className="h-5 w-5" />
           )}
         </Button>
       </div>

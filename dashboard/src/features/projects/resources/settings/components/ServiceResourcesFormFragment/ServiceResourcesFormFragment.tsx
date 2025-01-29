@@ -1,16 +1,17 @@
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
 import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Link } from '@/components/ui/v2/Link';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
-import { Link } from '@/components/ui/v2/Link';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { Alert } from '@/components/ui/v2/Alert';
 import {
   MAX_SERVICE_MEMORY,
   MAX_SERVICE_VCPU,
@@ -24,7 +25,6 @@ import {
 } from '@/utils/constants/common';
 import debounce from 'lodash.debounce';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 
 export interface ServiceResourcesFormFragmentProps {
   /**
@@ -64,7 +64,9 @@ export default function ServiceResourcesFormFragment({
   const serviceValues = formValues[serviceKey];
 
   const isRatioLocked = serviceValues.replicas > 1 || serviceValues.autoscale;
-  const resourceMemoryStep = isRatioLocked ? RESOURCE_MEMORY_LOCKED_STEP : RESOURCE_MEMORY_STEP;
+  const resourceMemoryStep = isRatioLocked
+    ? RESOURCE_MEMORY_LOCKED_STEP
+    : RESOURCE_MEMORY_STEP;
 
   // Total allocated CPU for all resources
   const totalAllocatedVCPU = Object.keys(formValues)
@@ -98,7 +100,7 @@ export default function ServiceResourcesFormFragment({
     const updatedReplicas = parseInt(value, 10);
 
     setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
-    triggerValidation(`${serviceKey}.replicas`)
+    triggerValidation(`${serviceKey}.replicas`);
     triggerValidation(`${serviceKey}.memory`);
   }, 500);
 
@@ -114,7 +116,7 @@ export default function ServiceResourcesFormFragment({
 
   const handleSwitchChange = () => {
     triggerValidation(`${serviceKey}.memory`);
-  }
+  };
 
   function handleVCPUChange(value: string) {
     const updatedVCPU = parseFloat(value);
@@ -126,7 +128,9 @@ export default function ServiceResourcesFormFragment({
     setValue(`${serviceKey}.vcpu`, updatedVCPU, { shouldDirty: true });
 
     if (isRatioLocked) {
-      setValue(`${serviceKey}.memory`, updatedVCPU * 2.048, { shouldDirty: true });
+      setValue(`${serviceKey}.memory`, updatedVCPU * 2.048, {
+        shouldDirty: true,
+      });
     }
 
     // trigger validation for "replicas" field
@@ -145,7 +149,9 @@ export default function ServiceResourcesFormFragment({
     setValue(`${serviceKey}.memory`, updatedMemory, { shouldDirty: true });
 
     if (isRatioLocked) {
-      setValue(`${serviceKey}.vcpu`, updatedMemory / 2.048, { shouldDirty: true });
+      setValue(`${serviceKey}.vcpu`, updatedMemory / 2.048, {
+        shouldDirty: true,
+      });
     }
 
     // trigger validation for "replicas" field
@@ -165,7 +171,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid items-center justify-between grid-flow-col gap-2">
+        <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
             Allocated vCPUs:{' '}
             <span className="font-medium">
@@ -195,7 +201,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid items-center justify-between grid-flow-col gap-2">
+        <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
             Allocated Memory:{' '}
             <span className="font-medium">
@@ -240,7 +246,7 @@ export default function ServiceResourcesFormFragment({
                 >
                   <ExclamationIcon
                     color="error"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     aria-hidden="false"
                   />
                 </Tooltip>
@@ -268,7 +274,7 @@ export default function ServiceResourcesFormFragment({
                 >
                   <ExclamationIcon
                     color="error"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     aria-hidden="false"
                   />
                 </Tooltip>
@@ -300,29 +306,27 @@ export default function ServiceResourcesFormFragment({
             <Tooltip
               title={`Enable autoscaler to automatically provision extra ${title} replicas when needed.`}
             >
-              <InfoOutlinedIcon className="w-4 h-4 text-black" />
+              <InfoOutlinedIcon className="h-4 w-4 text-black" />
             </Tooltip>
           </Box>
         </Box>
       )}
 
-      {
-        !disableReplicas && (
-          <Text>
-            Learn more about{' '}
-            <Link
-              href="https://docs.nhost.io/platform/service-replicas"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              className="font-medium"
-            >
-              Service Replicas
-              <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
-            </Link>
-          </Text>
-        )
-      }
+      {!disableReplicas && (
+        <Text>
+          Learn more about{' '}
+          <Link
+            href="https://docs.nhost.io/platform/service-replicas"
+            target="_blank"
+            rel="noopener noreferrer"
+            underline="hover"
+            className="font-medium"
+          >
+            Service Replicas
+            <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+          </Link>
+        </Text>
+      )}
     </Box>
   );
 }

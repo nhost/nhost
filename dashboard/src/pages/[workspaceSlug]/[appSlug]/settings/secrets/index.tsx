@@ -23,12 +23,12 @@ import { CreateSecretForm } from '@/features/projects/secrets/settings/component
 import { EditSecretForm } from '@/features/projects/secrets/settings/components/EditSecretForm';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { Secret } from '@/types/application';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSecretsDocument,
   useDeleteSecretMutation,
   useGetSecretsQuery,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';

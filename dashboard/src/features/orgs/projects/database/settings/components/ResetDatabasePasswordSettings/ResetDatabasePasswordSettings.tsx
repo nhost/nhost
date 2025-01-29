@@ -146,9 +146,9 @@ export default function ResetDatabasePasswordSettings() {
               helperText: { component: 'div' },
             }}
             helperText={
-              <div className="grid items-center justify-start grid-flow-row gap-1 pt-1">
+              <div className="grid grid-flow-row items-center justify-start gap-1 pt-1">
                 {errors?.databasePassword?.message}
-                <div className="grid items-center justify-start grid-flow-col gap-1">
+                <div className="grid grid-flow-col items-center justify-start gap-1">
                   The root Postgres password for your database - it must be
                   strong and hard to guess.
                   <Button
@@ -179,7 +179,7 @@ export default function ResetDatabasePasswordSettings() {
                   variant="borderless"
                   aria-label="Copy password"
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </Button>
               </InputAdornment>
             }

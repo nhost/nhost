@@ -15,8 +15,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { EditJwtSecretForm } from '@/features/orgs/projects/environmentVariables/settings/components/EditJwtSecretForm';
 import { getJwtSecretsWithoutFalsyValues } from '@/features/orgs/projects/environmentVariables/settings/utils/getJwtSecretsWithoutFalsyValues';
 
-import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import { Fragment, useState } from 'react';
 
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';

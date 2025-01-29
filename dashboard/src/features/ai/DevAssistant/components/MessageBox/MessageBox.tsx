@@ -24,7 +24,7 @@ function PreComponent(
   const { children } = props;
 
   return (
-    <div className="relative group">
+    <div className="group relative">
       <pre>{children}</pre>
       <IconButton
         sx={{
@@ -34,13 +34,13 @@ function PreComponent(
         }}
         color="warning"
         variant="contained"
-        className="absolute hidden top-2 right-2 group-hover:flex"
+        className="absolute right-2 top-2 hidden group-hover:flex"
         onClick={(e) => {
           e.stopPropagation();
           copy(onlyText(children), 'Snippet');
         }}
       >
-        <CopyIcon className="w-5 h-5" />
+        <CopyIcon className="h-5 w-5" />
       </IconButton>
     </div>
   );
@@ -53,7 +53,7 @@ export default function MessageBox({ message }: { message: Message }) {
 
   return (
     <Box
-      className="flex flex-col p-4 space-y-4 border-t first:border-t-0"
+      className="flex flex-col space-y-4 border-t p-4 first:border-t-0"
       sx={{
         backgroundColor: isUserMessage && 'background.default',
       }}
@@ -67,7 +67,7 @@ export default function MessageBox({ message }: { message: Message }) {
         ) : (
           <>
             <Avatar
-              className="rounded-full h-7 w-7"
+              className="h-7 w-7 rounded-full"
               alt={user?.displayName}
               src={user?.avatarUrl}
             >

@@ -7,7 +7,7 @@ export default function DatabaseMigrateDowntimeWarning() {
   const { downtimeShort } = useEstimatedDatabaseMigrationDowntime();
 
   return (
-    <Alert severity="warning" className="flex flex-col gap-3  text-left">
+    <Alert severity="warning" className="flex flex-col gap-3 text-left">
       <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
         <Text className="flex items-start gap-1 font-semibold">
           <span>⚠</span> Warning: upgrading Postgres major version

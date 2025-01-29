@@ -17,7 +17,7 @@ export default function DatabaseMigrateDowntimeWarning() {
             sx={{
               backgroundColor: 'beige.main',
             }}
-            className="flex items-center justify-center px-2 font-semibold rounded-full py-1/2 text-nowrap"
+            className="py-1/2 flex items-center justify-center text-nowrap rounded-full px-2 font-semibold"
           >
             Estimated downtime ~{downtimeShort}
           </Box>

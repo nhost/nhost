@@ -22,12 +22,12 @@ import { EditPermissionVariableForm } from '@/features/projects/permissions/sett
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { PermissionVariable } from '@/types/application';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -164,10 +164,10 @@ export default function PermissionVariableSettings() {
       description="Permission variables are used to define permission rules in the GraphQL API."
       docsLink="https://docs.nhost.io/guides/api/permissions#permission-variables"
       rootClassName="gap-0"
-      className="px-0 my-2"
+      className="my-2 px-0"
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <Box className="grid grid-cols-2 px-4 py-3 border-b-1">
+      <Box className="grid grid-cols-2 border-b-1 px-4 py-3">
         <Text className="font-medium">Field name</Text>
         <Text className="font-medium">Path</Text>
       </Box>
@@ -191,7 +191,7 @@ export default function PermissionVariableSettings() {
                         !permissionVariable.isSystemVariable
                       }
                       hasDisabledChildren={permissionVariable.isSystemVariable}
-                      className="absolute -translate-y-1/2 right-4 top-1/2"
+                      className="absolute right-4 top-1/2 -translate-y-1/2"
                     >
                       <Dropdown.Trigger asChild hideChevron>
                         <IconButton
@@ -248,7 +248,7 @@ export default function PermissionVariableSettings() {
                     <>
                       X-Hasura-{permissionVariable.key}{' '}
                       {permissionVariable.isSystemVariable && (
-                        <LockIcon className="w-4 h-4" />
+                        <LockIcon className="h-4 w-4" />
                       )}
                     </>
                   }

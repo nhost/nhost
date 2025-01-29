@@ -50,7 +50,7 @@ export default function ForeignKeyEditorRow({
         <Button
           onClick={onEdit}
           variant="borderless"
-          className="min-w-[initial] py-1 px-2"
+          className="min-w-[initial] px-2 py-1"
         >
           Edit
         </Button>
@@ -58,7 +58,7 @@ export default function ForeignKeyEditorRow({
         <Button
           onClick={onDelete}
           variant="borderless"
-          className="min-w-[initial] py-1 px-2"
+          className="min-w-[initial] px-2 py-1"
         >
           Delete
         </Button>

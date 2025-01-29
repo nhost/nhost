@@ -16,7 +16,7 @@ import { copy } from '@/utils/copy';
 
 interface AssistantsListProps {
   /**
-   * The list of assistants 
+   * The list of assistants
    */
   assistants: Assistant[];
 

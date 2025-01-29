@@ -101,7 +101,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   if (faultyGitHubInstallation) {
     return (
       <div className="grid grid-flow-row justify-center gap-2 p-0.5">
-        <GitHubIcon className="w-8 h-8 mx-auto" />
+        <GitHubIcon className="mx-auto h-8 w-8" />
 
         <div className="text-center">
           <Text variant="h3" component="h2">
@@ -121,7 +121,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           // @ts-ignore
           target="_blank"
           rel="noreferrer noopener"
-          endIcon={<ArrowSquareOutIcon className="w-4 h-4" />}
+          endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
         >
           Configure the Nhost application on GitHub
         </Button>
@@ -139,17 +139,17 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     <div className="px-1">
       <div className="flex flex-col">
         <div className="mx-auto text-center">
-          <div className="w-8 h-8 mx-auto">
-            <GitHubIcon className="w-8 h-8" />
+          <div className="mx-auto h-8 w-8">
+            <GitHubIcon className="h-8 w-8" />
           </div>
         </div>
         {noRepositoriesAdded ? (
           <div>
-            <Text className="mt-1 text-lg font-medium text-center">
+            <Text className="mt-1 text-center text-lg font-medium">
               No repositories found
             </Text>
 
-            <Text className="text-xs text-center">
+            <Text className="text-center text-xs">
               Check the Nhost app&apos;s settings on your GitHub account, or
               install the app on a new account.
             </Text>
@@ -164,7 +164,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                     <ListItem.Avatar>
                       <Avatar
                         avatarUrl={githubApp.accountAvatarUrl as string}
-                        className="w-5 h-5 mr-1"
+                        className="mr-1 h-5 w-5"
                       />
                     </ListItem.Avatar>
 
@@ -183,9 +183,9 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
               target="_blank"
               rel="noreferrer noopener"
               underline="hover"
-              className="grid items-center justify-start grid-flow-col gap-1"
+              className="grid grid-flow-col items-center justify-start gap-1"
             >
-              <PlusCircleIcon className="w-4 h-4" />
+              <PlusCircleIcon className="h-4 w-4" />
               Configure the Nhost application on GitHub.
             </Link>
           </div>
@@ -196,13 +196,13 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                 Connect repository
               </Text>
               <Text
-                className="text-xs font-normal text-center"
+                className="text-center text-xs font-normal"
                 color="secondary"
               >
                 Showing repositories from {data.githubAppInstallations.length}{' '}
                 GitHub account(s)
               </Text>
-              <div className="flex w-full mt-6 mb-2">
+              <div className="mb-2 mt-6 flex w-full">
                 <Input
                   placeholder="Search..."
                   onChange={handleFilterChange}
@@ -213,11 +213,11 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             </div>
             <RetryableErrorBoundary>
               {githubRepositoriesToDisplay.length === 0 ? (
-                <Box className="py-2 h-import">
+                <Box className="h-import py-2">
                   <Text variant="subtitle2">No results found.</Text>
                 </Box>
               ) : (
-                <List className="overflow-y-auto h-import border-y">
+                <List className="h-import overflow-y-auto border-y">
                   {githubRepositoriesToDisplay.map((repo, index) => (
                     <Fragment key={repo.id}>
                       <ListItem.Root
@@ -238,7 +238,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                             avatarUrl={
                               repo.githubAppInstallation.accountAvatarUrl
                             }
-                            className="self-center w-8 h-8"
+                            className="h-8 w-8 self-center"
                           />
                         </ListItem.Avatar>
                         <ListItem.Text
@@ -259,7 +259,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         )}
 
         {!noRepositoriesAdded && (
-          <Text className="mt-2 text-xs text-center">
+          <Text className="mt-2 text-center text-xs">
             Do you miss a repository, or do you need to connect another GitHub
             account?{' '}
             <Link

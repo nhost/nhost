@@ -19,12 +19,12 @@ import { CreateEnvironmentVariableForm } from '@/features/projects/environmentVa
 import { EditEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { EnvironmentVariable } from '@/types/application';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -178,7 +178,7 @@ export default function EnvironmentVariableSettings() {
       )}
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <Box className="grid grid-cols-2 gap-2 px-4 py-3 border-b-1 lg:grid-cols-3">
+      <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
         <Text className="font-medium">Variable Name</Text>
       </Box>
 
@@ -194,7 +194,7 @@ export default function EnvironmentVariableSettings() {
                       <Dropdown.Trigger
                         asChild
                         hideChevron
-                        className="absolute -translate-y-1/2 right-4 top-1/2"
+                        className="absolute right-4 top-1/2 -translate-y-1/2"
                       >
                         <IconButton
                           variant="borderless"

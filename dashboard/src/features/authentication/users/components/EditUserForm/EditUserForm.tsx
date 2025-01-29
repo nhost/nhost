@@ -19,14 +19,14 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { copy } from '@/utils/copy';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   RemoteAppGetUsersDocument,
   useGetProjectLocalesQuery,
   useGetRolesPermissionsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+import { copy } from '@/utils/copy';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
@@ -320,14 +320,14 @@ export default function EditUserForm({
               </IconButton>
             </div>
 
-            <InputLabel as="h3" className="col-span-1 self-center ">
+            <InputLabel as="h3" className="col-span-1 self-center">
               Created At
             </InputLabel>
             <Text className="col-span-3 font-medium">
               {format(new Date(user.createdAt), 'yyyy-MM-dd HH:mm:ss')}
             </Text>
 
-            <InputLabel as="h3" className="col-span-1 self-center ">
+            <InputLabel as="h3" className="col-span-1 self-center">
               Last Seen
             </InputLabel>
             <Text className="col-span-3 font-medium">
@@ -386,7 +386,7 @@ export default function EditUserForm({
             />
 
             <div className="col-span-1 my-1 grid grid-flow-col grid-cols-8 items-center">
-              <div className="col-span-2 ">
+              <div className="col-span-2">
                 <InputLabel as="h3">Password</InputLabel>
               </div>
               <Button

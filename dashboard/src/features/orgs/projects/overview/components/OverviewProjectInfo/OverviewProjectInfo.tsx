@@ -9,7 +9,7 @@ export default function OverviewProjectInfo() {
   const isRegionAvailable = region?.name && region?.countryCode && region?.city;
 
   return (
-    <div className="grid content-start grid-flow-row gap-6">
+    <div className="grid grid-flow-row content-start gap-6">
       <Text variant="h3">Project Info</Text>
 
       {project && (
@@ -20,7 +20,7 @@ export default function OverviewProjectInfo() {
             customValue={
               region?.countryCode &&
               region?.city && (
-                <div className="grid items-center self-center grid-flow-col gap-1">
+                <div className="grid grid-flow-col items-center gap-1 self-center">
                   <Image
                     src={`/assets/flags/${region.countryCode}.svg`}
                     alt={`Logo of ${region.countryCode}`}
@@ -28,7 +28,7 @@ export default function OverviewProjectInfo() {
                     height={12}
                   />
 
-                  <Text className="text-sm font-medium truncate">
+                  <Text className="truncate text-sm font-medium">
                     {region.city} ({region.name})
                   </Text>
                 </div>

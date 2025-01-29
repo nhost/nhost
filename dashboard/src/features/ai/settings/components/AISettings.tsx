@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { isPostgresVersionValidForAI } from '@/features/ai/settings/utils/isPostgresVersionValidForAI';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
@@ -32,7 +33,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 import { DisableAIServiceConfirmationDialog } from './DisableAIServiceConfirmationDialog';
-import { isPostgresVersionValidForAI } from '@/features/ai/settings/utils/isPostgresVersionValidForAI';
 
 const validationSchema = Yup.object({
   version: Yup.object({
@@ -267,7 +267,7 @@ export default function AISettings() {
 
   return (
     <Box className="space-y-4" sx={{ backgroundColor: 'background.default' }}>
-      <Box className="flex flex-row items-center justify-between p-4 rounded-lg border-1">
+      <Box className="flex flex-row items-center justify-between rounded-lg border-1 p-4">
         <Text className="text-lg font-semibold">Enable AI service</Text>
         <Switch
           checked={aiServiceEnabled}
@@ -296,7 +296,7 @@ export default function AISettings() {
                     <Tooltip title="Version of the service to use.">
                       <InfoIcon
                         aria-label="Info"
-                        className="w-4 h-4"
+                        className="h-4 w-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -351,7 +351,7 @@ export default function AISettings() {
                     <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
                       <InfoIcon
                         aria-label="Info"
-                        className="w-4 h-4"
+                        className="h-4 w-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -375,7 +375,7 @@ export default function AISettings() {
                     <Tooltip title="Dedicated resources allocated for the service.">
                       <InfoIcon
                         aria-label="Info"
-                        className="w-4 h-4"
+                        className="h-4 w-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -415,7 +415,7 @@ export default function AISettings() {
                         <Tooltip title="Key to use for authenticating API requests to OpenAI">
                           <InfoIcon
                             aria-label="Info"
-                            className="w-4 h-4"
+                            className="h-4 w-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -438,7 +438,7 @@ export default function AISettings() {
                         <Tooltip title="Optional. OpenAI organization to use.">
                           <InfoIcon
                             aria-label="Info"
-                            className="w-4 h-4"
+                            className="h-4 w-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -466,7 +466,7 @@ export default function AISettings() {
                         <Tooltip title="How often to run the job that keeps embeddings up to date.">
                           <InfoIcon
                             aria-label="Info"
-                            className="w-4 h-4"
+                            className="h-4 w-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -494,4 +494,3 @@ export default function AISettings() {
     </Box>
   );
 }
-

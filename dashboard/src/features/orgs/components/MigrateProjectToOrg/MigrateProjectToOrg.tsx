@@ -31,8 +31,8 @@ import {
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { cn } from '@/lib/utils';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useBillingMigrateProjectToOrganizationMutation } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { CornerRightUp } from 'lucide-react';
@@ -96,7 +96,7 @@ export default function MigrateProjectToOrg() {
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2 py-1 text-base">
           Migrate to an Organization
-          <CornerRightUp className="w-5 h-5" />
+          <CornerRightUp className="h-5 w-5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="text-foreground sm:max-w-xl">
@@ -106,7 +106,7 @@ export default function MigrateProjectToOrg() {
             <span className="mt-4 font-medium">
               Please read the following information before migrating:
             </span>
-            <ul className="pl-4 space-y-2 list-disc">
+            <ul className="list-disc space-y-2 pl-4">
               <li>
                 A project can only be migrated to an organization in the same or
                 higher plan as the project you are migrating.
@@ -120,7 +120,7 @@ export default function MigrateProjectToOrg() {
                 requires a restart so plan for 1-2 minutes of downtime.
               </li>
             </ul>
-            <div className="flex items-center justify-start gap-1 mt-4">
+            <div className="mt-4 flex items-center justify-start gap-1">
               <span>For more information read the</span>
               <Link
                 href="https://nhost.io/blog/organization-billing"
@@ -130,7 +130,7 @@ export default function MigrateProjectToOrg() {
                 className="font-medium"
               >
                 announcement
-                <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
+                <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
               </Link>
             </div>
           </DialogDescription>

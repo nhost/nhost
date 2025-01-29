@@ -18,7 +18,7 @@ export default function FeedbackForm({
   return (
     <div
       className={twMerge(
-        'grid max-w-md grid-flow-row gap-2 py-4 px-5',
+        'grid max-w-md grid-flow-row gap-2 px-5 py-4',
         className,
       )}
       {...props}

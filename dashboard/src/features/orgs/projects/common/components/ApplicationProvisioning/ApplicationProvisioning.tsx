@@ -14,8 +14,8 @@ export default function ApplicationProvisioning() {
   const currentProjectState = useCheckProvisioning();
 
   return (
-    <Container className="grid max-w-sm grid-flow-row gap-4 mx-auto mt-8 text-center">
-      <div className="flex flex-col mx-auto text-center w-centImage">
+    <Container className="mx-auto mt-8 grid max-w-sm grid-flow-row gap-4 text-center">
+      <div className="mx-auto flex w-centImage flex-col text-center">
         <Image
           src="/terminal-text.svg"
           alt="Terminal with a green dot"

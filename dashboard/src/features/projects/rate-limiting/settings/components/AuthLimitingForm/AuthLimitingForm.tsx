@@ -9,8 +9,8 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { rateLimitingItemValidationSchema } from '@/features/projects/rate-limiting/settings/components/validationSchemas';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useUpdateRateLimitConfigMutation } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { RateLimitField } from 'features/projects/rate-limiting/settings/components/RateLimitField';
 import { useGetRateLimits } from 'features/projects/rate-limiting/settings/hooks/useGetRateLimits';

@@ -31,7 +31,7 @@ export default function OverviewCard({
   return (
     <Box
       className={twMerge(
-        'flex h-full flex-col place-content-between gap-12 rounded-lg py-3 px-4 shadow-sm',
+        'flex h-full flex-col place-content-between gap-12 rounded-lg px-4 py-3 shadow-sm',
         className,
       )}
       sx={{ backgroundColor: 'grey.200' }}

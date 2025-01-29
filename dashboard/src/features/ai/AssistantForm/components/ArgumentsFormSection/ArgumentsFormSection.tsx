@@ -34,7 +34,7 @@ export default function ArgumentsFormSection({
 
   return (
     <Box className="space-y-4">
-      <div className="flex flex-row items-center justify-between ">
+      <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
             Arguments

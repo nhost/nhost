@@ -149,7 +149,7 @@ export default function HasuraDomain() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row px-4 gap-x-4 gap-y-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
         >
           <Input
             {...register('hasura_fqdn')}

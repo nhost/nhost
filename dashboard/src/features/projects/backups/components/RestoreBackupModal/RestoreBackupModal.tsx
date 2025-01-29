@@ -4,8 +4,8 @@ import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { Backup } from '@/types/application';
-import { triggerToast } from '@/utils/toast';
 import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
+import { triggerToast } from '@/utils/toast';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 
@@ -71,7 +71,7 @@ export default function RestoreBackupModal({
         will be restored.
       </Text>
 
-      <Box className="pt-1 pb-2.5">
+      <Box className="pb-2.5 pt-1">
         <Checkbox
           checked={isSure}
           onChange={(_event, checked) => setIsSure(checked)}

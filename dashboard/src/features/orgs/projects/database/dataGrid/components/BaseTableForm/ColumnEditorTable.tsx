@@ -26,7 +26,7 @@ export default function ColumnEditorTable() {
   return (
     <>
       <div role="table" className="col-span-8">
-        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 pt-1 pb-2">
+        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 pb-2 pt-1">
           <div role="columnheader" className="col-span-3">
             <InputLabel as="span">
               Name

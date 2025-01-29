@@ -65,8 +65,8 @@ export default function TotalResourcesFormFragment({
     RESOURCE_VCPU_PRICE;
 
   const updatedPrice = isPlatform
-    // ? priceForTotalAvailableVCPU + proPlan.price
-    ? priceForTotalAvailableVCPU
+    ? // ? priceForTotalAvailableVCPU + proPlan.price
+      priceForTotalAvailableVCPU
     : 0;
 
   const { vcpu: allocatedVCPU, memory: allocatedMemory } =
@@ -107,8 +107,8 @@ export default function TotalResourcesFormFragment({
 
   return (
     <Box className="px-4 pb-4">
-      <Box className="border rounded-md">
-        <Box className="flex flex-col gap-4 p-4 bg-transparent">
+      <Box className="rounded-md border">
+        <Box className="flex flex-col gap-4 bg-transparent p-4">
           <Box className="flex flex-row items-center justify-between gap-4">
             <Text color="secondary">
               Total available compute for your project:

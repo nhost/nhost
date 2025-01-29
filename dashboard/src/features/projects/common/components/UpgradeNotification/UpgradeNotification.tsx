@@ -25,7 +25,7 @@ export default function UpgradeNotification({
 
   return (
     <div className={twMerge('flex', className)} {...props}>
-      <Alert className="grid items-center w-full grid-flow-col gap-2 place-content-between">
+      <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
         <Text className="grid grid-flow-row justify-items-start gap-0.5">
           <Text component="span">{message}</Text>
 

@@ -102,7 +102,7 @@ export default function BaseColumnForm({
   return (
     <Form
       onSubmit={handleExternalSubmit}
-      className="flex flex-col content-between flex-auto overflow-hidden border-t-1"
+      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto">
         <section className="grid grid-cols-8 px-6 py-3">
@@ -184,7 +184,7 @@ export default function BaseColumnForm({
                   </Text>
                 </span>
               }
-              className="w-full col-span-8 py-3 m-0 sm:col-span-6 sm:col-start-3 sm:ml-1"
+              className="col-span-8 m-0 w-full py-3 sm:col-span-6 sm:col-start-3 sm:ml-1"
               onChange={(_event, checked) => {
                 if (checked) {
                   setDefaultValueInputText('');
@@ -197,7 +197,7 @@ export default function BaseColumnForm({
 
         <Box
           component="section"
-          className="grid grid-cols-8 px-6 py-3 border-t-1"
+          className="grid grid-cols-8 border-t-1 px-6 py-3"
         >
           <ControlledAutocomplete
             id="defaultValue"
@@ -249,7 +249,7 @@ export default function BaseColumnForm({
           />
 
           <ControlledCheckbox
-            className="w-full col-span-8 py-3 m-0 sm:col-span-6 sm:col-start-3 sm:ml-1"
+            className="col-span-8 m-0 w-full py-3 sm:col-span-6 sm:col-start-3 sm:ml-1"
             name="isNullable"
             label={
               <span className="inline-grid grid-flow-row">
@@ -269,7 +269,7 @@ export default function BaseColumnForm({
           />
 
           <ControlledCheckbox
-            className="w-full col-span-8 py-3 m-0 sm:col-span-6 sm:col-start-3 sm:ml-1"
+            className="col-span-8 m-0 w-full py-3 sm:col-span-6 sm:col-start-3 sm:ml-1"
             name="isUnique"
             label={
               <span className="inline-grid grid-flow-row">
@@ -306,7 +306,7 @@ export default function BaseColumnForm({
         </Box>
       </div>
 
-      <Box className="grid justify-between flex-shrink-0 grid-flow-col gap-3 p-2 border-t-1">
+      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button
           variant="borderless"
           color="secondary"

@@ -124,9 +124,9 @@ export default function EditJwtSecretForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col content-between flex-auto pb-4 overflow-hidden"
+        className="flex flex-auto flex-col content-between overflow-hidden pb-4"
       >
-        <div className="flex-auto px-6 overflow-y-auto">
+        <div className="flex-auto overflow-y-auto px-6">
           <Input
             {...register('jwtSecret')}
             error={Boolean(errors.jwtSecret?.message)}

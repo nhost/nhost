@@ -42,7 +42,7 @@ export default function DataBrowserLayout({
       )}
 
       <Box
-        className="flex flex-col flex-auto w-full overflow-x-hidden"
+        className="flex w-full flex-auto flex-col overflow-x-hidden"
         sx={{ backgroundColor: 'background.default' }}
       >
         {children}

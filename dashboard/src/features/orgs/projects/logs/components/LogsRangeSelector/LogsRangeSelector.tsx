@@ -37,7 +37,7 @@ function LogsToDatePickerLiveButton() {
   useInterval(() => setCurrentTime(new Date()), isLive ? 1000 : 0);
 
   return (
-    <div className="flex flex-col text-greyscaleMedium">
+    <div className="text-greyscaleMedium flex flex-col">
       {!isLive && (
         <LogsDatePicker
           label="To"
@@ -64,7 +64,7 @@ function LogsToDatePickerLiveButton() {
           color: !isLive ? 'text.secondary' : undefined,
         }}
         className={twMerge(!isLive ? 'z-0 mt-4' : 'z-10')}
-        startIcon={<ClockIcon className="self-center w-4 h-4 align-middle" />}
+        startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
         onClick={handleLiveButtonClick}
       >
         Live
@@ -148,7 +148,7 @@ export default function LogsRangeSelector({
       <Dropdown.Trigger hideChevron className="flex w-full rounded-full">
         <Button
           component="a"
-          className="items-center justify-between w-full h-10 min-w-40"
+          className="h-10 w-full min-w-40 items-center justify-between"
           variant="outlined"
         >
           <span>
@@ -156,7 +156,7 @@ export default function LogsRangeSelector({
               ? 'Live'
               : `${formatDistance(to.getTime(), from.getTime())}`}
           </span>
-          <ChevronDownIcon className="w-3 h-3" />
+          <ChevronDownIcon className="h-3 w-3" />
         </Button>
       </Dropdown.Trigger>
 

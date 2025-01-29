@@ -5,8 +5,8 @@ import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { copy } from '@/utils/copy';
 import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
+import { copy } from '@/utils/copy';
 import { useState } from 'react';
 
 interface VerifyDomainProps {
@@ -78,7 +78,7 @@ export default function VerifyDomain({
           backgroundColor: 'grey.300',
         },
       ]}
-      className="flex flex-col p-4 space-y-4 rounded-md"
+      className="flex flex-col space-y-4 rounded-md p-4"
     >
       <div className="flex flex-row items-center justify-between">
         {!verificationFailed && !verificationSucceeded && (
@@ -124,7 +124,7 @@ export default function VerifyDomain({
                 color="secondary"
                 onClick={() => copy(value, 'CNAME Value')}
               >
-                <CopyIcon className="w-4 h-4" />
+                <CopyIcon className="h-4 w-4" />
               </IconButton>
             </>
           ) : null}

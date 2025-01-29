@@ -160,7 +160,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
 
   return (
     <>
-      <div className="flex flex-row w-full place-content-between">
+      <div className="flex w-full flex-row place-content-between">
         <div className="flex flex-row items-center">
           <Avatar
             className="rounded-full"
@@ -170,7 +170,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
             {member.user.displayName || 'local'}
           </Avatar>
 
-          <div className="flex flex-col ml-3">
+          <div className="ml-3 flex flex-col">
             <div className="flex flex-row items-center gap-2">
               <span className="font-medium">{member.user.displayName}</span>
               {isSelf && (
@@ -266,7 +266,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex flex-col gap-4 mb-4">
+              <div className="mb-4 flex flex-col gap-4">
                 <FormField
                   control={form.control}
                   name="email"

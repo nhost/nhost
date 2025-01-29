@@ -22,7 +22,7 @@ export default function OrgProjects() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
+      <div className="flex h-full w-full items-center justify-center">
         <ActivityIndicator circularProgressProps={{ className: 'w-6 h-6' }} />
       </div>
     );
@@ -30,8 +30,8 @@ export default function OrgProjects() {
 
   if (apps?.length === 0) {
     return (
-      <div className="flex items-start justify-center w-full h-full p-4 bg-accent">
-        <div className="flex flex-col items-center justify-center w-full p-12 space-y-8 border rounded-md bg-background">
+      <div className="flex h-full w-full items-start justify-center bg-accent p-4">
+        <div className="flex w-full flex-col items-center justify-center space-y-8 rounded-md border bg-background p-12">
           <div className="flex flex-col items-center justify-center">
             <h2 className="text-xl font-medium">Welcome to Nhost!</h2>
             <p className="text-muted-foreground">
@@ -41,8 +41,8 @@ export default function OrgProjects() {
 
           <Button asChild>
             <Link href={`/orgs/${currentOrg.slug}/projects/new`}>
-              <div className="flex flex-row items-center justify-center space-x-2 h-fit">
-                <Plus className="w-5 h-5" strokeWidth={2} />
+              <div className="flex h-fit flex-row items-center justify-center space-x-2">
+                <Plus className="h-5 w-5" strokeWidth={2} />
                 <span>Create your first project</span>
               </div>
             </Link>

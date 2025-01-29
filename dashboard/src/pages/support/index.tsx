@@ -10,15 +10,15 @@ import { Text } from '@/components/ui/v2/Text';
 
 function SupportPage() {
   return (
-    <Box className="h-screen pb-4 overflow-auto">
-      <Box className="flex justify-start w-full px-4 py-3 border-b-1">
+    <Box className="h-screen overflow-auto pb-4">
+      <Box className="flex w-full justify-start border-b-1 px-4 py-3">
         <Logo className="w-6 cursor-pointer" />
       </Box>
 
       <div className="flex flex-col items-center justify-center">
         <Box
           sx={{ backgroundColor: 'background.default' }}
-          className="flex flex-col items-center justify-center w-full h-64 gap-10 px-4 mb-10 border-b-1"
+          className="mb-10 flex h-64 w-full flex-col items-center justify-center gap-10 border-b-1 px-4"
         >
           <div>
             <Text variant="h4">Nhost Support</Text>
@@ -27,21 +27,21 @@ function SupportPage() {
           <Button
             onClick={() => window.open('https://docs.nhost.io')}
             className="h-10 w-full xs+:w-98"
-            startIcon={<FileTextIcon className="self-center w-4 h-4" />}
+            startIcon={<FileTextIcon className="h-4 w-4 self-center" />}
           >
             Read our docs
           </Button>
         </Box>
 
-        <Box className="flex flex-row items-center justify-center w-full gap-10">
+        <Box className="flex w-full flex-row items-center justify-center gap-10">
           <div className="flex w-[900px] flex-col gap-10 p-4">
-            <div className="flex flex-col w-full gap-10 md:flex-row">
+            <div className="flex w-full flex-col gap-10 md:flex-row">
               <Box
-                className="flex flex-col w-full h-full gap-12 px-4 py-3 rounded-lg shadow-sm place-content-between"
+                className="flex h-full w-full flex-col place-content-between gap-12 rounded-lg px-4 py-3 shadow-sm"
                 sx={{ backgroundColor: 'grey.200' }}
               >
                 <div className="flex flex-col gap-4">
-                  <GitHubIcon className="w-8 h-8" />
+                  <GitHubIcon className="h-8 w-8" />
                   <div className="grid grid-flow-row gap-1">
                     <Text variant="h3" className="!font-bold">
                       Issues & feature requests
@@ -58,18 +58,18 @@ function SupportPage() {
                   href="https://github.com/nhost/nhost/issues/new/choose"
                   target="_blank"
                   rel="dofollow"
-                  className="grid items-center justify-start grid-flow-col gap-1 font-medium"
+                  className="grid grid-flow-col items-center justify-start gap-1 font-medium"
                 >
                   Open new Issue / Feature request
-                  <ArrowRightIcon className="w-4 h-4" />
+                  <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </Box>
               <Box
-                className="flex flex-col w-full h-full gap-12 px-4 py-3 rounded-lg shadow-sm place-content-between"
+                className="flex h-full w-full flex-col place-content-between gap-12 rounded-lg px-4 py-3 shadow-sm"
                 sx={{ backgroundColor: 'grey.200' }}
               >
                 <div className="flex flex-col gap-4">
-                  <CommunityIcon className="w-8 h-8" />
+                  <CommunityIcon className="h-8 w-8" />
                   <div className="grid grid-flow-row gap-1">
                     <Text variant="h3" className="!font-bold">
                       Ask the Community
@@ -86,10 +86,10 @@ function SupportPage() {
                   href="https://discord.com/invite/9V7Qb2U"
                   target="_blank"
                   rel="dofollow"
-                  className="grid items-center justify-start grid-flow-col gap-1 font-medium"
+                  className="grid grid-flow-col items-center justify-start gap-1 font-medium"
                 >
                   Join our Discord
-                  <ArrowRightIcon className="w-4 h-4" />
+                  <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </Box>
             </div>
@@ -99,7 +99,7 @@ function SupportPage() {
                   Can&apos;t find what you&apos;re looking for?
                 </Text>
               </div>
-              <div className="flex flex-col flex-1 gap-4">
+              <div className="flex flex-1 flex-col gap-4">
                 <Text variant="h4">Our Support Team is ready to help.</Text>
                 <Text>
                   Response time for support tickets will vary depending on plan
@@ -111,10 +111,10 @@ function SupportPage() {
                   href="/support/ticket"
                   target="_blank"
                   rel="dofollow"
-                  className="grid items-center justify-start grid-flow-col gap-1 font-medium"
+                  className="grid grid-flow-col items-center justify-start gap-1 font-medium"
                 >
                   Create ticket
-                  <ArrowRightIcon className="w-4 h-4" />
+                  <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </div>
             </Box>

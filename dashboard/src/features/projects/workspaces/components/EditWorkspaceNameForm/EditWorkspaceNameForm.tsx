@@ -3,13 +3,13 @@ import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import type { DialogFormProps } from '@/types/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { slugifyString } from '@/utils/helpers';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useInsertWorkspaceMutation,
   useUpdateWorkspaceMutation,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
