@@ -27,7 +27,7 @@ export default function WorkspaceMember({
           avatarUrl={workspaceMember.user.avatarUrl}
         />
         <div className="ml-3 self-center">
-          <div className="grid grid-flow-col items-center justify-start gap-2">
+          <div className="grid-flow-col grid items-center justify-start gap-2">
             <Text className="font-medium">
               {workspaceMember.user.displayName}
             </Text>
