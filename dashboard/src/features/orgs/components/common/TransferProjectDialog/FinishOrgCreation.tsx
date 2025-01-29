@@ -4,10 +4,11 @@ import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFi
 
 interface Props {
   onCompleted: FinishOrgCreationOnCompletedCb;
+  onError: () => void;
 }
 
-function FinishOrgCreation({ onCompleted }: Props) {
-  const [loading, status] = useFinishOrgCreation(onCompleted);
+function FinishOrgCreation({ onCompleted, onError }: Props) {
+  const [loading, status] = useFinishOrgCreation({ onCompleted, onError });
   return (
     <FinishOrgCreationProcess
       loading={loading}

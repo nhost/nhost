@@ -16,7 +16,7 @@ export default function OverviewTopBar() {
   const { project } = useProject();
   const { maintenanceActive } = useUI();
 
-  const isFreeProject = org.plan.isFree;
+  const isFreeProject = !!org?.plan.isFree;
 
   if (!isPlatform) {
     return (

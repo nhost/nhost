@@ -23,7 +23,7 @@ export default function PostCheckout() {
     router.push('/signin');
   }, [isLoading, isAuthenticated, router, isPlatform]);
 
-  const handleOnComplete = useCallback(
+  const onCompleted = useCallback(
     (
       data: PostOrganizationRequestMutation['billingPostOrganizationRequest'],
     ) => {
@@ -33,7 +33,7 @@ export default function PostCheckout() {
     [router],
   );
 
-  const [loading, status] = useFinishOrgCreation(handleOnComplete);
+  const [loading, status] = useFinishOrgCreation({ onCompleted });
 
   return (
     <BaseLayout className="flex h-screen flex-col">

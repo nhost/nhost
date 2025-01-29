@@ -159,7 +159,7 @@ export default function TransferProjectDialog({
       setPreventClose(false);
     };
 
-  const handleTransferProjectDialogChange = (newValue: boolean) => {
+  const handleTransferProjectDialogOpenChange = (newValue: boolean) => {
     if (preventClose) {
       return;
     }
@@ -176,7 +176,7 @@ export default function TransferProjectDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleTransferProjectDialogChange}>
+      <Dialog open={open} onOpenChange={handleTransferProjectDialogOpenChange}>
         <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
           <DialogHeader className="flex gap-2">
             <DialogTitle>
@@ -194,7 +194,10 @@ export default function TransferProjectDialog({
             )}
           </DialogHeader>
           {finishOrgCreation ? (
-            <FinishOrgCreation onCompleted={handleFinishOrgCreationCompleted} />
+            <FinishOrgCreation
+              onCompleted={handleFinishOrgCreationCompleted}
+              onError={() => setPreventClose(false)}
+            />
           ) : (
             <Form {...form}>
               <form
