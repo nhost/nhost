@@ -108,7 +108,8 @@ jobs:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Enforce Prettier formatting in dashboard
-        run: pnpm prettier --check "./dashboard/**/*.tsx" --config ./dashboard/prettier.config.js
+        working-directory: ./dashboard
+        run: pnpm prettier --check "./**/*.tsx" --config prettier.config.js
       # * Run every `lint` script in the workspace . Dependencies build is cached by Turborepo
       - name: Lint
         run: pnpm run lint:all
