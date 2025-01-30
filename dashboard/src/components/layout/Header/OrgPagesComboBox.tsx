@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -39,6 +40,8 @@ export default function OrgPagesComboBox() {
     push,
     asPath,
   } = useRouter();
+
+  const isPlatform = useIsPlatform();
 
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
   const orgPageFromUrl = pathSegments[3] || null;
@@ -64,7 +67,7 @@ export default function OrgPagesComboBox() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger disabled={!isPlatform} asChild>
         <Button
           variant="ghost"
           size="sm"
