@@ -192,6 +192,14 @@ export default function SettingsGeneralPage() {
       },
     );
   }
+  const isPaused = state === ApplicationStatus.Paused;
+  const isPausing = state === ApplicationStatus.Pausing;
+
+  const pausedDisabled =
+    maintenanceActive || !isPlatform || pauseApplicationLoading;
+
+  const wakeUpDisabled =
+    maintenanceActive || !isPlatform || unpauseApplicationLoading || isPausing;
 
   if (loading) {
     return <LoadingScreen />;
@@ -232,93 +240,90 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      {state === ApplicationStatus.Paused && (
+      {isPaused || isPausing ? (
         <SettingsContainer
           title="Wake up Project"
           description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
-          submitButtonText="Wake up"
+          submitButtonText={isPausing ? 'Pausing...' : 'Wake up'}
           slotProps={{
             submitButton: {
               type: 'button',
               color: 'primary',
               variant: 'contained',
-              loading: unpauseApplicationLoading,
-              disabled:
-                maintenanceActive || !isPlatform || unpauseApplicationLoading,
+              loading: unpauseApplicationLoading || isPausing,
+              disabled: wakeUpDisabled,
               onClick: handleTriggerUnpausing,
             },
           }}
         />
-      )}
+      ) : null}
 
-      {state !== ApplicationStatus.Paused &&
-        state !== ApplicationStatus.Pausing && (
-          <SettingsContainer
-            title="Pause Project"
-            description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-            submitButtonText="Pause"
-            slotProps={{
-              submitButton: {
-                type: 'button',
-                color: 'primary',
-                variant: 'contained',
-                loading: pauseApplicationLoading,
-                disabled:
-                  maintenanceActive || !isPlatform || pauseApplicationLoading,
-                onClick: () => {
-                  openAlertDialog({
-                    title: 'Pause Project?',
-                    payload: (
-                      <div className="flex flex-col gap-2">
-                        {showWarning ? (
-                          <Alert
-                            severity="warning"
-                            className="flex flex-col gap-3 text-left"
-                          >
-                            <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
-                              <Text className="flex items-start gap-1 font-semibold">
-                                <span>⚠</span> Warning: This action will delete
-                                all volume data for your Run services.
-                              </Text>
-                            </div>
-                            <div className="flex flex-col gap-4">
-                              <Text>
-                                Pausing this project will delete all persistent
-                                volume data for your Run services. No automatic
-                                backups are made. Please backup your data
-                                manually to prevent loss. Contact{' '}
-                                <Link
-                                  href="/support"
-                                  target="_blank"
-                                  className="underline"
-                                  sx={{
-                                    color: 'text.primary',
-                                  }}
-                                  rel="noopener noreferrer"
-                                >
-                                  support
-                                </Link>{' '}
-                                with any questions.
-                              </Text>
-                            </div>
-                          </Alert>
-                        ) : null}
-                        <p className="text-pretty">
-                          Are you sure you want to pause this project? It will
-                          not be accessible until you unpause it.
-                        </p>
-                      </div>
-                    ),
-                    props: {
-                      maxWidth: 'sm',
-                      onPrimaryAction: handlePauseApplication,
-                    },
-                  });
-                },
+      {!isPaused && !isPausing && (
+        <SettingsContainer
+          title="Pause Project"
+          description="While your project is paused, it will not be accessible. You can wake it up anytime after."
+          submitButtonText="Pause"
+          slotProps={{
+            submitButton: {
+              type: 'button',
+              color: 'primary',
+              variant: 'contained',
+              loading: pauseApplicationLoading,
+              disabled: pausedDisabled,
+              onClick: () => {
+                openAlertDialog({
+                  title: 'Pause Project?',
+                  payload: (
+                    <div className="flex flex-col gap-2">
+                      {showWarning ? (
+                        <Alert
+                          severity="warning"
+                          className="flex flex-col gap-3 text-left"
+                        >
+                          <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
+                            <Text className="flex items-start gap-1 font-semibold">
+                              <span>⚠</span> Warning: This action will delete
+                              all volume data for your Run services.
+                            </Text>
+                          </div>
+                          <div className="flex flex-col gap-4">
+                            <Text>
+                              Pausing this project will delete all persistent
+                              volume data for your Run services. No automatic
+                              backups are made. Please backup your data manually
+                              to prevent loss. Contact{' '}
+                              <Link
+                                href="/support"
+                                target="_blank"
+                                className="underline"
+                                sx={{
+                                  color: 'text.primary',
+                                }}
+                                rel="noopener noreferrer"
+                              >
+                                support
+                              </Link>{' '}
+                              with any questions.
+                            </Text>
+                          </div>
+                        </Alert>
+                      ) : null}
+                      <p className="text-pretty">
+                        Are you sure you want to pause this project? It will not
+                        be accessible until you unpause it.
+                      </p>
+                    </div>
+                  ),
+                  props: {
+                    maxWidth: 'sm',
+                    onPrimaryAction: handlePauseApplication,
+                  },
+                });
               },
-            }}
-          />
-        )}
+            },
+          }}
+        />
+      )}
 
       <TransferProject />
 
