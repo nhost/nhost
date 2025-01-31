@@ -1,5 +1,11 @@
 # @nhost-examples/vue-quickstart
 
+## 0.3.0
+
+### Minor Changes
+
+- aecbec6: chore: update dependencies with vulnerabilities
+
 ## 0.2.18
 
 ### Patch Changes

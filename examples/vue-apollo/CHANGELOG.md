@@ -1,5 +1,11 @@
 # @nhost-examples/vue-apollo
 
+## 0.9.0
+
+### Minor Changes
+
+- aecbec6: chore: update dependencies with vulnerabilities
+
 ## 0.8.1
 
 ### Patch Changes

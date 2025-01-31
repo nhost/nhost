@@ -1,5 +1,12 @@
 # @nhost/nextjs
 
+## 2.2.3
+
+### Patch Changes
+
+- Updated dependencies [cb63233]
+  - @nhost/react@3.10.0
+
 ## 2.2.2
 
 ### Patch Changes
