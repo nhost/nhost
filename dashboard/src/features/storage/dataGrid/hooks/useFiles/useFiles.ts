@@ -7,6 +7,7 @@ import type {
 } from '@/utils/__generated__/graphql';
 import { useGetFilesQuery } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
+import { validate as uuidValidate } from 'uuid';
 
 export type UseFilesOptions = {
   /**
@@ -39,13 +40,16 @@ export default function useFiles({
   options = {},
 }: UseFilesOptions) {
   const { currentProject } = useCurrentWorkspaceAndProject();
+
+  const isUUID = uuidValidate(searchString);
   const { data, previousData, ...rest } = useGetFilesQuery({
     variables: {
       where: searchString
         ? {
-            name: {
-              _ilike: `%${searchString}%`,
-            },
+            _or: [
+              ...((isUUID && [{ id: { _eq: searchString } }]) || []),
+              { name: { _ilike: `%${searchString}%` } },
+            ],
           }
         : null,
       limit,
