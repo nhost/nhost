@@ -1,5 +1,17 @@
 # @nhost-examples/react-urql
 
+## 0.4.0
+
+### Minor Changes
+
+- aecbec6: chore: update dependencies with vulnerabilities
+
+### Patch Changes
+
+- Updated dependencies [cb63233]
+  - @nhost/react@3.10.0
+  - @nhost/react-urql@14.0.0
+
 ## 0.3.18
 
 ### Patch Changes

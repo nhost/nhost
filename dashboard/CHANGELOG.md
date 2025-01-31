@@ -1,5 +1,20 @@
 # @nhost/dashboard
 
+## 2.18.0
+
+### Minor Changes
+
+- aecbec6: chore: update dependencies with vulnerabilities
+- d874713: fix: adjust timeout for e2e tests
+- 4815c7c: fix: not fetch if image preview toggle in storage is disabled
+- 9084222: feat: show Wake Up section while project is pausing
+- 3c3fa89: chore: update Prettier and tailwindcss prettier plugin, run Prettier in dashboard files, and add Prettier check to CI
+
+### Patch Changes
+
+- @nhost/react-apollo@17.0.0
+- @nhost/nextjs@2.2.3
+
 ## 2.17.0
 
 ### Minor Changes

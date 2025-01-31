@@ -1,5 +1,11 @@
 # @nhost/react
 
+## 3.10.0
+
+### Minor Changes
+
+- cb63233: chore: add react 19 as peer dependency
+
 ## 3.9.1
 
 ### Patch Changes
