@@ -23,8 +23,6 @@ export default function useNotFoundRedirect() {
     isReady,
   } = router;
 
-  console.log('router.pathname:', router.pathname);
-
   const { project, loading: projectLoading } = useProject();
   const isPlatform = useIsPlatform();
   const { org, loading: orgLoading } = useCurrentOrg();
