@@ -4,6 +4,7 @@
     "jsx": "react-jsx",
     "types": ["vitest/globals"],
     "paths": {
+      "@/*": ["./*"],
       "@/tests/*": ["tests/*"],
       "@/e2e/*": ["../e2e/*"],
       "@/components/*": ["components/*"],

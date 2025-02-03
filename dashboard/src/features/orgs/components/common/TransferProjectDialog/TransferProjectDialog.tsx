@@ -92,7 +92,9 @@ export default function TransferProjectDialog({
   useEffect(() => {
     if (isNotEmptyValue(newOrgSlug)) {
       const newOrg = orgs.find((org) => org.slug === newOrgSlug);
-      form.setValue('organization', newOrg.id, { shouldDirty: true });
+      if (newOrg) {
+        form.setValue('organization', newOrg?.id, { shouldDirty: true });
+      }
     }
   }, [newOrgSlug, orgs, form]);
 
