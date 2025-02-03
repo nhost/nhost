@@ -28421,6 +28421,11 @@ export type RemoteAppDeleteUserMutationVariables = Exact<{
 
 export type RemoteAppDeleteUserMutation = { __typename?: 'mutation_root', deleteUser?: { __typename?: 'users', id: any } | null };
 
+export type GetRemoteAppAllowedRolesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRemoteAppAllowedRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
+
 export type GetAppFunctionsMetadataQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -33958,6 +33963,43 @@ export function useRemoteAppDeleteUserMutation(baseOptions?: Apollo.MutationHook
 export type RemoteAppDeleteUserMutationHookResult = ReturnType<typeof useRemoteAppDeleteUserMutation>;
 export type RemoteAppDeleteUserMutationResult = Apollo.MutationResult<RemoteAppDeleteUserMutation>;
 export type RemoteAppDeleteUserMutationOptions = Apollo.BaseMutationOptions<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>;
+export const GetRemoteAppAllowedRolesDocument = gql`
+    query getRemoteAppAllowedRoles {
+  authRoles {
+    role
+  }
+}
+    `;
+
+/**
+ * __useGetRemoteAppAllowedRolesQuery__
+ *
+ * To run a query within a React component, call `useGetRemoteAppAllowedRolesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRemoteAppAllowedRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRemoteAppAllowedRolesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRemoteAppAllowedRolesQuery(baseOptions?: Apollo.QueryHookOptions<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>(GetRemoteAppAllowedRolesDocument, options);
+      }
+export function useGetRemoteAppAllowedRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>(GetRemoteAppAllowedRolesDocument, options);
+        }
+export type GetRemoteAppAllowedRolesQueryHookResult = ReturnType<typeof useGetRemoteAppAllowedRolesQuery>;
+export type GetRemoteAppAllowedRolesLazyQueryHookResult = ReturnType<typeof useGetRemoteAppAllowedRolesLazyQuery>;
+export type GetRemoteAppAllowedRolesQueryResult = Apollo.QueryResult<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>;
+export function refetchGetRemoteAppAllowedRolesQuery(variables?: GetRemoteAppAllowedRolesQueryVariables) {
+      return { query: GetRemoteAppAllowedRolesDocument, variables: variables }
+    }
 export const GetAppFunctionsMetadataDocument = gql`
     query getAppFunctionsMetadata($id: uuid!) {
   app(id: $id) {
