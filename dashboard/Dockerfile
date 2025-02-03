@@ -3,7 +3,7 @@ RUN apk add --no-cache libc6-compat
 RUN apk update
 WORKDIR /app
 
-RUN yarn global add turbo@2.2.3
+RUN yarn global add turbo@2.4.0
 COPY . .
 RUN turbo prune --scope="@nhost/dashboard" --docker
 
@@ -30,7 +30,7 @@ ENV NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=__NEXT_PUBLIC_NHOST_HASURA_MIGRA
 ENV NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__
 ENV NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__
 
-RUN yarn global add pnpm@9.15.0
+RUN yarn global add pnpm@9.15.5
 COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-*.yaml .
