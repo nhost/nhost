@@ -96,8 +96,6 @@ func Startup(config *Config) {
 		panic(fmt.Sprintf("Failed to start vips code=%v", err))
 	}
 
-	initializeICCProfiles()
-
 	running = true
 
 	if config != nil {
@@ -185,7 +183,9 @@ func Shutdown() {
 		return
 	}
 
-	os.RemoveAll(temporaryDirectory)
+	if temporaryDirectory != "" {
+		os.RemoveAll(temporaryDirectory)
+	}
 
 	C.vips_shutdown()
 	disableLogging()

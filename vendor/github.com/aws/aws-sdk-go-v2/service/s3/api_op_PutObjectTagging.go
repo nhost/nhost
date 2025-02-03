@@ -14,7 +14,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// This operation is not supported by directory buckets.
+// This operation is not supported for directory buckets.
 //
 // Sets the supplied tag-set to an object that already exists in a bucket. A tag
 // is a key-value pair. For more information, see [Object Tagging].
@@ -239,6 +239,9 @@ func (c *Client) addOperationPutObjectTaggingMiddlewares(stack *middleware.Stack
 	if err = addIsExpressUserAgent(stack); err != nil {
 		return err
 	}
+	if err = addRequestChecksumMetricsTracking(stack, options); err != nil {
+		return err
+	}
 	if err = addOpPutObjectTaggingValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -319,9 +322,10 @@ func getPutObjectTaggingRequestAlgorithmMember(input interface{}) (string, bool)
 }
 
 func addPutObjectTaggingInputChecksumMiddlewares(stack *middleware.Stack, options Options) error {
-	return internalChecksum.AddInputMiddleware(stack, internalChecksum.InputMiddlewareOptions{
+	return addInputChecksumMiddleware(stack, internalChecksum.InputMiddlewareOptions{
 		GetAlgorithm:                     getPutObjectTaggingRequestAlgorithmMember,
 		RequireChecksum:                  true,
+		RequestChecksumCalculation:       options.RequestChecksumCalculation,
 		EnableTrailingChecksum:           false,
 		EnableComputeSHA256PayloadHash:   true,
 		EnableDecodedContentLengthHeader: true,

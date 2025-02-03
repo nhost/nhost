@@ -84,7 +84,7 @@ typedef struct SaveParams {
 
   // JPEG
   BOOL jpegOptimizeCoding;
-  VipsForeignJpegSubsample jpegSubsample;
+  VipsForeignSubsample jpegSubsample;
   BOOL jpegTrellisQuant;
   BOOL jpegOvershootDeringing;
   BOOL jpegOptimizeScans;

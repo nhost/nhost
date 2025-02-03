@@ -24,6 +24,7 @@ import (
 type MockMetadataStorage struct {
 	ctrl     *gomock.Controller
 	recorder *MockMetadataStorageMockRecorder
+	isgomock struct{}
 }
 
 // MockMetadataStorageMockRecorder is the mock recorder for MockMetadataStorage.
@@ -163,6 +164,7 @@ func (mr *MockMetadataStorageMockRecorder) SetIsUploaded(ctx, fileID, isUploaded
 type MockContentStorage struct {
 	ctrl     *gomock.Controller
 	recorder *MockContentStorageMockRecorder
+	isgomock struct{}
 }
 
 // MockContentStorageMockRecorder is the mock recorder for MockContentStorage.
@@ -275,6 +277,7 @@ func (mr *MockContentStorageMockRecorder) PutFile(ctx, content, filepath, conten
 type MockAntivirus struct {
 	ctrl     *gomock.Controller
 	recorder *MockAntivirusMockRecorder
+	isgomock struct{}
 }
 
 // MockAntivirusMockRecorder is the mock recorder for MockAntivirus.

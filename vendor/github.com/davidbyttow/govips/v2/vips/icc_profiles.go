@@ -1,9 +1,9 @@
 package vips
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 var (
@@ -644,32 +644,83 @@ var (
 		0x00, 0x20, 0x63, 0xcf, 0x8f, 0xf0, 0x65, 0x87, 0x4e, 0xf6, 0x00, 0x00,
 	}
 
-	temporaryDirectory               = temporaryDirectoryOrPanic()
-	SRGBV2MicroICCProfilePath        = filepath.Join(temporaryDirectory, "srgb_v2_micro.icc")
-	SGrayV2MicroICCProfilePath       = filepath.Join(temporaryDirectory, "sgray_v2_micro.icc")
-	SRGBIEC6196621ICCProfilePath     = filepath.Join(temporaryDirectory, "srgb_iec61966_2_1.icc")
-	GenericGrayGamma22ICCProfilePath = filepath.Join(temporaryDirectory, "generic_gray_gamma_2_2.icc")
+	sRGBV2MicroICCProfilePathToken        = "\x00srgb_v2_micro.icc"
+	sGrayV2MicroICCProfilePathToken       = "\x00sgray_v2_micro.icc"
+	sRGBIEC6196621ICCProfilePathToken     = "\x00srgb_iec61966_2_1.icc"
+	genericGrayGamma22ICCProfilePathToken = "\x00generic_gray_gamma_2_2.icc"
+
+	temporaryDirectory               = ""
+	SRGBV2MicroICCProfilePath        = sRGBV2MicroICCProfilePathToken
+	SGrayV2MicroICCProfilePath       = sGrayV2MicroICCProfilePathToken
+	SRGBIEC6196621ICCProfilePath     = sRGBIEC6196621ICCProfilePathToken
+	GenericGrayGamma22ICCProfilePath = genericGrayGamma22ICCProfilePathToken
 )
 
-func initializeICCProfiles() {
-	storeIccProfile(SRGBV2MicroICCProfilePath, sRGBV2MicroICCProfile)
-	storeIccProfile(SGrayV2MicroICCProfilePath, sGrayV2MicroICCProfile)
-	storeIccProfile(SRGBIEC6196621ICCProfilePath, sRGBIEC6196621ICCProfile)
-	storeIccProfile(GenericGrayGamma22ICCProfilePath, genericGrayGamma22ICCProfile)
+// Back support
+func ensureLoadICCPath(name *string) (err error) {
+	if len(*name) > 0 && (*name)[0] == 0 {
+		switch *name {
+		case sRGBV2MicroICCProfilePathToken:
+			*name, err = GetSRGBV2MicroICCProfilePath()
+			return
+		case sGrayV2MicroICCProfilePathToken:
+			*name, err = GetSGrayV2MicroICCProfilePath()
+			return
+		case sRGBIEC6196621ICCProfilePathToken:
+			*name, err = GetSRGBIEC6196621ICCProfilePath()
+			return
+		case genericGrayGamma22ICCProfilePathToken:
+			*name, err = GetGenericGrayGamma22ICCProfilePath()
+			return
+		}
+	}
+	return
 }
 
-func storeIccProfile(path string, data []byte) {
-	err := os.WriteFile(path, data, 0600)
-	if err != nil {
-		panic(fmt.Sprintf("Couldn't store temporary file for ICC profile in '%v': %v", path, err.Error()))
+func getTemporaryDirectory() (string, error) {
+	if temporaryDirectory != "" {
+		return temporaryDirectory, nil
 	}
+	var err error
+	temporaryDirectory, err = os.MkdirTemp("", "govips-")
+	if err != nil {
+		return "", err
+	}
+	return temporaryDirectory, nil
 }
 
-func temporaryDirectoryOrPanic() string {
-	temporaryDirectory, err := os.MkdirTemp("", "govips-")
-	if err != nil {
-		panic(fmt.Sprintf("Couldn't create temporary directory: %v", err.Error()))
+var lockIcc sync.Mutex
+
+func GetSRGBV2MicroICCProfilePath() (string, error) {
+	return getOrLoad(&SRGBV2MicroICCProfilePath, "srgb_v2_micro.icc", sRGBV2MicroICCProfile)
+}
+
+func GetSGrayV2MicroICCProfilePath() (string, error) {
+	return getOrLoad(&SGrayV2MicroICCProfilePath, "sgray_v2_micro.icc", sGrayV2MicroICCProfile)
+}
+
+func GetSRGBIEC6196621ICCProfilePath() (string, error) {
+	return getOrLoad(&SRGBIEC6196621ICCProfilePath, "srgb_iec61966_2_1.icc", sRGBIEC6196621ICCProfile)
+}
+
+func GetGenericGrayGamma22ICCProfilePath() (string, error) {
+	return getOrLoad(&GenericGrayGamma22ICCProfilePath, "generic_gray_gamma_2_2.icc", genericGrayGamma22ICCProfile)
+}
+
+func getOrLoad(pathFile *string, name string, fileBytes []byte) (string, error) {
+	lockIcc.Lock()
+	defer lockIcc.Unlock()
+	if len(*pathFile) > 0 && (*pathFile)[0] != 0 {
+		return *pathFile, nil
 	}
 
-	return temporaryDirectory
+	if _, err := getTemporaryDirectory(); err != nil {
+		return "", err
+	}
+
+	*pathFile = filepath.Join(temporaryDirectory, name)
+	if err := os.WriteFile(*pathFile, fileBytes, 0600); err != nil {
+		return "", err
+	}
+	return *pathFile, nil
 }

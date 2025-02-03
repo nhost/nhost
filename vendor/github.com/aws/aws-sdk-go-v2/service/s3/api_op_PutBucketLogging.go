@@ -15,7 +15,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// This operation is not supported by directory buckets.
+// This operation is not supported for directory buckets.
 //
 // Set the logging parameters for a bucket and to specify permissions for who can
 // view and modify the logging parameters. All logs are saved to buckets in the
@@ -214,6 +214,9 @@ func (c *Client) addOperationPutBucketLoggingMiddlewares(stack *middleware.Stack
 	if err = addIsExpressUserAgent(stack); err != nil {
 		return err
 	}
+	if err = addRequestChecksumMetricsTracking(stack, options); err != nil {
+		return err
+	}
 	if err = addOpPutBucketLoggingValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -294,9 +297,10 @@ func getPutBucketLoggingRequestAlgorithmMember(input interface{}) (string, bool)
 }
 
 func addPutBucketLoggingInputChecksumMiddlewares(stack *middleware.Stack, options Options) error {
-	return internalChecksum.AddInputMiddleware(stack, internalChecksum.InputMiddlewareOptions{
+	return addInputChecksumMiddleware(stack, internalChecksum.InputMiddlewareOptions{
 		GetAlgorithm:                     getPutBucketLoggingRequestAlgorithmMember,
 		RequireChecksum:                  true,
+		RequestChecksumCalculation:       options.RequestChecksumCalculation,
 		EnableTrailingChecksum:           false,
 		EnableComputeSHA256PayloadHash:   true,
 		EnableDecodedContentLengthHeader: true,

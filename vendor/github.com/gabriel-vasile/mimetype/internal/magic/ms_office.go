@@ -5,58 +5,19 @@ import (
 	"encoding/binary"
 )
 
-var (
-	xlsxSigFiles = [][]byte{
-		[]byte("xl/worksheets/"),
-		[]byte("xl/drawings/"),
-		[]byte("xl/theme/"),
-		[]byte("xl/_rels/"),
-		[]byte("xl/styles.xml"),
-		[]byte("xl/workbook.xml"),
-		[]byte("xl/sharedStrings.xml"),
-	}
-	docxSigFiles = [][]byte{
-		[]byte("word/media/"),
-		[]byte("word/_rels/document.xml.rels"),
-		[]byte("word/document.xml"),
-		[]byte("word/styles.xml"),
-		[]byte("word/fontTable.xml"),
-		[]byte("word/settings.xml"),
-		[]byte("word/numbering.xml"),
-		[]byte("word/header"),
-		[]byte("word/footer"),
-	}
-	pptxSigFiles = [][]byte{
-		[]byte("ppt/slides/"),
-		[]byte("ppt/media/"),
-		[]byte("ppt/slideLayouts/"),
-		[]byte("ppt/theme/"),
-		[]byte("ppt/slideMasters/"),
-		[]byte("ppt/tags/"),
-		[]byte("ppt/notesMasters/"),
-		[]byte("ppt/_rels/"),
-		[]byte("ppt/handoutMasters/"),
-		[]byte("ppt/notesSlides/"),
-		[]byte("ppt/presentation.xml"),
-		[]byte("ppt/tableStyles.xml"),
-		[]byte("ppt/presProps.xml"),
-		[]byte("ppt/viewProps.xml"),
-	}
-)
-
 // Xlsx matches a Microsoft Excel 2007 file.
 func Xlsx(raw []byte, limit uint32) bool {
-	return zipContains(raw, xlsxSigFiles...)
+	return zipContains(raw, []byte("xl/"), true)
 }
 
 // Docx matches a Microsoft Word 2007 file.
 func Docx(raw []byte, limit uint32) bool {
-	return zipContains(raw, docxSigFiles...)
+	return zipContains(raw, []byte("word/"), true)
 }
 
 // Pptx matches a Microsoft PowerPoint 2007 file.
 func Pptx(raw []byte, limit uint32) bool {
-	return zipContains(raw, pptxSigFiles...)
+	return zipContains(raw, []byte("ppt/"), true)
 }
 
 // Ole matches an Open Linking and Embedding file.

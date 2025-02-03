@@ -15,7 +15,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// This operation is not supported by directory buckets.
+// This operation is not supported for directory buckets.
 //
 // Sets the permissions on an existing bucket using access control lists (ACL).
 // For more information, see [Using ACLs]. To set the ACL of a bucket, you must have the
@@ -209,7 +209,7 @@ type PutBucketAclInput struct {
 	// [Checking object integrity]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
 	ChecksumAlgorithm types.ChecksumAlgorithm
 
-	// The base64-encoded 128-bit MD5 digest of the data. This header must be used as
+	// The Base64 encoded 128-bit MD5 digest of the data. This header must be used as
 	// a message integrity check to verify that the request body was not corrupted in
 	// transit. For more information, go to [RFC 1864.]
 	//
@@ -329,6 +329,9 @@ func (c *Client) addOperationPutBucketAclMiddlewares(stack *middleware.Stack, op
 	if err = addIsExpressUserAgent(stack); err != nil {
 		return err
 	}
+	if err = addRequestChecksumMetricsTracking(stack, options); err != nil {
+		return err
+	}
 	if err = addOpPutBucketAclValidationMiddleware(stack); err != nil {
 		return err
 	}
@@ -409,9 +412,10 @@ func getPutBucketAclRequestAlgorithmMember(input interface{}) (string, bool) {
 }
 
 func addPutBucketAclInputChecksumMiddlewares(stack *middleware.Stack, options Options) error {
-	return internalChecksum.AddInputMiddleware(stack, internalChecksum.InputMiddlewareOptions{
+	return addInputChecksumMiddleware(stack, internalChecksum.InputMiddlewareOptions{
 		GetAlgorithm:                     getPutBucketAclRequestAlgorithmMember,
 		RequireChecksum:                  true,
+		RequestChecksumCalculation:       options.RequestChecksumCalculation,
 		EnableTrailingChecksum:           false,
 		EnableComputeSHA256PayloadHash:   true,
 		EnableDecodedContentLengthHeader: true,

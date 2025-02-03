@@ -526,7 +526,7 @@ static SaveParams defaultSaveParams = {
     .stripMetadata = FALSE,
 
     .jpegOptimizeCoding = FALSE,
-    .jpegSubsample = VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
+    .jpegSubsample = VIPS_FOREIGN_SUBSAMPLE_ON,
     .jpegTrellisQuant = FALSE,
     .jpegOvershootDeringing = FALSE,
     .jpegOptimizeScans = FALSE,

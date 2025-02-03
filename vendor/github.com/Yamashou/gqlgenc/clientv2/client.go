@@ -20,6 +20,11 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
+type HttpClient interface {
+	Do(req *http.Request) (*http.Response, error)
+	Post(url, contentType string, body io.Reader) (*http.Response, error)
+}
+
 type GQLRequestInfo struct {
 	Request *Request
 }
@@ -30,17 +35,38 @@ func NewGQLRequestInfo(r *Request) *GQLRequestInfo {
 	}
 }
 
-type RequestInterceptorFunc func(ctx context.Context, req *http.Request, gqlInfo *GQLRequestInfo, res interface{}) error
+type RequestInterceptorFunc func(ctx context.Context, req *http.Request, gqlInfo *GQLRequestInfo, res any) error
 
-type RequestInterceptor func(ctx context.Context, req *http.Request, gqlInfo *GQLRequestInfo, res interface{}, next RequestInterceptorFunc) error
+type RequestInterceptor func(ctx context.Context, req *http.Request, gqlInfo *GQLRequestInfo, res any, next RequestInterceptorFunc) error
 
 func ChainInterceptor(interceptors ...RequestInterceptor) RequestInterceptor {
 	n := len(interceptors)
 
-	return func(ctx context.Context, req *http.Request, gqlInfo *GQLRequestInfo, res interface{}, next RequestInterceptorFunc) error {
+	return func(ctx context.Context, req *http.Request, gqlInfo *GQLRequestInfo, res any, next RequestInterceptorFunc) error {
 		chainer := func(currentInter RequestInterceptor, currentFunc RequestInterceptorFunc) RequestInterceptorFunc {
-			return func(currentCtx context.Context, currentReq *http.Request, currentGqlInfo *GQLRequestInfo, currentRes interface{}) error {
+			return func(currentCtx context.Context, currentReq *http.Request, currentGqlInfo *GQLRequestInfo, currentRes any) error {
 				return currentInter(currentCtx, currentReq, currentGqlInfo, currentRes, currentFunc)
+			}
+		}
+
+		chainedHandler := next
+		for i := n - 1; i >= 0; i-- {
+			chainedHandler = chainer(interceptors[i], chainedHandler)
+		}
+
+		return chainedHandler(ctx, req, gqlInfo, res)
+	}
+}
+
+func UnsafeChainInterceptor(interceptors ...RequestInterceptor) RequestInterceptor {
+	n := len(interceptors)
+
+	return func(ctx context.Context, req *http.Request, gqlInfo *GQLRequestInfo, res any, next RequestInterceptorFunc) error {
+		chainer := func(currentInter RequestInterceptor, currentFunc RequestInterceptorFunc) RequestInterceptorFunc {
+			return func(currentCtx context.Context, currentReq *http.Request, currentGqlInfo *GQLRequestInfo, currentRes any) error {
+				return currentInter(currentCtx, currentReq, currentGqlInfo, currentRes, func(nextCtx context.Context, nextReq *http.Request, nextGqlInfo *GQLRequestInfo, nextRes any) error {
+					return currentFunc(nextCtx, nextReq, nextGqlInfo, nextRes)
+				})
 			}
 		}
 
@@ -55,28 +81,46 @@ func ChainInterceptor(interceptors ...RequestInterceptor) RequestInterceptor {
 
 // Client is the http client wrapper
 type Client struct {
-	Client              *http.Client
-	BaseURL             string
-	RequestInterceptor  RequestInterceptor
-	CustomDo            RequestInterceptorFunc
-	ParseDataWhenErrors bool
+	Client                     HttpClient
+	BaseURL                    string
+	RequestInterceptor         RequestInterceptor
+	CustomDo                   RequestInterceptorFunc
+	ParseDataWhenErrors        bool
+	IsUnsafeRequestInterceptor bool
 }
 
 // Request represents an outgoing GraphQL request
 type Request struct {
-	Query         string                 `json:"query"`
-	Variables     map[string]interface{} `json:"variables,omitempty"`
-	OperationName string                 `json:"operationName,omitempty"`
+	Query         string         `json:"query"`
+	Variables     map[string]any `json:"variables,omitempty"`
+	OperationName string         `json:"operationName,omitempty"`
 }
 
 // NewClient creates a new http client wrapper
-func NewClient(client *http.Client, baseURL string, options *Options, interceptors ...RequestInterceptor) *Client {
+func NewClient(client HttpClient, baseURL string, options *Options, interceptors ...RequestInterceptor) *Client {
 	c := &Client{
 		Client:  client,
 		BaseURL: baseURL,
-		RequestInterceptor: ChainInterceptor(append([]RequestInterceptor{func(ctx context.Context, requestSet *http.Request, gqlInfo *GQLRequestInfo, res interface{}, next RequestInterceptorFunc) error {
+		RequestInterceptor: ChainInterceptor(append([]RequestInterceptor{func(ctx context.Context, requestSet *http.Request, gqlInfo *GQLRequestInfo, res any, next RequestInterceptorFunc) error {
 			return next(ctx, requestSet, gqlInfo, res)
 		}}, interceptors...)...),
+	}
+
+	if options != nil {
+		c.ParseDataWhenErrors = options.ParseDataAlongWithErrors
+	}
+
+	return c
+}
+
+func NewClientWithUnsafeRequestInterceptor(client HttpClient, baseURL string, options *Options, interceptors ...RequestInterceptor) *Client {
+	c := &Client{
+		Client:  client,
+		BaseURL: baseURL,
+		RequestInterceptor: UnsafeChainInterceptor(append([]RequestInterceptor{func(ctx context.Context, requestSet *http.Request, gqlInfo *GQLRequestInfo, res any, next RequestInterceptorFunc) error {
+			return next(ctx, requestSet, gqlInfo, res)
+		}}, interceptors...)...),
+		IsUnsafeRequestInterceptor: true,
 	}
 
 	if options != nil {
@@ -142,7 +186,7 @@ type MultipartFilesGroup struct {
 
 type FormField struct {
 	Name  string
-	Value interface{}
+	Value any
 }
 
 type header struct {
@@ -150,7 +194,7 @@ type header struct {
 }
 
 // Post support send multipart form with files https://gqlgen.com/reference/file-upload/ https://github.com/jaydenseric/graphql-multipart-request-spec
-func (c *Client) Post(ctx context.Context, operationName, query string, respData interface{}, vars map[string]interface{}, interceptors ...RequestInterceptor) error {
+func (c *Client) Post(ctx context.Context, operationName, query string, respData any, vars map[string]any, interceptors ...RequestInterceptor) error {
 	multipartFilesGroups, mapping, vars := parseMultipartFiles(vars)
 
 	r := &Request{
@@ -185,7 +229,7 @@ func (c *Client) Post(ctx context.Context, operationName, query string, respData
 
 		headers = append(headers, header{key: "Content-Type", value: contentType})
 	} else {
-		requestBody, err := MarshalJSON(r)
+		requestBody, err := MarshalJSON(ctx, r)
 		if err != nil {
 			return fmt.Errorf("encode: %w", err)
 		}
@@ -206,6 +250,9 @@ func (c *Client) Post(ctx context.Context, operationName, query string, respData
 	}
 
 	f := ChainInterceptor(append([]RequestInterceptor{c.RequestInterceptor}, interceptors...)...)
+	if c.IsUnsafeRequestInterceptor {
+		f = UnsafeChainInterceptor(append([]RequestInterceptor{c.RequestInterceptor}, interceptors...)...)
+	}
 
 	// if custom do is set, use it instead of the default one
 	if c.CustomDo != nil {
@@ -216,8 +263,8 @@ func (c *Client) Post(ctx context.Context, operationName, query string, respData
 }
 
 func parseMultipartFiles(
-	vars map[string]interface{},
-) ([]MultipartFilesGroup, map[string][]string, map[string]interface{}) {
+	vars map[string]any,
+) ([]MultipartFilesGroup, map[string][]string, map[string]any) {
 	var (
 		multipartFilesGroups []MultipartFilesGroup
 		mapping              = map[string][]string{}
@@ -236,6 +283,26 @@ func parseMultipartFiles(
 					{
 						Index: i,
 						File:  item,
+					},
+				},
+			})
+
+			i++
+		case *graphql.Upload:
+			// continue if it is empty
+			if item == nil {
+				continue
+			}
+
+			iStr := strconv.Itoa(i)
+			vars[k] = nil
+			mapping[iStr] = []string{fmt.Sprintf("variables.%s", k)}
+
+			multipartFilesGroups = append(multipartFilesGroups, MultipartFilesGroup{
+				Files: []MultipartFile{
+					{
+						Index: i,
+						File:  *item,
 					},
 				},
 			})
@@ -308,7 +375,7 @@ func prepareMultipartFormBody(
 	return writer.FormDataContentType(), nil
 }
 
-func (c *Client) do(_ context.Context, req *http.Request, _ *GQLRequestInfo, res interface{}) error {
+func (c *Client) do(_ context.Context, req *http.Request, _ *GQLRequestInfo, res any) error {
 	resp, err := c.Client.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
@@ -330,7 +397,7 @@ func (c *Client) do(_ context.Context, req *http.Request, _ *GQLRequestInfo, res
 	return c.parseResponse(body, resp.StatusCode, res)
 }
 
-func (c *Client) parseResponse(body []byte, httpCode int, result interface{}) error {
+func (c *Client) parseResponse(body []byte, httpCode int, result any) error {
 	errResponse := &ErrorResponse{}
 	isOKCode := httpCode < 200 || 299 < httpCode
 	if isOKCode {
@@ -363,14 +430,14 @@ type response struct {
 	Errors json.RawMessage `json:"errors"`
 }
 
-func (c *Client) unmarshal(data []byte, res interface{}) error {
+func (c *Client) unmarshal(data []byte, res any) error {
 	resp := response{}
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return fmt.Errorf("failed to decode data %s: %w", string(data), err)
 	}
 
 	var err error
-	if resp.Errors != nil && len(resp.Errors) > 0 {
+	if len(resp.Errors) > 0 {
 		// try to parse standard graphql error
 		err = &GqlErrorList{}
 		if e := json.Unmarshal(data, err); e != nil {
@@ -395,7 +462,32 @@ func (c *Client) unmarshal(data []byte, res interface{}) error {
 	return err
 }
 
-func MarshalJSON(v interface{}) ([]byte, error) {
+// contextKey is a type for context keys
+type contextKey string
+
+const (
+	// EnableInputJsonOmitemptyTagKey is a context key for EnableInputJsonOmitemptyTag
+	EnableInputJsonOmitemptyTagKey contextKey = "enable_input_json_omitempty_tag"
+)
+
+// WithEnableInputJsonOmitemptyTag returns a new context with EnableInputJsonOmitemptyTag value
+func WithEnableInputJsonOmitemptyTag(ctx context.Context, enable bool) context.Context {
+	return context.WithValue(ctx, EnableInputJsonOmitemptyTagKey, enable)
+}
+
+// getEnableInputJsonOmitemptyTagFromContext retrieves the EnableInputJsonOmitemptyTag value from context
+func getEnableInputJsonOmitemptyTagFromContext(ctx context.Context) bool {
+	enableClientJsonOmitemptyTag := true
+	if ctx != nil {
+		enable, ok := ctx.Value(EnableInputJsonOmitemptyTagKey).(bool)
+		if ok {
+			enableClientJsonOmitemptyTag = enable
+		}
+	}
+	return enableClientJsonOmitemptyTag
+}
+
+func MarshalJSON(ctx context.Context, v any) ([]byte, error) {
 	if v == nil {
 		return []byte("null"), nil
 	}
@@ -405,59 +497,75 @@ func MarshalJSON(v interface{}) ([]byte, error) {
 		return []byte("null"), nil
 	}
 
-	return encode(val)
+	encoder := &Encoder{
+		EnableInputJsonOmitemptyTag: getEnableInputJsonOmitemptyTagFromContext(ctx),
+	}
+
+	return encoder.Encode(val)
 }
 
 func checkImplements[I any](v reflect.Value) bool {
 	t := v.Type()
 	interfaceType := reflect.TypeOf((*I)(nil)).Elem()
 
-	// Check if the type implements the interface directly or as a pointer.
-	return t.Implements(interfaceType) || (t.Kind() == reflect.Ptr && reflect.PtrTo(t).Implements(interfaceType))
+	return t.Implements(interfaceType) || (t.Kind() == reflect.Ptr && reflect.PointerTo(t).Implements(interfaceType))
 }
 
-// encode returns an appropriate encoder function for the provided value.
-func encode(v reflect.Value) ([]byte, error) {
+// Encoder is a struct for encoding GraphQL requests to JSON
+type Encoder struct {
+	EnableInputJsonOmitemptyTag bool
+}
+
+// fieldInfo holds field information of a struct
+type fieldInfo struct {
+	name      string       // field name
+	jsonName  string       // field name in JSON
+	omitempty bool         // omitempty flag
+	typ       reflect.Type // field type
+}
+
+// Encode encodes any value to JSON
+func (e *Encoder) Encode(v reflect.Value) ([]byte, error) {
 	if !v.IsValid() || (v.Kind() == reflect.Ptr && v.IsNil()) {
 		return []byte("null"), nil
 	}
 
 	if checkImplements[graphql.Marshaler](v) {
-		return encodeGQLMarshaler(v.Interface())
+		return e.encodeGQLMarshaler(v.Interface())
 	}
 
 	if checkImplements[json.Marshaler](v) {
-		return encodeJsonMarshaler(v.Interface())
+		return e.encodeJsonMarshaler(v.Interface())
 	}
 
 	if checkImplements[encoding.TextMarshaler](v) {
-		return encodeTextMarshaler(v.Interface())
+		return e.encodeTextMarshaler(v.Interface())
 	}
 
-	t := v.Type() // Get the type from the value
+	t := v.Type()
 	switch t.Kind() {
 	case reflect.Ptr:
-		return encodePtr(v)
+		return e.encodePtr(v)
 	case reflect.Struct:
-		return encodeStruct(v)
+		return e.encodeStruct(v)
 	case reflect.Map:
-		return encodeMap(v)
+		return e.encodeMap(v)
 	case reflect.Slice:
-		return encodeSlice(v)
+		return e.encodeSlice(v)
 	case reflect.Array:
-		return encodeArray(v)
+		return e.encodeArray(v)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return encodeInt(v)
+		return e.encodeInt(v)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return encodeUint(v)
+		return e.encodeUint(v)
 	case reflect.String:
-		return encodeString(v)
+		return e.encodeString(v)
 	case reflect.Bool:
-		return encodeBool(v)
+		return e.encodeBool(v)
 	case reflect.Float32, reflect.Float64:
-		return encodeFloat(v)
+		return e.encodeFloat(v)
 	case reflect.Interface:
-		return encodeInterface(v)
+		return e.encodeInterface(v)
 	case reflect.Invalid, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.UnsafePointer:
 		panic(fmt.Sprintf("unsupported type: %s", t))
 	default:
@@ -465,7 +573,8 @@ func encode(v reflect.Value) ([]byte, error) {
 	}
 }
 
-func encodeGQLMarshaler(v any) ([]byte, error) {
+// encodeGQLMarshaler encodes a value that implements graphql.Marshaler interface
+func (e *Encoder) encodeGQLMarshaler(v any) ([]byte, error) {
 	if v == nil {
 		return []byte("null"), nil
 	}
@@ -480,24 +589,24 @@ func encodeGQLMarshaler(v any) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func encodeJsonMarshaler(v any) ([]byte, error) {
+// encodeJsonMarshaler encodes a value that implements json.Marshaler interface
+func (e *Encoder) encodeJsonMarshaler(v any) ([]byte, error) {
 	if val, ok := v.(json.Marshaler); ok {
 		return val.MarshalJSON()
-	} else {
-		return nil, fmt.Errorf("failed to encode json.Marshaler: %v", v)
 	}
+	return nil, fmt.Errorf("failed to encode json.Marshaler: %v", v)
 }
 
-func encodeTextMarshaler(v any) ([]byte, error) {
+// encodeTextMarshaler encodes a value that implements encoding.TextMarshaler interface
+func (e *Encoder) encodeTextMarshaler(v any) ([]byte, error) {
 	if _, ok := v.(encoding.TextMarshaler); ok {
-		// json.Marshal uses encoding.TextMarshaler internally if the value implements it.
 		return json.Marshal(v)
-	} else {
-		return nil, fmt.Errorf("failed to encode encoding.TextMarshaler: %v", v)
 	}
+	return nil, fmt.Errorf("failed to encode encoding.TextMarshaler: %v", v)
 }
 
-func encodeBool(v reflect.Value) ([]byte, error) {
+// encodeBool encodes a boolean value
+func (e *Encoder) encodeBool(v reflect.Value) ([]byte, error) {
 	boolValue, err := json.Marshal(v.Bool())
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode bool: %v", v)
@@ -505,19 +614,23 @@ func encodeBool(v reflect.Value) ([]byte, error) {
 	return boolValue, nil
 }
 
-func encodeInt(v reflect.Value) ([]byte, error) {
+// encodeInt encodes an integer value
+func (e *Encoder) encodeInt(v reflect.Value) ([]byte, error) {
 	return []byte(fmt.Sprintf("%d", v.Int())), nil
 }
 
-func encodeUint(v reflect.Value) ([]byte, error) {
+// encodeUint encodes an unsigned integer value
+func (e *Encoder) encodeUint(v reflect.Value) ([]byte, error) {
 	return []byte(fmt.Sprintf("%d", v.Uint())), nil
 }
 
-func encodeFloat(v reflect.Value) ([]byte, error) {
+// encodeFloat encodes a floating-point value
+func (e *Encoder) encodeFloat(v reflect.Value) ([]byte, error) {
 	return []byte(fmt.Sprintf("%f", v.Float())), nil
 }
 
-func encodeString(v reflect.Value) ([]byte, error) {
+// encodeString encodes a string value
+func (e *Encoder) encodeString(v reflect.Value) ([]byte, error) {
 	stringValue, err := json.Marshal(v.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode string: %v", v)
@@ -525,30 +638,146 @@ func encodeString(v reflect.Value) ([]byte, error) {
 	return stringValue, nil
 }
 
-type fieldInfo struct {
-	name      string
-	jsonName  string
-	omitempty bool
-	typ       reflect.Type
+// trimQuotes removes double quotes from the beginning and end of a string
+func (e *Encoder) trimQuotes(s string) string {
+	if len(s) > 1 && s[0] == '"' && s[len(s)-1] == '"' {
+		return s[1 : len(s)-1]
+	}
+	return s
 }
 
-func prepareFields(t reflect.Type) []fieldInfo {
+func (e *Encoder) isSkipOmitemptyField(v reflect.Value, field fieldInfo) bool {
+	if !e.EnableInputJsonOmitemptyTag {
+		return false
+	}
+
+	if !field.omitempty {
+		return false
+	}
+
+	if !v.IsValid() {
+		return true
+	}
+
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return true
+	}
+
+	return v.IsZero()
+}
+
+// encodeStruct encodes a struct value
+func (e *Encoder) encodeStruct(v reflect.Value) ([]byte, error) {
+	fields := e.prepareFields(v.Type())
+	result := make(map[string]json.RawMessage)
+	for _, field := range fields {
+		fieldValue := v.FieldByName(field.name)
+		if e.isSkipOmitemptyField(fieldValue, field) {
+			continue
+		}
+
+		// omitemptyが無効な場合、nilスライスは空のスライス[]として扱う
+		if !e.EnableInputJsonOmitemptyTag && fieldValue.Kind() == reflect.Slice && fieldValue.IsNil() {
+			result[field.jsonName] = []byte("[]")
+			continue
+		}
+
+		// omitemptyが無効な場合、nilポインタはnullとして扱い、出力に含める
+		if !e.EnableInputJsonOmitemptyTag && fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil() {
+			result[field.jsonName] = []byte("null")
+			continue
+		}
+
+		encodedValue, err := e.Encode(fieldValue)
+		if err != nil {
+			return nil, err
+		}
+		result[field.jsonName] = encodedValue
+	}
+	return json.Marshal(result)
+}
+
+// encodeMap encodes a map value
+func (e *Encoder) encodeMap(v reflect.Value) ([]byte, error) {
+	result := make(map[string]json.RawMessage)
+	for _, key := range v.MapKeys() {
+		encodedKey, err := e.Encode(key)
+		if err != nil {
+			return nil, err
+		}
+		keyStr := string(encodedKey)
+		keyStr = e.trimQuotes(keyStr)
+
+		value := v.MapIndex(key)
+		encodedValue, err := e.Encode(value)
+		if err != nil {
+			return nil, err
+		}
+		result[keyStr] = encodedValue
+	}
+	return json.Marshal(result)
+}
+
+// encodeSlice encodes a slice value
+func (e *Encoder) encodeSlice(v reflect.Value) ([]byte, error) {
+	result := make([]json.RawMessage, v.Len())
+	for i := range v.Len() {
+		encodedValue, err := e.Encode(v.Index(i))
+		if err != nil {
+			return nil, err
+		}
+		result[i] = encodedValue
+	}
+	return json.Marshal(result)
+}
+
+// encodeArray encodes an array value
+func (e *Encoder) encodeArray(v reflect.Value) ([]byte, error) {
+	result := make([]json.RawMessage, v.Len())
+	for i := range v.Len() {
+		encodedValue, err := e.Encode(v.Index(i))
+		if err != nil {
+			return nil, err
+		}
+		result[i] = encodedValue
+	}
+	return json.Marshal(result)
+}
+
+// encodePtr encodes a pointer value
+func (e *Encoder) encodePtr(v reflect.Value) ([]byte, error) {
+	if v.IsNil() {
+		return []byte("null"), nil
+	}
+	return e.Encode(v.Elem())
+}
+
+// encodeInterface encodes an interface value
+func (e *Encoder) encodeInterface(v reflect.Value) ([]byte, error) {
+	if v.IsNil() {
+		return []byte("null"), nil
+	}
+	return e.Encode(v.Elem())
+}
+
+// prepareFields collects field information from a struct type
+func (e *Encoder) prepareFields(t reflect.Type) []fieldInfo {
 	num := t.NumField()
 	fields := make([]fieldInfo, 0, num)
 	for i := range num {
 		f := t.Field(i)
-		if f.PkgPath != "" && !f.Anonymous { // Skip unexported fields unless they are embedded
+		if f.PkgPath != "" && !f.Anonymous {
 			continue
 		}
 		jsonTag := f.Tag.Get("json")
 		if jsonTag == "-" {
-			continue // Skip fields explicitly marked to be ignored
+			continue
 		}
 
 		jsonName := f.Name
 		if jsonTag != "" {
 			parts := strings.Split(jsonTag, ",")
-			jsonName = parts[0] // Use the name specified in the JSON tag
+			jsonName = parts[0]
 		}
 
 		fi := fieldInfo{
@@ -565,94 +794,4 @@ func prepareFields(t reflect.Type) []fieldInfo {
 	}
 
 	return fields
-}
-
-func encodeStruct(v reflect.Value) ([]byte, error) {
-	fields := prepareFields(v.Type())
-	result := make(map[string]json.RawMessage)
-	for _, field := range fields {
-		fieldValue := v.FieldByName(field.name)
-		if !fieldValue.IsValid() || (fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()) {
-			continue // Skip invalid or nil pointers to avoid panics
-		}
-
-		if field.omitempty && fieldValue.IsZero() {
-			continue // Skip nil fields marked with omitempty
-		}
-
-		encodedValue, err := encode(fieldValue)
-		if err != nil {
-			return nil, err
-		}
-		result[field.jsonName] = encodedValue
-	}
-	return json.Marshal(result)
-}
-
-func trimQuotes(s string) string {
-	if len(s) > 1 && s[0] == '"' && s[len(s)-1] == '"' {
-		return s[1 : len(s)-1]
-	}
-
-	return s
-}
-
-func encodeMap(v reflect.Value) ([]byte, error) {
-	result := make(map[string]json.RawMessage)
-	for _, key := range v.MapKeys() {
-		encodedKey, err := encode(key)
-		if err != nil {
-			return nil, err
-		}
-		keyStr := string(encodedKey)
-		keyStr = trimQuotes(keyStr)
-
-		value := v.MapIndex(key)
-		encodedValue, err := encode(value)
-		if err != nil {
-			return nil, err
-		}
-		result[keyStr] = encodedValue
-	}
-	return json.Marshal(result)
-}
-
-func encodeSlice(v reflect.Value) ([]byte, error) {
-	result := make([]json.RawMessage, v.Len())
-	for i := range v.Len() {
-		encodedValue, err := encode(v.Index(i))
-		if err != nil {
-			return nil, err
-		}
-		result[i] = encodedValue
-	}
-	return json.Marshal(result)
-}
-
-func encodeArray(v reflect.Value) ([]byte, error) {
-	result := make([]json.RawMessage, v.Len())
-	for i := range v.Len() {
-		encodedValue, err := encode(v.Index(i))
-		if err != nil {
-			return nil, err
-		}
-		result[i] = encodedValue
-	}
-	return json.Marshal(result)
-}
-
-func encodePtr(v reflect.Value) ([]byte, error) {
-	if v.IsNil() {
-		return []byte("null"), nil
-	}
-
-	return encode(v.Elem())
-}
-
-func encodeInterface(v reflect.Value) ([]byte, error) {
-	if v.IsNil() {
-		return []byte("null"), nil
-	}
-	actualValue := v.Elem()
-	return encode(actualValue)
 }

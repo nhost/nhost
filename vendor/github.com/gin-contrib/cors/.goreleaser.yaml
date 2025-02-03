@@ -1,5 +1,3 @@
-project_name: queue
-
 builds:
   - # If true, skip the build.
     # Useful for library projects.

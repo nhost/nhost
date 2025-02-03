@@ -45,7 +45,7 @@ import (
 //
 // The implementation is created on top of the JSON tokenizer available
 // in "encoding/json".Decoder.
-func UnmarshalData(data json.RawMessage, v interface{}) error {
+func UnmarshalData(data json.RawMessage, v any) error {
 	d := newDecoder(bytes.NewBuffer(data))
 	if err := d.Decode(v); err != nil {
 		return fmt.Errorf(": %w", err)
@@ -91,7 +91,7 @@ func newDecoder(r io.Reader) *Decoder {
 }
 
 // Decode decodes a single JSON value from d.tokenizer into v.
-func (d *Decoder) Decode(v interface{}) error {
+func (d *Decoder) Decode(v any) error {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Ptr {
 		return fmt.Errorf("cannot decode into non-pointer %T", v)
@@ -153,8 +153,8 @@ func (d *Decoder) decode() error { //nolint:maintidx
 				var data json.RawMessage
 				err = d.jsonDecoder.Decode(&data)
 				tok = data
-			case reflect.TypeOf(map[string]interface{}{}):
-				var data map[string]interface{}
+			case reflect.TypeOf(map[string]any{}):
+				var data map[string]any
 				err = d.jsonDecoder.Decode(&data)
 				tok = data
 			default:
@@ -206,7 +206,7 @@ func (d *Decoder) decode() error { //nolint:maintidx
 			}
 			d.popAllVs()
 			continue
-		case string, json.Number, bool, json.RawMessage, map[string]interface{}:
+		case string, json.Number, bool, json.RawMessage, map[string]any:
 			for i := range d.vs {
 				v := d.vs[i][len(d.vs[i])-1]
 				if !v.IsValid() {
