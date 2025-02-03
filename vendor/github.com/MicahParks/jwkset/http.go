@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/url"
 	"time"
 
 	"golang.org/x/time/rate"
@@ -51,13 +50,10 @@ func NewHTTPClient(options HTTPClientOptions) (Storage, error) {
 	}
 	for u, store := range options.HTTPURLs {
 		if store == nil {
-			parsed, err := url.ParseRequestURI(u)
+			var err error
+			options.HTTPURLs[u], err = NewStorageFromHTTP(u, HTTPClientStorageOptions{})
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse given URL %q: %w", u, errors.Join(err, ErrNewClient))
-			}
-			options.HTTPURLs[u], err = NewStorageFromHTTP(nil, HTTPClientStorageOptions{})
-			if err != nil {
-				return nil, fmt.Errorf("failed to create HTTP client storage for %q: %w", parsed.String(), errors.Join(err, ErrNewClient))
+				return nil, fmt.Errorf("failed to create HTTP client storage for %q: %w", u, errors.Join(err, ErrNewClient))
 			}
 		}
 	}
@@ -94,11 +90,6 @@ func NewDefaultHTTPClientCtx(ctx context.Context, urls []string) (Storage, error
 		RefreshUnknownKID: rate.NewLimiter(rate.Every(5*time.Minute), 1),
 	}
 	for _, u := range urls {
-		parsed, err := url.ParseRequestURI(u)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse given URL %q: %w", u, errors.Join(err, ErrNewClient))
-		}
-		u = parsed.String()
 		refreshErrorHandler := func(ctx context.Context, err error) {
 			slog.Default().ErrorContext(ctx, "Failed to refresh HTTP JWK Set from remote HTTP resource.",
 				"error", err,
@@ -111,7 +102,7 @@ func NewDefaultHTTPClientCtx(ctx context.Context, urls []string) (Storage, error
 			RefreshErrorHandler:       refreshErrorHandler,
 			RefreshInterval:           time.Hour,
 		}
-		c, err := NewStorageFromHTTP(parsed, options)
+		c, err := NewStorageFromHTTP(u, options)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create HTTP client storage for %q: %w", u, errors.Join(err, ErrNewClient))
 		}

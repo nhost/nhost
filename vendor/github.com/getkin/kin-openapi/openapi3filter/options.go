@@ -25,6 +25,9 @@ type Options struct {
 
 	MultiError bool
 
+	// Set RegexCompiler to override the regex implementation
+	RegexCompiler openapi3.RegexCompilerFunc
+
 	// A document with security schemes defined will not pass validation
 	// unless an AuthenticationFunc is defined.
 	// See NoopAuthenticationFunc

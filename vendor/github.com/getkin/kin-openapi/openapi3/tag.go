@@ -34,6 +34,7 @@ func (tags Tags) Validate(ctx context.Context, opts ...ValidationOption) error {
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#tag-object
 type Tag struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
+	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
 
 	Name         string        `json:"name,omitempty" yaml:"name,omitempty"`
 	Description  string        `json:"description,omitempty" yaml:"description,omitempty"`
@@ -75,6 +76,7 @@ func (t *Tag) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
+	delete(x.Extensions, originKey)
 	delete(x.Extensions, "name")
 	delete(x.Extensions, "description")
 	delete(x.Extensions, "externalDocs")

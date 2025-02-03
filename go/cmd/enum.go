@@ -33,7 +33,7 @@ func (e *EnumValue) Set(value string) error {
 	return fmt.Errorf("allowed values are %s", strings.Join(e.Enum, ", ")) //nolint: goerr113
 }
 
-func (e EnumValue) String() string {
+func (e *EnumValue) String() string {
 	return e.Get()
 }
 

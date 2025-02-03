@@ -19,6 +19,7 @@ type {{ $type.Name }}Ref struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *{{ $type.Name }}
@@ -72,6 +73,7 @@ func (x *{{ $type.Name }}Ref) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {

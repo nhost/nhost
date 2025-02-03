@@ -12,6 +12,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#security-scheme-object
 type SecurityScheme struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
+	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
 
 	Type             string      `json:"type,omitempty" yaml:"type,omitempty"`
 	Description      string      `json:"description,omitempty" yaml:"description,omitempty"`
@@ -100,6 +101,7 @@ func (ss *SecurityScheme) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
+	delete(x.Extensions, originKey)
 	delete(x.Extensions, "type")
 	delete(x.Extensions, "description")
 	delete(x.Extensions, "name")
@@ -216,6 +218,7 @@ func (ss *SecurityScheme) Validate(ctx context.Context, opts ...ValidationOption
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#oauth-flows-object
 type OAuthFlows struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
+	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
 
 	Implicit          *OAuthFlow `json:"implicit,omitempty" yaml:"implicit,omitempty"`
 	Password          *OAuthFlow `json:"password,omitempty" yaml:"password,omitempty"`
@@ -270,6 +273,7 @@ func (flows *OAuthFlows) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
+	delete(x.Extensions, originKey)
 	delete(x.Extensions, "implicit")
 	delete(x.Extensions, "password")
 	delete(x.Extensions, "clientCredentials")
@@ -316,11 +320,12 @@ func (flows *OAuthFlows) Validate(ctx context.Context, opts ...ValidationOption)
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#oauth-flow-object
 type OAuthFlow struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
+	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
 
-	AuthorizationURL string            `json:"authorizationUrl,omitempty" yaml:"authorizationUrl,omitempty"`
-	TokenURL         string            `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
-	RefreshURL       string            `json:"refreshUrl,omitempty" yaml:"refreshUrl,omitempty"`
-	Scopes           map[string]string `json:"scopes" yaml:"scopes"` // required
+	AuthorizationURL string    `json:"authorizationUrl,omitempty" yaml:"authorizationUrl,omitempty"`
+	TokenURL         string    `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
+	RefreshURL       string    `json:"refreshUrl,omitempty" yaml:"refreshUrl,omitempty"`
+	Scopes           StringMap `json:"scopes" yaml:"scopes"` // required
 }
 
 // MarshalJSON returns the JSON encoding of OAuthFlow.
@@ -359,6 +364,8 @@ func (flow *OAuthFlow) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
+
+	delete(x.Extensions, originKey)
 	delete(x.Extensions, "authorizationUrl")
 	delete(x.Extensions, "tokenUrl")
 	delete(x.Extensions, "refreshUrl")
@@ -426,4 +433,10 @@ func (flow *OAuthFlow) validate(ctx context.Context, typ oAuthFlowType, opts ...
 	}
 
 	return flow.Validate(ctx, opts...)
+}
+
+// UnmarshalJSON sets SecuritySchemes to a copy of data.
+func (securitySchemes *SecuritySchemes) UnmarshalJSON(data []byte) (err error) {
+	*securitySchemes, _, err = unmarshalStringMapP[SecuritySchemeRef](data)
+	return
 }

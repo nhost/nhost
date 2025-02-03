@@ -12,12 +12,30 @@ Options.ReplaceAttr can be used to alter or drop attributes. If set, it is
 called on each non-group attribute before it is logged.
 See [slog.HandlerOptions] for details.
 
+Create a new logger that doesn't write the time:
+
 	w := os.Stderr
 	logger := slog.New(
 		tint.NewHandler(w, &tint.Options{
 			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 				if a.Key == slog.TimeKey && len(groups) == 0 {
 					return slog.Attr{}
+				}
+				return a
+			},
+		}),
+	)
+
+Create a new logger that writes all errors in red:
+
+	w := os.Stderr
+	logger := slog.New(
+		tint.NewHandler(w, &tint.Options{
+			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+				if err, ok := a.Value.Any().(error); ok {
+					aErr := tint.Err(err)
+					aErr.Key = a.Key
+					return aErr
 				}
 				return a
 			},
@@ -59,22 +77,27 @@ import (
 	"io"
 	"log/slog"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 // ANSI modes
 const (
-	ansiReset          = "\033[0m"
-	ansiFaint          = "\033[2m"
-	ansiResetFaint     = "\033[22m"
-	ansiBrightRed      = "\033[91m"
-	ansiBrightGreen    = "\033[92m"
-	ansiBrightYellow   = "\033[93m"
-	ansiBrightRedFaint = "\033[91;2m"
+	ansiReset          = "\u001b[0m"
+	ansiFaint          = "\u001b[2m"
+	ansiResetFaint     = "\u001b[22m"
+	ansiBrightRed      = "\u001b[91m"
+	ansiBrightGreen    = "\u001b[92m"
+	ansiBrightYellow   = "\u001b[93m"
+	ansiBrightRedFaint = "\u001b[91;2m"
+
+	ansiEsc = '\u001b'
 )
 
 const errKey = "err"
@@ -335,7 +358,14 @@ func (h *handler) appendAttr(buf *buffer, attr slog.Attr, groupsPrefix string, g
 		return
 	}
 
-	if attr.Value.Kind() == slog.KindGroup {
+	switch attr.Value.Kind() {
+	case slog.KindAny:
+		if err, ok := attr.Value.Any().(tintError); ok {
+			h.appendTintError(buf, err, attr.Key, groupsPrefix)
+			buf.WriteByte(' ')
+			return
+		}
+	case slog.KindGroup:
 		if attr.Key != "" {
 			groupsPrefix += attr.Key + "."
 			groups = append(groups, attr.Key)
@@ -343,20 +373,17 @@ func (h *handler) appendAttr(buf *buffer, attr slog.Attr, groupsPrefix string, g
 		for _, groupAttr := range attr.Value.Group() {
 			h.appendAttr(buf, groupAttr, groupsPrefix, groups)
 		}
-	} else if err, ok := attr.Value.Any().(tintError); ok {
-		// append tintError
-		h.appendTintError(buf, err, attr.Key, groupsPrefix)
-		buf.WriteByte(' ')
-	} else {
-		h.appendKey(buf, attr.Key, groupsPrefix)
-		h.appendValue(buf, attr.Value, true)
-		buf.WriteByte(' ')
+		return
 	}
+
+	h.appendKey(buf, attr.Key, groupsPrefix)
+	h.appendValue(buf, attr.Value, true)
+	buf.WriteByte(' ')
 }
 
 func (h *handler) appendKey(buf *buffer, key, groups string) {
 	buf.WriteStringIf(!h.noColor, ansiFaint)
-	appendString(buf, groups+key, true)
+	appendString(buf, groups+key, true, !h.noColor)
 	buf.WriteByte('=')
 	buf.WriteStringIf(!h.noColor, ansiReset)
 }
@@ -364,7 +391,7 @@ func (h *handler) appendKey(buf *buffer, key, groups string) {
 func (h *handler) appendValue(buf *buffer, v slog.Value, quote bool) {
 	switch v.Kind() {
 	case slog.KindString:
-		appendString(buf, v.String(), quote)
+		appendString(buf, v.String(), quote, !h.noColor)
 	case slog.KindInt64:
 		*buf = strconv.AppendInt(*buf, v.Int64(), 10)
 	case slog.KindUint64:
@@ -374,10 +401,28 @@ func (h *handler) appendValue(buf *buffer, v slog.Value, quote bool) {
 	case slog.KindBool:
 		*buf = strconv.AppendBool(*buf, v.Bool())
 	case slog.KindDuration:
-		appendString(buf, v.Duration().String(), quote)
+		appendString(buf, v.Duration().String(), quote, !h.noColor)
 	case slog.KindTime:
-		appendString(buf, v.Time().String(), quote)
+		appendString(buf, v.Time().String(), quote, !h.noColor)
 	case slog.KindAny:
+		defer func() {
+			// Copied from log/slog/handler.go.
+			if r := recover(); r != nil {
+				// If it panics with a nil pointer, the most likely cases are
+				// an encoding.TextMarshaler or error fails to guard against nil,
+				// in which case "<nil>" seems to be the feasible choice.
+				//
+				// Adapted from the code in fmt/print.go.
+				if v := reflect.ValueOf(v.Any()); v.Kind() == reflect.Pointer && v.IsNil() {
+					appendString(buf, "<nil>", false, false)
+					return
+				}
+
+				// Otherwise just print the original panic message.
+				appendString(buf, fmt.Sprintf("!PANIC: %v", r), true, !h.noColor)
+			}
+		}()
+
 		switch cv := v.Any().(type) {
 		case slog.Level:
 			h.appendLevel(buf, cv)
@@ -386,42 +431,194 @@ func (h *handler) appendValue(buf *buffer, v slog.Value, quote bool) {
 			if err != nil {
 				break
 			}
-			appendString(buf, string(data), quote)
+			appendString(buf, string(data), quote, !h.noColor)
 		case *slog.Source:
 			h.appendSource(buf, cv)
 		default:
-			appendString(buf, fmt.Sprintf("%+v", v.Any()), quote)
+			appendString(buf, fmt.Sprintf("%+v", cv), quote, !h.noColor)
 		}
 	}
 }
 
-func (h *handler) appendTintError(buf *buffer, err error, attrKey, groupsPrefix string) {
+func (h *handler) appendTintError(buf *buffer, err tintError, attrKey, groupsPrefix string) {
 	buf.WriteStringIf(!h.noColor, ansiBrightRedFaint)
-	appendString(buf, groupsPrefix+attrKey, true)
+	appendString(buf, groupsPrefix+attrKey, true, !h.noColor)
 	buf.WriteByte('=')
 	buf.WriteStringIf(!h.noColor, ansiResetFaint)
-	appendString(buf, err.Error(), true)
+	appendString(buf, err.Error(), true, !h.noColor)
 	buf.WriteStringIf(!h.noColor, ansiReset)
 }
 
-func appendString(buf *buffer, s string, quote bool) {
-	if quote && needsQuoting(s) {
+func appendString(buf *buffer, s string, quote, color bool) {
+	if quote && !color {
+		// trim ANSI escape sequences
+		var inEscape bool
+		s = cut(s, func(r rune) bool {
+			if r == ansiEsc {
+				inEscape = true
+			} else if inEscape && unicode.IsLetter(r) {
+				inEscape = false
+				return true
+			}
+
+			return inEscape
+		})
+	}
+
+	quote = quote && needsQuoting(s)
+	switch {
+	case color && quote:
+		s = strconv.Quote(s)
+		s = strings.ReplaceAll(s, `\x1b`, string(ansiEsc))
+		buf.WriteString(s)
+	case !color && quote:
 		*buf = strconv.AppendQuote(*buf, s)
-	} else {
+	default:
 		buf.WriteString(s)
 	}
 }
 
+func cut(s string, f func(r rune) bool) string {
+	var res []rune
+	for i := 0; i < len(s); {
+		r, size := utf8.DecodeRuneInString(s[i:])
+		if r == utf8.RuneError {
+			break
+		}
+		if !f(r) {
+			res = append(res, r)
+		}
+		i += size
+	}
+	return string(res)
+}
+
+// Copied from log/slog/text_handler.go.
 func needsQuoting(s string) bool {
 	if len(s) == 0 {
 		return true
 	}
-	for _, r := range s {
-		if unicode.IsSpace(r) || r == '"' || r == '=' || !unicode.IsPrint(r) {
+	for i := 0; i < len(s); {
+		b := s[i]
+		if b < utf8.RuneSelf {
+			// Quote anything except a backslash that would need quoting in a
+			// JSON string, as well as space and '='
+			if b != '\\' && (b == ' ' || b == '=' || !safeSet[b]) {
+				return true
+			}
+			i++
+			continue
+		}
+		r, size := utf8.DecodeRuneInString(s[i:])
+		if r == utf8.RuneError || unicode.IsSpace(r) || !unicode.IsPrint(r) {
 			return true
 		}
+		i += size
 	}
 	return false
+}
+
+// Copied from log/slog/json_handler.go.
+//
+// safeSet is extended by the ANSI escape code "\u001b".
+var safeSet = [utf8.RuneSelf]bool{
+	' ':      true,
+	'!':      true,
+	'"':      false,
+	'#':      true,
+	'$':      true,
+	'%':      true,
+	'&':      true,
+	'\'':     true,
+	'(':      true,
+	')':      true,
+	'*':      true,
+	'+':      true,
+	',':      true,
+	'-':      true,
+	'.':      true,
+	'/':      true,
+	'0':      true,
+	'1':      true,
+	'2':      true,
+	'3':      true,
+	'4':      true,
+	'5':      true,
+	'6':      true,
+	'7':      true,
+	'8':      true,
+	'9':      true,
+	':':      true,
+	';':      true,
+	'<':      true,
+	'=':      true,
+	'>':      true,
+	'?':      true,
+	'@':      true,
+	'A':      true,
+	'B':      true,
+	'C':      true,
+	'D':      true,
+	'E':      true,
+	'F':      true,
+	'G':      true,
+	'H':      true,
+	'I':      true,
+	'J':      true,
+	'K':      true,
+	'L':      true,
+	'M':      true,
+	'N':      true,
+	'O':      true,
+	'P':      true,
+	'Q':      true,
+	'R':      true,
+	'S':      true,
+	'T':      true,
+	'U':      true,
+	'V':      true,
+	'W':      true,
+	'X':      true,
+	'Y':      true,
+	'Z':      true,
+	'[':      true,
+	'\\':     false,
+	']':      true,
+	'^':      true,
+	'_':      true,
+	'`':      true,
+	'a':      true,
+	'b':      true,
+	'c':      true,
+	'd':      true,
+	'e':      true,
+	'f':      true,
+	'g':      true,
+	'h':      true,
+	'i':      true,
+	'j':      true,
+	'k':      true,
+	'l':      true,
+	'm':      true,
+	'n':      true,
+	'o':      true,
+	'p':      true,
+	'q':      true,
+	'r':      true,
+	's':      true,
+	't':      true,
+	'u':      true,
+	'v':      true,
+	'w':      true,
+	'x':      true,
+	'y':      true,
+	'z':      true,
+	'{':      true,
+	'|':      true,
+	'}':      true,
+	'~':      true,
+	'\u007f': true,
+	'\u001b': true,
 }
 
 type tintError struct{ error }

@@ -14,6 +14,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#media-type-object
 type MediaType struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
+	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
 
 	Schema   *SchemaRef           `json:"schema,omitempty" yaml:"schema,omitempty"`
 	Example  any                  `json:"example,omitempty" yaml:"example,omitempty"`
@@ -101,6 +102,7 @@ func (mediaType *MediaType) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
+	delete(x.Extensions, originKey)
 	delete(x.Extensions, "schema")
 	delete(x.Extensions, "example")
 	delete(x.Extensions, "examples")

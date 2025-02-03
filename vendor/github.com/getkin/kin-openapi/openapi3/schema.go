@@ -9,7 +9,6 @@ import (
 	"math"
 	"math/big"
 	"reflect"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -82,6 +81,7 @@ func (s SchemaRefs) JSONLookup(token string) (any, error) {
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#schema-object
 type Schema struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
+	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
 
 	OneOf        SchemaRefs    `json:"oneOf,omitempty" yaml:"oneOf,omitempty"`
 	AnyOf        SchemaRefs    `json:"anyOf,omitempty" yaml:"anyOf,omitempty"`
@@ -412,6 +412,7 @@ func (schema *Schema) UnmarshalJSON(data []byte) error {
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
 
+	delete(x.Extensions, originKey)
 	delete(x.Extensions, "oneOf")
 	delete(x.Extensions, "anyOf")
 	delete(x.Extensions, "allOf")
@@ -1019,7 +1020,7 @@ func (schema *Schema) validate(ctx context.Context, stack []*Schema) ([]*Schema,
 				}
 			}
 			if !validationOpts.schemaPatternValidationDisabled && schema.Pattern != "" {
-				if _, err := schema.compilePattern(); err != nil {
+				if _, err := schema.compilePattern(validationOpts.regexCompilerFunc); err != nil {
 					return stack, err
 				}
 			}
@@ -1729,10 +1730,10 @@ func (schema *Schema) visitJSONString(settings *schemaValidationSettings, value 
 	// "pattern"
 	if !settings.patternValidationDisabled && schema.Pattern != "" {
 		cpiface, _ := compiledPatterns.Load(schema.Pattern)
-		cp, _ := cpiface.(*regexp.Regexp)
+		cp, _ := cpiface.(RegexMatcher)
 		if cp == nil {
 			var err error
-			if cp, err = schema.compilePattern(); err != nil {
+			if cp, err = schema.compilePattern(settings.regexCompiler); err != nil {
 				if !settings.multiError {
 					return err
 				}
@@ -2244,4 +2245,10 @@ func RegisterArrayUniqueItemsChecker(fn SliceUniqueItemsChecker) {
 
 func unsupportedFormat(format string) error {
 	return fmt.Errorf("unsupported 'format' value %q", format)
+}
+
+// UnmarshalJSON sets Schemas to a copy of data.
+func (schemas *Schemas) UnmarshalJSON(data []byte) (err error) {
+	*schemas, _, err = unmarshalStringMapP[SchemaRef](data)
+	return
 }

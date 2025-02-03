@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"github.com/oasdiff/yaml3"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
@@ -1264,6 +1264,9 @@ func decodeBody(body io.Reader, header http.Header, schema *openapi3.SchemaRef, 
 func init() {
 	RegisterBodyDecoder("application/json", JSONBodyDecoder)
 	RegisterBodyDecoder("application/json-patch+json", JSONBodyDecoder)
+	RegisterBodyDecoder("application/ld+json", JSONBodyDecoder)
+	RegisterBodyDecoder("application/hal+json", JSONBodyDecoder)
+	RegisterBodyDecoder("application/vnd.api+json", JSONBodyDecoder)
 	RegisterBodyDecoder("application/octet-stream", FileBodyDecoder)
 	RegisterBodyDecoder("application/problem+json", JSONBodyDecoder)
 	RegisterBodyDecoder("application/x-www-form-urlencoded", urlencodedBodyDecoder)
@@ -1337,18 +1340,6 @@ func urlencodedBodyDecoder(body io.Reader, header http.Header, schema *openapi3.
 	obj := make(map[string]any)
 	dec := &urlValuesDecoder{values: values}
 
-	// Decode schema constructs (allOf, anyOf, oneOf)
-	if err := decodeSchemaConstructs(dec, schema.Value.AllOf, obj, encFn); err != nil {
-		return nil, err
-	}
-	if err := decodeSchemaConstructs(dec, schema.Value.AnyOf, obj, encFn); err != nil {
-		return nil, err
-	}
-	if err := decodeSchemaConstructs(dec, schema.Value.OneOf, obj, encFn); err != nil {
-		return nil, err
-	}
-
-	// Decode properties from the main schema
 	if err := decodeSchemaConstructs(dec, []*openapi3.SchemaRef{schema}, obj, encFn); err != nil {
 		return nil, err
 	}
@@ -1360,6 +1351,18 @@ func urlencodedBodyDecoder(body io.Reader, header http.Header, schema *openapi3.
 // This function is for decoding purposes only and not for validation.
 func decodeSchemaConstructs(dec *urlValuesDecoder, schemas []*openapi3.SchemaRef, obj map[string]any, encFn EncodingFn) error {
 	for _, schemaRef := range schemas {
+
+		// Decode schema constructs (allOf, anyOf, oneOf)
+		if err := decodeSchemaConstructs(dec, schemaRef.Value.AllOf, obj, encFn); err != nil {
+			return err
+		}
+		if err := decodeSchemaConstructs(dec, schemaRef.Value.AnyOf, obj, encFn); err != nil {
+			return err
+		}
+		if err := decodeSchemaConstructs(dec, schemaRef.Value.OneOf, obj, encFn); err != nil {
+			return err
+		}
+
 		for name, prop := range schemaRef.Value.Properties {
 			value, _, err := decodeProperty(dec, name, prop, encFn)
 			if err != nil {

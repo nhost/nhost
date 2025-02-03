@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/invopop/yaml"
+	"github.com/oasdiff/yaml"
 )
 
 func unmarshalError(jsonUnmarshalErr error) error {
@@ -16,7 +16,7 @@ func unmarshalError(jsonUnmarshalErr error) error {
 	return jsonUnmarshalErr
 }
 
-func unmarshal(data []byte, v any) error {
+func unmarshal(data []byte, v any, includeOrigin bool) error {
 	var jsonErr, yamlErr error
 
 	// See https://github.com/getkin/kin-openapi/issues/680
@@ -25,7 +25,7 @@ func unmarshal(data []byte, v any) error {
 	}
 
 	// UnmarshalStrict(data, v) TODO: investigate how ymlv3 handles duplicate map keys
-	if yamlErr = yaml.Unmarshal(data, v); yamlErr == nil {
+	if yamlErr = yaml.UnmarshalWithOrigin(data, v, includeOrigin); yamlErr == nil {
 		return nil
 	}
 

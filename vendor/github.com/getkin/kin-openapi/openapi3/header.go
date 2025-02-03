@@ -94,3 +94,9 @@ func (header *Header) Validate(ctx context.Context, opts ...ValidationOption) er
 	}
 	return nil
 }
+
+// UnmarshalJSON sets Headers to a copy of data.
+func (headers *Headers) UnmarshalJSON(data []byte) (err error) {
+	*headers, _, err = unmarshalStringMapP[HeaderRef](data)
+	return
+}

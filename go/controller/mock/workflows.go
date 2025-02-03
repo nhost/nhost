@@ -20,6 +20,7 @@ import (
 type MockHIBPClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockHIBPClientMockRecorder
+	isgomock struct{}
 }
 
 // MockHIBPClientMockRecorder is the mock recorder for MockHIBPClient.

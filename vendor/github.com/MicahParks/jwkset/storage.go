@@ -210,7 +210,7 @@ type httpStorage struct {
 // the RefreshInterval option is not set, the remote HTTP resource will be requested and processed before returning. If
 // the RefreshInterval option is set, a background goroutine will be launched to refresh the remote HTTP resource and
 // not block the return of this function.
-func NewStorageFromHTTP(u *url.URL, options HTTPClientStorageOptions) (Storage, error) {
+func NewStorageFromHTTP(remoteJWKSetURL string, options HTTPClientStorageOptions) (Storage, error) {
 	if options.Client == nil {
 		options.Client = http.DefaultClient
 	}
@@ -227,9 +227,13 @@ func NewStorageFromHTTP(u *url.URL, options HTTPClientStorageOptions) (Storage, 
 		options.HTTPMethod = http.MethodGet
 	}
 	store := NewMemoryStorage()
+	_, err := url.ParseRequestURI(remoteJWKSetURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse given URL %q: %w", remoteJWKSetURL, err)
+	}
 
 	refresh := func(ctx context.Context) error {
-		req, err := http.NewRequestWithContext(ctx, options.HTTPMethod, u.String(), nil)
+		req, err := http.NewRequestWithContext(ctx, options.HTTPMethod, remoteJWKSetURL, nil)
 		if err != nil {
 			return fmt.Errorf("failed to create HTTP request for JWK Set refresh: %w", err)
 		}
@@ -291,7 +295,7 @@ func NewStorageFromHTTP(u *url.URL, options HTTPClientStorageOptions) (Storage, 
 
 	ctx, cancel := context.WithTimeout(options.Ctx, options.HTTPTimeout)
 	defer cancel()
-	err := refresh(ctx)
+	err = refresh(ctx)
 	cancel()
 	if err != nil {
 		if options.NoErrorReturnFirstHTTPReq {

@@ -20,6 +20,7 @@ import (
 type MockCustomClaimer struct {
 	ctrl     *gomock.Controller
 	recorder *MockCustomClaimerMockRecorder
+	isgomock struct{}
 }
 
 // MockCustomClaimerMockRecorder is the mock recorder for MockCustomClaimer.

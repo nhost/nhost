@@ -19,6 +19,7 @@ type CallbackRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *Callback
@@ -72,6 +73,7 @@ func (x *CallbackRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {
@@ -155,6 +157,7 @@ type ExampleRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *Example
@@ -208,6 +211,7 @@ func (x *ExampleRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {
@@ -291,6 +295,7 @@ type HeaderRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *Header
@@ -344,6 +349,7 @@ func (x *HeaderRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {
@@ -427,6 +433,7 @@ type LinkRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *Link
@@ -480,6 +487,7 @@ func (x *LinkRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {
@@ -563,6 +571,7 @@ type ParameterRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *Parameter
@@ -616,6 +625,7 @@ func (x *ParameterRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {
@@ -699,6 +709,7 @@ type RequestBodyRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *RequestBody
@@ -752,6 +763,7 @@ func (x *RequestBodyRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {
@@ -835,6 +847,7 @@ type ResponseRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *Response
@@ -888,6 +901,7 @@ func (x *ResponseRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {
@@ -971,6 +985,7 @@ type SchemaRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *Schema
@@ -1024,6 +1039,7 @@ func (x *SchemaRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {
@@ -1107,6 +1123,7 @@ type SecuritySchemeRef struct {
 	// Extensions only captures fields starting with 'x-' as no other fields
 	// are allowed by the openapi spec.
 	Extensions map[string]any
+	Origin     *Origin
 
 	Ref   string
 	Value *SecurityScheme
@@ -1160,6 +1177,7 @@ func (x *SecuritySchemeRef) UnmarshalJSON(data []byte) error {
 	var refOnly Ref
 	if extra, err := marshmallow.Unmarshal(data, &refOnly, marshmallow.WithExcludeKnownFieldsFromMap(true)); err == nil && refOnly.Ref != "" {
 		x.Ref = refOnly.Ref
+		x.Origin = refOnly.Origin
 		if len(extra) != 0 {
 			x.extra = make([]string, 0, len(extra))
 			for key := range extra {

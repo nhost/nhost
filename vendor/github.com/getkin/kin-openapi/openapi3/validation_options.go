@@ -13,6 +13,7 @@ type ValidationOptions struct {
 	schemaFormatValidationEnabled                    bool
 	schemaPatternValidationDisabled                  bool
 	schemaExtensionsInRefProhibited                  bool
+	regexCompilerFunc                                RegexCompilerFunc
 	extraSiblingFieldsAllowed                        map[string]struct{}
 }
 
@@ -110,6 +111,14 @@ func AllowExtensionsWithRef() ValidationOption {
 func ProhibitExtensionsWithRef() ValidationOption {
 	return func(options *ValidationOptions) {
 		options.schemaExtensionsInRefProhibited = true
+	}
+}
+
+// SetRegexCompiler allows to override the regex implementation used to validate
+// field "pattern".
+func SetRegexCompiler(c RegexCompilerFunc) ValidationOption {
+	return func(options *ValidationOptions) {
+		options.regexCompilerFunc = c
 	}
 }
 

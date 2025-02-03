@@ -11,8 +11,6 @@ linters:
       - depguard
       - canonicalheader # for some reason it is very unreliable
       - gci    # we already check the linter did its magic
-      - execinquery
-      - gomnd # renamed to mnd
       - exportloopref # deprecated
 
 issues:

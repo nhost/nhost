@@ -73,6 +73,7 @@ func (parameters Parameters) Validate(ctx context.Context, opts ...ValidationOpt
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#parameter-object
 type Parameter struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
+	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
 
 	Name            string     `json:"name,omitempty" yaml:"name,omitempty"`
 	In              string     `json:"in,omitempty" yaml:"in,omitempty"`
@@ -216,6 +217,7 @@ func (parameter *Parameter) UnmarshalJSON(data []byte) error {
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
 
+	delete(x.Extensions, originKey)
 	delete(x.Extensions, "name")
 	delete(x.Extensions, "in")
 	delete(x.Extensions, "description")
@@ -413,4 +415,10 @@ func (parameter *Parameter) Validate(ctx context.Context, opts ...ValidationOpti
 	}
 
 	return validateExtensions(ctx, parameter.Extensions)
+}
+
+// UnmarshalJSON sets ParametersMap to a copy of data.
+func (parametersMap *ParametersMap) UnmarshalJSON(data []byte) (err error) {
+	*parametersMap, _, err = unmarshalStringMapP[ParameterRef](data)
+	return
 }

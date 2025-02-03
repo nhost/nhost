@@ -9,6 +9,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#callback-object
 type Callback struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
+	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
 
 	m map[string]*PathItem
 }
@@ -51,4 +52,10 @@ func (callback *Callback) Validate(ctx context.Context, opts ...ValidationOption
 	}
 
 	return validateExtensions(ctx, callback.Extensions)
+}
+
+// UnmarshalJSON sets Callbacks to a copy of data.
+func (callbacks *Callbacks) UnmarshalJSON(data []byte) (err error) {
+	*callbacks, _, err = unmarshalStringMapP[CallbackRef](data)
+	return
 }

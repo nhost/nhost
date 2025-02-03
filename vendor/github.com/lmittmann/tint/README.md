@@ -60,6 +60,23 @@ logger := slog.New(
 )
 ```
 
+```go
+// create a new logger that writes all errors in red
+w := os.Stderr
+logger := slog.New(
+    tint.NewHandler(w, &tint.Options{
+        ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+            if err, ok := a.Value.Any().(error); ok {
+                aErr := tint.Err(err)
+                aErr.Key = a.Key
+                return aErr
+            }
+            return a
+        },
+    }),
+)
+```
+
 ### Automatically Enable Colors
 
 Colors are enabled by default and can be disabled using the `Options.NoColor`

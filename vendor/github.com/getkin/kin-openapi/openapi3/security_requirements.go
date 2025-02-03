@@ -49,3 +49,9 @@ func (security *SecurityRequirement) Validate(ctx context.Context, opts ...Valid
 
 	return nil
 }
+
+// UnmarshalJSON sets SecurityRequirement to a copy of data.
+func (security *SecurityRequirement) UnmarshalJSON(data []byte) (err error) {
+	*security, _, err = unmarshalStringMap[[]string](data)
+	return
+}

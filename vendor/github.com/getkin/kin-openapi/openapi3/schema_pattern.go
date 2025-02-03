@@ -13,9 +13,14 @@ func intoGoRegexp(re string) string {
 }
 
 // NOTE: racey WRT [writes to schema.Pattern] vs [reads schema.Pattern then writes to compiledPatterns]
-func (schema *Schema) compilePattern() (cp *regexp.Regexp, err error) {
+func (schema *Schema) compilePattern(c RegexCompilerFunc) (cp RegexMatcher, err error) {
 	pattern := schema.Pattern
-	if cp, err = regexp.Compile(intoGoRegexp(pattern)); err != nil {
+	if c != nil {
+		cp, err = c(pattern)
+	} else {
+		cp, err = regexp.Compile(intoGoRegexp(pattern))
+	}
+	if err != nil {
 		err = &SchemaError{
 			Schema:      schema,
 			SchemaField: "pattern",
@@ -24,6 +29,7 @@ func (schema *Schema) compilePattern() (cp *regexp.Regexp, err error) {
 		}
 		return
 	}
+
 	var _ bool = compiledPatterns.CompareAndSwap(pattern, nil, cp)
 	return
 }

@@ -24,6 +24,7 @@ import (
 type MockEmailer struct {
 	ctrl     *gomock.Controller
 	recorder *MockEmailerMockRecorder
+	isgomock struct{}
 }
 
 // MockEmailerMockRecorder is the mock recorder for MockEmailer.
@@ -61,6 +62,7 @@ func (mr *MockEmailerMockRecorder) SendEmail(ctx, to, locale, templateName, data
 type MockDBClientGetUser struct {
 	ctrl     *gomock.Controller
 	recorder *MockDBClientGetUserMockRecorder
+	isgomock struct{}
 }
 
 // MockDBClientGetUserMockRecorder is the mock recorder for MockDBClientGetUser.
@@ -159,6 +161,7 @@ func (mr *MockDBClientGetUserMockRecorder) GetUserByTicket(ctx, ticket any) *gom
 type MockDBClientInsertUser struct {
 	ctrl     *gomock.Controller
 	recorder *MockDBClientInsertUserMockRecorder
+	isgomock struct{}
 }
 
 // MockDBClientInsertUserMockRecorder is the mock recorder for MockDBClientInsertUser.
@@ -227,6 +230,7 @@ func (mr *MockDBClientInsertUserMockRecorder) InsertUserWithSecurityKeyAndRefres
 type MockDBClientUpdateUser struct {
 	ctrl     *gomock.Controller
 	recorder *MockDBClientUpdateUserMockRecorder
+	isgomock struct{}
 }
 
 // MockDBClientUpdateUserMockRecorder is the mock recorder for MockDBClientUpdateUser.
@@ -369,6 +373,7 @@ func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserVerifyEmail(ctx, id any)
 type MockDBClientUserProvider struct {
 	ctrl     *gomock.Controller
 	recorder *MockDBClientUserProviderMockRecorder
+	isgomock struct{}
 }
 
 // MockDBClientUserProviderMockRecorder is the mock recorder for MockDBClientUserProvider.
@@ -467,6 +472,7 @@ func (mr *MockDBClientUserProviderMockRecorder) InsertUserWithUserProviderAndRef
 type MockDBClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockDBClientMockRecorder
+	isgomock struct{}
 }
 
 // MockDBClientMockRecorder is the mock recorder for MockDBClient.

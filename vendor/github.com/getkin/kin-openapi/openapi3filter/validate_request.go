@@ -29,7 +29,7 @@ var ErrInvalidEmptyValue = errors.New("empty value is not allowed")
 //
 // Note: One can tune the behavior of uniqueItems: true verification
 // by registering a custom function with openapi3.RegisterArrayUniqueItemsChecker
-func ValidateRequest(ctx context.Context, input *RequestValidationInput) (err error) {
+func ValidateRequest(ctx context.Context, input *RequestValidationInput) error {
 	var me openapi3.MultiError
 
 	options := input.Options
@@ -49,10 +49,10 @@ func ValidateRequest(ctx context.Context, input *RequestValidationInput) (err er
 		security = &route.Spec.Security
 	}
 	if security != nil {
-		if err = ValidateSecurityRequirements(ctx, input, *security); err != nil && !options.MultiError {
-			return
-		}
-		if err != nil {
+		if err := ValidateSecurityRequirements(ctx, input, *security); err != nil {
+			if !options.MultiError {
+				return err
+			}
 			me = append(me, err)
 		}
 	}
@@ -66,10 +66,10 @@ func ValidateRequest(ctx context.Context, input *RequestValidationInput) (err er
 			}
 		}
 
-		if err = ValidateParameter(ctx, input, parameter); err != nil && !options.MultiError {
-			return
-		}
-		if err != nil {
+		if err := ValidateParameter(ctx, input, parameter); err != nil {
+			if !options.MultiError {
+				return err
+			}
 			me = append(me, err)
 		}
 	}
@@ -79,10 +79,10 @@ func ValidateRequest(ctx context.Context, input *RequestValidationInput) (err er
 		if options.ExcludeRequestQueryParams && parameter.Value.In == openapi3.ParameterInQuery {
 			continue
 		}
-		if err = ValidateParameter(ctx, input, parameter.Value); err != nil && !options.MultiError {
-			return
-		}
-		if err != nil {
+		if err := ValidateParameter(ctx, input, parameter.Value); err != nil {
+			if !options.MultiError {
+				return err
+			}
 			me = append(me, err)
 		}
 	}
@@ -90,10 +90,10 @@ func ValidateRequest(ctx context.Context, input *RequestValidationInput) (err er
 	// RequestBody
 	requestBody := operation.RequestBody
 	if requestBody != nil && !options.ExcludeRequestBody {
-		if err = ValidateRequestBody(ctx, input, requestBody.Value); err != nil && !options.MultiError {
-			return
-		}
-		if err != nil {
+		if err := ValidateRequestBody(ctx, input, requestBody.Value); err != nil {
+			if !options.MultiError {
+				return err
+			}
 			me = append(me, err)
 		}
 	}
@@ -101,7 +101,7 @@ func ValidateRequest(ctx context.Context, input *RequestValidationInput) (err er
 	if len(me) > 0 {
 		return me
 	}
-	return
+	return nil
 }
 
 // appendToQueryValues adds to query parameters each value in the provided slice
@@ -114,11 +114,7 @@ func appendToQueryValues[T any](q url.Values, parameterName string, v []T) {
 // populateDefaultQueryParameters populates default values inside query parameters, while ensuring types are respected
 func populateDefaultQueryParameters(q url.Values, parameterName string, value any) {
 	switch t := value.(type) {
-	case []string:
-		appendToQueryValues(q, parameterName, t)
-	case []float64:
-		appendToQueryValues(q, parameterName, t)
-	case []int:
+	case []any:
 		appendToQueryValues(q, parameterName, t)
 	default:
 		q.Add(parameterName, fmt.Sprintf("%v", value))
@@ -319,6 +315,9 @@ func ValidateRequestBody(ctx context.Context, input *RequestValidationInput, req
 	}
 	if options.ExcludeReadOnlyValidations {
 		opts = append(opts, openapi3.DisableReadOnlyValidation())
+	}
+	if options.RegexCompiler != nil {
+		opts = append(opts, openapi3.SetSchemaRegexCompiler(options.RegexCompiler))
 	}
 
 	// Validate JSON with the schema
