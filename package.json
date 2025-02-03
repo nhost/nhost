@@ -92,7 +92,7 @@
   "resolutions": {
     "graphql": "16.8.1"
   },
-  "packageManager": "pnpm@9.15.5",
+  "packageManager": "pnpm@10.1.0",
   "engines": {
     "node": ">=20"
   },

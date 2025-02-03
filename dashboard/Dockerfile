@@ -30,10 +30,10 @@ ENV NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=__NEXT_PUBLIC_NHOST_HASURA_MIGRA
 ENV NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__
 ENV NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__
 
-RUN yarn global add pnpm@9.15.5
+RUN yarn global add pnpm@10.1.0
 COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
-COPY --from=pruner /app/out/pnpm-*.yaml .
+COPY --from=pruner /app/out/pnpm-*.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY --from=pruner /app/out/full/ .
