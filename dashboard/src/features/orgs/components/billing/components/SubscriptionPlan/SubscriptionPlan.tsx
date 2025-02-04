@@ -176,6 +176,7 @@ export default function SubscriptionPlan() {
               >
                 documentation
                 <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
+              <span> for billing information</span>
               </Link>
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
