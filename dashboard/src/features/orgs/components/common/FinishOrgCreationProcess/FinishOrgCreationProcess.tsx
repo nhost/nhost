@@ -11,7 +11,7 @@ interface Props {
   pendingMessage: string;
 }
 
-function CreateOrgVerifyProcess({
+function FinishOrgCreationProcess({
   loading,
   status,
   successMessage,
@@ -50,4 +50,4 @@ function CreateOrgVerifyProcess({
   );
 }
 
-export default memo(CreateOrgVerifyProcess);
+export default memo(FinishOrgCreationProcess);
