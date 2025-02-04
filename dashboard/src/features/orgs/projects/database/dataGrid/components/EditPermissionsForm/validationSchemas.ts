@@ -3,7 +3,7 @@ import * as Yup from 'yup';
 
 const ruleSchema = Yup.object().shape({
   column: Yup.string().nullable().required('Please select a column.'),
-  operator: Yup.string().nullable().required('Please select an operator2.'),
+  operator: Yup.string().nullable().required('Please select an operator.'),
   value: Yup.mixed()
     .test(
       'isArray',
