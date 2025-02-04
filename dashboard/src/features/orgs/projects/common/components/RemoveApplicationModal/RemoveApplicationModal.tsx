@@ -123,7 +123,7 @@ export default function RemoveApplicationModal({
 
           <Checkbox
             id="accept-3"
-            label="I understand the subscription is attached to the organization so if I want to cancel the subscription I need to delete the organization as well"
+            label="I understand I need to delete the organization if I want to cancel the subscription"
             className="py-2"
             checked={remove3}
             onChange={(_event, checked) => setRemove3(checked)}
