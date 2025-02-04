@@ -28421,11 +28421,6 @@ export type RemoteAppDeleteUserMutationVariables = Exact<{
 
 export type RemoteAppDeleteUserMutation = { __typename?: 'mutation_root', deleteUser?: { __typename?: 'users', id: any } | null };
 
-export type GetRemoteAppAllowedRolesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetRemoteAppAllowedRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
-
 export type GetAppFunctionsMetadataQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -28440,14 +28435,14 @@ export type GetRemoteAppMetricsQuery = { __typename?: 'query_root', filesAggrega
 
 export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
 
-export type RemoteAppGetUsersQueryVariables = Exact<{
+export type RemoteAppGetUsersAndAuthRolesQueryVariables = Exact<{
   where: Users_Bool_Exp;
   limit: Scalars['Int'];
   offset: Scalars['Int'];
 }>;
 
 
-export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersAndAuthRolesQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, authRoles: Array<{ __typename?: 'authRoles', role: string }> };
 
 export type RemoteAppGetUsersCustomQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -33963,43 +33958,6 @@ export function useRemoteAppDeleteUserMutation(baseOptions?: Apollo.MutationHook
 export type RemoteAppDeleteUserMutationHookResult = ReturnType<typeof useRemoteAppDeleteUserMutation>;
 export type RemoteAppDeleteUserMutationResult = Apollo.MutationResult<RemoteAppDeleteUserMutation>;
 export type RemoteAppDeleteUserMutationOptions = Apollo.BaseMutationOptions<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>;
-export const GetRemoteAppAllowedRolesDocument = gql`
-    query getRemoteAppAllowedRoles {
-  authRoles {
-    role
-  }
-}
-    `;
-
-/**
- * __useGetRemoteAppAllowedRolesQuery__
- *
- * To run a query within a React component, call `useGetRemoteAppAllowedRolesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRemoteAppAllowedRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetRemoteAppAllowedRolesQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetRemoteAppAllowedRolesQuery(baseOptions?: Apollo.QueryHookOptions<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>(GetRemoteAppAllowedRolesDocument, options);
-      }
-export function useGetRemoteAppAllowedRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>(GetRemoteAppAllowedRolesDocument, options);
-        }
-export type GetRemoteAppAllowedRolesQueryHookResult = ReturnType<typeof useGetRemoteAppAllowedRolesQuery>;
-export type GetRemoteAppAllowedRolesLazyQueryHookResult = ReturnType<typeof useGetRemoteAppAllowedRolesLazyQuery>;
-export type GetRemoteAppAllowedRolesQueryResult = Apollo.QueryResult<GetRemoteAppAllowedRolesQuery, GetRemoteAppAllowedRolesQueryVariables>;
-export function refetchGetRemoteAppAllowedRolesQuery(variables?: GetRemoteAppAllowedRolesQueryVariables) {
-      return { query: GetRemoteAppAllowedRolesDocument, variables: variables }
-    }
 export const GetAppFunctionsMetadataDocument = gql`
     query getAppFunctionsMetadata($id: uuid!) {
   app(id: $id) {
@@ -34086,8 +34044,8 @@ export type GetRemoteAppMetricsQueryResult = Apollo.QueryResult<GetRemoteAppMetr
 export function refetchGetRemoteAppMetricsQuery(variables?: GetRemoteAppMetricsQueryVariables) {
       return { query: GetRemoteAppMetricsDocument, variables: variables }
     }
-export const RemoteAppGetUsersDocument = gql`
-    query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
+export const RemoteAppGetUsersAndAuthRolesDocument = gql`
+    query remoteAppGetUsersAndAuthRoles($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
   users(
     where: $where
     limit: $limit
@@ -34106,20 +34064,23 @@ export const RemoteAppGetUsersDocument = gql`
       count
     }
   }
+  authRoles {
+    role
+  }
 }
     ${RemoteAppGetUsersFragmentDoc}`;
 
 /**
- * __useRemoteAppGetUsersQuery__
+ * __useRemoteAppGetUsersAndAuthRolesQuery__
  *
- * To run a query within a React component, call `useRemoteAppGetUsersQuery` and pass it any options that fit your needs.
- * When your component renders, `useRemoteAppGetUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useRemoteAppGetUsersAndAuthRolesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRemoteAppGetUsersAndAuthRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useRemoteAppGetUsersQuery({
+ * const { data, loading, error } = useRemoteAppGetUsersAndAuthRolesQuery({
  *   variables: {
  *      where: // value for 'where'
  *      limit: // value for 'limit'
@@ -34127,19 +34088,19 @@ export const RemoteAppGetUsersDocument = gql`
  *   },
  * });
  */
-export function useRemoteAppGetUsersQuery(baseOptions: Apollo.QueryHookOptions<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>) {
+export function useRemoteAppGetUsersAndAuthRolesQuery(baseOptions: Apollo.QueryHookOptions<RemoteAppGetUsersAndAuthRolesQuery, RemoteAppGetUsersAndAuthRolesQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>(RemoteAppGetUsersDocument, options);
+        return Apollo.useQuery<RemoteAppGetUsersAndAuthRolesQuery, RemoteAppGetUsersAndAuthRolesQueryVariables>(RemoteAppGetUsersAndAuthRolesDocument, options);
       }
-export function useRemoteAppGetUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>) {
+export function useRemoteAppGetUsersAndAuthRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RemoteAppGetUsersAndAuthRolesQuery, RemoteAppGetUsersAndAuthRolesQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>(RemoteAppGetUsersDocument, options);
+          return Apollo.useLazyQuery<RemoteAppGetUsersAndAuthRolesQuery, RemoteAppGetUsersAndAuthRolesQueryVariables>(RemoteAppGetUsersAndAuthRolesDocument, options);
         }
-export type RemoteAppGetUsersQueryHookResult = ReturnType<typeof useRemoteAppGetUsersQuery>;
-export type RemoteAppGetUsersLazyQueryHookResult = ReturnType<typeof useRemoteAppGetUsersLazyQuery>;
-export type RemoteAppGetUsersQueryResult = Apollo.QueryResult<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>;
-export function refetchRemoteAppGetUsersQuery(variables: RemoteAppGetUsersQueryVariables) {
-      return { query: RemoteAppGetUsersDocument, variables: variables }
+export type RemoteAppGetUsersAndAuthRolesQueryHookResult = ReturnType<typeof useRemoteAppGetUsersAndAuthRolesQuery>;
+export type RemoteAppGetUsersAndAuthRolesLazyQueryHookResult = ReturnType<typeof useRemoteAppGetUsersAndAuthRolesLazyQuery>;
+export type RemoteAppGetUsersAndAuthRolesQueryResult = Apollo.QueryResult<RemoteAppGetUsersAndAuthRolesQuery, RemoteAppGetUsersAndAuthRolesQueryVariables>;
+export function refetchRemoteAppGetUsersAndAuthRolesQuery(variables: RemoteAppGetUsersAndAuthRolesQueryVariables) {
+      return { query: RemoteAppGetUsersAndAuthRolesDocument, variables: variables }
     }
 export const RemoteAppGetUsersCustomDocument = gql`
     query remoteAppGetUsersCustom($where: users_bool_exp!, $limit: Int!, $offset: Int!) {

@@ -12,12 +12,12 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
-import { useAllowedUserRoles } from '@/features/orgs/hooks/useAllowedUserRoles';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import type { EditUserFormValues } from '@/features/orgs/projects/authentication/users/components/EditUserForm';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
+import type { Role } from '@/types/application';
 import {
   useDeleteRemoteAppUserRolesMutation,
   useInsertRemoteAppUserRolesMutation,
@@ -55,9 +55,14 @@ export interface UsersBodyProps {
    * @example onSuccessfulAction={() => router.reload()}
    */
   onSubmit?: () => Promise<any>;
+  allAvailableProjectRoles: Role[];
 }
 
-export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
+export default function UsersBody({
+  users,
+  onSubmit,
+  allAvailableProjectRoles,
+}: UsersBodyProps) {
   const theme = useTheme();
   const { openAlertDialog, openDrawer, closeDrawer } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
@@ -77,8 +82,6 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
   const [deleteUserRoles] = useDeleteRemoteAppUserRolesMutation({
     client: remoteProjectGQLClient,
   });
-
-  const allAvailableProjectRoles = useAllowedUserRoles();
 
   async function handleEditUser(
     values: EditUserFormValues,

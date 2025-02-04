@@ -23,7 +23,11 @@ fragment RemoteAppGetUsers on users {
   disabled
 }
 
-query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
+query remoteAppGetUsersAndAuthRoles(
+  $where: users_bool_exp!
+  $limit: Int!
+  $offset: Int!
+) {
   users(
     where: $where
     limit: $limit
@@ -41,6 +45,9 @@ query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
     aggregate {
       count
     }
+  }
+  authRoles {
+    role
   }
 }
 

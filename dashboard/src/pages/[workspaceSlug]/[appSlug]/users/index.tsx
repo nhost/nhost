@@ -13,15 +13,15 @@ import { CreateUserForm } from '@/features/authentication/users/components/Creat
 import { UsersBody } from '@/features/authentication/users/components/UsersBody';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
-import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
+import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
 import Router, { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export type RemoteAppUser = Exclude<
-  RemoteAppGetUsersQuery['users'][0],
+  RemoteAppGetUsersAndAuthRolesQuery['users'][0],
   '__typename'
 >;
 
@@ -75,7 +75,7 @@ export default function UsersPage() {
     data: dataRemoteAppUsers,
     refetch: refetchProjectUsers,
     loading: loadingRemoteAppUsersQuery,
-  } = useRemoteAppGetUsersQuery({
+  } = useRemoteAppGetUsersAndAuthRolesQuery({
     variables: remoteAppGetUserVariables,
     client: remoteProjectGQLClient,
   });
