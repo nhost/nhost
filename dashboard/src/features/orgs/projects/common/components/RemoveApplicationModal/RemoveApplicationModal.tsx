@@ -125,7 +125,7 @@ export default function RemoveApplicationModal({
             id="accept-3"
             label="I understand the subscription is attached to the organization so if I want to cancel the subscription I need to delete the organization as well"
             className="py-2"
-            checked={remove2}
+            checked={remove3}
             onChange={(_event, checked) => setRemove3(checked)}
             aria-label="Confirm Delete Project #3"
           />
