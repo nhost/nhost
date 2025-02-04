@@ -166,7 +166,7 @@ export default function SubscriptionPlan() {
                 pricing
                 <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
               </Link>
-              <span>You can also visit our </span>
+              <span> You can also visit our </span>
               <Link
                 href="https://docs.nhost.io/platform/billing"
                 target="_blank"
