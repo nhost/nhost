@@ -23,6 +23,7 @@
     "build:@nhost-examples/nextjs-server-components": "turbo run build --filter=@nhost-examples/nextjs-server-components",
     "build:@nhost-examples/sveltekit": "turbo run build --filter=@nhost-examples/sveltekit",
     "dev": "turbo run dev --filter=!@nhost/dashboard --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen",
+    "dev:dashboard": "turbo run dev --filter=@nhost/dashboard",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples/**,templates/**}/*,docs,dashboard}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{dist,umd,.next,.turbo,coverage}",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
