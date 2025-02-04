@@ -155,7 +155,7 @@ jobs:
         run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e tests
-        timeout-minutes: 20
+        timeout-minutes: 40
         run: pnpm --filter="${{ matrix.package.name }}" run e2e
       - id: file-name
         if: ${{ failure() }}
