@@ -14,7 +14,7 @@ An organization is an organizational unit where:
 
 ### Subscriptions and plans
 
-**Each organization will have a single subscription regardless of the number of projects in it**. The subscription will be tied to a plan which will determine some of its features and usage included in it and each project in the organzation will inherit the plan in the organization.
+**Each organization will have a single subscription regardless of the number of projects in it**. The subscription will be tied to a plan which will determine some of its features and usage included in it and each project in the organization will inherit the plan in the organization.
 
 For more information about the plans and their features, please refer to the [pricing page](https://nhost.io/pricing).
 
@@ -26,7 +26,7 @@ Regardless of when you created an organization the billing cycle will always sta
 
 The usage of the organization will be calculated based on the aggregated usage of all the projects in the organization. This means that multiple projects in the same organization will share the same free usage limits.
 
-Unless indicated otherwise, every resouce you use will be counte towards the sama aggregate by counting the exact usage you incur.
+Unless indicated otherwise, every resource you use will be counts towards the same aggregate by counting the exact usage you incur.
 
 #### Compute
 
@@ -38,7 +38,7 @@ Dedicated compute counts towards the same aggregate as shared compute, this mean
 
 #### Volume capacity
 
-By default projects are provisioned with 1GB of volume capacity for postgres. Hoever, most plans have an free allowance of at least 10GB. If you have multiple projects you can share this allowance between them or you can choose to increase some of your projects. If you exceed the free allowance you will be charged for the additional volume capacity.
+By default projects are provisioned with 1GB of volume capacity for postgres. However, most plans have an free allowance of at least 10GB. If you have multiple projects you can share this allowance between them or you can choose to increase some of your projects. If you exceed the free allowance you will be charged for the additional volume capacity.
 
 Volume capacity is charged based on the amount of concurrent capacity you have allocated. This means if you have two projects running at the same time with 10GB each we will count 20GB in total. If you have two projects running at different times with 10GB each we will count 10GB in total.
 
@@ -120,7 +120,7 @@ If for some reason you fail to pay an invoice, this usually what happens:
 3. Stripe will attempt two more times before the 20th before flagging the invoice as unpaid. When this happens we will set your organization in a `DISABLED` state.
 4. If the invoices are not paid by the end of the month the subscription will be cancelled and the organization will be set in a `CANCELLED` state.
 
-Each failed attempt to pay an invoice will send an email to the billing contact with instructions on how to pay the invoice. In addition, any organizaion's state change will send another email to all members of the organization.
+Each failed attempt to pay an invoice will send an email to the billing contact with instructions on how to pay the invoice. In addition, any organization's state change will send another email to all members of the organization.
 
 States:
 - `OK` - Normal state of the organization
