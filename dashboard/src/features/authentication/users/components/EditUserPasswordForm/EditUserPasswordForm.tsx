@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import {
   useGetSignInMethodsQuery,
   useUpdateRemoteAppUserMutation,
@@ -26,7 +26,7 @@ export interface EditUserPasswordFormProps extends DialogFormProps {
   /**
    * The selected user.
    */
-  user: RemoteAppGetUsersQuery['users'][0];
+  user: RemoteAppGetUsersAndAuthRolesQuery['users'][0];
 }
 
 export default function EditUserPasswordForm({

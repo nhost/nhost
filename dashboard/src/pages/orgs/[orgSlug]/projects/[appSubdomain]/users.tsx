@@ -13,15 +13,16 @@ import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteAp
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
-import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
+import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
+import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
 import Router, { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export type RemoteAppUser = Exclude<
-  RemoteAppGetUsersQuery['users'][0],
+  RemoteAppGetUsersAndAuthRolesQuery['users'][0],
   '__typename'
 >;
 
@@ -72,14 +73,13 @@ export default function UsersPage() {
   );
 
   const {
-    data: dataRemoteAppUsers,
+    data: dataRemoteAppUsersAndAuthRoles,
     refetch: refetchProjectUsers,
     loading: loadingRemoteAppUsersQuery,
-  } = useRemoteAppGetUsersQuery({
+  } = useRemoteAppGetUsersAndAuthRolesQuery({
     variables: remoteAppGetUserVariables,
     client: remoteProjectGQLClient,
   });
-
   /**
    * This function will remove query params from the URL.
    *
@@ -175,13 +175,13 @@ export default function UsersPage() {
     }
 
     const userCount = searchString
-      ? dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count
-      : dataRemoteAppUsers?.usersAggregate?.aggregate?.count;
+      ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate.count
+      : dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count;
 
     setNrOfPages(Math.ceil(userCount / limit.current));
   }, [
-    dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count,
-    dataRemoteAppUsers?.usersAggregate.aggregate.count,
+    dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate.count,
+    dataRemoteAppUsersAndAuthRoles?.usersAggregate.aggregate.count,
     loadingRemoteAppUsersQuery,
     searchString,
   ]);
@@ -208,17 +208,26 @@ export default function UsersPage() {
   }
 
   const users = useMemo(
-    () => dataRemoteAppUsers?.users.map((user) => user) ?? [],
-    [dataRemoteAppUsers],
+    () => dataRemoteAppUsersAndAuthRoles?.users.map((user) => user) ?? [],
+    [dataRemoteAppUsersAndAuthRoles],
   );
 
   const usersCount = useMemo(
-    () => dataRemoteAppUsers?.usersAggregate?.aggregate?.count ?? -1,
-    [dataRemoteAppUsers],
+    () =>
+      dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? -1,
+    [dataRemoteAppUsersAndAuthRoles],
+  );
+
+  const authRoles = (dataRemoteAppUsersAndAuthRoles?.authRoles || []).map(
+    (authRole) => authRole.role,
+  );
+  const allAvailableProjectRoles = useMemo(
+    () => getUserRoles(authRoles),
+    [authRoles],
   );
 
   const thereAreUsers =
-    dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ||
+    dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate.count ||
     usersCount <= 0;
 
   if (loadingRemoteAppUsersQuery) {
@@ -315,8 +324,8 @@ export default function UsersPage() {
                 OAuth Providers
               </Text>
             </Box>
-            {dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ===
-              0 &&
+            {dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate
+              .count === 0 &&
               usersCount !== 0 && (
                 <Box className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
                   <UserIcon
@@ -336,22 +345,27 @@ export default function UsersPage() {
               )}
             {thereAreUsers && (
               <div className="grid grid-flow-row gap-4">
-                <UsersBody users={users} onSubmit={refetchProjectUsers} />
+                <UsersBody
+                  users={users}
+                  onSubmit={refetchProjectUsers}
+                  allAvailableProjectRoles={allAvailableProjectRoles}
+                />
                 <Pagination
                   className="px-2"
                   totalNrOfPages={nrOfPages}
                   currentPageNumber={currentPage}
                   totalNrOfElements={
                     searchString
-                      ? dataRemoteAppUsers?.filteredUsersAggreggate.aggregate
-                          .count
-                      : dataRemoteAppUsers?.usersAggregate?.aggregate?.count
+                      ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate
+                          .aggregate.count
+                      : dataRemoteAppUsersAndAuthRoles?.usersAggregate
+                          ?.aggregate?.count
                   }
                   itemsLabel="users"
                   elementsPerPage={
                     searchString
-                      ? dataRemoteAppUsers?.filteredUsersAggreggate.aggregate
-                          .count
+                      ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate
+                          .aggregate.count
                       : limit.current
                   }
                   onPrevPageClick={async () => {

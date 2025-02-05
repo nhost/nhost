@@ -7,7 +7,7 @@ import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteAp
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import {
   useGetSignInMethodsQuery,
   useUpdateRemoteAppUserMutation,
@@ -26,7 +26,7 @@ export interface EditUserPasswordFormProps extends DialogFormProps {
   /**
    * The selected user.
    */
-  user: RemoteAppGetUsersQuery['users'][0];
+  user: RemoteAppGetUsersAndAuthRolesQuery['users'][0];
 }
 
 export default function EditUserPasswordForm({

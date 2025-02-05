@@ -24,7 +24,7 @@ import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRo
 import { type RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
 import type { DialogFormProps } from '@/types/common';
 import {
-  RemoteAppGetUsersDocument,
+  RemoteAppGetUsersAndAuthRolesDocument,
   useGetProjectLocalesQuery,
   useGetRolesPermissionsQuery,
   useUpdateRemoteAppUserMutation,
@@ -120,7 +120,7 @@ export default function EditUserForm({
 
   const [updateUser] = useUpdateRemoteAppUserMutation({
     client: remoteProjectGQLClient,
-    refetchQueries: [RemoteAppGetUsersDocument],
+    refetchQueries: [RemoteAppGetUsersAndAuthRolesDocument],
   });
 
   const form = useForm<EditUserFormValues>({
