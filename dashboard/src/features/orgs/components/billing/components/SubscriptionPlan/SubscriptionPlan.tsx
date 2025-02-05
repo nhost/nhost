@@ -166,6 +166,18 @@ export default function SubscriptionPlan() {
                 pricing
                 <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
               </Link>
+              <span> You can also visit our </span>
+              <Link
+                href="https://docs.nhost.io/platform/billing"
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+                className="font-medium"
+              >
+                documentation
+                <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
+              </Link>
+              <span> for billing information</span>
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
               <Button

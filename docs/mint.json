@@ -86,7 +86,8 @@
         "platform/deployments",
         "platform/custom-domains",
         "platform/rate-limits",
-        "platform/tls"
+        "platform/tls",
+        "platform/billing"
       ]
     },
     {
