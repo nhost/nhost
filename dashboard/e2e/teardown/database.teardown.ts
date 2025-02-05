@@ -4,7 +4,7 @@ import {
   TEST_PROJECT_SUBDOMAIN,
 } from '@/e2e/env';
 import { navigateToProject } from '@/e2e/utils';
-import { type Page, test as teardown } from '@playwright/test';
+import { type Page, expect, test as teardown } from '@playwright/test';
 
 let page: Page;
 
@@ -36,12 +36,6 @@ teardown.afterAll(async () => {
 });
 
 teardown('clean up database tables', async () => {
-  await navigateToProject({
-    page,
-    orgSlug: TEST_ORGANIZATION_SLUG,
-    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
-  });
-
   await page.getByRole('link', { name: /sql editor/i }).click();
 
   await page.waitForURL(
@@ -62,6 +56,6 @@ teardown('clean up database tables', async () => {
       END $$;
     `);
 
-  await page.getByRole('button', { name: /run/i }).click();
+  await page.locator('button[type="button"]', { hasText: /run/i }).click();
   await expect(page.getByText(/success/i)).toBeVisible();
 });
