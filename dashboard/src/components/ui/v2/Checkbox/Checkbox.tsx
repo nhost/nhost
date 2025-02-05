@@ -92,7 +92,7 @@ function Checkbox(
     'aria-label': ariaLabel,
     ...props
   }: CheckboxProps,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   if (!label) {
     return (

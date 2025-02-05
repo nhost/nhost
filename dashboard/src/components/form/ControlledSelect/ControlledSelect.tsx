@@ -24,7 +24,7 @@ export interface ControlledSelectProps<TFieldValues extends FieldValues = any>
 
 function ControlledSelect(
   { controllerProps, name, control, ...props }: ControlledSelectProps,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const { setValue } = useFormContext();
   const { field } = useController({

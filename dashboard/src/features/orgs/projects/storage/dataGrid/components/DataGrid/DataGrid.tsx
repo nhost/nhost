@@ -99,7 +99,7 @@ function DataGrid<TColumnData extends object>(
     onRemoveColumn,
     loading,
     className,
-  }: DataGridProps<TColumnData>,
+  }: Omit<DataGridProps<TColumnData>, 'ref'>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
   const tableRef = useRef<HTMLDivElement>();
@@ -137,7 +137,9 @@ function DataGrid<TColumnData extends object>(
       {...dataGridProps}
     >
       <>
-        {controls}
+        {typeof controls === 'function'
+          ? controls(dataGridProps.selectedFlatRows)
+          : controls}
 
         {columns.length === 0 && !loading && (
           <DataBrowserEmptyState

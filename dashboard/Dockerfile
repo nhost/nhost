@@ -1,4 +1,4 @@
-FROM node:20-alpine AS pruner
+FROM node:22-alpine AS pruner
 RUN apk add --no-cache libc6-compat
 RUN apk update
 WORKDIR /app

@@ -11,7 +11,8 @@ import type { ApolloError } from '@apollo/client';
 
 function constructErrorMessage(type: string | undefined) {
   switch (type) {
-    case 'application' || 'project':
+    case 'application':
+    case 'project':
       return 'A project with that name already exists.';
     case 'invite':
       return 'An invitation to that user already exists.';

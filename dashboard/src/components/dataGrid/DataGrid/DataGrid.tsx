@@ -99,7 +99,7 @@ function DataGrid<TColumnData extends object>(
     onRemoveColumn,
     loading,
     className,
-  }: DataGridProps<TColumnData>,
+  }: Omit<DataGridProps<TColumnData>, 'ref'>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
   const tableRef = useRef<HTMLDivElement>();
