@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.28.0
+
+### Minor Changes
+
+- 70b2d5a: feat: added billing documentation
+
 ## 2.27.0
 
 ### Minor Changes
