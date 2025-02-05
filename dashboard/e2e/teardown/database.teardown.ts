@@ -34,7 +34,9 @@ teardown('clean up database tables', async ({ browser }) => {
     await adminSecretInput.fill(TEST_PROJECT_ADMIN_SECRET);
     await adminSecretInput.press('Enter');
 
-    await hasuraPage.getByRole('link', { name: 'Data' }).click();
+    const dataTab = hasuraPage.locator('[data-test="data-tab-link"]');
+    await dataTab.waitFor({ state: 'visible', timeout: 60000 });
+    await dataTab.click();
 
     await hasuraPage.locator('[data-test="sql-link"]').click();
 
