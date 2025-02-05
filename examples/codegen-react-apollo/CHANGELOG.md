@@ -1,5 +1,17 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.5.0
+
+### Minor Changes
+
+- aecbec6: chore: update dependencies with vulnerabilities
+
+### Patch Changes
+
+- Updated dependencies [cb63233]
+  - @nhost/react@3.10.0
+  - @nhost/react-apollo@17.0.0
+
 ## 0.4.18
 
 ### Patch Changes
