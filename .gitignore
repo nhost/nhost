@@ -63,3 +63,5 @@ out/
 # Nix
 .envrc
 .direnv/
+
+/.vscode/
