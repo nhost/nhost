@@ -1,11 +1,20 @@
-import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
+import {
+  TEST_DASHBOARD_URL,
+  TEST_ORGANIZATION_SLUG,
+  TEST_PROJECT_SUBDOMAIN,
+} from '@/e2e/env';
 import { navigateToProject } from '@/e2e/utils';
 import { type Page, test as teardown } from '@playwright/test';
 
 let page: Page;
 
 teardown.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
+  const context = await browser.newContext({
+    baseURL: TEST_DASHBOARD_URL,
+    storageState: 'e2e/.auth/user.json',
+  });
+
+  page = await context.newPage();
 });
 
 teardown.beforeEach(async () => {
