@@ -15,7 +15,6 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: 'html',
-  globalTeardown: require.resolve('./global-teardown'),
   use: {
     actionTimeout: 0,
     trace: 'on-first-retry',
@@ -28,6 +27,11 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: ['**/setup/*.setup.ts'],
+      teardown: 'teardown',
+    },
+    {
+      name: 'teardown',
+      testMatch: ['**/teardown/*.teardown.ts'],
     },
     {
       name: 'chromium',
