@@ -18,7 +18,24 @@ const ruleSchema = Yup.object().shape({
 });
 
 const ruleGroupSchema = Yup.object().shape({
-  operator: Yup.string().required('Please select an operator.'),
+  operator: Yup.string().test(
+    'operator',
+    'Please select an operator.',
+    (selectedOperator, ctx) => {
+      // `from` is part of the Yup API, but it's not typed.
+      // @ts-ignore
+      const [, { value }] = ctx.from;
+      if (
+        value.filter &&
+        Object.keys(value.filter).length > 0 &&
+        !selectedOperator
+      ) {
+        return false;
+      }
+
+      return true;
+    },
+  ),
   rules: Yup.array().of(ruleSchema),
   groups: Yup.array().of(Yup.lazy(() => ruleGroupSchema) as any),
 });
