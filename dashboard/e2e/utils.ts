@@ -191,3 +191,23 @@ export function generateTestEmail(prefix: string = 'Nhost_Test_') {
 
   return [prefix, email].join('');
 }
+
+export async function clickPermissionButton({
+  page,
+  role,
+  permission,
+}: {
+  page: Page;
+  role: string;
+  permission: 'Insert' | 'Select' | 'Update' | 'Delete';
+}) {
+  const permissionIndex =
+    ['Insert', 'Select', 'Update', 'Delete'].indexOf(permission) + 1;
+
+  await page
+    .locator('tr', { hasText: role })
+    .locator('td')
+    .nth(permissionIndex)
+    .locator('button')
+    .click();
+}
