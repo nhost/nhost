@@ -32,6 +32,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
@@ -40,88 +41,10 @@ type Option = {
   value: string;
   label: string;
   icon: ReactElement;
+  disabled: boolean;
 };
 
-const projectPages = [
-  {
-    label: 'Overview',
-    value: 'overview',
-    icon: <HomeIcon className="h-4 w-4" />,
-    slug: '',
-  },
-  {
-    label: 'Database',
-    value: 'database',
-    icon: <DatabaseIcon className="h-4 w-4" />,
-    slug: '/database/browser/default',
-  },
-  {
-    label: 'GraphQL',
-    value: 'graphql',
-    icon: <GraphQLIcon className="h-4 w-4" />,
-    slug: 'graphql',
-  },
-  {
-    label: 'Hasura',
-    value: 'hasura',
-    icon: <HasuraIcon className="h-4 w-4" />,
-    slug: 'hasura',
-  },
-  {
-    label: 'Auth',
-    value: 'users',
-    icon: <UserIcon className="h-4 w-4" />,
-    slug: 'users',
-  },
-  {
-    label: 'Storage',
-    value: 'storage',
-    icon: <StorageIcon className="h-4 w-4" />,
-    slug: 'storage',
-  },
-  {
-    label: 'Run',
-    value: 'run',
-    icon: <ServicesIcon className="h-4 w-4" />,
-    slug: 'run',
-  },
-  {
-    label: 'AI',
-    value: 'ai',
-    icon: <AIIcon className="h-4 w-4" />,
-    slug: 'ai/auto-embeddings',
-  },
-  {
-    label: 'Deployments',
-    value: 'deployments',
-    icon: <RocketIcon className="h-4 w-4" />,
-    slug: 'deployments',
-  },
-  {
-    label: 'Backups',
-    value: 'backups',
-    icon: <CloudIcon className="h-4 w-4" />,
-    slug: 'backups',
-  },
-  {
-    label: 'Logs',
-    value: 'logs',
-    icon: <FileTextIcon className="h-4 w-4" />,
-    slug: 'logs',
-  },
-  {
-    label: 'Metrics',
-    value: 'metrics',
-    icon: <GaugeIcon className="h-4 w-4" />,
-    slug: 'metrics',
-  },
-  {
-    label: 'Settings',
-    value: 'settings',
-    icon: <CogIcon className="h-4 w-4" />,
-    slug: 'settings',
-  },
-];
+type SelectedOption = Omit<Option, 'disabled'>;
 
 export default function ProjectPagesComboBox() {
   const {
@@ -130,6 +53,105 @@ export default function ProjectPagesComboBox() {
     asPath,
   } = useRouter();
 
+  const isPlatform = useIsPlatform();
+
+  const projectPages = useMemo(
+    () => [
+      {
+        label: 'Overview',
+        value: 'overview',
+        icon: <HomeIcon className="h-4 w-4" />,
+        slug: '',
+        disabled: false,
+      },
+      {
+        label: 'Database',
+        value: 'database',
+        icon: <DatabaseIcon className="h-4 w-4" />,
+        slug: '/database/browser/default',
+        disabled: false,
+      },
+      {
+        label: 'GraphQL',
+        value: 'graphql',
+        icon: <GraphQLIcon className="h-4 w-4" />,
+        slug: 'graphql',
+        disabled: false,
+      },
+      {
+        label: 'Hasura',
+        value: 'hasura',
+        icon: <HasuraIcon className="h-4 w-4" />,
+        slug: 'hasura',
+        disabled: false,
+      },
+      {
+        label: 'Auth',
+        value: 'users',
+        icon: <UserIcon className="h-4 w-4" />,
+        slug: 'users',
+        disabled: false,
+      },
+      {
+        label: 'Storage',
+        value: 'storage',
+        icon: <StorageIcon className="h-4 w-4" />,
+        slug: 'storage',
+        disabled: false,
+      },
+      {
+        label: 'Run',
+        value: 'run',
+        icon: <ServicesIcon className="h-4 w-4" />,
+        slug: 'run',
+        disabled: false,
+      },
+      {
+        label: 'AI',
+        value: 'ai',
+        icon: <AIIcon className="h-4 w-4" />,
+        slug: 'ai/auto-embeddings',
+        disabled: false,
+      },
+      {
+        label: 'Deployments',
+        value: 'deployments',
+        icon: <RocketIcon className="h-4 w-4" />,
+        slug: 'deployments',
+        disabled: !isPlatform,
+      },
+      {
+        label: 'Backups',
+        value: 'backups',
+        icon: <CloudIcon className="h-4 w-4" />,
+        slug: 'backups',
+        disabled: !isPlatform,
+      },
+      {
+        label: 'Logs',
+        value: 'logs',
+        icon: <FileTextIcon className="h-4 w-4" />,
+        slug: 'logs',
+        disabled: !isPlatform,
+      },
+      {
+        label: 'Metrics',
+        value: 'metrics',
+        icon: <GaugeIcon className="h-4 w-4" />,
+        slug: 'metrics',
+        disabled: !isPlatform,
+      },
+      {
+        label: 'Settings',
+        value: 'settings',
+        icon: <CogIcon className="h-4 w-4" />,
+        slug: 'settings',
+        disabled: false,
+      },
+    ],
+    [isPlatform],
+  );
+
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
   const projectPageFromUrl = appSubdomain
     ? pathSegments[5] || 'overview'
@@ -137,9 +159,8 @@ export default function ProjectPagesComboBox() {
   const selectedProjectPageFromUrl = projectPages.find(
     (item) => item.value === projectPageFromUrl,
   );
-  const [selectedProjectPage, setSelectedProjectPage] = useState<Option | null>(
-    null,
-  );
+  const [selectedProjectPage, setSelectedProjectPage] =
+    useState<SelectedOption | null>(null);
 
   useEffect(() => {
     if (selectedProjectPageFromUrl) {
@@ -155,6 +176,7 @@ export default function ProjectPagesComboBox() {
     label: app.label,
     value: app.slug,
     icon: app.icon,
+    disabled: app.disabled,
   }));
 
   const [open, setOpen] = useState(false);
@@ -188,6 +210,7 @@ export default function ProjectPagesComboBox() {
                 <CommandItem
                   key={option.value}
                   value={option.label}
+                  disabled={option.disabled}
                   onSelect={() => {
                     setSelectedProjectPage(option);
                     setOpen(false);
