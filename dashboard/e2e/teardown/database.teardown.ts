@@ -1,64 +1,58 @@
-import {
-  TEST_DASHBOARD_URL,
-  TEST_ORGANIZATION_SLUG,
-  TEST_PROJECT_ADMIN_SECRET,
-  TEST_PROJECT_SUBDOMAIN,
-} from '@/e2e/env';
+import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { navigateToProject } from '@/e2e/utils';
-import { test as teardown } from '@playwright/test';
+import { type Page, test as teardown } from '@playwright/test';
 
-teardown('clean up database tables', async ({ browser }) => {
-  const context = await browser.newContext({
-    baseURL: TEST_DASHBOARD_URL,
-    storageState: 'e2e/.auth/user.json',
+let page: Page;
+
+teardown.beforeAll(async ({ browser }) => {
+  page = await browser.newPage();
+});
+
+teardown.beforeEach(async () => {
+  await page.goto('/');
+
+  await navigateToProject({
+    page,
+    orgSlug: TEST_ORGANIZATION_SLUG,
+    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
   });
 
-  const page = await context.newPage();
+  const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
+  await page.goto(databaseRoute);
+  await page.waitForURL(databaseRoute);
+});
 
-  try {
-    await navigateToProject({
-      page,
-      orgSlug: TEST_ORGANIZATION_SLUG,
-      projectSubdomain: TEST_PROJECT_SUBDOMAIN,
-    });
+teardown.afterAll(async () => {
+  await page.close();
+});
 
-    const pagePromise = context.waitForEvent('page');
+teardown('clean up database tables', async () => {
+  await navigateToProject({
+    page,
+    orgSlug: TEST_ORGANIZATION_SLUG,
+    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
+  });
 
-    await page.getByRole('link', { name: /hasura/i }).click();
-    await page.getByRole('link', { name: /open hasura/i }).click();
+  await page.getByRole('link', { name: /sql editor/i }).click();
 
-    const hasuraPage = await pagePromise;
-    await hasuraPage.waitForLoadState();
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`,
+  );
 
-    const adminSecretInput = hasuraPage.getByPlaceholder(/enter admin-secret/i);
-    await adminSecretInput.fill(TEST_PROJECT_ADMIN_SECRET);
-    await adminSecretInput.press('Enter');
+  const inputField = page.locator('[contenteditable]');
+  await inputField.fill(`
+      DO $$ DECLARE
+        tablename text;
+      BEGIN
+        FOR tablename IN
+          SELECT table_name FROM information_schema.tables
+          WHERE table_schema = 'public'
+        LOOP
+          EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(tablename) || ' CASCADE';
+        END LOOP;
+      END $$;
+    `);
 
-    const dataTab = hasuraPage.locator('[data-test="data-tab-link"]');
-    await dataTab.waitFor({ state: 'visible', timeout: 60000 });
-    await dataTab.click();
-
-    await hasuraPage.locator('[data-test="sql-link"]').click();
-
-    await hasuraPage.evaluate(() => {
-      const editor = ace.edit('raw_sql');
-      editor.setValue(`
-          DO $$ DECLARE
-            tablename text;
-          BEGIN
-            FOR tablename IN
-              SELECT table_name FROM information_schema.tables
-              WHERE table_schema = 'public'
-            LOOP
-              EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(tablename) || ' CASCADE';
-            END LOOP;
-          END $$;
-       `);
-    });
-
-    await hasuraPage.getByRole('button', { name: /run!/i }).click();
-    await hasuraPage.getByText(/sql executed!/i).waitFor();
-  } finally {
-    await context.close();
-  }
+  await page.getByRole('button', { name: /run/i }).click();
+  await expect(page.getByText(/success/i)).toBeVisible();
 });
