@@ -1,6 +1,7 @@
 import type { GetFilesAggregateQuery } from '@/utils/__generated__/graphql';
 import { useGetFilesAggregateQuery } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
+import { validate as uuidValidate } from 'uuid';
 
 export type UseFilesAggregateOptions = {
   /**
@@ -17,13 +18,15 @@ export default function useFilesAggregate({
   searchString,
   options = {},
 }: UseFilesAggregateOptions) {
+  const isUUID = uuidValidate(searchString);
   const { data, previousData, ...rest } = useGetFilesAggregateQuery({
     variables: {
       where: searchString
         ? {
-            name: {
-              _ilike: `%${searchString}%`,
-            },
+            _or: [
+              ...((isUUID && [{ id: { _eq: searchString } }]) || []),
+              { name: { _ilike: `%${searchString}%` } },
+            ],
           }
         : null,
     },

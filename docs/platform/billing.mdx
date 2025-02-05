@@ -1,0 +1,129 @@
+---
+title: 'Billing'
+description: "Useful information regarding billing you should know"
+icon: money-bills
+---
+
+## Organizations
+
+An organization is an organizational unit where:
+
+- You have a subscription that will determine the plan for the organization and all of its projects
+- You have one or more members that will have access to the assets belonging to the organization
+- You have any number of projects
+
+### Subscriptions and plans
+
+**Each organization will have a single subscription regardless of the number of projects in it**. The subscription will be tied to a plan which will determine some of its features and usage included in it and each project in the organization will inherit the plan in the organization.
+
+For more information about the plans and their features, please refer to the [pricing page](https://nhost.io/pricing).
+
+### Billing cycle
+
+Regardless of when you created an organization the billing cycle will always start on the 1st of the month and end on the last day of the month. If you create the organization in the middle of the month you will be charged for the remaining days of the month.
+
+### Usage
+
+The usage of the organization will be calculated based on the aggregated usage of all the projects in the organization. This means that multiple projects in the same organization will share the same free usage limits.
+
+Unless indicated otherwise, every resource you use will be counts towards the same aggregate by counting the exact usage you incur.
+
+#### Compute
+
+A Pro organization includes enough credits to cover the basic compute for one project. If you have more than one project in the organization you will be charged for the basic compute for each additional project. This is equivalent of approximately 15$ per month per project.
+
+Compute only counts for the time the project is running. If you pause or delete the project you will not be charged for the compute. Similarly, if you increase or reduce compute you are only charged for the resources you allocate for the time they are allocated.
+
+Dedicated compute counts towards the same aggregate as shared compute, this means that the 15$ credits will also count towards it and offer a discount if unused otherwise.
+
+#### Volume capacity
+
+By default projects are provisioned with 1GB of volume capacity for postgres. However, most plans have a free allowance of at least 10GB. If you have multiple projects you can share this allowance between them or you can choose to increase some of your projects. If you exceed the free allowance you will be charged for the additional volume capacity.
+
+Volume capacity is charged based on the amount of concurrent capacity you have allocated. This means if you have two projects running at the same time with 10GB each we will count 20GB in total. If you have two projects running at different times with 10GB each we will count 10GB in total.
+
+#### Custom Domains
+
+Similarly to volume capacity, we charge for the amount of concurrent projects that have a custom domain.
+
+#### Examples
+
+##### Example 1
+
+In this example we only have one Pro organization and we are not exceeding the free usage limits.
+
+Total price: 25$
+- Pro Organization 25$
+- Compute for one project 0$
+
+##### Example 2
+
+In this example we have one Pro organization with three projects that in aggregate are not exceeding the free usage limits except for the basic compute:
+
+Total price: 55$
+- Pro Organization 25$
+- Compute for one project 0$
+- Compute for the second project 15$
+- Compute for the third project 15$
+
+##### Example 3
+
+In this example we have a Pro organization with a production project running all the time and 4 dev projects that run each for approximately half of the month as developers are working on them:
+
+Total price: 55$
+- Pro Organization 25$
+- Compute for the production project 0$
+- Compute for the first dev project 7.5$
+- Compute for the second dev project 7.5$
+- Compute for the third dev project 7.5$
+- Compute for the fourth dev project 7.5$
+
+##### Example 4
+
+In this example we have a Pro organization with a production project running all the time and 1 CPUs and 2GB of dedicated compute:
+
+Total price: 66$
+- Pro Organization 25$
+- Compute for the production project 50-15$ = 35$
+
+##### Example 5
+
+In this example we have a Pro organization with three projects running all the time and 5 GB of storage each:
+
+Total price: 56$
+- Pro Organization 25$
+- Compute for one project 0$
+- Compute for the second project 15$
+- Compute for the third project 15$
+- Total concurrent volume capacity: (15 - 10) * 0.2 = 1$
+
+### Billing information
+
+You can view your billing information in the [billing](https://app.nhost.io/orgs/_/billing) section of the dashboard. Here you can see:
+
+- The current plan of the organization
+- Information about the current billing cycle
+- An estimate of your next invoice based on the current usage
+- A link to the "Stripe Customer Portal" where you can manage your payment methods and invoices
+- Configuration for spending notifications
+
+#### Spending notifications
+
+You can configure spending notifications to receive an email when you reach 75%, 90% and 100% of the configured amount. The emails will be sent to all members of the organization. This is purely informational and will not affect the service.
+
+### Unpaid invoices
+
+If for some reason you fail to pay an invoice, this usually what happens:
+
+1. On the 1st of the month Stripe will attempt to charge the payment method you have configured. If it fails it will send a notification to the billing contact.
+2. A few days later stripe will attempt to charge the payment method again. If it fails it will send a notification to the billing contact. In addition, our systems will set your organization in a `LOCKED` state.
+3. Stripe will attempt two more times before the 20th before flagging the invoice as unpaid. When this happens we will set your organization in a `DISABLED` state.
+4. If the invoices are not paid by the end of the month the subscription will be cancelled and the organization will be set in a `CANCELLED` state.
+
+Each failed attempt to pay an invoice will send an email to the billing contact with instructions on how to pay the invoice. In addition, any organization's state change will send another email to all members of the organization.
+
+States:
+- `OK` - Normal state of the organization
+- `LOCKED` - In this state the projects in the organization are running but deployments and configuration changes are disabled. Paying the invoices should restore the organization to the `OK` state.
+- `DISABLED` - In this state all projects are paused and no changes are allowed. Paying the invoices should restore the organization to the `OK` state.
+- `CANCELLED` - In this state there is no longer a subscription associated with the organization and restoring the service will require contacting support. As time passes we can't guarantee we will retain the data for this organization.
