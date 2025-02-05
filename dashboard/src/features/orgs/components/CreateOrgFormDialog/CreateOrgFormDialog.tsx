@@ -175,7 +175,23 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
   );
 }
 
-export default function CreateOrgDialog() {
+interface CreateOrgDialogProps {
+  hideNewOrgButton?: boolean;
+  isOpen?: boolean;
+  onOpenStateChange?: (newState: boolean) => void;
+  redirectUrl?: string;
+}
+
+function isPropSet(prop: any) {
+  return prop !== undefined;
+}
+
+export default function CreateOrgDialog({
+  hideNewOrgButton,
+  isOpen,
+  onOpenStateChange,
+  redirectUrl,
+}: CreateOrgDialogProps) {
   const { maintenanceActive } = useUI();
   const user = useUserData();
   const isPlatform = useIsPlatform();
@@ -186,6 +202,16 @@ export default function CreateOrgDialog() {
   const [createOrganizationRequest] = useCreateOrganizationRequestMutation();
   const [stripeClientSecret, setStripeClientSecret] = useState('');
 
+  const handleOpenChange = (newOpenState: boolean) => {
+    const controlledFromOutSide =
+      isPropSet(isOpen) && isPropSet(onOpenStateChange);
+    if (controlledFromOutSide) {
+      onOpenStateChange(newOpenState);
+    } else {
+      setOpen(newOpenState);
+    }
+  };
+
   const createOrg = async ({
     name,
     plan,
@@ -195,16 +221,17 @@ export default function CreateOrgDialog() {
   }) => {
     await execPromiseWithErrorToast(
       async () => {
+        const defaultRedirectUrl = `${window.location.origin}/orgs/verify`;
+
         const {
           data: { billingCreateOrganizationRequest: clientSecret },
         } = await createOrganizationRequest({
           variables: {
             organizationName: name,
             planID: plan,
-            redirectURL: `${window.location.origin}/orgs/verify`,
+            redirectURL: redirectUrl ?? defaultRedirectUrl,
           },
         });
-
         setStripeClientSecret(clientSecret);
       },
       {
@@ -224,20 +251,22 @@ export default function CreateOrgDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          disabled={maintenanceActive}
-          className={cn(
-            'flex h-8 w-full flex-row justify-start gap-3 px-2',
-            'bg-background text-foreground hover:bg-accent dark:hover:bg-muted',
-          )}
-          onClick={() => setStripeClientSecret('')}
-        >
-          <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
-          New Organization
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen ?? open} onOpenChange={handleOpenChange}>
+      {!hideNewOrgButton && (
+        <DialogTrigger asChild>
+          <Button
+            disabled={maintenanceActive}
+            className={cn(
+              'flex h-8 w-full flex-row justify-start gap-3 px-2',
+              'bg-background text-foreground hover:bg-accent dark:hover:bg-muted',
+            )}
+            onClick={() => setStripeClientSecret('')}
+          >
+            <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
+            New Organization
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent
         className={cn(
           'text-foreground sm:max-w-xl',
@@ -264,7 +293,7 @@ export default function CreateOrgDialog() {
           <CreateOrgForm
             plans={data?.plans}
             onSubmit={createOrg}
-            onCancel={() => setOpen(false)}
+            onCancel={() => handleOpenChange(false)}
           />
         )}
         {!loading && stripeClientSecret && (

@@ -141,3 +141,56 @@ export const mockOrganization: Organization = {
   ],
   __typename: 'organizations',
 };
+
+export const mockOrganizations: Organization[] = [
+  {
+    id: 'org-1',
+    name: "User's Personal Organization",
+    slug: 'ynrnjteywyxjhlmgzgif',
+    status: Organization_Status_Enum.Ok,
+    plan: {
+      id: 'starter',
+      name: 'Starter',
+      price: 0,
+      deprecated: false,
+      individual: true,
+      isFree: true,
+      featureMaxDbSize: 1,
+      __typename: 'plans',
+    },
+    apps: [],
+    members: [],
+    __typename: 'organizations',
+  },
+  {
+    id: 'org-2',
+    name: 'Second First Try',
+    slug: 'kbdoxvsoisppkrwzjhwl',
+    status: Organization_Status_Enum.Ok,
+    plan: {
+      id: 'pro',
+      name: 'Pro',
+      price: 25,
+      deprecated: false,
+      individual: false,
+      isFree: false,
+      featureMaxDbSize: 10,
+      __typename: 'plans',
+    },
+    apps: [],
+    members: [],
+    __typename: 'organizations',
+  },
+];
+
+export const newOrg: Organization = {
+  ...mockOrganization,
+  id: 'newOrg',
+  name: 'New Org',
+  slug: 'new-org',
+};
+
+export const mockOrganizationsWithNewOrg: Organization[] = [
+  ...mockOrganizations,
+  newOrg,
+];

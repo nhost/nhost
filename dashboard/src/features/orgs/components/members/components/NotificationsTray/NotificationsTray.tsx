@@ -18,6 +18,7 @@ import {
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue } from '@/lib/utils';
 import {
   CheckoutStatus,
   useDeleteOrganizationMemberInviteMutation,
@@ -38,7 +39,8 @@ type Invite = OrganizationMemberInvitesQuery['organizationMemberInvites'][0];
 
 export default function NotificationsTray() {
   const userData = useUserData();
-  const { asPath, route, push } = useRouter();
+  const { asPath, route, push, query } = useRouter();
+  const { session_id } = query;
   const { refetch: refetchOrgs } = useOrgs();
   const [open, setOpen] = useState(false);
 
@@ -76,7 +78,6 @@ export default function NotificationsTray() {
             userID: userData.id,
           },
         });
-
       if (organizationNewRequests.length > 0) {
         const { sessionID } = organizationNewRequests.at(0);
 
@@ -109,10 +110,20 @@ export default function NotificationsTray() {
       }
     };
 
-    if (userData && !['/', '/orgs/verify'].includes(route)) {
+    if (
+      userData &&
+      !['/', '/orgs/verify'].includes(route) &&
+      isEmptyValue(session_id)
+    ) {
       checkForPendingOrgRequests();
     }
-  }, [route, userData, getOrganizationNewRequests, postOrganizationRequest]);
+  }, [
+    route,
+    userData,
+    getOrganizationNewRequests,
+    postOrganizationRequest,
+    session_id,
+  ]);
 
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
   const [deleteInvite] = useDeleteOrganizationMemberInviteMutation();

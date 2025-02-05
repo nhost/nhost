@@ -24,6 +24,8 @@ import {
 import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { vi } from 'vitest';
+import nhostGraphQLLink from '../msw/mocks/graphql/nhostGraphQLLink';
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const emotionCache = createEmotionCache();
@@ -108,6 +110,54 @@ async function waitForElementToBeRemoved<T>(
     await Promise.resolve();
   }
 }
+
+const graphqlRequestHandlerFactory = (
+  operationName: string,
+  type: 'mutation' | 'query',
+  responsePromise,
+) =>
+  nhostGraphQLLink[type](operationName, async (_req, res, ctx) => {
+    const data = await responsePromise;
+    return res(ctx.data(data));
+  });
+/* Helper function to pause responses to be able to test loading states */
+export const createGraphqlMockResolver = (
+  operationName: string,
+  type: 'mutation' | 'query',
+  defaultResponse?: any,
+) => {
+  let resolver;
+  const responsePromise = new Promise((resolve) => {
+    resolver = resolve;
+  });
+
+  return {
+    handler: graphqlRequestHandlerFactory(operationName, type, responsePromise),
+    resolve: (response = undefined) => resolver(response ?? defaultResponse),
+  };
+};
+
+export const mockPointerEvent = () => {
+  // Note: Workaround based on https://github.com/radix-ui/primitives/issues/1382#issuecomment-1122069313
+  class MockPointerEvent extends Event {
+    button: number;
+
+    ctrlKey: boolean;
+
+    pointerType: string;
+
+    constructor(type: string, props: PointerEventInit) {
+      super(type, props);
+      this.button = props.button || 0;
+      this.ctrlKey = props.ctrlKey || false;
+      this.pointerType = props.pointerType || 'mouse';
+    }
+  }
+  window.PointerEvent = MockPointerEvent as any;
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
+  window.HTMLElement.prototype.releasePointerCapture = vi.fn();
+  window.HTMLElement.prototype.hasPointerCapture = vi.fn();
+};
 
 export * from '@testing-library/react';
 export { render, waitForElementToBeRemoved };
