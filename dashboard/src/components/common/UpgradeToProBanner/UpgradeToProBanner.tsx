@@ -1,13 +1,12 @@
-import { useDialog } from '@/components/common/DialogProvider';
 import { NhostIcon } from '@/components/presentational/NhostIcon';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
-import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useState } from 'react';
+
+import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 
 import Image from 'next/image';
 import { type ReactNode } from 'react';
@@ -21,10 +20,10 @@ export default function UpgradeToProBanner({
   title,
   description,
 }: UpgradeToProBannerProps) {
-  const isOwner = useIsCurrentUserOwner();
-  const { openAlertDialog } = useDialog();
   const [transferProjectDialogOpen, setTransferProjectDialogOpen] =
     useState(false);
+
+  const handleTransferDialogOpen = () => setTransferProjectDialogOpen(true);
 
   return (
     <Box
@@ -51,29 +50,7 @@ export default function UpgradeToProBanner({
         </div>
 
         <div className="flex flex-col gap-2 space-y-2 lg:flex-row lg:items-center lg:space-x-2 lg:space-y-0">
-          <Button
-            className="max-w-xs lg:w-auto"
-            onClick={() => {
-              if (isOwner) {
-                setTransferProjectDialogOpen(true);
-              } else {
-                openAlertDialog({
-                  title: "You can't migrate this project",
-                  payload: (
-                    <Text variant="subtitle1" component="span">
-                      Ask an owner of this organization to migrate the project.
-                    </Text>
-                  ),
-                  props: {
-                    secondaryButtonText: 'I understand',
-                    hidePrimaryAction: true,
-                  },
-                });
-              }
-            }}
-          >
-            Transfer Project
-          </Button>
+          <OpenTransferDialogButton onClick={handleTransferDialogOpen} />
           <TransferProjectDialog
             open={transferProjectDialogOpen}
             setOpen={setTransferProjectDialogOpen}
