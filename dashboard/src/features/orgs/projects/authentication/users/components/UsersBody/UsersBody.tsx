@@ -15,15 +15,11 @@ import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import type { EditUserFormValues } from '@/features/orgs/projects/authentication/users/components/EditUserForm';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
+import type { Role } from '@/types/application';
 import {
   useDeleteRemoteAppUserRolesMutation,
-  useGetRolesPermissionsQuery,
   useInsertRemoteAppUserRolesMutation,
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
@@ -33,7 +29,7 @@ import { formatDistance } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { Fragment, useMemo } from 'react';
+import { Fragment } from 'react';
 
 const EditUserForm = dynamic(
   () =>
@@ -59,14 +55,16 @@ export interface UsersBodyProps {
    * @example onSuccessfulAction={() => router.reload()}
    */
   onSubmit?: () => Promise<any>;
+  allAvailableProjectRoles: Role[];
 }
 
-export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
+export default function UsersBody({
+  users,
+  onSubmit,
+  allAvailableProjectRoles,
+}: UsersBodyProps) {
   const theme = useTheme();
-  const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { openAlertDialog, openDrawer, closeDrawer } = useDialog();
-  const { project } = useProject();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [deleteUser] = useRemoteAppDeleteUserMutation({
@@ -84,23 +82,6 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
   const [deleteUserRoles] = useDeleteRemoteAppUserRolesMutation({
     client: remoteProjectGQLClient,
   });
-
-  /**
-   * We want to fetch the queries of the application on this page since we're
-   * going to use once the user selects a user of their application; we use it
-   * in the drawer form.
-   */
-  const { data: dataRoles } = useGetRolesPermissionsQuery({
-    variables: { appId: project?.id },
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
-  const { allowed: allowedRoles } = dataRoles?.config?.auth?.user?.roles || {};
-
-  const allAvailableProjectRoles = useMemo(
-    () => getUserRoles(allowedRoles),
-    [allowedRoles],
-  );
 
   async function handleEditUser(
     values: EditUserFormValues,
