@@ -56,17 +56,11 @@ export default function LogsHeader({
   const { data, loading: loadingServiceLabelValues } =
     useGetServiceLabelValuesQuery({
       variables: { appID: project?.id },
+      skip: !project?.id,
     });
 
   useEffect(() => {
-    if (!loadingServiceLabelValues) {
-      const labels = data.getServiceLabelValues ?? [];
-      setServiceLabels(labels.map((l) => ({ label: l, value: l })));
-    }
-  }, [loadingServiceLabelValues, data]);
-
-  useEffect(() => {
-    if (!loadingServiceLabelValues) {
+    if (!loadingServiceLabelValues && data) {
       const labels = data.getServiceLabelValues ?? [];
 
       const labelMappings = {

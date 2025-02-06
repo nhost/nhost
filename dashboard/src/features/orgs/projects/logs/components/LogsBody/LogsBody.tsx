@@ -158,7 +158,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
     );
   }
 
-  if (!logsData || logsData.logs?.length === 0) {
+  if (logsData?.logs?.length === 0) {
     return (
       <LogsBodyCustomMessage>
         <Text className="truncate font-mono text-xs- font-normal">

@@ -30,7 +30,7 @@ interface LogsFilters {
 }
 
 export default function LogsPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
 
   // create a client that sends http requests to Hasura but websocket requests to Bragi
   const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
@@ -43,13 +43,20 @@ export default function LogsPage() {
     service: AvailableLogsService.ALL,
   });
 
-  const { data, error, subscribeToMore, client, loading, refetch } =
-    useGetProjectLogsQuery({
-      variables: { appID: project?.id, ...filters },
-      client: clientWithSplit,
-      fetchPolicy: 'cache-and-network',
-      notifyOnNetworkStatusChange: true,
-    });
+  const {
+    data,
+    error,
+    subscribeToMore,
+    client,
+    loading: loadingLogs,
+    refetch,
+  } = useGetProjectLogsQuery({
+    variables: { appID: project?.id, ...filters },
+    client: clientWithSplit,
+    fetchPolicy: 'cache-and-network',
+    notifyOnNetworkStatusChange: true,
+    skip: !project,
+  });
 
   const subscribeToMoreLogs = useCallback(
     () =>
@@ -102,15 +109,19 @@ export default function LogsPage() {
   );
 
   useEffect(() => {
+    if (!project || loadingProject) {
+      return;
+    }
+
     if (filters.to && subscriptionReturn.current !== null) {
       subscriptionReturn.current();
       subscriptionReturn.current = null;
 
-      return () => {};
+      return;
     }
 
     if (filters.to) {
-      return () => {};
+      return;
     }
 
     if (subscriptionReturn.current) {
@@ -120,9 +131,7 @@ export default function LogsPage() {
 
     // This will open the websocket connection and it will return a function to close it.
     subscriptionReturn.current = subscribeToMoreLogs();
-
-    return () => {};
-  }, [filters, subscribeToMoreLogs, client]);
+  }, [filters, subscribeToMoreLogs, client, project, loadingProject]);
 
   const onSubmitFilterValues = useCallback(
     async (values: LogsFilterFormValues) => {
@@ -131,6 +140,8 @@ export default function LogsPage() {
     },
     [setFilters, refetch],
   );
+
+  const loading = loadingProject || loadingLogs;
 
   return (
     <div className="flex h-full w-full flex-col">
