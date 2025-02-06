@@ -110,18 +110,18 @@ export default function LogsPage() {
 
   useEffect(() => {
     if (!project || loadingProject) {
-      return () => {};
+      return;
     }
 
     if (filters.to && subscriptionReturn.current !== null) {
       subscriptionReturn.current();
       subscriptionReturn.current = null;
 
-      return () => {};
+      return;
     }
 
     if (filters.to) {
-      return () => {};
+      return;
     }
 
     if (subscriptionReturn.current) {
@@ -131,8 +131,6 @@ export default function LogsPage() {
 
     // This will open the websocket connection and it will return a function to close it.
     subscriptionReturn.current = subscribeToMoreLogs();
-
-    return () => {};
   }, [filters, subscribeToMoreLogs, client, project, loadingProject]);
 
   const onSubmitFilterValues = useCallback(
