@@ -128,13 +128,13 @@ import (
 	}
 
 	// Number of replicas for a service
-	replicas:    uint8 & >=1 & <=10 | *1
+	replicas?:    uint8 & >=1 & <=10 | *1
 	autoscaler?: #Autoscaler
 
 	_validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
 
 	_validateMultipleReplicasNeedsCompute: (
-						replicas == 1 && autoscaler == _|_ |
+						(replicas == _|_ | replicas == 1) && autoscaler == _|_ |
 							compute != _|_) & true @cuegraph(skip)
 	_validateMultipleReplicasRatioMustBe1For2: (
 							replicas == 1 && autoscaler == _|_ |
@@ -255,15 +255,15 @@ import (
 	version: string | *"14.13-20250108-1"
 
 	// Resources for the service
-	resources?: {
+	resources: {
 		#Resources
-		storage?: {
-			capacity: uint32 & >=10 & <=1000 | *10 // GiB
+		storage: {
+			capacity: uint32 & >=1 & <=1000 // GiB
 		}
 
 		enablePublicAccess?: bool | *false
 	} & {
-		replicas:    1
+		replicas?:   1
 		networking?: null
 		autoscaler?: null
 	}
@@ -620,7 +620,7 @@ import (
 
 	postgres: {
 		enabled:      bool | *true
-		majorVersion: "14" | "15" | "16" | *"14"
+		majorVersion: "14" | "15" | "16" | "17" | *"14"
 		if enabled {
 			database: string
 		}

@@ -44,8 +44,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	HasAppVisibility func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
-	IsAdmin          func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	HasAppVisibility func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
+	IsAdmin          func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
 }
 
 type ComplexityRoot struct {
@@ -774,7 +774,7 @@ func (e *executableSchema) Schema() *ast.Schema {
 	return parsedSchema
 }
 
-func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]interface{}) (int, bool) {
+func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]any) (int, bool) {
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
@@ -3501,8 +3501,8 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 }
 
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
-	rc := graphql.GetOperationContext(ctx)
-	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
+	opCtx := graphql.GetOperationContext(ctx)
+	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputConfigAIAutoEmbeddingsComparisonExp,
 		ec.unmarshalInputConfigAIAutoEmbeddingsInsertInput,
@@ -3717,7 +3717,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	)
 	first := true
 
-	switch rc.Operation.Operation {
+	switch opCtx.Operation.Operation {
 	case ast.Query:
 		return func(ctx context.Context) *graphql.Response {
 			var response graphql.Response
@@ -3725,7 +3725,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			if first {
 				first = false
 				ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
-				data = ec._Query(ctx, rc.Operation.SelectionSet)
+				data = ec._Query(ctx, opCtx.Operation.SelectionSet)
 			} else {
 				if atomic.LoadInt32(&ec.pendingDeferred) > 0 {
 					result := <-ec.deferredResults
@@ -3755,7 +3755,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			}
 			first = false
 			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
-			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
+			data := ec._Mutation(ctx, opCtx.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 
@@ -5676,7 +5676,7 @@ type ConfigConfig {
     """
     Configuration for postgres service
     """
-    postgres: ConfigPostgres
+    postgres: ConfigPostgres!
     """
     Configuration for third party providers like SMTP, SMS, etc.
     """
@@ -5714,7 +5714,7 @@ input ConfigConfigInsertInput {
     graphql: ConfigGraphqlInsertInput
     functions: ConfigFunctionsInsertInput
     auth: ConfigAuthInsertInput
-    postgres: ConfigPostgresInsertInput
+    postgres: ConfigPostgresInsertInput!
     provider: ConfigProviderInsertInput
     storage: ConfigStorageInsertInput
     ai: ConfigAIInsertInput
@@ -6953,7 +6953,7 @@ type ConfigPostgres {
     """
     Resources for the service
     """
-    resources: ConfigPostgresResources
+    resources: ConfigPostgresResources!
     """
 
     """
@@ -6968,7 +6968,7 @@ input ConfigPostgresUpdateInput {
 
 input ConfigPostgresInsertInput {
     version: String
-    resources: ConfigPostgresResourcesInsertInput
+    resources: ConfigPostgresResourcesInsertInput!
     settings: ConfigPostgresSettingsInsertInput
 }
 
@@ -7004,7 +7004,7 @@ type ConfigPostgresResources {
     """
 
     """
-    storage: ConfigPostgresStorage
+    storage: ConfigPostgresStorage!
     """
 
     """
@@ -7025,7 +7025,7 @@ input ConfigPostgresResourcesInsertInput {
     replicas: ConfigUint8
     autoscaler: ConfigAutoscalerInsertInput
     networking: ConfigNetworkingInsertInput
-    storage: ConfigPostgresStorageInsertInput
+    storage: ConfigPostgresStorageInsertInput!
     enablePublicAccess: Boolean
 }
 
@@ -8203,9 +8203,9 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_changeDatabaseVersion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_changeDatabaseVersion_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_changeDatabaseVersion_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8225,19 +8225,15 @@ func (ec *executionContext) field_Mutation_changeDatabaseVersion_args(ctx contex
 }
 func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8246,7 +8242,7 @@ func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8269,13 +8265,9 @@ func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsAppID(
 
 func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsVersion(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["version"]
-	if !ok {
+	if _, ok := rawArgs["version"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8291,13 +8283,9 @@ func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsVersion(
 
 func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsForce(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (*bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["force"]
-	if !ok {
+	if _, ok := rawArgs["force"]; !ok {
 		var zeroVal *bool
 		return zeroVal, nil
 	}
@@ -8311,9 +8299,9 @@ func (ec *executionContext) field_Mutation_changeDatabaseVersion_argsForce(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_deleteConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8323,19 +8311,15 @@ func (ec *executionContext) field_Mutation_deleteConfig_args(ctx context.Context
 }
 func (ec *executionContext) field_Mutation_deleteConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8344,7 +8328,7 @@ func (ec *executionContext) field_Mutation_deleteConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8365,9 +8349,9 @@ func (ec *executionContext) field_Mutation_deleteConfig_argsAppID(
 	}
 }
 
-func (ec *executionContext) field_Mutation_deleteRunServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteRunServiceConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_deleteRunServiceConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8382,19 +8366,15 @@ func (ec *executionContext) field_Mutation_deleteRunServiceConfig_args(ctx conte
 }
 func (ec *executionContext) field_Mutation_deleteRunServiceConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8403,7 +8383,7 @@ func (ec *executionContext) field_Mutation_deleteRunServiceConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8426,13 +8406,9 @@ func (ec *executionContext) field_Mutation_deleteRunServiceConfig_argsAppID(
 
 func (ec *executionContext) field_Mutation_deleteRunServiceConfig_argsServiceID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["serviceID"]
-	if !ok {
+	if _, ok := rawArgs["serviceID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8446,9 +8422,9 @@ func (ec *executionContext) field_Mutation_deleteRunServiceConfig_argsServiceID(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteSecret_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteSecret_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_deleteSecret_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8463,19 +8439,15 @@ func (ec *executionContext) field_Mutation_deleteSecret_args(ctx context.Context
 }
 func (ec *executionContext) field_Mutation_deleteSecret_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8484,7 +8456,7 @@ func (ec *executionContext) field_Mutation_deleteSecret_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8507,13 +8479,9 @@ func (ec *executionContext) field_Mutation_deleteSecret_argsAppID(
 
 func (ec *executionContext) field_Mutation_deleteSecret_argsKey(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["key"]
-	if !ok {
+	if _, ok := rawArgs["key"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8527,9 +8495,9 @@ func (ec *executionContext) field_Mutation_deleteSecret_argsKey(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_insertConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_insertConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_insertConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8554,19 +8522,15 @@ func (ec *executionContext) field_Mutation_insertConfig_args(ctx context.Context
 }
 func (ec *executionContext) field_Mutation_insertConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8575,7 +8539,7 @@ func (ec *executionContext) field_Mutation_insertConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8598,13 +8562,9 @@ func (ec *executionContext) field_Mutation_insertConfig_argsAppID(
 
 func (ec *executionContext) field_Mutation_insertConfig_argsConfig(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigConfigInsertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["config"]
-	if !ok {
+	if _, ok := rawArgs["config"]; !ok {
 		var zeroVal model.ConfigConfigInsertInput
 		return zeroVal, nil
 	}
@@ -8620,13 +8580,9 @@ func (ec *executionContext) field_Mutation_insertConfig_argsConfig(
 
 func (ec *executionContext) field_Mutation_insertConfig_argsSystemConfig(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigSystemConfigInsertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["systemConfig"]
-	if !ok {
+	if _, ok := rawArgs["systemConfig"]; !ok {
 		var zeroVal model.ConfigSystemConfigInsertInput
 		return zeroVal, nil
 	}
@@ -8642,13 +8598,9 @@ func (ec *executionContext) field_Mutation_insertConfig_argsSystemConfig(
 
 func (ec *executionContext) field_Mutation_insertConfig_argsSecrets(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) ([]*model.ConfigEnvironmentVariableInsertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["secrets"]
-	if !ok {
+	if _, ok := rawArgs["secrets"]; !ok {
 		var zeroVal []*model.ConfigEnvironmentVariableInsertInput
 		return zeroVal, nil
 	}
@@ -8662,9 +8614,9 @@ func (ec *executionContext) field_Mutation_insertConfig_argsSecrets(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_insertRunServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_insertRunServiceConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_insertRunServiceConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8679,19 +8631,15 @@ func (ec *executionContext) field_Mutation_insertRunServiceConfig_args(ctx conte
 }
 func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8700,7 +8648,7 @@ func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8723,13 +8671,9 @@ func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsAppID(
 
 func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsConfig(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigRunServiceConfigInsertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["config"]
-	if !ok {
+	if _, ok := rawArgs["config"]; !ok {
 		var zeroVal model.ConfigRunServiceConfigInsertInput
 		return zeroVal, nil
 	}
@@ -8743,9 +8687,9 @@ func (ec *executionContext) field_Mutation_insertRunServiceConfig_argsConfig(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_insertSecret_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_insertSecret_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_insertSecret_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8760,19 +8704,15 @@ func (ec *executionContext) field_Mutation_insertSecret_args(ctx context.Context
 }
 func (ec *executionContext) field_Mutation_insertSecret_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8781,7 +8721,7 @@ func (ec *executionContext) field_Mutation_insertSecret_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8804,13 +8744,9 @@ func (ec *executionContext) field_Mutation_insertSecret_argsAppID(
 
 func (ec *executionContext) field_Mutation_insertSecret_argsSecret(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigEnvironmentVariableInsertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["secret"]
-	if !ok {
+	if _, ok := rawArgs["secret"]; !ok {
 		var zeroVal model.ConfigEnvironmentVariableInsertInput
 		return zeroVal, nil
 	}
@@ -8824,9 +8760,9 @@ func (ec *executionContext) field_Mutation_insertSecret_argsSecret(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_replaceConfigRawJSON_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_replaceConfigRawJSON_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_replaceConfigRawJSON_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8841,19 +8777,15 @@ func (ec *executionContext) field_Mutation_replaceConfigRawJSON_args(ctx context
 }
 func (ec *executionContext) field_Mutation_replaceConfigRawJSON_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8862,7 +8794,7 @@ func (ec *executionContext) field_Mutation_replaceConfigRawJSON_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8885,13 +8817,9 @@ func (ec *executionContext) field_Mutation_replaceConfigRawJSON_argsAppID(
 
 func (ec *executionContext) field_Mutation_replaceConfigRawJSON_argsRawJSON(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["rawJSON"]
-	if !ok {
+	if _, ok := rawArgs["rawJSON"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -8905,9 +8833,9 @@ func (ec *executionContext) field_Mutation_replaceConfigRawJSON_argsRawJSON(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_replaceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_replaceConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_replaceConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -8922,19 +8850,15 @@ func (ec *executionContext) field_Mutation_replaceConfig_args(ctx context.Contex
 }
 func (ec *executionContext) field_Mutation_replaceConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -8943,7 +8867,7 @@ func (ec *executionContext) field_Mutation_replaceConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -8966,13 +8890,9 @@ func (ec *executionContext) field_Mutation_replaceConfig_argsAppID(
 
 func (ec *executionContext) field_Mutation_replaceConfig_argsConfig(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigConfigInsertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["config"]
-	if !ok {
+	if _, ok := rawArgs["config"]; !ok {
 		var zeroVal model.ConfigConfigInsertInput
 		return zeroVal, nil
 	}
@@ -8986,9 +8906,9 @@ func (ec *executionContext) field_Mutation_replaceConfig_argsConfig(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_replaceRunServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_replaceRunServiceConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_replaceRunServiceConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9008,19 +8928,15 @@ func (ec *executionContext) field_Mutation_replaceRunServiceConfig_args(ctx cont
 }
 func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9029,7 +8945,7 @@ func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9052,13 +8968,9 @@ func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsAppID(
 
 func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsServiceID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["serviceID"]
-	if !ok {
+	if _, ok := rawArgs["serviceID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -9074,13 +8986,9 @@ func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsServiceID
 
 func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsConfig(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigRunServiceConfigInsertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["config"]
-	if !ok {
+	if _, ok := rawArgs["config"]; !ok {
 		var zeroVal model.ConfigRunServiceConfigInsertInput
 		return zeroVal, nil
 	}
@@ -9094,9 +9002,9 @@ func (ec *executionContext) field_Mutation_replaceRunServiceConfig_argsConfig(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_updateConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_updateConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9111,19 +9019,15 @@ func (ec *executionContext) field_Mutation_updateConfig_args(ctx context.Context
 }
 func (ec *executionContext) field_Mutation_updateConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9132,7 +9036,7 @@ func (ec *executionContext) field_Mutation_updateConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9155,13 +9059,9 @@ func (ec *executionContext) field_Mutation_updateConfig_argsAppID(
 
 func (ec *executionContext) field_Mutation_updateConfig_argsConfig(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigConfigUpdateInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["config"]
-	if !ok {
+	if _, ok := rawArgs["config"]; !ok {
 		var zeroVal model.ConfigConfigUpdateInput
 		return zeroVal, nil
 	}
@@ -9175,9 +9075,9 @@ func (ec *executionContext) field_Mutation_updateConfig_argsConfig(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_updateRunServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateRunServiceConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_updateRunServiceConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9197,19 +9097,15 @@ func (ec *executionContext) field_Mutation_updateRunServiceConfig_args(ctx conte
 }
 func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9218,7 +9114,7 @@ func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9241,13 +9137,9 @@ func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsAppID(
 
 func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsServiceID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["serviceID"]
-	if !ok {
+	if _, ok := rawArgs["serviceID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -9263,13 +9155,9 @@ func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsServiceID(
 
 func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsConfig(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigRunServiceConfigUpdateInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["config"]
-	if !ok {
+	if _, ok := rawArgs["config"]; !ok {
 		var zeroVal model.ConfigRunServiceConfigUpdateInput
 		return zeroVal, nil
 	}
@@ -9283,9 +9171,9 @@ func (ec *executionContext) field_Mutation_updateRunServiceConfig_argsConfig(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_updateSecret_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateSecret_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_updateSecret_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9300,19 +9188,15 @@ func (ec *executionContext) field_Mutation_updateSecret_args(ctx context.Context
 }
 func (ec *executionContext) field_Mutation_updateSecret_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9321,7 +9205,7 @@ func (ec *executionContext) field_Mutation_updateSecret_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9344,13 +9228,9 @@ func (ec *executionContext) field_Mutation_updateSecret_argsAppID(
 
 func (ec *executionContext) field_Mutation_updateSecret_argsSecret(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigEnvironmentVariableInsertInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["secret"]
-	if !ok {
+	if _, ok := rawArgs["secret"]; !ok {
 		var zeroVal model.ConfigEnvironmentVariableInsertInput
 		return zeroVal, nil
 	}
@@ -9364,9 +9244,9 @@ func (ec *executionContext) field_Mutation_updateSecret_argsSecret(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_updateSystemConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateSystemConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Mutation_updateSystemConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9381,19 +9261,15 @@ func (ec *executionContext) field_Mutation_updateSystemConfig_args(ctx context.C
 }
 func (ec *executionContext) field_Mutation_updateSystemConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9402,14 +9278,14 @@ func (ec *executionContext) field_Mutation_updateSystemConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
 		}
 		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
 	}
-	directive2 := func(ctx context.Context) (interface{}, error) {
+	directive2 := func(ctx context.Context) (any, error) {
 		if ec.directives.IsAdmin == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive isAdmin is not implemented")
@@ -9432,13 +9308,9 @@ func (ec *executionContext) field_Mutation_updateSystemConfig_argsAppID(
 
 func (ec *executionContext) field_Mutation_updateSystemConfig_argsSystemConfig(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (model.ConfigSystemConfigUpdateInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["systemConfig"]
-	if !ok {
+	if _, ok := rawArgs["systemConfig"]; !ok {
 		var zeroVal model.ConfigSystemConfigUpdateInput
 		return zeroVal, nil
 	}
@@ -9452,9 +9324,9 @@ func (ec *executionContext) field_Mutation_updateSystemConfig_argsSystemConfig(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query___type_argsName(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9464,13 +9336,9 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 }
 func (ec *executionContext) field_Query___type_argsName(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["name"]
-	if !ok {
+	if _, ok := rawArgs["name"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -9484,9 +9352,9 @@ func (ec *executionContext) field_Query___type_argsName(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_appSecrets_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_appSecrets_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_appSecrets_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9496,19 +9364,15 @@ func (ec *executionContext) field_Query_appSecrets_args(ctx context.Context, raw
 }
 func (ec *executionContext) field_Query_appSecrets_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9517,7 +9381,7 @@ func (ec *executionContext) field_Query_appSecrets_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9538,9 +9402,9 @@ func (ec *executionContext) field_Query_appSecrets_argsAppID(
 	}
 }
 
-func (ec *executionContext) field_Query_configRawJSON_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_configRawJSON_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_configRawJSON_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9555,19 +9419,15 @@ func (ec *executionContext) field_Query_configRawJSON_args(ctx context.Context, 
 }
 func (ec *executionContext) field_Query_configRawJSON_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9576,7 +9436,7 @@ func (ec *executionContext) field_Query_configRawJSON_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9599,13 +9459,9 @@ func (ec *executionContext) field_Query_configRawJSON_argsAppID(
 
 func (ec *executionContext) field_Query_configRawJSON_argsResolve(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["resolve"]
-	if !ok {
+	if _, ok := rawArgs["resolve"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -9619,9 +9475,9 @@ func (ec *executionContext) field_Query_configRawJSON_argsResolve(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_config_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_config_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_config_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9636,19 +9492,15 @@ func (ec *executionContext) field_Query_config_args(ctx context.Context, rawArgs
 }
 func (ec *executionContext) field_Query_config_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9657,7 +9509,7 @@ func (ec *executionContext) field_Query_config_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9680,13 +9532,9 @@ func (ec *executionContext) field_Query_config_argsAppID(
 
 func (ec *executionContext) field_Query_config_argsResolve(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["resolve"]
-	if !ok {
+	if _, ok := rawArgs["resolve"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -9700,9 +9548,9 @@ func (ec *executionContext) field_Query_config_argsResolve(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_configs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_configs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_configs_argsResolve(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9717,13 +9565,9 @@ func (ec *executionContext) field_Query_configs_args(ctx context.Context, rawArg
 }
 func (ec *executionContext) field_Query_configs_argsResolve(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["resolve"]
-	if !ok {
+	if _, ok := rawArgs["resolve"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -9739,19 +9583,15 @@ func (ec *executionContext) field_Query_configs_argsResolve(
 
 func (ec *executionContext) field_Query_configs_argsWhere(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (*model.ConfigConfigComparisonExp, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *model.ConfigConfigComparisonExp
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["where"]
 		if !ok {
 			var zeroVal *model.ConfigConfigComparisonExp
@@ -9760,7 +9600,7 @@ func (ec *executionContext) field_Query_configs_argsWhere(
 		return ec.unmarshalOConfigConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExp(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.IsAdmin == nil {
 			var zeroVal *model.ConfigConfigComparisonExp
 			return zeroVal, errors.New("directive isAdmin is not implemented")
@@ -9784,9 +9624,9 @@ func (ec *executionContext) field_Query_configs_argsWhere(
 	}
 }
 
-func (ec *executionContext) field_Query_runServiceConfigRawJSON_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_runServiceConfigRawJSON_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_runServiceConfigRawJSON_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9806,19 +9646,15 @@ func (ec *executionContext) field_Query_runServiceConfigRawJSON_args(ctx context
 }
 func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9827,7 +9663,7 @@ func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9850,13 +9686,9 @@ func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsAppID(
 
 func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsServiceID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["serviceID"]
-	if !ok {
+	if _, ok := rawArgs["serviceID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -9872,13 +9704,9 @@ func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsServiceID(
 
 func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsResolve(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["resolve"]
-	if !ok {
+	if _, ok := rawArgs["resolve"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -9892,9 +9720,9 @@ func (ec *executionContext) field_Query_runServiceConfigRawJSON_argsResolve(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_runServiceConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_runServiceConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_runServiceConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -9914,19 +9742,15 @@ func (ec *executionContext) field_Query_runServiceConfig_args(ctx context.Contex
 }
 func (ec *executionContext) field_Query_runServiceConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -9935,7 +9759,7 @@ func (ec *executionContext) field_Query_runServiceConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -9958,13 +9782,9 @@ func (ec *executionContext) field_Query_runServiceConfig_argsAppID(
 
 func (ec *executionContext) field_Query_runServiceConfig_argsServiceID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["serviceID"]
-	if !ok {
+	if _, ok := rawArgs["serviceID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -9980,13 +9800,9 @@ func (ec *executionContext) field_Query_runServiceConfig_argsServiceID(
 
 func (ec *executionContext) field_Query_runServiceConfig_argsResolve(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["resolve"]
-	if !ok {
+	if _, ok := rawArgs["resolve"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -10000,9 +9816,9 @@ func (ec *executionContext) field_Query_runServiceConfig_argsResolve(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_runServiceConfigsAll_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_runServiceConfigsAll_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_runServiceConfigsAll_argsResolve(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -10017,13 +9833,9 @@ func (ec *executionContext) field_Query_runServiceConfigsAll_args(ctx context.Co
 }
 func (ec *executionContext) field_Query_runServiceConfigsAll_argsResolve(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["resolve"]
-	if !ok {
+	if _, ok := rawArgs["resolve"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -10039,19 +9851,15 @@ func (ec *executionContext) field_Query_runServiceConfigsAll_argsResolve(
 
 func (ec *executionContext) field_Query_runServiceConfigsAll_argsWhere(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (*model.ConfigRunServiceConfigComparisonExp, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *model.ConfigRunServiceConfigComparisonExp
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["where"]
 		if !ok {
 			var zeroVal *model.ConfigRunServiceConfigComparisonExp
@@ -10060,7 +9868,7 @@ func (ec *executionContext) field_Query_runServiceConfigsAll_argsWhere(
 		return ec.unmarshalOConfigRunServiceConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExp(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.IsAdmin == nil {
 			var zeroVal *model.ConfigRunServiceConfigComparisonExp
 			return zeroVal, errors.New("directive isAdmin is not implemented")
@@ -10084,9 +9892,9 @@ func (ec *executionContext) field_Query_runServiceConfigsAll_argsWhere(
 	}
 }
 
-func (ec *executionContext) field_Query_runServiceConfigs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_runServiceConfigs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_runServiceConfigs_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -10101,19 +9909,15 @@ func (ec *executionContext) field_Query_runServiceConfigs_args(ctx context.Conte
 }
 func (ec *executionContext) field_Query_runServiceConfigs_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -10122,7 +9926,7 @@ func (ec *executionContext) field_Query_runServiceConfigs_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -10145,13 +9949,9 @@ func (ec *executionContext) field_Query_runServiceConfigs_argsAppID(
 
 func (ec *executionContext) field_Query_runServiceConfigs_argsResolve(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["resolve"]
-	if !ok {
+	if _, ok := rawArgs["resolve"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -10165,9 +9965,9 @@ func (ec *executionContext) field_Query_runServiceConfigs_argsResolve(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_systemConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_systemConfig_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_systemConfig_argsAppID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -10177,19 +9977,15 @@ func (ec *executionContext) field_Query_systemConfig_args(ctx context.Context, r
 }
 func (ec *executionContext) field_Query_systemConfig_argsAppID(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["appID"]
-	if !ok {
+	if _, ok := rawArgs["appID"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["appID"]
 		if !ok {
 			var zeroVal string
@@ -10198,7 +9994,7 @@ func (ec *executionContext) field_Query_systemConfig_argsAppID(
 		return ec.unmarshalNuuid2string(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.HasAppVisibility == nil {
 			var zeroVal string
 			return zeroVal, errors.New("directive hasAppVisibility is not implemented")
@@ -10219,9 +10015,9 @@ func (ec *executionContext) field_Query_systemConfig_argsAppID(
 	}
 }
 
-func (ec *executionContext) field_Query_systemConfigs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_systemConfigs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field_Query_systemConfigs_argsWhere(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -10231,19 +10027,15 @@ func (ec *executionContext) field_Query_systemConfigs_args(ctx context.Context, 
 }
 func (ec *executionContext) field_Query_systemConfigs_argsWhere(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (*model.ConfigSystemConfigComparisonExp, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *model.ConfigSystemConfigComparisonExp
 		return zeroVal, nil
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-	directive0 := func(ctx context.Context) (interface{}, error) {
+	directive0 := func(ctx context.Context) (any, error) {
 		tmp, ok := rawArgs["where"]
 		if !ok {
 			var zeroVal *model.ConfigSystemConfigComparisonExp
@@ -10252,7 +10044,7 @@ func (ec *executionContext) field_Query_systemConfigs_argsWhere(
 		return ec.unmarshalOConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (interface{}, error) {
+	directive1 := func(ctx context.Context) (any, error) {
 		if ec.directives.IsAdmin == nil {
 			var zeroVal *model.ConfigSystemConfigComparisonExp
 			return zeroVal, errors.New("directive isAdmin is not implemented")
@@ -10276,9 +10068,9 @@ func (ec *executionContext) field_Query_systemConfigs_argsWhere(
 	}
 }
 
-func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field___Type_enumValues_argsIncludeDeprecated(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -10288,13 +10080,9 @@ func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, ra
 }
 func (ec *executionContext) field___Type_enumValues_argsIncludeDeprecated(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["includeDeprecated"]
-	if !ok {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -10308,9 +10096,9 @@ func (ec *executionContext) field___Type_enumValues_argsIncludeDeprecated(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
-	args := map[string]interface{}{}
+	args := map[string]any{}
 	arg0, err := ec.field___Type_fields_argsIncludeDeprecated(ctx, rawArgs)
 	if err != nil {
 		return nil, err
@@ -10320,13 +10108,9 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 }
 func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 	ctx context.Context,
-	rawArgs map[string]interface{},
+	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["includeDeprecated"]
-	if !ok {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -10360,7 +10144,7 @@ func (ec *executionContext) _ConfigAI_version(ctx context.Context, field graphql
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Version, nil
 	})
@@ -10401,7 +10185,7 @@ func (ec *executionContext) _ConfigAI_resources(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Resources, nil
 	})
@@ -10449,7 +10233,7 @@ func (ec *executionContext) _ConfigAI_openai(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Openai, nil
 	})
@@ -10499,7 +10283,7 @@ func (ec *executionContext) _ConfigAI_autoEmbeddings(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AutoEmbeddings, nil
 	})
@@ -10544,7 +10328,7 @@ func (ec *executionContext) _ConfigAI_webhookSecret(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.WebhookSecret, nil
 	})
@@ -10588,7 +10372,7 @@ func (ec *executionContext) _ConfigAIAutoEmbeddings_synchPeriodMinutes(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SynchPeriodMinutes, nil
 	})
@@ -10629,7 +10413,7 @@ func (ec *executionContext) _ConfigAIOpenai_organization(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Organization, nil
 	})
@@ -10670,7 +10454,7 @@ func (ec *executionContext) _ConfigAIOpenai_apiKey(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ApiKey, nil
 	})
@@ -10714,7 +10498,7 @@ func (ec *executionContext) _ConfigAIResources_compute(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Compute, nil
 	})
@@ -10764,7 +10548,7 @@ func (ec *executionContext) _ConfigAppConfig_appID(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AppID, nil
 	})
@@ -10808,7 +10592,7 @@ func (ec *executionContext) _ConfigAppConfig_config(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Config, nil
 	})
@@ -10874,7 +10658,7 @@ func (ec *executionContext) _ConfigAppSecrets_appID(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AppID, nil
 	})
@@ -10918,7 +10702,7 @@ func (ec *executionContext) _ConfigAppSecrets_secrets(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Secrets, nil
 	})
@@ -10968,7 +10752,7 @@ func (ec *executionContext) _ConfigAppSystemConfig_appID(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AppID, nil
 	})
@@ -11012,7 +10796,7 @@ func (ec *executionContext) _ConfigAppSystemConfig_systemConfig(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SystemConfig, nil
 	})
@@ -11066,7 +10850,7 @@ func (ec *executionContext) _ConfigAuth_version(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Version, nil
 	})
@@ -11107,7 +10891,7 @@ func (ec *executionContext) _ConfigAuth_resources(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Resources, nil
 	})
@@ -11158,7 +10942,7 @@ func (ec *executionContext) _ConfigAuth_elevatedPrivileges(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ElevatedPrivileges, nil
 	})
@@ -11203,7 +10987,7 @@ func (ec *executionContext) _ConfigAuth_redirections(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Redirections, nil
 	})
@@ -11250,7 +11034,7 @@ func (ec *executionContext) _ConfigAuth_signUp(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SignUp, nil
 	})
@@ -11299,7 +11083,7 @@ func (ec *executionContext) _ConfigAuth_user(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.User, nil
 	})
@@ -11352,7 +11136,7 @@ func (ec *executionContext) _ConfigAuth_session(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Session, nil
 	})
@@ -11399,7 +11183,7 @@ func (ec *executionContext) _ConfigAuth_method(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Method, nil
 	})
@@ -11456,7 +11240,7 @@ func (ec *executionContext) _ConfigAuth_totp(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Totp, nil
 	})
@@ -11503,7 +11287,7 @@ func (ec *executionContext) _ConfigAuth_misc(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Misc, nil
 	})
@@ -11548,7 +11332,7 @@ func (ec *executionContext) _ConfigAuth_rateLimit(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RateLimit, nil
 	})
@@ -11601,7 +11385,7 @@ func (ec *executionContext) _ConfigAuthElevatedPrivileges_mode(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Mode, nil
 	})
@@ -11642,7 +11426,7 @@ func (ec *executionContext) _ConfigAuthMethod_anonymous(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Anonymous, nil
 	})
@@ -11687,7 +11471,7 @@ func (ec *executionContext) _ConfigAuthMethod_emailPasswordless(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EmailPasswordless, nil
 	})
@@ -11732,7 +11516,7 @@ func (ec *executionContext) _ConfigAuthMethod_otp(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Otp, nil
 	})
@@ -11777,7 +11561,7 @@ func (ec *executionContext) _ConfigAuthMethod_emailPassword(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EmailPassword, nil
 	})
@@ -11826,7 +11610,7 @@ func (ec *executionContext) _ConfigAuthMethod_smsPasswordless(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SmsPasswordless, nil
 	})
@@ -11871,7 +11655,7 @@ func (ec *executionContext) _ConfigAuthMethod_oauth(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Oauth, nil
 	})
@@ -11944,7 +11728,7 @@ func (ec *executionContext) _ConfigAuthMethod_webauthn(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Webauthn, nil
 	})
@@ -11993,7 +11777,7 @@ func (ec *executionContext) _ConfigAuthMethodAnonymous_enabled(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -12034,7 +11818,7 @@ func (ec *executionContext) _ConfigAuthMethodEmailPassword_hibpEnabled(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.HibpEnabled, nil
 	})
@@ -12075,7 +11859,7 @@ func (ec *executionContext) _ConfigAuthMethodEmailPassword_emailVerificationRequ
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EmailVerificationRequired, nil
 	})
@@ -12116,7 +11900,7 @@ func (ec *executionContext) _ConfigAuthMethodEmailPassword_passwordMinLength(ctx
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.PasswordMinLength, nil
 	})
@@ -12157,7 +11941,7 @@ func (ec *executionContext) _ConfigAuthMethodEmailPasswordless_enabled(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -12198,7 +11982,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_apple(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Apple, nil
 	})
@@ -12255,7 +12039,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_azuread(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Azuread, nil
 	})
@@ -12306,7 +12090,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_bitbucket(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Bitbucket, nil
 	})
@@ -12355,7 +12139,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_discord(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Discord, nil
 	})
@@ -12408,7 +12192,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_facebook(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Facebook, nil
 	})
@@ -12461,7 +12245,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_github(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Github, nil
 	})
@@ -12514,7 +12298,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_gitlab(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Gitlab, nil
 	})
@@ -12567,7 +12351,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_google(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Google, nil
 	})
@@ -12620,7 +12404,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_linkedin(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Linkedin, nil
 	})
@@ -12673,7 +12457,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_spotify(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Spotify, nil
 	})
@@ -12726,7 +12510,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_strava(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Strava, nil
 	})
@@ -12779,7 +12563,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_twitch(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Twitch, nil
 	})
@@ -12832,7 +12616,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_twitter(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Twitter, nil
 	})
@@ -12881,7 +12665,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_windowslive(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Windowslive, nil
 	})
@@ -12934,7 +12718,7 @@ func (ec *executionContext) _ConfigAuthMethodOauth_workos(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Workos, nil
 	})
@@ -12987,7 +12771,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthApple_enabled(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -13028,7 +12812,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthApple_audience(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Audience, nil
 	})
@@ -13069,7 +12853,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthApple_clientId(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientId, nil
 	})
@@ -13110,7 +12894,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthApple_keyId(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.KeyId, nil
 	})
@@ -13151,7 +12935,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthApple_teamId(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.TeamId, nil
 	})
@@ -13192,7 +12976,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthApple_scope(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Scope, nil
 	})
@@ -13233,7 +13017,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthApple_privateKey(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.PrivateKey, nil
 	})
@@ -13274,7 +13058,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthAzuread_tenant(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Tenant, nil
 	})
@@ -13315,7 +13099,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthAzuread_enabled(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -13356,7 +13140,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthAzuread_clientId(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientId, nil
 	})
@@ -13397,7 +13181,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthAzuread_clientSecret(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientSecret, nil
 	})
@@ -13438,7 +13222,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthTwitter_enabled(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -13479,7 +13263,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthTwitter_consumerKey(ctx contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ConsumerKey, nil
 	})
@@ -13520,7 +13304,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthTwitter_consumerSecret(ctx con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ConsumerSecret, nil
 	})
@@ -13561,7 +13345,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthWorkos_connection(ctx context.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Connection, nil
 	})
@@ -13602,7 +13386,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthWorkos_enabled(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -13643,7 +13427,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthWorkos_clientId(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientId, nil
 	})
@@ -13684,7 +13468,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthWorkos_organization(ctx contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Organization, nil
 	})
@@ -13725,7 +13509,7 @@ func (ec *executionContext) _ConfigAuthMethodOauthWorkos_clientSecret(ctx contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientSecret, nil
 	})
@@ -13766,7 +13550,7 @@ func (ec *executionContext) _ConfigAuthMethodOtp_email(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Email, nil
 	})
@@ -13811,7 +13595,7 @@ func (ec *executionContext) _ConfigAuthMethodOtpEmail_enabled(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -13852,7 +13636,7 @@ func (ec *executionContext) _ConfigAuthMethodSmsPasswordless_enabled(ctx context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -13893,7 +13677,7 @@ func (ec *executionContext) _ConfigAuthMethodWebauthn_enabled(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -13934,7 +13718,7 @@ func (ec *executionContext) _ConfigAuthMethodWebauthn_relyingParty(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RelyingParty, nil
 	})
@@ -13983,7 +13767,7 @@ func (ec *executionContext) _ConfigAuthMethodWebauthn_attestation(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Attestation, nil
 	})
@@ -14028,7 +13812,7 @@ func (ec *executionContext) _ConfigAuthMethodWebauthnAttestation_timeout(ctx con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Timeout, nil
 	})
@@ -14069,7 +13853,7 @@ func (ec *executionContext) _ConfigAuthMethodWebauthnRelyingParty_id(ctx context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Id, nil
 	})
@@ -14110,7 +13894,7 @@ func (ec *executionContext) _ConfigAuthMethodWebauthnRelyingParty_name(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -14151,7 +13935,7 @@ func (ec *executionContext) _ConfigAuthMethodWebauthnRelyingParty_origins(ctx co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Origins, nil
 	})
@@ -14192,7 +13976,7 @@ func (ec *executionContext) _ConfigAuthMisc_concealErrors(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ConcealErrors, nil
 	})
@@ -14233,7 +14017,7 @@ func (ec *executionContext) _ConfigAuthRateLimit_emails(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Emails, nil
 	})
@@ -14280,7 +14064,7 @@ func (ec *executionContext) _ConfigAuthRateLimit_sms(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Sms, nil
 	})
@@ -14327,7 +14111,7 @@ func (ec *executionContext) _ConfigAuthRateLimit_bruteForce(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.BruteForce, nil
 	})
@@ -14374,7 +14158,7 @@ func (ec *executionContext) _ConfigAuthRateLimit_signups(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Signups, nil
 	})
@@ -14421,7 +14205,7 @@ func (ec *executionContext) _ConfigAuthRateLimit_global(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Global, nil
 	})
@@ -14468,7 +14252,7 @@ func (ec *executionContext) _ConfigAuthRedirections_clientUrl(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientUrl, nil
 	})
@@ -14509,7 +14293,7 @@ func (ec *executionContext) _ConfigAuthRedirections_allowedUrls(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AllowedUrls, nil
 	})
@@ -14550,7 +14334,7 @@ func (ec *executionContext) _ConfigAuthSession_accessToken(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AccessToken, nil
 	})
@@ -14597,7 +14381,7 @@ func (ec *executionContext) _ConfigAuthSession_refreshToken(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RefreshToken, nil
 	})
@@ -14642,7 +14426,7 @@ func (ec *executionContext) _ConfigAuthSessionAccessToken_expiresIn(ctx context.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ExpiresIn, nil
 	})
@@ -14683,7 +14467,7 @@ func (ec *executionContext) _ConfigAuthSessionAccessToken_customClaims(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.CustomClaims, nil
 	})
@@ -14730,7 +14514,7 @@ func (ec *executionContext) _ConfigAuthSessionRefreshToken_expiresIn(ctx context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ExpiresIn, nil
 	})
@@ -14771,7 +14555,7 @@ func (ec *executionContext) _ConfigAuthSignUp_enabled(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -14812,7 +14596,7 @@ func (ec *executionContext) _ConfigAuthSignUp_disableNewUsers(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DisableNewUsers, nil
 	})
@@ -14853,7 +14637,7 @@ func (ec *executionContext) _ConfigAuthSignUp_turnstile(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Turnstile, nil
 	})
@@ -14898,7 +14682,7 @@ func (ec *executionContext) _ConfigAuthSignUpTurnstile_secretKey(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SecretKey, nil
 	})
@@ -14942,7 +14726,7 @@ func (ec *executionContext) _ConfigAuthTotp_enabled(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -14983,7 +14767,7 @@ func (ec *executionContext) _ConfigAuthTotp_issuer(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Issuer, nil
 	})
@@ -15024,7 +14808,7 @@ func (ec *executionContext) _ConfigAuthUser_roles(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Roles, nil
 	})
@@ -15071,7 +14855,7 @@ func (ec *executionContext) _ConfigAuthUser_locale(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Locale, nil
 	})
@@ -15118,7 +14902,7 @@ func (ec *executionContext) _ConfigAuthUser_gravatar(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Gravatar, nil
 	})
@@ -15167,7 +14951,7 @@ func (ec *executionContext) _ConfigAuthUser_email(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Email, nil
 	})
@@ -15214,7 +14998,7 @@ func (ec *executionContext) _ConfigAuthUser_emailDomains(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EmailDomains, nil
 	})
@@ -15261,7 +15045,7 @@ func (ec *executionContext) _ConfigAuthUserEmail_allowed(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Allowed, nil
 	})
@@ -15302,7 +15086,7 @@ func (ec *executionContext) _ConfigAuthUserEmail_blocked(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Blocked, nil
 	})
@@ -15343,7 +15127,7 @@ func (ec *executionContext) _ConfigAuthUserEmailDomains_allowed(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Allowed, nil
 	})
@@ -15384,7 +15168,7 @@ func (ec *executionContext) _ConfigAuthUserEmailDomains_blocked(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Blocked, nil
 	})
@@ -15425,7 +15209,7 @@ func (ec *executionContext) _ConfigAuthUserGravatar_enabled(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -15466,7 +15250,7 @@ func (ec *executionContext) _ConfigAuthUserGravatar_default(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Default, nil
 	})
@@ -15507,7 +15291,7 @@ func (ec *executionContext) _ConfigAuthUserGravatar_rating(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Rating, nil
 	})
@@ -15548,7 +15332,7 @@ func (ec *executionContext) _ConfigAuthUserLocale_default(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Default, nil
 	})
@@ -15589,7 +15373,7 @@ func (ec *executionContext) _ConfigAuthUserLocale_allowed(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Allowed, nil
 	})
@@ -15630,7 +15414,7 @@ func (ec *executionContext) _ConfigAuthUserRoles_default(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Default, nil
 	})
@@ -15671,7 +15455,7 @@ func (ec *executionContext) _ConfigAuthUserRoles_allowed(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Allowed, nil
 	})
@@ -15712,7 +15496,7 @@ func (ec *executionContext) _ConfigAuthsessionaccessTokenCustomClaims_key(ctx co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Key, nil
 	})
@@ -15756,7 +15540,7 @@ func (ec *executionContext) _ConfigAuthsessionaccessTokenCustomClaims_value(ctx 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Value, nil
 	})
@@ -15800,7 +15584,7 @@ func (ec *executionContext) _ConfigAutoscaler_maxReplicas(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxReplicas, nil
 	})
@@ -15844,7 +15628,7 @@ func (ec *executionContext) _ConfigClaimMap_claim(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Claim, nil
 	})
@@ -15888,7 +15672,7 @@ func (ec *executionContext) _ConfigClaimMap_value(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Value, nil
 	})
@@ -15929,7 +15713,7 @@ func (ec *executionContext) _ConfigClaimMap_path(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Path, nil
 	})
@@ -15970,7 +15754,7 @@ func (ec *executionContext) _ConfigClaimMap_default(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Default, nil
 	})
@@ -16011,7 +15795,7 @@ func (ec *executionContext) _ConfigComputeResources_cpu(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Cpu, nil
 	})
@@ -16055,7 +15839,7 @@ func (ec *executionContext) _ConfigComputeResources_memory(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Memory, nil
 	})
@@ -16099,7 +15883,7 @@ func (ec *executionContext) _ConfigConfig_global(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Global, nil
 	})
@@ -16144,7 +15928,7 @@ func (ec *executionContext) _ConfigConfig_hasura(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Hasura, nil
 	})
@@ -16210,7 +15994,7 @@ func (ec *executionContext) _ConfigConfig_graphql(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Graphql, nil
 	})
@@ -16255,7 +16039,7 @@ func (ec *executionContext) _ConfigConfig_functions(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Functions, nil
 	})
@@ -16304,7 +16088,7 @@ func (ec *executionContext) _ConfigConfig_auth(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Auth, nil
 	})
@@ -16369,7 +16153,7 @@ func (ec *executionContext) _ConfigConfig_postgres(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Postgres, nil
 	})
@@ -16378,11 +16162,14 @@ func (ec *executionContext) _ConfigConfig_postgres(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.ConfigPostgres)
 	fc.Result = res
-	return ec.marshalOConfigPostgres2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgres(ctx, field.Selections, res)
+	return ec.marshalNConfigPostgres2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgres(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ConfigConfig_postgres(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -16418,7 +16205,7 @@ func (ec *executionContext) _ConfigConfig_provider(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Provider, nil
 	})
@@ -16465,7 +16252,7 @@ func (ec *executionContext) _ConfigConfig_storage(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Storage, nil
 	})
@@ -16516,7 +16303,7 @@ func (ec *executionContext) _ConfigConfig_ai(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Ai, nil
 	})
@@ -16569,7 +16356,7 @@ func (ec *executionContext) _ConfigConfig_observability(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Observability, nil
 	})
@@ -16617,7 +16404,7 @@ func (ec *executionContext) _ConfigEnvironmentVariable_name(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -16661,7 +16448,7 @@ func (ec *executionContext) _ConfigEnvironmentVariable_value(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Value, nil
 	})
@@ -16705,7 +16492,7 @@ func (ec *executionContext) _ConfigFunctions_node(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Node, nil
 	})
@@ -16750,7 +16537,7 @@ func (ec *executionContext) _ConfigFunctions_resources(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Resources, nil
 	})
@@ -16795,7 +16582,7 @@ func (ec *executionContext) _ConfigFunctions_rateLimit(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RateLimit, nil
 	})
@@ -16842,7 +16629,7 @@ func (ec *executionContext) _ConfigFunctionsNode_version(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Version, nil
 	})
@@ -16883,7 +16670,7 @@ func (ec *executionContext) _ConfigFunctionsResources_networking(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Networking, nil
 	})
@@ -16928,7 +16715,7 @@ func (ec *executionContext) _ConfigGlobal_environment(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Environment, nil
 	})
@@ -16975,7 +16762,7 @@ func (ec *executionContext) _ConfigGlobalEnvironmentVariable_name(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -17019,7 +16806,7 @@ func (ec *executionContext) _ConfigGlobalEnvironmentVariable_value(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Value, nil
 	})
@@ -17063,7 +16850,7 @@ func (ec *executionContext) _ConfigGrafana_adminPassword(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AdminPassword, nil
 	})
@@ -17107,7 +16894,7 @@ func (ec *executionContext) _ConfigGrafana_smtp(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Smtp, nil
 	})
@@ -17160,7 +16947,7 @@ func (ec *executionContext) _ConfigGrafana_alerting(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Alerting, nil
 	})
@@ -17205,7 +16992,7 @@ func (ec *executionContext) _ConfigGrafana_contacts(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Contacts, nil
 	})
@@ -17258,7 +17045,7 @@ func (ec *executionContext) _ConfigGrafanaAlerting_enabled(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -17299,7 +17086,7 @@ func (ec *executionContext) _ConfigGrafanaContacts_emails(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Emails, nil
 	})
@@ -17340,7 +17127,7 @@ func (ec *executionContext) _ConfigGrafanaContacts_pagerduty(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Pagerduty, nil
 	})
@@ -17393,7 +17180,7 @@ func (ec *executionContext) _ConfigGrafanaContacts_discord(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Discord, nil
 	})
@@ -17440,7 +17227,7 @@ func (ec *executionContext) _ConfigGrafanaContacts_slack(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Slack, nil
 	})
@@ -17503,7 +17290,7 @@ func (ec *executionContext) _ConfigGrafanaContacts_webhook(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Webhook, nil
 	})
@@ -17560,7 +17347,7 @@ func (ec *executionContext) _ConfigGrafanaSmtp_host(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Host, nil
 	})
@@ -17604,7 +17391,7 @@ func (ec *executionContext) _ConfigGrafanaSmtp_port(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Port, nil
 	})
@@ -17648,7 +17435,7 @@ func (ec *executionContext) _ConfigGrafanaSmtp_sender(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Sender, nil
 	})
@@ -17692,7 +17479,7 @@ func (ec *executionContext) _ConfigGrafanaSmtp_user(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.User, nil
 	})
@@ -17736,7 +17523,7 @@ func (ec *executionContext) _ConfigGrafanaSmtp_password(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Password, nil
 	})
@@ -17780,7 +17567,7 @@ func (ec *executionContext) _ConfigGrafanacontactsDiscord_url(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Url, nil
 	})
@@ -17824,7 +17611,7 @@ func (ec *executionContext) _ConfigGrafanacontactsDiscord_avatarUrl(ctx context.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AvatarUrl, nil
 	})
@@ -17868,7 +17655,7 @@ func (ec *executionContext) _ConfigGrafanacontactsPagerduty_integrationKey(ctx c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IntegrationKey, nil
 	})
@@ -17912,7 +17699,7 @@ func (ec *executionContext) _ConfigGrafanacontactsPagerduty_severity(ctx context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Severity, nil
 	})
@@ -17956,7 +17743,7 @@ func (ec *executionContext) _ConfigGrafanacontactsPagerduty_class(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Class, nil
 	})
@@ -18000,7 +17787,7 @@ func (ec *executionContext) _ConfigGrafanacontactsPagerduty_component(ctx contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Component, nil
 	})
@@ -18044,7 +17831,7 @@ func (ec *executionContext) _ConfigGrafanacontactsPagerduty_group(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Group, nil
 	})
@@ -18088,7 +17875,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_recipient(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Recipient, nil
 	})
@@ -18132,7 +17919,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_token(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Token, nil
 	})
@@ -18176,7 +17963,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_username(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Username, nil
 	})
@@ -18220,7 +18007,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_iconEmoji(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IconEmoji, nil
 	})
@@ -18264,7 +18051,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_iconURL(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IconURL, nil
 	})
@@ -18308,7 +18095,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_mentionUsers(ctx context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MentionUsers, nil
 	})
@@ -18352,7 +18139,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_mentionGroups(ctx contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MentionGroups, nil
 	})
@@ -18396,7 +18183,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_mentionChannel(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MentionChannel, nil
 	})
@@ -18440,7 +18227,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_url(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Url, nil
 	})
@@ -18484,7 +18271,7 @@ func (ec *executionContext) _ConfigGrafanacontactsSlack_endpointURL(ctx context.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EndpointURL, nil
 	})
@@ -18528,7 +18315,7 @@ func (ec *executionContext) _ConfigGrafanacontactsWebhook_url(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Url, nil
 	})
@@ -18572,7 +18359,7 @@ func (ec *executionContext) _ConfigGrafanacontactsWebhook_httpMethod(ctx context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.HttpMethod, nil
 	})
@@ -18616,7 +18403,7 @@ func (ec *executionContext) _ConfigGrafanacontactsWebhook_username(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Username, nil
 	})
@@ -18660,7 +18447,7 @@ func (ec *executionContext) _ConfigGrafanacontactsWebhook_password(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Password, nil
 	})
@@ -18704,7 +18491,7 @@ func (ec *executionContext) _ConfigGrafanacontactsWebhook_authorizationScheme(ct
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AuthorizationScheme, nil
 	})
@@ -18748,7 +18535,7 @@ func (ec *executionContext) _ConfigGrafanacontactsWebhook_authorizationCredentia
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AuthorizationCredentials, nil
 	})
@@ -18792,7 +18579,7 @@ func (ec *executionContext) _ConfigGrafanacontactsWebhook_maxAlerts(ctx context.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxAlerts, nil
 	})
@@ -18836,7 +18623,7 @@ func (ec *executionContext) _ConfigGraphql_security(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Security, nil
 	})
@@ -18883,7 +18670,7 @@ func (ec *executionContext) _ConfigGraphqlSecurity_forbidAminSecret(ctx context.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ForbidAminSecret, nil
 	})
@@ -18924,7 +18711,7 @@ func (ec *executionContext) _ConfigGraphqlSecurity_maxDepthQueries(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxDepthQueries, nil
 	})
@@ -18965,7 +18752,7 @@ func (ec *executionContext) _ConfigHasura_version(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Version, nil
 	})
@@ -19006,7 +18793,7 @@ func (ec *executionContext) _ConfigHasura_jwtSecrets(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.JwtSecrets, nil
 	})
@@ -19075,7 +18862,7 @@ func (ec *executionContext) _ConfigHasura_adminSecret(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AdminSecret, nil
 	})
@@ -19119,7 +18906,7 @@ func (ec *executionContext) _ConfigHasura_webhookSecret(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.WebhookSecret, nil
 	})
@@ -19163,7 +18950,7 @@ func (ec *executionContext) _ConfigHasura_settings(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Settings, nil
 	})
@@ -19224,7 +19011,7 @@ func (ec *executionContext) _ConfigHasura_authHook(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AuthHook, nil
 	})
@@ -19273,7 +19060,7 @@ func (ec *executionContext) _ConfigHasura_logs(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Logs, nil
 	})
@@ -19318,7 +19105,7 @@ func (ec *executionContext) _ConfigHasura_events(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Events, nil
 	})
@@ -19363,7 +19150,7 @@ func (ec *executionContext) _ConfigHasura_resources(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Resources, nil
 	})
@@ -19414,7 +19201,7 @@ func (ec *executionContext) _ConfigHasura_rateLimit(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RateLimit, nil
 	})
@@ -19461,7 +19248,7 @@ func (ec *executionContext) _ConfigHasuraAuthHook_url(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Url, nil
 	})
@@ -19505,7 +19292,7 @@ func (ec *executionContext) _ConfigHasuraAuthHook_mode(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Mode, nil
 	})
@@ -19546,7 +19333,7 @@ func (ec *executionContext) _ConfigHasuraAuthHook_sendRequestBody(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SendRequestBody, nil
 	})
@@ -19587,7 +19374,7 @@ func (ec *executionContext) _ConfigHasuraEvents_httpPoolSize(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.HttpPoolSize, nil
 	})
@@ -19628,7 +19415,7 @@ func (ec *executionContext) _ConfigHasuraLogs_level(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Level, nil
 	})
@@ -19669,7 +19456,7 @@ func (ec *executionContext) _ConfigHasuraSettings_corsDomain(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.CorsDomain, nil
 	})
@@ -19710,7 +19497,7 @@ func (ec *executionContext) _ConfigHasuraSettings_devMode(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DevMode, nil
 	})
@@ -19751,7 +19538,7 @@ func (ec *executionContext) _ConfigHasuraSettings_enableAllowList(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EnableAllowList, nil
 	})
@@ -19792,7 +19579,7 @@ func (ec *executionContext) _ConfigHasuraSettings_enableConsole(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EnableConsole, nil
 	})
@@ -19833,7 +19620,7 @@ func (ec *executionContext) _ConfigHasuraSettings_enableRemoteSchemaPermissions(
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EnableRemoteSchemaPermissions, nil
 	})
@@ -19874,7 +19661,7 @@ func (ec *executionContext) _ConfigHasuraSettings_enabledAPIs(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EnabledAPIs, nil
 	})
@@ -19915,7 +19702,7 @@ func (ec *executionContext) _ConfigHasuraSettings_inferFunctionPermissions(ctx c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.InferFunctionPermissions, nil
 	})
@@ -19956,7 +19743,7 @@ func (ec *executionContext) _ConfigHasuraSettings_liveQueriesMultiplexedRefetchI
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.LiveQueriesMultiplexedRefetchInterval, nil
 	})
@@ -19997,7 +19784,7 @@ func (ec *executionContext) _ConfigHasuraSettings_stringifyNumericTypes(ctx cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.StringifyNumericTypes, nil
 	})
@@ -20038,7 +19825,7 @@ func (ec *executionContext) _ConfigHealthCheck_port(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Port, nil
 	})
@@ -20082,7 +19869,7 @@ func (ec *executionContext) _ConfigHealthCheck_initialDelaySeconds(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.InitialDelaySeconds, nil
 	})
@@ -20123,7 +19910,7 @@ func (ec *executionContext) _ConfigHealthCheck_probePeriodSeconds(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ProbePeriodSeconds, nil
 	})
@@ -20164,7 +19951,7 @@ func (ec *executionContext) _ConfigIngress_fqdn(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Fqdn, nil
 	})
@@ -20205,7 +19992,7 @@ func (ec *executionContext) _ConfigIngress_tls(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Tls, nil
 	})
@@ -20250,7 +20037,7 @@ func (ec *executionContext) _ConfigIngressTls_clientCA(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientCA, nil
 	})
@@ -20291,7 +20078,7 @@ func (ec *executionContext) _ConfigInsertConfigResponse_config(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Config, nil
 	})
@@ -20357,7 +20144,7 @@ func (ec *executionContext) _ConfigInsertConfigResponse_systemConfig(ctx context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SystemConfig, nil
 	})
@@ -20411,7 +20198,7 @@ func (ec *executionContext) _ConfigInsertConfigResponse_secrets(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Secrets, nil
 	})
@@ -20461,7 +20248,7 @@ func (ec *executionContext) _ConfigJWTSecret_type(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Type, nil
 	})
@@ -20502,7 +20289,7 @@ func (ec *executionContext) _ConfigJWTSecret_key(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Key, nil
 	})
@@ -20543,7 +20330,7 @@ func (ec *executionContext) _ConfigJWTSecret_signingKey(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SigningKey, nil
 	})
@@ -20584,7 +20371,7 @@ func (ec *executionContext) _ConfigJWTSecret_kid(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Kid, nil
 	})
@@ -20625,7 +20412,7 @@ func (ec *executionContext) _ConfigJWTSecret_jwk_url(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.JwkUrl, nil
 	})
@@ -20666,7 +20453,7 @@ func (ec *executionContext) _ConfigJWTSecret_claims_format(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClaimsFormat, nil
 	})
@@ -20707,7 +20494,7 @@ func (ec *executionContext) _ConfigJWTSecret_audience(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Audience, nil
 	})
@@ -20748,7 +20535,7 @@ func (ec *executionContext) _ConfigJWTSecret_issuer(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Issuer, nil
 	})
@@ -20789,7 +20576,7 @@ func (ec *executionContext) _ConfigJWTSecret_allowed_skew(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AllowedSkew, nil
 	})
@@ -20830,7 +20617,7 @@ func (ec *executionContext) _ConfigJWTSecret_header(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Header, nil
 	})
@@ -20871,7 +20658,7 @@ func (ec *executionContext) _ConfigJWTSecret_claims_map(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClaimsMap, nil
 	})
@@ -20922,7 +20709,7 @@ func (ec *executionContext) _ConfigJWTSecret_claims_namespace(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClaimsNamespace, nil
 	})
@@ -20963,7 +20750,7 @@ func (ec *executionContext) _ConfigJWTSecret_claims_namespace_path(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClaimsNamespacePath, nil
 	})
@@ -21004,7 +20791,7 @@ func (ec *executionContext) _ConfigNetworking_ingresses(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Ingresses, nil
 	})
@@ -21051,7 +20838,7 @@ func (ec *executionContext) _ConfigObservability_grafana(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Grafana, nil
 	})
@@ -21105,7 +20892,7 @@ func (ec *executionContext) _ConfigPostgres_version(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Version, nil
 	})
@@ -21146,7 +20933,7 @@ func (ec *executionContext) _ConfigPostgres_resources(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Resources, nil
 	})
@@ -21155,11 +20942,14 @@ func (ec *executionContext) _ConfigPostgres_resources(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.ConfigPostgresResources)
 	fc.Result = res
-	return ec.marshalOConfigPostgresResources2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResources(ctx, field.Selections, res)
+	return ec.marshalNConfigPostgresResources2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResources(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ConfigPostgres_resources(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21201,7 +20991,7 @@ func (ec *executionContext) _ConfigPostgres_settings(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Settings, nil
 	})
@@ -21286,7 +21076,7 @@ func (ec *executionContext) _ConfigPostgresResources_compute(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Compute, nil
 	})
@@ -21333,7 +21123,7 @@ func (ec *executionContext) _ConfigPostgresResources_replicas(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Replicas, nil
 	})
@@ -21374,7 +21164,7 @@ func (ec *executionContext) _ConfigPostgresResources_autoscaler(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Autoscaler, nil
 	})
@@ -21419,7 +21209,7 @@ func (ec *executionContext) _ConfigPostgresResources_networking(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Networking, nil
 	})
@@ -21464,7 +21254,7 @@ func (ec *executionContext) _ConfigPostgresResources_storage(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Storage, nil
 	})
@@ -21473,11 +21263,14 @@ func (ec *executionContext) _ConfigPostgresResources_storage(ctx context.Context
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.ConfigPostgresStorage)
 	fc.Result = res
-	return ec.marshalOConfigPostgresStorage2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorage(ctx, field.Selections, res)
+	return ec.marshalNConfigPostgresStorage2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ConfigPostgresResources_storage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21509,7 +21302,7 @@ func (ec *executionContext) _ConfigPostgresResources_enablePublicAccess(ctx cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EnablePublicAccess, nil
 	})
@@ -21550,7 +21343,7 @@ func (ec *executionContext) _ConfigPostgresSettings_jit(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Jit, nil
 	})
@@ -21591,7 +21384,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maxConnections(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxConnections, nil
 	})
@@ -21632,7 +21425,7 @@ func (ec *executionContext) _ConfigPostgresSettings_sharedBuffers(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SharedBuffers, nil
 	})
@@ -21673,7 +21466,7 @@ func (ec *executionContext) _ConfigPostgresSettings_effectiveCacheSize(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EffectiveCacheSize, nil
 	})
@@ -21714,7 +21507,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maintenanceWorkMem(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaintenanceWorkMem, nil
 	})
@@ -21755,7 +21548,7 @@ func (ec *executionContext) _ConfigPostgresSettings_checkpointCompletionTarget(c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.CheckpointCompletionTarget, nil
 	})
@@ -21796,7 +21589,7 @@ func (ec *executionContext) _ConfigPostgresSettings_walBuffers(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.WalBuffers, nil
 	})
@@ -21837,7 +21630,7 @@ func (ec *executionContext) _ConfigPostgresSettings_defaultStatisticsTarget(ctx 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DefaultStatisticsTarget, nil
 	})
@@ -21878,7 +21671,7 @@ func (ec *executionContext) _ConfigPostgresSettings_randomPageCost(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RandomPageCost, nil
 	})
@@ -21919,7 +21712,7 @@ func (ec *executionContext) _ConfigPostgresSettings_effectiveIOConcurrency(ctx c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EffectiveIOConcurrency, nil
 	})
@@ -21960,7 +21753,7 @@ func (ec *executionContext) _ConfigPostgresSettings_workMem(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.WorkMem, nil
 	})
@@ -22001,7 +21794,7 @@ func (ec *executionContext) _ConfigPostgresSettings_hugePages(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.HugePages, nil
 	})
@@ -22042,7 +21835,7 @@ func (ec *executionContext) _ConfigPostgresSettings_minWalSize(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MinWalSize, nil
 	})
@@ -22083,7 +21876,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maxWalSize(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxWalSize, nil
 	})
@@ -22124,7 +21917,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maxWorkerProcesses(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxWorkerProcesses, nil
 	})
@@ -22165,7 +21958,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maxParallelWorkersPerGather(
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxParallelWorkersPerGather, nil
 	})
@@ -22206,7 +21999,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maxParallelWorkers(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxParallelWorkers, nil
 	})
@@ -22247,7 +22040,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maxParallelMaintenanceWorker
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxParallelMaintenanceWorkers, nil
 	})
@@ -22288,7 +22081,7 @@ func (ec *executionContext) _ConfigPostgresSettings_walLevel(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.WalLevel, nil
 	})
@@ -22329,7 +22122,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maxWalSenders(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxWalSenders, nil
 	})
@@ -22370,7 +22163,7 @@ func (ec *executionContext) _ConfigPostgresSettings_maxReplicationSlots(ctx cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MaxReplicationSlots, nil
 	})
@@ -22411,7 +22204,7 @@ func (ec *executionContext) _ConfigPostgresStorage_capacity(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Capacity, nil
 	})
@@ -22455,7 +22248,7 @@ func (ec *executionContext) _ConfigProvider_smtp(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Smtp, nil
 	})
@@ -22512,7 +22305,7 @@ func (ec *executionContext) _ConfigProvider_sms(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Sms, nil
 	})
@@ -22563,7 +22356,7 @@ func (ec *executionContext) _ConfigRateLimit_limit(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Limit, nil
 	})
@@ -22607,7 +22400,7 @@ func (ec *executionContext) _ConfigRateLimit_interval(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Interval, nil
 	})
@@ -22651,7 +22444,7 @@ func (ec *executionContext) _ConfigResources_compute(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Compute, nil
 	})
@@ -22698,7 +22491,7 @@ func (ec *executionContext) _ConfigResources_replicas(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Replicas, nil
 	})
@@ -22739,7 +22532,7 @@ func (ec *executionContext) _ConfigResources_autoscaler(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Autoscaler, nil
 	})
@@ -22784,7 +22577,7 @@ func (ec *executionContext) _ConfigResources_networking(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Networking, nil
 	})
@@ -22829,7 +22622,7 @@ func (ec *executionContext) _ConfigResourcesCompute_cpu(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Cpu, nil
 	})
@@ -22873,7 +22666,7 @@ func (ec *executionContext) _ConfigResourcesCompute_memory(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Memory, nil
 	})
@@ -22917,7 +22710,7 @@ func (ec *executionContext) _ConfigRunServiceConfig_name(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -22961,7 +22754,7 @@ func (ec *executionContext) _ConfigRunServiceConfig_image(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Image, nil
 	})
@@ -23011,7 +22804,7 @@ func (ec *executionContext) _ConfigRunServiceConfig_command(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Command, nil
 	})
@@ -23052,7 +22845,7 @@ func (ec *executionContext) _ConfigRunServiceConfig_environment(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Environment, nil
 	})
@@ -23099,7 +22892,7 @@ func (ec *executionContext) _ConfigRunServiceConfig_ports(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Ports, nil
 	})
@@ -23152,7 +22945,7 @@ func (ec *executionContext) _ConfigRunServiceConfig_resources(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Resources, nil
 	})
@@ -23206,7 +22999,7 @@ func (ec *executionContext) _ConfigRunServiceConfig_healthCheck(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.HealthCheck, nil
 	})
@@ -23255,7 +23048,7 @@ func (ec *executionContext) _ConfigRunServiceConfigWithID_serviceID(ctx context.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ServiceID, nil
 	})
@@ -23299,7 +23092,7 @@ func (ec *executionContext) _ConfigRunServiceConfigWithID_config(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Config, nil
 	})
@@ -23359,7 +23152,7 @@ func (ec *executionContext) _ConfigRunServiceImage_image(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Image, nil
 	})
@@ -23403,7 +23196,7 @@ func (ec *executionContext) _ConfigRunServiceImage_pullCredentials(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.PullCredentials, nil
 	})
@@ -23444,7 +23237,7 @@ func (ec *executionContext) _ConfigRunServicePort_port(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Port, nil
 	})
@@ -23488,7 +23281,7 @@ func (ec *executionContext) _ConfigRunServicePort_type(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Type, nil
 	})
@@ -23532,7 +23325,7 @@ func (ec *executionContext) _ConfigRunServicePort_publish(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Publish, nil
 	})
@@ -23573,7 +23366,7 @@ func (ec *executionContext) _ConfigRunServicePort_ingresses(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Ingresses, nil
 	})
@@ -23620,7 +23413,7 @@ func (ec *executionContext) _ConfigRunServicePort_rateLimit(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RateLimit, nil
 	})
@@ -23667,7 +23460,7 @@ func (ec *executionContext) _ConfigRunServiceResources_compute(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Compute, nil
 	})
@@ -23717,7 +23510,7 @@ func (ec *executionContext) _ConfigRunServiceResources_storage(ctx context.Conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Storage, nil
 	})
@@ -23766,7 +23559,7 @@ func (ec *executionContext) _ConfigRunServiceResources_replicas(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Replicas, nil
 	})
@@ -23810,7 +23603,7 @@ func (ec *executionContext) _ConfigRunServiceResources_autoscaler(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Autoscaler, nil
 	})
@@ -23855,7 +23648,7 @@ func (ec *executionContext) _ConfigRunServiceResourcesStorage_name(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -23899,7 +23692,7 @@ func (ec *executionContext) _ConfigRunServiceResourcesStorage_capacity(ctx conte
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Capacity, nil
 	})
@@ -23943,7 +23736,7 @@ func (ec *executionContext) _ConfigRunServiceResourcesStorage_path(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Path, nil
 	})
@@ -23987,7 +23780,7 @@ func (ec *executionContext) _ConfigSms_provider(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Provider, nil
 	})
@@ -24028,7 +23821,7 @@ func (ec *executionContext) _ConfigSms_accountSid(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AccountSid, nil
 	})
@@ -24072,7 +23865,7 @@ func (ec *executionContext) _ConfigSms_authToken(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AuthToken, nil
 	})
@@ -24116,7 +23909,7 @@ func (ec *executionContext) _ConfigSms_messagingServiceId(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MessagingServiceId, nil
 	})
@@ -24160,7 +23953,7 @@ func (ec *executionContext) _ConfigSmtp_user(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.User, nil
 	})
@@ -24204,7 +23997,7 @@ func (ec *executionContext) _ConfigSmtp_password(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Password, nil
 	})
@@ -24248,7 +24041,7 @@ func (ec *executionContext) _ConfigSmtp_sender(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Sender, nil
 	})
@@ -24292,7 +24085,7 @@ func (ec *executionContext) _ConfigSmtp_host(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Host, nil
 	})
@@ -24336,7 +24129,7 @@ func (ec *executionContext) _ConfigSmtp_port(ctx context.Context, field graphql.
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Port, nil
 	})
@@ -24380,7 +24173,7 @@ func (ec *executionContext) _ConfigSmtp_secure(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Secure, nil
 	})
@@ -24424,7 +24217,7 @@ func (ec *executionContext) _ConfigSmtp_method(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Method, nil
 	})
@@ -24468,7 +24261,7 @@ func (ec *executionContext) _ConfigStandardOauthProvider_enabled(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -24509,7 +24302,7 @@ func (ec *executionContext) _ConfigStandardOauthProvider_clientId(ctx context.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientId, nil
 	})
@@ -24550,7 +24343,7 @@ func (ec *executionContext) _ConfigStandardOauthProvider_clientSecret(ctx contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientSecret, nil
 	})
@@ -24591,7 +24384,7 @@ func (ec *executionContext) _ConfigStandardOauthProviderWithScope_enabled(ctx co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -24632,7 +24425,7 @@ func (ec *executionContext) _ConfigStandardOauthProviderWithScope_audience(ctx c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Audience, nil
 	})
@@ -24673,7 +24466,7 @@ func (ec *executionContext) _ConfigStandardOauthProviderWithScope_clientId(ctx c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientId, nil
 	})
@@ -24714,7 +24507,7 @@ func (ec *executionContext) _ConfigStandardOauthProviderWithScope_scope(ctx cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Scope, nil
 	})
@@ -24755,7 +24548,7 @@ func (ec *executionContext) _ConfigStandardOauthProviderWithScope_clientSecret(c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientSecret, nil
 	})
@@ -24796,7 +24589,7 @@ func (ec *executionContext) _ConfigStorage_version(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Version, nil
 	})
@@ -24837,7 +24630,7 @@ func (ec *executionContext) _ConfigStorage_resources(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Resources, nil
 	})
@@ -24888,7 +24681,7 @@ func (ec *executionContext) _ConfigStorage_antivirus(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Antivirus, nil
 	})
@@ -24933,7 +24726,7 @@ func (ec *executionContext) _ConfigStorage_rateLimit(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RateLimit, nil
 	})
@@ -24980,7 +24773,7 @@ func (ec *executionContext) _ConfigStorageAntivirus_server(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Server, nil
 	})
@@ -25021,7 +24814,7 @@ func (ec *executionContext) _ConfigSystemConfig_auth(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Auth, nil
 	})
@@ -25066,7 +24859,7 @@ func (ec *executionContext) _ConfigSystemConfig_graphql(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Graphql, nil
 	})
@@ -25111,7 +24904,7 @@ func (ec *executionContext) _ConfigSystemConfig_postgres(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Postgres, nil
 	})
@@ -25167,7 +24960,7 @@ func (ec *executionContext) _ConfigSystemConfig_persistentVolumesEncrypted(ctx c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.PersistentVolumesEncrypted, nil
 	})
@@ -25208,7 +25001,7 @@ func (ec *executionContext) _ConfigSystemConfigAuth_email(ctx context.Context, f
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Email, nil
 	})
@@ -25253,7 +25046,7 @@ func (ec *executionContext) _ConfigSystemConfigAuthEmail_templates(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Templates, nil
 	})
@@ -25298,7 +25091,7 @@ func (ec *executionContext) _ConfigSystemConfigAuthEmailTemplates_s3Key(ctx cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.S3Key, nil
 	})
@@ -25339,7 +25132,7 @@ func (ec *executionContext) _ConfigSystemConfigGraphql_featureAdvancedGraphql(ct
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.FeatureAdvancedGraphql, nil
 	})
@@ -25380,7 +25173,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgres_enabled(ctx context.Cont
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Enabled, nil
 	})
@@ -25421,7 +25214,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgres_majorVersion(ctx context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MajorVersion, nil
 	})
@@ -25462,7 +25255,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgres_connectionString(ctx con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ConnectionString, nil
 	})
@@ -25516,7 +25309,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgres_database(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Database, nil
 	})
@@ -25560,7 +25353,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgres_disk(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Disk, nil
 	})
@@ -25607,7 +25400,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgresConnectionString_backup(c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Backup, nil
 	})
@@ -25651,7 +25444,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgresConnectionString_hasura(c
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Hasura, nil
 	})
@@ -25695,7 +25488,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgresConnectionString_auth(ctx
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Auth, nil
 	})
@@ -25739,7 +25532,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgresConnectionString_storage(
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Storage, nil
 	})
@@ -25783,7 +25576,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgresDisk_iops(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Iops, nil
 	})
@@ -25824,7 +25617,7 @@ func (ec *executionContext) _ConfigSystemConfigPostgresDisk_tput(ctx context.Con
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Tput, nil
 	})
@@ -25865,7 +25658,7 @@ func (ec *executionContext) _InsertRunServiceConfigResponse_serviceID(ctx contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ServiceID, nil
 	})
@@ -25909,7 +25702,7 @@ func (ec *executionContext) _InsertRunServiceConfigResponse_config(ctx context.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Config, nil
 	})
@@ -25969,7 +25762,7 @@ func (ec *executionContext) _Mutation_updateConfig(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateConfig(rctx, fc.Args["appID"].(string), fc.Args["config"].(model.ConfigConfigUpdateInput))
 	})
@@ -26046,7 +25839,7 @@ func (ec *executionContext) _Mutation_replaceConfig(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().ReplaceConfig(rctx, fc.Args["appID"].(string), fc.Args["config"].(model.ConfigConfigInsertInput))
 	})
@@ -26123,7 +25916,7 @@ func (ec *executionContext) _Mutation_replaceConfigRawJSON(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().ReplaceConfigRawJSON(rctx, fc.Args["appID"].(string), fc.Args["rawJSON"].(string))
 	})
@@ -26178,7 +25971,7 @@ func (ec *executionContext) _Mutation_insertConfig(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().InsertConfig(rctx, fc.Args["appID"].(string), fc.Args["config"].(model.ConfigConfigInsertInput), fc.Args["systemConfig"].(model.ConfigSystemConfigInsertInput), fc.Args["secrets"].([]*model.ConfigEnvironmentVariableInsertInput))
 	})
@@ -26241,7 +26034,7 @@ func (ec *executionContext) _Mutation_deleteConfig(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteConfig(rctx, fc.Args["appID"].(string))
 	})
@@ -26315,7 +26108,7 @@ func (ec *executionContext) _Mutation_changeDatabaseVersion(ctx context.Context,
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().ChangeDatabaseVersion(rctx, fc.Args["appID"].(string), fc.Args["version"].(string), fc.Args["force"].(*bool))
 	})
@@ -26370,7 +26163,7 @@ func (ec *executionContext) _Mutation_insertSecret(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().InsertSecret(rctx, fc.Args["appID"].(string), fc.Args["secret"].(model.ConfigEnvironmentVariableInsertInput))
 	})
@@ -26431,7 +26224,7 @@ func (ec *executionContext) _Mutation_updateSecret(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateSecret(rctx, fc.Args["appID"].(string), fc.Args["secret"].(model.ConfigEnvironmentVariableInsertInput))
 	})
@@ -26492,7 +26285,7 @@ func (ec *executionContext) _Mutation_deleteSecret(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteSecret(rctx, fc.Args["appID"].(string), fc.Args["key"].(string))
 	})
@@ -26550,7 +26343,7 @@ func (ec *executionContext) _Mutation_updateSystemConfig(ctx context.Context, fi
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateSystemConfig(rctx, fc.Args["appID"].(string), fc.Args["systemConfig"].(model.ConfigSystemConfigUpdateInput))
 	})
@@ -26615,7 +26408,7 @@ func (ec *executionContext) _Mutation_insertRunServiceConfig(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().InsertRunServiceConfig(rctx, fc.Args["appID"].(string), fc.Args["config"].(model.ConfigRunServiceConfigInsertInput))
 	})
@@ -26676,7 +26469,7 @@ func (ec *executionContext) _Mutation_updateRunServiceConfig(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateRunServiceConfig(rctx, fc.Args["appID"].(string), fc.Args["serviceID"].(string), fc.Args["config"].(model.ConfigRunServiceConfigUpdateInput))
 	})
@@ -26747,7 +26540,7 @@ func (ec *executionContext) _Mutation_replaceRunServiceConfig(ctx context.Contex
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().ReplaceRunServiceConfig(rctx, fc.Args["appID"].(string), fc.Args["serviceID"].(string), fc.Args["config"].(model.ConfigRunServiceConfigInsertInput))
 	})
@@ -26818,7 +26611,7 @@ func (ec *executionContext) _Mutation_deleteRunServiceConfig(ctx context.Context
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteRunServiceConfig(rctx, fc.Args["appID"].(string), fc.Args["serviceID"].(string))
 	})
@@ -26886,7 +26679,7 @@ func (ec *executionContext) _Query_configRawJSON(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().ConfigRawJSON(rctx, fc.Args["appID"].(string), fc.Args["resolve"].(bool))
 	})
@@ -26941,7 +26734,7 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Config(rctx, fc.Args["appID"].(string), fc.Args["resolve"].(bool))
 	})
@@ -27015,7 +26808,7 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Configs(rctx, fc.Args["resolve"].(bool), fc.Args["where"].(*model.ConfigConfigComparisonExp))
 	})
@@ -27076,7 +26869,7 @@ func (ec *executionContext) _Query_appSecrets(ctx context.Context, field graphql
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().AppSecrets(rctx, fc.Args["appID"].(string))
 	})
@@ -27137,7 +26930,7 @@ func (ec *executionContext) _Query_appsSecrets(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().AppsSecrets(rctx)
 	})
@@ -27184,7 +26977,7 @@ func (ec *executionContext) _Query_systemConfig(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().SystemConfig(rctx, fc.Args["appID"].(string))
 	})
@@ -27246,7 +27039,7 @@ func (ec *executionContext) _Query_systemConfigs(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().SystemConfigs(rctx, fc.Args["where"].(*model.ConfigSystemConfigComparisonExp))
 	})
@@ -27307,7 +27100,7 @@ func (ec *executionContext) _Query_runServiceConfigRawJSON(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().RunServiceConfigRawJSON(rctx, fc.Args["appID"].(string), fc.Args["serviceID"].(string), fc.Args["resolve"].(bool))
 	})
@@ -27362,7 +27155,7 @@ func (ec *executionContext) _Query_runServiceConfig(ctx context.Context, field g
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().RunServiceConfig(rctx, fc.Args["appID"].(string), fc.Args["serviceID"].(string), fc.Args["resolve"].(bool))
 	})
@@ -27430,7 +27223,7 @@ func (ec *executionContext) _Query_runServiceConfigs(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().RunServiceConfigs(rctx, fc.Args["appID"].(string), fc.Args["resolve"].(bool))
 	})
@@ -27491,7 +27284,7 @@ func (ec *executionContext) _Query_runServiceConfigsAll(ctx context.Context, fie
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().RunServiceConfigsAll(rctx, fc.Args["resolve"].(bool), fc.Args["where"].(*model.ConfigRunServiceConfigComparisonExp))
 	})
@@ -27552,7 +27345,7 @@ func (ec *executionContext) _Query___type(ctx context.Context, field graphql.Col
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.introspectType(fc.Args["name"].(string))
 	})
@@ -27626,7 +27419,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.introspectSchema()
 	})
@@ -27681,7 +27474,7 @@ func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -27725,7 +27518,7 @@ func (ec *executionContext) ___Directive_description(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description(), nil
 	})
@@ -27766,7 +27559,7 @@ func (ec *executionContext) ___Directive_locations(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Locations, nil
 	})
@@ -27810,7 +27603,7 @@ func (ec *executionContext) ___Directive_args(ctx context.Context, field graphql
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Args, nil
 	})
@@ -27864,7 +27657,7 @@ func (ec *executionContext) ___Directive_isRepeatable(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IsRepeatable, nil
 	})
@@ -27908,7 +27701,7 @@ func (ec *executionContext) ___EnumValue_name(ctx context.Context, field graphql
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -27952,7 +27745,7 @@ func (ec *executionContext) ___EnumValue_description(ctx context.Context, field 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description(), nil
 	})
@@ -27993,7 +27786,7 @@ func (ec *executionContext) ___EnumValue_isDeprecated(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IsDeprecated(), nil
 	})
@@ -28037,7 +27830,7 @@ func (ec *executionContext) ___EnumValue_deprecationReason(ctx context.Context, 
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DeprecationReason(), nil
 	})
@@ -28078,7 +27871,7 @@ func (ec *executionContext) ___Field_name(ctx context.Context, field graphql.Col
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -28122,7 +27915,7 @@ func (ec *executionContext) ___Field_description(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description(), nil
 	})
@@ -28163,7 +27956,7 @@ func (ec *executionContext) ___Field_args(ctx context.Context, field graphql.Col
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Args, nil
 	})
@@ -28217,7 +28010,7 @@ func (ec *executionContext) ___Field_type(ctx context.Context, field graphql.Col
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Type, nil
 	})
@@ -28283,7 +28076,7 @@ func (ec *executionContext) ___Field_isDeprecated(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IsDeprecated(), nil
 	})
@@ -28327,7 +28120,7 @@ func (ec *executionContext) ___Field_deprecationReason(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DeprecationReason(), nil
 	})
@@ -28368,7 +28161,7 @@ func (ec *executionContext) ___InputValue_name(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
 	})
@@ -28412,7 +28205,7 @@ func (ec *executionContext) ___InputValue_description(ctx context.Context, field
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description(), nil
 	})
@@ -28453,7 +28246,7 @@ func (ec *executionContext) ___InputValue_type(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Type, nil
 	})
@@ -28519,7 +28312,7 @@ func (ec *executionContext) ___InputValue_defaultValue(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DefaultValue, nil
 	})
@@ -28560,7 +28353,7 @@ func (ec *executionContext) ___Schema_description(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description(), nil
 	})
@@ -28601,7 +28394,7 @@ func (ec *executionContext) ___Schema_types(ctx context.Context, field graphql.C
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Types(), nil
 	})
@@ -28667,7 +28460,7 @@ func (ec *executionContext) ___Schema_queryType(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.QueryType(), nil
 	})
@@ -28733,7 +28526,7 @@ func (ec *executionContext) ___Schema_mutationType(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.MutationType(), nil
 	})
@@ -28796,7 +28589,7 @@ func (ec *executionContext) ___Schema_subscriptionType(ctx context.Context, fiel
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SubscriptionType(), nil
 	})
@@ -28859,7 +28652,7 @@ func (ec *executionContext) ___Schema_directives(ctx context.Context, field grap
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Directives(), nil
 	})
@@ -28915,7 +28708,7 @@ func (ec *executionContext) ___Type_kind(ctx context.Context, field graphql.Coll
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Kind(), nil
 	})
@@ -28959,7 +28752,7 @@ func (ec *executionContext) ___Type_name(ctx context.Context, field graphql.Coll
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name(), nil
 	})
@@ -29000,7 +28793,7 @@ func (ec *executionContext) ___Type_description(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description(), nil
 	})
@@ -29041,7 +28834,7 @@ func (ec *executionContext) ___Type_fields(ctx context.Context, field graphql.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Fields(fc.Args["includeDeprecated"].(bool)), nil
 	})
@@ -29107,7 +28900,7 @@ func (ec *executionContext) ___Type_interfaces(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Interfaces(), nil
 	})
@@ -29170,7 +28963,7 @@ func (ec *executionContext) ___Type_possibleTypes(ctx context.Context, field gra
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.PossibleTypes(), nil
 	})
@@ -29233,7 +29026,7 @@ func (ec *executionContext) ___Type_enumValues(ctx context.Context, field graphq
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EnumValues(fc.Args["includeDeprecated"].(bool)), nil
 	})
@@ -29295,7 +29088,7 @@ func (ec *executionContext) ___Type_inputFields(ctx context.Context, field graph
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.InputFields(), nil
 	})
@@ -29346,7 +29139,7 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.OfType(), nil
 	})
@@ -29409,7 +29202,7 @@ func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field gr
 			ret = graphql.Null
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SpecifiedByURL(), nil
 	})
@@ -29442,10 +29235,10 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputConfigAIAutoEmbeddingsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAIAutoEmbeddingsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAIAutoEmbeddingsComparisonExp(ctx context.Context, obj any) (model.ConfigAIAutoEmbeddingsComparisonExp, error) {
 	var it model.ConfigAIAutoEmbeddingsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29490,10 +29283,10 @@ func (ec *executionContext) unmarshalInputConfigAIAutoEmbeddingsComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAIAutoEmbeddingsInsertInput(ctx context.Context, obj interface{}) (model.ConfigAIAutoEmbeddingsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAIAutoEmbeddingsInsertInput(ctx context.Context, obj any) (model.ConfigAIAutoEmbeddingsInsertInput, error) {
 	var it model.ConfigAIAutoEmbeddingsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29517,10 +29310,10 @@ func (ec *executionContext) unmarshalInputConfigAIAutoEmbeddingsInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAIComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAIComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAIComparisonExp(ctx context.Context, obj any) (model.ConfigAIComparisonExp, error) {
 	var it model.ConfigAIComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29593,10 +29386,10 @@ func (ec *executionContext) unmarshalInputConfigAIComparisonExp(ctx context.Cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAIInsertInput(ctx context.Context, obj interface{}) (model.ConfigAIInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAIInsertInput(ctx context.Context, obj any) (model.ConfigAIInsertInput, error) {
 	var it model.ConfigAIInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29648,10 +29441,10 @@ func (ec *executionContext) unmarshalInputConfigAIInsertInput(ctx context.Contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAIOpenaiComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAIOpenaiComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAIOpenaiComparisonExp(ctx context.Context, obj any) (model.ConfigAIOpenaiComparisonExp, error) {
 	var it model.ConfigAIOpenaiComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29703,10 +29496,10 @@ func (ec *executionContext) unmarshalInputConfigAIOpenaiComparisonExp(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAIOpenaiInsertInput(ctx context.Context, obj interface{}) (model.ConfigAIOpenaiInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAIOpenaiInsertInput(ctx context.Context, obj any) (model.ConfigAIOpenaiInsertInput, error) {
 	var it model.ConfigAIOpenaiInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29737,10 +29530,10 @@ func (ec *executionContext) unmarshalInputConfigAIOpenaiInsertInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAIResourcesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAIResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAIResourcesComparisonExp(ctx context.Context, obj any) (model.ConfigAIResourcesComparisonExp, error) {
 	var it model.ConfigAIResourcesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29785,10 +29578,10 @@ func (ec *executionContext) unmarshalInputConfigAIResourcesComparisonExp(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAIResourcesInsertInput(ctx context.Context, obj interface{}) (model.ConfigAIResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAIResourcesInsertInput(ctx context.Context, obj any) (model.ConfigAIResourcesInsertInput, error) {
 	var it model.ConfigAIResourcesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29812,10 +29605,10 @@ func (ec *executionContext) unmarshalInputConfigAIResourcesInsertInput(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Context, obj any) (model.ConfigAuthComparisonExp, error) {
 	var it model.ConfigAuthComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29930,10 +29723,10 @@ func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthElevatedPrivilegesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthElevatedPrivilegesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthElevatedPrivilegesComparisonExp(ctx context.Context, obj any) (model.ConfigAuthElevatedPrivilegesComparisonExp, error) {
 	var it model.ConfigAuthElevatedPrivilegesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -29978,10 +29771,10 @@ func (ec *executionContext) unmarshalInputConfigAuthElevatedPrivilegesComparison
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthElevatedPrivilegesInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthElevatedPrivilegesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthElevatedPrivilegesInsertInput(ctx context.Context, obj any) (model.ConfigAuthElevatedPrivilegesInsertInput, error) {
 	var it model.ConfigAuthElevatedPrivilegesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30005,10 +29798,10 @@ func (ec *executionContext) unmarshalInputConfigAuthElevatedPrivilegesInsertInpu
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Context, obj any) (model.ConfigAuthInsertInput, error) {
 	var it model.ConfigAuthInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30102,10 +29895,10 @@ func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodAnonymousComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodAnonymousComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodAnonymousComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodAnonymousComparisonExp, error) {
 	var it model.ConfigAuthMethodAnonymousComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30150,10 +29943,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodAnonymousComparisonExp
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodAnonymousInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodAnonymousInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodAnonymousInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodAnonymousInsertInput, error) {
 	var it model.ConfigAuthMethodAnonymousInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30177,10 +29970,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodAnonymousInsertInput(c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodComparisonExp, error) {
 	var it model.ConfigAuthMethodComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30267,10 +30060,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodComparisonExp(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodEmailPasswordComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodEmailPasswordComparisonExp, error) {
 	var it model.ConfigAuthMethodEmailPasswordComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30329,10 +30122,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordCompariso
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodEmailPasswordInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodEmailPasswordInsertInput, error) {
 	var it model.ConfigAuthMethodEmailPasswordInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30370,10 +30163,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordInsertInp
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordlessComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodEmailPasswordlessComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordlessComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodEmailPasswordlessComparisonExp, error) {
 	var it model.ConfigAuthMethodEmailPasswordlessComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30418,10 +30211,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordlessCompa
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordlessInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodEmailPasswordlessInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordlessInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodEmailPasswordlessInsertInput, error) {
 	var it model.ConfigAuthMethodEmailPasswordlessInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30445,10 +30238,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodEmailPasswordlessInser
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodInsertInput, error) {
 	var it model.ConfigAuthMethodInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30514,10 +30307,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodInsertInput(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthAppleComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOauthAppleComparisonExp, error) {
 	var it model.ConfigAuthMethodOauthAppleComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30604,10 +30397,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleComparisonEx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthAppleInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOauthAppleInsertInput, error) {
 	var it model.ConfigAuthMethodOauthAppleInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30673,10 +30466,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAppleInsertInput(
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAzureadComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthAzureadComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAzureadComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOauthAzureadComparisonExp, error) {
 	var it model.ConfigAuthMethodOauthAzureadComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30742,10 +30535,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAzureadComparison
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAzureadInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthAzureadInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAzureadInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOauthAzureadInsertInput, error) {
 	var it model.ConfigAuthMethodOauthAzureadInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30790,10 +30583,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthAzureadInsertInpu
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOauthComparisonExp, error) {
 	var it model.ConfigAuthMethodOauthComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -30936,10 +30729,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthComparisonExp(ctx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOauthInsertInput, error) {
 	var it model.ConfigAuthMethodOauthInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31061,10 +30854,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthInsertInput(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthTwitterComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthTwitterComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
 	var it model.ConfigAuthMethodOauthTwitterComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31123,10 +30916,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthTwitterComparison
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthTwitterInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthTwitterInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthTwitterInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOauthTwitterInsertInput, error) {
 	var it model.ConfigAuthMethodOauthTwitterInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31164,10 +30957,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthTwitterInsertInpu
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthWorkosComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthWorkosComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
 	var it model.ConfigAuthMethodOauthWorkosComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31240,10 +31033,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthWorkosComparisonE
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOauthWorkosInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOauthWorkosInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOauthWorkosInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOauthWorkosInsertInput, error) {
 	var it model.ConfigAuthMethodOauthWorkosInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31295,10 +31088,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOauthWorkosInsertInput
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOtpComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOtpComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOtpComparisonExp, error) {
 	var it model.ConfigAuthMethodOtpComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31343,10 +31136,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOtpComparisonExp(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOtpEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOtpEmailComparisonExp, error) {
 	var it model.ConfigAuthMethodOtpEmailComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31391,10 +31184,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOtpEmailComparisonExp(
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOtpEmailInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOtpEmailInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpEmailInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOtpEmailInsertInput, error) {
 	var it model.ConfigAuthMethodOtpEmailInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31418,10 +31211,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOtpEmailInsertInput(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodOtpInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodOtpInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOtpInsertInput, error) {
 	var it model.ConfigAuthMethodOtpInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31445,10 +31238,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOtpInsertInput(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodSmsPasswordlessComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodSmsPasswordlessComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
 	var it model.ConfigAuthMethodSmsPasswordlessComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31493,10 +31286,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodSmsPasswordlessCompari
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodSmsPasswordlessInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodSmsPasswordlessInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodSmsPasswordlessInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodSmsPasswordlessInsertInput, error) {
 	var it model.ConfigAuthMethodSmsPasswordlessInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31520,10 +31313,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodSmsPasswordlessInsertI
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnAttestationComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodWebauthnAttestationComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnAttestationComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodWebauthnAttestationComparisonExp, error) {
 	var it model.ConfigAuthMethodWebauthnAttestationComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31568,10 +31361,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnAttestationCom
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnAttestationInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodWebauthnAttestationInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnAttestationInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodWebauthnAttestationInsertInput, error) {
 	var it model.ConfigAuthMethodWebauthnAttestationInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31595,10 +31388,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnAttestationIns
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodWebauthnComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodWebauthnComparisonExp, error) {
 	var it model.ConfigAuthMethodWebauthnComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31657,10 +31450,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnComparisonExp(
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodWebauthnInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodWebauthnInsertInput, error) {
 	var it model.ConfigAuthMethodWebauthnInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31698,10 +31491,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnInsertInput(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
 	var it model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31760,10 +31553,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnRelyingPartyCo
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnRelyingPartyInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMethodWebauthnRelyingPartyInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnRelyingPartyInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodWebauthnRelyingPartyInsertInput, error) {
 	var it model.ConfigAuthMethodWebauthnRelyingPartyInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31801,10 +31594,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnRelyingPartyIn
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMiscComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMiscComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMiscComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMiscComparisonExp, error) {
 	var it model.ConfigAuthMiscComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31849,10 +31642,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMiscComparisonExp(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthMiscInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMiscInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthMiscInsertInput(ctx context.Context, obj any) (model.ConfigAuthMiscInsertInput, error) {
 	var it model.ConfigAuthMiscInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31876,10 +31669,10 @@ func (ec *executionContext) unmarshalInputConfigAuthMiscInsertInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthRateLimitComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthRateLimitComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthRateLimitComparisonExp(ctx context.Context, obj any) (model.ConfigAuthRateLimitComparisonExp, error) {
 	var it model.ConfigAuthRateLimitComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -31952,10 +31745,10 @@ func (ec *executionContext) unmarshalInputConfigAuthRateLimitComparisonExp(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthRateLimitInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthRateLimitInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthRateLimitInsertInput(ctx context.Context, obj any) (model.ConfigAuthRateLimitInsertInput, error) {
 	var it model.ConfigAuthRateLimitInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32007,10 +31800,10 @@ func (ec *executionContext) unmarshalInputConfigAuthRateLimitInsertInput(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthRedirectionsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthRedirectionsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthRedirectionsComparisonExp(ctx context.Context, obj any) (model.ConfigAuthRedirectionsComparisonExp, error) {
 	var it model.ConfigAuthRedirectionsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32062,10 +31855,10 @@ func (ec *executionContext) unmarshalInputConfigAuthRedirectionsComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthRedirectionsInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthRedirectionsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthRedirectionsInsertInput(ctx context.Context, obj any) (model.ConfigAuthRedirectionsInsertInput, error) {
 	var it model.ConfigAuthRedirectionsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32096,10 +31889,10 @@ func (ec *executionContext) unmarshalInputConfigAuthRedirectionsInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSessionAccessTokenComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthSessionAccessTokenComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSessionAccessTokenComparisonExp(ctx context.Context, obj any) (model.ConfigAuthSessionAccessTokenComparisonExp, error) {
 	var it model.ConfigAuthSessionAccessTokenComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32151,10 +31944,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSessionAccessTokenComparison
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSessionAccessTokenInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthSessionAccessTokenInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSessionAccessTokenInsertInput(ctx context.Context, obj any) (model.ConfigAuthSessionAccessTokenInsertInput, error) {
 	var it model.ConfigAuthSessionAccessTokenInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32185,10 +31978,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSessionAccessTokenInsertInpu
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSessionComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthSessionComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSessionComparisonExp(ctx context.Context, obj any) (model.ConfigAuthSessionComparisonExp, error) {
 	var it model.ConfigAuthSessionComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32240,10 +32033,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSessionComparisonExp(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSessionInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthSessionInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSessionInsertInput(ctx context.Context, obj any) (model.ConfigAuthSessionInsertInput, error) {
 	var it model.ConfigAuthSessionInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32274,10 +32067,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSessionInsertInput(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSessionRefreshTokenComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthSessionRefreshTokenComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSessionRefreshTokenComparisonExp(ctx context.Context, obj any) (model.ConfigAuthSessionRefreshTokenComparisonExp, error) {
 	var it model.ConfigAuthSessionRefreshTokenComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32322,10 +32115,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSessionRefreshTokenCompariso
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSessionRefreshTokenInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthSessionRefreshTokenInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSessionRefreshTokenInsertInput(ctx context.Context, obj any) (model.ConfigAuthSessionRefreshTokenInsertInput, error) {
 	var it model.ConfigAuthSessionRefreshTokenInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32349,10 +32142,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSessionRefreshTokenInsertInp
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSignUpComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthSignUpComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSignUpComparisonExp(ctx context.Context, obj any) (model.ConfigAuthSignUpComparisonExp, error) {
 	var it model.ConfigAuthSignUpComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32411,10 +32204,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpComparisonExp(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSignUpInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthSignUpInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSignUpInsertInput(ctx context.Context, obj any) (model.ConfigAuthSignUpInsertInput, error) {
 	var it model.ConfigAuthSignUpInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32452,10 +32245,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpInsertInput(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthSignUpTurnstileComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, obj any) (model.ConfigAuthSignUpTurnstileComparisonExp, error) {
 	var it model.ConfigAuthSignUpTurnstileComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32500,10 +32293,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpTurnstileComparisonExp
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthSignUpTurnstileInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthSignUpTurnstileInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthSignUpTurnstileInsertInput(ctx context.Context, obj any) (model.ConfigAuthSignUpTurnstileInsertInput, error) {
 	var it model.ConfigAuthSignUpTurnstileInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32527,10 +32320,10 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpTurnstileInsertInput(c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthTotpComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthTotpComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthTotpComparisonExp(ctx context.Context, obj any) (model.ConfigAuthTotpComparisonExp, error) {
 	var it model.ConfigAuthTotpComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32582,10 +32375,10 @@ func (ec *executionContext) unmarshalInputConfigAuthTotpComparisonExp(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthTotpInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthTotpInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthTotpInsertInput(ctx context.Context, obj any) (model.ConfigAuthTotpInsertInput, error) {
 	var it model.ConfigAuthTotpInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32616,10 +32409,10 @@ func (ec *executionContext) unmarshalInputConfigAuthTotpInsertInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthUserComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserComparisonExp(ctx context.Context, obj any) (model.ConfigAuthUserComparisonExp, error) {
 	var it model.ConfigAuthUserComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32692,10 +32485,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserComparisonExp(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserEmailComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthUserEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserEmailComparisonExp(ctx context.Context, obj any) (model.ConfigAuthUserEmailComparisonExp, error) {
 	var it model.ConfigAuthUserEmailComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32747,10 +32540,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserEmailComparisonExp(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserEmailDomainsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthUserEmailDomainsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserEmailDomainsComparisonExp(ctx context.Context, obj any) (model.ConfigAuthUserEmailDomainsComparisonExp, error) {
 	var it model.ConfigAuthUserEmailDomainsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32802,10 +32595,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserEmailDomainsComparisonEx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserEmailDomainsInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthUserEmailDomainsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserEmailDomainsInsertInput(ctx context.Context, obj any) (model.ConfigAuthUserEmailDomainsInsertInput, error) {
 	var it model.ConfigAuthUserEmailDomainsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32836,10 +32629,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserEmailDomainsInsertInput(
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserEmailInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthUserEmailInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserEmailInsertInput(ctx context.Context, obj any) (model.ConfigAuthUserEmailInsertInput, error) {
 	var it model.ConfigAuthUserEmailInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32870,10 +32663,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserEmailInsertInput(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserGravatarComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthUserGravatarComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserGravatarComparisonExp(ctx context.Context, obj any) (model.ConfigAuthUserGravatarComparisonExp, error) {
 	var it model.ConfigAuthUserGravatarComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32932,10 +32725,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserGravatarComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserGravatarInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthUserGravatarInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserGravatarInsertInput(ctx context.Context, obj any) (model.ConfigAuthUserGravatarInsertInput, error) {
 	var it model.ConfigAuthUserGravatarInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -32973,10 +32766,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserGravatarInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthUserInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserInsertInput(ctx context.Context, obj any) (model.ConfigAuthUserInsertInput, error) {
 	var it model.ConfigAuthUserInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33028,10 +32821,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserInsertInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserLocaleComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthUserLocaleComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserLocaleComparisonExp(ctx context.Context, obj any) (model.ConfigAuthUserLocaleComparisonExp, error) {
 	var it model.ConfigAuthUserLocaleComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33083,10 +32876,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserLocaleComparisonExp(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserLocaleInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthUserLocaleInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserLocaleInsertInput(ctx context.Context, obj any) (model.ConfigAuthUserLocaleInsertInput, error) {
 	var it model.ConfigAuthUserLocaleInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33117,10 +32910,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserLocaleInsertInput(ctx co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserRolesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthUserRolesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserRolesComparisonExp(ctx context.Context, obj any) (model.ConfigAuthUserRolesComparisonExp, error) {
 	var it model.ConfigAuthUserRolesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33172,10 +32965,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserRolesComparisonExp(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthUserRolesInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthUserRolesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthUserRolesInsertInput(ctx context.Context, obj any) (model.ConfigAuthUserRolesInsertInput, error) {
 	var it model.ConfigAuthUserRolesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33206,10 +32999,10 @@ func (ec *executionContext) unmarshalInputConfigAuthUserRolesInsertInput(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClaimsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClaimsComparisonExp(ctx context.Context, obj any) (model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, error) {
 	var it model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33261,10 +33054,10 @@ func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClai
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClaimsInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthsessionaccessTokenCustomClaimsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClaimsInsertInput(ctx context.Context, obj any) (model.ConfigAuthsessionaccessTokenCustomClaimsInsertInput, error) {
 	var it model.ConfigAuthsessionaccessTokenCustomClaimsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33295,10 +33088,10 @@ func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClai
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAutoscalerComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAutoscalerComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigAutoscalerComparisonExp(ctx context.Context, obj any) (model.ConfigAutoscalerComparisonExp, error) {
 	var it model.ConfigAutoscalerComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33343,10 +33136,10 @@ func (ec *executionContext) unmarshalInputConfigAutoscalerComparisonExp(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigAutoscalerInsertInput(ctx context.Context, obj interface{}) (model.ConfigAutoscalerInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigAutoscalerInsertInput(ctx context.Context, obj any) (model.ConfigAutoscalerInsertInput, error) {
 	var it model.ConfigAutoscalerInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33370,10 +33163,10 @@ func (ec *executionContext) unmarshalInputConfigAutoscalerInsertInput(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigBooleanComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[bool], error) {
+func (ec *executionContext) unmarshalInputConfigBooleanComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[bool], error) {
 	var it model.GenericComparisonExp[bool]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33418,10 +33211,10 @@ func (ec *executionContext) unmarshalInputConfigBooleanComparisonExp(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigClaimMapComparisonExp(ctx context.Context, obj interface{}) (model.ConfigClaimMapComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigClaimMapComparisonExp(ctx context.Context, obj any) (model.ConfigClaimMapComparisonExp, error) {
 	var it model.ConfigClaimMapComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33487,10 +33280,10 @@ func (ec *executionContext) unmarshalInputConfigClaimMapComparisonExp(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigClaimMapInsertInput(ctx context.Context, obj interface{}) (model.ConfigClaimMapInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigClaimMapInsertInput(ctx context.Context, obj any) (model.ConfigClaimMapInsertInput, error) {
 	var it model.ConfigClaimMapInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33535,10 +33328,10 @@ func (ec *executionContext) unmarshalInputConfigClaimMapInsertInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigComputeResourcesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigComputeResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigComputeResourcesComparisonExp(ctx context.Context, obj any) (model.ConfigComputeResourcesComparisonExp, error) {
 	var it model.ConfigComputeResourcesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33590,10 +33383,10 @@ func (ec *executionContext) unmarshalInputConfigComputeResourcesComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigComputeResourcesInsertInput(ctx context.Context, obj interface{}) (model.ConfigComputeResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigComputeResourcesInsertInput(ctx context.Context, obj any) (model.ConfigComputeResourcesInsertInput, error) {
 	var it model.ConfigComputeResourcesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33624,10 +33417,10 @@ func (ec *executionContext) unmarshalInputConfigComputeResourcesInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigConfigComparisonExp(ctx context.Context, obj interface{}) (model.ConfigConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigConfigComparisonExp(ctx context.Context, obj any) (model.ConfigConfigComparisonExp, error) {
 	var it model.ConfigConfigComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33735,10 +33528,10 @@ func (ec *executionContext) unmarshalInputConfigConfigComparisonExp(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigConfigInsertInput(ctx context.Context, obj interface{}) (model.ConfigConfigInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigConfigInsertInput(ctx context.Context, obj any) (model.ConfigConfigInsertInput, error) {
 	var it model.ConfigConfigInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33786,7 +33579,7 @@ func (ec *executionContext) unmarshalInputConfigConfigInsertInput(ctx context.Co
 			it.Auth = data
 		case "postgres":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("postgres"))
-			data, err := ec.unmarshalOConfigPostgresInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresInsertInput(ctx, v)
+			data, err := ec.unmarshalNConfigPostgresInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresInsertInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33825,10 +33618,10 @@ func (ec *executionContext) unmarshalInputConfigConfigInsertInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigEmailComparisonExp(ctx context.Context, obj interface{}) (model.ConfigEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigEmailComparisonExp(ctx context.Context, obj any) (model.ConfigEmailComparisonExp, error) {
 	var it model.ConfigEmailComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33873,10 +33666,10 @@ func (ec *executionContext) unmarshalInputConfigEmailComparisonExp(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigEnvironmentVariableComparisonExp(ctx context.Context, obj interface{}) (model.ConfigEnvironmentVariableComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigEnvironmentVariableComparisonExp(ctx context.Context, obj any) (model.ConfigEnvironmentVariableComparisonExp, error) {
 	var it model.ConfigEnvironmentVariableComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33928,10 +33721,10 @@ func (ec *executionContext) unmarshalInputConfigEnvironmentVariableComparisonExp
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigEnvironmentVariableInsertInput(ctx context.Context, obj interface{}) (model.ConfigEnvironmentVariableInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigEnvironmentVariableInsertInput(ctx context.Context, obj any) (model.ConfigEnvironmentVariableInsertInput, error) {
 	var it model.ConfigEnvironmentVariableInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -33962,10 +33755,10 @@ func (ec *executionContext) unmarshalInputConfigEnvironmentVariableInsertInput(c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigFloatComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[float64], error) {
+func (ec *executionContext) unmarshalInputConfigFloatComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[float64], error) {
 	var it model.GenericComparisonExp[float64]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34010,10 +33803,10 @@ func (ec *executionContext) unmarshalInputConfigFloatComparisonExp(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigFunctionsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigFunctionsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigFunctionsComparisonExp(ctx context.Context, obj any) (model.ConfigFunctionsComparisonExp, error) {
 	var it model.ConfigFunctionsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34072,10 +33865,10 @@ func (ec *executionContext) unmarshalInputConfigFunctionsComparisonExp(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigFunctionsInsertInput(ctx context.Context, obj interface{}) (model.ConfigFunctionsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigFunctionsInsertInput(ctx context.Context, obj any) (model.ConfigFunctionsInsertInput, error) {
 	var it model.ConfigFunctionsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34113,10 +33906,10 @@ func (ec *executionContext) unmarshalInputConfigFunctionsInsertInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigFunctionsNodeComparisonExp(ctx context.Context, obj interface{}) (model.ConfigFunctionsNodeComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigFunctionsNodeComparisonExp(ctx context.Context, obj any) (model.ConfigFunctionsNodeComparisonExp, error) {
 	var it model.ConfigFunctionsNodeComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34161,10 +33954,10 @@ func (ec *executionContext) unmarshalInputConfigFunctionsNodeComparisonExp(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigFunctionsNodeInsertInput(ctx context.Context, obj interface{}) (model.ConfigFunctionsNodeInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigFunctionsNodeInsertInput(ctx context.Context, obj any) (model.ConfigFunctionsNodeInsertInput, error) {
 	var it model.ConfigFunctionsNodeInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34188,10 +33981,10 @@ func (ec *executionContext) unmarshalInputConfigFunctionsNodeInsertInput(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigFunctionsResourcesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigFunctionsResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigFunctionsResourcesComparisonExp(ctx context.Context, obj any) (model.ConfigFunctionsResourcesComparisonExp, error) {
 	var it model.ConfigFunctionsResourcesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34236,10 +34029,10 @@ func (ec *executionContext) unmarshalInputConfigFunctionsResourcesComparisonExp(
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigFunctionsResourcesInsertInput(ctx context.Context, obj interface{}) (model.ConfigFunctionsResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigFunctionsResourcesInsertInput(ctx context.Context, obj any) (model.ConfigFunctionsResourcesInsertInput, error) {
 	var it model.ConfigFunctionsResourcesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34263,10 +34056,10 @@ func (ec *executionContext) unmarshalInputConfigFunctionsResourcesInsertInput(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGlobalComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGlobalComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGlobalComparisonExp(ctx context.Context, obj any) (model.ConfigGlobalComparisonExp, error) {
 	var it model.ConfigGlobalComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34311,10 +34104,10 @@ func (ec *executionContext) unmarshalInputConfigGlobalComparisonExp(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, obj any) (model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
 	var it model.ConfigGlobalEnvironmentVariableComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34366,10 +34159,10 @@ func (ec *executionContext) unmarshalInputConfigGlobalEnvironmentVariableCompari
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGlobalEnvironmentVariableInsertInput(ctx context.Context, obj interface{}) (model.ConfigGlobalEnvironmentVariableInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGlobalEnvironmentVariableInsertInput(ctx context.Context, obj any) (model.ConfigGlobalEnvironmentVariableInsertInput, error) {
 	var it model.ConfigGlobalEnvironmentVariableInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34400,10 +34193,10 @@ func (ec *executionContext) unmarshalInputConfigGlobalEnvironmentVariableInsertI
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGlobalInsertInput(ctx context.Context, obj interface{}) (model.ConfigGlobalInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGlobalInsertInput(ctx context.Context, obj any) (model.ConfigGlobalInsertInput, error) {
 	var it model.ConfigGlobalInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34427,10 +34220,10 @@ func (ec *executionContext) unmarshalInputConfigGlobalInsertInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanaAlertingComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanaAlertingComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanaAlertingComparisonExp(ctx context.Context, obj any) (model.ConfigGrafanaAlertingComparisonExp, error) {
 	var it model.ConfigGrafanaAlertingComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34475,10 +34268,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanaAlertingComparisonExp(ctx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanaAlertingInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanaAlertingInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanaAlertingInsertInput(ctx context.Context, obj any) (model.ConfigGrafanaAlertingInsertInput, error) {
 	var it model.ConfigGrafanaAlertingInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34502,10 +34295,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanaAlertingInsertInput(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanaComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanaComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanaComparisonExp(ctx context.Context, obj any) (model.ConfigGrafanaComparisonExp, error) {
 	var it model.ConfigGrafanaComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34571,10 +34364,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanaComparisonExp(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanaContactsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanaContactsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanaContactsComparisonExp(ctx context.Context, obj any) (model.ConfigGrafanaContactsComparisonExp, error) {
 	var it model.ConfigGrafanaContactsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34647,10 +34440,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanaContactsComparisonExp(ctx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanaContactsInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanaContactsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanaContactsInsertInput(ctx context.Context, obj any) (model.ConfigGrafanaContactsInsertInput, error) {
 	var it model.ConfigGrafanaContactsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34702,10 +34495,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanaContactsInsertInput(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanaInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanaInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanaInsertInput(ctx context.Context, obj any) (model.ConfigGrafanaInsertInput, error) {
 	var it model.ConfigGrafanaInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34750,10 +34543,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanaInsertInput(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanaSmtpComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanaSmtpComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanaSmtpComparisonExp(ctx context.Context, obj any) (model.ConfigGrafanaSmtpComparisonExp, error) {
 	var it model.ConfigGrafanaSmtpComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34826,10 +34619,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanaSmtpComparisonExp(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanaSmtpInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanaSmtpInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanaSmtpInsertInput(ctx context.Context, obj any) (model.ConfigGrafanaSmtpInsertInput, error) {
 	var it model.ConfigGrafanaSmtpInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34881,10 +34674,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanaSmtpInsertInput(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsDiscordComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, obj any) (model.ConfigGrafanacontactsDiscordComparisonExp, error) {
 	var it model.ConfigGrafanacontactsDiscordComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34936,10 +34729,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanacontactsDiscordComparison
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanacontactsDiscordInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsDiscordInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsDiscordInsertInput(ctx context.Context, obj any) (model.ConfigGrafanacontactsDiscordInsertInput, error) {
 	var it model.ConfigGrafanacontactsDiscordInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -34970,10 +34763,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanacontactsDiscordInsertInpu
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, obj any) (model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
 	var it model.ConfigGrafanacontactsPagerdutyComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35046,10 +34839,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanacontactsPagerdutyComparis
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanacontactsPagerdutyInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsPagerdutyInsertInput(ctx context.Context, obj any) (model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
 	var it model.ConfigGrafanacontactsPagerdutyInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35101,10 +34894,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanacontactsPagerdutyInsertIn
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanacontactsSlackComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsSlackComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsSlackComparisonExp(ctx context.Context, obj any) (model.ConfigGrafanacontactsSlackComparisonExp, error) {
 	var it model.ConfigGrafanacontactsSlackComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35212,10 +35005,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanacontactsSlackComparisonEx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanacontactsSlackInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsSlackInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsSlackInsertInput(ctx context.Context, obj any) (model.ConfigGrafanacontactsSlackInsertInput, error) {
 	var it model.ConfigGrafanacontactsSlackInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35302,10 +35095,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanacontactsSlackInsertInput(
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsWebhookComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, obj any) (model.ConfigGrafanacontactsWebhookComparisonExp, error) {
 	var it model.ConfigGrafanacontactsWebhookComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35392,10 +35185,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanacontactsWebhookComparison
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGrafanacontactsWebhookInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsWebhookInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsWebhookInsertInput(ctx context.Context, obj any) (model.ConfigGrafanacontactsWebhookInsertInput, error) {
 	var it model.ConfigGrafanacontactsWebhookInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35461,10 +35254,10 @@ func (ec *executionContext) unmarshalInputConfigGrafanacontactsWebhookInsertInpu
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGraphqlComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGraphqlComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGraphqlComparisonExp(ctx context.Context, obj any) (model.ConfigGraphqlComparisonExp, error) {
 	var it model.ConfigGraphqlComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35509,10 +35302,10 @@ func (ec *executionContext) unmarshalInputConfigGraphqlComparisonExp(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGraphqlInsertInput(ctx context.Context, obj interface{}) (model.ConfigGraphqlInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGraphqlInsertInput(ctx context.Context, obj any) (model.ConfigGraphqlInsertInput, error) {
 	var it model.ConfigGraphqlInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35536,10 +35329,10 @@ func (ec *executionContext) unmarshalInputConfigGraphqlInsertInput(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGraphqlSecurityComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGraphqlSecurityComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigGraphqlSecurityComparisonExp(ctx context.Context, obj any) (model.ConfigGraphqlSecurityComparisonExp, error) {
 	var it model.ConfigGraphqlSecurityComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35591,10 +35384,10 @@ func (ec *executionContext) unmarshalInputConfigGraphqlSecurityComparisonExp(ctx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigGraphqlSecurityInsertInput(ctx context.Context, obj interface{}) (model.ConfigGraphqlSecurityInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigGraphqlSecurityInsertInput(ctx context.Context, obj any) (model.ConfigGraphqlSecurityInsertInput, error) {
 	var it model.ConfigGraphqlSecurityInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35625,10 +35418,10 @@ func (ec *executionContext) unmarshalInputConfigGraphqlSecurityInsertInput(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraAPIsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHasuraAPIsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraAPIsComparisonExp(ctx context.Context, obj any) (model.ConfigHasuraAPIsComparisonExp, error) {
 	var it model.ConfigHasuraAPIsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35673,10 +35466,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraAPIsComparisonExp(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraAuthHookComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHasuraAuthHookComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraAuthHookComparisonExp(ctx context.Context, obj any) (model.ConfigHasuraAuthHookComparisonExp, error) {
 	var it model.ConfigHasuraAuthHookComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35735,10 +35528,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraAuthHookComparisonExp(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraAuthHookInsertInput(ctx context.Context, obj interface{}) (model.ConfigHasuraAuthHookInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraAuthHookInsertInput(ctx context.Context, obj any) (model.ConfigHasuraAuthHookInsertInput, error) {
 	var it model.ConfigHasuraAuthHookInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35776,10 +35569,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraAuthHookInsertInput(ctx co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHasuraComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraComparisonExp(ctx context.Context, obj any) (model.ConfigHasuraComparisonExp, error) {
 	var it model.ConfigHasuraComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35887,10 +35680,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraComparisonExp(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraEventsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHasuraEventsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraEventsComparisonExp(ctx context.Context, obj any) (model.ConfigHasuraEventsComparisonExp, error) {
 	var it model.ConfigHasuraEventsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35935,10 +35728,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraEventsComparisonExp(ctx co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraEventsInsertInput(ctx context.Context, obj interface{}) (model.ConfigHasuraEventsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraEventsInsertInput(ctx context.Context, obj any) (model.ConfigHasuraEventsInsertInput, error) {
 	var it model.ConfigHasuraEventsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -35962,10 +35755,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraEventsInsertInput(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraInsertInput(ctx context.Context, obj interface{}) (model.ConfigHasuraInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraInsertInput(ctx context.Context, obj any) (model.ConfigHasuraInsertInput, error) {
 	var it model.ConfigHasuraInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36052,10 +35845,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraInsertInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraLogsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHasuraLogsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraLogsComparisonExp(ctx context.Context, obj any) (model.ConfigHasuraLogsComparisonExp, error) {
 	var it model.ConfigHasuraLogsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36100,10 +35893,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraLogsComparisonExp(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraLogsInsertInput(ctx context.Context, obj interface{}) (model.ConfigHasuraLogsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraLogsInsertInput(ctx context.Context, obj any) (model.ConfigHasuraLogsInsertInput, error) {
 	var it model.ConfigHasuraLogsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36127,10 +35920,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraLogsInsertInput(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraSettingsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHasuraSettingsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraSettingsComparisonExp(ctx context.Context, obj any) (model.ConfigHasuraSettingsComparisonExp, error) {
 	var it model.ConfigHasuraSettingsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36231,10 +36024,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsComparisonExp(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHasuraSettingsInsertInput(ctx context.Context, obj interface{}) (model.ConfigHasuraSettingsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigHasuraSettingsInsertInput(ctx context.Context, obj any) (model.ConfigHasuraSettingsInsertInput, error) {
 	var it model.ConfigHasuraSettingsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36314,10 +36107,10 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsInsertInput(ctx co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHealthCheckComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHealthCheckComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigHealthCheckComparisonExp(ctx context.Context, obj any) (model.ConfigHealthCheckComparisonExp, error) {
 	var it model.ConfigHealthCheckComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36376,10 +36169,10 @@ func (ec *executionContext) unmarshalInputConfigHealthCheckComparisonExp(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigHealthCheckInsertInput(ctx context.Context, obj interface{}) (model.ConfigHealthCheckInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigHealthCheckInsertInput(ctx context.Context, obj any) (model.ConfigHealthCheckInsertInput, error) {
 	var it model.ConfigHealthCheckInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36417,10 +36210,10 @@ func (ec *executionContext) unmarshalInputConfigHealthCheckInsertInput(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigIngressComparisonExp(ctx context.Context, obj interface{}) (model.ConfigIngressComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigIngressComparisonExp(ctx context.Context, obj any) (model.ConfigIngressComparisonExp, error) {
 	var it model.ConfigIngressComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36472,10 +36265,10 @@ func (ec *executionContext) unmarshalInputConfigIngressComparisonExp(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigIngressInsertInput(ctx context.Context, obj interface{}) (model.ConfigIngressInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigIngressInsertInput(ctx context.Context, obj any) (model.ConfigIngressInsertInput, error) {
 	var it model.ConfigIngressInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36506,10 +36299,10 @@ func (ec *executionContext) unmarshalInputConfigIngressInsertInput(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigIngressTlsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigIngressTlsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigIngressTlsComparisonExp(ctx context.Context, obj any) (model.ConfigIngressTlsComparisonExp, error) {
 	var it model.ConfigIngressTlsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36554,10 +36347,10 @@ func (ec *executionContext) unmarshalInputConfigIngressTlsComparisonExp(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigIngressTlsInsertInput(ctx context.Context, obj interface{}) (model.ConfigIngressTlsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigIngressTlsInsertInput(ctx context.Context, obj any) (model.ConfigIngressTlsInsertInput, error) {
 	var it model.ConfigIngressTlsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36581,10 +36374,10 @@ func (ec *executionContext) unmarshalInputConfigIngressTlsInsertInput(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigInt16ComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[int16], error) {
+func (ec *executionContext) unmarshalInputConfigInt16ComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[int16], error) {
 	var it model.GenericComparisonExp[int16]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36629,10 +36422,10 @@ func (ec *executionContext) unmarshalInputConfigInt16ComparisonExp(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigInt32ComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[int32], error) {
+func (ec *executionContext) unmarshalInputConfigInt32ComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[int32], error) {
 	var it model.GenericComparisonExp[int32]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36677,10 +36470,10 @@ func (ec *executionContext) unmarshalInputConfigInt32ComparisonExp(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigInt64ComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[int64], error) {
+func (ec *executionContext) unmarshalInputConfigInt64ComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[int64], error) {
 	var it model.GenericComparisonExp[int64]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36725,10 +36518,10 @@ func (ec *executionContext) unmarshalInputConfigInt64ComparisonExp(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigInt8ComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[int8], error) {
+func (ec *executionContext) unmarshalInputConfigInt8ComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[int8], error) {
 	var it model.GenericComparisonExp[int8]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36773,10 +36566,10 @@ func (ec *executionContext) unmarshalInputConfigInt8ComparisonExp(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigIntComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[int], error) {
+func (ec *executionContext) unmarshalInputConfigIntComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[int], error) {
 	var it model.GenericComparisonExp[int]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36821,10 +36614,10 @@ func (ec *executionContext) unmarshalInputConfigIntComparisonExp(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigJWTSecretComparisonExp(ctx context.Context, obj interface{}) (model.ConfigJWTSecretComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigJWTSecretComparisonExp(ctx context.Context, obj any) (model.ConfigJWTSecretComparisonExp, error) {
 	var it model.ConfigJWTSecretComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -36953,10 +36746,10 @@ func (ec *executionContext) unmarshalInputConfigJWTSecretComparisonExp(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigJWTSecretInsertInput(ctx context.Context, obj interface{}) (model.ConfigJWTSecretInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigJWTSecretInsertInput(ctx context.Context, obj any) (model.ConfigJWTSecretInsertInput, error) {
 	var it model.ConfigJWTSecretInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37064,10 +36857,10 @@ func (ec *executionContext) unmarshalInputConfigJWTSecretInsertInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigLocaleComparisonExp(ctx context.Context, obj interface{}) (model.ConfigLocaleComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigLocaleComparisonExp(ctx context.Context, obj any) (model.ConfigLocaleComparisonExp, error) {
 	var it model.ConfigLocaleComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37112,10 +36905,10 @@ func (ec *executionContext) unmarshalInputConfigLocaleComparisonExp(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigNetworkingComparisonExp(ctx context.Context, obj interface{}) (model.ConfigNetworkingComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigNetworkingComparisonExp(ctx context.Context, obj any) (model.ConfigNetworkingComparisonExp, error) {
 	var it model.ConfigNetworkingComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37160,10 +36953,10 @@ func (ec *executionContext) unmarshalInputConfigNetworkingComparisonExp(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigNetworkingInsertInput(ctx context.Context, obj interface{}) (model.ConfigNetworkingInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigNetworkingInsertInput(ctx context.Context, obj any) (model.ConfigNetworkingInsertInput, error) {
 	var it model.ConfigNetworkingInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37187,10 +36980,10 @@ func (ec *executionContext) unmarshalInputConfigNetworkingInsertInput(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigObservabilityComparisonExp(ctx context.Context, obj interface{}) (model.ConfigObservabilityComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigObservabilityComparisonExp(ctx context.Context, obj any) (model.ConfigObservabilityComparisonExp, error) {
 	var it model.ConfigObservabilityComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37235,10 +37028,10 @@ func (ec *executionContext) unmarshalInputConfigObservabilityComparisonExp(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigObservabilityInsertInput(ctx context.Context, obj interface{}) (model.ConfigObservabilityInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigObservabilityInsertInput(ctx context.Context, obj any) (model.ConfigObservabilityInsertInput, error) {
 	var it model.ConfigObservabilityInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37262,10 +37055,10 @@ func (ec *executionContext) unmarshalInputConfigObservabilityInsertInput(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPortComparisonExp(ctx context.Context, obj interface{}) (model.ConfigPortComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigPortComparisonExp(ctx context.Context, obj any) (model.ConfigPortComparisonExp, error) {
 	var it model.ConfigPortComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37310,10 +37103,10 @@ func (ec *executionContext) unmarshalInputConfigPortComparisonExp(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPostgresComparisonExp(ctx context.Context, obj interface{}) (model.ConfigPostgresComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigPostgresComparisonExp(ctx context.Context, obj any) (model.ConfigPostgresComparisonExp, error) {
 	var it model.ConfigPostgresComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37372,10 +37165,10 @@ func (ec *executionContext) unmarshalInputConfigPostgresComparisonExp(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPostgresInsertInput(ctx context.Context, obj interface{}) (model.ConfigPostgresInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigPostgresInsertInput(ctx context.Context, obj any) (model.ConfigPostgresInsertInput, error) {
 	var it model.ConfigPostgresInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37395,7 +37188,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresInsertInput(ctx context.
 			it.Version = data
 		case "resources":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resources"))
-			data, err := ec.unmarshalOConfigPostgresResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesInsertInput(ctx, v)
+			data, err := ec.unmarshalNConfigPostgresResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesInsertInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37413,10 +37206,10 @@ func (ec *executionContext) unmarshalInputConfigPostgresInsertInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigPostgresResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(ctx context.Context, obj any) (model.ConfigPostgresResourcesComparisonExp, error) {
 	var it model.ConfigPostgresResourcesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37496,10 +37289,10 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx context.Context, obj interface{}) (model.ConfigPostgresResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx context.Context, obj any) (model.ConfigPostgresResourcesInsertInput, error) {
 	var it model.ConfigPostgresResourcesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37540,7 +37333,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 			it.Networking = data
 		case "storage":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storage"))
-			data, err := ec.unmarshalOConfigPostgresStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageInsertInput(ctx, v)
+			data, err := ec.unmarshalNConfigPostgresStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageInsertInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37558,10 +37351,10 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigPostgresSettingsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ctx context.Context, obj any) (model.ConfigPostgresSettingsComparisonExp, error) {
 	var it model.ConfigPostgresSettingsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37746,10 +37539,10 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx context.Context, obj interface{}) (model.ConfigPostgresSettingsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx context.Context, obj any) (model.ConfigPostgresSettingsInsertInput, error) {
 	var it model.ConfigPostgresSettingsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37913,10 +37706,10 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPostgresStorageComparisonExp(ctx context.Context, obj interface{}) (model.ConfigPostgresStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigPostgresStorageComparisonExp(ctx context.Context, obj any) (model.ConfigPostgresStorageComparisonExp, error) {
 	var it model.ConfigPostgresStorageComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37961,10 +37754,10 @@ func (ec *executionContext) unmarshalInputConfigPostgresStorageComparisonExp(ctx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigPostgresStorageInsertInput(ctx context.Context, obj interface{}) (model.ConfigPostgresStorageInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigPostgresStorageInsertInput(ctx context.Context, obj any) (model.ConfigPostgresStorageInsertInput, error) {
 	var it model.ConfigPostgresStorageInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -37988,10 +37781,10 @@ func (ec *executionContext) unmarshalInputConfigPostgresStorageInsertInput(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigProviderComparisonExp(ctx context.Context, obj interface{}) (model.ConfigProviderComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigProviderComparisonExp(ctx context.Context, obj any) (model.ConfigProviderComparisonExp, error) {
 	var it model.ConfigProviderComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38043,10 +37836,10 @@ func (ec *executionContext) unmarshalInputConfigProviderComparisonExp(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigProviderInsertInput(ctx context.Context, obj interface{}) (model.ConfigProviderInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigProviderInsertInput(ctx context.Context, obj any) (model.ConfigProviderInsertInput, error) {
 	var it model.ConfigProviderInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38077,10 +37870,10 @@ func (ec *executionContext) unmarshalInputConfigProviderInsertInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRateLimitComparisonExp(ctx context.Context, obj interface{}) (model.ConfigRateLimitComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigRateLimitComparisonExp(ctx context.Context, obj any) (model.ConfigRateLimitComparisonExp, error) {
 	var it model.ConfigRateLimitComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38132,10 +37925,10 @@ func (ec *executionContext) unmarshalInputConfigRateLimitComparisonExp(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRateLimitInsertInput(ctx context.Context, obj interface{}) (model.ConfigRateLimitInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigRateLimitInsertInput(ctx context.Context, obj any) (model.ConfigRateLimitInsertInput, error) {
 	var it model.ConfigRateLimitInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38166,10 +37959,10 @@ func (ec *executionContext) unmarshalInputConfigRateLimitInsertInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigResourcesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigResourcesComparisonExp(ctx context.Context, obj any) (model.ConfigResourcesComparisonExp, error) {
 	var it model.ConfigResourcesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38235,10 +38028,10 @@ func (ec *executionContext) unmarshalInputConfigResourcesComparisonExp(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigResourcesComputeComparisonExp(ctx context.Context, obj interface{}) (model.ConfigResourcesComputeComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigResourcesComputeComparisonExp(ctx context.Context, obj any) (model.ConfigResourcesComputeComparisonExp, error) {
 	var it model.ConfigResourcesComputeComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38290,10 +38083,10 @@ func (ec *executionContext) unmarshalInputConfigResourcesComputeComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigResourcesComputeInsertInput(ctx context.Context, obj interface{}) (model.ConfigResourcesComputeInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigResourcesComputeInsertInput(ctx context.Context, obj any) (model.ConfigResourcesComputeInsertInput, error) {
 	var it model.ConfigResourcesComputeInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38324,10 +38117,10 @@ func (ec *executionContext) unmarshalInputConfigResourcesComputeInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigResourcesInsertInput(ctx context.Context, obj interface{}) (model.ConfigResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigResourcesInsertInput(ctx context.Context, obj any) (model.ConfigResourcesInsertInput, error) {
 	var it model.ConfigResourcesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38372,10 +38165,10 @@ func (ec *executionContext) unmarshalInputConfigResourcesInsertInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceConfigComparisonExp(ctx context.Context, obj interface{}) (model.ConfigRunServiceConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceConfigComparisonExp(ctx context.Context, obj any) (model.ConfigRunServiceConfigComparisonExp, error) {
 	var it model.ConfigRunServiceConfigComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38462,10 +38255,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceConfigComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceConfigInsertInput(ctx context.Context, obj interface{}) (model.ConfigRunServiceConfigInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceConfigInsertInput(ctx context.Context, obj any) (model.ConfigRunServiceConfigInsertInput, error) {
 	var it model.ConfigRunServiceConfigInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38531,10 +38324,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceConfigInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceImageComparisonExp(ctx context.Context, obj interface{}) (model.ConfigRunServiceImageComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceImageComparisonExp(ctx context.Context, obj any) (model.ConfigRunServiceImageComparisonExp, error) {
 	var it model.ConfigRunServiceImageComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38586,10 +38379,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceImageComparisonExp(ctx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceImageInsertInput(ctx context.Context, obj interface{}) (model.ConfigRunServiceImageInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceImageInsertInput(ctx context.Context, obj any) (model.ConfigRunServiceImageInsertInput, error) {
 	var it model.ConfigRunServiceImageInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38620,10 +38413,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceImageInsertInput(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceNameComparisonExp(ctx context.Context, obj interface{}) (model.ConfigRunServiceNameComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceNameComparisonExp(ctx context.Context, obj any) (model.ConfigRunServiceNameComparisonExp, error) {
 	var it model.ConfigRunServiceNameComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38668,10 +38461,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceNameComparisonExp(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServicePortComparisonExp(ctx context.Context, obj interface{}) (model.ConfigRunServicePortComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigRunServicePortComparisonExp(ctx context.Context, obj any) (model.ConfigRunServicePortComparisonExp, error) {
 	var it model.ConfigRunServicePortComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38744,10 +38537,10 @@ func (ec *executionContext) unmarshalInputConfigRunServicePortComparisonExp(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServicePortInsertInput(ctx context.Context, obj interface{}) (model.ConfigRunServicePortInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigRunServicePortInsertInput(ctx context.Context, obj any) (model.ConfigRunServicePortInsertInput, error) {
 	var it model.ConfigRunServicePortInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38799,10 +38592,10 @@ func (ec *executionContext) unmarshalInputConfigRunServicePortInsertInput(ctx co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceResourcesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigRunServiceResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceResourcesComparisonExp(ctx context.Context, obj any) (model.ConfigRunServiceResourcesComparisonExp, error) {
 	var it model.ConfigRunServiceResourcesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38868,10 +38661,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceResourcesComparisonExp
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceResourcesInsertInput(ctx context.Context, obj interface{}) (model.ConfigRunServiceResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceResourcesInsertInput(ctx context.Context, obj any) (model.ConfigRunServiceResourcesInsertInput, error) {
 	var it model.ConfigRunServiceResourcesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38916,10 +38709,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceResourcesInsertInput(c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceResourcesStorageComparisonExp(ctx context.Context, obj interface{}) (model.ConfigRunServiceResourcesStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceResourcesStorageComparisonExp(ctx context.Context, obj any) (model.ConfigRunServiceResourcesStorageComparisonExp, error) {
 	var it model.ConfigRunServiceResourcesStorageComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -38978,10 +38771,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceResourcesStorageCompar
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigRunServiceResourcesStorageInsertInput(ctx context.Context, obj interface{}) (model.ConfigRunServiceResourcesStorageInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigRunServiceResourcesStorageInsertInput(ctx context.Context, obj any) (model.ConfigRunServiceResourcesStorageInsertInput, error) {
 	var it model.ConfigRunServiceResourcesStorageInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39019,10 +38812,10 @@ func (ec *executionContext) unmarshalInputConfigRunServiceResourcesStorageInsert
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSmsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSmsComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSmsComparisonExp(ctx context.Context, obj any) (model.ConfigSmsComparisonExp, error) {
 	var it model.ConfigSmsComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39088,10 +38881,10 @@ func (ec *executionContext) unmarshalInputConfigSmsComparisonExp(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSmsInsertInput(ctx context.Context, obj interface{}) (model.ConfigSmsInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSmsInsertInput(ctx context.Context, obj any) (model.ConfigSmsInsertInput, error) {
 	var it model.ConfigSmsInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39136,10 +38929,10 @@ func (ec *executionContext) unmarshalInputConfigSmsInsertInput(ctx context.Conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSmtpComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSmtpComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSmtpComparisonExp(ctx context.Context, obj any) (model.ConfigSmtpComparisonExp, error) {
 	var it model.ConfigSmtpComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39226,10 +39019,10 @@ func (ec *executionContext) unmarshalInputConfigSmtpComparisonExp(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSmtpInsertInput(ctx context.Context, obj interface{}) (model.ConfigSmtpInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSmtpInsertInput(ctx context.Context, obj any) (model.ConfigSmtpInsertInput, error) {
 	var it model.ConfigSmtpInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39295,10 +39088,10 @@ func (ec *executionContext) unmarshalInputConfigSmtpInsertInput(ctx context.Cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStandardOauthProviderComparisonExp(ctx context.Context, obj interface{}) (model.ConfigStandardOauthProviderComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigStandardOauthProviderComparisonExp(ctx context.Context, obj any) (model.ConfigStandardOauthProviderComparisonExp, error) {
 	var it model.ConfigStandardOauthProviderComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39357,10 +39150,10 @@ func (ec *executionContext) unmarshalInputConfigStandardOauthProviderComparisonE
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStandardOauthProviderInsertInput(ctx context.Context, obj interface{}) (model.ConfigStandardOauthProviderInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigStandardOauthProviderInsertInput(ctx context.Context, obj any) (model.ConfigStandardOauthProviderInsertInput, error) {
 	var it model.ConfigStandardOauthProviderInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39398,10 +39191,10 @@ func (ec *executionContext) unmarshalInputConfigStandardOauthProviderInsertInput
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeComparisonExp(ctx context.Context, obj interface{}) (model.ConfigStandardOauthProviderWithScopeComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeComparisonExp(ctx context.Context, obj any) (model.ConfigStandardOauthProviderWithScopeComparisonExp, error) {
 	var it model.ConfigStandardOauthProviderWithScopeComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39474,10 +39267,10 @@ func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeCo
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeInsertInput(ctx context.Context, obj interface{}) (model.ConfigStandardOauthProviderWithScopeInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeInsertInput(ctx context.Context, obj any) (model.ConfigStandardOauthProviderWithScopeInsertInput, error) {
 	var it model.ConfigStandardOauthProviderWithScopeInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39529,10 +39322,10 @@ func (ec *executionContext) unmarshalInputConfigStandardOauthProviderWithScopeIn
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStorageAntivirusComparisonExp(ctx context.Context, obj interface{}) (model.ConfigStorageAntivirusComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigStorageAntivirusComparisonExp(ctx context.Context, obj any) (model.ConfigStorageAntivirusComparisonExp, error) {
 	var it model.ConfigStorageAntivirusComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39577,10 +39370,10 @@ func (ec *executionContext) unmarshalInputConfigStorageAntivirusComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStorageAntivirusInsertInput(ctx context.Context, obj interface{}) (model.ConfigStorageAntivirusInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigStorageAntivirusInsertInput(ctx context.Context, obj any) (model.ConfigStorageAntivirusInsertInput, error) {
 	var it model.ConfigStorageAntivirusInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39604,10 +39397,10 @@ func (ec *executionContext) unmarshalInputConfigStorageAntivirusInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStorageComparisonExp(ctx context.Context, obj interface{}) (model.ConfigStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigStorageComparisonExp(ctx context.Context, obj any) (model.ConfigStorageComparisonExp, error) {
 	var it model.ConfigStorageComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39673,10 +39466,10 @@ func (ec *executionContext) unmarshalInputConfigStorageComparisonExp(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStorageInsertInput(ctx context.Context, obj interface{}) (model.ConfigStorageInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigStorageInsertInput(ctx context.Context, obj any) (model.ConfigStorageInsertInput, error) {
 	var it model.ConfigStorageInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39721,10 +39514,10 @@ func (ec *executionContext) unmarshalInputConfigStorageInsertInput(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigStringComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[string], error) {
+func (ec *executionContext) unmarshalInputConfigStringComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[string], error) {
 	var it model.GenericComparisonExp[string]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39769,10 +39562,10 @@ func (ec *executionContext) unmarshalInputConfigStringComparisonExp(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigAuthComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigAuthComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigAuthComparisonExp(ctx context.Context, obj any) (model.ConfigSystemConfigAuthComparisonExp, error) {
 	var it model.ConfigSystemConfigAuthComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39817,10 +39610,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigAuthComparisonExp(ct
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigAuthEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailComparisonExp(ctx context.Context, obj any) (model.ConfigSystemConfigAuthEmailComparisonExp, error) {
 	var it model.ConfigSystemConfigAuthEmailComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39865,10 +39658,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailComparisonE
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigAuthEmailInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailInsertInput(ctx context.Context, obj any) (model.ConfigSystemConfigAuthEmailInsertInput, error) {
 	var it model.ConfigSystemConfigAuthEmailInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39892,10 +39685,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailInsertInput
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailTemplatesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailTemplatesComparisonExp(ctx context.Context, obj any) (model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, error) {
 	var it model.ConfigSystemConfigAuthEmailTemplatesComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39940,10 +39733,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailTemplatesCo
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailTemplatesInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigAuthEmailTemplatesInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailTemplatesInsertInput(ctx context.Context, obj any) (model.ConfigSystemConfigAuthEmailTemplatesInsertInput, error) {
 	var it model.ConfigSystemConfigAuthEmailTemplatesInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39967,10 +39760,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigAuthEmailTemplatesIn
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigAuthInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigAuthInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigAuthInsertInput(ctx context.Context, obj any) (model.ConfigSystemConfigAuthInsertInput, error) {
 	var it model.ConfigSystemConfigAuthInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -39994,10 +39787,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigAuthInsertInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx context.Context, obj any) (model.ConfigSystemConfigComparisonExp, error) {
 	var it model.ConfigSystemConfigComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40063,10 +39856,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigGraphqlComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigGraphqlComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigGraphqlComparisonExp(ctx context.Context, obj any) (model.ConfigSystemConfigGraphqlComparisonExp, error) {
 	var it model.ConfigSystemConfigGraphqlComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40111,10 +39904,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigGraphqlComparisonExp
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigGraphqlInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigGraphqlInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigGraphqlInsertInput(ctx context.Context, obj any) (model.ConfigSystemConfigGraphqlInsertInput, error) {
 	var it model.ConfigSystemConfigGraphqlInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40138,10 +39931,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigGraphqlInsertInput(c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx context.Context, obj any) (model.ConfigSystemConfigInsertInput, error) {
 	var it model.ConfigSystemConfigInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40186,10 +39979,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonExp(ctx context.Context, obj any) (model.ConfigSystemConfigPostgresComparisonExp, error) {
 	var it model.ConfigSystemConfigPostgresComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40262,10 +40055,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonEx
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresConnectionStringComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresConnectionStringComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresConnectionStringComparisonExp(ctx context.Context, obj any) (model.ConfigSystemConfigPostgresConnectionStringComparisonExp, error) {
 	var it model.ConfigSystemConfigPostgresConnectionStringComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40331,10 +40124,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresConnectionSt
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresConnectionStringInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresConnectionStringInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresConnectionStringInsertInput(ctx context.Context, obj any) (model.ConfigSystemConfigPostgresConnectionStringInsertInput, error) {
 	var it model.ConfigSystemConfigPostgresConnectionStringInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40379,10 +40172,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresConnectionSt
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, obj any) (model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
 	var it model.ConfigSystemConfigPostgresDiskComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40434,10 +40227,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresDiskComparis
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresDiskInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresDiskInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresDiskInsertInput(ctx context.Context, obj any) (model.ConfigSystemConfigPostgresDiskInsertInput, error) {
 	var it model.ConfigSystemConfigPostgresDiskInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40468,10 +40261,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresDiskInsertIn
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresInsertInput, error) {
+func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(ctx context.Context, obj any) (model.ConfigSystemConfigPostgresInsertInput, error) {
 	var it model.ConfigSystemConfigPostgresInsertInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40523,10 +40316,10 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigUint16ComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[uint16], error) {
+func (ec *executionContext) unmarshalInputConfigUint16ComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[uint16], error) {
 	var it model.GenericComparisonExp[uint16]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40571,10 +40364,10 @@ func (ec *executionContext) unmarshalInputConfigUint16ComparisonExp(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigUint32ComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[uint32], error) {
+func (ec *executionContext) unmarshalInputConfigUint32ComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[uint32], error) {
 	var it model.GenericComparisonExp[uint32]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40619,10 +40412,10 @@ func (ec *executionContext) unmarshalInputConfigUint32ComparisonExp(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigUint64ComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[uint64], error) {
+func (ec *executionContext) unmarshalInputConfigUint64ComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[uint64], error) {
 	var it model.GenericComparisonExp[uint64]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40667,10 +40460,10 @@ func (ec *executionContext) unmarshalInputConfigUint64ComparisonExp(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigUint8ComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[uint8], error) {
+func (ec *executionContext) unmarshalInputConfigUint8ComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[uint8], error) {
 	var it model.GenericComparisonExp[uint8]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40715,10 +40508,10 @@ func (ec *executionContext) unmarshalInputConfigUint8ComparisonExp(ctx context.C
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigUintComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[uint], error) {
+func (ec *executionContext) unmarshalInputConfigUintComparisonExp(ctx context.Context, obj any) (model.GenericComparisonExp[uint], error) {
 	var it model.GenericComparisonExp[uint]
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40763,10 +40556,10 @@ func (ec *executionContext) unmarshalInputConfigUintComparisonExp(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigUrlComparisonExp(ctx context.Context, obj interface{}) (model.ConfigUrlComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigUrlComparisonExp(ctx context.Context, obj any) (model.ConfigUrlComparisonExp, error) {
 	var it model.ConfigUrlComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -40811,10 +40604,10 @@ func (ec *executionContext) unmarshalInputConfigUrlComparisonExp(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputConfigUserRoleComparisonExp(ctx context.Context, obj interface{}) (model.ConfigUserRoleComparisonExp, error) {
+func (ec *executionContext) unmarshalInputConfigUserRoleComparisonExp(ctx context.Context, obj any) (model.ConfigUserRoleComparisonExp, error) {
 	var it model.ConfigUserRoleComparisonExp
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
@@ -42663,6 +42456,9 @@ func (ec *executionContext) _ConfigConfig(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._ConfigConfig_auth(ctx, field, obj)
 		case "postgres":
 			out.Values[i] = ec._ConfigConfig_postgres(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "provider":
 			out.Values[i] = ec._ConfigConfig_provider(ctx, field, obj)
 		case "storage":
@@ -43990,6 +43786,9 @@ func (ec *executionContext) _ConfigPostgres(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._ConfigPostgres_version(ctx, field, obj)
 		case "resources":
 			out.Values[i] = ec._ConfigPostgres_resources(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "settings":
 			out.Values[i] = ec._ConfigPostgres_settings(ctx, field, obj)
 		default:
@@ -44036,6 +43835,9 @@ func (ec *executionContext) _ConfigPostgresResources(ctx context.Context, sel as
 			out.Values[i] = ec._ConfigPostgresResources_networking(ctx, field, obj)
 		case "storage":
 			out.Values[i] = ec._ConfigPostgresResources_storage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "enablePublicAccess":
 			out.Values[i] = ec._ConfigPostgresResources_enablePublicAccess(ctx, field, obj)
 		default:
@@ -46027,7 +45829,7 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
+func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46042,12 +45844,12 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigAIAutoEmbeddingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAIAutoEmbeddingsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAIAutoEmbeddingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsComparisonExp(ctx context.Context, v any) (*model.ConfigAIAutoEmbeddingsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAIAutoEmbeddingsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAIComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAIComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAIComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIComparisonExp(ctx context.Context, v any) (*model.ConfigAIComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAIComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46062,12 +45864,12 @@ func (ec *executionContext) marshalNConfigAIOpenai2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigAIOpenai(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigAIOpenaiComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAIOpenaiComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAIOpenaiComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiComparisonExp(ctx context.Context, v any) (*model.ConfigAIOpenaiComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAIOpenaiComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAIOpenaiInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiInsertInput(ctx context.Context, v interface{}) (*model.ConfigAIOpenaiInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigAIOpenaiInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiInsertInput(ctx context.Context, v any) (*model.ConfigAIOpenaiInsertInput, error) {
 	res, err := ec.unmarshalInputConfigAIOpenaiInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46082,12 +45884,12 @@ func (ec *executionContext) marshalNConfigAIResources2ᚖgithubᚗcomᚋnhostᚋ
 	return ec._ConfigAIResources(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigAIResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAIResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAIResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigAIResourcesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAIResourcesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAIResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesInsertInput(ctx context.Context, v interface{}) (*model.ConfigAIResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigAIResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesInsertInput(ctx context.Context, v any) (*model.ConfigAIResourcesInsertInput, error) {
 	res, err := ec.unmarshalInputConfigAIResourcesInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46210,162 +46012,162 @@ func (ec *executionContext) marshalNConfigAppSystemConfig2ᚖgithubᚗcomᚋnhos
 	return ec._ConfigAppSystemConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthComparisonExp(ctx context.Context, v any) (*model.ConfigAuthComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthElevatedPrivilegesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthElevatedPrivilegesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthElevatedPrivilegesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesComparisonExp(ctx context.Context, v any) (*model.ConfigAuthElevatedPrivilegesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthElevatedPrivilegesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodAnonymousComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodAnonymousComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodAnonymousComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodAnonymousComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodAnonymousComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodEmailPasswordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodEmailPasswordComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodEmailPasswordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodEmailPasswordComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodEmailPasswordComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodEmailPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodEmailPasswordlessComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodEmailPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodEmailPasswordlessComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodEmailPasswordlessComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodOauthAppleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthAppleComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodOauthAppleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthAppleComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOauthAppleComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodOauthAzureadComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthAzureadComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodOauthAzureadComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthAzureadComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOauthAzureadComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodOauthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodOauthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOauthComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodOauthTwitterComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodOauthTwitterComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOauthTwitterComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodOauthWorkosComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodOauthWorkosComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOauthWorkosComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOtpComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOtpComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodOtpEmailComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodSmsPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodSmsPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodSmsPasswordlessComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnAttestationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnAttestationComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnAttestationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnAttestationComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodWebauthnAttestationComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodWebauthnComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnRelyingPartyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnRelyingPartyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMiscComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMiscComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMiscComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthRateLimitComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx context.Context, v any) (*model.ConfigAuthRateLimitComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthRateLimitComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthRedirectionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthRedirectionsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthRedirectionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsComparisonExp(ctx context.Context, v any) (*model.ConfigAuthRedirectionsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthRedirectionsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthSessionAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSessionAccessTokenComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthSessionAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSessionAccessTokenComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthSessionAccessTokenComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthSessionComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSessionComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthSessionComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSessionComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthSessionComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthSessionRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSessionRefreshTokenComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthSessionRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSessionRefreshTokenComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthSessionRefreshTokenComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthSignUpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthSignUpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSignUpComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthSignUpComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthSignUpTurnstileComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthTotpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthTotpComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthTotpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpComparisonExp(ctx context.Context, v any) (*model.ConfigAuthTotpComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthTotpComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthUserComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthUserComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthUserComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthUserEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthUserEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserEmailComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthUserEmailComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthUserEmailDomainsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserEmailDomainsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthUserEmailDomainsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserEmailDomainsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthUserEmailDomainsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthUserGravatarComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserGravatarComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthUserGravatarComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserGravatarComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthUserGravatarComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthUserLocaleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserLocaleComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthUserLocaleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserLocaleComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthUserLocaleComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthUserRolesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserRolesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthUserRolesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserRolesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthUserRolesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46380,23 +46182,23 @@ func (ec *executionContext) marshalNConfigAuthsessionaccessTokenCustomClaims2ᚖ
 	return ec._ConfigAuthsessionaccessTokenCustomClaims(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthsessionaccessTokenCustomClaimsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAuthsessionaccessTokenCustomClaimsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsComparisonExp(ctx context.Context, v any) (*model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthsessionaccessTokenCustomClaimsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthsessionaccessTokenCustomClaimsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthsessionaccessTokenCustomClaimsInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigAuthsessionaccessTokenCustomClaimsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsInsertInput(ctx context.Context, v any) (*model.ConfigAuthsessionaccessTokenCustomClaimsInsertInput, error) {
 	res, err := ec.unmarshalInputConfigAuthsessionaccessTokenCustomClaimsInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAuthsessionaccessTokenCustomClaimsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthsessionaccessTokenCustomClaimsUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigAuthsessionaccessTokenCustomClaimsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsUpdateInput(ctx context.Context, v any) (*model.ConfigAuthsessionaccessTokenCustomClaimsUpdateInput, error) {
 	var res = new(model.ConfigAuthsessionaccessTokenCustomClaimsUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAutoscalerComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx context.Context, v any) (*model.ConfigAutoscalerComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAutoscalerComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46411,17 +46213,17 @@ func (ec *executionContext) marshalNConfigClaimMap2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigClaimMap(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigClaimMapComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapComparisonExp(ctx context.Context, v interface{}) (*model.ConfigClaimMapComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigClaimMapComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapComparisonExp(ctx context.Context, v any) (*model.ConfigClaimMapComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigClaimMapComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigClaimMapInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapInsertInput(ctx context.Context, v interface{}) (*model.ConfigClaimMapInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigClaimMapInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapInsertInput(ctx context.Context, v any) (*model.ConfigClaimMapInsertInput, error) {
 	res, err := ec.unmarshalInputConfigClaimMapInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigClaimMapUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapUpdateInput(ctx context.Context, v interface{}) (*model.ConfigClaimMapUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigClaimMapUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapUpdateInput(ctx context.Context, v any) (*model.ConfigClaimMapUpdateInput, error) {
 	var res = new(model.ConfigClaimMapUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -46437,12 +46239,12 @@ func (ec *executionContext) marshalNConfigComputeResources2ᚖgithubᚗcomᚋnho
 	return ec._ConfigComputeResources(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigComputeResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigComputeResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigComputeResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigComputeResourcesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigComputeResourcesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigComputeResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesInsertInput(ctx context.Context, v interface{}) (*model.ConfigComputeResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigComputeResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesInsertInput(ctx context.Context, v any) (*model.ConfigComputeResourcesInsertInput, error) {
 	res, err := ec.unmarshalInputConfigComputeResourcesInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46461,23 +46263,23 @@ func (ec *executionContext) marshalNConfigConfig2ᚖgithubᚗcomᚋnhostᚋbeᚋ
 	return ec._ConfigConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExp(ctx context.Context, v interface{}) (*model.ConfigConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExp(ctx context.Context, v any) (*model.ConfigConfigComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigConfigComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigInsertInput(ctx context.Context, v interface{}) (model.ConfigConfigInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigInsertInput(ctx context.Context, v any) (model.ConfigConfigInsertInput, error) {
 	res, err := ec.unmarshalInputConfigConfigInsertInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigUpdateInput(ctx context.Context, v interface{}) (model.ConfigConfigUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigUpdateInput(ctx context.Context, v any) (model.ConfigConfigUpdateInput, error) {
 	var res model.ConfigConfigUpdateInput
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigEmail2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalNConfigEmail2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46550,43 +46352,43 @@ func (ec *executionContext) marshalNConfigEnvironmentVariable2ᚖgithubᚗcomᚋ
 	return ec._ConfigEnvironmentVariable(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableComparisonExp(ctx context.Context, v interface{}) (*model.ConfigEnvironmentVariableComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableComparisonExp(ctx context.Context, v any) (*model.ConfigEnvironmentVariableComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigEnvironmentVariableComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigEnvironmentVariableInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInput(ctx context.Context, v interface{}) (model.ConfigEnvironmentVariableInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigEnvironmentVariableInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInput(ctx context.Context, v any) (model.ConfigEnvironmentVariableInsertInput, error) {
 	res, err := ec.unmarshalInputConfigEnvironmentVariableInsertInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigEnvironmentVariableInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInput(ctx context.Context, v interface{}) (*model.ConfigEnvironmentVariableInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigEnvironmentVariableInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInput(ctx context.Context, v any) (*model.ConfigEnvironmentVariableInsertInput, error) {
 	res, err := ec.unmarshalInputConfigEnvironmentVariableInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigEnvironmentVariableUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableUpdateInput(ctx context.Context, v interface{}) (*model.ConfigEnvironmentVariableUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigEnvironmentVariableUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableUpdateInput(ctx context.Context, v any) (*model.ConfigEnvironmentVariableUpdateInput, error) {
 	var res = new(model.ConfigEnvironmentVariableUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigFunctionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigFunctionsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigFunctionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsComparisonExp(ctx context.Context, v any) (*model.ConfigFunctionsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigFunctionsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigFunctionsNodeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeComparisonExp(ctx context.Context, v interface{}) (*model.ConfigFunctionsNodeComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigFunctionsNodeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeComparisonExp(ctx context.Context, v any) (*model.ConfigFunctionsNodeComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigFunctionsNodeComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigFunctionsResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigFunctionsResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigFunctionsResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigFunctionsResourcesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigFunctionsResourcesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGlobalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGlobalComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGlobalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalComparisonExp(ctx context.Context, v any) (*model.ConfigGlobalComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGlobalComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46601,17 +46403,17 @@ func (ec *executionContext) marshalNConfigGlobalEnvironmentVariable2ᚖgithubᚗ
 	return ec._ConfigGlobalEnvironmentVariable(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, v any) (*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGlobalEnvironmentVariableComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableInsertInput(ctx context.Context, v interface{}) (*model.ConfigGlobalEnvironmentVariableInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableInsertInput(ctx context.Context, v any) (*model.ConfigGlobalEnvironmentVariableInsertInput, error) {
 	res, err := ec.unmarshalInputConfigGlobalEnvironmentVariableInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGlobalEnvironmentVariableUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableUpdateInput(ctx context.Context, v any) (*model.ConfigGlobalEnvironmentVariableUpdateInput, error) {
 	var res = new(model.ConfigGlobalEnvironmentVariableUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -46627,27 +46429,27 @@ func (ec *executionContext) marshalNConfigGrafana2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigGrafana(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaAlertingComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanaAlertingComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanaAlertingComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanaComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGrafanaComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanaComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanaComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaContactsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanaContactsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanaContactsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanaInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanaInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaInsertInput(ctx context.Context, v any) (*model.ConfigGrafanaInsertInput, error) {
 	res, err := ec.unmarshalInputConfigGrafanaInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanaSmtpComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanaSmtpComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46662,17 +46464,17 @@ func (ec *executionContext) marshalNConfigGrafanacontactsDiscord2ᚖgithubᚗcom
 	return ec._ConfigGrafanacontactsDiscord(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanacontactsDiscordComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsDiscordInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordInsertInput(ctx context.Context, v any) (*model.ConfigGrafanacontactsDiscordInsertInput, error) {
 	res, err := ec.unmarshalInputConfigGrafanacontactsDiscordInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsDiscordUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordUpdateInput(ctx context.Context, v any) (*model.ConfigGrafanacontactsDiscordUpdateInput, error) {
 	var res = new(model.ConfigGrafanacontactsDiscordUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -46688,17 +46490,17 @@ func (ec *executionContext) marshalNConfigGrafanacontactsPagerduty2ᚖgithubᚗc
 	return ec._ConfigGrafanacontactsPagerduty(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanacontactsPagerdutyComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyInsertInput(ctx context.Context, v any) (*model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
 	res, err := ec.unmarshalInputConfigGrafanacontactsPagerdutyInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsPagerdutyUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyUpdateInput(ctx context.Context, v any) (*model.ConfigGrafanacontactsPagerdutyUpdateInput, error) {
 	var res = new(model.ConfigGrafanacontactsPagerdutyUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -46714,17 +46516,17 @@ func (ec *executionContext) marshalNConfigGrafanacontactsSlack2ᚖgithubᚗcom�
 	return ec._ConfigGrafanacontactsSlack(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsSlackComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanacontactsSlackComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanacontactsSlackComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsSlackInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackInsertInput(ctx context.Context, v any) (*model.ConfigGrafanacontactsSlackInsertInput, error) {
 	res, err := ec.unmarshalInputConfigGrafanacontactsSlackInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsSlackUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackUpdateInput(ctx context.Context, v any) (*model.ConfigGrafanacontactsSlackUpdateInput, error) {
 	var res = new(model.ConfigGrafanacontactsSlackUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -46740,28 +46542,28 @@ func (ec *executionContext) marshalNConfigGrafanacontactsWebhook2ᚖgithubᚗcom
 	return ec._ConfigGrafanacontactsWebhook(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanacontactsWebhookComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsWebhookInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookInsertInput(ctx context.Context, v any) (*model.ConfigGrafanacontactsWebhookInsertInput, error) {
 	res, err := ec.unmarshalInputConfigGrafanacontactsWebhookInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsWebhookUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookUpdateInput(ctx context.Context, v any) (*model.ConfigGrafanacontactsWebhookUpdateInput, error) {
 	var res = new(model.ConfigGrafanacontactsWebhookUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx context.Context, v any) (*model.ConfigGraphqlComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGraphqlComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlSecurityComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx context.Context, v any) (*model.ConfigGraphqlSecurityComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGraphqlSecurityComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46776,7 +46578,7 @@ func (ec *executionContext) marshalNConfigHasura2ᚖgithubᚗcomᚋnhostᚋbeᚋ
 	return ec._ConfigHasura(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigHasuraAPIs2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalNConfigHasuraAPIs2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46791,37 +46593,37 @@ func (ec *executionContext) marshalNConfigHasuraAPIs2string(ctx context.Context,
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraAuthHookComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraAuthHookComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigHasuraAuthHookComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigHasuraComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigHasuraComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigHasuraComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigHasuraEventsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraEventsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigHasuraEventsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraEventsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigHasuraEventsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigHasuraInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraInsertInput(ctx context.Context, v interface{}) (*model.ConfigHasuraInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigHasuraInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraInsertInput(ctx context.Context, v any) (*model.ConfigHasuraInsertInput, error) {
 	res, err := ec.unmarshalInputConfigHasuraInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigHasuraLogsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraLogsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigHasuraLogsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraLogsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigHasuraLogsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigHasuraSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraSettingsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigHasuraSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraSettingsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigHasuraSettingsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigHealthCheckComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHealthCheckComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigHealthCheckComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckComparisonExp(ctx context.Context, v any) (*model.ConfigHealthCheckComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigHealthCheckComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46836,22 +46638,22 @@ func (ec *executionContext) marshalNConfigIngress2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigIngress(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigIngressComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressComparisonExp(ctx context.Context, v interface{}) (*model.ConfigIngressComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigIngressComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressComparisonExp(ctx context.Context, v any) (*model.ConfigIngressComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigIngressComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigIngressInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressInsertInput(ctx context.Context, v interface{}) (*model.ConfigIngressInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigIngressInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressInsertInput(ctx context.Context, v any) (*model.ConfigIngressInsertInput, error) {
 	res, err := ec.unmarshalInputConfigIngressInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigIngressTlsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx context.Context, v any) (*model.ConfigIngressTlsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigIngressTlsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigIngressUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressUpdateInput(ctx context.Context, v interface{}) (*model.ConfigIngressUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigIngressUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressUpdateInput(ctx context.Context, v any) (*model.ConfigIngressUpdateInput, error) {
 	var res = new(model.ConfigIngressUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -46871,7 +46673,7 @@ func (ec *executionContext) marshalNConfigInsertConfigResponse2ᚖgithubᚗcom�
 	return ec._ConfigInsertConfigResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigInt162int16(ctx context.Context, v interface{}) (int16, error) {
+func (ec *executionContext) unmarshalNConfigInt162int16(ctx context.Context, v any) (int16, error) {
 	res, err := types.UnmarshalInt16(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46886,7 +46688,7 @@ func (ec *executionContext) marshalNConfigInt162int16(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigInt322int32(ctx context.Context, v interface{}) (int32, error) {
+func (ec *executionContext) unmarshalNConfigInt322int32(ctx context.Context, v any) (int32, error) {
 	res, err := graphql.UnmarshalInt32(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46901,7 +46703,7 @@ func (ec *executionContext) marshalNConfigInt322int32(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigInt642int64(ctx context.Context, v interface{}) (int64, error) {
+func (ec *executionContext) unmarshalNConfigInt642int64(ctx context.Context, v any) (int64, error) {
 	res, err := graphql.UnmarshalInt64(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46916,7 +46718,7 @@ func (ec *executionContext) marshalNConfigInt642int64(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigInt82int8(ctx context.Context, v interface{}) (int8, error) {
+func (ec *executionContext) unmarshalNConfigInt82int8(ctx context.Context, v any) (int8, error) {
 	res, err := types.UnmarshalInt8(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46941,23 +46743,23 @@ func (ec *executionContext) marshalNConfigJWTSecret2ᚖgithubᚗcomᚋnhostᚋbe
 	return ec._ConfigJWTSecret(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigJWTSecretComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretComparisonExp(ctx context.Context, v interface{}) (*model.ConfigJWTSecretComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigJWTSecretComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretComparisonExp(ctx context.Context, v any) (*model.ConfigJWTSecretComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigJWTSecretComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigJWTSecretInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretInsertInput(ctx context.Context, v interface{}) (*model.ConfigJWTSecretInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigJWTSecretInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretInsertInput(ctx context.Context, v any) (*model.ConfigJWTSecretInsertInput, error) {
 	res, err := ec.unmarshalInputConfigJWTSecretInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigJWTSecretUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretUpdateInput(ctx context.Context, v interface{}) (*model.ConfigJWTSecretUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigJWTSecretUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretUpdateInput(ctx context.Context, v any) (*model.ConfigJWTSecretUpdateInput, error) {
 	var res = new(model.ConfigJWTSecretUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigLocale2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalNConfigLocale2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46972,7 +46774,7 @@ func (ec *executionContext) marshalNConfigLocale2string(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigNetworkingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExp(ctx context.Context, v interface{}) (*model.ConfigNetworkingComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigNetworkingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExp(ctx context.Context, v any) (*model.ConfigNetworkingComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigNetworkingComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -46987,17 +46789,17 @@ func (ec *executionContext) marshalNConfigObservability2ᚖgithubᚗcomᚋnhost�
 	return ec._ConfigObservability(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigObservabilityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityComparisonExp(ctx context.Context, v interface{}) (*model.ConfigObservabilityComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigObservabilityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityComparisonExp(ctx context.Context, v any) (*model.ConfigObservabilityComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigObservabilityComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigObservabilityInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityInsertInput(ctx context.Context, v interface{}) (*model.ConfigObservabilityInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigObservabilityInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityInsertInput(ctx context.Context, v any) (*model.ConfigObservabilityInsertInput, error) {
 	res, err := ec.unmarshalInputConfigObservabilityInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigPort2uint16(ctx context.Context, v interface{}) (uint16, error) {
+func (ec *executionContext) unmarshalNConfigPort2uint16(ctx context.Context, v any) (uint16, error) {
 	res, err := types.UnmarshalUint16(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47012,42 +46814,87 @@ func (ec *executionContext) marshalNConfigPort2uint16(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPostgresComparisonExp, error) {
+func (ec *executionContext) marshalNConfigPostgres2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgres(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgres) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigPostgres(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigPostgresComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigPostgresResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPostgresResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigPostgresInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresInsertInput(ctx context.Context, v any) (*model.ConfigPostgresInsertInput, error) {
+	res, err := ec.unmarshalInputConfigPostgresInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConfigPostgresResources2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResources(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgresResources) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigPostgresResources(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigPostgresResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresResourcesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigPostgresResourcesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigPostgresSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPostgresSettingsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigPostgresResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesInsertInput(ctx context.Context, v any) (*model.ConfigPostgresResourcesInsertInput, error) {
+	res, err := ec.unmarshalInputConfigPostgresResourcesInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigPostgresSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresSettingsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigPostgresSettingsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPostgresStorageComparisonExp, error) {
+func (ec *executionContext) marshalNConfigPostgresStorage2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorage(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgresStorage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigPostgresStorage(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresStorageComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigPostgresStorageComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderComparisonExp(ctx context.Context, v interface{}) (*model.ConfigProviderComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigPostgresStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageInsertInput(ctx context.Context, v any) (*model.ConfigPostgresStorageInsertInput, error) {
+	res, err := ec.unmarshalInputConfigPostgresStorageInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderComparisonExp(ctx context.Context, v any) (*model.ConfigProviderComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigProviderComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRateLimitComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx context.Context, v any) (*model.ConfigRateLimitComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigRateLimitComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigResourcesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigResourcesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigResourcesComputeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeComparisonExp(ctx context.Context, v interface{}) (*model.ConfigResourcesComputeComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigResourcesComputeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeComparisonExp(ctx context.Context, v any) (*model.ConfigResourcesComputeComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigResourcesComputeComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47066,17 +46913,17 @@ func (ec *executionContext) marshalNConfigRunServiceConfig2ᚖgithubᚗcomᚋnho
 	return ec._ConfigRunServiceConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceConfigComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigRunServiceConfigComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigInsertInput(ctx context.Context, v interface{}) (model.ConfigRunServiceConfigInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigInsertInput(ctx context.Context, v any) (model.ConfigRunServiceConfigInsertInput, error) {
 	res, err := ec.unmarshalInputConfigRunServiceConfigInsertInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigUpdateInput(ctx context.Context, v interface{}) (model.ConfigRunServiceConfigUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigUpdateInput(ctx context.Context, v any) (model.ConfigRunServiceConfigUpdateInput, error) {
 	var res model.ConfigRunServiceConfigUpdateInput
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -47146,17 +46993,17 @@ func (ec *executionContext) marshalNConfigRunServiceImage2ᚖgithubᚗcomᚋnhos
 	return ec._ConfigRunServiceImage(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceImageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceImageComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceImageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceImageComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigRunServiceImageComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceImageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageInsertInput(ctx context.Context, v interface{}) (*model.ConfigRunServiceImageInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceImageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageInsertInput(ctx context.Context, v any) (*model.ConfigRunServiceImageInsertInput, error) {
 	res, err := ec.unmarshalInputConfigRunServiceImageInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceName2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceName2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47181,17 +47028,17 @@ func (ec *executionContext) marshalNConfigRunServicePort2ᚖgithubᚗcomᚋnhost
 	return ec._ConfigRunServicePort(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServicePortComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServicePortComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigRunServicePortComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortComparisonExp(ctx context.Context, v any) (*model.ConfigRunServicePortComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigRunServicePortComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServicePortInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortInsertInput(ctx context.Context, v interface{}) (*model.ConfigRunServicePortInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigRunServicePortInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortInsertInput(ctx context.Context, v any) (*model.ConfigRunServicePortInsertInput, error) {
 	res, err := ec.unmarshalInputConfigRunServicePortInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServicePortUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortUpdateInput(ctx context.Context, v interface{}) (*model.ConfigRunServicePortUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigRunServicePortUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortUpdateInput(ctx context.Context, v any) (*model.ConfigRunServicePortUpdateInput, error) {
 	var res = new(model.ConfigRunServicePortUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -47207,12 +47054,12 @@ func (ec *executionContext) marshalNConfigRunServiceResources2ᚖgithubᚗcomᚋ
 	return ec._ConfigRunServiceResources(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceResourcesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigRunServiceResourcesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesInsertInput(ctx context.Context, v interface{}) (*model.ConfigRunServiceResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesInsertInput(ctx context.Context, v any) (*model.ConfigRunServiceResourcesInsertInput, error) {
 	res, err := ec.unmarshalInputConfigRunServiceResourcesInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47227,48 +47074,48 @@ func (ec *executionContext) marshalNConfigRunServiceResourcesStorage2ᚖgithub�
 	return ec._ConfigRunServiceResourcesStorage(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceResourcesStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceResourcesStorageComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigRunServiceResourcesStorageComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceResourcesStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageInsertInput(ctx context.Context, v interface{}) (*model.ConfigRunServiceResourcesStorageInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceResourcesStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageInsertInput(ctx context.Context, v any) (*model.ConfigRunServiceResourcesStorageInsertInput, error) {
 	res, err := ec.unmarshalInputConfigRunServiceResourcesStorageInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigRunServiceResourcesStorageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageUpdateInput(ctx context.Context, v interface{}) (*model.ConfigRunServiceResourcesStorageUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigRunServiceResourcesStorageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageUpdateInput(ctx context.Context, v any) (*model.ConfigRunServiceResourcesStorageUpdateInput, error) {
 	var res = new(model.ConfigRunServiceResourcesStorageUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSmsComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsComparisonExp(ctx context.Context, v any) (*model.ConfigSmsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSmsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSmtpComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpComparisonExp(ctx context.Context, v any) (*model.ConfigSmtpComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSmtpComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigStandardOauthProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderComparisonExp(ctx context.Context, v interface{}) (*model.ConfigStandardOauthProviderComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigStandardOauthProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderComparisonExp(ctx context.Context, v any) (*model.ConfigStandardOauthProviderComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigStandardOauthProviderComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigStandardOauthProviderWithScopeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeComparisonExp(ctx context.Context, v interface{}) (*model.ConfigStandardOauthProviderWithScopeComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigStandardOauthProviderWithScopeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeComparisonExp(ctx context.Context, v any) (*model.ConfigStandardOauthProviderWithScopeComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigStandardOauthProviderWithScopeComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigStorageAntivirusComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusComparisonExp(ctx context.Context, v interface{}) (*model.ConfigStorageAntivirusComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigStorageAntivirusComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusComparisonExp(ctx context.Context, v any) (*model.ConfigStorageAntivirusComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigStorageAntivirusComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageComparisonExp(ctx context.Context, v interface{}) (*model.ConfigStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageComparisonExp(ctx context.Context, v any) (*model.ConfigStorageComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigStorageComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47287,32 +47134,32 @@ func (ec *executionContext) marshalNConfigSystemConfig2ᚖgithubᚗcomᚋnhost�
 	return ec._ConfigSystemConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigAuthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigAuthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigAuthComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigAuthComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigAuthEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigAuthEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigAuthEmailComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigAuthEmailComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigAuthEmailTemplatesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigAuthEmailTemplatesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigAuthEmailTemplatesComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigGraphqlComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigGraphqlComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigGraphqlComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigInsertInput(ctx context.Context, v interface{}) (model.ConfigSystemConfigInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigInsertInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigInsertInput(ctx context.Context, v any) (model.ConfigSystemConfigInsertInput, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigInsertInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47327,7 +47174,7 @@ func (ec *executionContext) marshalNConfigSystemConfigPostgres2ᚖgithubᚗcom�
 	return ec._ConfigSystemConfigPostgres(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigPostgresComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47342,33 +47189,33 @@ func (ec *executionContext) marshalNConfigSystemConfigPostgresConnectionString2�
 	return ec._ConfigSystemConfigPostgresConnectionString(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigPostgresConnectionStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresConnectionStringComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigPostgresConnectionStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresConnectionStringComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigPostgresConnectionStringComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigPostgresConnectionStringInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresConnectionStringInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigPostgresConnectionStringInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringInsertInput(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresConnectionStringInsertInput, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigPostgresConnectionStringInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigPostgresDiskComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigPostgresInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresInsertInput, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigPostgresInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresInsertInput(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresInsertInput, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigPostgresInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigSystemConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigUpdateInput(ctx context.Context, v interface{}) (model.ConfigSystemConfigUpdateInput, error) {
+func (ec *executionContext) unmarshalNConfigSystemConfigUpdateInput2githubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigUpdateInput(ctx context.Context, v any) (model.ConfigSystemConfigUpdateInput, error) {
 	var res model.ConfigSystemConfigUpdateInput
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigUint162uint16(ctx context.Context, v interface{}) (uint16, error) {
+func (ec *executionContext) unmarshalNConfigUint162uint16(ctx context.Context, v any) (uint16, error) {
 	res, err := types.UnmarshalUint16(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47383,7 +47230,7 @@ func (ec *executionContext) marshalNConfigUint162uint16(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigUint2uint(ctx context.Context, v interface{}) (uint, error) {
+func (ec *executionContext) unmarshalNConfigUint2uint(ctx context.Context, v any) (uint, error) {
 	res, err := graphql.UnmarshalUint(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47398,7 +47245,7 @@ func (ec *executionContext) marshalNConfigUint2uint(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigUint322uint32(ctx context.Context, v interface{}) (uint32, error) {
+func (ec *executionContext) unmarshalNConfigUint322uint32(ctx context.Context, v any) (uint32, error) {
 	res, err := graphql.UnmarshalUint32(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47413,7 +47260,7 @@ func (ec *executionContext) marshalNConfigUint322uint32(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigUint642uint64(ctx context.Context, v interface{}) (uint64, error) {
+func (ec *executionContext) unmarshalNConfigUint642uint64(ctx context.Context, v any) (uint64, error) {
 	res, err := graphql.UnmarshalUint64(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47428,7 +47275,7 @@ func (ec *executionContext) marshalNConfigUint642uint64(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigUint82uint8(ctx context.Context, v interface{}) (uint8, error) {
+func (ec *executionContext) unmarshalNConfigUint82uint8(ctx context.Context, v any) (uint8, error) {
 	res, err := types.UnmarshalUint8(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47443,7 +47290,7 @@ func (ec *executionContext) marshalNConfigUint82uint8(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigUrl2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalNConfigUrl2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47458,7 +47305,7 @@ func (ec *executionContext) marshalNConfigUrl2string(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalNConfigUserRole2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalNConfigUserRole2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47473,7 +47320,7 @@ func (ec *executionContext) marshalNConfigUserRole2string(ctx context.Context, s
 	return res
 }
 
-func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v any) (float64, error) {
 	res, err := graphql.UnmarshalFloatContext(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47502,7 +47349,7 @@ func (ec *executionContext) marshalNInsertRunServiceConfigResponse2ᚖgithubᚗc
 	return ec._InsertRunServiceConfigResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v any) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47517,7 +47364,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47532,8 +47379,8 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
-	var vSlice []interface{}
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -47612,7 +47459,7 @@ func (ec *executionContext) marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgq
 	return ret
 }
 
-func (ec *executionContext) unmarshalN__DirectiveLocation2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalN__DirectiveLocation2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47627,8 +47474,8 @@ func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Conte
 	return res
 }
 
-func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
-	var vSlice []interface{}
+func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -47802,7 +47649,7 @@ func (ec *executionContext) marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	return ec.___Type(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalN__TypeKind2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalN__TypeKind2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47817,7 +47664,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNuuid2string(ctx context.Context, v interface{}) (string, error) {
+func (ec *executionContext) unmarshalNuuid2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47832,7 +47679,7 @@ func (ec *executionContext) marshalNuuid2string(ctx context.Context, sel ast.Sel
 	return res
 }
 
-func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
+func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -47842,11 +47689,11 @@ func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalOBoolean2ᚕboolᚄ(ctx context.Context, v interface{}) ([]bool, error) {
+func (ec *executionContext) unmarshalOBoolean2ᚕboolᚄ(ctx context.Context, v any) ([]bool, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -47880,7 +47727,7 @@ func (ec *executionContext) marshalOBoolean2ᚕboolᚄ(ctx context.Context, sel 
 	return ret
 }
 
-func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v interface{}) (*bool, error) {
+func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v any) (*bool, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -47910,11 +47757,11 @@ func (ec *executionContext) marshalOConfigAIAutoEmbeddings2ᚖgithubᚗcomᚋnho
 	return ec._ConfigAIAutoEmbeddings(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAIAutoEmbeddingsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAIAutoEmbeddingsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -47930,7 +47777,7 @@ func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAIAutoEmbeddingsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsComparisonExp(ctx context.Context, v any) (*model.ConfigAIAutoEmbeddingsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -47938,7 +47785,7 @@ func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsComparisonExp2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsInsertInput(ctx context.Context, v interface{}) (*model.ConfigAIAutoEmbeddingsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsInsertInput(ctx context.Context, v any) (*model.ConfigAIAutoEmbeddingsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -47946,7 +47793,7 @@ func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsInsertInput2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAIAutoEmbeddingsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsUpdateInput(ctx context.Context, v any) (*model.ConfigAIAutoEmbeddingsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -47955,11 +47802,11 @@ func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsUpdateInput2ᚖgithu
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAIComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAIComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAIComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -47975,7 +47822,7 @@ func (ec *executionContext) unmarshalOConfigAIComparisonExp2ᚕᚖgithubᚗcom�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAIComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAIComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAIComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIComparisonExp(ctx context.Context, v any) (*model.ConfigAIComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -47983,7 +47830,7 @@ func (ec *executionContext) unmarshalOConfigAIComparisonExp2ᚖgithubᚗcomᚋnh
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIInsertInput(ctx context.Context, v interface{}) (*model.ConfigAIInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAIInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIInsertInput(ctx context.Context, v any) (*model.ConfigAIInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -47991,11 +47838,11 @@ func (ec *executionContext) unmarshalOConfigAIInsertInput2ᚖgithubᚗcomᚋnhos
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAIOpenaiComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAIOpenaiComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48011,7 +47858,7 @@ func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAIOpenaiComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiComparisonExp(ctx context.Context, v any) (*model.ConfigAIOpenaiComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48019,7 +47866,7 @@ func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIOpenaiUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAIOpenaiUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAIOpenaiUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiUpdateInput(ctx context.Context, v any) (*model.ConfigAIOpenaiUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48028,11 +47875,11 @@ func (ec *executionContext) unmarshalOConfigAIOpenaiUpdateInput2ᚖgithubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAIResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAIResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAIResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48048,7 +47895,7 @@ func (ec *executionContext) unmarshalOConfigAIResourcesComparisonExp2ᚕᚖgithu
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAIResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAIResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAIResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigAIResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48056,7 +47903,7 @@ func (ec *executionContext) unmarshalOConfigAIResourcesComparisonExp2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAIResourcesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAIResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesUpdateInput(ctx context.Context, v any) (*model.ConfigAIResourcesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48065,7 +47912,7 @@ func (ec *executionContext) unmarshalOConfigAIResourcesUpdateInput2ᚖgithubᚗc
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAIUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAIUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAIUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIUpdateInput(ctx context.Context, v any) (*model.ConfigAIUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48128,11 +47975,11 @@ func (ec *executionContext) marshalOConfigAuth2ᚖgithubᚗcomᚋnhostᚋbeᚋse
 	return ec._ConfigAuth(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48148,7 +47995,7 @@ func (ec *executionContext) unmarshalOConfigAuthComparisonExp2ᚕᚖgithubᚗcom
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthComparisonExp(ctx context.Context, v any) (*model.ConfigAuthComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48163,11 +48010,11 @@ func (ec *executionContext) marshalOConfigAuthElevatedPrivileges2ᚖgithubᚗcom
 	return ec._ConfigAuthElevatedPrivileges(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthElevatedPrivilegesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthElevatedPrivilegesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48183,7 +48030,7 @@ func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesComparisonExp2
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthElevatedPrivilegesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesComparisonExp(ctx context.Context, v any) (*model.ConfigAuthElevatedPrivilegesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48191,7 +48038,7 @@ func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesComparisonExp2
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthElevatedPrivilegesInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesInsertInput(ctx context.Context, v any) (*model.ConfigAuthElevatedPrivilegesInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48199,7 +48046,7 @@ func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesInsertInput2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthElevatedPrivilegesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthElevatedPrivilegesUpdateInput(ctx context.Context, v any) (*model.ConfigAuthElevatedPrivilegesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48208,7 +48055,7 @@ func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesUpdateInput2�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthInsertInput(ctx context.Context, v any) (*model.ConfigAuthInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48230,11 +48077,11 @@ func (ec *executionContext) marshalOConfigAuthMethodAnonymous2ᚖgithubᚗcomᚋ
 	return ec._ConfigAuthMethodAnonymous(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodAnonymousComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodAnonymousComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48250,7 +48097,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousComparisonExp2ᚕ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodAnonymousComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodAnonymousComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48258,7 +48105,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousComparisonExp2ᚖ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodAnonymousInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodAnonymousInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48266,7 +48113,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousInsertInput2ᚖgi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodAnonymousUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodAnonymousUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodAnonymousUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48275,11 +48122,11 @@ func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousUpdateInput2ᚖgi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48295,7 +48142,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodComparisonExp2ᚕᚖgithub
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48310,11 +48157,11 @@ func (ec *executionContext) marshalOConfigAuthMethodEmailPassword2ᚖgithubᚗco
 	return ec._ConfigAuthMethodEmailPassword(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodEmailPasswordComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodEmailPasswordComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48330,7 +48177,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordComparisonExp
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodEmailPasswordComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodEmailPasswordComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48338,7 +48185,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordComparisonExp
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodEmailPasswordInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodEmailPasswordInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48346,7 +48193,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordInsertInput2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodEmailPasswordUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodEmailPasswordUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48362,11 +48209,11 @@ func (ec *executionContext) marshalOConfigAuthMethodEmailPasswordless2ᚖgithub�
 	return ec._ConfigAuthMethodEmailPasswordless(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodEmailPasswordlessComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodEmailPasswordlessComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48382,7 +48229,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessCompariso
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodEmailPasswordlessComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodEmailPasswordlessComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48390,7 +48237,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessCompariso
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodEmailPasswordlessInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodEmailPasswordlessInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48398,7 +48245,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessInsertInp
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodEmailPasswordlessUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodEmailPasswordlessUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodEmailPasswordlessUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48407,7 +48254,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessUpdateInp
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48429,11 +48276,11 @@ func (ec *executionContext) marshalOConfigAuthMethodOauthApple2ᚖgithubᚗcom�
 	return ec._ConfigAuthMethodOauthApple(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOauthAppleComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOauthAppleComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48449,7 +48296,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleComparisonExp2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthAppleComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthAppleComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48457,7 +48304,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleComparisonExp2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthAppleInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthAppleInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48465,7 +48312,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleInsertInput2ᚖg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthAppleUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAppleUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthAppleUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48481,11 +48328,11 @@ func (ec *executionContext) marshalOConfigAuthMethodOauthAzuread2ᚖgithubᚗcom
 	return ec._ConfigAuthMethodOauthAzuread(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOauthAzureadComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOauthAzureadComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48501,7 +48348,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadComparisonExp2
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthAzureadComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthAzureadComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48509,7 +48356,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadComparisonExp2
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthAzureadInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthAzureadInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48517,7 +48364,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadInsertInput2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthAzureadUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthAzureadUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthAzureadUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48526,11 +48373,11 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadUpdateInput2�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOauthComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOauthComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48546,7 +48393,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthComparisonExp2ᚕᚖg
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48554,7 +48401,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthComparisonExp2ᚖgith
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48569,11 +48416,11 @@ func (ec *executionContext) marshalOConfigAuthMethodOauthTwitter2ᚖgithubᚗcom
 	return ec._ConfigAuthMethodOauthTwitter(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48589,7 +48436,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterComparisonExp2
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthTwitterComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48597,7 +48444,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterComparisonExp2
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthTwitterInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthTwitterInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48605,7 +48452,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterInsertInput2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthTwitterUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthTwitterUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthTwitterUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48614,7 +48461,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterUpdateInput2�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48630,11 +48477,11 @@ func (ec *executionContext) marshalOConfigAuthMethodOauthWorkos2ᚖgithubᚗcom�
 	return ec._ConfigAuthMethodOauthWorkos(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48650,7 +48497,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosComparisonExp2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOauthWorkosComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48658,7 +48505,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosComparisonExp2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthWorkosInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthWorkosInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48666,7 +48513,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosInsertInput2ᚖ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOauthWorkosUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOauthWorkosUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOauthWorkosUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48682,11 +48529,11 @@ func (ec *executionContext) marshalOConfigAuthMethodOtp2ᚖgithubᚗcomᚋnhost�
 	return ec._ConfigAuthMethodOtp(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOtpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOtpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48702,7 +48549,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpComparisonExp2ᚕᚖgit
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOtpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48717,11 +48564,11 @@ func (ec *executionContext) marshalOConfigAuthMethodOtpEmail2ᚖgithubᚗcomᚋn
 	return ec._ConfigAuthMethodOtpEmail(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48737,7 +48584,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚕ�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOtpEmailComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48745,7 +48592,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚖg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpEmailInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOtpEmailInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48753,7 +48600,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailInsertInput2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpEmailUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpEmailUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOtpEmailUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48762,7 +48609,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailUpdateInput2ᚖgit
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOtpInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48770,7 +48617,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpInsertInput2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodOtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodOtpUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOtpUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48786,11 +48633,11 @@ func (ec *executionContext) marshalOConfigAuthMethodSmsPasswordless2ᚖgithubᚗ
 	return ec._ConfigAuthMethodSmsPasswordless(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48806,7 +48653,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessComparisonE
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48814,7 +48661,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessComparisonE
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodSmsPasswordlessInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodSmsPasswordlessInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48822,7 +48669,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessInsertInput
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodSmsPasswordlessUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodSmsPasswordlessUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48831,7 +48678,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessUpdateInput
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48854,11 +48701,11 @@ func (ec *executionContext) marshalOConfigAuthMethodWebauthnAttestation2ᚖgithu
 	return ec._ConfigAuthMethodWebauthnAttestation(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodWebauthnAttestationComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodWebauthnAttestationComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48874,7 +48721,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationCompari
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnAttestationComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnAttestationComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48882,7 +48729,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationCompari
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnAttestationInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnAttestationInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48890,7 +48737,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationInsertI
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnAttestationUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnAttestationUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnAttestationUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48899,11 +48746,11 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationUpdateI
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodWebauthnComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodWebauthnComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48919,7 +48766,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnComparisonExp2ᚕ�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48927,7 +48774,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnComparisonExp2ᚖg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48942,11 +48789,11 @@ func (ec *executionContext) marshalOConfigAuthMethodWebauthnRelyingParty2ᚖgith
 	return ec._ConfigAuthMethodWebauthnRelyingParty(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -48962,7 +48809,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyCompar
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48970,7 +48817,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyCompar
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnRelyingPartyInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnRelyingPartyInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48978,7 +48825,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyInsert
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnRelyingPartyUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnRelyingPartyUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -48987,7 +48834,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyUpdate
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodWebauthnUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49003,11 +48850,11 @@ func (ec *executionContext) marshalOConfigAuthMisc2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigAuthMisc(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMiscComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMiscComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49023,7 +48870,7 @@ func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMiscComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMiscComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49031,7 +48878,7 @@ func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMiscInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMiscInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMiscInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscInsertInput(ctx context.Context, v any) (*model.ConfigAuthMiscInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49039,7 +48886,7 @@ func (ec *executionContext) unmarshalOConfigAuthMiscInsertInput2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthMiscUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMiscUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthMiscUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMiscUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49055,11 +48902,11 @@ func (ec *executionContext) marshalOConfigAuthRateLimit2ᚖgithubᚗcomᚋnhost�
 	return ec._ConfigAuthRateLimit(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthRateLimitComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthRateLimitComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49075,7 +48922,7 @@ func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚕᚖgit
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthRateLimitComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx context.Context, v any) (*model.ConfigAuthRateLimitComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49083,7 +48930,7 @@ func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚖgithub
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthRateLimitInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitInsertInput(ctx context.Context, v any) (*model.ConfigAuthRateLimitInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49091,7 +48938,7 @@ func (ec *executionContext) unmarshalOConfigAuthRateLimitInsertInput2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthRateLimitUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthRateLimitUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthRateLimitUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitUpdateInput(ctx context.Context, v any) (*model.ConfigAuthRateLimitUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49107,11 +48954,11 @@ func (ec *executionContext) marshalOConfigAuthRedirections2ᚖgithubᚗcomᚋnho
 	return ec._ConfigAuthRedirections(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthRedirectionsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthRedirectionsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthRedirectionsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthRedirectionsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49127,7 +48974,7 @@ func (ec *executionContext) unmarshalOConfigAuthRedirectionsComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthRedirectionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthRedirectionsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthRedirectionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsComparisonExp(ctx context.Context, v any) (*model.ConfigAuthRedirectionsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49135,7 +48982,7 @@ func (ec *executionContext) unmarshalOConfigAuthRedirectionsComparisonExp2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthRedirectionsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthRedirectionsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthRedirectionsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsInsertInput(ctx context.Context, v any) (*model.ConfigAuthRedirectionsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49143,7 +48990,7 @@ func (ec *executionContext) unmarshalOConfigAuthRedirectionsInsertInput2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthRedirectionsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthRedirectionsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthRedirectionsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsUpdateInput(ctx context.Context, v any) (*model.ConfigAuthRedirectionsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49166,11 +49013,11 @@ func (ec *executionContext) marshalOConfigAuthSessionAccessToken2ᚖgithubᚗcom
 	return ec._ConfigAuthSessionAccessToken(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthSessionAccessTokenComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthSessionAccessTokenComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49186,7 +49033,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenComparisonExp2
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSessionAccessTokenComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSessionAccessTokenComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49194,7 +49041,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenComparisonExp2
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthSessionAccessTokenInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenInsertInput(ctx context.Context, v any) (*model.ConfigAuthSessionAccessTokenInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49202,7 +49049,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenInsertInput2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthSessionAccessTokenUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionAccessTokenUpdateInput(ctx context.Context, v any) (*model.ConfigAuthSessionAccessTokenUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49211,11 +49058,11 @@ func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenUpdateInput2�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthSessionComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthSessionComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49231,7 +49078,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionComparisonExp2ᚕᚖgithu
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSessionComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSessionComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49239,7 +49086,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionComparisonExp2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthSessionInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionInsertInput(ctx context.Context, v any) (*model.ConfigAuthSessionInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49254,11 +49101,11 @@ func (ec *executionContext) marshalOConfigAuthSessionRefreshToken2ᚖgithubᚗco
 	return ec._ConfigAuthSessionRefreshToken(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthSessionRefreshTokenComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthSessionRefreshTokenComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49274,7 +49121,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenComparisonExp
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSessionRefreshTokenComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSessionRefreshTokenComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49282,7 +49129,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenComparisonExp
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthSessionRefreshTokenInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenInsertInput(ctx context.Context, v any) (*model.ConfigAuthSessionRefreshTokenInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49290,7 +49137,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenInsertInput2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthSessionRefreshTokenUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionRefreshTokenUpdateInput(ctx context.Context, v any) (*model.ConfigAuthSessionRefreshTokenUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49299,7 +49146,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenUpdateInput2�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSessionUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthSessionUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSessionUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSessionUpdateInput(ctx context.Context, v any) (*model.ConfigAuthSessionUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49315,11 +49162,11 @@ func (ec *executionContext) marshalOConfigAuthSignUp2ᚖgithubᚗcomᚋnhostᚋb
 	return ec._ConfigAuthSignUp(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSignUpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthSignUpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSignUpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthSignUpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49335,7 +49182,7 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpComparisonExp2ᚕᚖgithub
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSignUpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSignUpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSignUpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49343,7 +49190,7 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpComparisonExp2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSignUpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSignUpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpInsertInput(ctx context.Context, v any) (*model.ConfigAuthSignUpInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49358,11 +49205,11 @@ func (ec *executionContext) marshalOConfigAuthSignUpTurnstile2ᚖgithubᚗcomᚋ
 	return ec._ConfigAuthSignUpTurnstile(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49378,7 +49225,7 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚕ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, v any) (*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49386,7 +49233,7 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚖ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpTurnstileInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileInsertInput(ctx context.Context, v any) (*model.ConfigAuthSignUpTurnstileInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49394,7 +49241,7 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileInsertInput2ᚖgi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpTurnstileUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileUpdateInput(ctx context.Context, v any) (*model.ConfigAuthSignUpTurnstileUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49403,7 +49250,7 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileUpdateInput2ᚖgi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthSignUpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthSignUpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpUpdateInput(ctx context.Context, v any) (*model.ConfigAuthSignUpUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49419,11 +49266,11 @@ func (ec *executionContext) marshalOConfigAuthTotp2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigAuthTotp(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthTotpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthTotpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthTotpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthTotpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49439,7 +49286,7 @@ func (ec *executionContext) unmarshalOConfigAuthTotpComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthTotpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthTotpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthTotpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpComparisonExp(ctx context.Context, v any) (*model.ConfigAuthTotpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49447,7 +49294,7 @@ func (ec *executionContext) unmarshalOConfigAuthTotpComparisonExp2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthTotpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthTotpInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthTotpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpInsertInput(ctx context.Context, v any) (*model.ConfigAuthTotpInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49455,7 +49302,7 @@ func (ec *executionContext) unmarshalOConfigAuthTotpInsertInput2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthTotpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthTotpUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthTotpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpUpdateInput(ctx context.Context, v any) (*model.ConfigAuthTotpUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49464,7 +49311,7 @@ func (ec *executionContext) unmarshalOConfigAuthTotpUpdateInput2ᚖgithubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUpdateInput(ctx context.Context, v any) (*model.ConfigAuthUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49480,11 +49327,11 @@ func (ec *executionContext) marshalOConfigAuthUser2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigAuthUser(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthUserComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthUserComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49500,7 +49347,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49515,11 +49362,11 @@ func (ec *executionContext) marshalOConfigAuthUserEmail2ᚖgithubᚗcomᚋnhost�
 	return ec._ConfigAuthUserEmail(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthUserEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthUserEmailComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49535,7 +49382,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserEmailComparisonExp2ᚕᚖgit
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserEmailComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49550,11 +49397,11 @@ func (ec *executionContext) marshalOConfigAuthUserEmailDomains2ᚖgithubᚗcom�
 	return ec._ConfigAuthUserEmailDomains(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthUserEmailDomainsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthUserEmailDomainsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49570,7 +49417,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsComparisonExp2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserEmailDomainsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserEmailDomainsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49578,7 +49425,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsComparisonExp2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserEmailDomainsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsInsertInput(ctx context.Context, v any) (*model.ConfigAuthUserEmailDomainsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49586,7 +49433,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsInsertInput2ᚖg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserEmailDomainsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailDomainsUpdateInput(ctx context.Context, v any) (*model.ConfigAuthUserEmailDomainsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49595,7 +49442,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsUpdateInput2ᚖg
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserEmailInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserEmailInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserEmailInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailInsertInput(ctx context.Context, v any) (*model.ConfigAuthUserEmailInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49603,7 +49450,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserEmailInsertInput2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserEmailUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserEmailUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserEmailUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserEmailUpdateInput(ctx context.Context, v any) (*model.ConfigAuthUserEmailUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49619,11 +49466,11 @@ func (ec *executionContext) marshalOConfigAuthUserGravatar2ᚖgithubᚗcomᚋnho
 	return ec._ConfigAuthUserGravatar(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserGravatarComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthUserGravatarComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserGravatarComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthUserGravatarComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49639,7 +49486,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserGravatarComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserGravatarComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserGravatarComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserGravatarComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserGravatarComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49647,7 +49494,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserGravatarComparisonExp2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserGravatarInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserGravatarInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserGravatarInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarInsertInput(ctx context.Context, v any) (*model.ConfigAuthUserGravatarInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49655,7 +49502,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserGravatarInsertInput2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserGravatarUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserGravatarUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserGravatarUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserGravatarUpdateInput(ctx context.Context, v any) (*model.ConfigAuthUserGravatarUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49664,7 +49511,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserGravatarUpdateInput2ᚖgithu
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserInsertInput(ctx context.Context, v any) (*model.ConfigAuthUserInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49679,11 +49526,11 @@ func (ec *executionContext) marshalOConfigAuthUserLocale2ᚖgithubᚗcomᚋnhost
 	return ec._ConfigAuthUserLocale(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserLocaleComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthUserLocaleComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserLocaleComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthUserLocaleComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49699,7 +49546,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserLocaleComparisonExp2ᚕᚖgi
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserLocaleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserLocaleComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserLocaleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserLocaleComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49707,7 +49554,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserLocaleComparisonExp2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserLocaleInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserLocaleInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserLocaleInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleInsertInput(ctx context.Context, v any) (*model.ConfigAuthUserLocaleInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49715,7 +49562,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserLocaleInsertInput2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserLocaleUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserLocaleUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserLocaleUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserLocaleUpdateInput(ctx context.Context, v any) (*model.ConfigAuthUserLocaleUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49731,11 +49578,11 @@ func (ec *executionContext) marshalOConfigAuthUserRoles2ᚖgithubᚗcomᚋnhost�
 	return ec._ConfigAuthUserRoles(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserRolesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthUserRolesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserRolesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthUserRolesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49751,7 +49598,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserRolesComparisonExp2ᚕᚖgit
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserRolesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthUserRolesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserRolesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesComparisonExp(ctx context.Context, v any) (*model.ConfigAuthUserRolesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49759,7 +49606,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserRolesComparisonExp2ᚖgithub
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserRolesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserRolesInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserRolesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesInsertInput(ctx context.Context, v any) (*model.ConfigAuthUserRolesInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49767,7 +49614,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserRolesInsertInput2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserRolesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserRolesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserRolesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserRolesUpdateInput(ctx context.Context, v any) (*model.ConfigAuthUserRolesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49776,7 +49623,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserRolesUpdateInput2ᚖgithub�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthUserUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthUserUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthUserUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthUserUpdateInput(ctx context.Context, v any) (*model.ConfigAuthUserUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49832,11 +49679,11 @@ func (ec *executionContext) marshalOConfigAuthsessionaccessTokenCustomClaims2ᚕ
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49852,7 +49699,7 @@ func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsCo
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsComparisonExp(ctx context.Context, v any) (*model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49860,11 +49707,11 @@ func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsCo
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthsessionaccessTokenCustomClaimsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigAuthsessionaccessTokenCustomClaimsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49880,11 +49727,11 @@ func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsIn
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthsessionaccessTokenCustomClaimsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthsessionaccessTokenCustomClaimsUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigAuthsessionaccessTokenCustomClaimsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49907,11 +49754,11 @@ func (ec *executionContext) marshalOConfigAutoscaler2ᚖgithubᚗcomᚋnhostᚋb
 	return ec._ConfigAutoscaler(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAutoscalerComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAutoscalerComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -49927,7 +49774,7 @@ func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚕᚖgithub
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAutoscalerComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx context.Context, v any) (*model.ConfigAutoscalerComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49935,7 +49782,7 @@ func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAutoscalerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerInsertInput(ctx context.Context, v interface{}) (*model.ConfigAutoscalerInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigAutoscalerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerInsertInput(ctx context.Context, v any) (*model.ConfigAutoscalerInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49943,7 +49790,7 @@ func (ec *executionContext) unmarshalOConfigAutoscalerInsertInput2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigAutoscalerUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAutoscalerUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigAutoscalerUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerUpdateInput(ctx context.Context, v any) (*model.ConfigAutoscalerUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49952,7 +49799,7 @@ func (ec *executionContext) unmarshalOConfigAutoscalerUpdateInput2ᚖgithubᚗco
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[bool], error) {
+func (ec *executionContext) unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[bool], error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50007,11 +49854,11 @@ func (ec *executionContext) marshalOConfigClaimMap2ᚕᚖgithubᚗcomᚋnhostᚋ
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigClaimMapComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigClaimMapComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigClaimMapComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigClaimMapComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50027,7 +49874,7 @@ func (ec *executionContext) unmarshalOConfigClaimMapComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigClaimMapComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapComparisonExp(ctx context.Context, v interface{}) (*model.ConfigClaimMapComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigClaimMapComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapComparisonExp(ctx context.Context, v any) (*model.ConfigClaimMapComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50035,11 +49882,11 @@ func (ec *executionContext) unmarshalOConfigClaimMapComparisonExp2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigClaimMapInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigClaimMapInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigClaimMapInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigClaimMapInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50055,11 +49902,11 @@ func (ec *executionContext) unmarshalOConfigClaimMapInsertInput2ᚕᚖgithubᚗc
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigClaimMapUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigClaimMapUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigClaimMapUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMapUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigClaimMapUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50075,11 +49922,11 @@ func (ec *executionContext) unmarshalOConfigClaimMapUpdateInput2ᚕᚖgithubᚗc
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigComputeResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigComputeResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigComputeResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigComputeResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50095,7 +49942,7 @@ func (ec *executionContext) unmarshalOConfigComputeResourcesComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigComputeResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigComputeResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigComputeResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigComputeResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50103,7 +49950,7 @@ func (ec *executionContext) unmarshalOConfigComputeResourcesComparisonExp2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigComputeResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigComputeResourcesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigComputeResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigComputeResourcesUpdateInput(ctx context.Context, v any) (*model.ConfigComputeResourcesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50119,11 +49966,11 @@ func (ec *executionContext) marshalOConfigConfig2ᚖgithubᚗcomᚋnhostᚋbeᚋ
 	return ec._ConfigConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigConfigComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigConfigComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigConfigComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50139,7 +49986,7 @@ func (ec *executionContext) unmarshalOConfigConfigComparisonExp2ᚕᚖgithubᚗc
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExp(ctx context.Context, v interface{}) (*model.ConfigConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExp(ctx context.Context, v any) (*model.ConfigConfigComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50147,11 +49994,11 @@ func (ec *executionContext) unmarshalOConfigConfigComparisonExp2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigEmail2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalOConfigEmail2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50185,7 +50032,7 @@ func (ec *executionContext) marshalOConfigEmail2ᚕstringᚄ(ctx context.Context
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigEmail2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOConfigEmail2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50201,7 +50048,7 @@ func (ec *executionContext) marshalOConfigEmail2ᚖstring(ctx context.Context, s
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEmailComparisonExp(ctx context.Context, v any) (*model.ConfigEmailComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50263,11 +50110,11 @@ func (ec *executionContext) marshalOConfigEnvironmentVariable2ᚖgithubᚗcomᚋ
 	return ec._ConfigEnvironmentVariable(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigEnvironmentVariableComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigEnvironmentVariableComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigEnvironmentVariableComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigEnvironmentVariableComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50283,7 +50130,7 @@ func (ec *executionContext) unmarshalOConfigEnvironmentVariableComparisonExp2ᚕ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableComparisonExp(ctx context.Context, v interface{}) (*model.ConfigEnvironmentVariableComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableComparisonExp(ctx context.Context, v any) (*model.ConfigEnvironmentVariableComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50291,11 +50138,11 @@ func (ec *executionContext) unmarshalOConfigEnvironmentVariableComparisonExp2ᚖ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigEnvironmentVariableInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigEnvironmentVariableInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50311,11 +50158,11 @@ func (ec *executionContext) unmarshalOConfigEnvironmentVariableInsertInput2ᚕ�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigEnvironmentVariableUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigEnvironmentVariableUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigEnvironmentVariableUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigEnvironmentVariableUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50331,7 +50178,7 @@ func (ec *executionContext) unmarshalOConfigEnvironmentVariableUpdateInput2ᚕ�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigFloatComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[float64], error) {
+func (ec *executionContext) unmarshalOConfigFloatComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[float64], error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50346,11 +50193,11 @@ func (ec *executionContext) marshalOConfigFunctions2ᚖgithubᚗcomᚋnhostᚋbe
 	return ec._ConfigFunctions(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigFunctionsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigFunctionsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50366,7 +50213,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigFunctionsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsComparisonExp(ctx context.Context, v any) (*model.ConfigFunctionsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50374,7 +50221,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsComparisonExp2ᚖgithubᚗc
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsInsertInput(ctx context.Context, v interface{}) (*model.ConfigFunctionsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsInsertInput(ctx context.Context, v any) (*model.ConfigFunctionsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50389,11 +50236,11 @@ func (ec *executionContext) marshalOConfigFunctionsNode2ᚖgithubᚗcomᚋnhost�
 	return ec._ConfigFunctionsNode(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsNodeComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigFunctionsNodeComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsNodeComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigFunctionsNodeComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50409,7 +50256,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsNodeComparisonExp2ᚕᚖgit
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsNodeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeComparisonExp(ctx context.Context, v interface{}) (*model.ConfigFunctionsNodeComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsNodeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeComparisonExp(ctx context.Context, v any) (*model.ConfigFunctionsNodeComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50417,7 +50264,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsNodeComparisonExp2ᚖgithub
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsNodeInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeInsertInput(ctx context.Context, v interface{}) (*model.ConfigFunctionsNodeInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsNodeInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeInsertInput(ctx context.Context, v any) (*model.ConfigFunctionsNodeInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50425,7 +50272,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsNodeInsertInput2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsNodeUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeUpdateInput(ctx context.Context, v interface{}) (*model.ConfigFunctionsNodeUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsNodeUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsNodeUpdateInput(ctx context.Context, v any) (*model.ConfigFunctionsNodeUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50441,11 +50288,11 @@ func (ec *executionContext) marshalOConfigFunctionsResources2ᚖgithubᚗcomᚋn
 	return ec._ConfigFunctionsResources(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigFunctionsResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigFunctionsResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50461,7 +50308,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsResourcesComparisonExp2ᚕ�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigFunctionsResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigFunctionsResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50469,7 +50316,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsResourcesComparisonExp2ᚖg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesInsertInput(ctx context.Context, v interface{}) (*model.ConfigFunctionsResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesInsertInput(ctx context.Context, v any) (*model.ConfigFunctionsResourcesInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50477,7 +50324,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsResourcesInsertInput2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigFunctionsResourcesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsResourcesUpdateInput(ctx context.Context, v any) (*model.ConfigFunctionsResourcesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50486,7 +50333,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsResourcesUpdateInput2ᚖgit
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigFunctionsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigFunctionsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigFunctionsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsUpdateInput(ctx context.Context, v any) (*model.ConfigFunctionsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50502,11 +50349,11 @@ func (ec *executionContext) marshalOConfigGlobal2ᚖgithubᚗcomᚋnhostᚋbeᚋ
 	return ec._ConfigGlobal(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigGlobalComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGlobalComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGlobalComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGlobalComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50522,7 +50369,7 @@ func (ec *executionContext) unmarshalOConfigGlobalComparisonExp2ᚕᚖgithubᚗc
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGlobalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGlobalComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGlobalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalComparisonExp(ctx context.Context, v any) (*model.ConfigGlobalComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50577,11 +50424,11 @@ func (ec *executionContext) marshalOConfigGlobalEnvironmentVariable2ᚕᚖgithub
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50597,7 +50444,7 @@ func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonE
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, v any) (*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50605,11 +50452,11 @@ func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonE
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGlobalEnvironmentVariableInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigGlobalEnvironmentVariableInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50625,11 +50472,11 @@ func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableInsertInput
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGlobalEnvironmentVariableUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigGlobalEnvironmentVariableUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50645,7 +50492,7 @@ func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableUpdateInput
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGlobalInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalInsertInput(ctx context.Context, v interface{}) (*model.ConfigGlobalInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGlobalInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalInsertInput(ctx context.Context, v any) (*model.ConfigGlobalInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50653,7 +50500,7 @@ func (ec *executionContext) unmarshalOConfigGlobalInsertInput2ᚖgithubᚗcomᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGlobalUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGlobalUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGlobalUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalUpdateInput(ctx context.Context, v any) (*model.ConfigGlobalUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50669,11 +50516,11 @@ func (ec *executionContext) marshalOConfigGrafanaAlerting2ᚖgithubᚗcomᚋnhos
 	return ec._ConfigGrafanaAlerting(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanaAlertingComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanaAlertingComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50689,7 +50536,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚕᚖg
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaAlertingComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanaAlertingComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50697,7 +50544,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚖgith
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaAlertingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaAlertingInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaAlertingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingInsertInput(ctx context.Context, v any) (*model.ConfigGrafanaAlertingInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50705,7 +50552,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaAlertingInsertInput2ᚖgithub
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaAlertingUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaAlertingUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaAlertingUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingUpdateInput(ctx context.Context, v any) (*model.ConfigGrafanaAlertingUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50714,11 +50561,11 @@ func (ec *executionContext) unmarshalOConfigGrafanaAlertingUpdateInput2ᚖgithub
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanaComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanaComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50734,7 +50581,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚕᚖgithubᚗ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanaComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50749,11 +50596,11 @@ func (ec *executionContext) marshalOConfigGrafanaContacts2ᚖgithubᚗcomᚋnhos
 	return ec._ConfigGrafanaContacts(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanaContactsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanaContactsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50769,7 +50616,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚕᚖg
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaContactsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanaContactsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50777,7 +50624,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚖgith
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaContactsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaContactsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaContactsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsInsertInput(ctx context.Context, v any) (*model.ConfigGrafanaContactsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50785,7 +50632,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaContactsInsertInput2ᚖgithub
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaContactsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaContactsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaContactsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsUpdateInput(ctx context.Context, v any) (*model.ConfigGrafanaContactsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50801,11 +50648,11 @@ func (ec *executionContext) marshalOConfigGrafanaSmtp2ᚖgithubᚗcomᚋnhostᚋ
 	return ec._ConfigGrafanaSmtp(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanaSmtpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanaSmtpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50821,7 +50668,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚕᚖgithu
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanaSmtpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50829,7 +50676,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaSmtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaSmtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpInsertInput(ctx context.Context, v any) (*model.ConfigGrafanaSmtpInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50837,7 +50684,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaSmtpInsertInput2ᚖgithubᚗc
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaSmtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaSmtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpUpdateInput(ctx context.Context, v any) (*model.ConfigGrafanaSmtpUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50846,7 +50693,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaSmtpUpdateInput2ᚖgithubᚗc
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanaUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanaUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaUpdateInput(ctx context.Context, v any) (*model.ConfigGrafanaUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50902,11 +50749,11 @@ func (ec *executionContext) marshalOConfigGrafanacontactsDiscord2ᚕᚖgithubᚗ
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50922,7 +50769,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50930,11 +50777,11 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsDiscordInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsDiscordInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -50950,11 +50797,11 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordInsertInput2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsDiscordUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsDiscordUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51017,11 +50864,11 @@ func (ec *executionContext) marshalOConfigGrafanacontactsPagerduty2ᚕᚖgithub�
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51037,7 +50884,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonEx
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51045,11 +50892,11 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonEx
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51065,11 +50912,11 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyInsertInput2
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsPagerdutyUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsPagerdutyUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51132,11 +50979,11 @@ func (ec *executionContext) marshalOConfigGrafanacontactsSlack2ᚕᚖgithubᚗco
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsSlackComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsSlackComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51152,7 +50999,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsSlackComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanacontactsSlackComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51160,11 +51007,11 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsSlackInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsSlackInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51180,11 +51027,11 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackInsertInput2ᚕ�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsSlackUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsSlackUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51247,11 +51094,11 @@ func (ec *executionContext) marshalOConfigGrafanacontactsWebhook2ᚕᚖgithubᚗ
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51267,7 +51114,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, v any) (*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51275,11 +51122,11 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsWebhookInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsWebhookInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51295,11 +51142,11 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookInsertInput2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsWebhookUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigGrafanacontactsWebhookUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51322,11 +51169,11 @@ func (ec *executionContext) marshalOConfigGraphql2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigGraphql(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGraphqlComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGraphqlComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51342,7 +51189,7 @@ func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚕᚖgithubᚗ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx context.Context, v any) (*model.ConfigGraphqlComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51350,7 +51197,7 @@ func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚖgithubᚗcom
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGraphqlInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlInsertInput(ctx context.Context, v interface{}) (*model.ConfigGraphqlInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGraphqlInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlInsertInput(ctx context.Context, v any) (*model.ConfigGraphqlInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51365,11 +51212,11 @@ func (ec *executionContext) marshalOConfigGraphqlSecurity2ᚖgithubᚗcomᚋnhos
 	return ec._ConfigGraphqlSecurity(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGraphqlSecurityComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigGraphqlSecurityComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51385,7 +51232,7 @@ func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚕᚖg
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlSecurityComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx context.Context, v any) (*model.ConfigGraphqlSecurityComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51393,7 +51240,7 @@ func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚖgith
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGraphqlSecurityInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityInsertInput(ctx context.Context, v interface{}) (*model.ConfigGraphqlSecurityInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigGraphqlSecurityInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityInsertInput(ctx context.Context, v any) (*model.ConfigGraphqlSecurityInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51401,7 +51248,7 @@ func (ec *executionContext) unmarshalOConfigGraphqlSecurityInsertInput2ᚖgithub
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGraphqlSecurityUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGraphqlSecurityUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGraphqlSecurityUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityUpdateInput(ctx context.Context, v any) (*model.ConfigGraphqlSecurityUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51410,7 +51257,7 @@ func (ec *executionContext) unmarshalOConfigGraphqlSecurityUpdateInput2ᚖgithub
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigGraphqlUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGraphqlUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigGraphqlUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlUpdateInput(ctx context.Context, v any) (*model.ConfigGraphqlUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51419,11 +51266,11 @@ func (ec *executionContext) unmarshalOConfigGraphqlUpdateInput2ᚖgithubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraAPIs2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalOConfigHasuraAPIs2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51457,7 +51304,7 @@ func (ec *executionContext) marshalOConfigHasuraAPIs2ᚕstringᚄ(ctx context.Co
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraAPIs2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOConfigHasuraAPIs2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51473,7 +51320,7 @@ func (ec *executionContext) marshalOConfigHasuraAPIs2ᚖstring(ctx context.Conte
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraAPIsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAPIsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraAPIsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraAPIsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAPIsComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraAPIsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51488,11 +51335,11 @@ func (ec *executionContext) marshalOConfigHasuraAuthHook2ᚖgithubᚗcomᚋnhost
 	return ec._ConfigHasuraAuthHook(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigHasuraAuthHookComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigHasuraAuthHookComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51508,7 +51355,7 @@ func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚕᚖgi
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraAuthHookComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraAuthHookComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51516,7 +51363,7 @@ func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraAuthHookInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookInsertInput(ctx context.Context, v interface{}) (*model.ConfigHasuraAuthHookInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraAuthHookInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookInsertInput(ctx context.Context, v any) (*model.ConfigHasuraAuthHookInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51524,7 +51371,7 @@ func (ec *executionContext) unmarshalOConfigHasuraAuthHookInsertInput2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraAuthHookUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookUpdateInput(ctx context.Context, v interface{}) (*model.ConfigHasuraAuthHookUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraAuthHookUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookUpdateInput(ctx context.Context, v any) (*model.ConfigHasuraAuthHookUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51533,11 +51380,11 @@ func (ec *executionContext) unmarshalOConfigHasuraAuthHookUpdateInput2ᚖgithub�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigHasuraComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigHasuraComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51553,7 +51400,7 @@ func (ec *executionContext) unmarshalOConfigHasuraComparisonExp2ᚕᚖgithubᚗc
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51568,11 +51415,11 @@ func (ec *executionContext) marshalOConfigHasuraEvents2ᚖgithubᚗcomᚋnhost�
 	return ec._ConfigHasuraEvents(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraEventsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigHasuraEventsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraEventsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigHasuraEventsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51588,7 +51435,7 @@ func (ec *executionContext) unmarshalOConfigHasuraEventsComparisonExp2ᚕᚖgith
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraEventsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraEventsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraEventsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraEventsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51596,7 +51443,7 @@ func (ec *executionContext) unmarshalOConfigHasuraEventsComparisonExp2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraEventsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsInsertInput(ctx context.Context, v interface{}) (*model.ConfigHasuraEventsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraEventsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsInsertInput(ctx context.Context, v any) (*model.ConfigHasuraEventsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51604,7 +51451,7 @@ func (ec *executionContext) unmarshalOConfigHasuraEventsInsertInput2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraEventsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigHasuraEventsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraEventsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraEventsUpdateInput(ctx context.Context, v any) (*model.ConfigHasuraEventsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51620,11 +51467,11 @@ func (ec *executionContext) marshalOConfigHasuraLogs2ᚖgithubᚗcomᚋnhostᚋb
 	return ec._ConfigHasuraLogs(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraLogsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigHasuraLogsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraLogsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigHasuraLogsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51640,7 +51487,7 @@ func (ec *executionContext) unmarshalOConfigHasuraLogsComparisonExp2ᚕᚖgithub
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraLogsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraLogsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraLogsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraLogsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51648,7 +51495,7 @@ func (ec *executionContext) unmarshalOConfigHasuraLogsComparisonExp2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraLogsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsInsertInput(ctx context.Context, v interface{}) (*model.ConfigHasuraLogsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraLogsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsInsertInput(ctx context.Context, v any) (*model.ConfigHasuraLogsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51656,7 +51503,7 @@ func (ec *executionContext) unmarshalOConfigHasuraLogsInsertInput2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraLogsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigHasuraLogsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraLogsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsUpdateInput(ctx context.Context, v any) (*model.ConfigHasuraLogsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51672,11 +51519,11 @@ func (ec *executionContext) marshalOConfigHasuraSettings2ᚖgithubᚗcomᚋnhost
 	return ec._ConfigHasuraSettings(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraSettingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigHasuraSettingsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraSettingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigHasuraSettingsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51692,7 +51539,7 @@ func (ec *executionContext) unmarshalOConfigHasuraSettingsComparisonExp2ᚕᚖgi
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraSettingsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHasuraSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsComparisonExp(ctx context.Context, v any) (*model.ConfigHasuraSettingsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51700,7 +51547,7 @@ func (ec *executionContext) unmarshalOConfigHasuraSettingsComparisonExp2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraSettingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsInsertInput(ctx context.Context, v interface{}) (*model.ConfigHasuraSettingsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraSettingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsInsertInput(ctx context.Context, v any) (*model.ConfigHasuraSettingsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51708,7 +51555,7 @@ func (ec *executionContext) unmarshalOConfigHasuraSettingsInsertInput2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraSettingsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigHasuraSettingsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraSettingsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraSettingsUpdateInput(ctx context.Context, v any) (*model.ConfigHasuraSettingsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51717,7 +51564,7 @@ func (ec *executionContext) unmarshalOConfigHasuraSettingsUpdateInput2ᚖgithub�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHasuraUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraUpdateInput(ctx context.Context, v interface{}) (*model.ConfigHasuraUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigHasuraUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraUpdateInput(ctx context.Context, v any) (*model.ConfigHasuraUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51733,11 +51580,11 @@ func (ec *executionContext) marshalOConfigHealthCheck2ᚖgithubᚗcomᚋnhostᚋ
 	return ec._ConfigHealthCheck(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigHealthCheckComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigHealthCheckComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHealthCheckComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigHealthCheckComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51753,7 +51600,7 @@ func (ec *executionContext) unmarshalOConfigHealthCheckComparisonExp2ᚕᚖgithu
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigHealthCheckComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHealthCheckComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigHealthCheckComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckComparisonExp(ctx context.Context, v any) (*model.ConfigHealthCheckComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51761,7 +51608,7 @@ func (ec *executionContext) unmarshalOConfigHealthCheckComparisonExp2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHealthCheckInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckInsertInput(ctx context.Context, v interface{}) (*model.ConfigHealthCheckInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigHealthCheckInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckInsertInput(ctx context.Context, v any) (*model.ConfigHealthCheckInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51769,7 +51616,7 @@ func (ec *executionContext) unmarshalOConfigHealthCheckInsertInput2ᚖgithubᚗc
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigHealthCheckUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckUpdateInput(ctx context.Context, v interface{}) (*model.ConfigHealthCheckUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigHealthCheckUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHealthCheckUpdateInput(ctx context.Context, v any) (*model.ConfigHealthCheckUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51825,11 +51672,11 @@ func (ec *executionContext) marshalOConfigIngress2ᚕᚖgithubᚗcomᚋnhostᚋb
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigIngressComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigIngressComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigIngressComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigIngressComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51845,7 +51692,7 @@ func (ec *executionContext) unmarshalOConfigIngressComparisonExp2ᚕᚖgithubᚗ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigIngressComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressComparisonExp(ctx context.Context, v interface{}) (*model.ConfigIngressComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigIngressComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressComparisonExp(ctx context.Context, v any) (*model.ConfigIngressComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51853,11 +51700,11 @@ func (ec *executionContext) unmarshalOConfigIngressComparisonExp2ᚖgithubᚗcom
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigIngressInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigIngressInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigIngressInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigIngressInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51880,11 +51727,11 @@ func (ec *executionContext) marshalOConfigIngressTls2ᚖgithubᚗcomᚋnhostᚋb
 	return ec._ConfigIngressTls(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigIngressTlsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigIngressTlsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51900,7 +51747,7 @@ func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚕᚖgithub
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigIngressTlsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx context.Context, v any) (*model.ConfigIngressTlsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51908,7 +51755,7 @@ func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigIngressTlsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsInsertInput(ctx context.Context, v interface{}) (*model.ConfigIngressTlsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigIngressTlsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsInsertInput(ctx context.Context, v any) (*model.ConfigIngressTlsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51916,7 +51763,7 @@ func (ec *executionContext) unmarshalOConfigIngressTlsInsertInput2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigIngressTlsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigIngressTlsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigIngressTlsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsUpdateInput(ctx context.Context, v any) (*model.ConfigIngressTlsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51925,11 +51772,11 @@ func (ec *executionContext) unmarshalOConfigIngressTlsUpdateInput2ᚖgithubᚗco
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigIngressUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigIngressUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigIngressUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigIngressUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51945,11 +51792,11 @@ func (ec *executionContext) unmarshalOConfigIngressUpdateInput2ᚕᚖgithubᚗco
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigInt162ᚕint16ᚄ(ctx context.Context, v interface{}) ([]int16, error) {
+func (ec *executionContext) unmarshalOConfigInt162ᚕint16ᚄ(ctx context.Context, v any) ([]int16, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -51983,7 +51830,7 @@ func (ec *executionContext) marshalOConfigInt162ᚕint16ᚄ(ctx context.Context,
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigInt162ᚖint16(ctx context.Context, v interface{}) (*int16, error) {
+func (ec *executionContext) unmarshalOConfigInt162ᚖint16(ctx context.Context, v any) (*int16, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -51999,11 +51846,11 @@ func (ec *executionContext) marshalOConfigInt162ᚖint16(ctx context.Context, se
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigInt322ᚕint32ᚄ(ctx context.Context, v interface{}) ([]int32, error) {
+func (ec *executionContext) unmarshalOConfigInt322ᚕint32ᚄ(ctx context.Context, v any) ([]int32, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52037,7 +51884,7 @@ func (ec *executionContext) marshalOConfigInt322ᚕint32ᚄ(ctx context.Context,
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigInt322ᚖint32(ctx context.Context, v interface{}) (*int32, error) {
+func (ec *executionContext) unmarshalOConfigInt322ᚖint32(ctx context.Context, v any) (*int32, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52053,7 +51900,7 @@ func (ec *executionContext) marshalOConfigInt322ᚖint32(ctx context.Context, se
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigInt32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[int32], error) {
+func (ec *executionContext) unmarshalOConfigInt32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[int32], error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52061,11 +51908,11 @@ func (ec *executionContext) unmarshalOConfigInt32ComparisonExp2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigInt642ᚕint64ᚄ(ctx context.Context, v interface{}) ([]int64, error) {
+func (ec *executionContext) unmarshalOConfigInt642ᚕint64ᚄ(ctx context.Context, v any) ([]int64, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52099,7 +51946,7 @@ func (ec *executionContext) marshalOConfigInt642ᚕint64ᚄ(ctx context.Context,
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigInt642ᚖint64(ctx context.Context, v interface{}) (*int64, error) {
+func (ec *executionContext) unmarshalOConfigInt642ᚖint64(ctx context.Context, v any) (*int64, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52115,11 +51962,11 @@ func (ec *executionContext) marshalOConfigInt642ᚖint64(ctx context.Context, se
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigInt82ᚕint8ᚄ(ctx context.Context, v interface{}) ([]int8, error) {
+func (ec *executionContext) unmarshalOConfigInt82ᚕint8ᚄ(ctx context.Context, v any) ([]int8, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52153,7 +52000,7 @@ func (ec *executionContext) marshalOConfigInt82ᚕint8ᚄ(ctx context.Context, s
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigInt82ᚖint8(ctx context.Context, v interface{}) (*int8, error) {
+func (ec *executionContext) unmarshalOConfigInt82ᚖint8(ctx context.Context, v any) (*int8, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52169,7 +52016,7 @@ func (ec *executionContext) marshalOConfigInt82ᚖint8(ctx context.Context, sel 
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigIntComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[int], error) {
+func (ec *executionContext) unmarshalOConfigIntComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[int], error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52224,11 +52071,11 @@ func (ec *executionContext) marshalOConfigJWTSecret2ᚕᚖgithubᚗcomᚋnhost�
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigJWTSecretComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigJWTSecretComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigJWTSecretComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigJWTSecretComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52244,7 +52091,7 @@ func (ec *executionContext) unmarshalOConfigJWTSecretComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigJWTSecretComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretComparisonExp(ctx context.Context, v interface{}) (*model.ConfigJWTSecretComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigJWTSecretComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretComparisonExp(ctx context.Context, v any) (*model.ConfigJWTSecretComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52252,11 +52099,11 @@ func (ec *executionContext) unmarshalOConfigJWTSecretComparisonExp2ᚖgithubᚗc
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigJWTSecretInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigJWTSecretInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigJWTSecretInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigJWTSecretInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52272,11 +52119,11 @@ func (ec *executionContext) unmarshalOConfigJWTSecretInsertInput2ᚕᚖgithubᚗ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigJWTSecretUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigJWTSecretUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigJWTSecretUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigJWTSecretUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigJWTSecretUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52292,11 +52139,11 @@ func (ec *executionContext) unmarshalOConfigJWTSecretUpdateInput2ᚕᚖgithubᚗ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigLocale2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalOConfigLocale2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52330,7 +52177,7 @@ func (ec *executionContext) marshalOConfigLocale2ᚕstringᚄ(ctx context.Contex
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigLocale2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOConfigLocale2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52346,7 +52193,7 @@ func (ec *executionContext) marshalOConfigLocale2ᚖstring(ctx context.Context, 
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigLocaleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigLocaleComparisonExp(ctx context.Context, v interface{}) (*model.ConfigLocaleComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigLocaleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigLocaleComparisonExp(ctx context.Context, v any) (*model.ConfigLocaleComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52361,11 +52208,11 @@ func (ec *executionContext) marshalOConfigNetworking2ᚖgithubᚗcomᚋnhostᚋb
 	return ec._ConfigNetworking(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigNetworkingComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigNetworkingComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigNetworkingComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigNetworkingComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52381,7 +52228,7 @@ func (ec *executionContext) unmarshalOConfigNetworkingComparisonExp2ᚕᚖgithub
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigNetworkingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExp(ctx context.Context, v interface{}) (*model.ConfigNetworkingComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigNetworkingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExp(ctx context.Context, v any) (*model.ConfigNetworkingComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52389,7 +52236,7 @@ func (ec *executionContext) unmarshalOConfigNetworkingComparisonExp2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigNetworkingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingInsertInput(ctx context.Context, v interface{}) (*model.ConfigNetworkingInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigNetworkingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingInsertInput(ctx context.Context, v any) (*model.ConfigNetworkingInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52397,7 +52244,7 @@ func (ec *executionContext) unmarshalOConfigNetworkingInsertInput2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigNetworkingUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingUpdateInput(ctx context.Context, v interface{}) (*model.ConfigNetworkingUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigNetworkingUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingUpdateInput(ctx context.Context, v any) (*model.ConfigNetworkingUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52406,11 +52253,11 @@ func (ec *executionContext) unmarshalOConfigNetworkingUpdateInput2ᚖgithubᚗco
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigObservabilityComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigObservabilityComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigObservabilityComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigObservabilityComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52426,7 +52273,7 @@ func (ec *executionContext) unmarshalOConfigObservabilityComparisonExp2ᚕᚖgit
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigObservabilityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityComparisonExp(ctx context.Context, v interface{}) (*model.ConfigObservabilityComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigObservabilityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityComparisonExp(ctx context.Context, v any) (*model.ConfigObservabilityComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52434,7 +52281,7 @@ func (ec *executionContext) unmarshalOConfigObservabilityComparisonExp2ᚖgithub
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigObservabilityUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityUpdateInput(ctx context.Context, v interface{}) (*model.ConfigObservabilityUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigObservabilityUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigObservabilityUpdateInput(ctx context.Context, v any) (*model.ConfigObservabilityUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52443,11 +52290,11 @@ func (ec *executionContext) unmarshalOConfigObservabilityUpdateInput2ᚖgithub�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigPort2ᚕuint16ᚄ(ctx context.Context, v interface{}) ([]uint16, error) {
+func (ec *executionContext) unmarshalOConfigPort2ᚕuint16ᚄ(ctx context.Context, v any) ([]uint16, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52481,7 +52328,7 @@ func (ec *executionContext) marshalOConfigPort2ᚕuint16ᚄ(ctx context.Context,
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigPort2ᚖuint16(ctx context.Context, v interface{}) (*uint16, error) {
+func (ec *executionContext) unmarshalOConfigPort2ᚖuint16(ctx context.Context, v any) (*uint16, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52497,7 +52344,7 @@ func (ec *executionContext) marshalOConfigPort2ᚖuint16(ctx context.Context, se
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigPortComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPortComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPortComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigPortComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPortComparisonExp(ctx context.Context, v any) (*model.ConfigPortComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52505,18 +52352,11 @@ func (ec *executionContext) unmarshalOConfigPortComparisonExp2ᚖgithubᚗcomᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOConfigPostgres2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgres(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgres) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ConfigPostgres(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOConfigPostgresComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigPostgresComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigPostgresComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigPostgresComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52532,7 +52372,7 @@ func (ec *executionContext) unmarshalOConfigPostgresComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPostgresComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52540,26 +52380,11 @@ func (ec *executionContext) unmarshalOConfigPostgresComparisonExp2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresInsertInput(ctx context.Context, v interface{}) (*model.ConfigPostgresInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigPostgresResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputConfigPostgresInsertInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOConfigPostgresResources2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResources(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgresResources) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ConfigPostgresResources(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigPostgresResourcesComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52575,7 +52400,7 @@ func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚕ�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPostgresResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52583,15 +52408,7 @@ func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚖgi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesInsertInput(ctx context.Context, v interface{}) (*model.ConfigPostgresResourcesInsertInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigPostgresResourcesInsertInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigPostgresResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigPostgresResourcesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigPostgresResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesUpdateInput(ctx context.Context, v any) (*model.ConfigPostgresResourcesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52607,11 +52424,11 @@ func (ec *executionContext) marshalOConfigPostgresSettings2ᚖgithubᚗcomᚋnho
 	return ec._ConfigPostgresSettings(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresSettingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigPostgresSettingsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigPostgresSettingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigPostgresSettingsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52627,7 +52444,7 @@ func (ec *executionContext) unmarshalOConfigPostgresSettingsComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPostgresSettingsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigPostgresSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresSettingsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52635,7 +52452,7 @@ func (ec *executionContext) unmarshalOConfigPostgresSettingsComparisonExp2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresSettingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsInsertInput(ctx context.Context, v interface{}) (*model.ConfigPostgresSettingsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigPostgresSettingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsInsertInput(ctx context.Context, v any) (*model.ConfigPostgresSettingsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52643,7 +52460,7 @@ func (ec *executionContext) unmarshalOConfigPostgresSettingsInsertInput2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresSettingsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigPostgresSettingsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigPostgresSettingsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsUpdateInput(ctx context.Context, v any) (*model.ConfigPostgresSettingsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52652,18 +52469,11 @@ func (ec *executionContext) unmarshalOConfigPostgresSettingsUpdateInput2ᚖgithu
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOConfigPostgresStorage2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorage(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgresStorage) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ConfigPostgresStorage(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOConfigPostgresStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigPostgresStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigPostgresStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigPostgresStorageComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52679,7 +52489,7 @@ func (ec *executionContext) unmarshalOConfigPostgresStorageComparisonExp2ᚕᚖg
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx context.Context, v interface{}) (*model.ConfigPostgresStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresStorageComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52687,15 +52497,7 @@ func (ec *executionContext) unmarshalOConfigPostgresStorageComparisonExp2ᚖgith
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageInsertInput(ctx context.Context, v interface{}) (*model.ConfigPostgresStorageInsertInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigPostgresStorageInsertInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigPostgresStorageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageUpdateInput(ctx context.Context, v interface{}) (*model.ConfigPostgresStorageUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigPostgresStorageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageUpdateInput(ctx context.Context, v any) (*model.ConfigPostgresStorageUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52704,7 +52506,7 @@ func (ec *executionContext) unmarshalOConfigPostgresStorageUpdateInput2ᚖgithub
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigPostgresUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresUpdateInput(ctx context.Context, v interface{}) (*model.ConfigPostgresUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigPostgresUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresUpdateInput(ctx context.Context, v any) (*model.ConfigPostgresUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52720,11 +52522,11 @@ func (ec *executionContext) marshalOConfigProvider2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigProvider(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigProviderComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigProviderComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52740,7 +52542,7 @@ func (ec *executionContext) unmarshalOConfigProviderComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderComparisonExp(ctx context.Context, v interface{}) (*model.ConfigProviderComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderComparisonExp(ctx context.Context, v any) (*model.ConfigProviderComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52748,7 +52550,7 @@ func (ec *executionContext) unmarshalOConfigProviderComparisonExp2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigProviderInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderInsertInput(ctx context.Context, v interface{}) (*model.ConfigProviderInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigProviderInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderInsertInput(ctx context.Context, v any) (*model.ConfigProviderInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52756,7 +52558,7 @@ func (ec *executionContext) unmarshalOConfigProviderInsertInput2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigProviderUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderUpdateInput(ctx context.Context, v interface{}) (*model.ConfigProviderUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigProviderUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderUpdateInput(ctx context.Context, v any) (*model.ConfigProviderUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52772,11 +52574,11 @@ func (ec *executionContext) marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbe
 	return ec._ConfigRateLimit(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRateLimitComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigRateLimitComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52792,7 +52594,7 @@ func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRateLimitComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx context.Context, v any) (*model.ConfigRateLimitComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52800,7 +52602,7 @@ func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗc
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx context.Context, v interface{}) (*model.ConfigRateLimitInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx context.Context, v any) (*model.ConfigRateLimitInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52808,7 +52610,7 @@ func (ec *executionContext) unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcom
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigRateLimitUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitUpdateInput(ctx context.Context, v interface{}) (*model.ConfigRateLimitUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigRateLimitUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitUpdateInput(ctx context.Context, v any) (*model.ConfigRateLimitUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52824,11 +52626,11 @@ func (ec *executionContext) marshalOConfigResources2ᚖgithubᚗcomᚋnhostᚋbe
 	return ec._ConfigResources(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52844,7 +52646,7 @@ func (ec *executionContext) unmarshalOConfigResourcesComparisonExp2ᚕᚖgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52859,11 +52661,11 @@ func (ec *executionContext) marshalOConfigResourcesCompute2ᚖgithubᚗcomᚋnho
 	return ec._ConfigResourcesCompute(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigResourcesComputeComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigResourcesComputeComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigResourcesComputeComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigResourcesComputeComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52879,7 +52681,7 @@ func (ec *executionContext) unmarshalOConfigResourcesComputeComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigResourcesComputeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeComparisonExp(ctx context.Context, v interface{}) (*model.ConfigResourcesComputeComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigResourcesComputeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeComparisonExp(ctx context.Context, v any) (*model.ConfigResourcesComputeComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52887,7 +52689,7 @@ func (ec *executionContext) unmarshalOConfigResourcesComputeComparisonExp2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigResourcesComputeInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeInsertInput(ctx context.Context, v interface{}) (*model.ConfigResourcesComputeInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigResourcesComputeInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeInsertInput(ctx context.Context, v any) (*model.ConfigResourcesComputeInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52895,7 +52697,7 @@ func (ec *executionContext) unmarshalOConfigResourcesComputeInsertInput2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigResourcesComputeUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeUpdateInput(ctx context.Context, v interface{}) (*model.ConfigResourcesComputeUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigResourcesComputeUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComputeUpdateInput(ctx context.Context, v any) (*model.ConfigResourcesComputeUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52904,7 +52706,7 @@ func (ec *executionContext) unmarshalOConfigResourcesComputeUpdateInput2ᚖgithu
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesInsertInput(ctx context.Context, v interface{}) (*model.ConfigResourcesInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesInsertInput(ctx context.Context, v any) (*model.ConfigResourcesInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52912,7 +52714,7 @@ func (ec *executionContext) unmarshalOConfigResourcesInsertInput2ᚖgithubᚗcom
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigResourcesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesUpdateInput(ctx context.Context, v any) (*model.ConfigResourcesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52928,11 +52730,11 @@ func (ec *executionContext) marshalOConfigRunServiceConfig2ᚖgithubᚗcomᚋnho
 	return ec._ConfigRunServiceConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceConfigComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServiceConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceConfigComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigRunServiceConfigComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52948,7 +52750,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceConfigComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceConfigComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52956,11 +52758,11 @@ func (ec *executionContext) unmarshalOConfigRunServiceConfigComparisonExp2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceImageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServiceImageComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceImageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigRunServiceImageComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -52976,7 +52778,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceImageComparisonExp2ᚕᚖg
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceImageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceImageComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceImageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceImageComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52984,7 +52786,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceImageComparisonExp2ᚖgith
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceImageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageUpdateInput(ctx context.Context, v interface{}) (*model.ConfigRunServiceImageUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceImageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceImageUpdateInput(ctx context.Context, v any) (*model.ConfigRunServiceImageUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -52993,11 +52795,11 @@ func (ec *executionContext) unmarshalOConfigRunServiceImageUpdateInput2ᚖgithub
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceName2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceName2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53031,7 +52833,7 @@ func (ec *executionContext) marshalOConfigRunServiceName2ᚕstringᚄ(ctx contex
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceName2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceName2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53047,7 +52849,7 @@ func (ec *executionContext) marshalOConfigRunServiceName2ᚖstring(ctx context.C
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceNameComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceNameComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceNameComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceNameComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceNameComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceNameComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53102,11 +52904,11 @@ func (ec *executionContext) marshalOConfigRunServicePort2ᚕᚖgithubᚗcomᚋnh
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigRunServicePortComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServicePortComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServicePortComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigRunServicePortComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53122,7 +52924,7 @@ func (ec *executionContext) unmarshalOConfigRunServicePortComparisonExp2ᚕᚖgi
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServicePortComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServicePortComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServicePortComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortComparisonExp(ctx context.Context, v any) (*model.ConfigRunServicePortComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53130,11 +52932,11 @@ func (ec *executionContext) unmarshalOConfigRunServicePortComparisonExp2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigRunServicePortInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServicePortInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigRunServicePortInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigRunServicePortInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53150,11 +52952,11 @@ func (ec *executionContext) unmarshalOConfigRunServicePortInsertInput2ᚕᚖgith
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServicePortUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServicePortUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigRunServicePortUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServicePortUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigRunServicePortUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53170,11 +52972,11 @@ func (ec *executionContext) unmarshalOConfigRunServicePortUpdateInput2ᚕᚖgith
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServiceResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigRunServiceResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53190,7 +52992,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesComparisonExp2ᚕ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceResourcesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceResourcesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53245,11 +53047,11 @@ func (ec *executionContext) marshalOConfigRunServiceResourcesStorage2ᚕᚖgithu
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServiceResourcesStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigRunServiceResourcesStorageComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53265,7 +53067,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageComparison
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRunServiceResourcesStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageComparisonExp(ctx context.Context, v any) (*model.ConfigRunServiceResourcesStorageComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53273,11 +53075,11 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageComparison
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServiceResourcesStorageInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageInsertInputᚄ(ctx context.Context, v any) ([]*model.ConfigRunServiceResourcesStorageInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53293,11 +53095,11 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageInsertInpu
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRunServiceResourcesStorageUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesStorageUpdateInputᚄ(ctx context.Context, v any) ([]*model.ConfigRunServiceResourcesStorageUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53313,7 +53115,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageUpdateInpu
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigRunServiceResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigRunServiceResourcesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigRunServiceResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceResourcesUpdateInput(ctx context.Context, v any) (*model.ConfigRunServiceResourcesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53329,11 +53131,11 @@ func (ec *executionContext) marshalOConfigSms2ᚖgithubᚗcomᚋnhostᚋbeᚋser
 	return ec._ConfigSms(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigSmsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSmsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSmsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSmsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53349,7 +53151,7 @@ func (ec *executionContext) unmarshalOConfigSmsComparisonExp2ᚕᚖgithubᚗcom�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSmsComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsComparisonExp(ctx context.Context, v any) (*model.ConfigSmsComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53357,7 +53159,7 @@ func (ec *executionContext) unmarshalOConfigSmsComparisonExp2ᚖgithubᚗcomᚋn
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSmsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsInsertInput(ctx context.Context, v interface{}) (*model.ConfigSmsInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigSmsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsInsertInput(ctx context.Context, v any) (*model.ConfigSmsInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53365,7 +53167,7 @@ func (ec *executionContext) unmarshalOConfigSmsInsertInput2ᚖgithubᚗcomᚋnho
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSmsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSmsUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSmsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmsUpdateInput(ctx context.Context, v any) (*model.ConfigSmsUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53381,11 +53183,11 @@ func (ec *executionContext) marshalOConfigSmtp2ᚖgithubᚗcomᚋnhostᚋbeᚋse
 	return ec._ConfigSmtp(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigSmtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSmtpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSmtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSmtpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53401,7 +53203,7 @@ func (ec *executionContext) unmarshalOConfigSmtpComparisonExp2ᚕᚖgithubᚗcom
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSmtpComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpComparisonExp(ctx context.Context, v any) (*model.ConfigSmtpComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53409,7 +53211,7 @@ func (ec *executionContext) unmarshalOConfigSmtpComparisonExp2ᚖgithubᚗcomᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSmtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpInsertInput(ctx context.Context, v interface{}) (*model.ConfigSmtpInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigSmtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpInsertInput(ctx context.Context, v any) (*model.ConfigSmtpInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53417,7 +53219,7 @@ func (ec *executionContext) unmarshalOConfigSmtpInsertInput2ᚖgithubᚗcomᚋnh
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSmtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSmtpUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSmtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSmtpUpdateInput(ctx context.Context, v any) (*model.ConfigSmtpUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53433,11 +53235,11 @@ func (ec *executionContext) marshalOConfigStandardOauthProvider2ᚖgithubᚗcom�
 	return ec._ConfigStandardOauthProvider(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigStandardOauthProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigStandardOauthProviderComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigStandardOauthProviderComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigStandardOauthProviderComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53453,7 +53255,7 @@ func (ec *executionContext) unmarshalOConfigStandardOauthProviderComparisonExp2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigStandardOauthProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderComparisonExp(ctx context.Context, v interface{}) (*model.ConfigStandardOauthProviderComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigStandardOauthProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderComparisonExp(ctx context.Context, v any) (*model.ConfigStandardOauthProviderComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53461,7 +53263,7 @@ func (ec *executionContext) unmarshalOConfigStandardOauthProviderComparisonExp2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStandardOauthProviderInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderInsertInput(ctx context.Context, v interface{}) (*model.ConfigStandardOauthProviderInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigStandardOauthProviderInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderInsertInput(ctx context.Context, v any) (*model.ConfigStandardOauthProviderInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53469,7 +53271,7 @@ func (ec *executionContext) unmarshalOConfigStandardOauthProviderInsertInput2ᚖ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStandardOauthProviderUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderUpdateInput(ctx context.Context, v interface{}) (*model.ConfigStandardOauthProviderUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigStandardOauthProviderUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderUpdateInput(ctx context.Context, v any) (*model.ConfigStandardOauthProviderUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53485,11 +53287,11 @@ func (ec *executionContext) marshalOConfigStandardOauthProviderWithScope2ᚖgith
 	return ec._ConfigStandardOauthProviderWithScope(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigStandardOauthProviderWithScopeComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigStandardOauthProviderWithScopeComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53505,7 +53307,7 @@ func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeCompar
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeComparisonExp(ctx context.Context, v interface{}) (*model.ConfigStandardOauthProviderWithScopeComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeComparisonExp(ctx context.Context, v any) (*model.ConfigStandardOauthProviderWithScopeComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53513,7 +53315,7 @@ func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeCompar
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeInsertInput(ctx context.Context, v interface{}) (*model.ConfigStandardOauthProviderWithScopeInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeInsertInput(ctx context.Context, v any) (*model.ConfigStandardOauthProviderWithScopeInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53521,7 +53323,7 @@ func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeInsert
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeUpdateInput(ctx context.Context, v interface{}) (*model.ConfigStandardOauthProviderWithScopeUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStandardOauthProviderWithScopeUpdateInput(ctx context.Context, v any) (*model.ConfigStandardOauthProviderWithScopeUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53544,11 +53346,11 @@ func (ec *executionContext) marshalOConfigStorageAntivirus2ᚖgithubᚗcomᚋnho
 	return ec._ConfigStorageAntivirus(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigStorageAntivirusComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigStorageAntivirusComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigStorageAntivirusComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigStorageAntivirusComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53564,7 +53366,7 @@ func (ec *executionContext) unmarshalOConfigStorageAntivirusComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigStorageAntivirusComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusComparisonExp(ctx context.Context, v interface{}) (*model.ConfigStorageAntivirusComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigStorageAntivirusComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusComparisonExp(ctx context.Context, v any) (*model.ConfigStorageAntivirusComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53572,7 +53374,7 @@ func (ec *executionContext) unmarshalOConfigStorageAntivirusComparisonExp2ᚖgit
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStorageAntivirusInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusInsertInput(ctx context.Context, v interface{}) (*model.ConfigStorageAntivirusInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigStorageAntivirusInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusInsertInput(ctx context.Context, v any) (*model.ConfigStorageAntivirusInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53580,7 +53382,7 @@ func (ec *executionContext) unmarshalOConfigStorageAntivirusInsertInput2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStorageAntivirusUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusUpdateInput(ctx context.Context, v interface{}) (*model.ConfigStorageAntivirusUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigStorageAntivirusUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageAntivirusUpdateInput(ctx context.Context, v any) (*model.ConfigStorageAntivirusUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53589,11 +53391,11 @@ func (ec *executionContext) unmarshalOConfigStorageAntivirusUpdateInput2ᚖgithu
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigStorageComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53609,7 +53411,7 @@ func (ec *executionContext) unmarshalOConfigStorageComparisonExp2ᚕᚖgithubᚗ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageComparisonExp(ctx context.Context, v interface{}) (*model.ConfigStorageComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageComparisonExp(ctx context.Context, v any) (*model.ConfigStorageComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53617,7 +53419,7 @@ func (ec *executionContext) unmarshalOConfigStorageComparisonExp2ᚖgithubᚗcom
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageInsertInput(ctx context.Context, v interface{}) (*model.ConfigStorageInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageInsertInput(ctx context.Context, v any) (*model.ConfigStorageInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53625,7 +53427,7 @@ func (ec *executionContext) unmarshalOConfigStorageInsertInput2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStorageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageUpdateInput(ctx context.Context, v interface{}) (*model.ConfigStorageUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigStorageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageUpdateInput(ctx context.Context, v any) (*model.ConfigStorageUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53634,7 +53436,7 @@ func (ec *executionContext) unmarshalOConfigStorageUpdateInput2ᚖgithubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[string], error) {
+func (ec *executionContext) unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[string], error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53656,11 +53458,11 @@ func (ec *executionContext) marshalOConfigSystemConfigAuth2ᚖgithubᚗcomᚋnho
 	return ec._ConfigSystemConfigAuth(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigAuthComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSystemConfigAuthComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53676,7 +53478,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthComparisonExp2ᚕᚖ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigAuthComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53691,11 +53493,11 @@ func (ec *executionContext) marshalOConfigSystemConfigAuthEmail2ᚖgithubᚗcom�
 	return ec._ConfigSystemConfigAuthEmail(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigAuthEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSystemConfigAuthEmailComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53711,7 +53513,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailComparisonExp2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthEmailComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigAuthEmailComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53719,7 +53521,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailComparisonExp2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthEmailInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailInsertInput(ctx context.Context, v any) (*model.ConfigSystemConfigAuthEmailInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53734,11 +53536,11 @@ func (ec *executionContext) marshalOConfigSystemConfigAuthEmailTemplates2ᚖgith
 	return ec._ConfigSystemConfigAuthEmailTemplates(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53754,7 +53556,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesCompar
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53762,7 +53564,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesCompar
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthEmailTemplatesInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesInsertInput(ctx context.Context, v any) (*model.ConfigSystemConfigAuthEmailTemplatesInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53770,7 +53572,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesInsert
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthEmailTemplatesUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailTemplatesUpdateInput(ctx context.Context, v any) (*model.ConfigSystemConfigAuthEmailTemplatesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53779,7 +53581,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesUpdate
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthEmailUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthEmailUpdateInput(ctx context.Context, v any) (*model.ConfigSystemConfigAuthEmailUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53788,7 +53590,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailUpdateInput2ᚖ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthInsertInput(ctx context.Context, v any) (*model.ConfigSystemConfigAuthInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53796,7 +53598,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthInsertInput2ᚖgithu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigAuthUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigAuthUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigAuthUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigAuthUpdateInput(ctx context.Context, v any) (*model.ConfigSystemConfigAuthUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53805,11 +53607,11 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthUpdateInput2ᚖgithu
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSystemConfigComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53825,7 +53627,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigComparisonExp2ᚕᚖgith
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53840,11 +53642,11 @@ func (ec *executionContext) marshalOConfigSystemConfigGraphql2ᚖgithubᚗcomᚋ
 	return ec._ConfigSystemConfigGraphql(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigGraphqlComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSystemConfigGraphqlComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53860,7 +53662,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚕ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigGraphqlComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigGraphqlComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53868,7 +53670,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚖ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigGraphqlInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlInsertInput(ctx context.Context, v any) (*model.ConfigSystemConfigGraphqlInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53876,7 +53678,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlInsertInput2ᚖgi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigGraphqlUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlUpdateInput(ctx context.Context, v any) (*model.ConfigSystemConfigGraphqlUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53885,11 +53687,11 @@ func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlUpdateInput2ᚖgi
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigPostgresComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSystemConfigPostgresComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53905,7 +53707,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresComparisonExp2�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53913,11 +53715,11 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresComparisonExp2�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionStringComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigPostgresConnectionStringComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionStringComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSystemConfigPostgresConnectionStringComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53933,7 +53735,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionString
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresConnectionStringComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresConnectionStringComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53941,7 +53743,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionString
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionStringUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresConnectionStringUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionStringUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringUpdateInput(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresConnectionStringUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53957,11 +53759,11 @@ func (ec *executionContext) marshalOConfigSystemConfigPostgresDisk2ᚖgithubᚗc
 	return ec._ConfigSystemConfigPostgresDisk(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -53977,7 +53779,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonEx
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53985,7 +53787,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonEx
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresDiskInsertInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskInsertInput(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresDiskInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -53993,7 +53795,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskInsertInput2
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresDiskUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskUpdateInput(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresDiskUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54002,7 +53804,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskUpdateInput2
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigSystemConfigPostgresUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresUpdateInput, error) {
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresUpdateInput(ctx context.Context, v any) (*model.ConfigSystemConfigPostgresUpdateInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54011,11 +53813,11 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresUpdateInput2ᚖg
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigUint162ᚕuint16ᚄ(ctx context.Context, v interface{}) ([]uint16, error) {
+func (ec *executionContext) unmarshalOConfigUint162ᚕuint16ᚄ(ctx context.Context, v any) ([]uint16, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54049,7 +53851,7 @@ func (ec *executionContext) marshalOConfigUint162ᚕuint16ᚄ(ctx context.Contex
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigUint162ᚖuint16(ctx context.Context, v interface{}) (*uint16, error) {
+func (ec *executionContext) unmarshalOConfigUint162ᚖuint16(ctx context.Context, v any) (*uint16, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54065,11 +53867,11 @@ func (ec *executionContext) marshalOConfigUint162ᚖuint16(ctx context.Context, 
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigUint2ᚕuintᚄ(ctx context.Context, v interface{}) ([]uint, error) {
+func (ec *executionContext) unmarshalOConfigUint2ᚕuintᚄ(ctx context.Context, v any) ([]uint, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54103,7 +53905,7 @@ func (ec *executionContext) marshalOConfigUint2ᚕuintᚄ(ctx context.Context, s
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigUint2ᚖuint(ctx context.Context, v interface{}) (*uint, error) {
+func (ec *executionContext) unmarshalOConfigUint2ᚖuint(ctx context.Context, v any) (*uint, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54119,11 +53921,11 @@ func (ec *executionContext) marshalOConfigUint2ᚖuint(ctx context.Context, sel 
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigUint322ᚕuint32ᚄ(ctx context.Context, v interface{}) ([]uint32, error) {
+func (ec *executionContext) unmarshalOConfigUint322ᚕuint32ᚄ(ctx context.Context, v any) ([]uint32, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54157,7 +53959,7 @@ func (ec *executionContext) marshalOConfigUint322ᚕuint32ᚄ(ctx context.Contex
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigUint322ᚖuint32(ctx context.Context, v interface{}) (*uint32, error) {
+func (ec *executionContext) unmarshalOConfigUint322ᚖuint32(ctx context.Context, v any) (*uint32, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54173,7 +53975,7 @@ func (ec *executionContext) marshalOConfigUint322ᚖuint32(ctx context.Context, 
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[uint32], error) {
+func (ec *executionContext) unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[uint32], error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54181,11 +53983,11 @@ func (ec *executionContext) unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigUint642ᚕuint64ᚄ(ctx context.Context, v interface{}) ([]uint64, error) {
+func (ec *executionContext) unmarshalOConfigUint642ᚕuint64ᚄ(ctx context.Context, v any) ([]uint64, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54219,7 +54021,7 @@ func (ec *executionContext) marshalOConfigUint642ᚕuint64ᚄ(ctx context.Contex
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigUint642ᚖuint64(ctx context.Context, v interface{}) (*uint64, error) {
+func (ec *executionContext) unmarshalOConfigUint642ᚖuint64(ctx context.Context, v any) (*uint64, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54235,11 +54037,11 @@ func (ec *executionContext) marshalOConfigUint642ᚖuint64(ctx context.Context, 
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigUint82ᚕuint8ᚄ(ctx context.Context, v interface{}) ([]uint8, error) {
+func (ec *executionContext) unmarshalOConfigUint82ᚕuint8ᚄ(ctx context.Context, v any) ([]uint8, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54273,7 +54075,7 @@ func (ec *executionContext) marshalOConfigUint82ᚕuint8ᚄ(ctx context.Context,
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigUint82ᚖuint8(ctx context.Context, v interface{}) (*uint8, error) {
+func (ec *executionContext) unmarshalOConfigUint82ᚖuint8(ctx context.Context, v any) (*uint8, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54289,7 +54091,7 @@ func (ec *executionContext) marshalOConfigUint82ᚖuint8(ctx context.Context, se
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigUint8ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[uint8], error) {
+func (ec *executionContext) unmarshalOConfigUint8ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[uint8], error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54297,7 +54099,7 @@ func (ec *executionContext) unmarshalOConfigUint8ComparisonExp2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigUintComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[uint], error) {
+func (ec *executionContext) unmarshalOConfigUintComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[uint], error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54305,11 +54107,11 @@ func (ec *executionContext) unmarshalOConfigUintComparisonExp2ᚖgithubᚗcomᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigUrl2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalOConfigUrl2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54343,7 +54145,7 @@ func (ec *executionContext) marshalOConfigUrl2ᚕstringᚄ(ctx context.Context, 
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigUrl2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOConfigUrl2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54359,7 +54161,7 @@ func (ec *executionContext) marshalOConfigUrl2ᚖstring(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigUrlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigUrlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigUrlComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigUrlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigUrlComparisonExp(ctx context.Context, v any) (*model.ConfigUrlComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54367,11 +54169,11 @@ func (ec *executionContext) unmarshalOConfigUrlComparisonExp2ᚖgithubᚗcomᚋn
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOConfigUserRole2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalOConfigUserRole2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54405,7 +54207,7 @@ func (ec *executionContext) marshalOConfigUserRole2ᚕstringᚄ(ctx context.Cont
 	return ret
 }
 
-func (ec *executionContext) unmarshalOConfigUserRole2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOConfigUserRole2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54421,7 +54223,7 @@ func (ec *executionContext) marshalOConfigUserRole2ᚖstring(ctx context.Context
 	return res
 }
 
-func (ec *executionContext) unmarshalOConfigUserRoleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigUserRoleComparisonExp(ctx context.Context, v interface{}) (*model.ConfigUserRoleComparisonExp, error) {
+func (ec *executionContext) unmarshalOConfigUserRoleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigUserRoleComparisonExp(ctx context.Context, v any) (*model.ConfigUserRoleComparisonExp, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54429,11 +54231,11 @@ func (ec *executionContext) unmarshalOConfigUserRoleComparisonExp2ᚖgithubᚗco
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOFloat2ᚕfloat64ᚄ(ctx context.Context, v interface{}) ([]float64, error) {
+func (ec *executionContext) unmarshalOFloat2ᚕfloat64ᚄ(ctx context.Context, v any) ([]float64, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54467,7 +54269,7 @@ func (ec *executionContext) marshalOFloat2ᚕfloat64ᚄ(ctx context.Context, sel
 	return ret
 }
 
-func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v any) (*float64, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54483,11 +54285,11 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v any) ([]int, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54521,7 +54323,7 @@ func (ec *executionContext) marshalOInt2ᚕintᚄ(ctx context.Context, sel ast.S
 	return ret
 }
 
-func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v any) (*int, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -54537,11 +54339,11 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var vSlice []interface{}
+	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
 	}
@@ -54575,7 +54377,7 @@ func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel
 	return ret
 }
 
-func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
 	}

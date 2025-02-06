@@ -142,6 +142,9 @@ enabled = false
 [postgres]
 version = '14.6-20230406-2'
 
+[postgres.resources.storage]
+capacity = 1
+
 [provider]
 
 [storage]

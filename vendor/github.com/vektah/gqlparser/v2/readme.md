@@ -3,7 +3,7 @@ gqlparser [![CircleCI](https://badgen.net/circleci/github/vektah/gqlparser/maste
 
 This is a parser for graphql, written to mirror the graphql-js reference implementation as closely while remaining idiomatic and easy to use.
 
-spec target: June 2018 (Schema definition language, block strings as descriptions, error paths & extension)
+spec target: [October 2021](https://spec.graphql.org/October2021/) and [select portions of the Draft](https://spec.graphql.org/draft/), based on the graphql-js reference implementation [graphql-js v16.10.0](https://github.com/graphql/graphql-js/releases/tag/v16.10.0). This includes Schema definition language, block strings as descriptions, error paths & extension, etc. If there is a spec update or [new release](https://github.com/graphql/graphql-spec/releases), please follow [this process to update](./validator/imported/readme.md) and submit a PR.
 
 This parser is used by [gqlgen](https://github.com/99designs/gqlgen), and it should be reasonably stable.
 

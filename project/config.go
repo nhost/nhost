@@ -24,6 +24,13 @@ func DefaultConfig() (*model.ConfigConfig, error) {
 				},
 			},
 		},
+		Postgres: &model.ConfigPostgres{ //nolint:exhaustruct
+			Resources: &model.ConfigPostgresResources{ //nolint:exhaustruct
+				Storage: &model.ConfigPostgresStorage{
+					Capacity: 1,
+				},
+			},
+		},
 		Observability: &model.ConfigObservability{
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "{{ secrets.GRAFANA_ADMIN_PASSWORD }}",

@@ -1711,7 +1711,7 @@ type ConfigConfig {
     """
     Configuration for postgres service
     """
-    postgres: ConfigPostgres
+    postgres: ConfigPostgres!
     """
     Configuration for third party providers like SMTP, SMS, etc.
     """
@@ -1749,7 +1749,7 @@ input ConfigConfigInsertInput {
     graphql: ConfigGraphqlInsertInput
     functions: ConfigFunctionsInsertInput
     auth: ConfigAuthInsertInput
-    postgres: ConfigPostgresInsertInput
+    postgres: ConfigPostgresInsertInput!
     provider: ConfigProviderInsertInput
     storage: ConfigStorageInsertInput
     ai: ConfigAIInsertInput
@@ -2988,7 +2988,7 @@ type ConfigPostgres {
     """
     Resources for the service
     """
-    resources: ConfigPostgresResources
+    resources: ConfigPostgresResources!
     """
 
     """
@@ -3003,7 +3003,7 @@ input ConfigPostgresUpdateInput {
 
 input ConfigPostgresInsertInput {
     version: String
-    resources: ConfigPostgresResourcesInsertInput
+    resources: ConfigPostgresResourcesInsertInput!
     settings: ConfigPostgresSettingsInsertInput
 }
 
@@ -3039,7 +3039,7 @@ type ConfigPostgresResources {
     """
 
     """
-    storage: ConfigPostgresStorage
+    storage: ConfigPostgresStorage!
     """
 
     """
@@ -3060,7 +3060,7 @@ input ConfigPostgresResourcesInsertInput {
     replicas: ConfigUint8
     autoscaler: ConfigAutoscalerInsertInput
     networking: ConfigNetworkingInsertInput
-    storage: ConfigPostgresStorageInsertInput
+    storage: ConfigPostgresStorageInsertInput!
     enablePublicAccess: Boolean
 }
 

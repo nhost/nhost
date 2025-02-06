@@ -46,7 +46,7 @@ cloud.google.com/go/storage/experimental
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
 cloud.google.com/go/storage/internal/apiv2/storagepb
-# cuelang.org/go v0.10.0 => cuelang.org/go v0.4.3
+# cuelang.org/go v0.11.2 => cuelang.org/go v0.4.3
 ## explicit; go 1.17
 cuelang.org/go/cue
 cuelang.org/go/cue/ast
@@ -171,7 +171,7 @@ github.com/ProtonMail/go-crypto/openpgp/x448
 ## explicit; go 1.22.5
 github.com/Yamashou/gqlgenc/clientv2
 github.com/Yamashou/gqlgenc/graphqljson
-# github.com/agnivade/levenshtein v1.2.0
+# github.com/agnivade/levenshtein v1.2.1
 ## explicit; go 1.21
 github.com/agnivade/levenshtein
 # github.com/aws/aws-sdk-go v1.55.6
@@ -483,7 +483,7 @@ github.com/go-playground/validator/v10
 ## explicit; go 1.18
 github.com/go-viper/mapstructure/v2
 github.com/go-viper/mapstructure/v2/internal/errors
-# github.com/goccy/go-json v0.10.4
+# github.com/goccy/go-json v0.10.5
 ## explicit; go 1.19
 github.com/goccy/go-json
 github.com/goccy/go-json/internal/decoder
@@ -643,8 +643,8 @@ github.com/muesli/termenv
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
-# github.com/nhost/be v0.0.0-20250124134712-14ef6b07eee0
-## explicit; go 1.23.1
+# github.com/nhost/be v0.0.0-20250206085705-d58c2e4dc6b9
+## explicit; go 1.23.4
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context
 github.com/nhost/be/lib/graphql/handler
@@ -772,7 +772,7 @@ github.com/valyala/bytebufferpool
 # github.com/valyala/fasttemplate v1.2.2
 ## explicit; go 1.12
 github.com/valyala/fasttemplate
-# github.com/vektah/gqlparser/v2 v2.5.21
+# github.com/vektah/gqlparser/v2 v2.5.22
 ## explicit; go 1.22
 github.com/vektah/gqlparser/v2
 github.com/vektah/gqlparser/v2/ast
@@ -967,7 +967,7 @@ google.golang.org/genproto/googleapis/api/expr/v1alpha1
 google.golang.org/genproto/googleapis/api/label
 google.golang.org/genproto/googleapis/api/metric
 google.golang.org/genproto/googleapis/api/monitoredres
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20250124145028-65684f501c47
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20250127172529-29210b9bc287
 ## explicit; go 1.22
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
@@ -1151,7 +1151,7 @@ google.golang.org/protobuf/types/known/fieldmaskpb
 google.golang.org/protobuf/types/known/structpb
 google.golang.org/protobuf/types/known/timestamppb
 google.golang.org/protobuf/types/known/wrapperspb
-# gopkg.in/evanphx/json-patch.v5 v5.9.0
+# gopkg.in/evanphx/json-patch.v5 v5.9.10
 ## explicit
 gopkg.in/evanphx/json-patch.v5
 # gopkg.in/warnings.v0 v0.1.2

@@ -203,7 +203,14 @@ func expectedConfig() *model.ConfigConfig {
 				},
 			},
 		},
-		Postgres: &model.ConfigPostgres{Version: ptr("14.6-20230406-2")},
+		Postgres: &model.ConfigPostgres{
+			Version: ptr("14.6-20230406-2"),
+			Resources: &model.ConfigPostgresResources{
+				Storage: &model.ConfigPostgresStorage{
+					Capacity: 1,
+				},
+			},
+		},
 		Provider: &model.ConfigProvider{},
 		Storage:  &model.ConfigStorage{Version: ptr("0.3.4")},
 		Observability: &model.ConfigObservability{

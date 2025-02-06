@@ -526,7 +526,7 @@ type ConfigConfig struct {
 	Graphql       *ConfigGraphql       `json:"graphql,omitempty"`
 	Hasura        *ConfigHasura        `json:"hasura"`
 	Observability *ConfigObservability `json:"observability"`
-	Postgres      *ConfigPostgres      `json:"postgres,omitempty"`
+	Postgres      *ConfigPostgres      `json:"postgres"`
 	Provider      *ConfigProvider      `json:"provider,omitempty"`
 	Storage       *ConfigStorage       `json:"storage,omitempty"`
 }
@@ -921,7 +921,7 @@ type ConfigObservabilityUpdateInput struct {
 }
 
 type ConfigPostgres struct {
-	Resources *ConfigPostgresResources `json:"resources,omitempty"`
+	Resources *ConfigPostgresResources `json:"resources"`
 	Settings  *ConfigPostgresSettings  `json:"settings,omitempty"`
 	Version   *string                  `json:"version,omitempty"`
 }
@@ -932,7 +932,7 @@ type ConfigPostgresResources struct {
 	EnablePublicAccess *bool                   `json:"enablePublicAccess,omitempty"`
 	Networking         *ConfigNetworking       `json:"networking,omitempty"`
 	Replicas           *uint32                 `json:"replicas,omitempty"`
-	Storage            *ConfigPostgresStorage  `json:"storage,omitempty"`
+	Storage            *ConfigPostgresStorage  `json:"storage"`
 }
 
 type ConfigPostgresResourcesUpdateInput struct {

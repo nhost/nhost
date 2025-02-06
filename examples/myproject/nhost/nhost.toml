@@ -131,6 +131,9 @@ enabled = false
 [postgres]
 version = '16.2-20240901-1'
 
+[postgres.resources.storage]
+capacity = 1
+
 [postgres.settings]
 maxConnections = 100
 sharedBuffers = '256MB'
