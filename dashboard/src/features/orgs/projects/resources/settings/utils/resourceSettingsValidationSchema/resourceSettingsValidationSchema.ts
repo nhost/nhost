@@ -76,7 +76,7 @@ export const MAX_SERVICE_MEMORY =
   RESOURCE_VCPU_MEMORY_RATIO *
   RESOURCE_MEMORY_MULTIPLIER;
 
-const serviceValidationSchema = Yup.object({
+const genericServiceValidationSchema = Yup.object({
   replicas: Yup.number()
     .label('Replicas')
     .required()
@@ -88,6 +88,34 @@ const serviceValidationSchema = Yup.object({
     .min(MIN_SERVICE_REPLICAS)
     .max(MAX_SERVICE_REPLICAS),
   autoscale: Yup.boolean().label('Autoscale').required(),
+  vcpu: Yup.number()
+    .label('vCPUs')
+    .required()
+    .min(MIN_SERVICE_VCPU)
+    .max(MAX_SERVICE_VCPU),
+  memory: Yup.number()
+    .required()
+    .min(MIN_SERVICE_MEMORY)
+    .max(MAX_SERVICE_MEMORY)
+    .test(
+      'is-matching-ratio',
+      `vCPU and Memory for this service must follow a 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio when more than one replica is selected or when the autoscaler is activated.`,
+      (memory: number, { parent }) => {
+        if (parent.replicas === 1 && !parent.autoscale) {
+          return true;
+        }
+
+        return (
+          memory /
+            RESOURCE_MEMORY_MULTIPLIER /
+            (parent.vcpu / RESOURCE_VCPU_MULTIPLIER) ===
+          RESOURCE_VCPU_MEMORY_RATIO
+        );
+      },
+    ),
+});
+
+const postgresServiceValidationSchema = Yup.object({
   vcpu: Yup.number()
     .label('vCPUs')
     .required()
@@ -147,10 +175,10 @@ export const resourceSettingsValidationSchema = Yup.object({
           parent.storage.memory ===
         totalAvailableMemory,
     ),
-  database: serviceValidationSchema.required(),
-  hasura: serviceValidationSchema.required(),
-  auth: serviceValidationSchema.required(),
-  storage: serviceValidationSchema.required(),
+  database: postgresServiceValidationSchema.required(),
+  hasura: genericServiceValidationSchema.required(),
+  auth: genericServiceValidationSchema.required(),
+  storage: genericServiceValidationSchema.required(),
 });
 
 export type ResourceSettingsFormValues = Yup.InferType<

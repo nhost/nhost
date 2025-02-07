@@ -49,7 +49,6 @@ export default function ResourcesFormFooter() {
 
   const billableResources = calculateBillableResources(
     {
-      replicas: database?.replicas,
       vcpu: database?.vcpu,
     },
     {

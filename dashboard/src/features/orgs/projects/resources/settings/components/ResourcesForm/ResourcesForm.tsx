@@ -103,11 +103,8 @@ export default function ResourcesForm() {
       totalAvailableVCPU: totalInitialVCPU || 2000,
       totalAvailableMemory: totalInitialMemory || 4096,
       database: {
-        replicas: initialDatabaseResources.replicas || 1,
         vcpu: initialDatabaseResources.vcpu || 1000,
         memory: initialDatabaseResources.memory || 2048,
-        autoscale: !!initialDatabaseResources.autoscale || false,
-        maxReplicas: initialDatabaseResources.autoscale?.maxReplicas || 10,
       },
       hasura: {
         replicas: initialHasuraResources.replicas || 1,
@@ -207,12 +204,6 @@ export default function ResourcesForm() {
               cpu: sanitizedValues.database.vcpu,
               memory: sanitizedValues.database.memory,
             },
-            replicas: sanitizedValues.database.replicas,
-            autoscaler: sanitizedValues.database.autoscale
-              ? {
-                  maxReplicas: sanitizedValues.database.maxReplicas,
-                }
-              : null,
             ...sanitizedInitialDatabaseResources.rest,
           },
         },
@@ -341,9 +332,6 @@ export default function ResourcesForm() {
           totalAvailableVCPU: 2000,
           totalAvailableMemory: 4096,
           database: {
-            replicas: 1,
-            maxReplicas: 1,
-            autoscale: false,
             vcpu: 1000,
             memory: 2048,
           },
