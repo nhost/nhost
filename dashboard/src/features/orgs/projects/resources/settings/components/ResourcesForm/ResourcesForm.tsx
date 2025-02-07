@@ -157,7 +157,6 @@ export default function ResourcesForm() {
 
   const billableResources = calculateBillableResources(
     {
-      replicas: initialDatabaseResources.replicas,
       vcpu: initialDatabaseResources.vcpu,
     },
     {
@@ -259,8 +258,6 @@ export default function ResourcesForm() {
       postgres: {
         resources: {
           compute: null,
-          replicas: null,
-          autoscaler: null,
           ...sanitizedInitialDatabaseResources.rest,
         },
       },

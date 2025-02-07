@@ -125,22 +125,6 @@ const postgresServiceValidationSchema = Yup.object({
     .required()
     .min(MIN_SERVICE_MEMORY)
     .max(MAX_SERVICE_MEMORY)
-    .test(
-      'is-matching-ratio',
-      `vCPU and Memory for this service must follow a 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio when more than one replica is selected or when the autoscaler is activated.`,
-      (memory: number, { parent }) => {
-        if (parent.replicas === 1 && !parent.autoscale) {
-          return true;
-        }
-
-        return (
-          memory /
-            RESOURCE_MEMORY_MULTIPLIER /
-            (parent.vcpu / RESOURCE_VCPU_MULTIPLIER) ===
-          RESOURCE_VCPU_MEMORY_RATIO
-        );
-      },
-    ),
 });
 
 export const resourceSettingsValidationSchema = Yup.object({
