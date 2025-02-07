@@ -40,14 +40,23 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, ...rest } =
+  if (service === 'postgres') {
+    const { compute, ...rest } = data?.config?.[service]?.resources || {};
+    return {
+      replicas: 1,
+      vcpu: compute?.cpu || 0,
+      memory: compute?.memory || 0,
+      autoscale: null,
+      rest,
+    };
+  }
+  const { compute, autoscaler, replicas, ...rest } =
     data?.config?.[service]?.resources || {};
-
   return {
-    replicas: "replicas" in rest ? rest.replicas : 1,
+    replicas,
     vcpu: compute?.cpu || 0,
     memory: compute?.memory || 0,
-    autoscale: "autoscaler" in rest ? rest.autoscaler : null,
+    autoscale: autoscaler || null,
     rest,
   };
 }
@@ -157,6 +166,7 @@ export default function ResourcesForm() {
 
   const billableResources = calculateBillableResources(
     {
+      replicas: 1,
       vcpu: initialDatabaseResources.vcpu,
     },
     {

@@ -44,7 +44,7 @@ export default function ResourcesConfirmationDialog({
 
   const billableResources = calculateBillableResources(
     {
-      replicas: formValues.database?.replicas,
+      replicas: 1,
       vcpu: formValues.database?.vcpu,
       memory: formValues.database?.memory,
     },
@@ -128,7 +128,6 @@ export default function ResourcesConfirmationDialog({
           included in the {proPlan.name} plan.
         </Text>
       )}
-
       <Box className="grid grid-flow-row gap-4">
         {/* <Box className="grid justify-between grid-flow-col gap-2">
           <Text className="font-medium">{proPlan.name} Plan</Text>
@@ -227,7 +226,6 @@ export default function ResourcesConfirmationDialog({
           </Text>
         )}
       </Box>
-
       <Box className="grid grid-flow-row gap-2">
         <Button
           color={totalBillableVCPU > 0 ? 'primary' : 'error'}
