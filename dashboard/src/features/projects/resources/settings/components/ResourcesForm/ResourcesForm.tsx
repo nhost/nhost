@@ -37,8 +37,18 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, replicas, autoscaler } =
+  const { compute, ...rest } =
     data?.config?.[service]?.resources || {};
+
+  let replicas = 1;
+  if ("replicas" in rest) {
+    replicas = rest.replicas;
+  }
+
+  let autoscaler = null;
+  if ("autoscaler" in rest) {
+    autoscaler = rest.autoscaler
+  }
 
   return {
     replicas,
@@ -190,12 +200,6 @@ export default function ResourcesForm() {
                     cpu: formValues.database.vcpu,
                     memory: formValues.database.memory,
                   },
-                  replicas: formValues.database.replicas,
-                  autoscaler: formValues.database.autoscale
-                    ? {
-                        maxReplicas: formValues.database.maxReplicas,
-                      }
-                    : null,
                 }
               : null,
           },
