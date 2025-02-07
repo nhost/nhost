@@ -43,21 +43,11 @@ function getInitialServiceResources(
   const { compute, ...rest } =
     data?.config?.[service]?.resources || {};
 
-  let replicas = 1;
-  if ("replicas" in rest) {
-    replicas = rest.replicas;
-  }
-
-  let autoscaler = null;
-  if ("autoscaler" in rest) {
-    autoscaler = rest.autoscaler
-  }
-
   return {
-    replicas,
+    replicas: "replicas" in rest ? rest.replicas : 1,
     vcpu: compute?.cpu || 0,
     memory: compute?.memory || 0,
-    autoscale: autoscaler || null,
+    autoscale: "autoscaler" in rest ? rest.autoscaler : null,
     rest,
   };
 }
