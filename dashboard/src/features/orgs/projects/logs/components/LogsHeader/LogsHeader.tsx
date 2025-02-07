@@ -12,7 +12,10 @@ import { Option } from '@/components/ui/v2/Option';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
-import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
+import {
+  AvailableLogsService,
+  LOGS_SERVICE_TO_LABEL,
+} from '@/features/orgs/projects/logs/utils/constants/services';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -63,19 +66,8 @@ export default function LogsHeader({
     if (!loadingServiceLabelValues && data) {
       const labels = data.getServiceLabelValues ?? [];
 
-      const labelMappings = {
-        'hasura-auth': 'Auth',
-        'hasura-storage': 'Storage',
-        postgres: 'Postgres',
-        functions: 'Functions',
-        hasura: 'Hasura',
-        grafana: 'Grafana',
-        'job-backup': 'Backup Jobs',
-        ai: 'AI',
-      };
-
       setServiceLabels(
-        labels.map((l) => ({ label: labelMappings[l] ?? l, value: l })),
+        labels.map((l) => ({ label: LOGS_SERVICE_TO_LABEL[l] ?? l, value: l })),
       );
     }
   }, [loadingServiceLabelValues, data]);
