@@ -20,7 +20,7 @@ import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -52,24 +52,23 @@ export default function LogsHeader({
 }: LogsHeaderProps) {
   const { project } = useProject();
 
-  const [serviceLabels, setServiceLabels] = useState<
-    { label: string; value: string }[]
-  >([]);
-
   const { data, loading: loadingServiceLabelValues } =
     useGetServiceLabelValuesQuery({
       variables: { appID: project?.id },
       skip: !project?.id,
     });
 
-  useEffect(() => {
+  const serviceLabels = useMemo<{ label: string; value: string }[]>(() => {
     if (!loadingServiceLabelValues && data) {
       const labels = data.getServiceLabelValues ?? [];
 
-      setServiceLabels(
-        labels.map((l) => ({ label: LOGS_SERVICE_TO_LABEL[l] ?? l, value: l })),
-      );
+      return labels.map((l) => ({
+        label: LOGS_SERVICE_TO_LABEL[l] ?? l,
+        value: l,
+      }));
     }
+
+    return [];
   }, [loadingServiceLabelValues, data]);
 
   const form = useForm<LogsFilterFormValues>({

@@ -49,7 +49,6 @@ export default function LogsPage() {
     subscribeToMore,
     client,
     loading: loadingLogs,
-    refetch,
   } = useGetProjectLogsQuery({
     variables: { appID: project?.id, ...filters },
     client: clientWithSplit,
@@ -136,9 +135,8 @@ export default function LogsPage() {
   const onSubmitFilterValues = useCallback(
     async (values: LogsFilterFormValues) => {
       setFilters({ ...(values as LogsFilters) });
-      await refetch();
     },
-    [setFilters, refetch],
+    [setFilters],
   );
 
   const loading = loadingProject || loadingLogs;
