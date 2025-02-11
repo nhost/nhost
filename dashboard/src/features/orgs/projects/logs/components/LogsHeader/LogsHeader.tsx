@@ -1,4 +1,3 @@
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/components/ui/v2/Box';
@@ -23,6 +22,7 @@ import { subMinutes } from 'date-fns';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import LogsServiceFilter from './LogsServiceFilter';
 
 export const validationSchema = Yup.object({
   from: Yup.date(),
@@ -52,24 +52,33 @@ export default function LogsHeader({
 }: LogsHeaderProps) {
   const { project } = useProject();
 
-  const { data, loading: loadingServiceLabelValues } =
-    useGetServiceLabelValuesQuery({
-      variables: { appID: project?.id },
-      skip: !project?.id,
-    });
+  const { data } = useGetServiceLabelValuesQuery({
+    variables: { appID: project?.id },
+    skip: !project?.id,
+  });
 
-  const serviceLabels = useMemo<{ label: string; value: string }[]>(() => {
-    if (!loadingServiceLabelValues && data) {
-      const labels = data.getServiceLabelValues ?? [];
-
-      return labels.map((l) => ({
-        label: LOGS_SERVICE_TO_LABEL[l] ?? l,
-        value: l,
-      }));
+  const serviceOptions = useMemo<JSX.Element[]>(() => {
+    if (!Array.isArray(data?.getServiceLabelValues)) {
+      return [];
     }
 
-    return [];
-  }, [loadingServiceLabelValues, data]);
+    const options = [
+      {
+        label: LOGS_SERVICE_TO_LABEL[AvailableLogsService.ALL],
+        value: AvailableLogsService.ALL,
+      },
+      ...data.getServiceLabelValues.map((l) => ({
+        label: LOGS_SERVICE_TO_LABEL[l] ?? l,
+        value: l,
+      })),
+    ];
+
+    return options.map(({ value, label }) => (
+      <Option key={value} value={value} className="text-sm+ font-medium">
+        {label}
+      </Option>
+    ));
+  }, [data]);
 
   const form = useForm<LogsFilterFormValues>({
     defaultValues: {
@@ -104,30 +113,10 @@ export default function LogsHeader({
           className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-end"
         >
           <Box className="flex flex-row space-x-2">
-            <ControlledSelect
-              {...register('service')}
-              className="w-full min-w-fit text-sm font-normal"
-              placeholder="All Services"
-              aria-label="Select service"
-              hideEmptyHelperText
-              slotProps={{
-                root: {
-                  className: 'min-h-[initial] h-10 leading-[initial]',
-                },
-              }}
-            >
-              {[{ label: 'All services', value: '' }, ...serviceLabels].map(
-                ({ value, label }) => (
-                  <Option
-                    key={value}
-                    value={value}
-                    className="text-sm+ font-medium"
-                  >
-                    {label}
-                  </Option>
-                ),
-              )}
-            </ControlledSelect>
+            <LogsServiceFilter
+              register={register}
+              serviceOptions={serviceOptions}
+            />
             <div className="w-full min-w-fit">
               <LogsRangeSelector onSubmitFilterValues={onSubmitFilterValues} />
             </div>
