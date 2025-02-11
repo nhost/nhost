@@ -44,13 +44,13 @@ import (
 				hasura.resources.replicas*hasura.resources.compute.cpu +
 		auth.resources.replicas*auth.resources.compute.cpu +
 		storage.resources.replicas*storage.resources.compute.cpu +
-		postgres.resources.replicas*postgres.resources.compute.cpu) @cuegraph(skip)
+		postgres.resources.compute.cpu) @cuegraph(skip)
 
 	_totalResourcesMemory: (
 				hasura.resources.replicas*hasura.resources.compute.memory +
 		auth.resources.replicas*auth.resources.compute.memory +
 		storage.resources.replicas*storage.resources.compute.memory +
-		postgres.resources.replicas*postgres.resources.compute.memory) @cuegraph(skip)
+		postgres.resources.compute.memory) @cuegraph(skip)
 
 	_validateResourcesTotalCpuMemoryRatioMustBe1For2: (
 								_totalResourcesCPU*2.048 & _totalResourcesMemory*1.0) @cuegraph(skip)
@@ -114,33 +114,35 @@ import (
 
 // Resource configuration for a service
 #Resources: {
-	compute?: {
-		// milicpus, 1000 milicpus = 1 cpu
-		cpu: uint32 & >=250 & <=15000
-		// MiB: 128MiB to 30GiB
-		memory: uint32 & >=128 & <=30720
-
-		// validate CPU steps of 250 milicpus
-		_validateCPUSteps250: (mod(cpu, 250) == 0) & true @cuegraph(skip)
-
-		// validate memory steps of 128 MiB
-		_validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
-	}
+	compute?: #ResourcesCompute
 
 	// Number of replicas for a service
-	replicas?:    uint8 & >=1 & <=10 | *1
+	replicas:    uint8 & >=1 & <=10 | *1
 	autoscaler?: #Autoscaler
 
 	_validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
 
 	_validateMultipleReplicasNeedsCompute: (
-						(replicas == _|_ | replicas == 1) && autoscaler == _|_ |
+						replicas == 1 && autoscaler == _|_ |
 							compute != _|_) & true @cuegraph(skip)
 	_validateMultipleReplicasRatioMustBe1For2: (
 							replicas == 1 && autoscaler == _|_ |
 		(compute.cpu*2.048 == compute.memory)) & true @cuegraph(skip)
 
 	networking?: #Networking | null
+}
+
+#ResourcesCompute: {
+    // milicpus, 1000 milicpus = 1 cpu
+    cpu: uint32 & >=250 & <=15000
+    // MiB: 128MiB to 30GiB
+    memory: uint32 & >=128 & <=30720
+
+    // validate CPU steps of 250 milicpus
+    _validateCPUSteps250: (mod(cpu, 250) == 0) & true @cuegraph(skip)
+
+    // validate memory steps of 128 MiB
+    _validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
 }
 
 // Configuration for hasura service
@@ -256,16 +258,14 @@ import (
 
 	// Resources for the service
 	resources: {
-		#Resources
+        compute?: #ResourcesCompute
 		storage: {
 			capacity: uint32 & >=1 & <=1000 // GiB
 		}
 
+        replicas?: 1
+
 		enablePublicAccess?: bool | *false
-	} & {
-		replicas?:   1
-		networking?: null
-		autoscaler?: null
 	}
 
 	settings?: {

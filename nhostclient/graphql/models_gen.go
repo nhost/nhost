@@ -927,24 +927,28 @@ type ConfigPostgres struct {
 }
 
 type ConfigPostgresResources struct {
-	Autoscaler         *ConfigAutoscaler       `json:"autoscaler,omitempty"`
-	Compute            *ConfigResourcesCompute `json:"compute,omitempty"`
-	EnablePublicAccess *bool                   `json:"enablePublicAccess,omitempty"`
-	Networking         *ConfigNetworking       `json:"networking,omitempty"`
-	Replicas           *uint32                 `json:"replicas,omitempty"`
-	Storage            *ConfigPostgresStorage  `json:"storage"`
+	Compute            *ConfigResourcesCompute         `json:"compute,omitempty"`
+	EnablePublicAccess *bool                           `json:"enablePublicAccess,omitempty"`
+	Storage            *ConfigPostgresResourcesStorage `json:"storage"`
+}
+
+type ConfigPostgresResourcesStorage struct {
+	Capacity uint32 `json:"capacity"`
+}
+
+type ConfigPostgresResourcesStorageUpdateInput struct {
+	Capacity *uint32 `json:"capacity,omitempty"`
 }
 
 type ConfigPostgresResourcesUpdateInput struct {
-	Autoscaler         *ConfigAutoscalerUpdateInput       `json:"autoscaler,omitempty"`
-	Compute            *ConfigResourcesComputeUpdateInput `json:"compute,omitempty"`
-	EnablePublicAccess *bool                              `json:"enablePublicAccess,omitempty"`
-	Networking         *ConfigNetworkingUpdateInput       `json:"networking,omitempty"`
-	Replicas           *uint32                            `json:"replicas,omitempty"`
-	Storage            *ConfigPostgresStorageUpdateInput  `json:"storage,omitempty"`
+	Compute            *ConfigResourcesComputeUpdateInput         `json:"compute,omitempty"`
+	EnablePublicAccess *bool                                      `json:"enablePublicAccess,omitempty"`
+	Storage            *ConfigPostgresResourcesStorageUpdateInput `json:"storage,omitempty"`
 }
 
 type ConfigPostgresSettings struct {
+	ArchiveMode                   *string  `json:"archiveMode,omitempty"`
+	ArchiveTimeout                *string  `json:"archiveTimeout,omitempty"`
 	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty"`
 	DefaultStatisticsTarget       *string  `json:"defaultStatisticsTarget,omitempty"`
 	EffectiveCacheSize            *string  `json:"effectiveCacheSize,omitempty"`
@@ -969,6 +973,8 @@ type ConfigPostgresSettings struct {
 }
 
 type ConfigPostgresSettingsUpdateInput struct {
+	ArchiveMode                   *string  `json:"archiveMode,omitempty"`
+	ArchiveTimeout                *string  `json:"archiveTimeout,omitempty"`
 	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty"`
 	DefaultStatisticsTarget       *string  `json:"defaultStatisticsTarget,omitempty"`
 	EffectiveCacheSize            *string  `json:"effectiveCacheSize,omitempty"`
@@ -990,14 +996,6 @@ type ConfigPostgresSettingsUpdateInput struct {
 	WalBuffers                    *string  `json:"walBuffers,omitempty"`
 	WalLevel                      *string  `json:"walLevel,omitempty"`
 	WorkMem                       *string  `json:"workMem,omitempty"`
-}
-
-type ConfigPostgresStorage struct {
-	Capacity uint32 `json:"capacity"`
-}
-
-type ConfigPostgresStorageUpdateInput struct {
-	Capacity *uint32 `json:"capacity,omitempty"`
 }
 
 type ConfigPostgresUpdateInput struct {

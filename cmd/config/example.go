@@ -391,12 +391,10 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 					Memory: 4096,
 				},
 				EnablePublicAccess: ptr(true),
-				Replicas:           ptr(uint8(1)),
-				Networking:         nil,
-				Storage: &model.ConfigPostgresStorage{
+				Storage: &model.ConfigPostgresResourcesStorage{
 					Capacity: 20,
 				},
-				Autoscaler: nil,
+				Replicas: nil,
 			},
 			Settings: &model.ConfigPostgresSettings{
 				Jit:                           ptr("off"),

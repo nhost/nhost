@@ -3025,21 +3025,13 @@ type ConfigPostgresResources {
     """
     compute: ConfigResourcesCompute
     """
-    Number of replicas for a service
+
     """
-    replicas: ConfigUint8
+    storage: ConfigPostgresResourcesStorage!
     """
 
     """
-    autoscaler: ConfigAutoscaler
-    """
-
-    """
-    networking: ConfigNetworking
-    """
-
-    """
-    storage: ConfigPostgresStorage!
+    replicas: Int
     """
 
     """
@@ -3048,19 +3040,15 @@ type ConfigPostgresResources {
 
 input ConfigPostgresResourcesUpdateInput {
     compute: ConfigResourcesComputeUpdateInput
-    replicas: ConfigUint8
-    autoscaler: ConfigAutoscalerUpdateInput
-    networking: ConfigNetworkingUpdateInput
-    storage: ConfigPostgresStorageUpdateInput
+    storage: ConfigPostgresResourcesStorageUpdateInput
+    replicas: Int
     enablePublicAccess: Boolean
 }
 
 input ConfigPostgresResourcesInsertInput {
     compute: ConfigResourcesComputeInsertInput
-    replicas: ConfigUint8
-    autoscaler: ConfigAutoscalerInsertInput
-    networking: ConfigNetworkingInsertInput
-    storage: ConfigPostgresStorageInsertInput!
+    storage: ConfigPostgresResourcesStorageInsertInput!
+    replicas: Int
     enablePublicAccess: Boolean
 }
 
@@ -3069,11 +3057,34 @@ input ConfigPostgresResourcesComparisonExp {
     _not: ConfigPostgresResourcesComparisonExp
     _or: [ConfigPostgresResourcesComparisonExp!]
     compute: ConfigResourcesComputeComparisonExp
-    replicas: ConfigUint8ComparisonExp
-    autoscaler: ConfigAutoscalerComparisonExp
-    networking: ConfigNetworkingComparisonExp
-    storage: ConfigPostgresStorageComparisonExp
+    storage: ConfigPostgresResourcesStorageComparisonExp
+    replicas: ConfigIntComparisonExp
     enablePublicAccess: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresResourcesStorage {
+    """
+
+    """
+    capacity: ConfigUint32!
+}
+
+input ConfigPostgresResourcesStorageUpdateInput {
+    capacity: ConfigUint32
+}
+
+input ConfigPostgresResourcesStorageInsertInput {
+    capacity: ConfigUint32!
+}
+
+input ConfigPostgresResourcesStorageComparisonExp {
+    _and: [ConfigPostgresResourcesStorageComparisonExp!]
+    _not: ConfigPostgresResourcesStorageComparisonExp
+    _or: [ConfigPostgresResourcesStorageComparisonExp!]
+    capacity: ConfigUint32ComparisonExp
 }
 
 """
@@ -3239,31 +3250,6 @@ input ConfigPostgresSettingsComparisonExp {
     walLevel: ConfigStringComparisonExp
     maxWalSenders: ConfigInt32ComparisonExp
     maxReplicationSlots: ConfigInt32ComparisonExp
-}
-
-"""
-
-"""
-type ConfigPostgresStorage {
-    """
-    GiB
-    """
-    capacity: ConfigUint32!
-}
-
-input ConfigPostgresStorageUpdateInput {
-    capacity: ConfigUint32
-}
-
-input ConfigPostgresStorageInsertInput {
-    capacity: ConfigUint32!
-}
-
-input ConfigPostgresStorageComparisonExp {
-    _and: [ConfigPostgresStorageComparisonExp!]
-    _not: ConfigPostgresStorageComparisonExp
-    _or: [ConfigPostgresStorageComparisonExp!]
-    capacity: ConfigUint32ComparisonExp
 }
 
 """

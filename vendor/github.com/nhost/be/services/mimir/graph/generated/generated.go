@@ -509,12 +509,14 @@ type ComplexityRoot struct {
 	}
 
 	ConfigPostgresResources struct {
-		Autoscaler         func(childComplexity int) int
 		Compute            func(childComplexity int) int
 		EnablePublicAccess func(childComplexity int) int
-		Networking         func(childComplexity int) int
 		Replicas           func(childComplexity int) int
 		Storage            func(childComplexity int) int
+	}
+
+	ConfigPostgresResourcesStorage struct {
+		Capacity func(childComplexity int) int
 	}
 
 	ConfigPostgresSettings struct {
@@ -539,10 +541,6 @@ type ComplexityRoot struct {
 		WalBuffers                    func(childComplexity int) int
 		WalLevel                      func(childComplexity int) int
 		WorkMem                       func(childComplexity int) int
-	}
-
-	ConfigPostgresStorage struct {
-		Capacity func(childComplexity int) int
 	}
 
 	ConfigProvider struct {
@@ -2459,13 +2457,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigPostgres.Version(childComplexity), true
 
-	case "ConfigPostgresResources.autoscaler":
-		if e.complexity.ConfigPostgresResources.Autoscaler == nil {
-			break
-		}
-
-		return e.complexity.ConfigPostgresResources.Autoscaler(childComplexity), true
-
 	case "ConfigPostgresResources.compute":
 		if e.complexity.ConfigPostgresResources.Compute == nil {
 			break
@@ -2480,13 +2471,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigPostgresResources.EnablePublicAccess(childComplexity), true
 
-	case "ConfigPostgresResources.networking":
-		if e.complexity.ConfigPostgresResources.Networking == nil {
-			break
-		}
-
-		return e.complexity.ConfigPostgresResources.Networking(childComplexity), true
-
 	case "ConfigPostgresResources.replicas":
 		if e.complexity.ConfigPostgresResources.Replicas == nil {
 			break
@@ -2500,6 +2484,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigPostgresResources.Storage(childComplexity), true
+
+	case "ConfigPostgresResourcesStorage.capacity":
+		if e.complexity.ConfigPostgresResourcesStorage.Capacity == nil {
+			break
+		}
+
+		return e.complexity.ConfigPostgresResourcesStorage.Capacity(childComplexity), true
 
 	case "ConfigPostgresSettings.checkpointCompletionTarget":
 		if e.complexity.ConfigPostgresSettings.CheckpointCompletionTarget == nil {
@@ -2647,13 +2638,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigPostgresSettings.WorkMem(childComplexity), true
-
-	case "ConfigPostgresStorage.capacity":
-		if e.complexity.ConfigPostgresStorage.Capacity == nil {
-			break
-		}
-
-		return e.complexity.ConfigPostgresStorage.Capacity(childComplexity), true
 
 	case "ConfigProvider.sms":
 		if e.complexity.ConfigProvider.Sms == nil {
@@ -3655,10 +3639,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigPostgresInsertInput,
 		ec.unmarshalInputConfigPostgresResourcesComparisonExp,
 		ec.unmarshalInputConfigPostgresResourcesInsertInput,
+		ec.unmarshalInputConfigPostgresResourcesStorageComparisonExp,
+		ec.unmarshalInputConfigPostgresResourcesStorageInsertInput,
 		ec.unmarshalInputConfigPostgresSettingsComparisonExp,
 		ec.unmarshalInputConfigPostgresSettingsInsertInput,
-		ec.unmarshalInputConfigPostgresStorageComparisonExp,
-		ec.unmarshalInputConfigPostgresStorageInsertInput,
 		ec.unmarshalInputConfigProviderComparisonExp,
 		ec.unmarshalInputConfigProviderInsertInput,
 		ec.unmarshalInputConfigRateLimitComparisonExp,
@@ -6990,21 +6974,13 @@ type ConfigPostgresResources {
     """
     compute: ConfigResourcesCompute
     """
-    Number of replicas for a service
+
     """
-    replicas: ConfigUint8
+    storage: ConfigPostgresResourcesStorage!
     """
 
     """
-    autoscaler: ConfigAutoscaler
-    """
-
-    """
-    networking: ConfigNetworking
-    """
-
-    """
-    storage: ConfigPostgresStorage!
+    replicas: Int
     """
 
     """
@@ -7013,19 +6989,15 @@ type ConfigPostgresResources {
 
 input ConfigPostgresResourcesUpdateInput {
     compute: ConfigResourcesComputeUpdateInput
-    replicas: ConfigUint8
-    autoscaler: ConfigAutoscalerUpdateInput
-    networking: ConfigNetworkingUpdateInput
-    storage: ConfigPostgresStorageUpdateInput
+    storage: ConfigPostgresResourcesStorageUpdateInput
+    replicas: Int
     enablePublicAccess: Boolean
 }
 
 input ConfigPostgresResourcesInsertInput {
     compute: ConfigResourcesComputeInsertInput
-    replicas: ConfigUint8
-    autoscaler: ConfigAutoscalerInsertInput
-    networking: ConfigNetworkingInsertInput
-    storage: ConfigPostgresStorageInsertInput!
+    storage: ConfigPostgresResourcesStorageInsertInput!
+    replicas: Int
     enablePublicAccess: Boolean
 }
 
@@ -7034,11 +7006,34 @@ input ConfigPostgresResourcesComparisonExp {
     _not: ConfigPostgresResourcesComparisonExp
     _or: [ConfigPostgresResourcesComparisonExp!]
     compute: ConfigResourcesComputeComparisonExp
-    replicas: ConfigUint8ComparisonExp
-    autoscaler: ConfigAutoscalerComparisonExp
-    networking: ConfigNetworkingComparisonExp
-    storage: ConfigPostgresStorageComparisonExp
+    storage: ConfigPostgresResourcesStorageComparisonExp
+    replicas: ConfigIntComparisonExp
     enablePublicAccess: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresResourcesStorage {
+    """
+
+    """
+    capacity: ConfigUint32!
+}
+
+input ConfigPostgresResourcesStorageUpdateInput {
+    capacity: ConfigUint32
+}
+
+input ConfigPostgresResourcesStorageInsertInput {
+    capacity: ConfigUint32!
+}
+
+input ConfigPostgresResourcesStorageComparisonExp {
+    _and: [ConfigPostgresResourcesStorageComparisonExp!]
+    _not: ConfigPostgresResourcesStorageComparisonExp
+    _or: [ConfigPostgresResourcesStorageComparisonExp!]
+    capacity: ConfigUint32ComparisonExp
 }
 
 """
@@ -7204,31 +7199,6 @@ input ConfigPostgresSettingsComparisonExp {
     walLevel: ConfigStringComparisonExp
     maxWalSenders: ConfigInt32ComparisonExp
     maxReplicationSlots: ConfigInt32ComparisonExp
-}
-
-"""
-
-"""
-type ConfigPostgresStorage {
-    """
-    GiB
-    """
-    capacity: ConfigUint32!
-}
-
-input ConfigPostgresStorageUpdateInput {
-    capacity: ConfigUint32
-}
-
-input ConfigPostgresStorageInsertInput {
-    capacity: ConfigUint32!
-}
-
-input ConfigPostgresStorageComparisonExp {
-    _and: [ConfigPostgresStorageComparisonExp!]
-    _not: ConfigPostgresStorageComparisonExp
-    _or: [ConfigPostgresStorageComparisonExp!]
-    capacity: ConfigUint32ComparisonExp
 }
 
 """
@@ -20962,14 +20932,10 @@ func (ec *executionContext) fieldContext_ConfigPostgres_resources(_ context.Cont
 			switch field.Name {
 			case "compute":
 				return ec.fieldContext_ConfigPostgresResources_compute(ctx, field)
-			case "replicas":
-				return ec.fieldContext_ConfigPostgresResources_replicas(ctx, field)
-			case "autoscaler":
-				return ec.fieldContext_ConfigPostgresResources_autoscaler(ctx, field)
-			case "networking":
-				return ec.fieldContext_ConfigPostgresResources_networking(ctx, field)
 			case "storage":
 				return ec.fieldContext_ConfigPostgresResources_storage(ctx, field)
+			case "replicas":
+				return ec.fieldContext_ConfigPostgresResources_replicas(ctx, field)
 			case "enablePublicAccess":
 				return ec.fieldContext_ConfigPostgresResources_enablePublicAccess(ctx, field)
 			}
@@ -21111,137 +21077,6 @@ func (ec *executionContext) fieldContext_ConfigPostgresResources_compute(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ConfigPostgresResources_replicas(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResources) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ConfigPostgresResources_replicas(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Replicas, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*uint8)
-	fc.Result = res
-	return ec.marshalOConfigUint82ᚖuint8(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ConfigPostgresResources_replicas(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigPostgresResources",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ConfigUint8 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigPostgresResources_autoscaler(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResources) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ConfigPostgresResources_autoscaler(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Autoscaler, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.ConfigAutoscaler)
-	fc.Result = res
-	return ec.marshalOConfigAutoscaler2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscaler(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ConfigPostgresResources_autoscaler(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigPostgresResources",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "maxReplicas":
-				return ec.fieldContext_ConfigAutoscaler_maxReplicas(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigAutoscaler", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigPostgresResources_networking(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResources) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ConfigPostgresResources_networking(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Networking, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.ConfigNetworking)
-	fc.Result = res
-	return ec.marshalOConfigNetworking2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworking(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ConfigPostgresResources_networking(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigPostgresResources",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "ingresses":
-				return ec.fieldContext_ConfigNetworking_ingresses(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigNetworking", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ConfigPostgresResources_storage(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResources) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigPostgresResources_storage(ctx, field)
 	if err != nil {
@@ -21268,9 +21103,9 @@ func (ec *executionContext) _ConfigPostgresResources_storage(ctx context.Context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ConfigPostgresStorage)
+	res := resTmp.(*model.ConfigPostgresResourcesStorage)
 	fc.Result = res
-	return ec.marshalNConfigPostgresStorage2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorage(ctx, field.Selections, res)
+	return ec.marshalNConfigPostgresResourcesStorage2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ConfigPostgresResources_storage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21282,9 +21117,50 @@ func (ec *executionContext) fieldContext_ConfigPostgresResources_storage(_ conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "capacity":
-				return ec.fieldContext_ConfigPostgresStorage_capacity(ctx, field)
+				return ec.fieldContext_ConfigPostgresResourcesStorage_capacity(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresStorage", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresResourcesStorage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgresResources_replicas(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResources) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigPostgresResources_replicas(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Replicas, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgresResources_replicas(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgresResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -21326,6 +21202,50 @@ func (ec *executionContext) fieldContext_ConfigPostgresResources_enablePublicAcc
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgresResourcesStorage_capacity(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResourcesStorage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigPostgresResourcesStorage_capacity(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Capacity, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint32)
+	fc.Result = res
+	return ec.marshalNConfigUint322uint32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgresResourcesStorage_capacity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgresResourcesStorage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -22187,50 +22107,6 @@ func (ec *executionContext) fieldContext_ConfigPostgresSettings_maxReplicationSl
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ConfigInt32 does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigPostgresStorage_capacity(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresStorage) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ConfigPostgresStorage_capacity(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Capacity, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(uint32)
-	fc.Result = res
-	return ec.marshalNConfigUint322uint32(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ConfigPostgresStorage_capacity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigPostgresStorage",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ConfigUint32 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -37213,7 +37089,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "replicas", "autoscaler", "networking", "storage", "enablePublicAccess"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "storage", "replicas", "enablePublicAccess"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37248,34 +37124,20 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 				return it, err
 			}
 			it.Compute = data
-		case "replicas":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replicas"))
-			data, err := ec.unmarshalOConfigUint8ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Replicas = data
-		case "autoscaler":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoscaler"))
-			data, err := ec.unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Autoscaler = data
-		case "networking":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("networking"))
-			data, err := ec.unmarshalOConfigNetworkingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Networking = data
 		case "storage":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storage"))
-			data, err := ec.unmarshalOConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx, v)
+			data, err := ec.unmarshalOConfigPostgresResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageComparisonExp(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Storage = data
+		case "replicas":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replicas"))
+			data, err := ec.unmarshalOConfigIntComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Replicas = data
 		case "enablePublicAccess":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enablePublicAccess"))
 			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
@@ -37296,7 +37158,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"compute", "replicas", "autoscaler", "networking", "storage", "enablePublicAccess"}
+	fieldsInOrder := [...]string{"compute", "storage", "replicas", "enablePublicAccess"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37310,34 +37172,20 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 				return it, err
 			}
 			it.Compute = data
-		case "replicas":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replicas"))
-			data, err := ec.unmarshalOConfigUint82ᚖuint8(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Replicas = data
-		case "autoscaler":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoscaler"))
-			data, err := ec.unmarshalOConfigAutoscalerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerInsertInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Autoscaler = data
-		case "networking":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("networking"))
-			data, err := ec.unmarshalOConfigNetworkingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingInsertInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Networking = data
 		case "storage":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storage"))
-			data, err := ec.unmarshalNConfigPostgresStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageInsertInput(ctx, v)
+			data, err := ec.unmarshalNConfigPostgresResourcesStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageInsertInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Storage = data
+		case "replicas":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replicas"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Replicas = data
 		case "enablePublicAccess":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enablePublicAccess"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -37345,6 +37193,81 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 				return it, err
 			}
 			it.EnablePublicAccess = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigPostgresResourcesStorageComparisonExp(ctx context.Context, obj any) (model.ConfigPostgresResourcesStorageComparisonExp, error) {
+	var it model.ConfigPostgresResourcesStorageComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "capacity"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigPostgresResourcesStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigPostgresResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigPostgresResourcesStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "capacity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("capacity"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Capacity = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigPostgresResourcesStorageInsertInput(ctx context.Context, obj any) (model.ConfigPostgresResourcesStorageInsertInput, error) {
+	var it model.ConfigPostgresResourcesStorageInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"capacity"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "capacity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("capacity"))
+			data, err := ec.unmarshalNConfigUint322uint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Capacity = data
 		}
 	}
 
@@ -37700,81 +37623,6 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx 
 				return it, err
 			}
 			it.MaxReplicationSlots = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputConfigPostgresStorageComparisonExp(ctx context.Context, obj any) (model.ConfigPostgresStorageComparisonExp, error) {
-	var it model.ConfigPostgresStorageComparisonExp
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "capacity"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "_and":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
-			data, err := ec.unmarshalOConfigPostgresStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExpᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.And = data
-		case "_not":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
-			data, err := ec.unmarshalOConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Not = data
-		case "_or":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
-			data, err := ec.unmarshalOConfigPostgresStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExpᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Or = data
-		case "capacity":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("capacity"))
-			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Capacity = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputConfigPostgresStorageInsertInput(ctx context.Context, obj any) (model.ConfigPostgresStorageInsertInput, error) {
-	var it model.ConfigPostgresStorageInsertInput
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"capacity"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "capacity":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("capacity"))
-			data, err := ec.unmarshalNConfigUint322uint32(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Capacity = data
 		}
 	}
 
@@ -43827,19 +43675,54 @@ func (ec *executionContext) _ConfigPostgresResources(ctx context.Context, sel as
 			out.Values[i] = graphql.MarshalString("ConfigPostgresResources")
 		case "compute":
 			out.Values[i] = ec._ConfigPostgresResources_compute(ctx, field, obj)
-		case "replicas":
-			out.Values[i] = ec._ConfigPostgresResources_replicas(ctx, field, obj)
-		case "autoscaler":
-			out.Values[i] = ec._ConfigPostgresResources_autoscaler(ctx, field, obj)
-		case "networking":
-			out.Values[i] = ec._ConfigPostgresResources_networking(ctx, field, obj)
 		case "storage":
 			out.Values[i] = ec._ConfigPostgresResources_storage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "replicas":
+			out.Values[i] = ec._ConfigPostgresResources_replicas(ctx, field, obj)
 		case "enablePublicAccess":
 			out.Values[i] = ec._ConfigPostgresResources_enablePublicAccess(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configPostgresResourcesStorageImplementors = []string{"ConfigPostgresResourcesStorage"}
+
+func (ec *executionContext) _ConfigPostgresResourcesStorage(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigPostgresResourcesStorage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configPostgresResourcesStorageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigPostgresResourcesStorage")
+		case "capacity":
+			out.Values[i] = ec._ConfigPostgresResourcesStorage_capacity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43916,45 +43799,6 @@ func (ec *executionContext) _ConfigPostgresSettings(ctx context.Context, sel ast
 			out.Values[i] = ec._ConfigPostgresSettings_maxWalSenders(ctx, field, obj)
 		case "maxReplicationSlots":
 			out.Values[i] = ec._ConfigPostgresSettings_maxReplicationSlots(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var configPostgresStorageImplementors = []string{"ConfigPostgresStorage"}
-
-func (ec *executionContext) _ConfigPostgresStorage(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigPostgresStorage) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, configPostgresStorageImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ConfigPostgresStorage")
-		case "capacity":
-			out.Values[i] = ec._ConfigPostgresStorage_capacity(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46854,28 +46698,28 @@ func (ec *executionContext) unmarshalNConfigPostgresResourcesInsertInput2ᚖgith
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigPostgresSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresSettingsComparisonExp, error) {
-	res, err := ec.unmarshalInputConfigPostgresSettingsComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNConfigPostgresStorage2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorage(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgresStorage) graphql.Marshaler {
+func (ec *executionContext) marshalNConfigPostgresResourcesStorage2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorage(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgresResourcesStorage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._ConfigPostgresStorage(ctx, sel, v)
+	return ec._ConfigPostgresResourcesStorage(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresStorageComparisonExp, error) {
-	res, err := ec.unmarshalInputConfigPostgresStorageComparisonExp(ctx, v)
+func (ec *executionContext) unmarshalNConfigPostgresResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresResourcesStorageComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigPostgresResourcesStorageComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigPostgresStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageInsertInput(ctx context.Context, v any) (*model.ConfigPostgresStorageInsertInput, error) {
-	res, err := ec.unmarshalInputConfigPostgresStorageInsertInput(ctx, v)
+func (ec *executionContext) unmarshalNConfigPostgresResourcesStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageInsertInput(ctx context.Context, v any) (*model.ConfigPostgresResourcesStorageInsertInput, error) {
+	res, err := ec.unmarshalInputConfigPostgresResourcesStorageInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigPostgresSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresSettingsComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresSettingsComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigPostgresSettingsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -52408,6 +52252,43 @@ func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚖgi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOConfigPostgresResourcesStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigPostgresResourcesStorageComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigPostgresResourcesStorageComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigPostgresResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigPostgresResourcesStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresResourcesStorageComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigPostgresResourcesStorageComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigPostgresResourcesStorageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesStorageUpdateInput(ctx context.Context, v any) (*model.ConfigPostgresResourcesStorageUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigPostgresResourcesStorageUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOConfigPostgresResourcesUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesUpdateInput(ctx context.Context, v any) (*model.ConfigPostgresResourcesUpdateInput, error) {
 	if v == nil {
 		return nil, nil
@@ -52465,43 +52346,6 @@ func (ec *executionContext) unmarshalOConfigPostgresSettingsUpdateInput2ᚖgithu
 		return nil, nil
 	}
 	var res = new(model.ConfigPostgresSettingsUpdateInput)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigPostgresStorageComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigPostgresStorageComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.ConfigPostgresStorageComparisonExp, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalOConfigPostgresStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresStorageComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigPostgresStorageComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigPostgresStorageUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresStorageUpdateInput(ctx context.Context, v any) (*model.ConfigPostgresStorageUpdateInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.ConfigPostgresStorageUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

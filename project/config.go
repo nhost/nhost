@@ -26,7 +26,7 @@ func DefaultConfig() (*model.ConfigConfig, error) {
 		},
 		Postgres: &model.ConfigPostgres{ //nolint:exhaustruct
 			Resources: &model.ConfigPostgresResources{ //nolint:exhaustruct
-				Storage: &model.ConfigPostgresStorage{
+				Storage: &model.ConfigPostgresResourcesStorage{
 					Capacity: 1,
 				},
 			},
