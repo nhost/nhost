@@ -37,14 +37,24 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, replicas, autoscaler } =
+  if (service === 'postgres') {
+    const { compute, ...rest } = data?.config?.[service]?.resources || {};
+    return {
+      replicas: 1,
+      vcpu: compute?.cpu || 0,
+      memory: compute?.memory || 0,
+      autoscale: null,
+      rest,
+    };
+  }
+  const { compute, autoscaler, replicas, ...rest } =
     data?.config?.[service]?.resources || {};
-
   return {
     replicas,
     vcpu: compute?.cpu || 0,
     memory: compute?.memory || 0,
     autoscale: autoscaler || null,
+    rest,
   };
 }
 
@@ -190,12 +200,6 @@ export default function ResourcesForm() {
                     cpu: formValues.database.vcpu,
                     memory: formValues.database.memory,
                   },
-                  replicas: formValues.database.replicas,
-                  autoscaler: formValues.database.autoscale
-                    ? {
-                        maxReplicas: formValues.database.maxReplicas,
-                      }
-                    : null,
                 }
               : null,
           },

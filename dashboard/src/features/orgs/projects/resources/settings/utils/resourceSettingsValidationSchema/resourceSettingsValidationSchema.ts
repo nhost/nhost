@@ -76,7 +76,7 @@ export const MAX_SERVICE_MEMORY =
   RESOURCE_VCPU_MEMORY_RATIO *
   RESOURCE_MEMORY_MULTIPLIER;
 
-const serviceValidationSchema = Yup.object({
+const genericServiceValidationSchema = Yup.object({
   replicas: Yup.number()
     .label('Replicas')
     .required()
@@ -115,6 +115,18 @@ const serviceValidationSchema = Yup.object({
     ),
 });
 
+const postgresServiceValidationSchema = Yup.object({
+  vcpu: Yup.number()
+    .label('vCPUs')
+    .required()
+    .min(MIN_SERVICE_VCPU)
+    .max(MAX_SERVICE_VCPU),
+  memory: Yup.number()
+    .required()
+    .min(MIN_SERVICE_MEMORY)
+    .max(MAX_SERVICE_MEMORY)
+});
+
 export const resourceSettingsValidationSchema = Yup.object({
   enabled: Yup.boolean(),
   totalAvailableVCPU: Yup.number()
@@ -147,10 +159,10 @@ export const resourceSettingsValidationSchema = Yup.object({
           parent.storage.memory ===
         totalAvailableMemory,
     ),
-  database: serviceValidationSchema.required(),
-  hasura: serviceValidationSchema.required(),
-  auth: serviceValidationSchema.required(),
-  storage: serviceValidationSchema.required(),
+  database: postgresServiceValidationSchema.required(),
+  hasura: genericServiceValidationSchema.required(),
+  auth: genericServiceValidationSchema.required(),
+  storage: genericServiceValidationSchema.required(),
 });
 
 export type ResourceSettingsFormValues = Yup.InferType<

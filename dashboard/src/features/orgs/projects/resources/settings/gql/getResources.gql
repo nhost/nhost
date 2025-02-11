@@ -43,10 +43,6 @@ fragment ServiceResources on ConfigConfig {
         cpu
         memory
       }
-      replicas
-      autoscaler {
-        maxReplicas
-      }
     }
   }
   storage {

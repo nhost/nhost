@@ -40,9 +40,16 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, replicas, autoscaler, ...rest } =
+  if (service === 'postgres') {
+    const { compute, ...rest } = data?.config?.[service]?.resources || {};
+    return {
+      vcpu: compute?.cpu || 0,
+      memory: compute?.memory || 0,
+      rest,
+    };
+  }
+  const { compute, autoscaler, replicas, ...rest } =
     data?.config?.[service]?.resources || {};
-
   return {
     replicas,
     vcpu: compute?.cpu || 0,
@@ -103,11 +110,8 @@ export default function ResourcesForm() {
       totalAvailableVCPU: totalInitialVCPU || 2000,
       totalAvailableMemory: totalInitialMemory || 4096,
       database: {
-        replicas: initialDatabaseResources.replicas || 1,
         vcpu: initialDatabaseResources.vcpu || 1000,
         memory: initialDatabaseResources.memory || 2048,
-        autoscale: !!initialDatabaseResources.autoscale || false,
-        maxReplicas: initialDatabaseResources.autoscale?.maxReplicas || 10,
       },
       hasura: {
         replicas: initialHasuraResources.replicas || 1,
@@ -160,7 +164,7 @@ export default function ResourcesForm() {
 
   const billableResources = calculateBillableResources(
     {
-      replicas: initialDatabaseResources.replicas,
+      replicas: 1,
       vcpu: initialDatabaseResources.vcpu,
     },
     {
@@ -207,12 +211,6 @@ export default function ResourcesForm() {
               cpu: sanitizedValues.database.vcpu,
               memory: sanitizedValues.database.memory,
             },
-            replicas: sanitizedValues.database.replicas,
-            autoscaler: sanitizedValues.database.autoscale
-              ? {
-                  maxReplicas: sanitizedValues.database.maxReplicas,
-                }
-              : null,
             ...sanitizedInitialDatabaseResources.rest,
           },
         },
@@ -268,8 +266,6 @@ export default function ResourcesForm() {
       postgres: {
         resources: {
           compute: null,
-          replicas: null,
-          autoscaler: null,
           ...sanitizedInitialDatabaseResources.rest,
         },
       },
@@ -341,9 +337,6 @@ export default function ResourcesForm() {
           totalAvailableVCPU: 2000,
           totalAvailableMemory: 4096,
           database: {
-            replicas: 1,
-            maxReplicas: 1,
-            autoscale: false,
             vcpu: 1000,
             memory: 2048,
           },
