@@ -21,7 +21,7 @@ export default function SecurityPage() {
           <Glow className="top-5 h-32 w-32 bg-opacity-50 blur-3xl lg:top-16" />
           <SectionHeading
             title="Security at Nhost"
-            subtitle="Thousands of developers trust Nhost to build and deploy secure applications."
+            subtitle="Engineering teams of all sizes trust Nhost to build and deploy secure applications."
             slotProps={{
               title: {
                 component: 'h1',
