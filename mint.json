@@ -1,0 +1,582 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Documentation",
+  "openapi": [
+    "reference/openapi-auth.yaml",
+    "reference/openapi-auth-old.yaml",
+    "reference/openapi-storage.yaml"
+  ],
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#3787ff",
+    "light": "#569aff",
+    "dark": "#1874ff",
+    "anchors": {
+      "from": "#1874ff",
+      "to": "#569aff"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@nhost.io"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.nhost.io"
+  },
+  "tabs": [
+    {
+      "name": "Reference",
+      "url": "reference"
+    },
+    {
+      "name": "Guides",
+      "url": "guides"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Documentation",
+      "icon": "book-open-cover",
+      "url": "introduction"
+    },
+    {
+      "name": "Community",
+      "icon": "discord",
+      "url": "https://discord.com/nhost"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://nhost.io/blog"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Overview",
+      "pages": [
+        "introduction"
+      ]
+    },
+    {
+      "group": "Product",
+      "pages": [
+        "product/database",
+        "product/graphql",
+        "product/authentication",
+        "product/storage",
+        "product/functions",
+        "product/run",
+        "product/ai"
+      ]
+    },
+    {
+      "group": "Platform",
+      "pages": [
+        "platform/subdomain",
+        "platform/compute-resources",
+        "platform/service-replicas",
+        "platform/metrics",
+        "platform/environment-variables",
+        "platform/secrets",
+        "platform/deployments",
+        "platform/custom-domains",
+        "platform/rate-limits",
+        "platform/tls",
+        "platform/billing"
+      ]
+    },
+    {
+      "group": "Development & CLI",
+      "pages": [
+        "development/cli/overview",
+        "development/cli/getting-started",
+        "development/cli/commands"
+      ]
+    },
+    {
+      "group": "API Documentation",
+      "pages": [
+        "reference/overview"
+      ]
+    },
+    {
+      "group": "Quickstarts",
+      "pages": [
+        "guides/quickstarts/react",
+        "guides/quickstarts/nextjs",
+        "guides/quickstarts/vue",
+        "guides/quickstarts/react-native",
+        "guides/quickstarts/nextjs"
+      ]
+    },
+    {
+      "group": "Tutorials",
+      "pages": [
+        "guides/tutorials/react",
+        "guides/tutorials/nextjs",
+        "guides/tutorials/vue",
+        "guides/tutorials/nextjs",
+        "guides/tutorials/react"
+      ]
+    },
+    {
+      "group": "Database",
+      "pages": [
+        "guides/database/configuring-postgres",
+        "guides/database/access",
+        "guides/database/extensions",
+        "guides/database/performance",
+        "guides/database/upgrade-major",
+        "guides/database/extensions"
+      ]
+    },
+    {
+      "group": "AI",
+      "pages": [
+        "guides/ai/enabling-service",
+        "guides/ai/local-development",
+        "guides/ai/auto-embeddings",
+        "guides/ai/assistants",
+        "guides/ai/dev-assistant",
+        "guides/ai/assistants"
+      ]
+    },
+    {
+      "group": "Authentication",
+      "pages": [
+        "guides/auth/overview",
+        "guides/auth/users",
+        "guides/auth/jwt",
+        {
+          "group": "Social Sign In",
+          "icon": "at",
+          "pages": [
+            "guides/auth/social/sign-in-apple",
+            "guides/auth/social/sign-in-azuread",
+            "guides/auth/social/sign-in-discord",
+            "guides/auth/social/sign-in-facebook",
+            "guides/auth/social/sign-in-github",
+            "guides/auth/social/sign-in-google",
+            "guides/auth/social/sign-in-linkedin",
+            "guides/auth/social/sign-in-spotify",
+            "guides/auth/social/sign-in-twitch",
+            "guides/auth/social/sign-in-workos"
+          ]
+        },
+        "guides/auth/social-connect",
+        "guides/auth/sign-in-email-password",
+        "guides/auth/sign-in-otp",
+        "guides/auth/sign-in-magic-link",
+        "guides/auth/sign-in-phone-number",
+        "guides/auth/sign-in-webauthn",
+        "guides/auth/sign-in-idtokens",
+        "guides/auth/elevated-permissions",
+        "guides/auth/bot-protection",
+        "guides/auth/email-templates",
+        "guides/auth/custom-jwts",
+        "guides/auth/users"
+      ]
+    },
+    {
+      "group": "API / Hasura",
+      "pages": [
+        "guides/api/configuring-hasura",
+        "guides/api/permissions",
+        "guides/api/advanced_features"
+      ]
+    },
+    {
+      "group": "Storage",
+      "pages": [
+        "guides/storage/overview",
+        "guides/storage/cdn",
+        "guides/storage/antivirus"
+      ]
+    },
+    {
+      "group": "Functions",
+      "pages": [
+        "guides/functions/overview",
+        "guides/functions/runtimes"
+      ]
+    },
+    {
+      "group": "Run",
+      "pages": [
+        "guides/run/getting-started",
+        "guides/run/configuration",
+        "guides/run/networking",
+        "guides/run/health-checks",
+        "guides/run/resources",
+        "guides/run/registry",
+        "guides/run/local-development",
+        "guides/run/configuration-overlays",
+        "guides/run/cli-deployments"
+      ]
+    },
+    {
+      "group": "CLI",
+      "pages": [
+        "guides/cli/local-development",
+        "guides/cli/subdomain",
+        "guides/cli/migrate-config",
+        "guides/cli/multiple-projects",
+        "guides/cli/configuration-overlays",
+        "guides/cli/seeds"
+      ]
+    },
+    {
+      "group": "Backend Services",
+      "pages": [
+        {
+          "group": "Authentication",
+          "icon": "users",
+          "pages": [
+            "reference/auth/get-.well-known-jwks.json",
+            "reference/auth/post-elevate-webauthn",
+            "reference/auth/post-elevate-webauthn-verify",
+            "reference/auth/get-healthz",
+            "reference/auth/head-healthz",
+            "reference/auth/post-link-idtoken",
+            "reference/auth/get-mfa-totp-generate",
+            "reference/auth/post-pat",
+            "reference/auth/post-signin-anonymous",
+            "reference/auth/post-signin-email-password",
+            "reference/auth/post-signin-idtoken",
+            "reference/auth/post-signin-mfa-totp",
+            "reference/auth/post-signin-otp-email",
+            "reference/auth/post-signin-otp-email-verify",
+            "reference/auth/post-signin-passwordless-email",
+            "reference/auth/post-signin-passwordless-sms",
+            "reference/auth/post-signin-passwordless-sms-otp",
+            "reference/auth/post-signin-pat",
+            "reference/auth/get-signin-provider-{provider}",
+            "reference/auth/get-signin-provider-{provider}-callback",
+            "reference/auth/post-signin-webauthn",
+            "reference/auth/post-signin-webauthn-verify",
+            "reference/auth/post-signout",
+            "reference/auth/post-signup-email-password",
+            "reference/auth/post-signup-webauthn",
+            "reference/auth/post-signup-webauthn-verify",
+            "reference/auth/post-token",
+            "reference/auth/post-token-verify",
+            "reference/auth/get-user",
+            "reference/auth/post-user-deanonymize",
+            "reference/auth/post-user-email-change",
+            "reference/auth/post-user-email-send-verification-email",
+            "reference/auth/post-user-mfa",
+            "reference/auth/post-user-password",
+            "reference/auth/post-user-password-reset",
+            "reference/auth/post-user-provider-tokens",
+            "reference/auth/post-user-webauthn-add",
+            "reference/auth/post-user-webauthn-verify",
+            "reference/auth/get-verify",
+            "reference/auth/get-version"
+          ]
+        },
+        {
+          "group": "Storage",
+          "icon": "file",
+          "pages": [
+            "reference/storage/upload-file",
+            "reference/storage/replace-file",
+            "reference/storage/delete-file",
+            "reference/storage/download-file",
+            "reference/storage/download-file-metadata",
+            "reference/storage/presigned-url",
+            "reference/storage/get-file-content"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "GraphQL",
+      "pages": [
+        {
+          "group": "AI",
+          "pages": [
+            "reference/graphql/ai/overview",
+            {
+              "group": "Query",
+              "pages": [
+                "reference/graphql/ai/query/assistant",
+                "reference/graphql/ai/query/assistants",
+                "reference/graphql/ai/query/session",
+                "reference/graphql/ai/query/sessionMessages",
+                "reference/graphql/ai/query/sessions"
+              ]
+            },
+            {
+              "group": "Mutation",
+              "pages": [
+                "reference/graphql/ai/mutation/insertAssistant",
+                "reference/graphql/ai/mutation/updateAssistant",
+                "reference/graphql/ai/mutation/deleteAssistant",
+                "reference/graphql/ai/mutation/startSession",
+                "reference/graphql/ai/mutation/deleteSession",
+                "reference/graphql/ai/mutation/sendMessage",
+                "reference/graphql/ai/mutation/startDevSession",
+                "reference/graphql/ai/mutation/sendDevMessage"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Client Libraries",
+      "pages": [
+        {
+          "group": "JavaScript",
+          "icon": "js",
+          "pages": [
+            {
+              "group": "nhost-js",
+              "pages": [
+                "reference/javascript/nhost-js/nhost-client",
+                "reference/javascript/nhost-js/set-role",
+                "reference/javascript/nhost-js/unset-role"
+              ]
+            },
+            {
+              "group": "Auth",
+              "pages": [
+                "reference/javascript/auth/hasura-auth-client",
+                "reference/javascript/auth/change-email",
+                "reference/javascript/auth/change-password",
+                "reference/javascript/auth/create-pat",
+                "reference/javascript/auth/get-access-token",
+                "reference/javascript/auth/get-authentication-status",
+                "reference/javascript/auth/get-decoded-access-token",
+                "reference/javascript/auth/get-hasura-claim",
+                "reference/javascript/auth/get-hasura-claims",
+                "reference/javascript/auth/get-session",
+                "reference/javascript/auth/get-user",
+                "reference/javascript/auth/is-authenticated",
+                "reference/javascript/auth/is-authenticated-async",
+                "reference/javascript/auth/on-auth-state-changed",
+                "reference/javascript/auth/on-token-changed",
+                "reference/javascript/auth/refresh-session",
+                "reference/javascript/auth/reset-password",
+                "reference/javascript/auth/send-verification-email",
+                "reference/javascript/auth/sign-in",
+                "reference/javascript/auth/sign-in-pat",
+                "reference/javascript/auth/sign-out",
+                "reference/javascript/auth/sign-up",
+                "reference/javascript/auth/add-security-key",
+                "reference/javascript/auth/elevate-email-security-key",
+                "reference/javascript/auth/connect-provider",
+                "reference/javascript/auth/sign-in-email-otp",
+                "reference/javascript/auth/verify-email-otp",
+                "reference/javascript/auth/sign-in-id-token",
+                "reference/javascript/auth/link-id-token",
+                "reference/javascript/auth/sign-in-security-key"
+              ]
+            },
+            {
+              "group": "Storage",
+              "pages": [
+                "reference/javascript/storage/hasura-storage-client",
+                "reference/javascript/storage/upload",
+                "reference/javascript/storage/download",
+                "reference/javascript/storage/get-presigned-url",
+                "reference/javascript/storage/get-public-url",
+                "reference/javascript/storage/delete",
+                "reference/javascript/storage/set-access-token",
+                "reference/javascript/storage/set-admin-secret",
+                "reference/javascript/storage/set-headers",
+                "reference/javascript/storage/unset-headers",
+                "reference/javascript/storage/get-headers"
+              ]
+            },
+            {
+              "group": "GraphQL ",
+              "pages": [
+                "reference/javascript/graphql/nhost-graphql-client",
+                "reference/javascript/graphql/get-url",
+                "reference/javascript/graphql/set-access-token",
+                "reference/javascript/graphql/request",
+                "reference/javascript/graphql/set-headers",
+                "reference/javascript/graphql/unset-headers",
+                "reference/javascript/graphql/get-headers"
+              ]
+            },
+            {
+              "group": "Functions ",
+              "pages": [
+                "reference/javascript/functions/create-functions-client",
+                "reference/javascript/functions/call",
+                "reference/javascript/functions/set-access-token"
+              ]
+            }
+          ]
+        },
+        {
+          "group": "React",
+          "icon": "react",
+          "pages": [
+            "reference/react/nhost-client",
+            "reference/react/signed-in",
+            "reference/react/signed-out",
+            "reference/react/use-access-token",
+            "reference/react/use-add-security-key",
+            "reference/react/use-authenticated",
+            "reference/react/use-authentication-status",
+            "reference/react/use-change-email",
+            "reference/react/use-change-password",
+            "reference/react/use-config-mfa",
+            "reference/react/use-decoded-access-token",
+            "reference/react/use-file-upload",
+            "reference/react/use-file-upload-item",
+            "reference/react/use-hasura-claim",
+            "reference/react/use-hasura-claims",
+            "reference/react/use-multiple-files-upload",
+            "reference/react/use-nhost-client",
+            "reference/react/use-provider-link",
+            "reference/react/use-reset-password",
+            "reference/react/use-send-verification-email",
+            "reference/react/use-sign-in-anonymous",
+            "reference/react/use-sign-in-email-password",
+            "reference/react/use-sign-in-email-passwordless",
+            "reference/react/use-sign-in-email-security-key",
+            "reference/react/use-sign-in-pat",
+            "reference/react/use-sign-in-sms-passwordless",
+            "reference/react/use-sign-out",
+            "reference/react/use-sign-up-email-password",
+            "reference/react/use-sign-up-email-security-key-email",
+            "reference/react/use-elevate-security-key-email",
+            "reference/react/use-user-avatar-url",
+            "reference/react/use-user-data",
+            "reference/react/use-user-default-role",
+            "reference/react/use-user-display-name",
+            "reference/react/use-user-email",
+            "reference/react/use-user-id",
+            "reference/react/use-user-is-anonymous",
+            "reference/react/use-user-locale",
+            "reference/react/use-user-roles",
+            "reference/react/use-sign-in-email-otp",
+            "reference/react/use-sign-in-id-token",
+            "reference/react/use-link-id-token",
+            "reference/react/use-sign-in-security-key"
+          ]
+        },
+        {
+          "group": "Next.js",
+          "icon": "react",
+          "pages": [
+            "reference/nextjs/nhost-client",
+            "reference/nextjs/signed-in",
+            "reference/nextjs/signed-out",
+            "reference/nextjs/create-server-side-client",
+            "reference/nextjs/get-nhost-session",
+            "reference/nextjs/use-access-token",
+            "reference/nextjs/use-add-security-key",
+            "reference/nextjs/use-authenticated",
+            "reference/nextjs/use-authentication-status",
+            "reference/nextjs/use-change-email",
+            "reference/nextjs/use-change-password",
+            "reference/nextjs/use-config-mfa",
+            "reference/nextjs/use-decoded-access-token",
+            "reference/nextjs/use-file-upload",
+            "reference/nextjs/use-file-upload-item",
+            "reference/nextjs/use-hasura-claim",
+            "reference/nextjs/use-hasura-claims",
+            "reference/nextjs/use-multiple-files-upload",
+            "reference/nextjs/use-nhost-client",
+            "reference/nextjs/use-provider-link",
+            "reference/nextjs/use-reset-password",
+            "reference/nextjs/use-send-verification-email",
+            "reference/nextjs/use-sign-in-anonymous",
+            "reference/nextjs/use-sign-in-email-password",
+            "reference/nextjs/use-sign-in-email-passwordless",
+            "reference/nextjs/use-sign-in-email-security-key",
+            "reference/nextjs/use-sign-in-pat",
+            "reference/nextjs/use-sign-in-sms-passwordless",
+            "reference/nextjs/use-sign-out",
+            "reference/nextjs/use-sign-up-email-password",
+            "reference/nextjs/use-sign-up-email-security-key-email",
+            "reference/nextjs/use-elevate-security-key-email",
+            "reference/nextjs/use-user-avatar-url",
+            "reference/nextjs/use-user-data",
+            "reference/nextjs/use-user-default-role",
+            "reference/nextjs/use-user-display-name",
+            "reference/nextjs/use-user-email",
+            "reference/nextjs/use-user-id",
+            "reference/nextjs/use-user-is-anonymous",
+            "reference/nextjs/use-user-locale",
+            "reference/nextjs/use-user-roles",
+            "reference/nextjs/use-sign-in-email-otp",
+            "reference/nextjs/use-sign-in-id-token",
+            "reference/nextjs/use-link-id-token",
+            "reference/nextjs/use-sign-in-security-key"
+          ]
+        },
+        {
+          "group": "Vue",
+          "icon": "vuejs",
+          "pages": [
+            "reference/vue/nhost-client",
+            "reference/vue/use-access-token",
+            "reference/vue/use-authenticated",
+            "reference/vue/use-authentication-status",
+            "reference/vue/use-change-email",
+            "reference/vue/use-change-password",
+            "reference/vue/use-decoded-access-token",
+            "reference/vue/use-file-upload",
+            "reference/vue/use-file-upload-item",
+            "reference/vue/use-hasura-claim",
+            "reference/vue/use-hasura-claims",
+            "reference/vue/use-multiple-files-upload",
+            "reference/vue/use-nhost-client",
+            "reference/vue/use-provider-link",
+            "reference/vue/use-reset-password",
+            "reference/vue/use-send-verification-email",
+            "reference/vue/use-sign-in-anonymous",
+            "reference/vue/use-sign-in-email-password",
+            "reference/vue/use-sign-in-email-passwordless",
+            "reference/vue/use-sign-in-pat",
+            "reference/vue/use-sign-in-sms-passwordless",
+            "reference/vue/use-sign-out",
+            "reference/vue/use-sign-up-email-password",
+            "reference/vue/use-user-avatar-url",
+            "reference/vue/use-user-data",
+            "reference/vue/use-user-default-role",
+            "reference/vue/use-user-display-name",
+            "reference/vue/use-user-email",
+            "reference/vue/use-user-id",
+            "reference/vue/use-user-is-anonymous",
+            "reference/vue/use-user-locale",
+            "reference/vue/use-user-roles",
+            "reference/vue/use-add-security-key",
+            "reference/vue/use-elevate-security-key-email",
+            "reference/vue/use-sign-in-email-security-key",
+            "reference/vue/use-sign-up-email-security-key",
+            "reference/vue/use-sign-in-email-otp",
+            "reference/vue/use-sign-in-id-token",
+            "reference/vue/use-link-id-token",
+            "reference/vue/use-sign-in-security-key"
+          ]
+        },
+        {
+          "group": "React Native",
+          "icon": "mobile-notch",
+          "pages": [
+            "reference/react-native/support"
+          ]
+        }
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/nhost",
+    "github": "https://github.com/nhost",
+    "linkedin": "https://www.linkedin.com/company/nhost"
+  }
+}

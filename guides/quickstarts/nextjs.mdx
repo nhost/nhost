@@ -1,0 +1,218 @@
+---
+title: Setup Nhost with Next.js
+sidebarTitle: Next.js
+description: Get up and running with Nhost and Next.js
+icon: react
+---
+
+## Overview
+
+This guide will walk you through setting up a Next.js application with Nhost, including:
+- Creating and configuring your Nhost project
+- Setting up a movie database with sample data
+- Configuring permissions and security
+- Building a Next.js application that fetches and displays movie data
+- Using the Nhost client for GraphQL queries
+
+<Note>
+  Before you begin, make sure you have Node.js and npm installed on your system. This guide uses Next.js 14 with the App Router.
+</Note>
+
+<Steps>
+  <Step title="Create Your Nhost Project">
+    Start by creating a new project through the [Nhost Dashboard](https://app.nhost.io).
+    
+    This will set up your:
+    - PostgreSQL database
+    - GraphQL API
+    - Authentication system
+    - Storage functionality
+  </Step>
+
+  <Step title="Configure the Database Schema">
+    We'll create a simple movies database to demonstrate Nhost's capabilities.
+
+    Navigate to the **SQL Editor** in your Nhost dashboard and execute the following SQL:
+
+    ```sql SQL Editor
+    CREATE TABLE movies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      director VARCHAR(255),
+      release_year INTEGER,
+      genre VARCHAR(100),
+      rating FLOAT
+    );
+
+    INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+      ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+      ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+      ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+      ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+    ```
+
+    <Warning>
+      Make sure to enable the **Track this** option to expose the table through GraphQL
+    </Warning>
+
+    ![SQL Editor](/images/guides/quickstarts/react/sql-editor.png)
+  </Step>
+
+  <Step title="Set Up Database Permissions">
+    To allow public access to the movies data:
+
+    1. Select the `movies` table you just created
+    2. Click **Edit Permissions**
+    3. Configure the following permissions for the `public` role and `select` action
+
+    <Info>
+      This will allow anyone to read the movies data without authentication
+    </Info>
+
+    ![Permission Rules](/images/guides/quickstarts/react/permissions.png)
+  </Step>
+
+  <Step title="Create a Next.js Application">
+    Set up a new Next.js project using the following command:
+
+    ```bash Terminal
+    npx create-next-app@next-14 --no-eslint \
+        --src-dir \
+        --no-tailwind \
+        --import-alias "@/*" \
+        --js \
+        --app \
+        nhost-nextjs-quickstart
+    ```
+
+    This command creates a new Next.js application with:
+    - App Router configuration
+    - JavaScript setup
+    - Source directory organization
+    - Custom import aliases
+  </Step>
+
+  <Step title="Install and Configure Nhost">
+    First, install the Nhost Next.js package:
+
+    ```bash Terminal
+    cd nhost-nextjs-quickstart && npm install @nhost/nextjs
+    ```
+
+    Then, create a new file to configure the Nhost client:
+
+    ```js ./src/lib/nhost.js
+    import { NhostClient } from "@nhost/nextjs";
+
+    export const nhost = new NhostClient({
+      subdomain: "<subdomain>",
+      region: "<region>",
+    })
+    ```
+
+    <Note>
+      Replace `<subdomain>` and `<region>` with your project's specific values from the Nhost dashboard
+    </Note>
+  </Step>
+
+  <Step title="Implement the Movies List">
+    Update your `./src/app/page.js` to fetch and display the movies:
+
+    ```js src/app/page.js
+    'use client'
+
+    import { useEffect, useState } from "react";
+    import { NhostProvider } from "@nhost/nextjs";
+    import { nhost } from '../lib/nhost'
+
+    // GraphQL query to fetch movies
+    const getMovies = `
+      query {
+        movies {
+          title
+          genre
+          rating
+        }
+      }
+    `;
+
+    // Root component with Nhost provider
+    function App() {
+      return (
+        <NhostProvider nhost={nhost}>
+          <Home />
+        </NhostProvider>
+      );
+    }
+
+    // Home component that fetches and displays movies
+    function Home() {
+      const [loading, setLoading] = useState(true);
+      const [movies, setMovies] = useState([]);
+
+      useEffect(() => {
+        async function fetchMovies() {
+          setLoading(true);
+          const { data, error } = await nhost.graphql.request(getMovies);
+
+          setMovies(data.movies);
+          setLoading(false);
+        }
+
+        fetchMovies();
+      }, []);
+
+      return (
+        <div>
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
+            <table>
+              <tbody>
+                {movies.map((movie, index) => (
+                  <tr key={index}>
+                    <td>{movie.title}</td>
+                    <td>{movie.genre}</td>
+                    <td>{movie.rating}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+    This implementation:
+    - Uses the Nhost client for GraphQL queries
+    - Manages loading states
+    - Displays movies in a table format
+  </Step>
+
+  <Step title="Run and Test Your Application">
+    Start your Next.js development server:
+
+    ```bash Terminal
+    npm run dev
+    ```
+
+    <Tip>
+      Visit `http://localhost:3000` in your browser to see your movies list in action
+    </Tip>
+  </Step>
+</Steps>
+
+## Next Steps
+
+Now that you have a basic Next.js application with Nhost:
+- Add authentication to protect your data
+- Implement create, update, and delete operations
+- Add more complex GraphQL queries
+- Style your application with CSS or a UI framework
+
+<Info>
+  Check out our other guides for more advanced features and best practices
+</Info>

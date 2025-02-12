@@ -1,0 +1,246 @@
+---
+title: List of Available Extensions
+description: List of available extensions with Nhost Postgres.
+icon: grid
+---
+
+## Overview
+
+Nhost Postgres comes with a wide range of powerful extensions that enhance your database capabilities. These extensions are organized into several categories based on their primary functions.
+
+## Core Database Extensions
+
+These extensions provide fundamental database functionality and administrative tools.
+
+| Name | Version | Description |
+|------|---------|-------------|
+| adminpack | 2.1 | Administrative functions for PostgreSQL |
+| amcheck | 1.3 | Functions for verifying relation integrity |
+| autoinc | 1.0 | Functions for autoincrementing fields |
+| dblink | 1.2 | Connect to other PostgreSQL databases from within a database |
+| plpgsql | 1.0 | PL/pgSQL procedural language |
+
+## Search and Indexing Extensions
+
+Extensions that enhance search capabilities and provide advanced indexing features.
+
+| Name | Version | Description |
+|------|---------|-------------|
+| bloom | 1.0 | Bloom access method - signature file based index |
+| btree_gin | 1.3 | Support for indexing common datatypes in GIN |
+| btree_gist | 1.6 | Support for indexing common datatypes in GiST |
+| dict_int | 1.0 | Text search dictionary template for integers |
+| dict_xsyn | 1.0 | Text search dictionary template for extended synonym processing |
+| pg_trgm | 1.6 | Text similarity measurement and index searching based on trigrams |
+
+## Data Type Extensions
+
+Extensions that add support for specialized data types.
+
+| Name | Version | Description |
+|------|---------|-------------|
+| citext | 1.6 | Data type for case-insensitive character strings |
+| cube | 1.5 | Data type for multidimensional cubes |
+| hstore | 1.8 | Data type for storing sets of (key, value) pairs |
+| isn | 1.2 | Data types for international product numbering standards |
+| ltree | 1.2 | Data type for hierarchical tree-like structures |
+| vector | 0.8.0 | Vector data type and ivfflat and hnsw access methods |
+
+## Monitoring and Performance Extensions
+
+Tools for monitoring database performance and behavior.
+
+| Name | Version | Description |
+|------|---------|-------------|
+| pg_buffercache | 1.3 | Examine the shared buffer cache |
+| pg_freespacemap | 1.2 | Examine the free space map (FSM) |
+| pg_stat_statements | 1.9 | Track planning and execution statistics of all SQL statements executed |
+| pg_visibility | 1.2 | Examine the visibility map (VM) and page-level visibility info |
+
+## Geographic and Spatial Extensions
+
+Extensions for handling geographic and spatial data.
+
+| Name | Version | Description |
+|------|---------|-------------|
+| address_standardizer | 3.5.0 | Parse addresses into constituent elements |
+| address_standardizer_data_us | 3.5.0 | Address Standardizer US dataset example |
+| earthdistance | 1.1 | Calculate great-circle distances on the surface of the Earth |
+| postgis | 3.5.0 | PostGIS geometry and geography spatial types and functions |
+| postgis_raster | 3.5.0 | PostGIS raster types and functions |
+| postgis_tiger_geocoder | 3.5.0 | PostGIS tiger geocoder and reverse geocoder |
+| postgis_topology | 3.5.0 | PostGIS topology spatial types and functions |
+
+## Utility and Maintenance Extensions
+
+Extensions that provide various utility functions and maintenance capabilities.
+
+| Name | Version | Description |
+|------|---------|-------------|
+| file_fdw | 1.0 | Foreign-data wrapper for flat file access |
+| fuzzystrmatch | 1.1 | Determine similarities and distance between strings |
+| http | 1.6 | HTTP client for PostgreSQL |
+| moddatetime | 1.0 | Functions for tracking last modification time |
+| pgcrypto | 1.3 | Cryptographic functions |
+| uuid-ossp | 1.1 | Generate universally unique identifiers (UUIDs) |
+
+## Featured Extensions
+
+Below are detailed descriptions of some of our most popular and powerful extensions.
+
+### PostGIS
+
+<Note>
+PostGIS is the leading spatial database extender for PostgreSQL, adding support for geographic objects and location queries.
+</Note>
+
+#### Features
+- Store and query geographic data
+- Perform spatial calculations
+- Support for various coordinate systems
+- Advanced spatial indexing
+
+#### Managing PostGIS
+
+To install the extension:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION postgis;
+```
+
+To uninstall:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION postgis;
+```
+
+**Resources**
+- [Official website](https://postgis.net/)
+
+### pgvector
+
+<Note>
+pgvector enables vector similarity search in Postgres, making it ideal for AI and machine learning applications.
+</Note>
+
+#### Key Capabilities
+- Exact and approximate nearest neighbor search
+- L2 distance, inner product, and cosine distance support
+- Compatible with any Postgres client
+- ACID compliance and point-in-time recovery
+
+#### Managing pgvector
+
+To install:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION vector;
+```
+
+To uninstall:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION vector;
+```
+
+**Resources**
+- [GitHub Repository](https://github.com/pgvector/pgvector)
+
+### TimescaleDB
+
+<Note>
+TimescaleDB is optimized for time-series data, providing automatic partitioning and full SQL support.
+</Note>
+
+#### Features
+- Automatic partitioning across time and space
+- Full SQL support
+- Advanced time-series functions
+- Scalable architecture
+
+#### Managing TimescaleDB
+
+To install:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION timescaledb;
+```
+
+To uninstall:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION timescaledb;
+```
+
+**Resources**
+- [GitHub](https://github.com/timescale/timescaledb)
+- [Documentation](https://docs.timescale.com/)
+- [Website](https://www.timescale.com/)
+
+### pg_cron
+
+<Info>
+pg_cron provides a reliable way to schedule PostgreSQL commands directly from your database.
+</Info>
+
+#### Features
+- Cron-based job scheduling
+- Runs inside the database as an extension
+- Supports interval-based scheduling
+- Compatible with PostgreSQL 10 or higher
+
+#### Managing pg_cron
+
+To install:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_cron;
+```
+
+To uninstall:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_cron;
+```
+
+**Resources**
+- [GitHub](https://github.com/citusdata/pg_cron)
+
+### pg_stat_statements
+
+<Info>
+Essential for performance monitoring, pg_stat_statements tracks execution statistics for all SQL statements.
+</Info>
+
+#### Features
+- Track planning and execution statistics
+- Monitor query performance
+- Identify slow queries
+- Analyze database usage patterns
+
+#### Managing pg_stat_statements
+
+To install:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_stat_statements;
+```
+
+To uninstall:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_stat_statements;
+```
+
+**Resources**
+- [Documentation](https://www.postgresql.org/docs/14/pgstatstatements.html)
