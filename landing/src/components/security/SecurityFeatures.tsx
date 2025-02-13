@@ -12,12 +12,12 @@ export function SecurityFeatures() {
         <ServiceCard
           icon={<ShieldCheck size={24} />}
           title="SOC 2 Type II (coming soon)"
-          description="Nhost is working towards SOC2 Type 2 compliance. This is an audit report that evaluates our security controls when handling sensitive customer data. Team and Enterprise customers will be able to access our SOC2 report on the dashboard once the audit is complete."
+          description="Nhost is working towards SOC2 Type 2 compliance. This is an audit report that evaluates our security controls when handling sensitive customer data. Team & Enterprise customers will be able to access our SOC2 report on the dashboard once the audit is complete."
         />
         <ServiceCard
           icon={<ActivitySquare size={24} />}
           title="HIPAA (coming soon)"
-          description="Nhost is working towards HIPAA compliance. You will be able to store Protected Health Information (PHI) on our hosted platform once we complete the audit."
+          description="Nhost is working towards HIPAA compliance. Team & Enterprise customers will be able to store Protected Health Information (PHI) on our hosted platform once we complete the audit."
         />
     </Container>
     <Container
@@ -37,7 +37,7 @@ export function SecurityFeatures() {
         <ServiceCard
           icon={<Key size={24} />}
           title="Encryption at Rest"
-          description="All databases are encrypted at rest with AES-256."
+          description="All data is encrypted at rest with AES-256. This includes databases, storage files, and run services volumes."
         />
         <ServiceCard
           icon={<Key size={24} />}
