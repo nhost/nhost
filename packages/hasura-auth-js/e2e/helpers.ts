@@ -6,7 +6,7 @@ import { HasuraAuthClient, SignUpParams } from '../src'
 
 const { fetch } = fetchPonyfill()
 
-const AUTH_BACKEND_URL = 'https://local.auth.nhost.run/v1'
+const AUTH_BACKEND_URL = 'https://local.auth.local.nhost.run/v1'
 
 const auth = new HasuraAuthClient({
   url: AUTH_BACKEND_URL

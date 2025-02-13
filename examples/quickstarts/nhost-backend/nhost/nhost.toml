@@ -101,9 +101,7 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.google]
-enabled = true
-clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
-clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
+enabled = false
 
 [auth.method.oauth.linkedin]
 enabled = false
@@ -130,8 +128,8 @@ enabled = false
 enabled = true
 
 [auth.method.webauthn.relyingParty]
-name = 'quickstarts'
 id = 'examples.nhost.io'
+name = 'quickstarts'
 origins = ['https://sveltekit.examples.nhost.io', 'https://nextjs-server-components.examples.nhost.io']
 
 [auth.method.webauthn.attestation]

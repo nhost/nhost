@@ -9,7 +9,7 @@ info:
     name: LICENSE-TBD
     url: https://LICENSE-TBD
 servers:
-  - url: https://local.storage.nhost.run/v1
+  - url: https://local.storage.local.nhost.run/v1
     description: API Server
 security:
   - AdminSecret: []
@@ -184,8 +184,8 @@ paths:
                 $ref: '#/components/schemas/Error'
   /files/{id}:
     head:
-      summary: "Download File Metadata"
-      description: "Retrieve metadata of a file"
+      summary: 'Download File Metadata'
+      description: 'Retrieve metadata of a file'
       tags:
         - storage
       security:
@@ -321,7 +321,7 @@ paths:
                 type: string
     get:
       summary: Download File
-      description: "Download a file from storage"
+      description: 'Download a file from storage'
       tags:
         - storage
       security:
@@ -498,7 +498,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     delete:
       summary: Delete File
-      description: "Delete file from storage" 
+      description: 'Delete file from storage'
       tags:
         - storage
       security:
@@ -521,7 +521,7 @@ paths:
 
   /files/{id}/presignedurl:
     get:
-      summary: Presigned URL 
+      summary: Presigned URL
       description: |
         Retrieve presigned URL to retrieve the file. Expiration of the URL is
         determined by bucket configuration
@@ -552,8 +552,8 @@ paths:
 
   /files/{id}/presignedurl/contents:
     get:
-      summary: "Get File Content"
-      description: "Retrieve content of a file"
+      summary: 'Get File Content'
+      description: 'Retrieve content of a file'
       tags:
         - storage
       security:

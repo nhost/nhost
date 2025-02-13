@@ -150,7 +150,7 @@ curl -X POST \
     -H "Content-Type: application/json" \
     -H "x-hasura-admin-secret: nhost-admin-secret" \
     -d '{"userId": "FFAB5354-C5EB-42C1-8BC3-AD21D2297883", "defaultRole": "user", "allowedRoles": ["user", "me"]}' \
-    https://local.functions.nhost.run/v1/custom-jwt
+    https://local.functions.local.nhost.run/v1/custom-jwt
 {"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTcxNDIyMTMsImh0dHBzOi8vaGFzdXJhLmlvL2p3dC9jbGFpbXMiOnsieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIiwibWUiXSwieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoidXNlciIsIngtaGFzdXJhLXVzZXItaWQiOiJGRkFCNTM1NC1DNUVCLTQyQzEtOEJDMy1BRDIxRDIyOTc4ODMiLCJ4LWhhc3VyYS11c2VyLWlzLWFub255bW91cyI6ImZhbHNlIiwieC1oYXN1cmEtb24tYmVoYWxmLW9mIjoiYWRtaW4ifSwiaWF0IjoxNzE3MTM4NjEzLCJpc3MiOiJjdXN0b20tbGFtYmRhIiwic3ViIjoiRkZBQjUzNTQtQzVFQi00MkMxLThCQzMtQUQyMUQyMjk3ODgzIn0.bRhzJvXMdkQA8aXPH95uMT17WHED2rSRq3gE21Vp3Ak"}
 ```
 
@@ -160,10 +160,7 @@ The new token should be a valid token for your application with the custom value
 {
   "exp": 1717141288,
   "https://hasura.io/jwt/claims": {
-    "x-hasura-allowed-roles": [
-      "a",
-      "b"
-    ],
+    "x-hasura-allowed-roles": ["a", "b"],
     "x-hasura-default-role": "user",
     "x-hasura-user-id": "FFAB5354-C5EB-42C1-8BC3-AD21D2297883",
     "x-hasura-user-is-anonymous": "false",

@@ -7,10 +7,7 @@ export const signInWithGoogle = async () => {
   const nhost = await getNhost()
 
   const { providerUrl } = await nhost.auth.signIn({
-    provider: 'google',
-    options: {
-      redirectTo: `/oauth`
-    }
+    provider: 'google'
   })
 
   if (providerUrl) {

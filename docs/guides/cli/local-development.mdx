@@ -1,11 +1,10 @@
 ---
 title: Local Development
-description: Learn how to start a development instance of Nhost 
+description: Learn how to start a development instance of Nhost
 icon: code
 ---
 
 Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, Hasura, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
-
 
 ## Dependencies
 
@@ -18,8 +17,10 @@ Nhost's command-line interface (CLI) lets you run a complete Nhost development e
 nhost login
 ```
 
-<Info>If you used GitHub to register, you will have to first set a password in your [account page](https://app.nhost.io/account).</Info>
-
+<Info>
+  If you used GitHub to register, you will have to first set a password in your [account
+  page](https://app.nhost.io/account).
+</Info>
 
 ## Initialize local project
 
@@ -38,7 +39,6 @@ nhost init
 
 `nhost init` creates all the configuration necessary for your project, including database migrations and Hasura metadata.
 
-
 We can now start your project with `nhost up`.
 
 ```bash
@@ -52,13 +52,13 @@ Nhost development environment started.
 
 URLs:
 - Postgres:             postgres://postgres:postgres@localhost:5432/local
-- Hasura:               https://local.hasura.nhost.run
-- GraphQL:              https://local.graphql.nhost.run
-- Auth:                 https://local.auth.nhost.run
-- Storage:              https://local.storage.nhost.run
-- Functions:            https://local.functions.nhost.run
-- Dashboard:            https://local.dashboard.nhost.run
-- Mailhog:              https://local.mailhog.nhost.run
+- Hasura:               https://local.hasura.local.nhost.run
+- GraphQL:              https://local.graphql.local.nhost.run
+- Auth:                 https://local.auth.local.nhost.run
+- Storage:              https://local.storage.local.nhost.run
+- Functions:            https://local.functions.local.nhost.run
+- Dashboard:            https://local.dashboard.local.nhost.run
+- Mailhog:              https://local.mailhog.local.nhost.run
 
 SDK Configuration:
  Subdomain:             local
@@ -77,7 +77,7 @@ You can use `nhost down` at any time to tear down your environment.
 To test that the services are running, let's curl the Auth endpoint and get its version:
 
 ```bash
-curl https://local.auth.nhost.run/v1/version
+curl https://local.auth.local.nhost.run/v1/version
 
 {"version":"v0.20.1"}
 ```
@@ -108,8 +108,7 @@ Let's create a new table called `messages`, with the following columns:
 - author_id (UUID)
 - created_at (Timestamp)
 
-There are other ways to generate a migration, here we will use the local Nhost Dashboard running on `https://local.dashboard.nhost.run/local/local`. Please head to the `database` tab and add the columns as follows:
-
+There are other ways to generate a migration, here we will use the local Nhost Dashboard running on `https://local.dashboard.local.nhost.run/local/local`. Please head to the `database` tab and add the columns as follows:
 
 ![Nhost Local Dashboard](/images/guides/cli/create-table-messages.png)
 
@@ -201,4 +200,3 @@ To check out your deployment, head over to the **Deployments** tab (https://app.
 ![Deployments](/images/guides/cli/deployments.png)
 
 You should now have the same `messages` table (and permissions) on your production instance!
-

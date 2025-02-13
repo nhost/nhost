@@ -7,10 +7,7 @@ export const signInWithApple = async () => {
   const nhost = await getNhost()
 
   const { providerUrl } = await nhost.auth.signIn({
-    provider: 'apple',
-    options: {
-      redirectTo: `/oauth`
-    }
+    provider: 'apple'
   })
 
   if (providerUrl) {

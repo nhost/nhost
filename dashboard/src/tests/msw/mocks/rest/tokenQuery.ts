@@ -3,7 +3,7 @@ import type { NhostSession } from '@nhost/nextjs';
 import { rest } from 'msw';
 
 const tokenQuery = rest.post(
-  `https://local.auth.nhost.run/v1/token`,
+  `https://local.auth.local.nhost.run/v1/token`,
   (_req, res, ctx) =>
     res(
       ctx.json<NhostSession>({

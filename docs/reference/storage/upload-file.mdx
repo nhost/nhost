@@ -2,12 +2,11 @@
 openapi: post /files/
 ---
 
-
 <RequestExample>
 
 ```bash Request
 curl --request POST \
-  --url https://local.storage.nhost.run/v1/files/ \
+  --url https://local.storage.local.nhost.run/v1/files/ \
   --header 'Authorization: <authorization>'	 \
   --header 'Content-Type: multipart/form-data' \
   --form 'file[]=@path-to-file'
@@ -16,7 +15,7 @@ curl --request POST \
 ```python Python
 import requests
 
-url = "https://local.storage.nhost.run/v1/files/"
+url = "https://local.storage.local.nhost.run/v1/files/"
 
 files = {
     'file': ('<filename>', open('<path-to-file>', 'rb'))
@@ -50,7 +49,7 @@ const options = {
   body: form
 };
 
-fetch('https://local.storage.nhost.run/v1/files/', options)
+fetch('https://local.storage.local.nhost.run/v1/files/', options)
   .then(response => response.json())
   .then(response => console.log(response))
   .catch(err => console.error(err));
@@ -60,7 +59,7 @@ fetch('https://local.storage.nhost.run/v1/files/', options)
 <?php
 $curl = curl_init();
 
-$file_path = '<path_to_file>'; 
+$file_path = '<path_to_file>';
 
 $postfields = [
   "bucket-id" => "<string>",
@@ -73,7 +72,7 @@ $postfields = [
 ];
 
 curl_setopt_array($curl, [
-  CURLOPT_URL => "https://local.storage.nhost.run/v1/files/",
+  CURLOPT_URL => "https://local.storage.local.nhost.run/v1/files/",
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => "",
   CURLOPT_MAXREDIRS => 10,
@@ -112,7 +111,7 @@ import (
 )
 
 func main() {
-	url := "https://local.storage.nhost.run/v1/files/"
+	url := "https://local.storage.nhost.local.run/v1/files/"
 
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
@@ -160,7 +159,7 @@ public class Main {
         try {
             File file = new File("<path_to_file>");
 
-            HttpResponse<String> response = Unirest.post("https://local.storage.nhost.run/v1/files/")
+            HttpResponse<String> response = Unirest.post("https://local.storage.local.nhost.run/v1/files/")
                 .header("Authorization", "<authorization>")
                 // Removed Content-Type header, Unirest handles it
                 .field("bucket-id", "<string>")
@@ -175,6 +174,5 @@ public class Main {
     }
 }
 ```
+
 </RequestExample>
-
-

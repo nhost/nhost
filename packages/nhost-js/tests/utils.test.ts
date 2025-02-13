@@ -46,31 +46,31 @@ describe('urlFromParams', () => {
       it('should return the full authentication url', async () => {
         const url = urlFromSubdomain({ subdomain: 'local' }, 'auth')
 
-        expect(url).toBe('https://local.auth.nhost.run/v1')
+        expect(url).toBe('https://local.auth.local.nhost.run/v1')
       })
 
       it('should return the full storage url', async () => {
         const url = urlFromSubdomain({ subdomain: 'local' }, 'storage')
 
-        expect(url).toBe('https://local.storage.nhost.run/v1')
+        expect(url).toBe('https://local.storage.local.nhost.run/v1')
       })
 
       it('should return the full GraphQL url', async () => {
         const url = urlFromSubdomain({ subdomain: 'local' }, 'graphql')
 
-        expect(url).toBe('https://local.graphql.nhost.run/v1')
+        expect(url).toBe('https://local.graphql.local.nhost.run/v1')
       })
 
       it('should return the full functions url', async () => {
         const url = urlFromSubdomain({ subdomain: 'local' }, 'functions')
 
-        expect(url).toBe('https://local.functions.nhost.run/v1')
+        expect(url).toBe('https://local.functions.local.nhost.run/v1')
       })
 
       it('should return the full Hasura url', async () => {
         const url = urlFromSubdomain({ subdomain: 'local' }, 'hasura')
 
-        expect(url).toBe('https://local.hasura.nhost.run/v1')
+        expect(url).toBe('https://local.hasura.local.nhost.run/v1')
       })
     })
 

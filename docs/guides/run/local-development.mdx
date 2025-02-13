@@ -21,9 +21,16 @@ The last thing to notice in the screenshot is that the URLs include information 
 
 Based on the information above, if you want to connect directly to your service from your laptop you can use the URL `http://localhost:5000` while if you want to connect to the Run service from another service (i.e. another Run service or hasura) you can use `http://run-bun-gen:5000`
 
-<Note>You can also use the environment variable `NHOST_RUN_SERVICE` passing comma-separated values. For instance, the equivalent environment variable for this example would be `NHOST_RUN_SERVICE=../mysvc/nhost-run-service.toml:mysvc,../mysvc/nhost-run-service.toml`</Note>
+<Note>
+  You can also use the environment variable `NHOST_RUN_SERVICE` passing comma-separated values. For
+  instance, the equivalent environment variable for this example would be
+  `NHOST_RUN_SERVICE=../mysvc/nhost-run-service.toml:mysvc,../mysvc/nhost-run-service.toml`
+</Note>
 
-<Warning>The Nhost CLI doesn't build services so make sure you build any image that might be needed for running `nhost run --run-service...`</Warning>
+<Warning>
+  The Nhost CLI doesn't build services so make sure you build any image that might be needed for
+  running `nhost run --run-service...`
+</Warning>
 
 # Quick Development
 
@@ -43,7 +50,8 @@ value = 'some-value'
 [[environment]]
 name = 'SECRET_KEY'
 value = '{{ secrets.SECRET_KEY }}'
-```
+
+````
 </Tab>
 
 <Tab title="overlay">
@@ -58,12 +66,13 @@ value = '{{ secrets.SECRET_KEY }}'
     "path": "/environment/-"
   },
   {
-    "value": "https://local.graphql.nhost.run/v1/graphql",
+    "value": "https://local.graphql.local.nhost.run/v1/graphql",
     "op": "replace",
     "path": "/environment/0/value"
   }
 ]
-```
+````
+
 </Tab>
 <Tab title=".secrets">
 ```toml
@@ -77,12 +86,17 @@ We can then generate an `env` file for our service with the folllowing command:
 ```
 $ nhost run env --config ../mysvc/nhost-run-service.toml --overlay-name local-dev > .env
 $ cat .env
-HASURA_GRAPHQL_URL="https://local.graphql.nhost.run/v1/graphql"
+HASURA_GRAPHQL_URL="https://local.graphql.local.nhost.run/v1/graphql"
 SOME_CONFIGURATION_PARAMETER="some-value"
 SECRET_KEY="#asdasd;l;kq23\\n40-0as9d\"\$\\"
 ENVIRONMENT="dev"
 ```
 
 <Warning>
-Keep in mind you may need to use different configuration when attempting to connect to other services in the stack. For instance, in the example above we are using `http://hasura-service:8080/v1/graphql` to connect to hasura in production and in the CLI but when running the service in the host machine using the env file we are using an overlay to change the value to `https://local.graphql.nhost.run/v1/graphql`. Refer to the [network](networking) configuration for more details.
+  Keep in mind you may need to use different configuration when attempting to connect to other
+  services in the stack. For instance, in the example above we are using
+  `http://hasura-service:8080/v1/graphql` to connect to hasura in production and in the CLI but when
+  running the service in the host machine using the env file we are using an overlay to change the
+  value to `https://local.graphql.local.nhost.run/v1/graphql`. Refer to the [network](networking)
+  configuration for more details.
 </Warning>
