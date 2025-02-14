@@ -4,7 +4,7 @@
 
 # Nhost
 
-<a href="https://docs.nhost.io/#quickstart">Quickstart</a>
+<a href="https://docs.nhost.io/introduction#quick-start-guides">Quickstart</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="http://nhost.io/">Website</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -36,7 +36,7 @@ Nhost consists of open source software:
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
 - Storage: [Hasura Storage](https://github.com/nhost/hasura-storage)
 - Serverless Functions: Node.js (JavaScript and TypeScript)
-- [Nhost CLI](https://docs.nhost.io/cli) for local development
+- [Nhost CLI](https://docs.nhost.io/development/cli/overview) for local development
 
 ## Architecture of Nhost
 
@@ -89,12 +89,12 @@ await nhost.graphql.request(`{
 Nhost is frontend agnostic, which means Nhost works with all frontend frameworks.
 
 <div align="center">
-  <a href="https://docs.nhost.io/platform/quickstarts/nextjs"><img src="assets/nextjs.svg"/></a>
+  <a href="https://docs.nhost.io/guides/quickstarts/nextjs"><img src="assets/nextjs.svg"/></a>
   <a href="https://docs.nhost.io/reference/javascript"><img src="assets/nuxtjs.svg"/></a>
-  <a href="https://docs.nhost.io/platform/quickstarts/react"><img src="assets/react.svg"/></a>
+  <a href="https://docs.nhost.io/guides/quickstarts/react"><img src="assets/react.svg"/></a>
   <a href="https://docs.nhost.io/reference/javascript"><img src="assets/react-native.svg"/></a>
   <a href="https://docs.nhost.io/reference/javascript"><img src="assets/svelte.svg"/></a>
-  <a href="https://docs.nhost.io/platform/quickstarts/vue"><img src="assets/vuejs.svg"/></a>
+  <a href="https://docs.nhost.io/guides/quickstarts/vue"><img src="assets/vuejs.svg"/></a>
 </div>
 
 # Resources
@@ -140,7 +140,7 @@ This repository, and most of our other open source projects, are licensed under 
 
 Here are some ways of contributing to making Nhost better:
 
-- **[Try out Nhost](https://docs.nhost.io/get-started/quick-start)**, and think of ways to make the service better. Let us know here on GitHub.
+- **[Try out Nhost](https://docs.nhost.io/introduction)**, and think of ways to make the service better. Let us know here on GitHub.
 - Join our [Discord](https://discord.com/invite/9V7Qb2U) and connect with other members to share and learn from.
 - Send a pull request to any of our [open source repositories](https://github.com/nhost) on Github. Check our [contribution guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md) and our [developers guide](https://github.com/nhost/nhost/blob/main/DEVELOPERS.md) for more details about how to contribute. We're looking forward to your contribution!
 
