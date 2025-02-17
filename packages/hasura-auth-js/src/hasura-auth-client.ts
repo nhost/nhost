@@ -59,6 +59,7 @@ import {
   NhostSession,
   NhostSessionResponse,
   OnTokenChangedFunction,
+  RequestOptions,
   ResetPasswordParams,
   ResetPasswordResponse,
   SecurityKey,
@@ -69,8 +70,10 @@ import {
   SignInPATResponse,
   SignInResponse,
   SignOutResponse,
+  SignUpEmailPasswordParams,
   SignUpParams,
-  SignUpResponse
+  SignUpResponse,
+  SignUpSecurityKeyParams
 } from './types'
 import {
   encodeQueryParameters,
@@ -132,16 +135,20 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
    */
-  async signUp(params: SignUpParams): Promise<SignUpResponse> {
+  signUp(params: SignUpEmailPasswordParams, requestOptions: RequestOptions): Promise<SignUpResponse>
+  signUp(params: SignUpParams): Promise<SignUpResponse>
+  async signUp(params: SignUpParams, requestOptions?: RequestOptions): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
-    const { email, options } = params
+
     if ('securityKey' in params) {
+      const { email, options } = params
       return getAuthenticationResult(
         await signUpEmailSecurityKeyPromise(interpreter, email, options)
       )
     }
+    const { email, password, options } = params
     return getAuthenticationResult(
-      await signUpEmailPasswordPromise(interpreter, email, params.password, options)
+      await signUpEmailPasswordPromise(interpreter, email, password, options, requestOptions)
     )
   }
 
