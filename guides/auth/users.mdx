@@ -1,0 +1,173 @@
+---
+title: Users
+description: Learn about Users managed by Nhost Auth
+icon: users
+---
+
+## Overview
+
+Users are the foundation of your application's authentication system. Each user account is managed by Nhost Auth and can be customized with roles, permissions, and metadata.
+
+## User Creation Guidelines
+
+Users are created through the sign-up or sign-in flows described under [Supported Methods](/guides/auth/overview#supported-methods).
+
+<Warning>
+  To maintain data integrity and security:
+  - Do not create users directly via GraphQL or the database, unless [importing users](#import-users)
+  - Avoid modifying the database schema for the `auth.users` table
+  - Do not modify the GraphQL root queries or fields for tables in the `auth` schema
+</Warning>
+
+<Info>
+  You are allowed to:
+  - Add and remove GraphQL relationships for the `users` table and other tables in the `auth` schema
+  - Create, edit and delete permissions for the `users` table and other tables in the `auth` schema
+</Info>
+
+## Understanding Roles
+
+### Role Basics
+Each user has two key role attributes:
+- One **default role**
+- A list of **allowed roles**
+
+These roles are essential for managing permissions in [GraphQL](/guides/api/permissions) and [Storage](/guides/storage/overview#permissions) requests.
+
+<Note>
+  When a user makes a request, only one role is used to resolve permissions. If no role is explicitly specified, the default role is used.
+</Note>
+
+### Default Role Configuration
+
+The default role is automatically used when no specific role is specified in a request. By default, new users are assigned the `user` role.
+
+<Tip>
+  You can customize the default role for new users in your project settings under **Settings -> Roles and Permissions**.
+</Tip>
+
+### Managing Allowed Roles
+
+Allowed roles define which roles a user can utilize when making requests. By default, users have access to two roles:
+- `user` (default)
+- `me`
+
+#### Custom Role Assignment
+
+You can specify custom allowed roles during the signup process. Here's an example of setting only the `user` role:
+
+```js
+await nhost.auth.signUp({
+  email: 'joe@example.com',
+  password: 'secret-password'
+  options: {
+    allowedRoles: ['user']
+  }
+})
+```
+
+### GraphQL Role Configuration
+
+#### Default Role Usage
+When no specific role is specified, the request uses the user's default role:
+
+```js
+await nhost.graphql.request(QUERY, {})
+```
+
+#### Custom Role Usage
+To use a specific role for a GraphQL request, set the `x-hasura-role` header:
+
+```js
+await nhost.graphql.request(
+  QUERY,
+  {},
+  {
+    headers: {
+      'x-hasura-role': 'me'
+    }
+  }
+)
+```
+
+<Warning>
+  The request will fail if the specified role is not in the user's allowed roles list.
+</Warning>
+
+## User Metadata
+
+The `metadata` column in the `users` table allows you to store custom information about each user. This column uses the JSONB type, supporting any valid JSON data.
+
+### Adding Metadata During Signup
+
+Here's an example of adding metadata during user registration:
+
+```js
+await nhost.auth.signUp({
+  email: 'joe@example.com',
+  password: 'secret-password',
+  options: {
+    metadata: {
+      birthYear: 1989,
+      town: 'Stockholm',
+      likes: ['Postgres', 'GraphQL', 'Hasura', 'Authentication', 'Storage', 'Serverless Functions']
+    }
+  }
+})
+```
+
+## Querying User Data
+
+### GraphQL Queries
+
+#### Retrieving All Users
+```graphql
+query {
+  users {
+    id
+    displayName
+    email
+    metadata
+  }
+}
+```
+
+#### Retrieving a Single User
+```graphql
+query {
+  user(id: "<user-id>") {
+    id
+    displayName
+    email
+    metadata
+  }
+}
+```
+
+## Importing External Users
+
+If you need to migrate users from another system to Nhost, you can import them directly into the database.
+
+<Note>
+  When importing users, insert them directly into the database instead of using authentication endpoints to avoid triggering unnecessary transactional emails.
+</Note>
+
+### Import Methods
+
+#### Using GraphQL
+```graphql
+mutation insertUser($user: users_insert_input!) {
+  insertUser(object: $user) {
+    id
+  }
+}
+```
+
+#### Using SQL
+```sql
+INSERT INTO auth.users (id, email, display_name, password_hash, ..) VALUES ('<user-id>', '<email>', '<display-name>', '<password-hash>', ..);
+```
+
+<Info>
+  Password hashing uses the [bcrypt](https://en.wikipedia.org/wiki/Bcrypt) algorithm.
+</Info>
