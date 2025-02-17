@@ -40,8 +40,8 @@ export function urlFromSubdomain(
     }
 
     return port
-      ? `${protocol || 'https'}://local.${service}.nhost.run:${port}/v1`
-      : `${protocol || 'https'}://local.${service}.nhost.run/v1`
+      ? `${protocol || 'https'}://local.${service}.local.nhost.run:${port}/v1`
+      : `${protocol || 'https'}://local.${service}.local.nhost.run/v1`
   }
 
   if (!region) {

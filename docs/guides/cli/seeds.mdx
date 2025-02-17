@@ -12,7 +12,7 @@ As mentioned before, you can create a seed from any environment. In this guide, 
 
 ```bash
 $ nhost dev hasura seed create some-initial-data \
-    --endpoint https://local.hasura.nhost.run \
+    --endpoint https://local.hasura.local.nhost.run \
     --admin-secret nhost-admin-secret \
     --database-name default \
     --from-table animals
@@ -20,7 +20,12 @@ $ nhost dev hasura seed create some-initial-data \
 INFO created seed file successfully                file=/app/seeds/default/1685692310174_some-initial-data.sql
 ```
 
-<Info>In the previous command, we instructed the CLI to create a seed named `some-initial-data` while specifying the connection parameters for our local environment. You could also extract data from a cloud project by specifying the correct parameters. Finally, we are only extracting data from the `animals` table, but you could also extract data from any other table or even from all tables.</Info>
+<Info>
+  In the previous command, we instructed the CLI to create a seed named `some-initial-data` while
+  specifying the connection parameters for our local environment. You could also extract data from a
+  cloud project by specifying the correct parameters. Finally, we are only extracting data from the
+  `animals` table, but you could also extract data from any other table or even from all tables.
+</Info>
 
 We can now inspect the file and see its contents:
 
@@ -67,7 +72,7 @@ INFO Metadata applied
 (...) omitted for brevity
 
 $ nhost dev hasura seed apply \
-    --endpoint https://local.hasura.nhost.run \
+    --endpoint https://local.hasura.local.nhost.run \
     --admin-secret nhost-admin-secret \
     --database-name default
 INFO Help us improve Hasura! The cli collects anonymized usage stats which
@@ -76,5 +81,7 @@ visit https://hasura.io/docs/latest/graphql/core/guides/telemetry.html
 INFO Seeds planted
 ```
 
-<Info>Seeds are different from migrations because seeds are not automatically applied. If there is data that you want to have in all of your environments, it is best to use a database migration.</Info>
-
+<Info>
+  Seeds are different from migrations because seeds are not automatically applied. If there is data
+  that you want to have in all of your environments, it is best to use a database migration.
+</Info>

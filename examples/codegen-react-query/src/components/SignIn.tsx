@@ -17,7 +17,7 @@ export function SignIn() {
       return
     }
     alert('Magic Link Sent')
-    window.open('https://local.mailhog.nhost.run/', '_blank')
+    window.open('https://local.mailhog.local.nhost.run/', '_blank')
   }
 
   return (

@@ -35,13 +35,14 @@ process.env = {
   NODE_ENV: 'development',
   NEXT_PUBLIC_NHOST_PLATFORM: 'false',
   NEXT_PUBLIC_ENV: 'dev',
-  NEXT_PUBLIC_NHOST_AUTH_URL: 'https://local.auth.nhost.run/v1',
-  NEXT_PUBLIC_NHOST_FUNCTIONS_URL: 'https://local.functions.nhost.run/v1',
-  NEXT_PUBLIC_NHOST_GRAPHQL_URL: 'https://local.graphql.nhost.run/v1',
-  NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://local.storage.nhost.run/v1',
-  NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'https://local.hasura.nhost.run',
-  NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: 'https://local.hasura.nhost.run',
-  NEXT_PUBLIC_NHOST_HASURA_API_URL: 'https://local.hasura.nhost.run',
+  NEXT_PUBLIC_NHOST_AUTH_URL: 'https://local.auth.local.nhost.run/v1',
+  NEXT_PUBLIC_NHOST_FUNCTIONS_URL: 'https://local.functions.local.nhost.run/v1',
+  NEXT_PUBLIC_NHOST_GRAPHQL_URL: 'https://local.graphql.local.nhost.run/v1',
+  NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://local.storage.local.nhost.run/v1',
+  NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'https://local.hasura.local.nhost.run',
+  NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL:
+    'https://local.hasura.local.nhost.run',
+  NEXT_PUBLIC_NHOST_HASURA_API_URL: 'https://local.hasura.local.nhost.run',
 };
 
 export const queryClient = new QueryClient({
@@ -68,7 +69,7 @@ function Providers({ children }: PropsWithChildren<{}>) {
                 nhost={nhost}
                 generateLinks={() => [
                   createHttpLink({
-                    uri: 'https://local.graphql.nhost.run/v1',
+                    uri: 'https://local.graphql.local.nhost.run/v1',
                   }),
                 ]}
               >

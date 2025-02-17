@@ -9,10 +9,9 @@ info:
     name: LICENSE-TBD
     url: https://LICENSE-TBD
 servers:
-  - url: https://local.auth.nhost.run/v1
+  - url: https://local.auth.local.nhost.run/v1
     description: API Server
 components:
-
   securitySchemes:
     BearerAuth:
       scheme: bearer
@@ -20,7 +19,6 @@ components:
       bearerFormat: JWT
       description: JSON Web Token to authorize requests.
   schemas:
-
     SignInWebauthnSessionPayload:
       type: object
       properties:
@@ -42,13 +40,13 @@ components:
         rpId:
           type: string
       example:
-        challenge: "KOGeoAfC2nrZ_SluhmU5RYYMvBsRDvzghjERGdXbbfQ"
+        challenge: 'KOGeoAfC2nrZ_SluhmU5RYYMvBsRDvzghjERGdXbbfQ'
         allowCredentials:
-          - id: "zCnsWvxgtMrOCeX6eA_yqQ"
-            type: "public-key"
+          - id: 'zCnsWvxgtMrOCeX6eA_yqQ'
+            type: 'public-key'
         timeout: 60000
-        userVerification: "preferred"
-        rpId: "react-apollo.example.nhost.io"
+        userVerification: 'preferred'
+        rpId: 'react-apollo.example.nhost.io'
 
     ElevateWebauthnSessionPayload:
       type: object
@@ -71,13 +69,13 @@ components:
         rpId:
           type: string
       example:
-        challenge: "KOGeoAfC2nrZ_SluhmU5RYYMvBsRDvzghjERGdXbbfQ"
+        challenge: 'KOGeoAfC2nrZ_SluhmU5RYYMvBsRDvzghjERGdXbbfQ'
         allowCredentials:
-          - id: "zCnsWvxgtMrOCeX6eA_yqQ"
-            type: "public-key"
+          - id: 'zCnsWvxgtMrOCeX6eA_yqQ'
+            type: 'public-key'
         timeout: 60000
-        userVerification: "preferred"
-        rpId: "react-apollo.example.nhost.io"
+        userVerification: 'preferred'
+        rpId: 'react-apollo.example.nhost.io'
 
     WebauthnSessionPayload:
       type: object
@@ -126,39 +124,39 @@ components:
             userVerification:
               type: string
       example:
-        challenge: "eKdWG60F0lB-wNOviefzn6En0jvdf_GYDyCK2Zuznh8"
+        challenge: 'eKdWG60F0lB-wNOviefzn6En0jvdf_GYDyCK2Zuznh8'
         rp:
-          name: "hasura-auth"
-          id: "localhost"
+          name: 'hasura-auth'
+          id: 'localhost'
         user:
-          id: "44b96e0d-18ad-48b9-a517-6537d32223da"
-          name: "john.smith@nhost.io"
-          displayName: "John Smith"
+          id: '44b96e0d-18ad-48b9-a517-6537d32223da'
+          name: 'john.smith@nhost.io'
+          displayName: 'John Smith'
         pubKeyCredParams:
           - alg: -7
-            type: "public-key"
+            type: 'public-key'
           - alg: -8
-            type: "public-key"
+            type: 'public-key'
           - alg: -36
-            type: "public-key"
+            type: 'public-key'
           - alg: -37
-            type: "public-key"
+            type: 'public-key'
           - alg: -38
-            type: "public-key"
+            type: 'public-key'
           - alg: -39
-            type: "public-key"
+            type: 'public-key'
           - alg: -257
-            type: "public-key"
+            type: 'public-key'
           - alg: -258
-            type: "public-key"
+            type: 'public-key'
           - alg: -259
-            type: "public-key"
+            type: 'public-key'
         timeout: 60000
-        attestation: "indirect"
+        attestation: 'indirect'
         excludeCredentials: []
         authenticatorSelection:
           requireResidentKey: false
-          userVerification: "preferred"
+          userVerification: 'preferred'
 
     CannotSendSmsError:
       additionalProperties: false
@@ -745,17 +743,17 @@ components:
           type: object
       example:
         credential:
-          id: "zCnsWvxgtMrOCeX6eA_yqQ"
-          rawId: "zCnsWvxgtMrOCeX6eA_yqQ"
+          id: 'zCnsWvxgtMrOCeX6eA_yqQ'
+          rawId: 'zCnsWvxgtMrOCeX6eA_yqQ'
           response:
-            attestationObject: "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViU0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDtdAAAAALraVWanqkAfvZZFYZpVEg0AEMwp7Fr8YLTKzgnl-ngP8qmlAQIDJiABIVgg3XjPRqX1a22te029Du57F1w56XXy3GARb842fEtQlIEiWCC1Jce4J3bN1P-V-78elqwVy0u6MAxEcZwCvkSLqZjkjA"
-            clientDataJSON: "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiSGlwZ0NKLWR0bU1FeWxRN05pRnV4VXE0allNbFIwMDA1V2VmcEJWQm9payIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ"
-          type: "public-key"
+            attestationObject: 'o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViU0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDtdAAAAALraVWanqkAfvZZFYZpVEg0AEMwp7Fr8YLTKzgnl-ngP8qmlAQIDJiABIVgg3XjPRqX1a22te029Du57F1w56XXy3GARb842fEtQlIEiWCC1Jce4J3bN1P-V-78elqwVy0u6MAxEcZwCvkSLqZjkjA'
+            clientDataJSON: 'eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiSGlwZ0NKLWR0bU1FeWxRN05pRnV4VXE0allNbFIwMDA1V2VmcEJWQm9payIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ'
+          type: 'public-key'
           clientExtensionResults: {}
-          authenticatorAttachment: "platform"
+          authenticatorAttachment: 'platform'
           transports:
-            - "internal"
-            - "hybrid"
+            - 'internal'
+            - 'hybrid'
         options: {}
       required:
         - credential
@@ -807,18 +805,18 @@ components:
         authenticatorAttachment:
           type: string
       example:
-        email: "nuno@nhost.io"
+        email: 'nuno@nhost.io'
         credential:
-          id: "zCnsWvxgtMrOCeX6eA_yqQ"
-          rawId: "zCnsWvxgtMrOCeX6eA_yqQ"
+          id: 'zCnsWvxgtMrOCeX6eA_yqQ'
+          rawId: 'zCnsWvxgtMrOCeX6eA_yqQ'
           response:
-            authenticatorData: "0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDsdAAAAAA"
-            clientDataJSON: "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiTkNSSVRVU1pjeFE1ZTFhdUtUcXVlNnA4R0ZacHdxUS1kZzM4bnlWa3NCRSIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ"
-            signature: "MEUCIQDRXq3aY-gXWsuYJZhOzqqn6UpoRQfcPdNLP7hpZ7IdvQIgX5rY6TomkYUtqydu-w88fW7KeFm-0oE-5jTdLNHg9zw"
-            userHandle: "8881037a-8495-48ef-8a04-ebbdb69415db"
-          type: "public-key"
+            authenticatorData: '0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDsdAAAAAA'
+            clientDataJSON: 'eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiTkNSSVRVU1pjeFE1ZTFhdUtUcXVlNnA4R0ZacHdxUS1kZzM4bnlWa3NCRSIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ'
+            signature: 'MEUCIQDRXq3aY-gXWsuYJZhOzqqn6UpoRQfcPdNLP7hpZ7IdvQIgX5rY6TomkYUtqydu-w88fW7KeFm-0oE-5jTdLNHg9zw'
+            userHandle: '8881037a-8495-48ef-8a04-ebbdb69415db'
+          type: 'public-key'
           clientExtensionResults: {}
-        authenticatorAttachment: "platform"
+        authenticatorAttachment: 'platform'
       required:
         - email
         - credential
@@ -870,18 +868,18 @@ components:
         authenticatorAttachment:
           type: string
       example:
-        email: "nuno@nhost.io"
+        email: 'nuno@nhost.io'
         credential:
-          id: "zCnsWvxgtMrOCeX6eA_yqQ"
-          rawId: "zCnsWvxgtMrOCeX6eA_yqQ"
+          id: 'zCnsWvxgtMrOCeX6eA_yqQ'
+          rawId: 'zCnsWvxgtMrOCeX6eA_yqQ'
           response:
-            authenticatorData: "0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDsdAAAAAA"
-            clientDataJSON: "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiTkNSSVRVU1pjeFE1ZTFhdUtUcXVlNnA4R0ZacHdxUS1kZzM4bnlWa3NCRSIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ"
-            signature: "MEUCIQDRXq3aY-gXWsuYJZhOzqqn6UpoRQfcPdNLP7hpZ7IdvQIgX5rY6TomkYUtqydu-w88fW7KeFm-0oE-5jTdLNHg9zw"
-            userHandle: "8881037a-8495-48ef-8a04-ebbdb69415db"
-          type: "public-key"
+            authenticatorData: '0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDsdAAAAAA'
+            clientDataJSON: 'eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiTkNSSVRVU1pjeFE1ZTFhdUtUcXVlNnA4R0ZacHdxUS1kZzM4bnlWa3NCRSIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ'
+            signature: 'MEUCIQDRXq3aY-gXWsuYJZhOzqqn6UpoRQfcPdNLP7hpZ7IdvQIgX5rY6TomkYUtqydu-w88fW7KeFm-0oE-5jTdLNHg9zw'
+            userHandle: '8881037a-8495-48ef-8a04-ebbdb69415db'
+          type: 'public-key'
           clientExtensionResults: {}
-        authenticatorAttachment: "platform"
+        authenticatorAttachment: 'platform'
       required:
         - email
         - credential
@@ -1386,10 +1384,6 @@ components:
         - expiresAt
 
 paths:
-
-
-
-
   /signin/anonymous:
     post:
       description: 'Sign In a user anonymously'
@@ -1475,7 +1469,7 @@ paths:
             application/json:
               schema:
                 type: string
-                example: "OK"
+                example: 'OK'
           description: SMS sent successfully
         '400':
           content:
@@ -1626,7 +1620,7 @@ paths:
 
   /signin/webauthn:
     post:
-      description: ""
+      description: ''
       parameters: []
       requestBody:
         content:
@@ -1822,7 +1816,7 @@ paths:
             application/json:
               schema:
                 type: string
-                example: "OK"
+                example: 'OK'
           description: Successfully signed out
         '400':
           content:

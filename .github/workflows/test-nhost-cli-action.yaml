@@ -28,7 +28,7 @@ jobs:
           path: packages/nhost-js
           start: true
       - name: should be running
-        run: curl -sSf 'https://local.hasura.nhost.run' > /dev/null
+        run: curl -sSf 'https://local.hasura.local.nhost.run' > /dev/null
 
   stop:
     runs-on: ubuntu-latest
@@ -59,7 +59,7 @@ jobs:
           start: true
       - name: should find the injected hasura-auth version
         run: |
-          VERSION=$(curl -sSf 'https://local.auth.nhost.run/v1/version')
+          VERSION=$(curl -sSf 'https://local.auth.local.nhost.run/v1/version')
           EXPECTED_VERSION='{"version":"v0.20.1"}'
           if [ "$VERSION" != "$EXPECTED_VERSION" ]; then
             echo "Expected version $EXPECTED_VERSION but got $VERSION"

@@ -55,16 +55,38 @@ This quickstart showcases how to correctly add authentication to a Next.js 13 pr
 
 3. Terminal 1: Start the Nhost Backend
 
-   > Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
+   3.1 Make sure you have the [Nhost CLI installed](https://docs.nhost.io/development/cli/).
+
+   3.2 Go to examples/quickstarts/nhost-backend.
 
    ```sh
    cd examples/quickstarts/nhost-backend
+   ```
+
+   3.2 Create a .secrets file
+
+   ```bash
+   GRAFANA_ADMIN_PASSWORD = '<YOUR_GRAFANA_ADMIN_PASSWORD>'
+   HASURA_GRAPHQL_ADMIN_SECRET = '<YOUR_HASURA_GRAPHQL_ADMIN_SECRET>'
+   HASURA_GRAPHQL_JWT_SECRET = '<YOUR_HASURA_GRAPHQL_JWT_SECRET_HAS_TO_BE_AT_LEAST_32_CHAR>'
+   NHOST_WEBHOOK_SECRET = '<YOUR_NHOST_WEBHOOK_SECRET>'
+   ```
+
+   3.3 Start the backend
+
+   ```sh
    nhost up
    ```
 
-4. Terminal 2: Start the Next.js application
+4. **Terminal 2: Start the Next.js application**
 
    ```sh
    cd examples/quickstarts/nextjs-server-components
    pnpm dev
    ```
+
+## How to setup authentication with Google
+
+[Sign In with Google](https://docs.nhost.io/guides/auth/social/sign-in-google).
+
+Under [Settings/Sign in methods](https://local.dashboard.local.nhost.run/orgs/local/projects/local/settings/sign-in-methods) add your Google client ID and secret. In this page you can find the redirect url needed by Google.

@@ -22,8 +22,8 @@ The database and storage have now been seeded successfully.
 
 You can now try to fetch the seeded files:
 
-- [https://local.storage.nhost.run/v1/files/3d62252d-8db2-4b2b-ba63-f2ef64af4267](https://local.storage.nhost.run/v1/files/3d62252d-8db2-4b2b-ba63-f2ef64af4267)
-- [https://local.storage.nhost.run/v1/files/039f89ef-f151-418f-b2db-83c94fbf0fa5](https://local.storage.nhost.run/v1/files/039f89ef-f151-418f-b2db-83c94fbf0fa5)
+- [https://local.storage.local.nhost.run/v1/files/3d62252d-8db2-4b2b-ba63-f2ef64af4267](https://local.storage.local.nhost.run/v1/files/3d62252d-8db2-4b2b-ba63-f2ef64af4267)
+- [https://local.storage.local.nhost.run/v1/files/039f89ef-f151-418f-b2db-83c94fbf0fa5](https://local.storage.local.nhost.run/v1/files/039f89ef-f151-418f-b2db-83c94fbf0fa5)
 
 And make a GraphQL request:
 

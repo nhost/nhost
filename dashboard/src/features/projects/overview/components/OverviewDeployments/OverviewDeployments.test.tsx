@@ -36,7 +36,7 @@ vi.mock('next/router', () => ({
 
 const server = setupServer(
   tokenQuery,
-  rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
+  rest.get('https://local.graphql.local.nhost.run/v1', (_req, res, ctx) =>
     res(ctx.status(200)),
   ),
 );
@@ -49,7 +49,7 @@ beforeAll(() => {
 
 afterEach(() => {
   server.resetHandlers(
-    rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
+    rest.get('https://local.graphql.local.nhost.run/v1', (_req, res, ctx) =>
       res(ctx.status(200)),
     ),
   );
@@ -63,33 +63,36 @@ afterAll(() => {
 
 test('should render an empty state when GitHub is not connected', async () => {
   server.use(
-    rest.post('https://local.graphql.nhost.run/v1', async (req, res, ctx) => {
-      const { operationName } = await req.json();
+    rest.post(
+      'https://local.graphql.local.nhost.run/v1',
+      async (req, res, ctx) => {
+        const { operationName } = await req.json();
 
-      if (operationName === 'GetWorkspaceAndProject') {
+        if (operationName === 'GetWorkspaceAndProject') {
+          return res(
+            ctx.json({
+              data: {
+                workspaces: [
+                  {
+                    ...mockWorkspace,
+                    projects: [{ ...mockApplication, githubRepository: null }],
+                  },
+                ],
+                projects: [{ ...mockApplication, githubRepository: null }],
+              },
+            }),
+          );
+        }
+
         return res(
           ctx.json({
             data: {
-              workspaces: [
-                {
-                  ...mockWorkspace,
-                  projects: [{ ...mockApplication, githubRepository: null }],
-                },
-              ],
-              projects: [{ ...mockApplication, githubRepository: null }],
+              deployments: [],
             },
           }),
         );
-      }
-
-      return res(
-        ctx.json({
-          data: {
-            deployments: [],
-          },
-        }),
-      );
-    }),
+      },
+    ),
   );
 
   render(<OverviewDeployments />);
@@ -102,22 +105,25 @@ test('should render an empty state when GitHub is not connected', async () => {
 
 test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
   server.use(
-    rest.post('https://local.graphql.nhost.run/v1', async (_req, res, ctx) => {
-      const { operationName } = await _req.json();
+    rest.post(
+      'https://local.graphql.local.nhost.run/v1',
+      async (_req, res, ctx) => {
+        const { operationName } = await _req.json();
 
-      if (operationName === 'GetWorkspaceAndProject') {
-        return res(
-          ctx.json({
-            data: {
-              workspaces: [mockWorkspace],
-              projects: [mockApplication],
-            },
-          }),
-        );
-      }
+        if (operationName === 'GetWorkspaceAndProject') {
+          return res(
+            ctx.json({
+              data: {
+                workspaces: [mockWorkspace],
+                projects: [mockApplication],
+              },
+            }),
+          );
+        }
 
-      return res(ctx.json({ data: { deployments: [] } }));
-    }),
+        return res(ctx.json({ data: { deployments: [] } }));
+      },
+    ),
   );
 
   render(<OverviewDeployments />);
@@ -138,43 +144,46 @@ test('should render an empty state when GitHub is connected, but there are no de
 test('should render a list of deployments', async () => {
   server.use(
     tokenQuery,
-    rest.post('https://local.graphql.nhost.run/v1', async (_req, res, ctx) => {
-      const { operationName } = await _req.json();
+    rest.post(
+      'https://local.graphql.local.nhost.run/v1',
+      async (_req, res, ctx) => {
+        const { operationName } = await _req.json();
 
-      if (operationName === 'ScheduledOrPendingDeploymentsSub') {
-        return res(ctx.json({ data: { deployments: [] } }));
-      }
+        if (operationName === 'ScheduledOrPendingDeploymentsSub') {
+          return res(ctx.json({ data: { deployments: [] } }));
+        }
 
-      if (operationName === 'GetWorkspaceAndProject') {
+        if (operationName === 'GetWorkspaceAndProject') {
+          return res(
+            ctx.json({
+              data: {
+                workspaces: [mockWorkspace],
+                projects: [mockApplication],
+              },
+            }),
+          );
+        }
+
         return res(
           ctx.json({
             data: {
-              workspaces: [mockWorkspace],
-              projects: [mockApplication],
+              deployments: [
+                {
+                  id: '1',
+                  commitSHA: 'abc123',
+                  deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+                  deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+                  deploymentStatus: 'DEPLOYED',
+                  commitUserName: 'test.user',
+                  commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                  commitMessage: 'Test commit message',
+                },
+              ],
             },
           }),
         );
-      }
-
-      return res(
-        ctx.json({
-          data: {
-            deployments: [
-              {
-                id: '1',
-                commitSHA: 'abc123',
-                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-                deploymentStatus: 'DEPLOYED',
-                commitUserName: 'test.user',
-                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                commitMessage: 'Test commit message',
-              },
-            ],
-          },
-        }),
-      );
-    }),
+      },
+    ),
   );
 
   render(<OverviewDeployments />);
@@ -198,20 +207,53 @@ test('should render a list of deployments', async () => {
 test('should disable redeployments if a deployment is already in progress', async () => {
   server.use(
     tokenQuery,
-    rest.post('https://local.graphql.nhost.run/v1', async (req, res, ctx) => {
-      const { operationName } = await req.json();
+    rest.post(
+      'https://local.graphql.local.nhost.run/v1',
+      async (req, res, ctx) => {
+        const { operationName } = await req.json();
 
-      if (operationName === 'ScheduledOrPendingDeploymentsSub') {
+        if (operationName === 'ScheduledOrPendingDeploymentsSub') {
+          return res(
+            ctx.json({
+              data: {
+                deployments: [
+                  {
+                    id: '2',
+                    commitSHA: 'abc234',
+                    deploymentStartedAt: '2021-08-02T00:00:00.000Z',
+                    deploymentEndedAt: null,
+                    deploymentStatus: 'PENDING',
+                    commitUserName: 'test.user',
+                    commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                    commitMessage: 'Test commit message',
+                  },
+                ],
+              },
+            }),
+          );
+        }
+
+        if (operationName === 'GetWorkspaceAndProject') {
+          return res(
+            ctx.json({
+              data: {
+                workspaces: [mockWorkspace],
+                projects: [mockApplication],
+              },
+            }),
+          );
+        }
+
         return res(
           ctx.json({
             data: {
               deployments: [
                 {
-                  id: '2',
-                  commitSHA: 'abc234',
-                  deploymentStartedAt: '2021-08-02T00:00:00.000Z',
-                  deploymentEndedAt: null,
-                  deploymentStatus: 'PENDING',
+                  id: '1',
+                  commitSHA: 'abc123',
+                  deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+                  deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+                  deploymentStatus: 'DEPLOYED',
                   commitUserName: 'test.user',
                   commitUserAvatarUrl: 'http://images.example.com/avatar.png',
                   commitMessage: 'Test commit message',
@@ -220,38 +262,8 @@ test('should disable redeployments if a deployment is already in progress', asyn
             },
           }),
         );
-      }
-
-      if (operationName === 'GetWorkspaceAndProject') {
-        return res(
-          ctx.json({
-            data: {
-              workspaces: [mockWorkspace],
-              projects: [mockApplication],
-            },
-          }),
-        );
-      }
-
-      return res(
-        ctx.json({
-          data: {
-            deployments: [
-              {
-                id: '1',
-                commitSHA: 'abc123',
-                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-                deploymentStatus: 'DEPLOYED',
-                commitUserName: 'test.user',
-                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                commitMessage: 'Test commit message',
-              },
-            ],
-          },
-        }),
-      );
-    }),
+      },
+    ),
   );
 
   render(<OverviewDeployments />);
