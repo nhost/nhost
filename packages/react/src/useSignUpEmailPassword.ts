@@ -73,7 +73,7 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (options) => {
     password,
     valueOptions = options,
     requestOptions
-  ) => signUpEmailPasswordPromise(service, email, password as string, valueOptions, requestOptions)
+  ) => signUpEmailPasswordPromise(service, email, password, valueOptions, requestOptions)
 
   const user = useSelector(
     service,

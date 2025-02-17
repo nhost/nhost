@@ -11,7 +11,7 @@
     "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
     "e2e": "pnpm e2e:start-backend && pnpm e2e:test",
     "e2e:test": "pnpm install-browsers && pnpm playwright test",
-    "e2e:start-backend": "cp .secrets.example .secrets && nhost up"
+    "e2e:start-backend": "cp .secrets.example .secrets && nhost up --down-on-error"
   },
   "dependencies": {
     "@apollo/client": "^3.11.4",
