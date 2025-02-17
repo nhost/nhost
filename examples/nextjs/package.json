@@ -15,7 +15,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.9",
+    "@apollo/client": "^3.12.8",
     "@mantine/core": "^4.2.12",
     "@mantine/hooks": "^4.2.12",
     "@mantine/next": "^4.2.12",
@@ -24,19 +24,19 @@
     "@nhost/react": "workspace:^",
     "@nhost/react-apollo": "workspace:^",
     "graphql": "16.8.1",
-    "next": "^14.2.22",
+    "next": "^14.2.23",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-icons": "^4.12.0"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^12.3.4",
-    "@types/node": "^16.18.93",
-    "@types/react": "^18.2.73",
+    "@types/node": "^16.18.125",
+    "@types/react": "^18.3.18",
     "@xstate/inspect": "^0.6.5",
     "eslint-config-next": "12.0.10",
     "typescript": "^4.9.5",
-    "ws": "^8.16.0",
+    "ws": "8.17.1",
     "xstate": "^4.38.3"
   }
 }

@@ -38,7 +38,7 @@ function ControlledCheckbox(
     uncheckWhenDisabled,
     ...props
   }: ControlledCheckboxProps,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const { setValue } = useFormContext();
   const { field } = useController({
