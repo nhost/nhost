@@ -15,6 +15,7 @@ import {
   AvailableLogsService,
   LOGS_SERVICE_TO_LABEL,
 } from '@/features/orgs/projects/logs/utils/constants/services';
+import { isEmptyValue } from '@/lib/utils';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -57,8 +58,8 @@ export default function LogsHeader({
     skip: !project?.id,
   });
 
-  const serviceOptions = useMemo<JSX.Element[]>(() => {
-    if (!Array.isArray(data?.getServiceLabelValues)) {
+  const serviceOptions = useMemo(() => {
+    if (isEmptyValue(data)) {
       return [];
     }
 
