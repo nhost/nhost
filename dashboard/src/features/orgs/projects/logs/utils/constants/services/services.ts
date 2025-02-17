@@ -10,34 +10,21 @@ export enum AvailableLogsService {
   STORAGE = 'hasura-storage',
   HASURA = 'hasura',
   FUNCTIONS = 'functions',
+  GRAFANA = 'grafana',
+  JOB_BACKUP = 'job-backup',
+  AI = 'ai',
 }
 
-export const LOGS_AVAILABLE_SERVICES: {
-  label: string;
-  value: AvailableLogsService;
-}[] = [
-  {
-    label: 'All Services',
-    value: AvailableLogsService.ALL,
-  },
-  {
-    label: 'Postgres',
-    value: AvailableLogsService.POSTGRES,
-  },
-  {
-    label: 'Auth',
-    value: AvailableLogsService.AUTH,
-  },
-  {
-    label: 'Storage',
-    value: AvailableLogsService.STORAGE,
-  },
-  {
-    label: 'Hasura',
-    value: AvailableLogsService.HASURA,
-  },
-  {
-    label: 'Functions',
-    value: AvailableLogsService.FUNCTIONS,
-  },
-];
+export const LOGS_SERVICE_TO_LABEL: Required<
+  Record<AvailableLogsService, string>
+> = {
+  [AvailableLogsService.ALL]: 'All Services',
+  [AvailableLogsService.POSTGRES]: 'Postgres',
+  [AvailableLogsService.AUTH]: 'Auth',
+  [AvailableLogsService.STORAGE]: 'Storage',
+  [AvailableLogsService.HASURA]: 'Hasura',
+  [AvailableLogsService.FUNCTIONS]: 'Functions',
+  [AvailableLogsService.GRAFANA]: 'Grafana',
+  [AvailableLogsService.JOB_BACKUP]: 'Backup Jobs',
+  [AvailableLogsService.AI]: 'AI',
+};

@@ -1,4 +1,3 @@
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/components/ui/v2/Box';
@@ -12,14 +11,19 @@ import { Option } from '@/components/ui/v2/Option';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
-import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
+import {
+  AvailableLogsService,
+  LOGS_SERVICE_TO_LABEL,
+} from '@/features/orgs/projects/logs/utils/constants/services';
+import { isEmptyValue } from '@/lib/utils';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import LogsServiceFilter from './LogsServiceFilter';
 
 export const validationSchema = Yup.object({
   from: Yup.date(),
@@ -49,36 +53,33 @@ export default function LogsHeader({
 }: LogsHeaderProps) {
   const { project } = useProject();
 
-  const [serviceLabels, setServiceLabels] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const { data } = useGetServiceLabelValuesQuery({
+    variables: { appID: project?.id },
+    skip: !project?.id,
+  });
 
-  const { data, loading: loadingServiceLabelValues } =
-    useGetServiceLabelValuesQuery({
-      variables: { appID: project?.id },
-      skip: !project?.id,
-    });
-
-  useEffect(() => {
-    if (!loadingServiceLabelValues && data) {
-      const labels = data.getServiceLabelValues ?? [];
-
-      const labelMappings = {
-        'hasura-auth': 'Auth',
-        'hasura-storage': 'Storage',
-        postgres: 'Postgres',
-        functions: 'Functions',
-        hasura: 'Hasura',
-        grafana: 'Grafana',
-        'job-backup': 'Backup Jobs',
-        ai: 'AI',
-      };
-
-      setServiceLabels(
-        labels.map((l) => ({ label: labelMappings[l] ?? l, value: l })),
-      );
+  const serviceOptions = useMemo(() => {
+    if (isEmptyValue(data)) {
+      return [];
     }
-  }, [loadingServiceLabelValues, data]);
+
+    const options = [
+      {
+        label: LOGS_SERVICE_TO_LABEL[AvailableLogsService.ALL],
+        value: AvailableLogsService.ALL,
+      },
+      ...data.getServiceLabelValues.map((l) => ({
+        label: LOGS_SERVICE_TO_LABEL[l] ?? l,
+        value: l,
+      })),
+    ];
+
+    return options.map(({ value, label }) => (
+      <Option key={value} value={value} className="text-sm+ font-medium">
+        {label}
+      </Option>
+    ));
+  }, [data]);
 
   const form = useForm<LogsFilterFormValues>({
     defaultValues: {
@@ -113,30 +114,10 @@ export default function LogsHeader({
           className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-end"
         >
           <Box className="flex flex-row space-x-2">
-            <ControlledSelect
-              {...register('service')}
-              className="w-full min-w-fit text-sm font-normal"
-              placeholder="All Services"
-              aria-label="Select service"
-              hideEmptyHelperText
-              slotProps={{
-                root: {
-                  className: 'min-h-[initial] h-10 leading-[initial]',
-                },
-              }}
-            >
-              {[{ label: 'All services', value: '' }, ...serviceLabels].map(
-                ({ value, label }) => (
-                  <Option
-                    key={value}
-                    value={value}
-                    className="text-sm+ font-medium"
-                  >
-                    {label}
-                  </Option>
-                ),
-              )}
-            </ControlledSelect>
+            <LogsServiceFilter
+              register={register}
+              serviceOptions={serviceOptions}
+            />
             <div className="w-full min-w-fit">
               <LogsRangeSelector onSubmitFilterValues={onSubmitFilterValues} />
             </div>
