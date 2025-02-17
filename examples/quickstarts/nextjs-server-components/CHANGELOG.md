@@ -1,5 +1,13 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.5.3
+
+### Patch Changes
+
+- 6b8163d: fix(nhost-js) update service URL generation for local environments
+- Updated dependencies [6b8163d]
+  - @nhost/nhost-js@3.2.5
+
 ## 0.5.2
 
 ### Patch Changes
