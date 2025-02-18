@@ -206,7 +206,7 @@ export default function TransferProjectDialog({
                   organization&apos;s features available on that plan.
                 </p>
                 <p>
-                  To transfer a project between organizations, you must be an{' '}
+                  To transfer a project between organizations, you need to be an{' '}
                   <span className="font-bold">ADMIN</span> in both.
                 </p>
               </DialogDescription>
