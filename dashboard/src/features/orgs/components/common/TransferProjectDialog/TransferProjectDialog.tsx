@@ -40,7 +40,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useUserId } from '@nhost/nextjs';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -48,7 +48,7 @@ const CREATE_NEW_ORG = 'createNewOrg';
 interface TransferProjectDialogProps {
   open: boolean;
   setOpen: (value: boolean) => void;
-  isFreeProjectTransfer?: boolean;
+  preselectNewOrg?: boolean;
 }
 
 const transferProjectFormSchema = z.object({
@@ -58,7 +58,7 @@ const transferProjectFormSchema = z.object({
 export default function TransferProjectDialog({
   open,
   setOpen,
-  isFreeProjectTransfer,
+  preselectNewOrg,
 }: TransferProjectDialogProps) {
   const { push, asPath, query, replace, pathname } = useRouter();
   const { session_id, test, ...remainingQuery } = query;
@@ -84,12 +84,12 @@ export default function TransferProjectDialog({
   });
 
   useEffect(() => {
-    if (isFreeProjectTransfer) {
+    if (preselectNewOrg) {
       form.setValue('organization', CREATE_NEW_ORG, {
         shouldDirty: true,
       });
     }
-  }, [open, isFreeProjectTransfer, form]);
+  }, [open, preselectNewOrg, form]);
 
   useEffect(() => {
     if (session_id) {
@@ -185,29 +185,6 @@ export default function TransferProjectDialog({
     }, 150);
   };
 
-  const description = useMemo(() => {
-    if (isFreeProjectTransfer) {
-      return (
-        <>
-          Projects moved to a new organization will automatically get access to
-          that organization&apos;s plan and features.
-          <br />
-          To transfer a project between organizations, you must be an{' '}
-          <span className="font-bold">ADMIN</span> in both.
-        </>
-      );
-    }
-    return (
-      <>
-        To transfer a project between organizations, you must be an{' '}
-        <span className="font-bold">ADMIN</span> in both.
-        <br />
-        When transferred to a new organization, the project will adopt that
-        organization&apos;s plan.
-      </>
-    );
-  }, [isFreeProjectTransfer]);
-
   if (projectLoading || orgsLoading) {
     return <LoadingScreen />;
   }
@@ -218,11 +195,21 @@ export default function TransferProjectDialog({
         <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
           <DialogHeader className="flex gap-2">
             <DialogTitle>
-              Move the current project to a different organization.{' '}
+              Move the project to an organization on a higher plan to upgrade it
             </DialogTitle>
 
             {!finishOrgCreation && (
-              <DialogDescription>{description}</DialogDescription>
+              <DialogDescription className="space-y-2">
+                <p>
+                  To upgrade a project, you need to transfer it to an
+                  organization on a higher plan. The project will inherit the
+                  organization&apos;s features available on that plan.
+                </p>
+                <p>
+                  To transfer a project between organizations, you must be an{' '}
+                  <span className="font-bold">ADMIN</span> in both.
+                </p>
+              </DialogDescription>
             )}
           </DialogHeader>
           {finishOrgCreation ? (
@@ -241,7 +228,7 @@ export default function TransferProjectDialog({
                   name="organization"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Organization</FormLabel>
+                      <FormLabel>Move To</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}

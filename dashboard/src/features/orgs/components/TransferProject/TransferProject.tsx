@@ -33,7 +33,7 @@ export default function TransferProject() {
       <TransferProjectDialog
         open={open}
         setOpen={setOpen}
-        isFreeProjectTransfer={isFreeProject}
+        preselectNewOrg={isFreeProject}
       />
     </>
   );
