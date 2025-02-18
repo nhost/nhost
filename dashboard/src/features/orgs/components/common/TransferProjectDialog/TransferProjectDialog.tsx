@@ -40,7 +40,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useUserId } from '@nhost/nextjs';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -48,6 +48,7 @@ const CREATE_NEW_ORG = 'createNewOrg';
 interface TransferProjectDialogProps {
   open: boolean;
   setOpen: (value: boolean) => void;
+  isFreeProjectTransfer?: boolean;
 }
 
 const transferProjectFormSchema = z.object({
@@ -57,6 +58,7 @@ const transferProjectFormSchema = z.object({
 export default function TransferProjectDialog({
   open,
   setOpen,
+  isFreeProjectTransfer,
 }: TransferProjectDialogProps) {
   const { push, asPath, query, replace, pathname } = useRouter();
   const { session_id, test, ...remainingQuery } = query;
@@ -80,6 +82,14 @@ export default function TransferProjectDialog({
       organization: '',
     },
   });
+
+  useEffect(() => {
+    if (isFreeProjectTransfer) {
+      form.setValue('organization', CREATE_NEW_ORG, {
+        shouldDirty: true,
+      });
+    }
+  }, [open, isFreeProjectTransfer, form]);
 
   useEffect(() => {
     if (session_id) {
@@ -168,9 +178,35 @@ export default function TransferProjectDialog({
     if (!newValue) {
       setNewOrgSlug(undefined);
     }
-    form.reset();
     setOpen(newValue);
+    setTimeout(() => {
+      // wait for the dialog close animation to finish
+      form.reset();
+    }, 150);
   };
+
+  const description = useMemo(() => {
+    if (isFreeProjectTransfer) {
+      return (
+        <>
+          Projects moved to a new organization will automatically get access to
+          that organization&apos;s plan and features.
+          <br />
+          To transfer a project between organizations, you must be an{' '}
+          <span className="font-bold">ADMIN</span> in both.
+        </>
+      );
+    }
+    return (
+      <>
+        To transfer a project between organizations, you must be an{' '}
+        <span className="font-bold">ADMIN</span> in both.
+        <br />
+        When transferred to a new organization, the project will adopt that
+        organization&apos;s plan.
+      </>
+    );
+  }, [isFreeProjectTransfer]);
 
   if (projectLoading || orgsLoading) {
     return <LoadingScreen />;
@@ -186,13 +222,7 @@ export default function TransferProjectDialog({
             </DialogTitle>
 
             {!finishOrgCreation && (
-              <DialogDescription>
-                To transfer a project between organizations, you must be an{' '}
-                <span className="font-bold">ADMIN</span> in both.
-                <br />
-                When transferred to a new organization, the project will adopt
-                that organization’s plan.
-              </DialogDescription>
+              <DialogDescription>{description}</DialogDescription>
             )}
           </DialogHeader>
           {finishOrgCreation ? (

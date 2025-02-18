@@ -179,27 +179,29 @@ export default function SubscriptionPlan() {
               </Link>
               <span> for billing information</span>
             </div>
-            <div className="flex w-full flex-row items-center justify-end gap-2">
-              <Button
-                className="h-fit truncate"
-                variant="secondary"
-                onClick={handleUpdatePaymentDetails}
-                disabled={org?.plan?.isFree || maintenanceActive || loading}
-              >
-                {loading ? (
-                  <ActivityIndicator />
-                ) : (
-                  <span className="truncate">Stripe Customer Portal</span>
-                )}
-              </Button>
-              <Button
-                disabled={org?.plan?.isFree || maintenanceActive}
-                className="h-fit"
-                onClick={() => setOpen(true)}
-              >
-                Upgrade
-              </Button>
-            </div>
+            {!org?.plan?.isFree && (
+              <div className="flex w-full flex-row items-center justify-end gap-2">
+                <Button
+                  className="h-fit truncate"
+                  variant="secondary"
+                  onClick={handleUpdatePaymentDetails}
+                  disabled={maintenanceActive || loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator />
+                  ) : (
+                    <span className="truncate">Stripe Customer Portal</span>
+                  )}
+                </Button>
+                <Button
+                  disabled={maintenanceActive}
+                  className="h-fit"
+                  onClick={() => setOpen(true)}
+                >
+                  Upgrade
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
