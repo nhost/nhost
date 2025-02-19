@@ -124,7 +124,7 @@ test('opens create org dialog when selecting "create new org" and closes transfe
 
   render(<DialogWrapper />);
   const organizationCombobox = await screen.findByRole('combobox', {
-    name: /Organization/i,
+    name: /Move To/i,
   });
 
   expect(organizationCombobox).toBeInTheDocument();
@@ -223,7 +223,7 @@ test(`transfer dialog opens automatically when there is a session_id and selects
   }));
 
   const organizationCombobox = await screen.findByRole('combobox', {
-    name: /Organization/i,
+    name: /Move To/i,
   });
 
   expect(organizationCombobox).toHaveTextContent(newOrg.name);
