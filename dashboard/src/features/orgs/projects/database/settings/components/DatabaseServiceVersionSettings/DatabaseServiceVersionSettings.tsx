@@ -206,12 +206,16 @@ export default function DatabaseServiceVersionSettings() {
     !applicationPaused &&
     !applicationPausing &&
     !applicationUpdating;
+
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
 
-  const versionFieldsDisabled =
+  const majorVersionFieldDisabled =
     applicationUpdating || applicationUnhealthy || maintenanceActive;
+  const minorVersionFieldDisabled = applicationUpdating || maintenanceActive;
+  const versionFieldsDisabled =
+    majorVersionFieldDisabled && minorVersionFieldDisabled;
   const saveDisabled = versionFieldsDisabled || !isDirty;
 
   const handleDatabaseServiceVersionsChange = async (
@@ -341,7 +345,7 @@ export default function DatabaseServiceVersionSettings() {
               name="majorVersion"
               autoHighlight
               freeSolo
-              disabled={versionFieldsDisabled}
+              disabled={majorVersionFieldDisabled}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') {
                   return option || '';
@@ -408,7 +412,7 @@ export default function DatabaseServiceVersionSettings() {
               name="minorVersion"
               autoHighlight
               freeSolo
-              disabled={versionFieldsDisabled}
+              disabled={minorVersionFieldDisabled}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') {
                   return option || '';

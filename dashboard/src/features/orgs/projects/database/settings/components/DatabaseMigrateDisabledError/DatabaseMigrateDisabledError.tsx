@@ -22,7 +22,7 @@ export default function DatabaseMigrateWarning() {
           color: 'error.main',
         }}
       >
-        <XIcon className="h-4 w-4" /> Error: Database version upgrade not
+        <XIcon className="h-4 w-4" /> Error: Database major version upgrade not
         possible
       </Text>
       <Text
@@ -31,7 +31,7 @@ export default function DatabaseMigrateWarning() {
         }}
       >
         Your project isn&apos;t currently in a healthy state. Please, review
-        before proceeding with the upgrade.
+        before proceeding with a major version upgrade.
       </Text>
     </Alert>
   );
