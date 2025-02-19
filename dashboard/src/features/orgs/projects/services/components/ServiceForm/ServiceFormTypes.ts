@@ -18,7 +18,11 @@ export const validationSchema = Yup.object({
     .required('The image is required.')
     .min(1, 'Image must be at least 1 character long'),
   pullCredentials: Yup.string().label('Pull credentials').nullable(),
-  command: Yup.string(),
+  command: Yup.array().of(
+    Yup.object().shape({
+      argument: Yup.string().required(),
+    }),
+  ),
   environment: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
