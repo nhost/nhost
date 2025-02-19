@@ -70,10 +70,8 @@ import {
   SignInPATResponse,
   SignInResponse,
   SignOutResponse,
-  SignUpEmailPasswordParams,
   SignUpParams,
-  SignUpResponse,
-  SignUpSecurityKeyParams
+  SignUpResponse
 } from './types'
 import {
   encodeQueryParameters,
@@ -135,15 +133,13 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
    */
-  signUp(params: SignUpEmailPasswordParams, requestOptions: RequestOptions): Promise<SignUpResponse>
-  signUp(params: SignUpParams): Promise<SignUpResponse>
   async signUp(params: SignUpParams, requestOptions?: RequestOptions): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
 
     if ('securityKey' in params) {
       const { email, options } = params
       return getAuthenticationResult(
-        await signUpEmailSecurityKeyPromise(interpreter, email, options)
+        await signUpEmailSecurityKeyPromise(interpreter, email, options, requestOptions)
       )
     }
     const { email, password, options } = params
