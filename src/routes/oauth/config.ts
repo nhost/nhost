@@ -79,7 +79,9 @@ export const PROVIDERS_CONFIG: Record<
         id: payload.sub,
         displayName,
         email: payload.email,
-        emailVerified: payload.email_verified === 'true',
+        // looks like somtimes they return a boolean, sometimes a string
+        // https://developer.apple.com/documentation/sign_in_with_apple/authenticating-users-with-sign-in-with-apple
+        emailVerified: payload.email_verified === 'true' || payload.email_verified === true,
       };
     },
   },
