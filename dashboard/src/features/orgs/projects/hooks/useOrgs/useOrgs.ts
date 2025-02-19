@@ -5,6 +5,7 @@ import {
   type Exact,
   type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
+import type { ApolloQueryResult } from '@apollo/client';
 import { useAuthenticationStatus, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 
@@ -21,7 +22,7 @@ export interface UseOrgsReturnType {
         [key: string]: never;
       }>
     >,
-  ) => Promise<any>;
+  ) => Promise<ApolloQueryResult<GetOrganizationsQuery>>;
 }
 
 export default function useOrgs(): UseOrgsReturnType {
