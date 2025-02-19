@@ -194,7 +194,7 @@ export default function TransferProjectDialog({
       <Dialog open={open} onOpenChange={handleTransferProjectDialogOpenChange}>
         <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
           <DialogHeader className="flex gap-2">
-            <DialogTitle>
+            <DialogTitle className="text-pretty pr-4 leading-tight">
               Move the project to an organization on a higher plan to upgrade it
             </DialogTitle>
 
