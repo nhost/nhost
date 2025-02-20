@@ -149,10 +149,12 @@ export default function DatabaseServiceVersionSettings() {
         majorToMinorVersions[major] = [];
       }
 
-      majorToMinorVersions[major].push({
-        label: minor,
-        value: minor,
-      });
+      if (minor !== '') {
+        majorToMinorVersions[major].push({
+          label: minor,
+          value: minor,
+        });
+      }
     });
     return {
       availableMajorVersions,

@@ -13,3 +13,10 @@ test('can get major and minor versions from a postgres beta version', () => {
   expect(major).toBe('17');
   expect(minor).toBe('2-0.0.0-beta1');
 });
+
+test('gets only major version if no minor version is present', () => {
+  const { major, minor } = splitPostgresMajorMinorVersions('15');
+
+  expect(major).toBe('15');
+  expect(minor).toBe('');
+});
