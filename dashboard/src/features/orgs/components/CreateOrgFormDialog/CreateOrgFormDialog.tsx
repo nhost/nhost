@@ -25,7 +25,7 @@ import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
+import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { cn } from '@/lib/utils';
 import {
   useCreateOrganizationRequestMutation,

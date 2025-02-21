@@ -1,10 +1,10 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type { ReactElement } from 'react';
 
 export default function Editor() {

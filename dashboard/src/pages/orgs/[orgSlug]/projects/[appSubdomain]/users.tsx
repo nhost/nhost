@@ -13,7 +13,7 @@ import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteAp
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
-import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
+import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
