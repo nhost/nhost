@@ -1,6 +1,5 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -70,7 +69,6 @@ type DatabaseServiceField = Required<
 export default function DatabaseServiceVersionSettings() {
   const isPlatform = useIsPlatform();
   const { openDialog, closeDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
   const [updateConfig] = useUpdateConfigMutation({
@@ -221,12 +219,8 @@ export default function DatabaseServiceVersionSettings() {
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
 
-  const majorVersionFieldDisabled =
-    applicationUpdating || applicationUnhealthy || maintenanceActive;
-  const minorVersionFieldDisabled = applicationUpdating || maintenanceActive;
-  const versionFieldsDisabled =
-    majorVersionFieldDisabled && minorVersionFieldDisabled;
-  const saveDisabled = versionFieldsDisabled || !isDirty;
+  const majorVersionFieldDisabled = applicationUpdating || applicationUnhealthy;
+  const saveDisabled = majorVersionFieldDisabled || !isDirty;
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
@@ -422,7 +416,6 @@ export default function DatabaseServiceVersionSettings() {
               name="minorVersion"
               autoHighlight
               freeSolo
-              disabled={minorVersionFieldDisabled}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') {
                   return option || '';
