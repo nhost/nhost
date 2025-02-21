@@ -4,11 +4,11 @@ import { Modal } from '@/components/ui/v1/Modal';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
+import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
+import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
+import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
+import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
-import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
-import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
-import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import Image from 'next/image';
 import { useState } from 'react';
 

@@ -2246,6 +2246,7 @@ export type ConfigPortComparisonExp = {
 /** Configuration for postgres service */
 export type ConfigPostgres = {
   __typename?: 'ConfigPostgres';
+  pitr?: Maybe<ConfigPostgresPitr>;
   /** Resources for the service */
   resources: ConfigPostgresResources;
   settings?: Maybe<ConfigPostgresSettings>;
@@ -2260,15 +2261,41 @@ export type ConfigPostgresComparisonExp = {
   _and?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
   _not?: InputMaybe<ConfigPostgresComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
+  pitr?: InputMaybe<ConfigPostgresPitrComparisonExp>;
   resources?: InputMaybe<ConfigPostgresResourcesComparisonExp>;
   settings?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigPostgresInsertInput = {
+  pitr?: InputMaybe<ConfigPostgresPitrInsertInput>;
   resources: ConfigPostgresResourcesInsertInput;
   settings?: InputMaybe<ConfigPostgresSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresPitr = {
+  __typename?: 'ConfigPostgresPitr';
+  archiveTimeout?: Maybe<Scalars['ConfigInt32']>;
+  backupScheduleHours?: Maybe<Scalars['String']>;
+};
+
+export type ConfigPostgresPitrComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresPitrComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresPitrComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresPitrComparisonExp>>;
+  archiveTimeout?: InputMaybe<ConfigInt32ComparisonExp>;
+  backupScheduleHours?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigPostgresPitrInsertInput = {
+  archiveTimeout?: InputMaybe<Scalars['ConfigInt32']>;
+  backupScheduleHours?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresPitrUpdateInput = {
+  archiveTimeout?: InputMaybe<Scalars['ConfigInt32']>;
+  backupScheduleHours?: InputMaybe<Scalars['String']>;
 };
 
 /** Resources for the service */
@@ -2276,6 +2303,7 @@ export type ConfigPostgresResources = {
   __typename?: 'ConfigPostgresResources';
   compute?: Maybe<ConfigResourcesCompute>;
   enablePublicAccess?: Maybe<Scalars['Boolean']>;
+  replicas?: Maybe<Scalars['Int']>;
   storage: ConfigPostgresResourcesStorage;
 };
 
@@ -2285,12 +2313,14 @@ export type ConfigPostgresResourcesComparisonExp = {
   _or?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
   enablePublicAccess?: InputMaybe<ConfigBooleanComparisonExp>;
+  replicas?: InputMaybe<ConfigIntComparisonExp>;
   storage?: InputMaybe<ConfigPostgresResourcesStorageComparisonExp>;
 };
 
 export type ConfigPostgresResourcesInsertInput = {
   compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
+  replicas?: InputMaybe<Scalars['Int']>;
   storage: ConfigPostgresResourcesStorageInsertInput;
 };
 
@@ -2317,6 +2347,7 @@ export type ConfigPostgresResourcesStorageUpdateInput = {
 export type ConfigPostgresResourcesUpdateInput = {
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
+  replicas?: InputMaybe<Scalars['Int']>;
   storage?: InputMaybe<ConfigPostgresResourcesStorageUpdateInput>;
 };
 
@@ -2421,6 +2452,7 @@ export type ConfigPostgresSettingsUpdateInput = {
 };
 
 export type ConfigPostgresUpdateInput = {
+  pitr?: InputMaybe<ConfigPostgresPitrUpdateInput>;
   resources?: InputMaybe<ConfigPostgresResourcesUpdateInput>;
   settings?: InputMaybe<ConfigPostgresSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -13147,8 +13179,11 @@ export type Jsonb_Comparison_Exp = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
+  /** Backup all applications databases. It will skip databases with PiTR */
   backupAllApplicationsDatabase: Array<Maybe<BackupResultsItem>>;
   backupApplicationDatabase: BackupResult;
+  /** Triggers a backup of the application database with PiTR */
+  backupApplicationDatabasePiTR: Scalars['Boolean'];
   billingChangeOrganizationPlan: Scalars['Boolean'];
   billingCreateOrganizationRequest: Scalars['String'];
   billingDeleteApp: Scalars['Boolean'];
@@ -13615,6 +13650,8 @@ export type Mutation_Root = {
   replaceRunServiceConfig: ConfigRunServiceConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
+  /** Triggers a restore of the application database with PiTR */
+  restoreApplicationDatabasePiTR: Scalars['Boolean'];
   sendEmailInvite: Scalars['Boolean'];
   sendEmailOrganizationStatusChange: Scalars['Boolean'];
   sendEmailOrganizationThreshold: Scalars['Boolean'];
@@ -13954,6 +13991,12 @@ export type Mutation_Root = {
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
   expireInDays?: InputMaybe<Scalars['Int']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootBackupApplicationDatabasePiTrArgs = {
+  appID: Scalars['String'];
 };
 
 
@@ -15546,6 +15589,13 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootRestoreApplicationDatabasePiTrArgs = {
+  appID: Scalars['String'];
+  recoveryTarget: Scalars['Timestamp'];
 };
 
 
@@ -27628,28 +27678,6 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 
 export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null, disableNewUsers?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
 
-export type GetPostgresSettingsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } } } } | null };
-
-export type ResetDatabasePasswordMutationVariables = Exact<{
-  appId: Scalars['String'];
-  newPassword: Scalars['String'];
-}>;
-
-
-export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
-
-export type GetHasuraSettingsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null, inferFunctionPermissions?: boolean | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } } | null };
-
 export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
 
 export type GetApplicationBackupsQueryVariables = Exact<{
@@ -27674,6 +27702,28 @@ export type GetPersistentVolumesEncryptedQueryVariables = Exact<{
 
 
 export type GetPersistentVolumesEncryptedQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', persistentVolumesEncrypted?: boolean | null } | null };
+
+export type GetPostgresSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } } } } | null };
+
+export type ResetDatabasePasswordMutationVariables = Exact<{
+  appId: Scalars['String'];
+  newPassword: Scalars['String'];
+}>;
+
+
+export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
+
+export type GetHasuraSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null, inferFunctionPermissions?: boolean | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } } | null };
 
 export type GetJwtSecretsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -29411,6 +29461,129 @@ export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthent
 export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
       return { query: GetAuthenticationSettingsDocument, variables: variables }
     }
+export const GetApplicationBackupsDocument = gql`
+    query getApplicationBackups($appId: uuid!) {
+  app(id: $appId) {
+    backups(order_by: {createdAt: desc}) {
+      ...Backup
+    }
+  }
+}
+    ${BackupFragmentDoc}`;
+
+/**
+ * __useGetApplicationBackupsQuery__
+ *
+ * To run a query within a React component, call `useGetApplicationBackupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetApplicationBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetApplicationBackupsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetApplicationBackupsQuery(baseOptions: Apollo.QueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
+      }
+export function useGetApplicationBackupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
+        }
+export type GetApplicationBackupsQueryHookResult = ReturnType<typeof useGetApplicationBackupsQuery>;
+export type GetApplicationBackupsLazyQueryHookResult = ReturnType<typeof useGetApplicationBackupsLazyQuery>;
+export type GetApplicationBackupsQueryResult = Apollo.QueryResult<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>;
+export function refetchGetApplicationBackupsQuery(variables: GetApplicationBackupsQueryVariables) {
+      return { query: GetApplicationBackupsDocument, variables: variables }
+    }
+export const GetBackupPresignedUrlDocument = gql`
+    query GetBackupPresignedUrl($appId: String!, $backupId: String!, $expireInMinutes: Int) {
+  getBackupPresignedUrl: getBackupPresignedURL(
+    appID: $appId
+    backupID: $backupId
+    expireInMinutes: $expireInMinutes
+  ) {
+    url
+    expiresAt: expires_at
+  }
+}
+    `;
+
+/**
+ * __useGetBackupPresignedUrlQuery__
+ *
+ * To run a query within a React component, call `useGetBackupPresignedUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBackupPresignedUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBackupPresignedUrlQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      backupId: // value for 'backupId'
+ *      expireInMinutes: // value for 'expireInMinutes'
+ *   },
+ * });
+ */
+export function useGetBackupPresignedUrlQuery(baseOptions: Apollo.QueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
+      }
+export function useGetBackupPresignedUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
+        }
+export type GetBackupPresignedUrlQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlQuery>;
+export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlLazyQuery>;
+export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
+export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
+      return { query: GetBackupPresignedUrlDocument, variables: variables }
+    }
+export const GetPersistentVolumesEncryptedDocument = gql`
+    query GetPersistentVolumesEncrypted($appId: uuid!) {
+  systemConfig(appID: $appId) {
+    persistentVolumesEncrypted
+  }
+}
+    `;
+
+/**
+ * __useGetPersistentVolumesEncryptedQuery__
+ *
+ * To run a query within a React component, call `useGetPersistentVolumesEncryptedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPersistentVolumesEncryptedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPersistentVolumesEncryptedQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetPersistentVolumesEncryptedQuery(baseOptions: Apollo.QueryHookOptions<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>(GetPersistentVolumesEncryptedDocument, options);
+      }
+export function useGetPersistentVolumesEncryptedLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>(GetPersistentVolumesEncryptedDocument, options);
+        }
+export type GetPersistentVolumesEncryptedQueryHookResult = ReturnType<typeof useGetPersistentVolumesEncryptedQuery>;
+export type GetPersistentVolumesEncryptedLazyQueryHookResult = ReturnType<typeof useGetPersistentVolumesEncryptedLazyQuery>;
+export type GetPersistentVolumesEncryptedQueryResult = Apollo.QueryResult<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>;
+export function refetchGetPersistentVolumesEncryptedQuery(variables: GetPersistentVolumesEncryptedQueryVariables) {
+      return { query: GetPersistentVolumesEncryptedDocument, variables: variables }
+    }
 export const GetPostgresSettingsDocument = gql`
     query GetPostgresSettings($appId: uuid!) {
   systemConfig(appID: $appId) {
@@ -29559,129 +29732,6 @@ export type GetHasuraSettingsLazyQueryHookResult = ReturnType<typeof useGetHasur
 export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>;
 export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
       return { query: GetHasuraSettingsDocument, variables: variables }
-    }
-export const GetApplicationBackupsDocument = gql`
-    query getApplicationBackups($appId: uuid!) {
-  app(id: $appId) {
-    backups(order_by: {createdAt: desc}) {
-      ...Backup
-    }
-  }
-}
-    ${BackupFragmentDoc}`;
-
-/**
- * __useGetApplicationBackupsQuery__
- *
- * To run a query within a React component, call `useGetApplicationBackupsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetApplicationBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetApplicationBackupsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetApplicationBackupsQuery(baseOptions: Apollo.QueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
-      }
-export function useGetApplicationBackupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
-        }
-export type GetApplicationBackupsQueryHookResult = ReturnType<typeof useGetApplicationBackupsQuery>;
-export type GetApplicationBackupsLazyQueryHookResult = ReturnType<typeof useGetApplicationBackupsLazyQuery>;
-export type GetApplicationBackupsQueryResult = Apollo.QueryResult<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>;
-export function refetchGetApplicationBackupsQuery(variables: GetApplicationBackupsQueryVariables) {
-      return { query: GetApplicationBackupsDocument, variables: variables }
-    }
-export const GetBackupPresignedUrlDocument = gql`
-    query GetBackupPresignedUrl($appId: String!, $backupId: String!, $expireInMinutes: Int) {
-  getBackupPresignedUrl: getBackupPresignedURL(
-    appID: $appId
-    backupID: $backupId
-    expireInMinutes: $expireInMinutes
-  ) {
-    url
-    expiresAt: expires_at
-  }
-}
-    `;
-
-/**
- * __useGetBackupPresignedUrlQuery__
- *
- * To run a query within a React component, call `useGetBackupPresignedUrlQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetBackupPresignedUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetBackupPresignedUrlQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *      backupId: // value for 'backupId'
- *      expireInMinutes: // value for 'expireInMinutes'
- *   },
- * });
- */
-export function useGetBackupPresignedUrlQuery(baseOptions: Apollo.QueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
-      }
-export function useGetBackupPresignedUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
-        }
-export type GetBackupPresignedUrlQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlQuery>;
-export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlLazyQuery>;
-export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
-export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
-      return { query: GetBackupPresignedUrlDocument, variables: variables }
-    }
-export const GetPersistentVolumesEncryptedDocument = gql`
-    query GetPersistentVolumesEncrypted($appId: uuid!) {
-  systemConfig(appID: $appId) {
-    persistentVolumesEncrypted
-  }
-}
-    `;
-
-/**
- * __useGetPersistentVolumesEncryptedQuery__
- *
- * To run a query within a React component, call `useGetPersistentVolumesEncryptedQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPersistentVolumesEncryptedQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetPersistentVolumesEncryptedQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetPersistentVolumesEncryptedQuery(baseOptions: Apollo.QueryHookOptions<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>(GetPersistentVolumesEncryptedDocument, options);
-      }
-export function useGetPersistentVolumesEncryptedLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>(GetPersistentVolumesEncryptedDocument, options);
-        }
-export type GetPersistentVolumesEncryptedQueryHookResult = ReturnType<typeof useGetPersistentVolumesEncryptedQuery>;
-export type GetPersistentVolumesEncryptedLazyQueryHookResult = ReturnType<typeof useGetPersistentVolumesEncryptedLazyQuery>;
-export type GetPersistentVolumesEncryptedQueryResult = Apollo.QueryResult<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>;
-export function refetchGetPersistentVolumesEncryptedQuery(variables: GetPersistentVolumesEncryptedQueryVariables) {
-      return { query: GetPersistentVolumesEncryptedDocument, variables: variables }
     }
 export const GetJwtSecretsDocument = gql`
     query GetJWTSecrets($appId: uuid!) {

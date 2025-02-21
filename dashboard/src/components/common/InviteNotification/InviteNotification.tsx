@@ -1,7 +1,7 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   GetAllWorkspacesAndProjectsDocument,
   GetWorkspaceMemberInvitesToManageDocument,
