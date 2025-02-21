@@ -1,6 +1,6 @@
 import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { InfoCard } from '@/features/projects/overview/components/InfoCard';
+import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import Image from 'next/image';
 
 export default function OverviewProjectInfo() {

@@ -10,8 +10,7 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Badge } from '@/components/ui/v3/badge';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
-import { InfoCard } from '@/features/projects/overview/components/InfoCard';
+import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { cn } from '@/lib/utils';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
@@ -33,19 +32,6 @@ export default function SelectWorkspaceAndProject() {
   const router = useRouter();
   const { openAlertDialog } = useDialog();
   const { orgs, loading: loadingOrgs } = useOrgs();
-  const { workspaces, loading: loadingWorkspaces } = useWorkspaces();
-
-  const workspaceProjects: ProjectSelectorOption[] = workspaces.flatMap(
-    (workspace) =>
-      workspace.projects.map((project) => ({
-        type: 'workspace-project',
-        projectName: project.name,
-        projectPathDescriptor: `${workspace.name}/${project.name}`,
-        route: `${workspace.slug}/${project.slug}/services`,
-        isFree: project.legacyPlan.isFree,
-        plan: project.legacyPlan.name,
-      })),
-  );
 
   const orgProjects: ProjectSelectorOption[] = orgs.flatMap((org) =>
     org.apps.map((project) => ({
@@ -58,7 +44,7 @@ export default function SelectWorkspaceAndProject() {
     })),
   );
 
-  const projects = [...orgProjects, ...workspaceProjects];
+  const projects = [...orgProjects];
 
   const [filter, setFilter] = useState('');
 
@@ -139,7 +125,7 @@ export default function SelectWorkspaceAndProject() {
       )
     : projects;
 
-  if (loadingWorkspaces || loadingOrgs) {
+  if (loadingOrgs) {
     return (
       <div className="flex w-full justify-center">
         <ActivityIndicator delay={500} label="Loading projects..." />

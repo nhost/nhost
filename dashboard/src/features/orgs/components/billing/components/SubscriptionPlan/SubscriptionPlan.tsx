@@ -21,9 +21,9 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import {
   useBillingChangeOrganizationPlanMutation,
   useBillingOrganizationCustomePortalLazyQuery,

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { useHostName } from '@/features/projects/common/hooks/useHostName';
+import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
 import type { ReactElement } from 'react';

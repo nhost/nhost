@@ -4,7 +4,7 @@ import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
 import { FinishOrgCreationProcess } from '@/features/orgs/components/common/FinishOrgCreationProcess';
 import { useFinishOrgCreation } from '@/features/orgs/hooks/useFinishOrgCreation';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { PostOrganizationRequestMutation } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';

@@ -1,8 +1,8 @@
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
-import { ProjectHealthBadge } from '@/features/projects/overview/components/ProjectHealthBadge';
-import { serviceStateToBadgeColor } from '@/features/projects/overview/health';
+import { ProjectHealthBadge } from '@/features/orgs/projects/overview/components/ProjectHealthBadge';
+import { serviceStateToBadgeColor } from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/utils/__generated__/graphql';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';

@@ -5,7 +5,7 @@ import {
   serviceStateToThemeColor,
   type baseServices,
   type ServiceHealthInfo,
-} from '@/features/projects/overview/health';
+} from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/generated/graphql';
 
 export interface RunStatusTooltipProps {
