@@ -44,7 +44,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "png",
 			filename: "testdata/nhost.png",
-			sum:      "58dd9460342dba786d9f1029198213fcd881433f6feb553b933f38fcbfc0a5f2",
+			sum:      "d538212aa74ad1d17261bc2126e60964e6d2dc1c7898ea3b9f9bd3b5bc94b380",
 			size:     68307,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypePNG},
 		},
@@ -62,6 +62,20 @@ func TestManipulate(t *testing.T) {
 			size:     33399,
 			options:  image.Options{Blur: 2, Format: image.ImageTypeJPEG},
 		},
+		{
+			name:     "webp to avif",
+			filename: "testdata/nhost.webp",
+			sum:      "af84174b76ef23f44c4064d7c1a53e7097ebdbff7dc7283931c87f93ccad4bf3",
+			size:     17784,
+			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeAVIF},
+		},
+		{
+			name:     "jpeg to avif, no image manipulation",
+			filename: "testdata/nhost.jpg",
+			sum:      "67fd59ef17e59420d40c079e81debf308e3f293754240db7579c1b4873acb1d2",
+			size:     17784,
+			options:  image.Options{Format: image.ImageTypeAVIF},
+		},
 	}
 
 	transformer := image.NewTransformer()
@@ -78,6 +92,8 @@ func TestManipulate(t *testing.T) {
 
 			hasher := sha256.New()
 			// f, _ := os.OpenFile("/tmp/nhost-test."+tc.name, os.O_WRONLY|os.O_CREATE, 0o644)
+			// defer f.Close()
+			// if err := transformer.Run(orig, tc.size, f, tc.options); err != nil {
 			if err := transformer.Run(orig, tc.size, hasher, tc.options); err != nil {
 				t.Fatal(err)
 			}

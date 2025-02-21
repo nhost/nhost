@@ -72,7 +72,7 @@ func (ctrl *Controller) getFileWithPresignedURLParse(
 	signature := make(url.Values, len(ctx.Request.URL.Query()))
 	for k, v := range ctx.Request.URL.Query() {
 		switch k {
-		case "w", "h", "q", "b":
+		case "w", "h", "q", "b", "f":
 		default:
 			signature[k] = v
 		}

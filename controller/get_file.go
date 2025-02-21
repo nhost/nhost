@@ -7,7 +7,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -45,6 +47,76 @@ func getQueryFloat(ctx *gin.Context, param string) (float64, *APIError) {
 	return x, nil
 }
 
+func mimeTypeToImageType(mimeType string) (image.ImageType, *APIError) {
+	switch mimeType {
+	case "image/webp":
+		return image.ImageTypeWEBP, nil
+	case "image/png":
+		return image.ImageTypePNG, nil
+	case "image/jpeg":
+		return image.ImageTypeJPEG, nil
+	case "image/avif":
+		return image.ImageTypeAVIF, nil
+	default:
+		return 0, BadDataError(
+			fmt.Errorf( //nolint: goerr113
+				"image manipulation features are not supported for '%s'", mimeType,
+			),
+			fmt.Sprintf("image manipulation features are not supported for '%s'", mimeType),
+		)
+	}
+}
+
+func chooseImageFormat( //nolint: cyclop
+	ctx *gin.Context,
+	mimeType string,
+) (image.ImageType, image.ImageType, *APIError) {
+	format, found := ctx.GetQuery("f")
+	if !found {
+		format = "same"
+	}
+
+	originalFormat, err := mimeTypeToImageType(mimeType)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	switch format {
+	case "", "same":
+		return originalFormat, originalFormat, nil
+	case "webp":
+		return originalFormat, image.ImageTypeWEBP, nil
+	case "png":
+		return originalFormat, image.ImageTypePNG, nil
+	case "jpeg":
+		return originalFormat, image.ImageTypeJPEG, nil
+	case "avif":
+		return originalFormat, image.ImageTypeAVIF, nil
+	case "auto":
+		acceptHeaders := ctx.Request.Header.Values("Accept")
+		for _, acceptHeader := range acceptHeaders {
+			acceptedTypes := strings.Split(acceptHeader, ",")
+			switch {
+			case slices.Contains(acceptedTypes, "image/avif"):
+				return originalFormat, image.ImageTypeAVIF, nil
+			case slices.Contains(acceptedTypes, "image/webp"):
+				return originalFormat, image.ImageTypeWEBP, nil
+			case slices.Contains(acceptedTypes, "image/jpeg"):
+				return originalFormat, image.ImageTypeJPEG, nil
+			case slices.Contains(acceptedTypes, "image/png"):
+				return originalFormat, image.ImageTypePNG, nil
+			}
+		}
+		return originalFormat, originalFormat, nil
+	default:
+		return 0, 0, BadDataError(
+			//nolint: goerr113
+			fmt.Errorf("format must be one of: same, webp, png, jpeg, avif, auto. Got: %s", format),
+			"format must be one of: same, webp, png, jpeg, avif, auto. Got: "+format,
+		)
+	}
+}
+
 func getImageManipulationOptions(ctx *gin.Context, mimeType string) (image.Options, *APIError) {
 	w, err := getQueryInt(ctx, "w")
 	if err != nil {
@@ -65,28 +137,20 @@ func getImageManipulationOptions(ctx *gin.Context, mimeType string) (image.Optio
 		return image.Options{}, err
 	}
 
+	_, outpufFormatFound := ctx.GetQuery("f")
+
 	opts := image.Options{
 		Height:  h,
 		Width:   w,
 		Blur:    b,
 		Quality: q,
 	}
-	if !opts.IsEmpty() {
-		switch mimeType {
-		case "image/webp":
-			opts.Format = image.ImageTypeWEBP
-		case "image/png":
-			opts.Format = image.ImageTypePNG
-		case "image/jpeg":
-			opts.Format = image.ImageTypeJPEG
-		default:
-			return image.Options{},
-				BadDataError(
-					fmt.Errorf( //nolint: goerr113
-						"image manipulation features are not supported for '%s'", mimeType,
-					),
-					fmt.Sprintf("image manipulation features are not supported for '%s'", mimeType),
-				)
+	if !opts.IsEmpty() || outpufFormatFound {
+		orig, format, err := chooseImageFormat(ctx, mimeType)
+		opts.Format = format
+		opts.OriginalFormat = orig
+		if err != nil {
+			return image.Options{}, err
 		}
 	}
 
@@ -127,6 +191,18 @@ func (ctrl *Controller) manipulateImage(
 	etag := fmt.Sprintf("\"%x\"", hash.Sum(nil))
 
 	return NewP(buf.Bytes()), int64(buf.Len()), etag, nil
+}
+
+func getFileNameAndMimeType(fileMetadata FileMetadata, opts image.Options) (string, string) {
+	filename := fileMetadata.Name
+	mimeType := fileMetadata.MimeType
+
+	if opts.FormatChanged() {
+		filename = fmt.Sprintf("%s.%s", filename, opts.FileExtension())
+		mimeType = opts.FormatMimeType()
+	}
+
+	return filename, mimeType
 }
 
 type getFileFunc func() (*File, *APIError)
@@ -191,16 +267,19 @@ func (ctrl *Controller) processFileToDownload( //nolint: funlen
 			return nil, apiErr
 		}
 	}
+
+	filename, mimeType := getFileNameAndMimeType(fileMetadata, opts)
+
 	return NewFileResponse(
 		fileMetadata.ID,
-		fileMetadata.MimeType,
+		mimeType,
 		contentLength,
 		etag,
 		cacheControl,
 		updateAt,
 		statusCode,
 		body,
-		fileMetadata.Name,
+		filename,
 		download.ExtraHeaders,
 	), nil
 }
