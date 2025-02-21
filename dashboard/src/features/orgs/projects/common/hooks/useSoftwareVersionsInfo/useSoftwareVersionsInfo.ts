@@ -1,5 +1,5 @@
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   Software_Type_Enum,
   useGetConfiguredVersionsQuery,
