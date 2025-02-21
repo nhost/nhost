@@ -7944,7 +7944,9 @@ export enum Billing_Report_Resource_Type_Enum {
   /** Functions amount */
   FunctionsAmount = 'functions_amount',
   /** Persistent Volume */
-  PersistentVolume = 'persistent_volume'
+  PersistentVolume = 'persistent_volume',
+  /** Point-in-Time-Recovery */
+  Pitr = 'pitr'
 }
 
 /** Boolean expression to compare columns of type "billing_report_resource_type_enum". All fields are combined with logical 'AND'. */
@@ -27753,28 +27755,6 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 
 export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null, disableNewUsers?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
 
-export type GetPostgresSettingsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } }, pitr?: { __typename?: 'ConfigPostgresPitr', retention?: any | null } | null } } | null };
-
-export type ResetDatabasePasswordMutationVariables = Exact<{
-  appId: Scalars['String'];
-  newPassword: Scalars['String'];
-}>;
-
-
-export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
-
-export type GetHasuraSettingsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null, inferFunctionPermissions?: boolean | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } } | null };
-
 export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
 
 export type GetApplicationBackupsQueryVariables = Exact<{
@@ -27815,6 +27795,28 @@ export type GetPersistentVolumesEncryptedQueryVariables = Exact<{
 
 
 export type GetPersistentVolumesEncryptedQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', persistentVolumesEncrypted?: boolean | null } | null };
+
+export type GetPostgresSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } }, pitr?: { __typename?: 'ConfigPostgresPitr', retention?: any | null } | null } } | null };
+
+export type ResetDatabasePasswordMutationVariables = Exact<{
+  appId: Scalars['String'];
+  newPassword: Scalars['String'];
+}>;
+
+
+export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
+
+export type GetHasuraSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null, inferFunctionPermissions?: boolean | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } } | null };
 
 export type GetJwtSecretsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -29552,158 +29554,6 @@ export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthent
 export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
       return { query: GetAuthenticationSettingsDocument, variables: variables }
     }
-export const GetPostgresSettingsDocument = gql`
-    query GetPostgresSettings($appId: uuid!) {
-  systemConfig(appID: $appId) {
-    postgres {
-      database
-    }
-  }
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    postgres {
-      version
-      resources {
-        storage {
-          capacity
-        }
-        enablePublicAccess
-      }
-      pitr {
-        retention
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetPostgresSettingsQuery__
- *
- * To run a query within a React component, call `useGetPostgresSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPostgresSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetPostgresSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetPostgresSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>(GetPostgresSettingsDocument, options);
-      }
-export function useGetPostgresSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>(GetPostgresSettingsDocument, options);
-        }
-export type GetPostgresSettingsQueryHookResult = ReturnType<typeof useGetPostgresSettingsQuery>;
-export type GetPostgresSettingsLazyQueryHookResult = ReturnType<typeof useGetPostgresSettingsLazyQuery>;
-export type GetPostgresSettingsQueryResult = Apollo.QueryResult<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>;
-export function refetchGetPostgresSettingsQuery(variables: GetPostgresSettingsQueryVariables) {
-      return { query: GetPostgresSettingsDocument, variables: variables }
-    }
-export const ResetDatabasePasswordDocument = gql`
-    mutation ResetDatabasePassword($appId: String!, $newPassword: String!) {
-  resetPostgresPassword(appID: $appId, newPassword: $newPassword)
-}
-    `;
-export type ResetDatabasePasswordMutationFn = Apollo.MutationFunction<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
-
-/**
- * __useResetDatabasePasswordMutation__
- *
- * To run a mutation, you first call `useResetDatabasePasswordMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useResetDatabasePasswordMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [resetDatabasePasswordMutation, { data, loading, error }] = useResetDatabasePasswordMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      newPassword: // value for 'newPassword'
- *   },
- * });
- */
-export function useResetDatabasePasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>(ResetDatabasePasswordDocument, options);
-      }
-export type ResetDatabasePasswordMutationHookResult = ReturnType<typeof useResetDatabasePasswordMutation>;
-export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDatabasePasswordMutation>;
-export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
-export const GetHasuraSettingsDocument = gql`
-    query GetHasuraSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
-    id: __typename
-    __typename
-    hasura {
-      version
-      settings {
-        enableAllowList
-        enableRemoteSchemaPermissions
-        enableConsole
-        devMode
-        corsDomain
-        enabledAPIs
-        inferFunctionPermissions
-      }
-      logs {
-        level
-      }
-      events {
-        httpPoolSize
-      }
-      resources {
-        networking {
-          ingresses {
-            fqdn
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetHasuraSettingsQuery__
- *
- * To run a query within a React component, call `useGetHasuraSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetHasuraSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetHasuraSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetHasuraSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
-      }
-export function useGetHasuraSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
-        }
-export type GetHasuraSettingsQueryHookResult = ReturnType<typeof useGetHasuraSettingsQuery>;
-export type GetHasuraSettingsLazyQueryHookResult = ReturnType<typeof useGetHasuraSettingsLazyQuery>;
-export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>;
-export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
-      return { query: GetHasuraSettingsDocument, variables: variables }
-    }
 export const GetApplicationBackupsDocument = gql`
     query getApplicationBackups($appId: uuid!) {
   app(id: $appId) {
@@ -29902,6 +29752,158 @@ export type GetPersistentVolumesEncryptedLazyQueryHookResult = ReturnType<typeof
 export type GetPersistentVolumesEncryptedQueryResult = Apollo.QueryResult<GetPersistentVolumesEncryptedQuery, GetPersistentVolumesEncryptedQueryVariables>;
 export function refetchGetPersistentVolumesEncryptedQuery(variables: GetPersistentVolumesEncryptedQueryVariables) {
       return { query: GetPersistentVolumesEncryptedDocument, variables: variables }
+    }
+export const GetPostgresSettingsDocument = gql`
+    query GetPostgresSettings($appId: uuid!) {
+  systemConfig(appID: $appId) {
+    postgres {
+      database
+    }
+  }
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    postgres {
+      version
+      resources {
+        storage {
+          capacity
+        }
+        enablePublicAccess
+      }
+      pitr {
+        retention
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetPostgresSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetPostgresSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPostgresSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPostgresSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetPostgresSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>(GetPostgresSettingsDocument, options);
+      }
+export function useGetPostgresSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>(GetPostgresSettingsDocument, options);
+        }
+export type GetPostgresSettingsQueryHookResult = ReturnType<typeof useGetPostgresSettingsQuery>;
+export type GetPostgresSettingsLazyQueryHookResult = ReturnType<typeof useGetPostgresSettingsLazyQuery>;
+export type GetPostgresSettingsQueryResult = Apollo.QueryResult<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>;
+export function refetchGetPostgresSettingsQuery(variables: GetPostgresSettingsQueryVariables) {
+      return { query: GetPostgresSettingsDocument, variables: variables }
+    }
+export const ResetDatabasePasswordDocument = gql`
+    mutation ResetDatabasePassword($appId: String!, $newPassword: String!) {
+  resetPostgresPassword(appID: $appId, newPassword: $newPassword)
+}
+    `;
+export type ResetDatabasePasswordMutationFn = Apollo.MutationFunction<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
+
+/**
+ * __useResetDatabasePasswordMutation__
+ *
+ * To run a mutation, you first call `useResetDatabasePasswordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResetDatabasePasswordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resetDatabasePasswordMutation, { data, loading, error }] = useResetDatabasePasswordMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      newPassword: // value for 'newPassword'
+ *   },
+ * });
+ */
+export function useResetDatabasePasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>(ResetDatabasePasswordDocument, options);
+      }
+export type ResetDatabasePasswordMutationHookResult = ReturnType<typeof useResetDatabasePasswordMutation>;
+export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDatabasePasswordMutation>;
+export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
+export const GetHasuraSettingsDocument = gql`
+    query GetHasuraSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    hasura {
+      version
+      settings {
+        enableAllowList
+        enableRemoteSchemaPermissions
+        enableConsole
+        devMode
+        corsDomain
+        enabledAPIs
+        inferFunctionPermissions
+      }
+      logs {
+        level
+      }
+      events {
+        httpPoolSize
+      }
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetHasuraSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetHasuraSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHasuraSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHasuraSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetHasuraSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
+      }
+export function useGetHasuraSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
+        }
+export type GetHasuraSettingsQueryHookResult = ReturnType<typeof useGetHasuraSettingsQuery>;
+export type GetHasuraSettingsLazyQueryHookResult = ReturnType<typeof useGetHasuraSettingsLazyQuery>;
+export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>;
+export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
+      return { query: GetHasuraSettingsDocument, variables: variables }
     }
 export const GetJwtSecretsDocument = gql`
     query GetJWTSecrets($appId: uuid!) {

@@ -1,5 +1,4 @@
 import { useNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useNavTreeStateFromURL';
-import { useWorkspacesNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useWorkspacesNavTreeStateFromURL';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import {
   createContext,
@@ -19,10 +18,6 @@ interface TreeNavStateContextType {
   mainNavPinned: boolean;
   orgsTreeViewState: IndividualTreeViewState<never>;
   setOrgsTreeViewState: Dispatch<
-    SetStateAction<IndividualTreeViewState<never>>
-  >;
-  workspacesTreeViewState: IndividualTreeViewState<never>;
-  setWorkspacesTreeViewState: Dispatch<
     SetStateAction<IndividualTreeViewState<never>>
   >;
   setMainNavPinned: (value: boolean) => void;
@@ -71,10 +66,6 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
   );
   const orgsTreeViewState = useSyncedTreeViewState(useNavTreeStateFromURL);
 
-  const workspacesTreeViewState = useSyncedTreeViewState(
-    useWorkspacesNavTreeStateFromURL,
-  );
-
   const value = useMemo(
     () => ({
       open,
@@ -83,8 +74,6 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
       setMainNavPinned,
       orgsTreeViewState: orgsTreeViewState.state,
       setOrgsTreeViewState: orgsTreeViewState.setState,
-      workspacesTreeViewState: workspacesTreeViewState.state,
-      setWorkspacesTreeViewState: workspacesTreeViewState.setState,
     }),
     [
       open,
@@ -93,8 +82,6 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
       setMainNavPinned,
       orgsTreeViewState.state,
       orgsTreeViewState.setState,
-      workspacesTreeViewState.state,
-      workspacesTreeViewState.setState,
     ],
   );
 

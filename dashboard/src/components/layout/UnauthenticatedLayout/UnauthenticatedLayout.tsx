@@ -5,7 +5,7 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/components/ui/v2/Box';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import Image from 'next/image';
