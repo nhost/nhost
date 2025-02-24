@@ -4,7 +4,7 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { useState } from 'react';
