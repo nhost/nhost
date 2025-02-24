@@ -2,7 +2,7 @@ import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import type { CardProps } from '@/features/projects/overview/types/cards';
+import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 
 const features: CardProps[] = [
   {

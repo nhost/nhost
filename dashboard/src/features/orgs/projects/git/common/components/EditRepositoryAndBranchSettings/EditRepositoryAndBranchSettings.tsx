@@ -3,7 +3,7 @@ import { QuestionMarkCircleIcon } from '@/components/ui/v2/icons/QuestionMarkCir
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { Link } from '@/components/ui/v2/Link';
-import type { EditRepositorySettingsFormData } from '@/features/projects/git/common/components/EditRepositorySettings';
+import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 import { useFormContext } from 'react-hook-form';
 
 export default function EditRepositoryAndBranchSettings() {
