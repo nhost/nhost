@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { ChangePlanModal } from '@/features/orgs/projects/common/components/ChangePlanModal';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -36,7 +37,17 @@ export default function UpgradeNotification({
         </Text>
 
         {isOwner && (
-          <Button variant="borderless" onClick={() => {}}>
+          <Button
+            variant="borderless"
+            onClick={() => {
+              openDialog({
+                component: <ChangePlanModal />,
+                props: {
+                  PaperProps: { className: 'p-0 max-w-xl w-full' },
+                },
+              });
+            }}
+          >
             Upgrade
           </Button>
         )}
