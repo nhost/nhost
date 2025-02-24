@@ -1,6 +1,6 @@
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import {
   useGetLocalRunServiceConfigsQuery,
   useGetRunServicesQuery,
