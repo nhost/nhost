@@ -11,7 +11,7 @@ import { Text } from '@/components/ui/v2/Text';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
+import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useTheme } from '@mui/material';
 import clsx from 'clsx';
