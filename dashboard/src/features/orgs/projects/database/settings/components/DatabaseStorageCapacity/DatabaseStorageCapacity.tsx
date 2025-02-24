@@ -100,7 +100,7 @@ export default function DatabaseStorageCapacity() {
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
-  const isFreeProject = !!org?.plan.isFree;
+  const isPlanFree = org?.plan?.isFree;
 
   const {
     data,
@@ -228,7 +228,9 @@ export default function DatabaseStorageCapacity() {
           }}
           className="flex flex-col"
         >
-          {isFreeProject && <UpgradeNotification />}
+          {isPlanFree && (
+            <UpgradeNotification message="Unlock by upgrading your project to the Pro plan." />
+          )}
           <Box className="grid grid-flow-row lg:grid-cols-5">
             <Input
               {...register('capacity')}
@@ -241,13 +243,13 @@ export default function DatabaseStorageCapacity() {
                 </InputAdornment>
               }
               fullWidth
-              disabled={isFreeProject}
+              disabled={isPlanFree}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
             />
           </Box>
-          {!isFreeProject && (
+          {!isPlanFree && (
             <DatabaseStorageCapacityWarning
               state={state}
               decreasingSize={decreasingSize}
