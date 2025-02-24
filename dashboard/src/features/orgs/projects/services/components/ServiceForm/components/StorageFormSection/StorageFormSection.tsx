@@ -10,7 +10,7 @@ import {
   MAX_STORAGE_CAPACITY,
   MIN_STORAGE_CAPACITY,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
+import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function StorageFormSection() {

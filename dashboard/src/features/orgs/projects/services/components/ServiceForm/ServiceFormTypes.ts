@@ -1,4 +1,4 @@
-import { PortTypes } from '@/features/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import type { DialogFormProps } from '@/types/common';
 import * as Yup from 'yup';
 
