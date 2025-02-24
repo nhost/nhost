@@ -1,7 +1,7 @@
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { parseIdentifiersFromSQL } from '@/utils/sql';

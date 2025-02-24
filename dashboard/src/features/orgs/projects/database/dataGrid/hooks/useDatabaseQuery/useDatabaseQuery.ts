@@ -1,5 +1,5 @@
+import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
