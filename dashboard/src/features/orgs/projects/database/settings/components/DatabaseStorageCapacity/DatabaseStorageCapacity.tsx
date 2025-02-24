@@ -46,7 +46,7 @@ export default function DatabaseStorageCapacity() {
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
-  const isFreeProject = !!org?.plan?.isFree;
+  const isPlanFree = org?.plan?.isFree;
 
   const {
     data,
@@ -189,13 +189,13 @@ export default function DatabaseStorageCapacity() {
                 </InputAdornment>
               }
               fullWidth
-              disabled={isFreeProject}
+              disabled={isPlanFree}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
             />
           </Box>
-          {!isFreeProject && (
+          {!isPlanFree && (
             <DatabaseStorageCapacityWarning
               state={state}
               decreasingSize={decreasingSize}
