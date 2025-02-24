@@ -5,14 +5,11 @@ import { Button } from '@/components/ui/v2/Button';
 import { BaseDialog } from '@/components/ui/v2/Dialog';
 import { Radio } from '@/components/ui/v2/Radio';
 import { Text } from '@/components/ui/v2/Text';
-import { useAppState } from '@/features/projects/common/hooks/useAppState';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
-import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import {
   refetchGetApplicationPlanQuery,
   useGetAppPlanAndGlobalPlansQuery,
-  useGetPaymentMethodsQuery,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
@@ -63,22 +60,9 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   const { closeAlertDialog } = useDialog();
   const [pollingCurrentProject, setPollingCurrentProject] = useState(false);
 
-  const {
-    currentWorkspace,
-    currentProject,
-    refetch: refetchWorkspaceAndProject,
-  } = useCurrentWorkspaceAndProject();
   const { state } = useAppState();
 
-  const { data } = useGetPaymentMethodsQuery({
-    variables: {
-      workspaceId: currentWorkspace?.id,
-    },
-    skip: !currentWorkspace,
-  });
-
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const paymentMethodAvailable = data?.paymentMethods.length > 0;
+  return <div>asdasd</div>;
 
   const currentPlan = plans.find((plan) => plan.id === app.legacyPlan);
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId);
