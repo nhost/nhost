@@ -5,11 +5,11 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
-import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
-import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
-import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { useProPlan } from '@/features/orgs/projects/common/hooks/useProPlan';
+import { calculateBillableResources } from '@/features/orgs/projects/resources/settings/utils/calculateBillableResources';
+import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/orgs/projects/resources/settings/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
@@ -156,9 +156,7 @@ export default function ResourcesConfirmationDialog({
               </Text>
 
               <Text className="text-xs" color="secondary">
-                {formValues.database.replicas > 1
-                  ? `${databaseResources} (${formValues.database.replicas} replicas)`
-                  : databaseResources}
+                {databaseResources}
               </Text>
             </Box>
 

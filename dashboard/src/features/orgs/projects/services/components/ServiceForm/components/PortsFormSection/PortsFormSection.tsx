@@ -10,7 +10,7 @@ import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { InfoCard } from '@/features/projects/overview/components/InfoCard';
+import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { PortTypes } from '@/features/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import { type ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { getRunServicePortURL } from '@/utils/helpers';

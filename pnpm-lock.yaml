@@ -465,6 +465,9 @@ importers:
       remark-gfm:
         specifier: ^4.0.0
         version: 4.0.0
+      shell-quote:
+        specifier: ^1.8.1
+        version: 1.8.2
       slugify:
         specifier: ^1.6.6
         version: 1.6.6
@@ -592,6 +595,9 @@ importers:
       '@types/react-table':
         specifier: ^7.7.20
         version: 7.7.20
+      '@types/shell-quote':
+        specifier: ^1.7.5
+        version: 1.7.5
       '@types/testing-library__jest-dom':
         specifier: ^5.14.9
         version: 5.14.9
@@ -7833,6 +7839,9 @@ packages:
 
   '@types/set-cookie-parser@2.4.7':
     resolution: {integrity: sha512-+ge/loa0oTozxip6zmhRIk8Z/boU51wl9Q6QdLZcokIGMzY5lFXYy/x7Htj2HTC6/KZP1hUbZ1ekx8DYXICvWg==}
+
+  '@types/shell-quote@1.7.5':
+    resolution: {integrity: sha512-+UE8GAGRPbJVQDdxi16dgadcBfQ+KG2vgZhV1+3A1XmHbmwcdwhCUwIdy+d3pAGrbvgRoVSjeI9vOWyq376Yzw==}
 
   '@types/sockjs@0.3.36':
     resolution: {integrity: sha512-MK9V6NzAS1+Ud7JV9lJLFqW85VbC9dq3LmwZCuBe4wBDgKC0Kj/jd8Xl+nSviU+Qc3+m7umHHyHg//2KSa0a0Q==}
@@ -27401,6 +27410,8 @@ snapshots:
   '@types/set-cookie-parser@2.4.7':
     dependencies:
       '@types/node': 22.13.9
+
+  '@types/shell-quote@1.7.5': {}
 
   '@types/sockjs@0.3.36':
     dependencies:

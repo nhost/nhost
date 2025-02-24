@@ -1,4 +1,4 @@
-import type { CardProps } from '@/features/projects/overview/types/cards';
+import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 
 const frameworks: CardProps[] = [
   {

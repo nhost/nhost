@@ -31,7 +31,7 @@ import {
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
+import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { cn } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { CommandLoading } from 'cmdk';

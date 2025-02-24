@@ -1,6 +1,6 @@
-import type { ProjectLayoutProps } from '@/components/layout/ProjectLayout';
-import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { Box } from '@/components/ui/v2/Box';
+import type { ProjectLayoutProps } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import type { DataBrowserSidebarProps } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useRouter } from 'next/router';
