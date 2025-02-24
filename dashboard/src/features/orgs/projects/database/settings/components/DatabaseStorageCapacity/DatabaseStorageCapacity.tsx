@@ -1,14 +1,17 @@
+import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { NhostIcon } from '@/components/presentational/NhostIcon';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
+import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DatabaseStorageCapacityWarning } from '@/features/orgs/projects/database/settings/components/DatabaseStorageCapacityWarning';
@@ -23,7 +26,7 @@ import {
 } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -39,12 +42,65 @@ export type DatabaseStorageCapacityFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
+function UpgradeNotification() {
+  const [transferProjectDialogOpen, setTransferProjectDialogOpen] =
+    useState(false);
+
+  const handleTransferDialogOpen = () => setTransferProjectDialogOpen(true);
+
+  return (
+    <Alert className="flex w-full flex-col justify-between gap-4 lg:flex-row">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col space-y-2 lg:flex-row lg:space-x-2 lg:space-y-0">
+          <Text className="text-left">Available with</Text>
+          <div className="flex flex-row space-x-2">
+            <NhostIcon />
+            <Text
+              sx={{ color: 'primary.main' }}
+              className="text-left font-semibold"
+            >
+              Nhost Pro & Team
+            </Text>
+          </div>
+        </div>
+
+        <Text component="span" className="max-w-[50ch] text-left">
+          To unlock more storage capacity, transfer this project to a Pro or
+          Team organization.
+        </Text>
+      </div>
+      <Text className="flex flex-row items-center gap-4 self-end">
+        <Link
+          href="https://nhost.io/pricing"
+          target="_blank"
+          rel="noopener noreferrer"
+          underline="hover"
+          className="whitespace-nowrap text-center font-medium"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
+          See all features
+          <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+        </Link>
+        <OpenTransferDialogButton onClick={handleTransferDialogOpen} />
+        <TransferProjectDialog
+          open={transferProjectDialogOpen}
+          setOpen={setTransferProjectDialogOpen}
+        />
+      </Text>
+    </Alert>
+  );
+}
+
 export default function DatabaseStorageCapacity() {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
+
+  const isFreeProject = !!org?.plan.isFree;
 
   const {
     data,
@@ -172,9 +228,7 @@ export default function DatabaseStorageCapacity() {
           }}
           className="flex flex-col"
         >
-          {project.legacyPlan?.isFree && (
-            <UpgradeNotification message="Unlock by upgrading your project to the Pro plan." />
-          )}
+          {isFreeProject && <UpgradeNotification />}
           <Box className="grid grid-flow-row lg:grid-cols-5">
             <Input
               {...register('capacity')}
@@ -187,13 +241,13 @@ export default function DatabaseStorageCapacity() {
                 </InputAdornment>
               }
               fullWidth
-              disabled={project.legacyPlan?.isFree}
+              disabled={isFreeProject}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
             />
           </Box>
-          {!project.legacyPlan?.isFree && (
+          {!isFreeProject && (
             <DatabaseStorageCapacityWarning
               state={state}
               decreasingSize={decreasingSize}
