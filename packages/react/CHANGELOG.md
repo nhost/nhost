@@ -1,5 +1,12 @@
 # @nhost/react
 
+## 3.10.1
+
+### Patch Changes
+
+- Updated dependencies [6b8163d]
+  - @nhost/nhost-js@3.2.5
+
 ## 3.10.0
 
 ### Minor Changes

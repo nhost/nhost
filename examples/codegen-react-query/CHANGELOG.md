@@ -1,5 +1,12 @@
 # @nhost-examples/codegen-react-query
 
+## 0.5.1
+
+### Patch Changes
+
+- 6b8163d: fix(nhost-js) update service URL generation for local environments
+  - @nhost/react@3.10.1
+
 ## 0.5.0
 
 ### Minor Changes

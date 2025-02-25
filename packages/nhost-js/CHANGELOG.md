@@ -1,5 +1,13 @@
 # @nhost/nhost-js
 
+## 3.2.5
+
+### Patch Changes
+
+- 6b8163d: fix(nhost-js) update service URL generation for local environments
+- Updated dependencies [6b8163d]
+  - @nhost/hasura-auth-js@2.10.1
+
 ## 3.2.4
 
 ### Patch Changes
