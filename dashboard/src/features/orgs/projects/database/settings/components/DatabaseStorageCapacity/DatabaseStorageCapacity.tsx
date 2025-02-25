@@ -189,16 +189,19 @@ export default function DatabaseStorageCapacity() {
                 </InputAdornment>
               }
               fullWidth
+              disabled={isFreeProject}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
             />
           </Box>
-          <DatabaseStorageCapacityWarning
-            state={state}
-            decreasingSize={decreasingSize}
-            isDirty={isDirty}
-          />
+          {!isFreeProject && (
+            <DatabaseStorageCapacityWarning
+              state={state}
+              decreasingSize={decreasingSize}
+              isDirty={isDirty}
+            />
+          )}
           {showEncryptionWarning ? (
             <Alert severity="warning" className="flex flex-col gap-3 text-left">
               <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
