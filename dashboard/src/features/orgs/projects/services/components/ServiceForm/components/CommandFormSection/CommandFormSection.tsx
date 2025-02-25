@@ -50,7 +50,7 @@ export default function CommandFormSection() {
   // Watch for spaces
   const commandValues = watch('command');
 
-  const hasSpaceInCommand = commandValues.some((field) =>
+  const hasSpaceInCommand = commandValues?.some((field) =>
     field.argument.includes(' '),
   );
 
