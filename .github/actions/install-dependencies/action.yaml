@@ -31,6 +31,14 @@ runs:
       with:
         node-version: 20
     - shell: bash
+      name: Use Latest Corepack
+      run: |
+        echo "Before: corepack version => $(corepack --version || echo 'not installed')"
+        npm install -g corepack@latest
+        echo "After : corepack version => $(corepack --version)"
+        corepack enable
+        pnpm --version
+    - shell: bash
       name: Install packages
       run: pnpm install --frozen-lockfile
     # * Build all Nhost packages as they are all supposed to be tested.
