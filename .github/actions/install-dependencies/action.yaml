@@ -30,7 +30,8 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: 20
-    - name: Use Latest Corepack
+    - shell: bash
+      name: Use Latest Corepack
       run: |
         echo "Before: corepack version => $(corepack --version || echo 'not installed')"
         npm install -g corepack@latest
