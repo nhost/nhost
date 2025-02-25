@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DatabaseStorageCapacityWarning } from '@/features/orgs/projects/database/settings/components/DatabaseStorageCapacityWarning';
@@ -98,6 +99,8 @@ export default function DatabaseStorageCapacity() {
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
+
+  const isFreeProject = !!org?.plan.isFree;
 
   const {
     data,
@@ -225,6 +228,7 @@ export default function DatabaseStorageCapacity() {
           }}
           className="flex flex-col"
         >
+          {isFreeProject && <UpgradeNotification />}
           <Box className="grid grid-flow-row lg:grid-cols-5">
             <Input
               {...register('capacity')}
@@ -237,16 +241,19 @@ export default function DatabaseStorageCapacity() {
                 </InputAdornment>
               }
               fullWidth
+              disabled={isFreeProject}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
             />
           </Box>
-          <DatabaseStorageCapacityWarning
-            state={state}
-            decreasingSize={decreasingSize}
-            isDirty={isDirty}
-          />
+          {!isFreeProject && (
+            <DatabaseStorageCapacityWarning
+              state={state}
+              decreasingSize={decreasingSize}
+              isDirty={isDirty}
+            />
+          )}
           {showEncryptionWarning ? (
             <Alert severity="warning" className="flex flex-col gap-3 text-left">
               <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
