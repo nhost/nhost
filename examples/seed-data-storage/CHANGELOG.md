@@ -1,5 +1,11 @@
 # @nhost-examples/seed-data-storage
 
+## 0.0.5
+
+### Patch Changes
+
+- 6b8163d: fix(nhost-js) update service URL generation for local environments
+
 ## 0.0.4
 
 ### Patch Changes

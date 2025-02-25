@@ -1,5 +1,11 @@
 # @nhost/google-translation
 
+## 0.2.2
+
+### Patch Changes
+
+- 6b8163d: fix(nhost-js) update service URL generation for local environments
+
 ## 0.2.1
 
 ### Patch Changes
