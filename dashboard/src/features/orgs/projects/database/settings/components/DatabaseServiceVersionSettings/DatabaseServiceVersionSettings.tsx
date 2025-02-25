@@ -14,7 +14,6 @@ import { DatabaseMigrateDisabledError } from '@/features/orgs/projects/database/
 import { DatabaseMigrateDowntimeWarning } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateDowntimeWarning';
 import { DatabaseMigrateLogsModal } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
-import { DatabaseUpdateInProgressWarning } from '@/features/orgs/projects/database/settings/components/DatabaseUpdateInProgressWarning';
 
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -209,7 +208,7 @@ export default function DatabaseServiceVersionSettings() {
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
 
-  const majorVersionFieldDisabled = applicationUpdating || applicationUnhealthy;
+  const majorVersionFieldDisabled = applicationUnhealthy;
   const saveDisabled = majorVersionFieldDisabled || !isDirty;
 
   const handleDatabaseServiceVersionsChange = async (
@@ -445,7 +444,6 @@ export default function DatabaseServiceVersionSettings() {
             />
           </Box>
           {showMigrateWarning && <DatabaseMigrateDowntimeWarning />}
-          {applicationUpdating && <DatabaseUpdateInProgressWarning />}
           {applicationUnhealthy && !isMigrating && (
             <DatabaseMigrateDisabledError />
           )}
