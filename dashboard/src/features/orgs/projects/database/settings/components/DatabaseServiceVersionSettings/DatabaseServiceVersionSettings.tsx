@@ -82,8 +82,8 @@ export default function DatabaseServiceVersionSettings() {
 
   const {
     version: postgresVersion,
-    postgresMajor: currentPostgresMajor,
-    postgresMinor: currentPostgresMinor,
+    major: currentPostgresMajor,
+    minor: currentPostgresMinor,
     error: postgresSettingsError,
     loading: loadingPostgresSettings,
   } = useGetPostgresVersion();
