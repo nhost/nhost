@@ -32,6 +32,7 @@ import { splitPostgresMajorMinorVersions } from '@/features/orgs/projects/databa
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo } from 'react';
@@ -149,7 +150,7 @@ export default function DatabaseServiceVersionSettings() {
         majorToMinorVersions[major] = [];
       }
 
-      if (minor !== '') {
+      if (isNotEmptyValue(minor)) {
         majorToMinorVersions[major].push({
           label: minor,
           value: minor,
