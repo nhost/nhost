@@ -12,7 +12,7 @@ function UpgradeProjectDialog() {
         buttonText="Upgrade project"
         onClick={handleDialogOpen}
       />
-      <TransferProjectDialog open={open} setOpen={setOpen} />
+      <TransferProjectDialog open={open} setOpen={setOpen} preselectNewOrg />
     </>
   );
 }

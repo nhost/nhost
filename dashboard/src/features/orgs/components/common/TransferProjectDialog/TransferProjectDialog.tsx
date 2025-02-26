@@ -31,7 +31,7 @@ import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFi
 import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { cn, isNotEmptyValue } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import {
   Organization_Members_Role_Enum,
   useBillingTransferAppMutation,
@@ -48,6 +48,7 @@ const CREATE_NEW_ORG = 'createNewOrg';
 interface TransferProjectDialogProps {
   open: boolean;
   setOpen: (value: boolean) => void;
+  preselectNewOrg?: boolean;
 }
 
 const transferProjectFormSchema = z.object({
@@ -57,6 +58,7 @@ const transferProjectFormSchema = z.object({
 export default function TransferProjectDialog({
   open,
   setOpen,
+  preselectNewOrg,
 }: TransferProjectDialogProps) {
   const { push, asPath, query, replace, pathname } = useRouter();
   const { session_id, test, ...remainingQuery } = query;
@@ -68,11 +70,10 @@ export default function TransferProjectDialog({
     loading: orgsLoading,
     refetch: refetchOrgs,
   } = useOrgs();
-  const [transferProject] = useBillingTransferAppMutation();
+  const [transferProjectMutation] = useBillingTransferAppMutation();
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [finishOrgCreation, setFinishOrgCreation] = useState(false);
   const [preventClose, setPreventClose] = useState(false);
-  const [newOrgSlug, setNewOrgSlug] = useState<string | undefined>();
 
   const form = useForm<z.infer<typeof transferProjectFormSchema>>({
     resolver: zodResolver(transferProjectFormSchema),
@@ -82,21 +83,20 @@ export default function TransferProjectDialog({
   });
 
   useEffect(() => {
+    if (preselectNewOrg && !session_id) {
+      form.setValue('organization', CREATE_NEW_ORG, {
+        shouldDirty: true,
+      });
+    }
+  }, [open, preselectNewOrg, form, session_id]);
+
+  useEffect(() => {
     if (session_id) {
       setOpen(true);
       setFinishOrgCreation(true);
       setPreventClose(true);
     }
   }, [session_id, setOpen]);
-
-  useEffect(() => {
-    if (isNotEmptyValue(newOrgSlug)) {
-      const newOrg = orgs.find((org) => org.slug === newOrgSlug);
-      if (newOrg) {
-        form.setValue('organization', newOrg?.id, { shouldDirty: true });
-      }
-    }
-  }, [newOrgSlug, orgs, form]);
 
   const createNewFormSelected = form.watch('organization') === CREATE_NEW_ORG;
   const submitButtonText = createNewFormSelected ? 'Continue' : 'Transfer';
@@ -109,33 +109,40 @@ export default function TransferProjectDialog({
     setOpen(true);
   };
 
+  const transferProject = async (
+    organizationSlug: string,
+    organizationID: string,
+  ) => {
+    await execPromiseWithErrorToast(
+      async () => {
+        await transferProjectMutation({
+          variables: {
+            appID: project?.id,
+            organizationID,
+          },
+        });
+
+        await push(`/orgs/${organizationSlug}/projects`);
+      },
+      {
+        loadingMessage: 'Transferring project...',
+        successMessage: 'Project transferred successfully!',
+        errorMessage: 'Error transferring project. Please try again.',
+      },
+    );
+  };
+
   const onSubmit = async (
     values: z.infer<typeof transferProjectFormSchema>,
   ) => {
-    const { organization } = values;
+    const { organization: organizationId } = values;
 
-    if (organization === CREATE_NEW_ORG) {
+    if (organizationId === CREATE_NEW_ORG) {
       setShowCreateOrgModal(true);
       setOpen(false);
     } else {
-      await execPromiseWithErrorToast(
-        async () => {
-          await transferProject({
-            variables: {
-              appID: project?.id,
-              organizationID: organization,
-            },
-          });
-
-          const targetOrg = orgs.find((o) => o.id === organization);
-          await push(`/orgs/${targetOrg.slug}/projects`);
-        },
-        {
-          loadingMessage: 'Transferring project...',
-          successMessage: 'Project transferred successfully!',
-          errorMessage: 'Error transferring project. Please try again.',
-        },
-      );
+      const targetOrg = orgs.find((o) => o.id === organizationId);
+      transferProject(targetOrg.slug, organizationId);
     }
   };
 
@@ -154,22 +161,28 @@ export default function TransferProjectDialog({
     async (data) => {
       const { Slug } = data;
 
-      await refetchOrgs();
-      setNewOrgSlug(Slug);
+      const newOrgs = await refetchOrgs();
       setFinishOrgCreation(false);
       removeSessionIdFromQuery();
       setPreventClose(false);
+      setOpen(false);
+      const newOrg = newOrgs?.data.organizations.find(
+        (org) => org.slug === Slug,
+      );
+      if (newOrg?.id) {
+        transferProject(Slug, newOrg.id);
+      }
     };
 
   const handleTransferProjectDialogOpenChange = (newValue: boolean) => {
     if (preventClose) {
       return;
     }
-    if (!newValue) {
-      setNewOrgSlug(undefined);
-    }
-    form.reset();
     setOpen(newValue);
+    setTimeout(() => {
+      // wait for the dialog close animation to finish
+      form.reset();
+    }, 150);
   };
 
   if (projectLoading || orgsLoading) {
@@ -181,17 +194,21 @@ export default function TransferProjectDialog({
       <Dialog open={open} onOpenChange={handleTransferProjectDialogOpenChange}>
         <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
           <DialogHeader className="flex gap-2">
-            <DialogTitle>
-              Move the current project to a different organization.{' '}
+            <DialogTitle className="text-pretty pr-4 leading-tight">
+              Move the project to an organization on a higher plan to upgrade it
             </DialogTitle>
 
             {!finishOrgCreation && (
-              <DialogDescription>
-                To transfer a project between organizations, you must be an{' '}
-                <span className="font-bold">ADMIN</span> in both.
-                <br />
-                When transferred to a new organization, the project will adopt
-                that organization’s plan.
+              <DialogDescription className="space-y-2">
+                <p>
+                  To upgrade a project, you need to transfer it to an
+                  organization on a higher plan. The project will inherit the
+                  organization&apos;s features available on that plan.
+                </p>
+                <p>
+                  To transfer a project between organizations, you need to be an{' '}
+                  <span className="font-bold">ADMIN</span> in both.
+                </p>
               </DialogDescription>
             )}
           </DialogHeader>
@@ -211,7 +228,7 @@ export default function TransferProjectDialog({
                   name="organization"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Organization</FormLabel>
+                      <FormLabel>Move To</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
