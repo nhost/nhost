@@ -1,6 +1,9 @@
 name: Nhost CLI
 description: 'Action to install the Nhost CLI and to run an application'
 inputs:
+  init:
+    description: 'Initialize the application'
+    default: 'false'
   start:
     description: "Start the application. If false, the application won't be started"
     default: 'false'
@@ -43,6 +46,11 @@ runs:
         timeout_minutes: 3
         max_attempts: 10
         command: bash <(curl --silent -L https://raw.githubusercontent.com/nhost/cli/main/get.sh) ${{ inputs.version }}
+    - name: Initialize the application
+      if: ${{ inputs.init == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: nhost init
     - name: Set custom configuration
       if: ${{ inputs.config }}
       shell: bash
@@ -56,7 +64,9 @@ runs:
         if [ -n "${{ inputs.dashboard-image }}" ]; then
           export NHOST_DASHBOARD_VERSION=${{ inputs.dashboard-image }}
         fi
-        cp .secrets.example .secrets
+        if [ -f .secrets.example ]; then
+          cp .secrets.example .secrets
+        fi
         nhost up
     - name: Log on failure
       if: steps.wait.outcome == 'failure'
