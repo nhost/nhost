@@ -1,0 +1,526 @@
+---
+title: Build a Todo Manager with React
+description: Learn how to use Nhost with React
+sidebarTitle: React
+icon: react
+---
+
+## Overview
+
+In this tutorial, you will build a simple **Todo Manager** application using Nhost and React. This project will demonstrate how to integrate and use multiple Nhost services to create a full-featured application.
+
+### What You'll Build
+
+The Todo Manager will allow users to:
+- View public todos
+- Sign in using Magic Link authentication
+- Create and manage their own todos
+- Attach files to todos
+
+### Core Services Used
+
+<CardGroup cols={3}>
+<Card title="Database">
+Store and manage todo items with PostgreSQL
+</Card>
+
+<Card title="Auth">
+Handle user authentication with Magic Links
+</Card>
+
+<Card title="Storage">
+Manage file attachments for todos
+</Card>
+</CardGroup>
+
+## Setting Up Your Nhost Backend Infrastructure
+
+Before we start coding, let's set up the backend services that will power our application.
+
+### Creating a New Nhost Project
+
+1. Navigate to the [Nhost Dashboard](https://app.nhost.io)
+2. Click "Create New Project"
+3. Fill in your project details
+4. Wait for provisioning to complete
+
+<Note>
+The provisioning process typically takes 2-3 minutes. During this time, Nhost is setting up:
+- A dedicated PostgreSQL database
+- GraphQL API endpoints
+- Authentication services
+- File storage infrastructure
+</Note>
+
+### Configuring the Database Schema
+
+#### Creating the Todos Table
+
+Navigate to **Database** in your project dashboard to create the `todos` table.
+
+<Tabs>
+  <Tab title="SQL Editor">
+    For quick setup, copy and paste this SQL into the Database -> SQL Editor:
+
+    ```sql SQL
+    CREATE TABLE public.todos (
+      id uuid DEFAULT gen_random_uuid() NOT NULL,
+      created_at timestamptz DEFAULT now() NOT NULL,
+      updated_at timestamptz DEFAULT now() NOT NULL, 
+      title text NOT NULL,
+      completed bool DEFAULT 'false' NOT NULL,
+      file_id uuid,
+      user_id uuid NOT NULL,
+      PRIMARY KEY (id),
+      FOREIGN KEY (file_id) REFERENCES storage.files (id) ON UPDATE SET NULL ON DELETE SET NULL,
+      FOREIGN KEY (user_id) REFERENCES auth.users (id) ON UPDATE SET NULL ON DELETE SET NULL 
+    ); 
+    ```
+
+    <Warning>
+    After running the SQL, make sure to enable **Track this** to expose the table through the GraphQL API
+    </Warning>
+  </Tab>
+  <Tab title="UI Method">
+    If you prefer using the UI:
+    1. Click "New Table"
+    2. Set table name to `todos`
+    3. Configure columns as shown in the image:
+
+    ![New Table Configuration](/images/guides/todos-react-database-new-table.png)
+  </Tab>
+</Tabs>
+
+### Setting Up Security Rules
+
+#### Todo Item Permissions
+
+Navigate to the permissions section for your `todos` table by:
+1. Selecting the `todos` table
+2. Clicking "..." 
+3. Selecting "Edit Permissions"
+
+Configure the following permissions for the `user` role:
+
+<Tabs>
+<Tab title="insert">
+Allow users to create their own todos:
+![User Insert Permissions](/images/guides/todos-react-permissions-insert.png)
+</Tab>
+<Tab title="select">
+Allow users to view todos:
+![User Select Permissions](/images/guides/todos-react-permissions-select.png)
+</Tab>
+<Tab title="update">
+Allow users to modify their own todos:
+![User Update Permissions](/images/guides/todos-react-permissions-update.png)
+</Tab>
+<Tab title="delete">
+Allow users to remove their own todos:
+![User Delete Permissions](/images/guides/todos-react-permissions-delete.png)
+</Tab>
+</Tabs>
+
+#### File Storage Permissions
+
+Configure permissions for the `storage.files` table:
+
+1. Switch to `schema.storage` from the schema dropdown
+2. Select the `files` table
+3. Edit permissions for the `user` role:
+
+<Tabs>
+<Tab title="insert">
+Allow file uploads:
+![File Insert Permissions](/images/guides/todos-react-permissions-files-insert.png)
+</Tab>
+<Tab title="select">
+Allow file access:
+![File Select Permissions](/images/guides/todos-react-permissions-files-select.png)
+</Tab>
+<Tab title="delete">
+Allow file deletion:
+![File Delete Permissions](/images/guides/todos-react-permissions-files-delete.png)
+</Tab>
+</Tabs>
+
+### Enabling Authentication
+
+To set up Magic Link authentication:
+
+1. Go to **Settings -> Sign-In Methods**
+2. Enable the Magic Link toggle
+3. Save your changes
+
+<Info>
+Magic Links provide a passwordless authentication experience by sending login links via email.
+</Info>
+
+## Building the React Frontend
+
+Now that our backend is configured, let's create the React application that will interact with these services.
+
+### Creating a New React Project
+
+First, create a new React project using Vite:
+
+```bash Terminal
+npm create vite@latest nhost-react -- --template react
+```
+
+### Installing Dependencies
+
+Navigate to your project directory and install the Nhost React client:
+
+```bash Terminal
+cd nhost-react && npm install @nhost/react
+```
+
+### Configuring the Nhost Client
+
+Create a new file for your Nhost client configuration:
+
+```ts ./src/lib/nhost.ts
+import { NhostClient } from "@nhost/react";
+
+export const nhost = new NhostClient({
+  subdomain: "<SUBDOMAIN>",
+  region: "<REGION>"
+});
+```
+
+<Tip>
+Find your project's `subdomain` and `region` in the Nhost Dashboard under **Project Info**
+</Tip>
+
+### Implementing Authentication
+
+Create a new component for handling user sign-in:
+
+```js ./src/signin.jsx
+import { useState } from 'react'
+import { useSignInEmailPasswordless } from '@nhost/react'
+
+export default function SignIn() {
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+
+  const { signInEmailPasswordless, error } = useSignInEmailPasswordless()
+
+  const handleSignIn = async (event) => {
+    event.preventDefault()
+
+    setLoading(true)
+    const { error } = await signInEmailPasswordless(email)
+
+    if (error) {
+      console.error({ error })
+      return
+    }
+
+    setLoading(false)
+    alert('Magic Link Sent!')
+  }
+
+  return (
+    <div>
+      <h1>Todo Manager</h1>
+      <p>powered by Nhost and React</p>
+      <form onSubmit={handleSignIn}>
+        <div>
+          <input
+            type="email"
+            placeholder="Your email"
+            value={email}
+            required={true}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <button disabled={loading}>
+            {loading ? <span>Loading</span> : <span>Send me a Magic Link!</span>}
+          </button>
+        </div>
+        {error && <p>{error.message}</p>}
+      </form>
+    </div>
+  )
+}
+```
+
+### Building the Todo Management Interface
+
+Create the main todos component for managing items:
+
+```js ./src/todos.jsx
+import { useState, useEffect } from 'react'
+import { useNhostClient, useFileUpload } from '@nhost/react'
+
+// GraphQL Queries and Mutations
+const deleteTodo = `
+    mutation($id: uuid!) {
+      delete_todos_by_pk(id: $id) {
+        id
+      }
+    }
+  `
+const createTodo = `
+    mutation($title: String!, $file_id: uuid) {
+      insert_todos_one(object: {title: $title, file_id: $file_id}) {
+        id
+      }
+    }
+  `
+const getTodos = `
+    query {
+      todos {
+        id
+        title
+        file_id
+        completed
+      }
+    }
+  `
+
+export default function Todos() {
+  // State Management
+  const [loading, setLoading] = useState(true)
+  const [todos, setTodos] = useState([])
+  const [todoTitle, setTodoTitle] = useState('')
+  const [todoAttachment, setTodoAttachment] = useState(null)
+  const [fetchAll, setFetchAll] = useState(false)
+
+  const nhostClient = useNhostClient()
+  const { upload } = useFileUpload()
+
+  // Fetch Todos
+  useEffect(() => {
+    async function fetchTodos() {
+      setLoading(true)
+      const { data, error } = await nhostClient.graphql.request(getTodos)
+
+      if (error) {
+        console.error({ error })
+        return
+      }
+
+      setTodos(data.todos)
+      setLoading(false)
+    }
+
+    fetchTodos()
+
+    return () => {
+      setFetchAll(false)
+    }
+  }, [fetchAll])
+
+  // Todo Management Functions
+  const handleCreateTodo = async (e) => {
+    e.preventDefault()
+
+    let todo = { title: todoTitle }
+    if (todoAttachment) {
+      const { id, error } = await upload({
+        file: todoAttachment,
+        name: todoAttachment.name
+      })
+
+      if (error) {
+        console.error({ error })
+        return
+      }
+
+      todo.file_id = id
+    }
+
+    const { error } = await nhostClient.graphql.request(createTodo, todo)
+
+    if (error) {
+      console.error({ error })
+    }
+
+    setTodoTitle('')
+    setTodoAttachment(null)
+    setFetchAll(true)
+  }
+
+  const handleDeleteTodo = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this TODO?')) {
+      return
+    }
+
+    const todo = todos.find((todo) => todo.id === id)
+    if (todo.file_id) {
+      await nhostClient.storage.delete({ fileId: todo.file_id })
+    }
+
+    const { error } = await nhostClient.graphql.request(deleteTodo, { id })
+    if (error) {
+      console.error({ error })
+    }
+
+    setFetchAll(true)
+  }
+
+  const completeTodo = async (id) => {
+    const { error } = await nhostClient.graphql.request(
+      `
+      mutation($id: uuid!) {
+        update_todos_by_pk(pk_columns: {id: $id}, _set: {completed: true}) {
+          completed
+        }
+      }
+    `,
+      { id }
+    )
+
+    if (error) {
+      console.error({ error })
+    }
+
+    setFetchAll(true)
+  }
+
+  const openAttachment = async (todo) => {
+    const { presignedUrl, error } = await nhostClient.storage.getPresignedUrl({
+      fileId: todo.file_id
+    })
+
+    if (error) {
+      console.error({ error })
+      return
+    }
+
+    window.open(presignedUrl.url, '_blank')
+  }
+
+  // Component Render
+  return (
+    <>
+      <div className="container">
+        <div className="form-section">
+          <h2>Add a new TODO</h2>
+          <form onSubmit={handleCreateTodo}>
+            <div className="input-group">
+              <label htmlFor="title">Title</label>
+              <input
+                id="title"
+                type="text"
+                placeholder="Title"
+                value={todoTitle}
+                onChange={(e) => setTodoTitle(e.target.value)}
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="file">File (optional)</label>
+              <input 
+                id="file" 
+                type="file" 
+                onChange={(e) => setTodoAttachment(e.target.files[0])} 
+              />
+            </div>
+            <div className="submit-group">
+              <button type="submit" disabled={!todoTitle}>
+                Add Todo
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="todos-section">
+          {(!loading &&
+            todos.map((todo) => (
+              <div className="todo-item" key={todo.id ?? 0}>
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  disabled={todo.completed}
+                  id={`todo-${todo.id}`}
+                  onChange={() => completeTodo(todo.id)}
+                />
+                {todo.file_id && (
+                  <span>
+                    <a onClick={() => openAttachment(todo)}> Open Attachment</a>
+                  </span>
+                )}
+                <label htmlFor={`todo-${todo.id}`} className="todo-title">
+                  {todo.completed && <s>{todo.title}</s>}
+                  {!todo.completed && todo.title}
+                </label>
+                <button type="button" onClick={() => handleDeleteTodo(todo.id)}>
+                  Delete
+                </button>
+              </div>
+            ))) || (
+            <div className="todo-item">
+              <label className="todo-title">Loading...</label>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="sign-out-section">
+        <button type="button" onClick={() => nhostClient.auth.signOut()}>
+          Sign Out
+        </button>
+      </div>
+    </>
+  )
+}
+```
+
+### Connecting Everything Together
+
+Update your main App component to handle authentication state:
+
+```js ./src/App.jsx
+import './App.css'
+import { NhostProvider } from '@nhost/react'
+import { nhost } from './lib/nhost.js'
+import SignIn from './signin'
+import Todos from './todos'
+import { useEffect, useState } from 'react'
+
+function App() {
+  const [session, setSession] = useState(null)
+
+  useEffect(() => {
+    setSession(nhost.auth.getSession())
+
+    nhost.auth.onAuthStateChanged((_, session) => {
+      setSession(session)
+    })
+  }, [])
+
+  return (
+    <NhostProvider nhost={nhost}>
+      {session ? <Todos session={session} /> : <SignIn />}
+    </NhostProvider>
+  )
+}
+
+export default App
+```
+
+## Running Your Application
+
+To start the Todo Manager application:
+
+```bash Terminal
+npm run dev -- --open --port 3000
+```
+
+Your application will be available at [localhost:3000](localhost:3000).
+
+<Info>
+Make sure all your environment variables are properly set before starting the application.
+</Info>
+
+## Next Steps
+
+Now that you have a working Todo Manager, consider these enhancements:
+- Add real-time updates using Nhost's subscription features
+- Implement todo sharing between users
+- Add due dates and priority levels to todos
+- Create different views (completed, pending, all)
