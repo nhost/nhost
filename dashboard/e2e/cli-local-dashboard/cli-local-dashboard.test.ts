@@ -16,6 +16,6 @@ test.describe('Nhost Dashboard E2E Tests', () => {
       'https://local.dashboard.local.nhost.run/orgs/local/projects/local';
     await page.goto(projectUrl);
     await expect(page).toHaveURL(projectUrl);
-    await expect(page.getByText('local')).toBeVisible();
+    await expect(page.getByText(/Subdomain/i)).toBeVisible();
   });
 });

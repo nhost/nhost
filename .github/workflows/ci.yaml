@@ -178,7 +178,7 @@ jobs:
         if: matrix.package.path == 'dashboard'
         timeout-minutes: 5
         run: |
-          pnpm --filter="{{ matrix.package.name }}" run e2e-local
+          pnpm --filter="${{ matrix.package.name }}" run e2e-local
 
       - name: Stop Nhost CLI
         if: matrix.package.path == 'dashboard'
