@@ -42,4 +42,5 @@ export default defineConfig({
       dependencies: ['setup'],
     },
   ],
+  testMatch: ['**/e2e/!cli-local-dashboard/**'],
 });
