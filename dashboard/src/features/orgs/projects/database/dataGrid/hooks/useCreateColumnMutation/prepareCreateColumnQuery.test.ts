@@ -1,4 +1,7 @@
-import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  ColumnType,
+  DatabaseColumn,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { expect, test } from 'vitest';
 import prepareCreateColumnQuery from './prepareCreateColumnQuery';
 
@@ -145,5 +148,24 @@ test(`should not prepare a query for the foreign key relation if generator is di
   expect(transaction).toHaveLength(1);
   expect(transaction[0].args.sql).toBe(
     'ALTER TABLE public.test_table ADD test_column int4 NOT NULL;',
+  );
+});
+
+test('should not escape custom values', () => {
+  const column: DatabaseColumn = {
+    name: 'test_column',
+    type: { value: 'varchar(10)' as ColumnType, label: 'varchar(10)' },
+  };
+
+  const transaction = prepareCreateColumnQuery({
+    dataSource: 'default',
+    schema: 'public',
+    table: 'test_table',
+    column,
+  });
+
+  expect(transaction).toHaveLength(1);
+  expect(transaction[0].args.sql).toBe(
+    'ALTER TABLE public.test_table ADD test_column varchar(10) NOT NULL;',
   );
 });
