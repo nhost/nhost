@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.28.1
+
+### Patch Changes
+
+- 6b8163d: fix(nhost-js) update service URL generation for local environments
+
 ## 2.28.0
 
 ### Minor Changes

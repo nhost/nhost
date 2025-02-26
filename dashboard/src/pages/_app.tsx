@@ -6,6 +6,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { isDevOrStaging } from '@/utils/helpers';
 // eslint-disable-next-line import/extensions
 import '@/styles/fonts.css';
 // eslint-disable-next-line import/extensions
@@ -88,7 +89,7 @@ function MyApp({
             <UIProvider>
               <Toaster position="bottom-center" />
 
-              {isPlatform && <Analytics />}
+              {isPlatform && !isDevOrStaging() && <Analytics />}
 
               <ThemeProvider
                 colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}

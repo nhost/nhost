@@ -1,5 +1,11 @@
 # @nhost-examples/react-gqty
 
+## 1.3.1
+
+### Patch Changes
+
+- @nhost/react@3.10.1
+
 ## 1.3.0
 
 ### Minor Changes
