@@ -1,3 +1,4 @@
+import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
@@ -54,6 +55,14 @@ export default function DataGridTextCell<TData extends object>({
   async function handleSave() {
     if (onSave) {
       await onSave((normalizedTemporaryValue || '').replace(/\n/gi, `\\n`));
+    }
+  }
+
+  async function handleSetToNull() {
+    if (onSave) {
+      await onSave(null);
+      // Unfocus the cell
+      cancelEditCell();
     }
   }
 
@@ -122,36 +131,58 @@ export default function DataGridTextCell<TData extends object>({
 
   if (isEditing && isMultiline) {
     return (
-      <Input
-        multiline
-        ref={inputRef as Ref<HTMLInputElement>}
-        value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
-        onChange={handleChange}
-        onKeyDown={handleTextAreaKeyDown}
-        fullWidth
-        className="absolute top-0 z-10 -mx-0.5 h-full min-h-38"
-        rows={5}
+      <Box
+        className="absolute top-0 z-10 -mx-0.5 h-full min-h-36 w-full"
         sx={{
-          [`&.${inputClasses.focused}`]: {
-            boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
-            borderColor: 'transparent !important',
-            borderRadius: 0,
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark'
-                ? `${theme.palette.secondary[100]} !important`
-                : `${theme.palette.common.white} !important`,
-          },
-          [`& .${inputClasses.input}`]: {
-            backgroundColor: 'transparent',
-          },
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark'
+              ? `${theme.palette.secondary[100]} !important`
+              : `${theme.palette.common.white} !important`,
         }}
-        slotProps={{
-          inputRoot: {
-            className:
-              'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
-          },
-        }}
-      />
+      >
+        <Input
+          multiline
+          ref={inputRef as Ref<HTMLInputElement>}
+          value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
+          onChange={handleChange}
+          onKeyDown={handleTextAreaKeyDown}
+          fullWidth
+          autoFocus
+          className="z-10"
+          rows={5}
+          sx={{
+            [`&.${inputClasses.focused}`]: {
+              boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
+              borderColor: 'transparent !important',
+              borderRadius: 0,
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? `${theme.palette.secondary[100]} !important`
+                  : `${theme.palette.common.white} !important`,
+            },
+            [`& .${inputClasses.input}`]: {
+              backgroundColor: 'transparent',
+            },
+          }}
+          slotProps={{
+            inputRoot: {
+              className:
+                'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
+            },
+          }}
+        />
+        <div className="my-0 flex flex-1 items-center justify-end p-2">
+          <Button
+            className="z-10"
+            size="small"
+            variant="outlined"
+            color="secondary"
+            onClick={handleSetToNull}
+          >
+            Set to NULL
+          </Button>
+        </div>
+      </Box>
     );
   }
 
@@ -173,9 +204,6 @@ export default function DataGridTextCell<TData extends object>({
               theme.palette.mode === 'dark'
                 ? `${theme.palette.secondary[100]} !important`
                 : `${theme.palette.common.white} !important`,
-          },
-          [`& .${inputClasses.input}`]: {
-            backgroundColor: 'transparent',
           },
         }}
         slotProps={{
