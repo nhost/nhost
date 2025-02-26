@@ -66,7 +66,9 @@ export default function RunPage() {
                     memory: 128,
                   },
                   image: parsedConfig?.image?.image,
-                  command: parsedConfig?.command?.join(' '),
+                  command: parsedConfig?.command.map((arg) => ({
+                    argument: arg,
+                  })),
                   ports: parsedConfig?.ports.map((item) => ({
                     port: item.port,
                     type: item.type as PortTypes,

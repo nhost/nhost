@@ -62,7 +62,9 @@ export default function ServicesList({
             image: service.config?.image?.image,
             pullCredentials: service.config?.image?.pullCredentials,
             subdomain: service.subdomain,
-            command: service.config?.command?.join(' '),
+            command: service.config?.command?.map((arg) => ({
+              argument: arg,
+            })),
             ports: service.config?.ports?.map((item) => ({
               port: item.port,
               type: item.type as PortTypes,

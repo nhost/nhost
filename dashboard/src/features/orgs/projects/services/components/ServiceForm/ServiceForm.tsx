@@ -40,7 +40,7 @@ import { removeTypename } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { parse } from 'shell-quote';
+import { CommandFormSection } from './components/CommandFormSection';
 import { HealthCheckFormSection } from './components/HealthCheckFormSection';
 import { ImageFormSection } from './components/ImageFormSection';
 import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
@@ -154,7 +154,7 @@ export default function ServiceForm({
         image: sanitizedValues.image,
         pullCredentials: sanitizedValues.pullCredentials,
       },
-      command: parse(sanitizedValues.command).map((item) => item.toString()),
+      command: sanitizedValues.command.map((arg) => arg.argument),
       resources: {
         compute: {
           cpu: sanitizedValues.compute?.cpu,
@@ -330,28 +330,7 @@ export default function ServiceForm({
           autoFocus
         />
 
-        <Input
-          {...register('command')}
-          id="command"
-          label={
-            <Box className="flex flex-row items-center space-x-2">
-              <Text>Command</Text>
-              <Tooltip title="Command to run when to start the service. This is optional as the image may already have a baked-in command.">
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
-              </Tooltip>
-            </Box>
-          }
-          placeholder="$ npm start"
-          hideEmptyHelperText
-          error={!!errors.command}
-          helperText={errors?.command?.message}
-          fullWidth
-          autoComplete="off"
-        />
+        <CommandFormSection />
 
         {isPlatform ? (
           <Alert
