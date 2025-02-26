@@ -16,6 +16,9 @@ inputs:
   version:
     description: 'Version of the Nhost CLI'
     default: 'latest'
+  dashboard-image:
+    description: 'Image of the dashboard'
+    default: 'nhost/dashboard:latest'
   config:
     description: 'Values to be injected into nhost/config.yaml'
 
@@ -50,6 +53,9 @@ runs:
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
+        if [ -n "${{ inputs.dashboard-image }}" ]; then
+          export NHOST_DASHBOARD_VERSION=${{ inputs.dashboard-image }}
+        fi
         cp .secrets.example .secrets
         nhost up
     - name: Log on failure
