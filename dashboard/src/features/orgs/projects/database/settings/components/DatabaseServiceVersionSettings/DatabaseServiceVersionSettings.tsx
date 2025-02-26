@@ -28,9 +28,11 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 
+import { splitPostgresMajorMinorVersions } from '@/features/orgs/projects/database/settings/utils/splitPostgresMajorMinorVersions';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo } from 'react';
@@ -44,7 +46,11 @@ const validationSchema = Yup.object({
   })
     .label('Postgres major version')
     .required()
-    .test('not-zero', 'Invalid major version', (value) => value?.value !== '0'),
+    .test(
+      'must-be-positive-number',
+      'Invalid major version',
+      (value) => Number(value?.value) > 0,
+    ),
   minorVersion: Yup.object({
     label: Yup.string().required(),
     value: Yup.string().required('Minor version is a required field'),
@@ -77,8 +83,8 @@ export default function DatabaseServiceVersionSettings() {
 
   const {
     version: postgresVersion,
-    postgresMajor: currentPostgresMajor,
-    postgresMinor: currentPostgresMinor,
+    major: currentPostgresMajor,
+    minor: currentPostgresMinor,
     error: postgresSettingsError,
     loading: loadingPostgresSettings,
   } = useGetPostgresVersion();
@@ -124,7 +130,9 @@ export default function DatabaseServiceVersionSettings() {
       if (!availableVersion.value) {
         return;
       }
-      const [major, minor] = availableVersion.value.split('.');
+      const { major, minor } = splitPostgresMajorMinorVersions(
+        availableVersion.value,
+      );
 
       // Don't suggest versions that are lower than the current Postgres major version (can't downgrade)
       if (Number(major) < Number(currentPostgresMajor)) {
@@ -142,10 +150,12 @@ export default function DatabaseServiceVersionSettings() {
         majorToMinorVersions[major] = [];
       }
 
-      majorToMinorVersions[major].push({
-        label: minor,
-        value: minor,
-      });
+      if (isNotEmptyValue(minor)) {
+        majorToMinorVersions[major].push({
+          label: minor,
+          value: minor,
+        });
+      }
     });
     return {
       availableMajorVersions,
