@@ -149,6 +149,7 @@ jobs:
         if: matrix.package.path == 'dashboard'
         uses: ./.github/actions/nhost-cli
         with:
+          init: 'true' # Initialize the application
           start: 'true' # Start the application
           wait: 'true' # Wait until the application is ready
           path: ${{ matrix.package.path }}/nhost-test-project # Path to the test project
