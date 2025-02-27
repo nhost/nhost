@@ -9,8 +9,17 @@ on:
       - '!.github/actions/nhost-cli/**/*.md'
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Create nhost-test-project directory
+        run: mkdir -p nhost-test-project
+
   install:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - name: Install the Nhost CLI
@@ -20,24 +29,28 @@ jobs:
 
   start:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - name: Install the Nhost CLI and start the application
         uses: ./.github/actions/nhost-cli
         with:
-          path: packages/nhost-js
+          init: true
+          path: nhost-test-project # Path to the test project
           start: true
       - name: should be running
-        run: curl -sSf 'https://local.hasura.local.nhost.run' > /dev/null
+        run: curl -sSf 'https://local.hasura.local.nhost.run/' > /dev/null
 
   stop:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - name: Install the Nhost CLI, start and stop the application
         uses: ./.github/actions/nhost-cli
         with:
-          path: packages/nhost-js
+          init: true
+          path: nhost-test-project # Path to the test project
           start: true
           stop: true
       - name: should have no live docker container
@@ -50,17 +63,20 @@ jobs:
 
   config:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - name: Install the Nhost CLI and run the application
         uses: ./.github/actions/nhost-cli
         with:
-          path: packages/nhost-js
+          init: true
+          version: v1.29.3
+          path: nhost-test-project # Path to the test project
           start: true
       - name: should find the injected hasura-auth version
         run: |
           VERSION=$(curl -sSf 'https://local.auth.local.nhost.run/v1/version')
-          EXPECTED_VERSION='{"version":"v0.20.1"}'
+          EXPECTED_VERSION='{"version":"0.36.1"}'
           if [ "$VERSION" != "$EXPECTED_VERSION" ]; then
             echo "Expected version $EXPECTED_VERSION but got $VERSION"
             exit 1
@@ -68,11 +84,12 @@ jobs:
 
   version:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - name: Install the Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:
-          version: v1.0.1
+          version: v1.27.2
       - name: should find the correct version
-        run: nhost --version | head -n 1 | grep v1.0.1 || exit 1
+        run: nhost --version | head -n 1 | grep v1.27.2 || exit 1

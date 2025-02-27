@@ -139,7 +139,7 @@ jobs:
         if: matrix.package.path == 'dashboard'
         run: |
           docker build -t nhost/dashboard:0.0.0-dev -f ${{ matrix.package.path }}/Dockerfile .
-          mkdir -p ${{ matrix.package.path }}/nhost-test-project
+          mkdir -p nhost-test-project
       # * Install Nhost CLI if a `nhost/config.yaml` file is found
       - name: Install Nhost CLI (General)
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != '' && matrix.package.path != 'dashboard'
@@ -152,7 +152,7 @@ jobs:
           init: 'true' # Initialize the application
           start: 'true' # Start the application
           wait: 'true' # Wait until the application is ready
-          path: ${{ matrix.package.path }}/nhost-test-project # Path to the test project
+          path: nhost-test-project # Path to the test project
           dashboard-image: 'nhost/dashboard:0.0.0-dev'
       - name: Fetch Dashboard Preview URL
         id: fetch-dashboard-preview-url

@@ -46,11 +46,13 @@ runs:
         timeout_minutes: 3
         max_attempts: 10
         command: bash <(curl --silent -L https://raw.githubusercontent.com/nhost/cli/main/get.sh) ${{ inputs.version }}
-    - name: Initialize the application
+    - name: Initialize a new project from scratch
       if: ${{ inputs.init == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: nhost init
+      run: |
+      rm -rf ./*
+      nhost init
     - name: Set custom configuration
       if: ${{ inputs.config }}
       shell: bash
