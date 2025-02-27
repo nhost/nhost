@@ -139,6 +139,7 @@ jobs:
         if: matrix.package.path == 'dashboard'
         run: |
           docker build -t nhost/dashboard:0.0.0-dev -f ${{ matrix.package.path }}/Dockerfile .
+          mkdir -p nhost-test-project
       # * Install Nhost CLI if a `nhost/config.yaml` file is found
       - name: Install Nhost CLI (General)
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != '' && matrix.package.path != 'dashboard'
@@ -150,6 +151,7 @@ jobs:
         with:
           init: 'true' # Initialize the application
           start: 'true' # Start the application
+          path: ./nhost-test-project
           wait: 'true' # Wait until the application is ready
           dashboard-image: 'nhost/dashboard:0.0.0-dev'
       - name: Fetch Dashboard Preview URL
