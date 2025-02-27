@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('Nhost CLI Local Dashboard E2E Tests', () => {
+test.describe('Local Dashboard CLI e2e tests', () => {
   test('should redirect / to the correct project URL', async ({ page }) => {
     await page.goto('https://local.dashboard.local.nhost.run/');
     await page.waitForURL(

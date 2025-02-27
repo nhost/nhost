@@ -25,7 +25,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
       },
+      testMatch: ['**/e2e/cli-local-dashboard/**'],
     },
   ],
-  testMatch: ['**/e2e/cli-local-dashboard/**'],
 });
