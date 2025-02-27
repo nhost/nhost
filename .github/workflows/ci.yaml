@@ -141,11 +141,11 @@ jobs:
           docker build -t nhost/dashboard:0.0.0-dev -f ${{ matrix.package.path }}/Dockerfile .
           mkdir -p nhost-test-project
       # * Install Nhost CLI if a `nhost/config.yaml` file is found
-      - name: Install Nhost CLI (General)
+      - name: Install Nhost CLI
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != '' && matrix.package.path != 'dashboard'
         uses: ./.github/actions/nhost-cli
       # * Install Nhost CLI to test Dashboard locally
-      - name: Install Nhost CLI (Dashboard test)
+      - name: Install Nhost CLI (Local Dashboard tests)
         if: matrix.package.path == 'dashboard'
         uses: ./.github/actions/nhost-cli
         with:
@@ -171,10 +171,10 @@ jobs:
         run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e tests
-        if: false #DEBUG
         timeout-minutes: 20
         run: pnpm --filter="${{ matrix.package.name }}" run e2e
-      - name: Run Dashboard CLI local tests
+      # * Run the `e2e-local` script of the dashboard
+      - name: Run Local Dashboard e2e tests
         if: matrix.package.path == 'dashboard'
         timeout-minutes: 5
         run: |
@@ -182,6 +182,7 @@ jobs:
 
       - name: Stop Nhost CLI
         if: matrix.package.path == 'dashboard'
+        working-directory: ./nhost-test-project
         run: nhost down
       - id: file-name
         if: ${{ failure() }}
