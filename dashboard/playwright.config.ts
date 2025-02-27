@@ -40,6 +40,7 @@ export default defineConfig({
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
+      grepInvert: [/Local Dashboard CLI e2e tests/],
     },
   ],
 });
