@@ -51,10 +51,6 @@ export default function useNotFoundRedirect() {
       router.pathname === '/account' ||
       router.pathname === '/support/ticket' ||
       router.pathname === '/run-one-click-install' ||
-      router.pathname.includes('/orgs/_') ||
-      router.pathname.includes('/orgs/_/projects/_') ||
-      (!isPlatform && router.pathname.includes('/orgs/local')) ||
-      (!isPlatform && router.pathname.includes('/orgs/[orgSlug]/projects')) ||
       // If we are on a valid org and project, we don't want to redirect to 404
       (urlOrgSlug && currentOrgSlug && urlAppSubdomain && projectSubdomain) ||
       // If we are on a valid org and no project is selected, we don't want to redirect to 404
