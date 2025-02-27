@@ -4,7 +4,7 @@ import { NullableErrorResponse } from '../types'
 
 declare const EdgeRuntime: any
 
-interface FetcResponse<T> extends NullableErrorResponse {
+interface FetchResponse<T> extends NullableErrorResponse {
   data: T
 }
 
@@ -22,7 +22,7 @@ const fetchWrapper = async <T>(
     body,
     extraHeaders
   }: { token?: string | null; body?: any; extraHeaders?: HeadersInit } = {}
-): Promise<FetcResponse<T>> => {
+): Promise<FetchResponse<T>> => {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     Accept: '*/*'
@@ -44,7 +44,7 @@ const fetchWrapper = async <T>(
     const result = await fetch(url, options)
     if (!result.ok) {
       const error = await result.json()
-      return Promise.reject<FetcResponse<T>>({ error })
+      return Promise.reject<FetchResponse<T>>({ error })
     }
     try {
       const data = await result.json()
@@ -59,7 +59,7 @@ const fetchWrapper = async <T>(
       status: NETWORK_ERROR_CODE,
       error: 'network'
     }
-    return Promise.reject<FetcResponse<T>>({ error })
+    return Promise.reject<FetchResponse<T>>({ error })
   }
 }
 
@@ -68,7 +68,7 @@ export const postFetch = async <T>(
   body: any,
   token?: string | null,
   extraHeaders?: HeadersInit
-): Promise<FetcResponse<T>> => fetchWrapper<T>(url, 'POST', { token, body, extraHeaders })
+): Promise<FetchResponse<T>> => fetchWrapper<T>(url, 'POST', { token, body, extraHeaders })
 
-export const getFetch = <T>(url: string, token?: string | null): Promise<FetcResponse<T>> =>
+export const getFetch = <T>(url: string, token?: string | null): Promise<FetchResponse<T>> =>
   fetchWrapper<T>(url, 'GET', { token })
