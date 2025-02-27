@@ -1,4 +1,5 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { splitPostgresMajorMinorVersions } from '@/features/orgs/projects/database/settings/utils/splitPostgresMajorMinorVersions';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
@@ -22,15 +23,12 @@ export default function useGetPostgresVersion() {
   });
 
   const { version } = postgresSettingsData?.config?.postgres || {};
-  const [postgresMajor, postgresMinor] = version?.split('.') || [
-    undefined,
-    undefined,
-  ];
+  const { major, minor } = splitPostgresMajorMinorVersions(version);
 
   return {
     version,
-    postgresMajor,
-    postgresMinor,
+    major,
+    minor,
     loading,
     error,
   };
