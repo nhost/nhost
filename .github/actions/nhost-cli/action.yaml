@@ -51,8 +51,8 @@ runs:
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
-      rm -rf ./*
-      nhost init
+        rm -rf ./*
+        nhost init
     - name: Set custom configuration
       if: ${{ inputs.config }}
       shell: bash
