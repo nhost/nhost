@@ -9,15 +9,15 @@ import { Link } from '@/components/ui/v2/Link';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
-import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/orgs/projects/resources/settings/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   MAX_SERVICE_MEMORY,
   MAX_SERVICE_VCPU,
   MIN_SERVICE_MEMORY,
   MIN_SERVICE_VCPU,
-} from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+} from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   RESOURCE_MEMORY_LOCKED_STEP,
   RESOURCE_MEMORY_STEP,
@@ -48,6 +48,31 @@ export interface ServiceResourcesFormFragmentProps {
   disableReplicas?: boolean;
 }
 
+type ServicesWithReplicasSettingValues =
+  | ResourceSettingsFormValues['hasura']
+  | ResourceSettingsFormValues['auth']
+  | ResourceSettingsFormValues['storage'];
+
+function isServiceWithReplicasValues(
+  values: ResourceSettingsFormValues[
+    | 'database'
+    | 'auth'
+    | 'storage'
+    | 'hasura'],
+): values is ServicesWithReplicasSettingValues {
+  return (
+    'replicas' in values && 'autoscale' in values && 'maxReplicas' in values
+  );
+}
+
+type ServicesWithReplicasSetting = 'hasura' | 'auth' | 'storage';
+
+function isServiceWithReplicas(
+  key: string,
+): key is ServicesWithReplicasSetting {
+  return ['hasura', 'auth', 'storage'].includes(key);
+}
+
 export default function ServiceResourcesFormFragment({
   title,
   description,
@@ -63,7 +88,9 @@ export default function ServiceResourcesFormFragment({
   const formValues = useWatch<ResourceSettingsFormValues>();
   const serviceValues = formValues[serviceKey];
 
-  const isRatioLocked = serviceValues.replicas > 1 || serviceValues.autoscale;
+  const isRatioLocked = isServiceWithReplicasValues(serviceValues)
+    ? serviceValues.replicas > 1 || serviceValues.autoscale
+    : false;
   const resourceMemoryStep = isRatioLocked
     ? RESOURCE_MEMORY_LOCKED_STEP
     : RESOURCE_MEMORY_STEP;
@@ -98,20 +125,27 @@ export default function ServiceResourcesFormFragment({
   // Debounce revalidation to prevent excessive re-renders
   const handleReplicaChange = debounce((value: string) => {
     const updatedReplicas = parseInt(value, 10);
+    // infer that service key is a service with replicas setting
+    const serviceKeyWithReplicas = serviceKey as ServicesWithReplicasSetting;
 
-    setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
-    triggerValidation(`${serviceKey}.replicas`);
-    triggerValidation(`${serviceKey}.memory`);
+    setValue(`${serviceKeyWithReplicas}.replicas`, updatedReplicas, {
+      shouldDirty: true,
+    });
+    triggerValidation(`${serviceKeyWithReplicas}.replicas`);
+    triggerValidation(`${serviceKeyWithReplicas}.memory`);
   }, 500);
 
   const handleMaxReplicasChange = debounce((value: string) => {
     const updatedMaxReplicas = parseInt(value, 10);
 
-    setValue(`${serviceKey}.maxReplicas`, updatedMaxReplicas, {
+    // infer that service key is a service with max replicas setting
+    const serviceKeyWithReplicas = serviceKey as ServicesWithReplicasSetting;
+
+    setValue(`${serviceKeyWithReplicas}.maxReplicas`, updatedMaxReplicas, {
       shouldDirty: true,
     });
-    triggerValidation(`${serviceKey}.maxReplicas`);
-    triggerValidation(`${serviceKey}.memory`);
+    triggerValidation(`${serviceKeyWithReplicas}.maxReplicas`);
+    triggerValidation(`${serviceKeyWithReplicas}.memory`);
   }, 500);
 
   const handleSwitchChange = () => {
@@ -235,7 +269,7 @@ export default function ServiceResourcesFormFragment({
         ) : null}
       </Box>
 
-      {!disableReplicas && (
+      {!disableReplicas && isServiceWithReplicas(serviceKey) && (
         <Box className="flex flex-col justify-between gap-4 lg:flex-row">
           <Box className="flex flex-col gap-4 lg:flex-row lg:gap-8">
             <Box className="flex flex-row items-center gap-2">

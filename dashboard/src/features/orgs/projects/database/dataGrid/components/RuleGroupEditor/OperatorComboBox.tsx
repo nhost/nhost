@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import type { HasuraOperator } from '@/features/database/dataGrid/types/dataBrowser';
+import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';

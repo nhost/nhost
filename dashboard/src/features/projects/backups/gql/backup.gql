@@ -1,6 +1,0 @@
-fragment Backup on backups {
-  id
-  size
-  createdAt
-  completedAt
-}

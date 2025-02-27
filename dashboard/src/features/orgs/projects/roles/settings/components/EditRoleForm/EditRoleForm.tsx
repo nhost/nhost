@@ -1,15 +1,15 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import type {
+  BaseRoleFormProps,
+  BaseRoleFormValues,
+} from '@/features/orgs/projects/roles/settings/components/BaseRoleForm';
 import {
   BaseRoleForm,
   baseRoleFormValidationSchema,
 } from '@/features/orgs/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
-import type {
-  BaseRoleFormProps,
-  BaseRoleFormValues,
-} from '@/features/projects/roles/settings/components/BaseRoleForm';
 import type { Role } from '@/types/application';
 import {
   useGetRolesPermissionsQuery,

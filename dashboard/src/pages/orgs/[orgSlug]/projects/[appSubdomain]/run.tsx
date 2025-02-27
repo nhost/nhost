@@ -19,7 +19,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import ServicesList from '@/features/orgs/projects/services/components/ServicesList/ServicesList';
+import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, type ReactElement } from 'react';
 

@@ -11,14 +11,14 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ComputeFormSection';
 import { EnvironmentFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/EnvironmentFormSection';
 import { PortsFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/StorageFormSection';
-import { useHostName } from '@/features/projects/common/hooks/useHostName';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 
 import {
   validationSchema,
@@ -26,8 +26,8 @@ import {
   type ServiceFormValues,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,

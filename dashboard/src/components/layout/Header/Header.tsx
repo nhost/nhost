@@ -7,14 +7,11 @@ import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { Button } from '@/components/ui/v3/button';
-import { DevAssistant as WorkspaceProjectDevAssistant } from '@/features/ai/DevAssistant';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
 import { DevAssistant } from '@/features/orgs/projects/ai/DevAssistant';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { toast } from 'react-hot-toast';
@@ -30,12 +27,10 @@ export default function Header({ className, ...props }: HeaderProps) {
   const isPlatform = useIsPlatform();
   const { openDrawer } = useDialog();
   const { project } = useProject();
-  const { currentProject: workspaceProject } = useCurrentWorkspaceAndProject();
-  const { currentOrg: org } = useOrgs();
 
   const openDevAssistant = () => {
     // The dev assistant can be only answer questions related to a particular project
-    if (!project && !workspaceProject) {
+    if (!project) {
       toast.error('You need to be inside a project to open the Assistant', {
         style: getToastStyleProps().style,
         ...getToastStyleProps().error,
@@ -44,17 +39,10 @@ export default function Header({ className, ...props }: HeaderProps) {
       return;
     }
 
-    if (org && project) {
-      openDrawer({
-        title: <GraphiteIcon />,
-        component: <DevAssistant />,
-      });
-    } else {
-      openDrawer({
-        title: <GraphiteIcon />,
-        component: <WorkspaceProjectDevAssistant />,
-      });
-    }
+    openDrawer({
+      title: <GraphiteIcon />,
+      component: <DevAssistant />,
+    });
   };
 
   return (

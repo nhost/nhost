@@ -10,14 +10,14 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 
 import { useMediaQuery } from '@/components/common/useMediaQuery';
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
-import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
+import { useNotFoundRedirect } from '@/features/orgs/projects/common/hooks/useNotFoundRedirect';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
