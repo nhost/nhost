@@ -31,6 +31,11 @@ export default defineConfig({
     },
     {
       name: 'teardown',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/.auth/user.json',
+      },
+      dependencies: ['setup'],
       testMatch: ['**/teardown/*.teardown.ts'],
     },
     {
