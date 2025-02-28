@@ -31,6 +31,11 @@ export default defineConfig({
     },
     {
       name: 'teardown',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/.auth/user.json',
+      },
+      dependencies: ['setup'],
       testMatch: ['**/teardown/*.teardown.ts'],
     },
     {
@@ -40,6 +45,7 @@ export default defineConfig({
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
+      grepInvert: [/Local Dashboard CLI e2e tests/],
     },
   ],
 });
