@@ -121,6 +121,7 @@ func export(image *vips.ImageRef, opts Options) ([]byte, error) {
 	case ImageTypeAVIF:
 		ep := vips.NewAvifExportParams()
 		ep.Quality = opts.Quality
+		ep.Effort = 0
 		b, _, err = image.ExportAvif(ep)
 	}
 
