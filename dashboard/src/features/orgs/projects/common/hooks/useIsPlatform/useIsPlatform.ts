@@ -6,3 +6,7 @@ import { isPlatform } from '@/utils/env';
 export default function useIsPlatform() {
   return isPlatform();
 }
+
+export function useIsNotPlatform() {
+  return !isPlatform();
+}
