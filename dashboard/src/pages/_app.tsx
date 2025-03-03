@@ -1,3 +1,4 @@
+import Analytics from '@/components/analytics/analytics';
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
 import { TreeNavStateProvider } from '@/components/layout/MainNav/TreeNavStateContext';
@@ -5,6 +6,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { isDevOrStaging } from '@/utils/helpers';
 // eslint-disable-next-line import/extensions
 import '@/styles/fonts.css';
 // eslint-disable-next-line import/extensions
@@ -28,14 +30,12 @@ import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
 import { NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
-import * as snippet from '@segment/snippet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { NextPage } from 'next';
 import { PagesProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { DefaultSeo } from 'next-seo';
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
-import Script from 'next/script';
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -61,20 +61,6 @@ function MyApp({
 }: MyAppProps) {
   const isPlatform = useIsPlatform();
   const router = useRouter();
-
-  // segment snippet
-  function renderSnippet() {
-    const opts = {
-      apiKey: process.env.NEXT_PUBLIC_ANALYTICS_WRITE_KEY,
-      page: true,
-    };
-
-    if (process.env.NODE_ENV === 'development') {
-      return snippet.max(opts);
-    }
-
-    return snippet.min(opts);
-  }
 
   useEffect(() => {
     // track page changes
@@ -103,12 +89,7 @@ function MyApp({
             <UIProvider>
               <Toaster position="bottom-center" />
 
-              {isPlatform && (
-                <Script
-                  id="segment"
-                  dangerouslySetInnerHTML={{ __html: renderSnippet() }}
-                />
-              )}
+              {isPlatform && !isDevOrStaging() && <Analytics />}
 
               <ThemeProvider
                 colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}

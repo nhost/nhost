@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "2.20.0",
+  "version": "2.21.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -56,7 +56,7 @@
     "@radix-ui/react-separator": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@segment/snippet": "^4.16.2",
+    "@segment/analytics-next": "^1.77.0",
     "@stripe/react-stripe-js": "^2.6.2",
     "@stripe/stripe-js": "^1.54.2",
     "@tailwindcss/forms": "^0.5.7",
@@ -67,7 +67,6 @@
     "@uiw/codemirror-theme-bbedit": "^4.22.2",
     "@uiw/codemirror-theme-github": "^4.21.25",
     "@uiw/react-codemirror": "^4.21.25",
-    "analytics-node": "^6.2.0",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^1.2.1",
