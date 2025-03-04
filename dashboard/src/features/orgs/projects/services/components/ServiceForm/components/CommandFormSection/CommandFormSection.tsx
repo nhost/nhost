@@ -9,7 +9,6 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import debounce from 'lodash.debounce';
-import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 function CommandTooltip() {
@@ -57,15 +56,11 @@ export default function CommandFormSection() {
     setValue(`command.${index}.argument`, value);
   }, 500);
 
-  const hasSpaceInCommand = useMemo(
-    () =>
-      commandValues?.some((field) => {
-        // Omit any content within curly brackets
-        const withoutBrackets = field.argument.replace(/\{\{.*?\}\}/g, '');
-        return withoutBrackets.includes(' ');
-      }),
-    [commandValues],
-  );
+  const hasSpaceInCommand = commandValues?.some((field) => {
+    // Omit any content within curly brackets
+    const withoutBrackets = field.argument.replace(/\{\{.*?\}\}/g, '');
+    return withoutBrackets.includes(' ');
+  });
 
   return (
     <Box className="space-y-4 rounded border-1 p-4">
