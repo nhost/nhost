@@ -10,10 +10,12 @@ function useDatabasePITRSettings() {
     setIsPITREnabled(isPITREnabledData);
   }, [isPITREnabledData]);
 
+  const isSwitchDisabled =
+    isPITREnabled === isPITREnabledData || isNotSwitchTouched;
+
   return {
-    isPITREnabled,
     setIsPITREnabled,
-    isNotSwitchTouched,
+    isSwitchDisabled,
     setIsNotSwitchTouched,
   };
 }

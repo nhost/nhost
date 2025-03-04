@@ -2,23 +2,19 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { useDatabasePITRSettings } from '@/features/orgs/hooks/useDatabasePITRSettings/';
 import { useUpdateDatabasePITRConfig } from '@/features/orgs/hooks/useUpdateDatabasePITRConfig';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { isEmptyValue } from '@/lib/utils';
 
-export default function DatabasePitrSettings() {
-  // const isPlatform = useIsPlatform();
-  // const localMimirClient = useLocalMimirClient();
+export default function DatabasePITRSettings() {
   const { org } = useCurrentOrg();
-
   const {
     isPITREnabled,
     setIsPITREnabled,
-    isNotSwitchTouched,
+    isSwitchDisabled,
     setIsNotSwitchTouched,
   } = useDatabasePITRSettings();
-
   const { updatePITRConfig, loading } = useUpdateDatabasePITRConfig();
 
-  const isNotFreeProject = !org?.plan.isFree;
-
+  const shouldShowSwitch = isEmptyValue(org) ? false : !org.plan.isFree;
   function handleEnabledChange(enabled: boolean) {
     setIsPITREnabled(enabled);
     setIsNotSwitchTouched(false);
@@ -34,13 +30,14 @@ export default function DatabasePitrSettings() {
       description="Enable Point-in-Time recovery (PITR). Available as an add-on for organizations on Pro, Team, or Enterprise plans."
       slotProps={{
         submitButton: {
-          disabled: isNotSwitchTouched,
+          disabled: isSwitchDisabled,
           onClick: handleSubmit,
           loading,
+          type: 'button',
         },
       }}
       className="flex flex-col lg:flex-row"
-      showSwitch={isNotFreeProject}
+      showSwitch={shouldShowSwitch}
       enabled={isPITREnabled}
       onEnabledChange={handleEnabledChange}
       docsLink="https://docs.nhost.io/product/database#point-in-time-recovery"
