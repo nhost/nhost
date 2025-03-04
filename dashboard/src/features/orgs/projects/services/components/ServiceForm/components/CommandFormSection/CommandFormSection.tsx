@@ -50,9 +50,11 @@ export default function CommandFormSection() {
   // Watch for spaces
   const commandValues = watch('command');
 
-  const hasSpaceInCommand = commandValues?.some((field) =>
-    field.argument.includes(' '),
-  );
+  const hasSpaceInCommand = commandValues?.some((field) => {
+    // Omit any content within curly brackets
+    const withoutBrackets = field.argument.replace(/\{\{.*?\}\}/g, '');
+    return withoutBrackets.includes(' ');
+  });
 
   return (
     <Box className="space-y-4 rounded border-1 p-4">
