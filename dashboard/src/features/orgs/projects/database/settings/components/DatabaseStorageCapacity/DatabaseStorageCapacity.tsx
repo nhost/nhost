@@ -174,7 +174,9 @@ export default function DatabaseStorageCapacity() {
           }}
           className="flex flex-col"
         >
-          {isFreeProject && <UpgradeNotification />}
+          {isFreeProject && (
+            <UpgradeNotification description="To unlock more storage capacity, transfer this project to a Pro or Team organization." />
+          )}
           <Box className="grid grid-flow-row lg:grid-cols-5">
             <Input
               {...register('capacity')}

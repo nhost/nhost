@@ -46,7 +46,9 @@ export default function DatabasePITRSettings() {
       docsLink="https://docs.nhost.io/product/database#point-in-time-recovery"
       docsTitle="enabling or disabling PITR"
     >
-      {isFreeProject && <UpgradeNotification />}
+      {isFreeProject && (
+        <UpgradeNotification description="To unlock this add-on, transfer this project to a Pro or Team organization." />
+      )}
     </SettingsContainer>
   );
 }

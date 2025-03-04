@@ -7,7 +7,13 @@ import { Text } from '@/components/ui/v2/Text';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 import { useState } from 'react';
 
-function UpgradeNotification() {
+interface Props {
+  description: string;
+}
+
+// P
+
+function UpgradeNotification({ description }: Props) {
   const [transferProjectDialogOpen, setTransferProjectDialogOpen] =
     useState(false);
 
@@ -30,8 +36,7 @@ function UpgradeNotification() {
         </div>
 
         <Text component="span" className="max-w-[50ch] text-left">
-          To unlock more storage capacity, transfer this project to a Pro or
-          Team organization.
+          {description}
         </Text>
       </div>
       <Text className="flex flex-row items-center gap-4 self-end">
