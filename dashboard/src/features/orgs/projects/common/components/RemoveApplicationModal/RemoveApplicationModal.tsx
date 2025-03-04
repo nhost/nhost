@@ -5,6 +5,7 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isEmptyValue } from '@/lib/utils';
 import { useBillingDeleteAppMutation } from '@/utils/__generated__/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
@@ -52,7 +53,9 @@ export default function RemoveApplicationModal({
   const [remove3, setRemove3] = useState(false);
 
   const appName = project?.name;
-  const isPlanFree = !!org?.plan?.isFree;
+  const isPaidPlan = isEmptyValue(org?.plan?.isFree)
+    ? false
+    : !org?.plan?.isFree;
 
   async function handleClick() {
     setLoadingRemove(true);
@@ -122,7 +125,7 @@ export default function RemoveApplicationModal({
             aria-label="Confirm Delete Project #2"
           />
 
-          {!isPlanFree && (
+          {isPaidPlan && (
             <Checkbox
               id="accept-3"
               label="I understand I need to delete the organization if I want to cancel the subscription"
@@ -138,7 +141,7 @@ export default function RemoveApplicationModal({
           <Button
             color="error"
             onClick={handleClick}
-            disabled={!remove || !remove2 || (!isPlanFree && !remove3)}
+            disabled={!remove || !remove2 || (isPaidPlan && !remove3)}
             loading={loadingRemove}
           >
             Delete Project
