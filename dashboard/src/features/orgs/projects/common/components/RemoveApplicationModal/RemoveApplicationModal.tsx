@@ -52,6 +52,7 @@ export default function RemoveApplicationModal({
   const [remove3, setRemove3] = useState(false);
 
   const appName = project?.name;
+  const isPlanFree = !!org?.plan?.isFree;
 
   async function handleClick() {
     setLoadingRemove(true);
@@ -121,21 +122,23 @@ export default function RemoveApplicationModal({
             aria-label="Confirm Delete Project #2"
           />
 
-          <Checkbox
-            id="accept-3"
-            label="I understand I need to delete the organization if I want to cancel the subscription"
-            className="py-2"
-            checked={remove3}
-            onChange={(_event, checked) => setRemove3(checked)}
-            aria-label="Confirm Delete Project #3"
-          />
+          {!isPlanFree && (
+            <Checkbox
+              id="accept-3"
+              label="I understand I need to delete the organization if I want to cancel the subscription"
+              className="py-2"
+              checked={remove3}
+              onChange={(_event, checked) => setRemove3(checked)}
+              aria-label="Confirm Delete Project #3"
+            />
+          )}
         </Box>
 
         <div className="grid grid-flow-row gap-2">
           <Button
             color="error"
             onClick={handleClick}
-            disabled={!remove || !remove2 || !remove3}
+            disabled={!remove || !remove2 || (!isPlanFree && !remove3)}
             loading={loadingRemove}
           >
             Delete Project
