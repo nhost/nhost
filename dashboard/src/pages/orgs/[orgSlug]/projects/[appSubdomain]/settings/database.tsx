@@ -50,7 +50,6 @@ export default function DatabaseSettingsPage() {
         <>
           <DatabasePITRSettings />
           <DatabaseConnectionInfo />
-
           <ResetDatabasePasswordSettings />
         </>
       )}
