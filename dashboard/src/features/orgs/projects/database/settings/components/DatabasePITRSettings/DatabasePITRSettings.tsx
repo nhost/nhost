@@ -1,6 +1,7 @@
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { useDatabasePITRSettings } from '@/features/orgs/hooks/useDatabasePITRSettings/';
 import { useUpdateDatabasePITRConfig } from '@/features/orgs/hooks/useUpdateDatabasePITRConfig';
+import { UpgradeNotification } from '@/features/orgs/projects/database/settings/components/UpgradeNotification';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { isEmptyValue } from '@/lib/utils';
 
@@ -14,7 +15,9 @@ export default function DatabasePITRSettings() {
   } = useDatabasePITRSettings();
   const { updatePITRConfig, loading } = useUpdateDatabasePITRConfig();
 
-  const shouldShowSwitch = isEmptyValue(org) ? false : !org.plan.isFree;
+  const isFreeProject = org.plan.isFree;
+  const shouldShowSwitch = isEmptyValue(org) ? false : !isFreeProject;
+
   function handleEnabledChange(enabled: boolean) {
     setIsPITREnabled(enabled);
     setIsNotSwitchTouched(false);
@@ -42,6 +45,8 @@ export default function DatabasePITRSettings() {
       onEnabledChange={handleEnabledChange}
       docsLink="https://docs.nhost.io/product/database#point-in-time-recovery"
       docsTitle="enabling or disabling PITR"
-    />
+    >
+      {isFreeProject && <UpgradeNotification />}
+    </SettingsContainer>
   );
 }
