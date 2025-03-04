@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import debounce from 'lodash.debounce';
+import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 function CommandTooltip() {
@@ -40,6 +42,7 @@ export default function CommandFormSection() {
     formState: { errors },
     control,
     watch,
+    setValue,
   } = useFormContext<ServiceFormValues>();
 
   const { fields, append, remove } = useFieldArray({
@@ -50,11 +53,19 @@ export default function CommandFormSection() {
   // Watch for spaces
   const commandValues = watch('command');
 
-  const hasSpaceInCommand = commandValues?.some((field) => {
-    // Omit any content within curly brackets
-    const withoutBrackets = field.argument.replace(/\{\{.*?\}\}/g, '');
-    return withoutBrackets.includes(' ');
-  });
+  const handleCommandChange = debounce((value: string, index: number) => {
+    setValue(`command.${index}.argument`, value);
+  }, 500);
+
+  const hasSpaceInCommand = useMemo(
+    () =>
+      commandValues?.some((field) => {
+        // Omit any content within curly brackets
+        const withoutBrackets = field.argument.replace(/\{\{.*?\}\}/g, '');
+        return withoutBrackets.includes(' ');
+      }),
+    [commandValues],
+  );
 
   return (
     <Box className="space-y-4 rounded border-1 p-4">
@@ -75,6 +86,9 @@ export default function CommandFormSection() {
           <Box key={field.id} className="flex w-full items-center space-x-2">
             <Input
               {...register(`command.${index}.argument`)}
+              onChange={(event) =>
+                handleCommandChange(event.target.value, index)
+              }
               id={`command-${index}`}
               placeholder={index === 0 ? 'mycmd' : '--myflag'}
               className="w-full"
