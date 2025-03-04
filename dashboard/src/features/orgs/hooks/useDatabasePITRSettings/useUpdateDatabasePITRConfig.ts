@@ -14,6 +14,7 @@ function useDatabasePITRSettings() {
     isPITREnabled === isPITREnabledData || isNotSwitchTouched;
 
   return {
+    isPITREnabled,
     setIsPITREnabled,
     isSwitchDisabled,
     setIsNotSwitchTouched,
