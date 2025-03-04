@@ -219,7 +219,6 @@ export default function DatabaseServiceVersionSettings() {
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
 
   const majorVersionFieldDisabled = applicationUnhealthy;
-  const saveDisabled = majorVersionFieldDisabled || !isDirty;
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
@@ -320,7 +319,7 @@ export default function DatabaseServiceVersionSettings() {
           description="The version of Postgres to use."
           slotProps={{
             submitButton: {
-              disabled: saveDisabled,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}
