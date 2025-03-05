@@ -119,6 +119,7 @@
       "group": "Database",
       "pages": [
         "guides/database/configuring-postgres",
+        "guides/database/backups",
         "guides/database/access",
         "guides/database/extensions",
         "guides/database/performance",
