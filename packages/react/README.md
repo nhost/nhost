@@ -27,7 +27,7 @@ Initialize a single `nhost` instance and wrap your app with the `NhostReactProvi
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import { NhostClient, NhostReactProvider } from '@nhost/react'
+import { NhostClient, NhostProvider } from '@nhost/react'
 
 import App from './App'
 
@@ -38,9 +38,9 @@ const nhost = new NhostClient({
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <App />
-    </NhostReactProvider>
+    </NhostProvider>
   </React.StrictMode>,
   document.getElementById('root')
 )

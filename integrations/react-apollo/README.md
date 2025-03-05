@@ -26,7 +26,7 @@ or
 ```js
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { NhostClient, NhostReactProvider } from '@nhost/react'
+import { NhostClient, NhostProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 
 import App from './App'
@@ -38,11 +38,11 @@ const nhost = new NhostClient({
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>
         <App />
       </NhostApolloProvider>
-    </NhostReactProvider>
+    </NhostProvider>
   </React.StrictMode>,
   document.getElementById('root')
 )
