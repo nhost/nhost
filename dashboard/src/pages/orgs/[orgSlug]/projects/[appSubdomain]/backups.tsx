@@ -2,33 +2,18 @@ import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Chip } from '@/components/ui/v2/Chip';
 import { Text } from '@/components/ui/v2/Text';
+import { useIsPITREnabled } from '@/features/orgs/hooks/useIsPITREnabled';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { BackupList } from '@/features/orgs/projects/backups/components/BackupList';
+import { BackupsContent } from '@/features/orgs/projects/backups/components/BackupsContent';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import type { ReactElement } from 'react';
 
-function BackupsContent() {
-  return (
-    <div className="mt-6 grid w-full grid-flow-row gap-6">
-      <div>
-        <Text className="font-medium">Database</Text>
-        <Text color="secondary">
-          The database backup includes database schema, database data and Hasura
-          metadata. It does not include the actual files in Storage.
-        </Text>
-      </div>
-
-      <BackupList />
-    </div>
-  );
-}
-
 export default function BackupsPage() {
   const { currentOrg: org, loading } = useOrgs();
+  const { isPITREnabled, loading: isPITREnabledLoading } = useIsPITREnabled();
 
-  if (loading) {
+  if (loading || isPITREnabledLoading) {
     return <ActivityIndicator label="Loading project..." delay={1000} />;
   }
 
@@ -54,16 +39,10 @@ export default function BackupsPage() {
         <Text className="text-2xl font-medium" variant="h1">
           Backups
         </Text>
-
-        <Chip
-          color={isPlanFree ? 'default' : 'success'}
-          label={isPlanFree ? 'Off' : 'Live'}
-          size="small"
-        />
       </div>
 
       <RetryableErrorBoundary>
-        <BackupsContent />
+        <BackupsContent isPITREnabled={isPITREnabled} />
       </RetryableErrorBoundary>
     </Container>
   );

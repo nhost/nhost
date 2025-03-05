@@ -5,7 +5,7 @@ function useDatabasePITRSettings() {
   const [isPITREnabled, setIsPITREnabled] = useState(false);
   const [isNotSwitchTouched, setIsNotSwitchTouched] = useState(true);
 
-  const isPITREnabledData = useIsPITREnabled();
+  const { isPITREnabled: isPITREnabledData } = useIsPITREnabled();
   useEffect(() => {
     setIsPITREnabled(isPITREnabledData);
   }, [isPITREnabledData]);
