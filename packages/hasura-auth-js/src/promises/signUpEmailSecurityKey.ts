@@ -1,6 +1,6 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
-import { SignUpSecurityKeyOptions } from '../types'
+import { RequestOptions, SignUpSecurityKeyOptions } from '../types'
 
 import {
   AuthActionLoadingState,
@@ -19,12 +19,14 @@ export interface SignUpSecurityKeyState
 export const signUpEmailSecurityKeyPromise = (
   interpreter: AuthInterpreter,
   email: string,
-  options?: SignUpSecurityKeyOptions
+  options?: SignUpSecurityKeyOptions,
+  requestOptions?: RequestOptions
 ): Promise<SignUpSecurityKeyHandlerResult> =>
   new Promise<SignUpSecurityKeyHandlerResult>((resolve) => {
     const { changed, context } = interpreter.send('SIGNUP_SECURITY_KEY', {
       email,
-      options
+      options,
+      requestOptions
     })
     if (!changed) {
       return resolve({

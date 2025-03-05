@@ -1,4 +1,5 @@
 import {
+  RequestOptions,
   signUpEmailSecurityKeyPromise,
   SignUpSecurityKeyOptions,
   SignUpSecurityKeyState
@@ -64,8 +65,11 @@ export const useSignUpEmailSecurityKeyEmail: SignUpSecurityKeyHook = (
     })
   )
 
-  const signUpEmailSecurityKey: SignUpSecurityKeyHandler = (email, options = hookOptions) =>
-    signUpEmailSecurityKeyPromise(service, email, options)
+  const signUpEmailSecurityKey: SignUpSecurityKeyHandler = (
+    email,
+    options = hookOptions,
+    requestOptions?: RequestOptions
+  ) => signUpEmailSecurityKeyPromise(service, email, options, requestOptions)
 
   const user = useSelector(
     service,
