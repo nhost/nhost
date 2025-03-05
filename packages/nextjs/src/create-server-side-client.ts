@@ -21,7 +21,7 @@ export type CreateServerSideClientParams = Partial<
 
 /**
  * Creates an Nhost client that runs on the server side.
- * It will try to get the refesh token in cookies, or from the request URL
+ * It will try to get the refresh token in cookies, or from the request URL
  * If a refresh token is found, it uses it to get an up to date access token (JWT) and a user session
  * This method resolves when the authentication status is known eventually
  * @param config - An object containing connection information
