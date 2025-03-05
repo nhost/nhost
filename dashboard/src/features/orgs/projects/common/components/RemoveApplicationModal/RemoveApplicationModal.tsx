@@ -5,6 +5,7 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isEmptyValue } from '@/lib/utils';
 import { useBillingDeleteAppMutation } from '@/utils/__generated__/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
@@ -52,6 +53,9 @@ export default function RemoveApplicationModal({
   const [remove3, setRemove3] = useState(false);
 
   const appName = project?.name;
+  const isPaidPlan = isEmptyValue(org?.plan?.isFree)
+    ? false
+    : !org?.plan?.isFree;
 
   async function handleClick() {
     setLoadingRemove(true);
@@ -121,21 +125,23 @@ export default function RemoveApplicationModal({
             aria-label="Confirm Delete Project #2"
           />
 
-          <Checkbox
-            id="accept-3"
-            label="I understand I need to delete the organization if I want to cancel the subscription"
-            className="py-2"
-            checked={remove3}
-            onChange={(_event, checked) => setRemove3(checked)}
-            aria-label="Confirm Delete Project #3"
-          />
+          {isPaidPlan && (
+            <Checkbox
+              id="accept-3"
+              label="I understand I need to delete the organization if I want to cancel the subscription"
+              className="py-2"
+              checked={remove3}
+              onChange={(_event, checked) => setRemove3(checked)}
+              aria-label="Confirm Delete Project #3"
+            />
+          )}
         </Box>
 
         <div className="grid grid-flow-row gap-2">
           <Button
             color="error"
             onClick={handleClick}
-            disabled={!remove || !remove2 || !remove3}
+            disabled={!remove || !remove2 || (isPaidPlan && !remove3)}
             loading={loadingRemove}
           >
             Delete Project

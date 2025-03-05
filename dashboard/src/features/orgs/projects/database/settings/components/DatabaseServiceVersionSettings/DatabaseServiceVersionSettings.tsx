@@ -1,6 +1,5 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -15,7 +14,6 @@ import { DatabaseMigrateDisabledError } from '@/features/orgs/projects/database/
 import { DatabaseMigrateDowntimeWarning } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateDowntimeWarning';
 import { DatabaseMigrateLogsModal } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/orgs/projects/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
-import { DatabaseUpdateInProgressWarning } from '@/features/orgs/projects/database/settings/components/DatabaseUpdateInProgressWarning';
 
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -70,7 +68,6 @@ type DatabaseServiceField = Required<
 export default function DatabaseServiceVersionSettings() {
   const isPlatform = useIsPlatform();
   const { openDialog, closeDialog } = useDialog();
-  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
   const [updateConfig] = useUpdateConfigMutation({
@@ -216,13 +213,12 @@ export default function DatabaseServiceVersionSettings() {
     !applicationPaused &&
     !applicationPausing &&
     !applicationUpdating;
+
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
 
-  const versionFieldsDisabled =
-    applicationUpdating || applicationUnhealthy || maintenanceActive;
-  const saveDisabled = versionFieldsDisabled || !isDirty;
+  const majorVersionFieldDisabled = applicationUnhealthy;
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
@@ -323,7 +319,7 @@ export default function DatabaseServiceVersionSettings() {
           description="The version of Postgres to use."
           slotProps={{
             submitButton: {
-              disabled: saveDisabled,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}
@@ -351,7 +347,7 @@ export default function DatabaseServiceVersionSettings() {
               name="majorVersion"
               autoHighlight
               freeSolo
-              disabled={versionFieldsDisabled}
+              disabled={majorVersionFieldDisabled}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') {
                   return option || '';
@@ -418,7 +414,6 @@ export default function DatabaseServiceVersionSettings() {
               name="minorVersion"
               autoHighlight
               freeSolo
-              disabled={versionFieldsDisabled}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') {
                   return option || '';
@@ -458,7 +453,6 @@ export default function DatabaseServiceVersionSettings() {
             />
           </Box>
           {showMigrateWarning && <DatabaseMigrateDowntimeWarning />}
-          {applicationUpdating && <DatabaseUpdateInProgressWarning />}
           {applicationUnhealthy && !isMigrating && (
             <DatabaseMigrateDisabledError />
           )}
