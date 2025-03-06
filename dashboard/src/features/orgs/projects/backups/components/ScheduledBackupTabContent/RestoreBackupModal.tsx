@@ -4,8 +4,8 @@ import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { Backup } from '@/types/application';
-import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
+import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 

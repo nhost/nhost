@@ -15,11 +15,11 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { copy } from '@/utils/copy';
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { copy } from '@/utils/copy';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
