@@ -31,12 +31,12 @@ import { OrgInvite } from '@/features/orgs/components/members/components/OrgInvi
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
+import { discordAnnounce } from '@/utils/discordAnnounce';
 import {
   Organization_Members_Role_Enum,
   useGetOrganizationInvitesQuery,
   useInsertOrganizationMemberInviteMutation,
 } from '@/utils/__generated__/graphql';
-import { discordAnnounce } from '@/utils/discordAnnounce';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Inbox, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';

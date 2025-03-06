@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
+import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { inputBaseClasses } from '@mui/material';
 import { useTheme } from '@mui/system';
 import { useEffect, useState } from 'react';
