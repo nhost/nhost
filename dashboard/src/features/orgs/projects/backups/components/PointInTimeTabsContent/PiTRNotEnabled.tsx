@@ -3,7 +3,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import Link from 'next/link';
 
-function PITRNotEnabled() {
+function PiTRNotEnabled() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
   return (
@@ -21,4 +21,4 @@ function PITRNotEnabled() {
   );
 }
 
-export default PITRNotEnabled;
+export default PiTRNotEnabled;

@@ -3,9 +3,9 @@ import { PointInTimeTabsContent } from '@/features/orgs/projects/backups/compone
 import { ScheduledBackupTabContent } from '@/features/orgs/projects/backups/components/ScheduledBackupTabContent';
 import { memo } from 'react';
 
-function BackupsContent({ isPITREnabled }: { isPITREnabled: boolean }) {
+function BackupsContent({ isPiTREnabled }: { isPiTREnabled: boolean }) {
   // TODO: need to add logic to decide which tab is active
-  const activeTab = isPITREnabled ? 'pointInTime' : 'scheduledBackups';
+  const activeTab = isPiTREnabled ? 'pointInTime' : 'scheduledBackups';
   return (
     <Tabs defaultValue={activeTab}>
       <TabsList>

@@ -1,14 +1,14 @@
 import { Text } from '@/components/ui/v2/Text';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TabsContent } from '@/components/ui/v3/tabs';
-import { useIsPITREnabled } from '@/features/orgs/hooks/useIsPITREnabled';
+import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
 import BackupList from './BackupList';
-import PITREnabledInfoBanner from './PITREnabledInfoBanner';
+import PiTREnabledInfoBanner from './PiTREnabledInfoBanner';
 
 function ScheduledBackupTabContent() {
-  const { isPITREnabled, loading } = useIsPITREnabled();
-  const content = isPITREnabled ? (
-    <PITREnabledInfoBanner />
+  const { isPiTREnabled, loading } = useIsPiTREnabled();
+  const content = isPiTREnabled ? (
+    <PiTREnabledInfoBanner />
   ) : (
     <>
       <div>

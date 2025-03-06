@@ -3,7 +3,7 @@ import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Text } from '@/components/ui/v2/Text';
-import { useIsPITREnabled } from '@/features/orgs/hooks/useIsPITREnabled';
+import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { BackupsContent } from '@/features/orgs/projects/backups/components/BackupsContent';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -11,9 +11,9 @@ import type { ReactElement } from 'react';
 
 export default function BackupsPage() {
   const { currentOrg: org, loading } = useOrgs();
-  const { isPITREnabled, loading: isPITREnabledLoading } = useIsPITREnabled();
+  const { isPiTREnabled, loading: isPiTREnabledLoading } = useIsPiTREnabled();
 
-  if (loading || isPITREnabledLoading) {
+  if (loading || isPiTREnabledLoading) {
     return <ActivityIndicator label="Loading project..." delay={1000} />;
   }
 
@@ -42,7 +42,7 @@ export default function BackupsPage() {
       </div>
 
       <RetryableErrorBoundary>
-        <BackupsContent isPITREnabled={isPITREnabled} />
+        <BackupsContent isPiTREnabled={isPiTREnabled} />
       </RetryableErrorBoundary>
     </Container>
   );

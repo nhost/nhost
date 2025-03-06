@@ -4,7 +4,7 @@ import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DatabaseConnectionInfo } from '@/features/orgs/projects/database/settings/components/DatabaseConnectionInfo';
-import { DatabasePITRSettings } from '@/features/orgs/projects/database/settings/components/DatabasePITRSettings';
+import { DatabasePiTRSettings } from '@/features/orgs/projects/database/settings/components/DatabasePiTRSettings';
 import { DatabaseServiceVersionSettings } from '@/features/orgs/projects/database/settings/components/DatabaseServiceVersionSettings';
 import { DatabaseStorageCapacity } from '@/features/orgs/projects/database/settings/components/DatabaseStorageCapacity';
 import { ResetDatabasePasswordSettings } from '@/features/orgs/projects/database/settings/components/ResetDatabasePasswordSettings';
@@ -48,7 +48,7 @@ export default function DatabaseSettingsPage() {
 
       {isPlatform && (
         <>
-          <DatabasePITRSettings />
+          <DatabasePiTRSettings />
           <DatabaseConnectionInfo />
           <ResetDatabasePasswordSettings />
         </>

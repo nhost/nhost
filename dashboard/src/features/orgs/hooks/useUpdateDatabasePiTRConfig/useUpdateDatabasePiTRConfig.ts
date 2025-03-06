@@ -5,15 +5,15 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUpdateConfigMutation } from '@/utils/__generated__/graphql';
 
-function useUpdateDatabasePITRConfig() {
+function useUpdateDatabasePiTRConfig() {
   const { project } = useProject();
   const [loading, setLoading] = useState(false);
 
   const [updateConfig] = useUpdateConfigMutation();
 
-  const updatePITRConfig = useCallback(
-    async (isPITREnabled: boolean) => {
-      const pitr = isPITREnabled
+  const updatePiTRConfig = useCallback(
+    async (isPiTREnabled: boolean) => {
+      const pitr = isPiTREnabled
         ? { retention: RECOVERY_RETENTION_PERIOD_7 }
         : null;
 
@@ -34,8 +34,8 @@ function useUpdateDatabasePITRConfig() {
           setLoading(false);
         },
         {
-          loadingMessage: `${isPITREnabled ? 'Enabling' : 'Disabling'} Point-in-Time recovery...`,
-          successMessage: `Point-in-Time has been ${isPITREnabled ? 'enabled' : 'disabled'} successfully.`,
+          loadingMessage: `${isPiTREnabled ? 'Enabling' : 'Disabling'} Point-in-Time recovery...`,
+          successMessage: `Point-in-Time has been ${isPiTREnabled ? 'enabled' : 'disabled'} successfully.`,
           errorMessage:
             'An error occurred while trying to enable Point-in-Time recovery.',
           onError: () => setLoading(false),
@@ -45,7 +45,7 @@ function useUpdateDatabasePITRConfig() {
     [updateConfig, project?.id],
   );
 
-  return { updatePITRConfig, loading };
+  return { updatePiTRConfig, loading };
 }
 
-export default useUpdateDatabasePITRConfig;
+export default useUpdateDatabasePiTRConfig;

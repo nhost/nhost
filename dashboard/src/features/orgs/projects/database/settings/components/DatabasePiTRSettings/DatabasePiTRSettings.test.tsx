@@ -2,7 +2,7 @@ import { mockMatchMediaValue } from '@/tests/mocks';
 import { render, screen } from '@/tests/orgs/testUtils';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
-import DatabasePITRSettings from './DatabasePITRSettings';
+import DatabasePiTRSettings from './DatabasePiTRSettings';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -77,7 +77,7 @@ test('If the org is free the switch should not be available and the save button 
   mocks.useGetPostgresSettingsQuery.mockImplementation(() =>
     mockUseGetPostgresSettingsQueryResponse({ retention: null }),
   );
-  render(<DatabasePITRSettings />);
+  render(<DatabasePiTRSettings />);
   const saveButton = await screen.findByRole('button', {
     name: 'Save',
   });
@@ -98,16 +98,16 @@ test('the Save button is disabled until the switch in the header is not touched'
     mockUseGetPostgresSettingsQueryResponse({ retention: null }),
   );
   const user = userEvent.setup();
-  render(<DatabasePITRSettings />);
+  render(<DatabasePiTRSettings />);
   const saveButton = await screen.findByRole('button', {
     name: 'Save',
   });
 
   expect(saveButton).toBeDisabled();
 
-  const PITRSettingSwitch = screen.getByRole('checkbox');
-  await user.click(PITRSettingSwitch);
-  expect(PITRSettingSwitch).toBeChecked();
+  const PiTR = screen.getByRole('checkbox');
+  await user.click(PiTR);
+  expect(PiTR).toBeChecked();
 
   expect(
     await screen.findByRole('button', {
@@ -127,7 +127,7 @@ test('should disable the savebutton after toggling back to original state', asyn
     mockUseGetPostgresSettingsQueryResponse({ retention: 7 }),
   );
   const user = userEvent.setup();
-  render(<DatabasePITRSettings />);
+  render(<DatabasePiTRSettings />);
 
   await user.click(screen.getByRole('checkbox'));
   expect(screen.getByRole('checkbox')).not.toBeChecked();
@@ -140,7 +140,7 @@ test('should disable the savebutton after toggling back to original state', asyn
   ).toBeDisabled();
 });
 
-test('should send { retention: 7 } when enabling PITR', async () => {
+test('should send { retention: 7 } when enabling PiTR', async () => {
   mocks.useCurrentOrg.mockImplementation(() =>
     getCurrentOrg({ isFree: false }),
   );
@@ -151,7 +151,7 @@ test('should send { retention: 7 } when enabling PITR', async () => {
     mockUseGetPostgresSettingsQueryResponse({ retention: null }),
   );
   const user = userEvent.setup();
-  render(<DatabasePITRSettings />);
+  render(<DatabasePiTRSettings />);
   await user.click(screen.getByRole('checkbox'));
   expect(screen.getByRole('checkbox')).toBeChecked();
   await user.click(
@@ -164,7 +164,7 @@ test('should send { retention: 7 } when enabling PITR', async () => {
   ).toStrictEqual({ retention: 7 });
 });
 
-test('should send { pitr: null } when disabling PITR', async () => {
+test('should send { pitr: null } when disabling PiTR', async () => {
   mocks.useCurrentOrg.mockImplementation(() =>
     getCurrentOrg({ isFree: false }),
   );
@@ -175,7 +175,7 @@ test('should send { pitr: null } when disabling PITR', async () => {
     mockUseGetPostgresSettingsQueryResponse({ retention: 7 }),
   );
   const user = userEvent.setup();
-  render(<DatabasePITRSettings />);
+  render(<DatabasePiTRSettings />);
   await user.click(screen.getByRole('checkbox'));
   expect(screen.getByRole('checkbox')).not.toBeChecked();
   await user.click(

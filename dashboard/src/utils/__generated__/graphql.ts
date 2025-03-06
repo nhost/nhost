@@ -27739,6 +27739,13 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
 
 export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
 
+export type GetPiTrBaseBackupsQueryVariables = Exact<{
+  appId: Scalars['String'];
+}>;
+
+
+export type GetPiTrBaseBackupsQuery = { __typename?: 'query_root', getPiTRBaseBackups: Array<{ __typename?: 'PiTRBaseBackup', date: any, name: string }> };
+
 export type GetPersistentVolumesEncryptedQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -29718,6 +29725,45 @@ export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetB
 export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
 export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
       return { query: GetBackupPresignedUrlDocument, variables: variables }
+    }
+export const GetPiTrBaseBackupsDocument = gql`
+    query GetPiTRBaseBackups($appId: String!) {
+  getPiTRBaseBackups(appID: $appId) {
+    date
+    name
+  }
+}
+    `;
+
+/**
+ * __useGetPiTrBaseBackupsQuery__
+ *
+ * To run a query within a React component, call `useGetPiTrBaseBackupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPiTrBaseBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPiTrBaseBackupsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetPiTrBaseBackupsQuery(baseOptions: Apollo.QueryHookOptions<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>(GetPiTrBaseBackupsDocument, options);
+      }
+export function useGetPiTrBaseBackupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>(GetPiTrBaseBackupsDocument, options);
+        }
+export type GetPiTrBaseBackupsQueryHookResult = ReturnType<typeof useGetPiTrBaseBackupsQuery>;
+export type GetPiTrBaseBackupsLazyQueryHookResult = ReturnType<typeof useGetPiTrBaseBackupsLazyQuery>;
+export type GetPiTrBaseBackupsQueryResult = Apollo.QueryResult<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>;
+export function refetchGetPiTrBaseBackupsQuery(variables: GetPiTrBaseBackupsQueryVariables) {
+      return { query: GetPiTrBaseBackupsDocument, variables: variables }
     }
 export const GetPersistentVolumesEncryptedDocument = gql`
     query GetPersistentVolumesEncrypted($appId: uuid!) {

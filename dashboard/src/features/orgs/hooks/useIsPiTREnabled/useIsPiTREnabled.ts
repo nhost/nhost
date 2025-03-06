@@ -1,20 +1,20 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isNotEmptyValue as isNotNull } from '@/lib/utils';
 import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
 import { useMemo } from 'react';
 
-function useIsPITREnabled() {
+function useIsPiTREnabled() {
   const { project } = useProject();
   const { data, loading } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
   });
 
-  const isPITREnabled = useMemo(
-    () => isNotEmptyValue(data?.config.postgres.pitr?.retention),
+  const isPiTREnabled = useMemo(
+    () => isNotNull(data?.config.postgres.pitr?.retention),
     [data?.config.postgres.pitr?.retention],
   );
 
-  return { isPITREnabled, loading };
+  return { isPiTREnabled, loading };
 }
 
-export default useIsPITREnabled;
+export default useIsPiTREnabled;

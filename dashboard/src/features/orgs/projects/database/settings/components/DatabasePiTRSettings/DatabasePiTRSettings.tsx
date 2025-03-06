@@ -1,36 +1,36 @@
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { useDatabasePITRSettings } from '@/features/orgs/hooks/useDatabasePITRSettings/';
-import { useUpdateDatabasePITRConfig } from '@/features/orgs/hooks/useUpdateDatabasePITRConfig';
+import { useDatabasePiTRSettings } from '@/features/orgs/hooks/useDatabasePiTRSettings/';
+import { useUpdateDatabasePiTRConfig } from '@/features/orgs/hooks/useUpdateDatabasePiTRConfig';
 import { UpgradeNotification } from '@/features/orgs/projects/database/settings/components/UpgradeNotification';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { isEmptyValue } from '@/lib/utils';
 
-export default function DatabasePITRSettings() {
+export default function DatabasePiTRSettings() {
   const { org } = useCurrentOrg();
   const {
-    isPITREnabled,
-    setIsPITREnabled,
+    isPiTREnabled,
+    setIsPiTREnabled,
     isSwitchDisabled,
     setIsNotSwitchTouched,
-  } = useDatabasePITRSettings();
-  const { updatePITRConfig, loading } = useUpdateDatabasePITRConfig();
+  } = useDatabasePiTRSettings();
+  const { updatePiTRConfig, loading } = useUpdateDatabasePiTRConfig();
 
   const isFreeProject = org.plan.isFree;
   const shouldShowSwitch = isEmptyValue(org) ? false : !isFreeProject;
 
   function handleEnabledChange(enabled: boolean) {
-    setIsPITREnabled(enabled);
+    setIsPiTREnabled(enabled);
     setIsNotSwitchTouched(false);
   }
 
   function handleSubmit() {
-    updatePITRConfig(isPITREnabled);
+    updatePiTRConfig(isPiTREnabled);
   }
 
   return (
     <SettingsContainer
       title="Point-in-time recovery"
-      description="Enable Point-in-Time recovery (PITR). Available as an add-on for organizations on Pro, Team, or Enterprise plans."
+      description="Enable Point-in-Time recovery (PiTR). Available as an add-on for organizations on Pro, Team, or Enterprise plans."
       slotProps={{
         submitButton: {
           disabled: isSwitchDisabled,
@@ -41,10 +41,10 @@ export default function DatabasePITRSettings() {
       }}
       className="flex flex-col lg:flex-row"
       showSwitch={shouldShowSwitch}
-      enabled={isPITREnabled}
+      enabled={isPiTREnabled}
       onEnabledChange={handleEnabledChange}
       docsLink="https://docs.nhost.io/product/database#point-in-time-recovery"
-      docsTitle="enabling or disabling PITR"
+      docsTitle="enabling or disabling PiTR"
     >
       {isFreeProject && (
         <UpgradeNotification description="To unlock this add-on, transfer this project to a Pro or Team organization." />
