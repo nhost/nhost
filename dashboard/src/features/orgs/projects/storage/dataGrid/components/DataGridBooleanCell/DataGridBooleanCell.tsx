@@ -2,7 +2,7 @@ import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
-import type { MouseEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export type DataGridBooleanCellProps<TData extends object> =
