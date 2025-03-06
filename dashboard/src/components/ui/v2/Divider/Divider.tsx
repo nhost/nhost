@@ -1,7 +1,7 @@
 import { styled } from '@mui/material';
 import type {
-  DividerTypeMap,
   DividerProps as MaterialDividerProps,
+  DividerTypeMap,
 } from '@mui/material/Divider';
 import MaterialDivider from '@mui/material/Divider';
 

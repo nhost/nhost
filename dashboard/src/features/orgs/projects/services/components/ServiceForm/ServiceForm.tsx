@@ -28,15 +28,15 @@ import {
 
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
+import { copy } from '@/utils/copy';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { removeTypename } from '@/utils/helpers';
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
   type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
-import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
-import { copy } from '@/utils/copy';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { removeTypename } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
