@@ -164,7 +164,7 @@ test('should send { retention: 7 } when enabling PITR', async () => {
   ).toStrictEqual({ retention: 7 });
 });
 
-test('should send { retention: null } when disabling PITR', async () => {
+test('should send { pitr: null } when disabling PITR', async () => {
   mocks.useCurrentOrg.mockImplementation(() =>
     getCurrentOrg({ isFree: false }),
   );
@@ -184,6 +184,6 @@ test('should send { retention: null } when disabling PITR', async () => {
     }),
   );
   expect(
-    mocks.updateConfigMock.mock.calls[0][0].variables.config.postgres.pitr,
-  ).toStrictEqual({ retention: null });
+    mocks.updateConfigMock.mock.calls[0][0].variables.config.postgres,
+  ).toStrictEqual({ pitr: null });
 });
