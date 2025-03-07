@@ -13,16 +13,16 @@ function useUpdateDatabasePITRConfig() {
 
   const updatePITRConfig = useCallback(
     async (isPITREnabled: boolean) => {
-      const retention = isPITREnabled ? RECOVERY_RETENTION_PERIOD_7 : null;
+      const pitr = isPITREnabled
+        ? { retention: RECOVERY_RETENTION_PERIOD_7 }
+        : null;
 
       const updateConfigMutationPromise = updateConfig({
         variables: {
           appId: project?.id,
           config: {
             postgres: {
-              pitr: {
-                retention,
-              },
+              pitr,
             },
           },
         },
