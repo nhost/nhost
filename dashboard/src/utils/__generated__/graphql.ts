@@ -27746,6 +27746,15 @@ export type GetPiTrBaseBackupsQueryVariables = Exact<{
 
 export type GetPiTrBaseBackupsQuery = { __typename?: 'query_root', getPiTRBaseBackups: Array<{ __typename?: 'PiTRBaseBackup', date: any, name: string }> };
 
+export type RestoreApplicationDatabasePiTrMutationVariables = Exact<{
+  appId: Scalars['String'];
+  recoveryTarget: Scalars['Timestamp'];
+  fromAppId?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type RestoreApplicationDatabasePiTrMutation = { __typename?: 'mutation_root', restoreApplicationDatabasePiTR: boolean };
+
 export type GetPersistentVolumesEncryptedQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -29765,6 +29774,43 @@ export type GetPiTrBaseBackupsQueryResult = Apollo.QueryResult<GetPiTrBaseBackup
 export function refetchGetPiTrBaseBackupsQuery(variables: GetPiTrBaseBackupsQueryVariables) {
       return { query: GetPiTrBaseBackupsDocument, variables: variables }
     }
+export const RestoreApplicationDatabasePiTrDocument = gql`
+    mutation RestoreApplicationDatabasePiTR($appId: String!, $recoveryTarget: Timestamp!, $fromAppId: String) {
+  restoreApplicationDatabasePiTR(
+    appID: $appId
+    recoveryTarget: $recoveryTarget
+    fromAppID: $fromAppId
+  )
+}
+    `;
+export type RestoreApplicationDatabasePiTrMutationFn = Apollo.MutationFunction<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>;
+
+/**
+ * __useRestoreApplicationDatabasePiTrMutation__
+ *
+ * To run a mutation, you first call `useRestoreApplicationDatabasePiTrMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRestoreApplicationDatabasePiTrMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [restoreApplicationDatabasePiTrMutation, { data, loading, error }] = useRestoreApplicationDatabasePiTrMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      recoveryTarget: // value for 'recoveryTarget'
+ *      fromAppId: // value for 'fromAppId'
+ *   },
+ * });
+ */
+export function useRestoreApplicationDatabasePiTrMutation(baseOptions?: Apollo.MutationHookOptions<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>(RestoreApplicationDatabasePiTrDocument, options);
+      }
+export type RestoreApplicationDatabasePiTrMutationHookResult = ReturnType<typeof useRestoreApplicationDatabasePiTrMutation>;
+export type RestoreApplicationDatabasePiTrMutationResult = Apollo.MutationResult<RestoreApplicationDatabasePiTrMutation>;
+export type RestoreApplicationDatabasePiTrMutationOptions = Apollo.BaseMutationOptions<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>;
 export const GetPersistentVolumesEncryptedDocument = gql`
     query GetPersistentVolumesEncrypted($appId: uuid!) {
   systemConfig(appID: $appId) {

@@ -1,13 +1,15 @@
-import { Button } from '@/components/ui/v3/button';
 import usePiTRBaseBackups from '@/features/orgs/hooks/usePiTRBaseBackups/usePiTRBaseBackups';
 import { isEmptyValue } from '@/lib/utils';
 import { Info } from 'lucide-react';
 import EarliestBackup from './EarliestBackup';
+import RestoreBackupDialogButton from './RestoreBackupDialogButton';
 
 interface Props {
   appId?: string;
   title?: string;
 }
+
+const dialogTitle = 'Recover your database from a backup';
 
 function PointInTimeBackupInfo({ appId, title }: Props) {
   const { earliestBackupDate, loading } = usePiTRBaseBackups(appId);
@@ -38,7 +40,12 @@ function PointInTimeBackupInfo({ appId, title }: Props) {
         </div>
       </div>
       <div className="flex w-full items-center justify-end border-t border-[#EAEDF0] p-4 dark:border-[#2F363D]">
-        <Button disabled={disableStartRestoreButton}>Start restore</Button>
+        <RestoreBackupDialogButton
+          disabled={disableStartRestoreButton}
+          earliestBackupDate={earliestBackupDate}
+          title={dialogTitle}
+          fromAppId={appId}
+        />
       </div>
     </div>
   );

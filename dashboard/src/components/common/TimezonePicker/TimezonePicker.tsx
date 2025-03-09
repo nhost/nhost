@@ -1,6 +1,6 @@
 import { VirtualizedCombobox } from '@/components/common/VirtualizedCombobox';
-import { createTimezoneOptions } from '@/features/orgs/projects/backups/utils/timezone-utils';
-import { useMemo } from 'react';
+import { createTimezoneOptions } from '@/utils/timezoneUtils';
+import { memo, useMemo } from 'react';
 
 interface Props {
   selectedTimezone: string;
@@ -30,4 +30,4 @@ function TimezonePicker({
   );
 }
 
-export default TimezonePicker;
+export default memo(TimezonePicker);

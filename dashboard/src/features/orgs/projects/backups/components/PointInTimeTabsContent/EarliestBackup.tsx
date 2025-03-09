@@ -1,9 +1,9 @@
 import { TimezonePicker } from '@/components/common/TimezonePicker';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { getDateTimeStringWithUTCOffset } from '@/features/orgs/projects/backups/utils/timezone-utils';
-import dayjs from '@/lib/dayjs';
+import { getDateTimeStringWithUTCOffset } from '@/features/orgs/projects/backups/utils/getDateTimeStringWithUTCOffset';
 import { isEmptyValue } from '@/lib/utils';
+import { guessTimezone } from '@/utils/timezoneUtils';
 import { useState } from 'react';
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 
 function EarliestBackupDateTime({ dateTime }: Pick<Props, 'dateTime'>) {
   const [selectedTimezone, setTimezone] = useState<string>(() =>
-    dayjs.tz.guess(),
+    guessTimezone(),
   );
   function handleSelect(tz: { value: string; label: string }) {
     setTimezone(tz.value);
