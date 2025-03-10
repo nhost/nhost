@@ -1,0 +1,6 @@
+query GetPiTRBaseBackups($appId: String!) {
+  getPiTRBaseBackups(appID: $appId) {
+    date
+    name
+  }
+}

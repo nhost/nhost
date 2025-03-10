@@ -1,0 +1,11 @@
+mutation RestoreApplicationDatabasePiTR(
+  $appId: String!
+  $recoveryTarget: Timestamp!
+  $fromAppId: String
+) {
+  restoreApplicationDatabasePiTR(
+    appID: $appId
+    recoveryTarget: $recoveryTarget
+    fromAppID: $fromAppId
+  )
+}

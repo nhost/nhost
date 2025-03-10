@@ -63,7 +63,7 @@
     "@changesets/cli": "^2.27.5",
     "@faker-js/faker": "^7.6.0",
     "@rollup/plugin-replace": "^5.0.7",
-    "@types/node": "^16.18.98",
+    "@types/node": "^20.17.23",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vitejs/plugin-react": "^4.3.1",
