@@ -26,7 +26,6 @@ import type { DialogFormProps } from '@/types/common';
 import {
   RemoteAppGetUsersAndAuthRolesDocument,
   useGetProjectLocalesQuery,
-  useGetRolesPermissionsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
@@ -197,15 +196,6 @@ export default function EditUserForm({
       component: <EditUserPasswordForm user={user} />,
     });
   }
-
-  const { data: dataRoles } = useGetRolesPermissionsQuery({
-    variables: { appId: project?.id },
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
-  const allAvailableProjectRoles = getUserRoles(
-    dataRoles?.config?.auth?.user?.roles?.allowed,
-  );
 
   const { data } = useGetProjectLocalesQuery({
     variables: {
@@ -506,9 +496,13 @@ export default function EditUserForm({
                 error={!!errors.defaultRole}
                 helperText={errors?.defaultRole?.message}
               >
-                {allAvailableProjectRoles.map((role) => (
-                  <Option key={role.name} value={role.name}>
-                    {role.name}
+                {roles.map((role, i) => (
+                  <Option
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`defaultRoles.${i}`}
+                    value={Object.keys(role)[0]}
+                  >
+                    {Object.keys(role)[0]}
                   </Option>
                 ))}
               </ControlledSelect>
