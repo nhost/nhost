@@ -112,7 +112,6 @@ export default function EditUserForm({
   const { onDirtyStateChange, openDialog } = useDialog();
   const { project } = useProject();
 
-  const isAnonymous = user.roles.some((role) => role.role === 'anonymous');
   const [isUserBanned, setIsUserBanned] = useState(user.disabled);
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
@@ -478,51 +477,46 @@ export default function EditUserForm({
               ))}
             </div>
           </Box>
-          {!isAnonymous && (
-            <Box
-              component="section"
-              className="grid grid-flow-row gap-y-10 p-6"
+          <Box component="section" className="grid grid-flow-row gap-y-10 p-6">
+            <ControlledSelect
+              {...register('defaultRole')}
+              id="defaultRole"
+              name="defaultRole"
+              variant="inline"
+              label="Default Role"
+              slotProps={{ root: { className: 'truncate' } }}
+              hideEmptyHelperText
+              fullWidth
+              error={!!errors.defaultRole}
+              helperText={errors?.defaultRole?.message}
             >
-              <ControlledSelect
-                {...register('defaultRole')}
-                id="defaultRole"
-                name="defaultRole"
-                variant="inline"
-                label="Default Role"
-                slotProps={{ root: { className: 'truncate' } }}
-                hideEmptyHelperText
-                fullWidth
-                error={!!errors.defaultRole}
-                helperText={errors?.defaultRole?.message}
-              >
+              {roles.map((role, i) => (
+                <Option
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={`defaultRoles.${i}`}
+                  value={Object.keys(role)[0]}
+                >
+                  {Object.keys(role)[0]}
+                </Option>
+              ))}
+            </ControlledSelect>
+            <div className="grid grid-flow-row place-content-start gap-6 lg:grid-flow-col lg:grid-cols-8">
+              <InputLabel as="h3" className="col-span-2">
+                Allowed Roles
+              </InputLabel>
+              <div className="col-span-3 grid grid-flow-row gap-6">
                 {roles.map((role, i) => (
-                  <Option
+                  <ControlledCheckbox
+                    id={`roles.${i}`}
+                    label={Object.keys(role)[0]}
+                    name={`roles.${i}`}
                     // eslint-disable-next-line react/no-array-index-key
-                    key={`defaultRoles.${i}`}
-                    value={Object.keys(role)[0]}
-                  >
-                    {Object.keys(role)[0]}
-                  </Option>
+                    key={`roles.${i}`}
+                  />
                 ))}
-              </ControlledSelect>
-              <div className="grid grid-flow-row place-content-start gap-6 lg:grid-flow-col lg:grid-cols-8">
-                <InputLabel as="h3" className="col-span-2">
-                  Allowed Roles
-                </InputLabel>
-                <div className="col-span-3 grid grid-flow-row gap-6">
-                  {roles.map((role, i) => (
-                    <ControlledCheckbox
-                      id={`roles.${i}`}
-                      label={Object.keys(role)[0]}
-                      name={`roles.${i}`}
-                      // eslint-disable-next-line react/no-array-index-key
-                      key={`roles.${i}`}
-                    />
-                  ))}
-                </div>
               </div>
-            </Box>
-          )}
+            </div>
+          </Box>
           <Box component="section" className="grid grid-flow-row gap-8 p-6">
             <Input
               {...register('metadata', { onChange: handleMetadataChange })}
