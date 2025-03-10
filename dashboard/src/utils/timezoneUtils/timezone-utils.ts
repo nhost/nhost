@@ -1,5 +1,5 @@
 import { TZDate } from '@date-fns/tz';
-import { format } from 'date-fns';
+import { format } from 'date-fns-v4';
 import timezones from 'timezones-list';
 
 // TODO: Remove this once typescript has been updated to v5

@@ -1,8 +1,6 @@
 import { isEmptyValue } from '@/lib/utils';
 import { TZDate } from '@date-fns/tz';
-import { format } from 'date-fns';
-
-// TODO: Remove this once typescript has been updated to v5
+import { format } from 'date-fns-v4';
 
 // This is the only one that is related to the feature
 export function getDateTimeStringWithUTCOffset(

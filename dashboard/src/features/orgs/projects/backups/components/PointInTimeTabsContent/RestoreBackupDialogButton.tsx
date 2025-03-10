@@ -13,7 +13,7 @@ import { useRestoreApplicationDatabasePiTR } from '@/features/orgs/hooks/useRest
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { TZDate } from '@date-fns/tz';
 import { DialogDescription } from '@radix-ui/react-dialog';
-import { format, isBefore, startOfDay } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns-v4';
 import { memo, useEffect, useState } from 'react';
 import StartRestoreConfirmationCheck from './StartRestoreConfirmationCheck';
 
