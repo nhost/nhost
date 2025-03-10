@@ -47,7 +47,7 @@
         devShells = flake-utils.lib.flattenTree rec {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
-              nodejs_18
+              nodejs_22
               nodePackages.pnpm
             ] ++ buildInputs ++ nativeBuildInputs;
           };
