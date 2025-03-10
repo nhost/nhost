@@ -20,15 +20,14 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { type RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/users';
 import type { DialogFormProps } from '@/types/common';
+import { copy } from '@/utils/copy';
 import {
   RemoteAppGetUsersAndAuthRolesDocument,
   useGetProjectLocalesQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
-import { copy } from '@/utils/copy';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
