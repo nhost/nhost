@@ -19,14 +19,14 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { copy } from '@/utils/copy';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   RemoteAppGetUsersAndAuthRolesDocument,
   useGetProjectLocalesQuery,
   useGetRolesPermissionsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+import { copy } from '@/utils/copy';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
@@ -79,7 +79,7 @@ export const EditUserFormValidationSchema = Yup.object({
   roles: Yup.array().of(Yup.boolean()),
   metadata: Yup.string().test(
     'is-valid-json',
-    'Metadata must be valid JSON or empt',
+    'Metadata must be valid JSON or empty',
     (value) => {
       if (value === '') {
         return true;
