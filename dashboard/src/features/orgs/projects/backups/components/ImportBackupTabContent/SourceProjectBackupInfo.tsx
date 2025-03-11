@@ -9,19 +9,16 @@ interface Props {
 
 function SourceProjectBackupInfo({ appId, title }: Props) {
   const { isPiTREnabled } = useIsPiTREnabledLazy(appId);
-  return (
-    <>
-      {isPiTREnabled && (
-        <PointInTimeBackupInfo
-          appId={appId}
-          title={title}
-          dialogTitle="Import backup"
-          dialogButtonText="Import backup"
-          dialogTriggerText="Start import"
-        />
-      )}
-      {!isPiTREnabled && <PiTRNotEnabledOnSourceProject />}
-    </>
+  return isPiTREnabled ? (
+    <PointInTimeBackupInfo
+      appId={appId}
+      title={title}
+      dialogTitle="Import backup"
+      dialogButtonText="Import backup"
+      dialogTriggerText="Start import"
+    />
+  ) : (
+    <PiTRNotEnabledOnSourceProject />
   );
 }
 
