@@ -51,7 +51,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ runner.arch }}-nix-build-
 
-    - uses: cachix/install-nix-action@v30
+    - uses: cachix/install-nix-action@v31
       with:
         install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
         install_options: "--no-daemon"
