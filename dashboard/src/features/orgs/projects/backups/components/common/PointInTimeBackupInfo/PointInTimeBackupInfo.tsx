@@ -7,11 +7,18 @@ import RestoreBackupDialogButton from './RestoreBackupDialogButton';
 interface Props {
   appId?: string;
   title?: string;
+  dialogTitle?: string;
+  dialogButtonText?: string;
+  dialogTriggerText?: string;
 }
 
-const dialogTitle = 'Recover your database from a backup';
-
-function PointInTimeBackupInfo({ appId, title }: Props) {
+function PointInTimeBackupInfo({
+  appId,
+  title,
+  dialogTitle = 'Recover your database from a backup',
+  dialogButtonText,
+  dialogTriggerText,
+}: Props) {
   const { earliestBackupDate, loading } = usePiTRBaseBackups(appId);
 
   const disableStartRestoreButton = loading || isEmptyValue(earliestBackupDate);
@@ -45,6 +52,8 @@ function PointInTimeBackupInfo({ appId, title }: Props) {
           earliestBackupDate={earliestBackupDate}
           title={dialogTitle}
           fromAppId={appId}
+          dialogButtonText={dialogButtonText}
+          dialogTriggerText={dialogTriggerText}
         />
       </div>
     </div>

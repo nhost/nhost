@@ -8937,6 +8937,7 @@ export type Billing_Resources = {
   id: Scalars['uuid'];
   organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume: Scalars['Int'];
+  pitr: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
 
@@ -8976,6 +8977,7 @@ export type Billing_Resources_Avg_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** Boolean expression to filter rows from the table "billing.resources". All fields are combined with a logical 'AND'. */
@@ -8990,6 +8992,7 @@ export type Billing_Resources_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   persistentVolume?: InputMaybe<Int_Comparison_Exp>;
+  pitr?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -9006,6 +9009,7 @@ export type Billing_Resources_Inc_Input = {
   customDomains?: InputMaybe<Scalars['Int']>;
   functionsAmount?: InputMaybe<Scalars['Int']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
+  pitr?: InputMaybe<Scalars['Int']>;
 };
 
 /** input type for inserting data into table "billing.resources" */
@@ -9017,6 +9021,7 @@ export type Billing_Resources_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
+  pitr?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -9030,6 +9035,7 @@ export type Billing_Resources_Max_Fields = {
   id?: Maybe<Scalars['uuid']>;
   organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume?: Maybe<Scalars['Int']>;
+  pitr?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -9043,6 +9049,7 @@ export type Billing_Resources_Min_Fields = {
   id?: Maybe<Scalars['uuid']>;
   organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume?: Maybe<Scalars['Int']>;
+  pitr?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -9078,6 +9085,7 @@ export type Billing_Resources_Order_By = {
   id?: InputMaybe<Order_By>;
   organizationID?: InputMaybe<Order_By>;
   persistentVolume?: InputMaybe<Order_By>;
+  pitr?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -9103,6 +9111,8 @@ export enum Billing_Resources_Select_Column {
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
+  Pitr = 'pitr',
+  /** column name */
   UpdatedAt = 'updatedAt'
 }
 
@@ -9115,6 +9125,7 @@ export type Billing_Resources_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
+  pitr?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -9124,6 +9135,7 @@ export type Billing_Resources_Stddev_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate stddev_pop on columns */
@@ -9132,6 +9144,7 @@ export type Billing_Resources_Stddev_Pop_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate stddev_samp on columns */
@@ -9140,6 +9153,7 @@ export type Billing_Resources_Stddev_Samp_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** Streaming cursor of the table "billing_resources" */
@@ -9159,6 +9173,7 @@ export type Billing_Resources_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
+  pitr?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -9168,6 +9183,7 @@ export type Billing_Resources_Sum_Fields = {
   customDomains?: Maybe<Scalars['Int']>;
   functionsAmount?: Maybe<Scalars['Int']>;
   persistentVolume?: Maybe<Scalars['Int']>;
+  pitr?: Maybe<Scalars['Int']>;
 };
 
 /** update columns of table "billing.resources" */
@@ -9187,6 +9203,8 @@ export enum Billing_Resources_Update_Column {
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
+  Pitr = 'pitr',
+  /** column name */
   UpdatedAt = 'updatedAt'
 }
 
@@ -9205,6 +9223,7 @@ export type Billing_Resources_Var_Pop_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate var_samp on columns */
@@ -9213,6 +9232,7 @@ export type Billing_Resources_Var_Samp_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate variance on columns */
@@ -9221,6 +9241,7 @@ export type Billing_Resources_Variance_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** columns and relationships of "billing.subscription_items" */
@@ -9234,6 +9255,7 @@ export type Billing_Subscription_Items = {
   functions_usage_seconds: Scalars['String'];
   id: Scalars['uuid'];
   persistent_volume: Scalars['String'];
+  pitr: Scalars['String'];
   subscription: Scalars['String'];
   updated_at: Scalars['timestamptz'];
 };
@@ -9273,6 +9295,7 @@ export type Billing_Subscription_Items_Bool_Exp = {
   functions_usage_seconds?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   persistent_volume?: InputMaybe<String_Comparison_Exp>;
+  pitr?: InputMaybe<String_Comparison_Exp>;
   subscription?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -9293,6 +9316,7 @@ export type Billing_Subscription_Items_Insert_Input = {
   functions_usage_seconds?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   persistent_volume?: InputMaybe<Scalars['String']>;
+  pitr?: InputMaybe<Scalars['String']>;
   subscription?: InputMaybe<Scalars['String']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9308,6 +9332,7 @@ export type Billing_Subscription_Items_Max_Fields = {
   functions_usage_seconds?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   persistent_volume?: Maybe<Scalars['String']>;
+  pitr?: Maybe<Scalars['String']>;
   subscription?: Maybe<Scalars['String']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
 };
@@ -9323,6 +9348,7 @@ export type Billing_Subscription_Items_Min_Fields = {
   functions_usage_seconds?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   persistent_volume?: Maybe<Scalars['String']>;
+  pitr?: Maybe<Scalars['String']>;
   subscription?: Maybe<Scalars['String']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
 };
@@ -9353,6 +9379,7 @@ export type Billing_Subscription_Items_Order_By = {
   functions_usage_seconds?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   persistent_volume?: InputMaybe<Order_By>;
+  pitr?: InputMaybe<Order_By>;
   subscription?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -9381,6 +9408,8 @@ export enum Billing_Subscription_Items_Select_Column {
   /** column name */
   PersistentVolume = 'persistent_volume',
   /** column name */
+  Pitr = 'pitr',
+  /** column name */
   Subscription = 'subscription',
   /** column name */
   UpdatedAt = 'updated_at'
@@ -9396,6 +9425,7 @@ export type Billing_Subscription_Items_Set_Input = {
   functions_usage_seconds?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   persistent_volume?: InputMaybe<Scalars['String']>;
+  pitr?: InputMaybe<Scalars['String']>;
   subscription?: InputMaybe<Scalars['String']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9418,6 +9448,7 @@ export type Billing_Subscription_Items_Stream_Cursor_Value_Input = {
   functions_usage_seconds?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   persistent_volume?: InputMaybe<Scalars['String']>;
+  pitr?: InputMaybe<Scalars['String']>;
   subscription?: InputMaybe<Scalars['String']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9440,6 +9471,8 @@ export enum Billing_Subscription_Items_Update_Column {
   Id = 'id',
   /** column name */
   PersistentVolume = 'persistent_volume',
+  /** column name */
+  Pitr = 'pitr',
   /** column name */
   Subscription = 'subscription',
   /** column name */
@@ -13208,6 +13241,7 @@ export type Mutation_Root = {
   billingUpdateDedicatedCompute: Scalars['Boolean'];
   billingUpdateFunctionsAmount: Scalars['Boolean'];
   billingUpdateOrganizationThresholds: Scalars['Boolean'];
+  billingUpdatePITR: Scalars['Boolean'];
   billingUpdatePersistentVolume: Scalars['Boolean'];
   billingUpdateReports: Scalars['Boolean'];
   billingUploadReports: Scalars['Boolean'];
@@ -14089,6 +14123,14 @@ export type Mutation_RootBillingUpdateDedicatedComputeArgs = {
 
 /** mutation root */
 export type Mutation_RootBillingUpdateFunctionsAmountArgs = {
+  amount: Scalars['Int'];
+  appID: Scalars['uuid'];
+  organizationID?: InputMaybe<Scalars['uuid']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingUpdatePitrArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
   organizationID?: InputMaybe<Scalars['uuid']>;
@@ -19046,6 +19088,7 @@ export type Plans = {
   stripePriceIDFunctionsUsageSeconds: Scalars['String'];
   stripePriceIDPersistentVolumesGB: Scalars['String'];
   stripePriceId: Scalars['String'];
+  stripe_price_id_pitr: Scalars['String'];
   upatedAt: Scalars['timestamptz'];
 };
 
@@ -19170,6 +19213,7 @@ export type Plans_Bool_Exp = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<String_Comparison_Exp>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<String_Comparison_Exp>;
   stripePriceId?: InputMaybe<String_Comparison_Exp>;
+  stripe_price_id_pitr?: InputMaybe<String_Comparison_Exp>;
   upatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -19227,6 +19271,7 @@ export type Plans_Insert_Input = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
+  stripe_price_id_pitr?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -19252,6 +19297,7 @@ export type Plans_Max_Fields = {
   stripePriceIDFunctionsUsageSeconds?: Maybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: Maybe<Scalars['String']>;
   stripePriceId?: Maybe<Scalars['String']>;
+  stripe_price_id_pitr?: Maybe<Scalars['String']>;
   upatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -19277,6 +19323,7 @@ export type Plans_Min_Fields = {
   stripePriceIDFunctionsUsageSeconds?: Maybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: Maybe<Scalars['String']>;
   stripePriceId?: Maybe<Scalars['String']>;
+  stripe_price_id_pitr?: Maybe<Scalars['String']>;
   upatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -19335,6 +19382,7 @@ export type Plans_Order_By = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<Order_By>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<Order_By>;
   stripePriceId?: InputMaybe<Order_By>;
+  stripe_price_id_pitr?: InputMaybe<Order_By>;
   upatedAt?: InputMaybe<Order_By>;
 };
 
@@ -19402,6 +19450,8 @@ export enum Plans_Select_Column {
   /** column name */
   StripePriceId = 'stripePriceId',
   /** column name */
+  StripePriceIdPitr = 'stripe_price_id_pitr',
+  /** column name */
   UpatedAt = 'upatedAt'
 }
 
@@ -19438,6 +19488,7 @@ export type Plans_Set_Input = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
+  stripe_price_id_pitr?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -19524,6 +19575,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
+  stripe_price_id_pitr?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -19599,6 +19651,8 @@ export enum Plans_Update_Column {
   StripePriceIdPersistentVolumesGb = 'stripePriceIDPersistentVolumesGB',
   /** column name */
   StripePriceId = 'stripePriceId',
+  /** column name */
+  StripePriceIdPitr = 'stripe_price_id_pitr',
   /** column name */
   UpatedAt = 'upatedAt'
 }

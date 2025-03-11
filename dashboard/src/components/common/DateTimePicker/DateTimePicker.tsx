@@ -24,6 +24,8 @@ interface Props {
   defaultTimezone?: string;
   formatDateFn?: (date: Date) => string;
   isCalendarDayDisabled?: (date: Date) => boolean;
+  align?: 'start' | 'center' | 'end';
+  hasError?: boolean;
 }
 // in: UTC datetime
 // out: UTC dateTime
@@ -35,6 +37,8 @@ function DateTimePicker({
   formatDateFn,
   onDateTimeChange,
   isCalendarDayDisabled,
+  align = 'start',
+  hasError = false,
 }: Props) {
   const [date, setDate] = useState(() => {
     if (withTimezone) {
@@ -87,13 +91,14 @@ function DateTimePicker({
           className={cn(
             'w-full justify-between text-left font-normal',
             !date && 'text-muted-foreground',
+            { 'border-destructive': hasError },
           )}
         >
           {date ? dateString : <span>Pick a date</span>}
           <CalendarIcon className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0" align={align}>
         <Calendar
           mode="single"
           selected={date}

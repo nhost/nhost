@@ -1,5 +1,5 @@
+import { PointInTimeBackupInfo } from '@/features/orgs/projects/backups/components/common/PointInTimeBackupInfo';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import PointInTimeBackupInfo from './PointInTimeBackupInfo';
 import RecoveryRetentionPeriod from './RecoveryRetentionPeriod';
 
 function PointInTimeRecovery() {
