@@ -193,6 +193,7 @@ interface VirtualizedComboboxProps<O extends Option> {
   onSelectOption?: (option: O) => void;
   selectedOption: string;
   align?: 'start' | 'center' | 'end';
+  side?: 'right' | 'top' | 'bottom' | 'left';
 }
 
 function VirtualizedCombobox<O extends Option>({
@@ -204,6 +205,7 @@ function VirtualizedCombobox<O extends Option>({
   onSelectOption,
   selectedOption,
   align = 'start',
+  side,
 }: VirtualizedComboboxProps<O>) {
   const [open, setOpen] = React.useState(false);
   const defaultButton = (
@@ -226,7 +228,12 @@ function VirtualizedCombobox<O extends Option>({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{button || defaultButton}</PopoverTrigger>
-      <PopoverContent className="p-0" style={{ width }} align={align}>
+      <PopoverContent
+        className="p-0"
+        style={{ width }}
+        align={align}
+        side={side}
+      >
         <VirtualizedCommand
           height={height}
           options={options}

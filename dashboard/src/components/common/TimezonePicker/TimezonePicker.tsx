@@ -26,6 +26,7 @@ function TimezonePicker({
       onSelectOption={onTimezoneSelect}
       searchPlaceholder="Search timezones..."
       button={button}
+      side="right"
     />
   );
 }

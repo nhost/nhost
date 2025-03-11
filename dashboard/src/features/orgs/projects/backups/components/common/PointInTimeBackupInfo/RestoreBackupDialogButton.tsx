@@ -12,7 +12,6 @@ import {
 import { useRestoreApplicationDatabasePiTR } from '@/features/orgs/hooks/useRestoreApplicationDatabasePiTR';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { cn } from '@/lib/utils';
 import type { TZDate } from '@date-fns/tz';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { format, isBefore, startOfDay } from 'date-fns-v4';
@@ -74,7 +73,7 @@ function RestoreBackupDialogButton({
     }
   }, [earliestBackupDate]);
 
-  function formatDateFn(date: Date | TZDate) {
+  function formatDateFn(date: Date | TZDate | string) {
     return format(date, 'dd MMM yyyy, HH:mm:ss (OOOO)').replace('GMT', 'UTC');
   }
 
@@ -112,6 +111,16 @@ function RestoreBackupDialogButton({
       setOpen(newState);
     },
     [setOpen, resetState],
+  );
+
+  const validateFn = useCallback(
+    (newDateTime: Date) => {
+      if (isBefore(newDateTime, earliestBackupDate)) {
+        return 'Selected date is before the earliest restore target time.';
+      }
+      return '';
+    },
+    [earliestBackupDate],
   );
 
   const handleClose = useCallback(() => {
@@ -162,16 +171,9 @@ function RestoreBackupDialogButton({
                   onDateTimeChange={handleDateTimeChange}
                   withTimezone
                   isCalendarDayDisabled={isCalendarDayDisabled}
-                  hasError={hasError}
-                  align="end"
+                  validateDateFn={validateFn}
+                  align="start"
                 />
-                <p
-                  className={cn('h-[1rem] text-[11px] text-destructive', {
-                    invisible: !hasError,
-                  })}
-                >
-                  {restoreTargetIsBeforeError}
-                </p>
               </div>
               <div className="flex flex-col gap-3">
                 <StartRestoreConfirmationCheck

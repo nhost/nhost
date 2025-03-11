@@ -22,10 +22,10 @@ interface Props {
   onDateTimeChange: (newDate: string) => void;
   withTimezone?: boolean;
   defaultTimezone?: string;
-  formatDateFn?: (date: Date) => string;
+  formatDateFn?: (date: Date | string) => string;
   isCalendarDayDisabled?: (date: Date) => boolean;
   align?: 'start' | 'center' | 'end';
-  hasError?: boolean;
+  validateDateFn?: (date: Date) => string;
 }
 // in: UTC datetime
 // out: UTC dateTime
@@ -38,7 +38,7 @@ function DateTimePicker({
   onDateTimeChange,
   isCalendarDayDisabled,
   align = 'start',
-  hasError = false,
+  validateDateFn,
 }: Props) {
   const [date, setDate] = useState(() => {
     if (withTimezone) {
@@ -47,9 +47,10 @@ function DateTimePicker({
     }
     return parseISO(dateTime);
   });
+  const [open, setOpen] = useState(false);
 
-  function emitNewDateTime(newDate: Date) {
-    onDateTimeChange(new Date(newDate.getTime()).toISOString());
+  function emitNewDateTime() {
+    onDateTimeChange(new Date(date.getTime()).toISOString());
   }
 
   /**
@@ -68,12 +69,6 @@ function DateTimePicker({
     const diffInDays = diff / (1000 * 60 * 60 * 24);
     const newDateFull = add(date, { days: Math.ceil(diffInDays) });
     setDate(newDateFull);
-    emitNewDateTime(newDateFull);
-  }
-
-  function handleTimeChange(newDate: Date) {
-    setDate(newDate);
-    emitNewDateTime(newDate);
   }
 
   function handleTimezoneChange(newTimezone: string) {
@@ -81,10 +76,29 @@ function DateTimePicker({
     setDate(newDateWithTimezone);
   }
 
+  function handleOpenChange(newOpenState: boolean) {
+    if (!newOpenState) {
+      if (withTimezone) {
+        const tz = defaultTimezone || guessTimezone();
+        setDate(new TZDate(dateTime, tz));
+      }
+      setDate(parseISO(dateTime));
+    }
+    setOpen(newOpenState);
+  }
+
+  function onSelect() {
+    emitNewDateTime();
+    setOpen(false);
+  }
+
   const dateString = formatDateFn?.(date) || format(date, 'PPP HH:mm:ss');
 
+  const errorText = validateDateFn?.(date);
+  const hasError = !!errorText;
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -93,30 +107,55 @@ function DateTimePicker({
             !date && 'text-muted-foreground',
             { 'border-destructive': hasError },
           )}
+          onClick={() => setOpen(true)}
         >
           {date ? dateString : <span>Pick a date</span>}
           <CalendarIcon className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align={align}>
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={(d) => handleSelect(d)}
-          initialFocus
-          disabled={isCalendarDayDisabled}
-        />
-        <div className="border-t border-border p-3">
-          <TimePicker setDate={handleTimeChange} date={date} />
-        </div>
-        {withTimezone && (
-          <div className="border-t border-border p-3">
-            <TimezoneSettings
-              dateTime={dateTime}
-              onTimezoneChange={handleTimezoneChange}
+        <div className="flex">
+          <div className="flex">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => handleSelect(d)}
+              initialFocus
+              disabled={isCalendarDayDisabled}
             />
+            <div className="flex flex-col justify-between">
+              <div>
+                <div className="border-t border-border p-3">
+                  <TimePicker setDate={setDate} date={date} />
+                </div>
+                {withTimezone && (
+                  <div className="border-t border-border p-3">
+                    <TimezoneSettings
+                      dateTime={dateTime}
+                      onTimezoneChange={handleTimezoneChange}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-row justify-between gap-5 p-3">
+                <Button
+                  className="w-full"
+                  onClick={onSelect}
+                  disabled={hasError}
+                >
+                  Select
+                </Button>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+        <div
+          className={cn('p-3 text-center text-[11px] text-destructive', {
+            invisible: !hasError,
+          })}
+        >
+          {errorText}
+        </div>
       </PopoverContent>
     </Popover>
   );
