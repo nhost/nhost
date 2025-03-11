@@ -39,8 +39,8 @@ function PointInTimeBackupInfo({
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4" />
               <p>
-                Backups available through current time. If unavailable, the
-                closest possible time will be selected.
+                Restore available up to current time. System will restore up to
+                closest available target time if exact time unavailable.
               </p>
             </div>
           </div>

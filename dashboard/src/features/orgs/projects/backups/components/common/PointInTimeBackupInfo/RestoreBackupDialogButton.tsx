@@ -116,7 +116,7 @@ function RestoreBackupDialogButton({
   const validateFn = useCallback(
     (newDateTime: Date) => {
       if (isBefore(newDateTime, earliestBackupDate)) {
-        return 'Selected date is before the earliest restore target time.';
+        return 'Selected date and time is before the earliest available backup';
       }
       return '';
     },
