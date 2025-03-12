@@ -764,7 +764,7 @@ export const createAuthMachine = ({
           if (autoSignIn && broadcastKey) {
             try {
               const channel = new BroadcastChannel(broadcastKey)
-              // ? broadcat session instead of token ?
+              // ? broadcast session instead of token ?
               channel.postMessage({
                 type: 'broadcast_token',
                 payload: {
@@ -802,21 +802,21 @@ export const createAuthMachine = ({
             return elapsed > Math.pow(2, ctx.refreshTimer.attempts - 1) * 5_000
           }
 
-          // This happens when either the computer goes to sleep or when Chrome descides to suspend the tab
+          // This happens when either the computer goes to sleep or when Chrome decides to suspend the tab
           if (expiresAt.getTime() < Date.now()) {
             return true
           }
 
           if (refreshIntervalTime) {
             // * If a refreshIntervalTime has been passed on as an option, it will notify
-            // * the token should be refershed when this interval is overdue
+            // * the token should be refreshed when this interval is overdue
             const elapsed = Date.now() - ctx.refreshTimer.startedAt!.getTime()
             if (elapsed > refreshIntervalTime * 1_000) {
               return true
             }
           }
           // * In any case, it's time to refresh when there's less than
-          // * TOKEN_REFRESH_MARGIN_SECONDS seconds before the JWT exprires
+          // * TOKEN_REFRESH_MARGIN_SECONDS seconds before the JWT expires
           const accessTokenExpirationTime = ctx.accessToken.expiresInSeconds
 
           if (!accessTokenExpirationTime) {
@@ -835,7 +835,7 @@ export const createAuthMachine = ({
           return remainingMilliseconds <= 0
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
-        /** Shoud retry to import the token on network error or any internal server error.
+        /** Should retry to import the token on network error or any internal server error.
          * Don't retry more than REFRESH_TOKEN_MAX_ATTEMPTS times.
          */
         shouldRetryImportToken: (ctx, e: any) =>
@@ -1068,7 +1068,7 @@ export const createAuthMachine = ({
             )
           }
         },
-        signUpSecurityKey: async (_, { email, options }) => {
+        signUpSecurityKey: async (_, { email, options, requestOptions }) => {
           if (!isValidEmail(email)) {
             return Promise.reject<SignUpResponse>({ error: INVALID_EMAIL_ERROR })
           }
@@ -1082,7 +1082,9 @@ export const createAuthMachine = ({
           if (nickname) delete options.nickname
           const webAuthnOptions = await postRequest<PublicKeyCredentialCreationOptionsJSON>(
             '/signup/webauthn',
-            { email, options }
+            { email, options },
+            null,
+            requestOptions?.headers
           )
           let credential: RegistrationCredentialJSON
           try {
