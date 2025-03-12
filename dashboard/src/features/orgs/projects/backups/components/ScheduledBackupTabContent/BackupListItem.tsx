@@ -2,13 +2,13 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v2/Button';
 import { TableCell } from '@/components/ui/v2/TableCell';
 import { TableRow } from '@/components/ui/v2/TableRow';
-import { RestoreBackupModal } from '@/features/orgs/projects/backups/components/RestoreBackupModal';
 import type { Backup } from '@/types/application';
 import { useGetBackupPresignedUrlLazyQuery } from '@/utils/__generated__/graphql';
 import { prettifySize } from '@/utils/prettifySize';
 import { triggerToast } from '@/utils/toast';
 import { format, formatDistanceStrict, parseISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
+import RestoreBackupModal from './RestoreBackupModal';
 
 export interface BackupListItemProps {
   /**

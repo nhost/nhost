@@ -6,9 +6,9 @@ import { TableContainer } from '@/components/ui/v2/TableContainer';
 import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
-import { BackupListItem } from '@/features/orgs/projects/backups/components/BackupListItem';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetApplicationBackupsQuery } from '@/utils/__generated__/graphql';
+import BackupListItem from './BackupListItem';
 
 export default function BackupList() {
   const { project, loading: loadingProject } = useProject();
