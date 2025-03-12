@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.29.0
+
+### Minor Changes
+
+- b40d375: feat: added pitr docs
+
 ## 2.28.1
 
 ### Patch Changes
