@@ -201,3 +201,5 @@ export const postgresFunctions = {
  * List of PostgreSQL data types that can be used as identity.
  */
 export const identityTypes: ColumnType[] = ['int2', 'int4', 'int8'];
+
+export const RECOVERY_RETENTION_PERIOD_7 = 7;

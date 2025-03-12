@@ -2246,6 +2246,7 @@ export type ConfigPortComparisonExp = {
 /** Configuration for postgres service */
 export type ConfigPostgres = {
   __typename?: 'ConfigPostgres';
+  pitr?: Maybe<ConfigPostgresPitr>;
   /** Resources for the service */
   resources: ConfigPostgresResources;
   settings?: Maybe<ConfigPostgresSettings>;
@@ -2260,15 +2261,37 @@ export type ConfigPostgresComparisonExp = {
   _and?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
   _not?: InputMaybe<ConfigPostgresComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
+  pitr?: InputMaybe<ConfigPostgresPitrComparisonExp>;
   resources?: InputMaybe<ConfigPostgresResourcesComparisonExp>;
   settings?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigPostgresInsertInput = {
+  pitr?: InputMaybe<ConfigPostgresPitrInsertInput>;
   resources: ConfigPostgresResourcesInsertInput;
   settings?: InputMaybe<ConfigPostgresSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresPitr = {
+  __typename?: 'ConfigPostgresPitr';
+  retention?: Maybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigPostgresPitrComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresPitrComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresPitrComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresPitrComparisonExp>>;
+  retention?: InputMaybe<ConfigUint8ComparisonExp>;
+};
+
+export type ConfigPostgresPitrInsertInput = {
+  retention?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigPostgresPitrUpdateInput = {
+  retention?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
 /** Resources for the service */
@@ -2276,6 +2299,7 @@ export type ConfigPostgresResources = {
   __typename?: 'ConfigPostgresResources';
   compute?: Maybe<ConfigResourcesCompute>;
   enablePublicAccess?: Maybe<Scalars['Boolean']>;
+  replicas?: Maybe<Scalars['Int']>;
   storage: ConfigPostgresResourcesStorage;
 };
 
@@ -2285,12 +2309,14 @@ export type ConfigPostgresResourcesComparisonExp = {
   _or?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
   enablePublicAccess?: InputMaybe<ConfigBooleanComparisonExp>;
+  replicas?: InputMaybe<ConfigIntComparisonExp>;
   storage?: InputMaybe<ConfigPostgresResourcesStorageComparisonExp>;
 };
 
 export type ConfigPostgresResourcesInsertInput = {
   compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
+  replicas?: InputMaybe<Scalars['Int']>;
   storage: ConfigPostgresResourcesStorageInsertInput;
 };
 
@@ -2317,11 +2343,13 @@ export type ConfigPostgresResourcesStorageUpdateInput = {
 export type ConfigPostgresResourcesUpdateInput = {
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
+  replicas?: InputMaybe<Scalars['Int']>;
   storage?: InputMaybe<ConfigPostgresResourcesStorageUpdateInput>;
 };
 
 export type ConfigPostgresSettings = {
   __typename?: 'ConfigPostgresSettings';
+  archiveTimeout?: Maybe<Scalars['ConfigInt32']>;
   checkpointCompletionTarget?: Maybe<Scalars['Float']>;
   defaultStatisticsTarget?: Maybe<Scalars['ConfigInt32']>;
   effectiveCacheSize?: Maybe<Scalars['String']>;
@@ -2349,6 +2377,7 @@ export type ConfigPostgresSettingsComparisonExp = {
   _and?: InputMaybe<Array<ConfigPostgresSettingsComparisonExp>>;
   _not?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresSettingsComparisonExp>>;
+  archiveTimeout?: InputMaybe<ConfigInt32ComparisonExp>;
   checkpointCompletionTarget?: InputMaybe<ConfigFloatComparisonExp>;
   defaultStatisticsTarget?: InputMaybe<ConfigInt32ComparisonExp>;
   effectiveCacheSize?: InputMaybe<ConfigStringComparisonExp>;
@@ -2373,6 +2402,7 @@ export type ConfigPostgresSettingsComparisonExp = {
 };
 
 export type ConfigPostgresSettingsInsertInput = {
+  archiveTimeout?: InputMaybe<Scalars['ConfigInt32']>;
   checkpointCompletionTarget?: InputMaybe<Scalars['Float']>;
   defaultStatisticsTarget?: InputMaybe<Scalars['ConfigInt32']>;
   effectiveCacheSize?: InputMaybe<Scalars['String']>;
@@ -2397,6 +2427,7 @@ export type ConfigPostgresSettingsInsertInput = {
 };
 
 export type ConfigPostgresSettingsUpdateInput = {
+  archiveTimeout?: InputMaybe<Scalars['ConfigInt32']>;
   checkpointCompletionTarget?: InputMaybe<Scalars['Float']>;
   defaultStatisticsTarget?: InputMaybe<Scalars['ConfigInt32']>;
   effectiveCacheSize?: InputMaybe<Scalars['String']>;
@@ -2421,6 +2452,7 @@ export type ConfigPostgresSettingsUpdateInput = {
 };
 
 export type ConfigPostgresUpdateInput = {
+  pitr?: InputMaybe<ConfigPostgresPitrUpdateInput>;
   resources?: InputMaybe<ConfigPostgresResourcesUpdateInput>;
   settings?: InputMaybe<ConfigPostgresSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -3226,6 +3258,15 @@ export type Log = {
 export type Metrics = {
   __typename?: 'Metrics';
   value: Scalars['float64'];
+};
+
+export type PiTrBaseBackup = {
+  __typename?: 'PiTRBaseBackup';
+  LSNHigh: Scalars['bigint'];
+  LSNLow: Scalars['bigint'];
+  date: Scalars['Timestamp'];
+  name: Scalars['String'];
+  timeline: Scalars['Int'];
 };
 
 export type PostOrganizationRequestResponse = {
@@ -13147,8 +13188,11 @@ export type Jsonb_Comparison_Exp = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
+  /** Backup all applications databases. It will skip databases with PiTR */
   backupAllApplicationsDatabase: Array<Maybe<BackupResultsItem>>;
   backupApplicationDatabase: BackupResult;
+  /** Triggers a backup of the application database with PiTR */
+  backupApplicationDatabasePiTR: Scalars['Boolean'];
   billingChangeOrganizationPlan: Scalars['Boolean'];
   billingCreateOrganizationRequest: Scalars['String'];
   billingDeleteApp: Scalars['Boolean'];
@@ -13615,6 +13659,12 @@ export type Mutation_Root = {
   replaceRunServiceConfig: ConfigRunServiceConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
+  /**
+   * Triggers a restore of the application database with PiTR
+   * If `baseBackupName` is not provided, we will attempt to determine the base backup
+   * by using the newest backup that is older than `recoveryTarget`
+   */
+  restoreApplicationDatabasePiTR: Scalars['Boolean'];
   sendEmailInvite: Scalars['Boolean'];
   sendEmailOrganizationStatusChange: Scalars['Boolean'];
   sendEmailOrganizationThreshold: Scalars['Boolean'];
@@ -13954,6 +14004,12 @@ export type Mutation_Root = {
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
   expireInDays?: InputMaybe<Scalars['Int']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootBackupApplicationDatabasePiTrArgs = {
+  appID: Scalars['String'];
 };
 
 
@@ -15546,6 +15602,15 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootRestoreApplicationDatabasePiTrArgs = {
+  appID: Scalars['String'];
+  baseBackupName?: InputMaybe<Scalars['String']>;
+  fromAppID?: InputMaybe<Scalars['String']>;
+  recoveryTarget: Scalars['Timestamp'];
 };
 
 
@@ -19796,6 +19861,7 @@ export type Query_Root = {
   getFunctionsDuration: Metrics;
   getFunctionsInvocations: Metrics;
   getLogsVolume: Metrics;
+  getPiTRBaseBackups: Array<PiTrBaseBackup>;
   getPostgresVolumeCapacity: Metrics;
   getPostgresVolumeUsage: Metrics;
   getProjectStatus: ProjectStatusResponse;
@@ -20760,6 +20826,11 @@ export type Query_RootGetLogsVolumeArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetPiTrBaseBackupsArgs = {
+  appID: Scalars['String'];
 };
 
 
@@ -27633,7 +27704,7 @@ export type GetPostgresSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } } } } | null };
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } }, pitr?: { __typename?: 'ConfigPostgresPitr', retention?: any | null } | null } } | null };
 
 export type ResetDatabasePasswordMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -29428,6 +29499,9 @@ export const GetPostgresSettingsDocument = gql`
           capacity
         }
         enablePublicAccess
+      }
+      pitr {
+        retention
       }
     }
   }
