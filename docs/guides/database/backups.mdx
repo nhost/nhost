@@ -20,7 +20,7 @@ All Pro and Team projects come with daily backups enabled with a 7-day retention
 
 ### Restoring a Backup
 
-To restore a backup, go to the [backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard, pick the backup you want to restore from and click on "Restore". Keep in mind this will wipe out all of the project's data prior to initiating the restore.
+To restore a backup, go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard, pick the backup you want to restore from and click on "Restore". Keep in mind this will wipe out all of the project's data prior to initiating the restore.
 
 ### Restoring a Backup on a Different Project
 
@@ -32,7 +32,7 @@ When using postgres tools like `psql`, `pg_dump` or `pg_restore` it is recommend
 
 <Steps>
   <Step title="Download the backup and uncompress it">
-  1. Go to the [backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and download the backup you want.
+  1. Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and download the backup you want.
   2. Uncompress it with `unzip` or similar tool
   3. You should see two files `globals.sql` and `database.custom`
 
@@ -132,7 +132,7 @@ You can configure Point-in-Time Recovery via the dashboard or using your `nhost.
 
 <Tabs>
  <Tab title="Dashboard">
-  1. Go to the [backups](https://app.nhost.io/orgs/_/projects/_/settings/database) section in your project's dashboard.
+  1. Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/settings/database) section in your project's dashboard.
   2. Enable "Point-in-Time Recovery"
 
   ![Point-in-Time Recovery](/images/guides/backups/pitr-settings.png)
@@ -155,7 +155,7 @@ To restore to a specific point in time:
 <Steps>
   <Step>
 
-  Go to the [backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and click on "Start Restore"
+  Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and click on "Start Restore"
 
   ![Point-in-Time Recovery](/images/guides/backups/pitr-restore-1.png)
 
@@ -212,7 +212,7 @@ You can restore to a specific point in time on a different project in our cloud 
  </Step>
 
  <Step title="Restore backup">
- Finally, go to the new project's [backups](https://app.nhost.io/orgs/_/projects/_/backups) section, navigate to "Import Backup" and select the original project. After this the steps are the same as restoring to a specific point in time on the same project.
+ Finally, go to the new project's [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section, navigate to "Import Backup" and select the original project. After this the steps are the same as restoring to a specific point in time on the same project.
 
  ![Point-in-Time Recovery import](/images/guides/backups/pitr-import-1.png)
  </Step>
