@@ -15,7 +15,7 @@ export default function DatabasePiTRSettings() {
   } = useDatabasePiTRSettings();
   const { updatePiTRConfig, loading } = useUpdateDatabasePiTRConfig();
 
-  const isFreeProject = org.plan.isFree;
+  const isFreeProject = isEmptyValue(org) ? false : org.plan.isFree;
   const shouldShowSwitch = isEmptyValue(org) ? false : !isFreeProject;
 
   function handleEnabledChange(enabled: boolean) {
