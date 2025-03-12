@@ -218,7 +218,7 @@ describe('PointInTimeBackupInfo', () => {
     expect(
       await screen.getByLabelText(/I understand this cannot be undone/),
     ).toBeChecked();
-    expect(await screen.getByText('Hello')).toBeInTheDocument();
+
     await waitFor(async () =>
       expect(
         await screen.getByRole('button', { name: 'Restore backup' }),
@@ -232,6 +232,7 @@ describe('PointInTimeBackupInfo', () => {
     expect(
       mocks.restoreApplicationDatabase.mock.calls[0][0].fromAppId,
     ).toBeNull();
+
     expect(
       mocks.restoreApplicationDatabase.mock.calls[0][0].recoveryTarget,
     ).toBe('2025-03-13T16:00:05.000Z');
