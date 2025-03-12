@@ -1,0 +1,93 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Protect Your Data with Point-in-Time Recovery',
+  description:
+    'Restore your database to any moment in time with our new Point-in-Time Recovery (PITR) feature',
+  image: '/images/blog/og-pitr.png',
+  date: '2025-03-11',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Database', 'Backup'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We're excited to announce the release of **Point-in-Time Recovery (PITR)**, a powerful new feature that adds an extra layer of protection to your Postgres database. With PITR, you can now restore your database to any specific moment in the past, giving you more control and peace of mind when it comes to data protection and disaster recovery.
+
+## Why Point-in-Time Recovery Matters
+
+Even the most well-designed applications can face unexpected data issues:
+
+- Accidental data deletion or corruption
+- Failed migrations or schema changes
+- Data inconsistencies from buggy code deployments
+- Malicious actions requiring immediate remediation
+
+While regular daily backups are great to have, they leave you vulnerable to losing hours of potential valuable data. With PITR, you can recover to the exact moment before an incident occurred, minimizing data loss and downtime.
+
+## How PITR Works
+
+Point-in-Time Recovery works by continuously archiving database transaction logs, allowing you to restore your database to any specific timestamp within the retention period. The process is simple and can be managed directly from the Nhost Dashboard.
+
+![Point-in-Time Recovery](/images/blog/pitr/pitr.png)
+
+### Restore Your Current Project
+
+When you need to roll back your current project, simply:
+
+1. Navigate to your project's backups in the Nhost Dashboard
+2. Select the "Point-in-Time Recovery" tab
+3. Choose a specific date and time to restore to
+4. Confirm the restoration
+
+The system will restore your database to the exact state it was in at the selected timestamp, including all tables, relationships, and data.
+
+![Point-in-Time Recovery](/images/blog/pitr/pitr-datepicker.png)
+
+### Import from Another Project
+
+PITR also enables you to import databases across projects within the same organization and region:
+
+1. Navigate to your target project's database backups
+2. Select "Import backup"
+3. Choose the source project, date, and time
+4. Confirm the import
+
+![Point-in-Time Recovery](/images/blog/pitr/pitr-import.png)
+
+This feature is particularly valuable for:
+- Creating staging environments with production data
+- Testing migrations and updates with real data
+- Setting up development environments that closely mirror production
+
+
+## Getting Started with PITR
+
+Point-in-Time Recovery is available on the Pro, Team, and Enterprise plans as an add-on. To enable this feature:
+
+1. Upgrade to the Pro plan if you haven't already
+2. Navigate to your project's [database settings](https://app.nhost.io/orgs/_/projects/_/settings/database)
+3. Enable PITR
+
+The retention period is set to 7 days, giving you a full week of protection and flexibility to restore your database to any point during that timeframe. If you need a longer retention period don't hesitate to reach out to us.
+
+## What's Next?
+
+We plan to continue improving our Postgres offering. In the coming months, we'll be looking to:
+
+- Extend the PITR retention period options
+- Add scheduled and on-demand backup options
+
+## Conclusion
+
+Point-in-Time Recovery represents a significant step forward in our commitment to data security and reliability. With PITR, you can develop and operate your applications with greater confidence, knowing that you can quickly recover from data issues with minimal impact.
+
+We're excited to see how PITR helps you build more resilient applications. As always, we welcome your feedback and suggestions so don't hesitate to reach out to us on [Discord](https://discord.com/invite/9V7Qb2U).
