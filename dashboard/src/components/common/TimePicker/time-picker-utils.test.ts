@@ -283,7 +283,7 @@ describe('time-picker-utils', () => {
       expect(getArrowByType('14', 1, 'invalid' as TimePickerType)).toBe('00');
     });
 
-    test.only('setDateByType updates date according to the picker type', () => {
+    test('setDateByType updates date according to the picker type', () => {
       const date = new Date(2023, 0, 1, 12, 30, 45);
 
       // Test updating hours
