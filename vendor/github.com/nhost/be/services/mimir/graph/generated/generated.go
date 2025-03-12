@@ -503,9 +503,14 @@ type ComplexityRoot struct {
 	}
 
 	ConfigPostgres struct {
+		Pitr      func(childComplexity int) int
 		Resources func(childComplexity int) int
 		Settings  func(childComplexity int) int
 		Version   func(childComplexity int) int
+	}
+
+	ConfigPostgresPitr struct {
+		Retention func(childComplexity int) int
 	}
 
 	ConfigPostgresResources struct {
@@ -520,6 +525,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigPostgresSettings struct {
+		ArchiveTimeout                func(childComplexity int) int
 		CheckpointCompletionTarget    func(childComplexity int) int
 		DefaultStatisticsTarget       func(childComplexity int) int
 		EffectiveCacheSize            func(childComplexity int) int
@@ -2436,6 +2442,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigObservability.Grafana(childComplexity), true
 
+	case "ConfigPostgres.pitr":
+		if e.complexity.ConfigPostgres.Pitr == nil {
+			break
+		}
+
+		return e.complexity.ConfigPostgres.Pitr(childComplexity), true
+
 	case "ConfigPostgres.resources":
 		if e.complexity.ConfigPostgres.Resources == nil {
 			break
@@ -2456,6 +2469,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigPostgres.Version(childComplexity), true
+
+	case "ConfigPostgresPitr.retention":
+		if e.complexity.ConfigPostgresPitr.Retention == nil {
+			break
+		}
+
+		return e.complexity.ConfigPostgresPitr.Retention(childComplexity), true
 
 	case "ConfigPostgresResources.compute":
 		if e.complexity.ConfigPostgresResources.Compute == nil {
@@ -2491,6 +2511,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigPostgresResourcesStorage.Capacity(childComplexity), true
+
+	case "ConfigPostgresSettings.archiveTimeout":
+		if e.complexity.ConfigPostgresSettings.ArchiveTimeout == nil {
+			break
+		}
+
+		return e.complexity.ConfigPostgresSettings.ArchiveTimeout(childComplexity), true
 
 	case "ConfigPostgresSettings.checkpointCompletionTarget":
 		if e.complexity.ConfigPostgresSettings.CheckpointCompletionTarget == nil {
@@ -3637,6 +3664,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigPortComparisonExp,
 		ec.unmarshalInputConfigPostgresComparisonExp,
 		ec.unmarshalInputConfigPostgresInsertInput,
+		ec.unmarshalInputConfigPostgresPitrComparisonExp,
+		ec.unmarshalInputConfigPostgresPitrInsertInput,
 		ec.unmarshalInputConfigPostgresResourcesComparisonExp,
 		ec.unmarshalInputConfigPostgresResourcesInsertInput,
 		ec.unmarshalInputConfigPostgresResourcesStorageComparisonExp,
@@ -6942,18 +6971,24 @@ type ConfigPostgres {
 
     """
     settings: ConfigPostgresSettings
+    """
+
+    """
+    pitr: ConfigPostgresPitr
 }
 
 input ConfigPostgresUpdateInput {
     version: String
     resources: ConfigPostgresResourcesUpdateInput
     settings: ConfigPostgresSettingsUpdateInput
+    pitr: ConfigPostgresPitrUpdateInput
 }
 
 input ConfigPostgresInsertInput {
     version: String
     resources: ConfigPostgresResourcesInsertInput!
     settings: ConfigPostgresSettingsInsertInput
+    pitr: ConfigPostgresPitrInsertInput
 }
 
 input ConfigPostgresComparisonExp {
@@ -6963,6 +6998,32 @@ input ConfigPostgresComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigPostgresResourcesComparisonExp
     settings: ConfigPostgresSettingsComparisonExp
+    pitr: ConfigPostgresPitrComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresPitr {
+    """
+
+    """
+    retention: ConfigUint8
+}
+
+input ConfigPostgresPitrUpdateInput {
+    retention: ConfigUint8
+}
+
+input ConfigPostgresPitrInsertInput {
+    retention: ConfigUint8
+}
+
+input ConfigPostgresPitrComparisonExp {
+    _and: [ConfigPostgresPitrComparisonExp!]
+    _not: ConfigPostgresPitrComparisonExp
+    _or: [ConfigPostgresPitrComparisonExp!]
+    retention: ConfigUint8ComparisonExp
 }
 
 """
@@ -7124,6 +7185,10 @@ type ConfigPostgresSettings {
 
     """
     maxReplicationSlots: ConfigInt32
+    """
+
+    """
+    archiveTimeout: ConfigInt32
 }
 
 input ConfigPostgresSettingsUpdateInput {
@@ -7148,6 +7213,7 @@ input ConfigPostgresSettingsUpdateInput {
     walLevel: String
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
+    archiveTimeout: ConfigInt32
 }
 
 input ConfigPostgresSettingsInsertInput {
@@ -7172,6 +7238,7 @@ input ConfigPostgresSettingsInsertInput {
     walLevel: String
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
+    archiveTimeout: ConfigInt32
 }
 
 input ConfigPostgresSettingsComparisonExp {
@@ -7199,6 +7266,7 @@ input ConfigPostgresSettingsComparisonExp {
     walLevel: ConfigStringComparisonExp
     maxWalSenders: ConfigInt32ComparisonExp
     maxReplicationSlots: ConfigInt32ComparisonExp
+    archiveTimeout: ConfigInt32ComparisonExp
 }
 
 """
@@ -16156,6 +16224,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_postgres(_ context.Context
 				return ec.fieldContext_ConfigPostgres_resources(ctx, field)
 			case "settings":
 				return ec.fieldContext_ConfigPostgres_settings(ctx, field)
+			case "pitr":
+				return ec.fieldContext_ConfigPostgres_pitr(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgres", field.Name)
 		},
@@ -21023,8 +21093,96 @@ func (ec *executionContext) fieldContext_ConfigPostgres_settings(_ context.Conte
 				return ec.fieldContext_ConfigPostgresSettings_maxWalSenders(ctx, field)
 			case "maxReplicationSlots":
 				return ec.fieldContext_ConfigPostgresSettings_maxReplicationSlots(ctx, field)
+			case "archiveTimeout":
+				return ec.fieldContext_ConfigPostgresSettings_archiveTimeout(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresSettings", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgres_pitr(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgres) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigPostgres_pitr(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pitr, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigPostgresPitr)
+	fc.Result = res
+	return ec.marshalOConfigPostgresPitr2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitr(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgres_pitr(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgres",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "retention":
+				return ec.fieldContext_ConfigPostgresPitr_retention(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresPitr", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgresPitr_retention(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresPitr) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigPostgresPitr_retention(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Retention, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uint8)
+	fc.Result = res
+	return ec.marshalOConfigUint82ᚖuint8(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgresPitr_retention(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgresPitr",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint8 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -22100,6 +22258,47 @@ func (ec *executionContext) _ConfigPostgresSettings_maxReplicationSlots(ctx cont
 }
 
 func (ec *executionContext) fieldContext_ConfigPostgresSettings_maxReplicationSlots(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgresSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigInt32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgresSettings_archiveTimeout(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigPostgresSettings_archiveTimeout(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ArchiveTimeout, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int32)
+	fc.Result = res
+	return ec.marshalOConfigInt322ᚖint32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgresSettings_archiveTimeout(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigPostgresSettings",
 		Field:      field,
@@ -36986,7 +37185,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresComparisonExp(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "settings"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "settings", "pitr"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37035,6 +37234,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresComparisonExp(ctx contex
 				return it, err
 			}
 			it.Settings = data
+		case "pitr":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pitr"))
+			data, err := ec.unmarshalOConfigPostgresPitrComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Pitr = data
 		}
 	}
 
@@ -37048,7 +37254,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresInsertInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "resources", "settings"}
+	fieldsInOrder := [...]string{"version", "resources", "settings", "pitr"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37076,6 +37282,88 @@ func (ec *executionContext) unmarshalInputConfigPostgresInsertInput(ctx context.
 				return it, err
 			}
 			it.Settings = data
+		case "pitr":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pitr"))
+			data, err := ec.unmarshalOConfigPostgresPitrInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Pitr = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigPostgresPitrComparisonExp(ctx context.Context, obj any) (model.ConfigPostgresPitrComparisonExp, error) {
+	var it model.ConfigPostgresPitrComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "retention"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigPostgresPitrComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigPostgresPitrComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigPostgresPitrComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "retention":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("retention"))
+			data, err := ec.unmarshalOConfigUint8ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Retention = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigPostgresPitrInsertInput(ctx context.Context, obj any) (model.ConfigPostgresPitrInsertInput, error) {
+	var it model.ConfigPostgresPitrInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"retention"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "retention":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("retention"))
+			data, err := ec.unmarshalOConfigUint82ᚖuint8(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Retention = data
 		}
 	}
 
@@ -37281,7 +37569,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ct
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "archiveTimeout"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37456,6 +37744,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ct
 				return it, err
 			}
 			it.MaxReplicationSlots = data
+		case "archiveTimeout":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("archiveTimeout"))
+			data, err := ec.unmarshalOConfigInt32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ArchiveTimeout = data
 		}
 	}
 
@@ -37469,7 +37764,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots"}
+	fieldsInOrder := [...]string{"jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "archiveTimeout"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37623,6 +37918,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx 
 				return it, err
 			}
 			it.MaxReplicationSlots = data
+		case "archiveTimeout":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("archiveTimeout"))
+			data, err := ec.unmarshalOConfigInt322ᚖint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ArchiveTimeout = data
 		}
 	}
 
@@ -43639,6 +43941,44 @@ func (ec *executionContext) _ConfigPostgres(ctx context.Context, sel ast.Selecti
 			}
 		case "settings":
 			out.Values[i] = ec._ConfigPostgres_settings(ctx, field, obj)
+		case "pitr":
+			out.Values[i] = ec._ConfigPostgres_pitr(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configPostgresPitrImplementors = []string{"ConfigPostgresPitr"}
+
+func (ec *executionContext) _ConfigPostgresPitr(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigPostgresPitr) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configPostgresPitrImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigPostgresPitr")
+		case "retention":
+			out.Values[i] = ec._ConfigPostgresPitr_retention(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43799,6 +44139,8 @@ func (ec *executionContext) _ConfigPostgresSettings(ctx context.Context, sel ast
 			out.Values[i] = ec._ConfigPostgresSettings_maxWalSenders(ctx, field, obj)
 		case "maxReplicationSlots":
 			out.Values[i] = ec._ConfigPostgresSettings_maxReplicationSlots(ctx, field, obj)
+		case "archiveTimeout":
+			out.Values[i] = ec._ConfigPostgresSettings_archiveTimeout(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46675,6 +47017,11 @@ func (ec *executionContext) unmarshalNConfigPostgresComparisonExp2ᚖgithubᚗco
 
 func (ec *executionContext) unmarshalNConfigPostgresInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresInsertInput(ctx context.Context, v any) (*model.ConfigPostgresInsertInput, error) {
 	res, err := ec.unmarshalInputConfigPostgresInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigPostgresPitrComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresPitrComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigPostgresPitrComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -52222,6 +52569,58 @@ func (ec *executionContext) unmarshalOConfigPostgresComparisonExp2ᚖgithubᚗco
 	}
 	res, err := ec.unmarshalInputConfigPostgresComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigPostgresPitr2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitr(ctx context.Context, sel ast.SelectionSet, v *model.ConfigPostgresPitr) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigPostgresPitr(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigPostgresPitrComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigPostgresPitrComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigPostgresPitrComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigPostgresPitrComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigPostgresPitrComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrComparisonExp(ctx context.Context, v any) (*model.ConfigPostgresPitrComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigPostgresPitrComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigPostgresPitrInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrInsertInput(ctx context.Context, v any) (*model.ConfigPostgresPitrInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigPostgresPitrInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigPostgresPitrUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresPitrUpdateInput(ctx context.Context, v any) (*model.ConfigPostgresPitrUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigPostgresPitrUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPostgresResourcesComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigPostgresResourcesComparisonExp, error) {

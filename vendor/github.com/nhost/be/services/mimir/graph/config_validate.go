@@ -3,6 +3,8 @@ package graph
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/nhost/be/services/mimir/model"
@@ -11,6 +13,10 @@ import (
 const (
 	appLive   = 5
 	appPaused = 6
+)
+
+const (
+	pitrMinVersion = 20250311
 )
 
 func (r *mutationResolver) configValidateVerifyPersistentVolumeEncryption(
@@ -69,6 +75,35 @@ func (r *mutationResolver) configValidateVerifyPostgresVersionChange(
 	return nil
 }
 
+func (r *mutationResolver) verifyPostgresVersionForPitr(
+	newApp *App,
+) error {
+	if newApp == nil {
+		return nil
+	}
+
+	if newApp.Config.GetPostgres().GetPitr() == nil {
+		return nil
+	}
+
+	p := strings.Split(deptr(newApp.Config.GetPostgres().GetVersion()), "-")
+	if len(p) != 3 { //nolint:mnd
+		return nil
+	}
+
+	// convert string to number
+	n, err := strconv.ParseInt(p[1], 10, 64)
+	if err != nil {
+		return nil //nolint: nilerr
+	}
+
+	if n < pitrMinVersion {
+		return ErrPitrMinVersion
+	}
+
+	return nil
+}
+
 func (r *mutationResolver) configValidate(
 	ctx context.Context,
 	oldApp *App,
@@ -99,6 +134,10 @@ func (r *mutationResolver) configValidate(
 	if err := r.configValidateVerifyPersistentVolumeEncryption(
 		desiredState, oldApp, newApp,
 	); err != nil {
+		return err
+	}
+
+	if err := r.verifyPostgresVersionForPitr(newApp); err != nil {
 		return err
 	}
 

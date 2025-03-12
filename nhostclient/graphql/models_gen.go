@@ -921,14 +921,24 @@ type ConfigObservabilityUpdateInput struct {
 }
 
 type ConfigPostgres struct {
+	Pitr      *ConfigPostgresPitr      `json:"pitr,omitempty"`
 	Resources *ConfigPostgresResources `json:"resources"`
 	Settings  *ConfigPostgresSettings  `json:"settings,omitempty"`
 	Version   *string                  `json:"version,omitempty"`
 }
 
+type ConfigPostgresPitr struct {
+	Retention *uint32 `json:"retention,omitempty"`
+}
+
+type ConfigPostgresPitrUpdateInput struct {
+	Retention *uint32 `json:"retention,omitempty"`
+}
+
 type ConfigPostgresResources struct {
 	Compute            *ConfigResourcesCompute         `json:"compute,omitempty"`
 	EnablePublicAccess *bool                           `json:"enablePublicAccess,omitempty"`
+	Replicas           *int64                          `json:"replicas,omitempty"`
 	Storage            *ConfigPostgresResourcesStorage `json:"storage"`
 }
 
@@ -943,11 +953,11 @@ type ConfigPostgresResourcesStorageUpdateInput struct {
 type ConfigPostgresResourcesUpdateInput struct {
 	Compute            *ConfigResourcesComputeUpdateInput         `json:"compute,omitempty"`
 	EnablePublicAccess *bool                                      `json:"enablePublicAccess,omitempty"`
+	Replicas           *int64                                     `json:"replicas,omitempty"`
 	Storage            *ConfigPostgresResourcesStorageUpdateInput `json:"storage,omitempty"`
 }
 
 type ConfigPostgresSettings struct {
-	ArchiveMode                   *string  `json:"archiveMode,omitempty"`
 	ArchiveTimeout                *string  `json:"archiveTimeout,omitempty"`
 	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty"`
 	DefaultStatisticsTarget       *string  `json:"defaultStatisticsTarget,omitempty"`
@@ -973,7 +983,6 @@ type ConfigPostgresSettings struct {
 }
 
 type ConfigPostgresSettingsUpdateInput struct {
-	ArchiveMode                   *string  `json:"archiveMode,omitempty"`
 	ArchiveTimeout                *string  `json:"archiveTimeout,omitempty"`
 	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty"`
 	DefaultStatisticsTarget       *string  `json:"defaultStatisticsTarget,omitempty"`
@@ -999,6 +1008,7 @@ type ConfigPostgresSettingsUpdateInput struct {
 }
 
 type ConfigPostgresUpdateInput struct {
+	Pitr      *ConfigPostgresPitrUpdateInput      `json:"pitr,omitempty"`
 	Resources *ConfigPostgresResourcesUpdateInput `json:"resources,omitempty"`
 	Settings  *ConfigPostgresSettingsUpdateInput  `json:"settings,omitempty"`
 	Version   *string                             `json:"version,omitempty"`
@@ -1341,6 +1351,14 @@ type Log struct {
 
 type Metrics struct {
 	Value string `json:"value"`
+}
+
+type PiTRBaseBackup struct {
+	LSNHigh  int64  `json:"LSNHigh"`
+	LSNLow   int64  `json:"LSNLow"`
+	Date     string `json:"date"`
+	Name     string `json:"name"`
+	Timeline int64  `json:"timeline"`
 }
 
 type PostOrganizationRequestResponse struct {

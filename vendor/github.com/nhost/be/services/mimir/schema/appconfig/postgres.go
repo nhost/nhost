@@ -184,6 +184,12 @@ func PostgresEnv( //nolint:funlen
 				IsSecret:   false,
 				SecretName: "",
 			},
+			{ //nolint:exhaustruct
+				Name: "ARCHIVE_TIMEOUT",
+				Value: Stringify(
+					*config.GetPostgres().GetSettings().GetArchiveTimeout(),
+				),
+			},
 		}...)
 	}
 

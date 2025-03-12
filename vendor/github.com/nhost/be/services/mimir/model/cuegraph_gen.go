@@ -19182,6 +19182,8 @@ type ConfigPostgres struct {
 	Resources *ConfigPostgresResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
 	Settings *ConfigPostgresSettings `json:"settings,omitempty" toml:"settings,omitempty"`
+
+	Pitr *ConfigPostgresPitr `json:"pitr,omitempty" toml:"pitr,omitempty"`
 }
 
 func (o *ConfigPostgres) MarshalJSON() ([]byte, error) {
@@ -19194,6 +19196,9 @@ func (o *ConfigPostgres) MarshalJSON() ([]byte, error) {
 	}
 	if o.Settings != nil {
 		m["settings"] = o.Settings
+	}
+	if o.Pitr != nil {
+		m["pitr"] = o.Pitr
 	}
 	return json.Marshal(m)
 }
@@ -19219,6 +19224,13 @@ func (o *ConfigPostgres) GetSettings() *ConfigPostgresSettings {
 	return o.Settings
 }
 
+func (o *ConfigPostgres) GetPitr() *ConfigPostgresPitr {
+	if o == nil {
+		return nil
+	}
+	return o.Pitr
+}
+
 type ConfigPostgresUpdateInput struct {
 	Version        *string                             `json:"version,omitempty" toml:"version,omitempty"`
 	IsSetVersion   bool                                `json:"-"`
@@ -19226,6 +19238,8 @@ type ConfigPostgresUpdateInput struct {
 	IsSetResources bool                                `json:"-"`
 	Settings       *ConfigPostgresSettingsUpdateInput  `json:"settings,omitempty" toml:"settings,omitempty"`
 	IsSetSettings  bool                                `json:"-"`
+	Pitr           *ConfigPostgresPitrUpdateInput      `json:"pitr,omitempty" toml:"pitr,omitempty"`
+	IsSetPitr      bool                                `json:"-"`
 }
 
 func (o *ConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -19270,6 +19284,16 @@ func (o *ConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetSettings = true
 	}
+	if x, ok := m["pitr"]; ok {
+		if x != nil {
+			t := &ConfigPostgresPitrUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Pitr = t
+		}
+		o.IsSetPitr = true
+	}
 
 	return nil
 }
@@ -19302,6 +19326,13 @@ func (o *ConfigPostgresUpdateInput) GetSettings() *ConfigPostgresSettingsUpdateI
 	return o.Settings
 }
 
+func (o *ConfigPostgresUpdateInput) GetPitr() *ConfigPostgresPitrUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Pitr
+}
+
 func (s *ConfigPostgres) Update(v *ConfigPostgresUpdateInput) {
 	if v == nil {
 		return
@@ -19329,12 +19360,23 @@ func (s *ConfigPostgres) Update(v *ConfigPostgresUpdateInput) {
 			s.Settings.Update(v.Settings)
 		}
 	}
+	if v.IsSetPitr || v.Pitr != nil {
+		if v.Pitr == nil {
+			s.Pitr = nil
+		} else {
+			if s.Pitr == nil {
+				s.Pitr = &ConfigPostgresPitr{}
+			}
+			s.Pitr.Update(v.Pitr)
+		}
+	}
 }
 
 type ConfigPostgresInsertInput struct {
 	Version   *string                             `json:"version,omitempty" toml:"version,omitempty"`
 	Resources *ConfigPostgresResourcesInsertInput `json:"resources,omitempty" toml:"resources,omitempty"`
 	Settings  *ConfigPostgresSettingsInsertInput  `json:"settings,omitempty" toml:"settings,omitempty"`
+	Pitr      *ConfigPostgresPitrInsertInput      `json:"pitr,omitempty" toml:"pitr,omitempty"`
 }
 
 func (o *ConfigPostgresInsertInput) GetVersion() *string {
@@ -19358,6 +19400,13 @@ func (o *ConfigPostgresInsertInput) GetSettings() *ConfigPostgresSettingsInsertI
 	return o.Settings
 }
 
+func (o *ConfigPostgresInsertInput) GetPitr() *ConfigPostgresPitrInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Pitr
+}
+
 func (s *ConfigPostgres) Insert(v *ConfigPostgresInsertInput) {
 	s.Version = v.Version
 	if v.Resources != nil {
@@ -19372,6 +19421,12 @@ func (s *ConfigPostgres) Insert(v *ConfigPostgresInsertInput) {
 		}
 		s.Settings.Insert(v.Settings)
 	}
+	if v.Pitr != nil {
+		if s.Pitr == nil {
+			s.Pitr = &ConfigPostgresPitr{}
+		}
+		s.Pitr.Insert(v.Pitr)
+	}
 }
 
 func (s *ConfigPostgres) Clone() *ConfigPostgres {
@@ -19383,6 +19438,7 @@ func (s *ConfigPostgres) Clone() *ConfigPostgres {
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
 	v.Settings = s.Settings.Clone()
+	v.Pitr = s.Pitr.Clone()
 	return v
 }
 
@@ -19393,6 +19449,7 @@ type ConfigPostgresComparisonExp struct {
 	Version   *ConfigStringComparisonExp            `json:"version,omitempty"`
 	Resources *ConfigPostgresResourcesComparisonExp `json:"resources,omitempty"`
 	Settings  *ConfigPostgresSettingsComparisonExp  `json:"settings,omitempty"`
+	Pitr      *ConfigPostgresPitrComparisonExp      `json:"pitr,omitempty"`
 }
 
 func (exp *ConfigPostgresComparisonExp) Matches(o *ConfigPostgres) bool {
@@ -19404,6 +19461,7 @@ func (exp *ConfigPostgresComparisonExp) Matches(o *ConfigPostgres) bool {
 		o = &ConfigPostgres{
 			Resources: &ConfigPostgresResources{},
 			Settings:  &ConfigPostgresSettings{},
+			Pitr:      &ConfigPostgresPitr{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
@@ -19413,6 +19471,141 @@ func (exp *ConfigPostgresComparisonExp) Matches(o *ConfigPostgres) bool {
 		return false
 	}
 	if !exp.Settings.Matches(o.Settings) {
+		return false
+	}
+	if !exp.Pitr.Matches(o.Pitr) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigPostgresPitr struct {
+	Retention *uint8 `json:"retention" toml:"retention"`
+}
+
+func (o *ConfigPostgresPitr) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Retention != nil {
+		m["retention"] = o.Retention
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigPostgresPitr) GetRetention() *uint8 {
+	if o == nil {
+		o = &ConfigPostgresPitr{}
+	}
+	return o.Retention
+}
+
+type ConfigPostgresPitrUpdateInput struct {
+	Retention      *uint8 `json:"retention,omitempty" toml:"retention,omitempty"`
+	IsSetRetention bool   `json:"-"`
+}
+
+func (o *ConfigPostgresPitrUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["retention"]; ok {
+		if v == nil {
+			o.Retention = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint8
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Retention = &x
+		}
+		o.IsSetRetention = true
+	}
+
+	return nil
+}
+
+func (o *ConfigPostgresPitrUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigPostgresPitrUpdateInput) GetRetention() *uint8 {
+	if o == nil {
+		o = &ConfigPostgresPitrUpdateInput{}
+	}
+	return o.Retention
+}
+
+func (s *ConfigPostgresPitr) Update(v *ConfigPostgresPitrUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetRetention || v.Retention != nil {
+		s.Retention = v.Retention
+	}
+}
+
+type ConfigPostgresPitrInsertInput struct {
+	Retention *uint8 `json:"retention,omitempty" toml:"retention,omitempty"`
+}
+
+func (o *ConfigPostgresPitrInsertInput) GetRetention() *uint8 {
+	if o == nil {
+		o = &ConfigPostgresPitrInsertInput{}
+	}
+	return o.Retention
+}
+
+func (s *ConfigPostgresPitr) Insert(v *ConfigPostgresPitrInsertInput) {
+	s.Retention = v.Retention
+}
+
+func (s *ConfigPostgresPitr) Clone() *ConfigPostgresPitr {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigPostgresPitr{}
+	v.Retention = s.Retention
+	return v
+}
+
+type ConfigPostgresPitrComparisonExp struct {
+	And       []*ConfigPostgresPitrComparisonExp `json:"_and,omitempty"`
+	Not       *ConfigPostgresPitrComparisonExp   `json:"_not,omitempty"`
+	Or        []*ConfigPostgresPitrComparisonExp `json:"_or,omitempty"`
+	Retention *ConfigUint8ComparisonExp          `json:"retention,omitempty"`
+}
+
+func (exp *ConfigPostgresPitrComparisonExp) Matches(o *ConfigPostgresPitr) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigPostgresPitr{}
+	}
+	if o.Retention != nil && !exp.Retention.Matches(*o.Retention) {
 		return false
 	}
 
@@ -19916,6 +20109,8 @@ type ConfigPostgresSettings struct {
 	MaxWalSenders *int32 `json:"maxWalSenders" toml:"maxWalSenders"`
 
 	MaxReplicationSlots *int32 `json:"maxReplicationSlots" toml:"maxReplicationSlots"`
+
+	ArchiveTimeout *int32 `json:"archiveTimeout" toml:"archiveTimeout"`
 }
 
 func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
@@ -19982,6 +20177,9 @@ func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
 	}
 	if o.MaxReplicationSlots != nil {
 		m["maxReplicationSlots"] = o.MaxReplicationSlots
+	}
+	if o.ArchiveTimeout != nil {
+		m["archiveTimeout"] = o.ArchiveTimeout
 	}
 	return json.Marshal(m)
 }
@@ -20133,6 +20331,13 @@ func (o *ConfigPostgresSettings) GetMaxReplicationSlots() *int32 {
 	return o.MaxReplicationSlots
 }
 
+func (o *ConfigPostgresSettings) GetArchiveTimeout() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.ArchiveTimeout
+}
+
 type ConfigPostgresSettingsUpdateInput struct {
 	Jit                                *string  `json:"jit,omitempty" toml:"jit,omitempty"`
 	IsSetJit                           bool     `json:"-"`
@@ -20176,6 +20381,8 @@ type ConfigPostgresSettingsUpdateInput struct {
 	IsSetMaxWalSenders                 bool     `json:"-"`
 	MaxReplicationSlots                *int32   `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
 	IsSetMaxReplicationSlots           bool     `json:"-"`
+	ArchiveTimeout                     *int32   `json:"archiveTimeout,omitempty" toml:"archiveTimeout,omitempty"`
+	IsSetArchiveTimeout                bool     `json:"-"`
 }
 
 func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -20540,6 +20747,23 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetMaxReplicationSlots = true
 	}
+	if v, ok := m["archiveTimeout"]; ok {
+		if v == nil {
+			o.ArchiveTimeout = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ArchiveTimeout = &x
+		}
+		o.IsSetArchiveTimeout = true
+	}
 
 	return nil
 }
@@ -20698,6 +20922,13 @@ func (o *ConfigPostgresSettingsUpdateInput) GetMaxReplicationSlots() *int32 {
 	return o.MaxReplicationSlots
 }
 
+func (o *ConfigPostgresSettingsUpdateInput) GetArchiveTimeout() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.ArchiveTimeout
+}
+
 func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v == nil {
 		return
@@ -20765,6 +20996,9 @@ func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v.IsSetMaxReplicationSlots || v.MaxReplicationSlots != nil {
 		s.MaxReplicationSlots = v.MaxReplicationSlots
 	}
+	if v.IsSetArchiveTimeout || v.ArchiveTimeout != nil {
+		s.ArchiveTimeout = v.ArchiveTimeout
+	}
 }
 
 type ConfigPostgresSettingsInsertInput struct {
@@ -20789,6 +21023,7 @@ type ConfigPostgresSettingsInsertInput struct {
 	WalLevel                      *string  `json:"walLevel,omitempty" toml:"walLevel,omitempty"`
 	MaxWalSenders                 *int32   `json:"maxWalSenders,omitempty" toml:"maxWalSenders,omitempty"`
 	MaxReplicationSlots           *int32   `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
+	ArchiveTimeout                *int32   `json:"archiveTimeout,omitempty" toml:"archiveTimeout,omitempty"`
 }
 
 func (o *ConfigPostgresSettingsInsertInput) GetJit() *string {
@@ -20938,6 +21173,13 @@ func (o *ConfigPostgresSettingsInsertInput) GetMaxReplicationSlots() *int32 {
 	return o.MaxReplicationSlots
 }
 
+func (o *ConfigPostgresSettingsInsertInput) GetArchiveTimeout() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.ArchiveTimeout
+}
+
 func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.Jit = v.Jit
 	s.MaxConnections = v.MaxConnections
@@ -20960,6 +21202,7 @@ func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.WalLevel = v.WalLevel
 	s.MaxWalSenders = v.MaxWalSenders
 	s.MaxReplicationSlots = v.MaxReplicationSlots
+	s.ArchiveTimeout = v.ArchiveTimeout
 }
 
 func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
@@ -20989,6 +21232,7 @@ func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
 	v.WalLevel = s.WalLevel
 	v.MaxWalSenders = s.MaxWalSenders
 	v.MaxReplicationSlots = s.MaxReplicationSlots
+	v.ArchiveTimeout = s.ArchiveTimeout
 	return v
 }
 
@@ -21017,6 +21261,7 @@ type ConfigPostgresSettingsComparisonExp struct {
 	WalLevel                      *ConfigStringComparisonExp             `json:"walLevel,omitempty"`
 	MaxWalSenders                 *ConfigInt32ComparisonExp              `json:"maxWalSenders,omitempty"`
 	MaxReplicationSlots           *ConfigInt32ComparisonExp              `json:"maxReplicationSlots,omitempty"`
+	ArchiveTimeout                *ConfigInt32ComparisonExp              `json:"archiveTimeout,omitempty"`
 }
 
 func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSettings) bool {
@@ -21088,6 +21333,9 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 		return false
 	}
 	if o.MaxReplicationSlots != nil && !exp.MaxReplicationSlots.Matches(*o.MaxReplicationSlots) {
+		return false
+	}
+	if o.ArchiveTimeout != nil && !exp.ArchiveTimeout.Matches(*o.ArchiveTimeout) {
 		return false
 	}
 

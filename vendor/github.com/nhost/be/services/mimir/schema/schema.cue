@@ -254,7 +254,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.13-20250108-1"
+	version: string | *"14.15-20250311-1"
 
 	// Resources for the service
 	resources: {
@@ -290,7 +290,15 @@ import (
 		walLevel:                      string | *"replica"
 		maxWalSenders:                 int32 | *10
 		maxReplicationSlots:           int32 | *10
+		archiveTimeout:                int32 & >=300 & <=1073741823 | *300
+
+		// if pitr is on we need walLevel to set to replica or logical
+		_validateWalLevelIsLogicalOrReplicaIfPitrIsEnabled: ( pitr == _|_ | walLevel == "replica" | walLevel == "logical") & true @cuegraph(skip)
 	}
+
+	pitr?: {
+        retention: uint8 & 7
+    }
 }
 
 // Configuration for auth service
@@ -428,7 +436,7 @@ import (
 					teamId?:     string
 					privateKey?: string
 				}
-                audience?: string
+				audience?: string
 				scope?: [...string]
 			}
 			azuread: {
@@ -567,11 +575,11 @@ import (
 		type: "HS384" | "HS512" | *"HS256"
 		key:  string
 	} |
-    {
-		type: "RS256" | "RS384" | "RS512"
-		key: string
-        signingKey?: string
-        kid?: string
+	{
+		type:        "RS256" | "RS384" | "RS512"
+		key:         string
+		signingKey?: string
+		kid?:        string
 	} |
 	{
 		jwk_url: #Url | *null
@@ -640,7 +648,7 @@ import (
 		}
 	}
 
-    persistentVolumesEncrypted: bool | *false
+	persistentVolumesEncrypted: bool | *false
 }
 
 #AI: {

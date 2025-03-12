@@ -231,6 +231,7 @@ type BillingResource struct {
 	CustomDomains    int32
 	PersistentVolume int32
 	OrganizationID   pgtype.UUID
+	Pitr             int32
 }
 
 type BillingSubscription struct {
@@ -257,6 +258,7 @@ type BillingSubscriptionItem struct {
 	FunctionsAmount       string
 	PersistentVolume      string
 	CustomDomains         string
+	Pitr                  string
 }
 
 type CliToken struct {
@@ -572,6 +574,7 @@ type Plan struct {
 	Individual                         bool
 	FeatureAdvancedGraphql             bool
 	FeatureBackupRetentionDays         int32
+	StripePriceIDPitr                  string
 }
 
 type Region struct {

@@ -2993,18 +2993,24 @@ type ConfigPostgres {
 
     """
     settings: ConfigPostgresSettings
+    """
+
+    """
+    pitr: ConfigPostgresPitr
 }
 
 input ConfigPostgresUpdateInput {
     version: String
     resources: ConfigPostgresResourcesUpdateInput
     settings: ConfigPostgresSettingsUpdateInput
+    pitr: ConfigPostgresPitrUpdateInput
 }
 
 input ConfigPostgresInsertInput {
     version: String
     resources: ConfigPostgresResourcesInsertInput!
     settings: ConfigPostgresSettingsInsertInput
+    pitr: ConfigPostgresPitrInsertInput
 }
 
 input ConfigPostgresComparisonExp {
@@ -3014,6 +3020,32 @@ input ConfigPostgresComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigPostgresResourcesComparisonExp
     settings: ConfigPostgresSettingsComparisonExp
+    pitr: ConfigPostgresPitrComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresPitr {
+    """
+
+    """
+    retention: ConfigUint8
+}
+
+input ConfigPostgresPitrUpdateInput {
+    retention: ConfigUint8
+}
+
+input ConfigPostgresPitrInsertInput {
+    retention: ConfigUint8
+}
+
+input ConfigPostgresPitrComparisonExp {
+    _and: [ConfigPostgresPitrComparisonExp!]
+    _not: ConfigPostgresPitrComparisonExp
+    _or: [ConfigPostgresPitrComparisonExp!]
+    retention: ConfigUint8ComparisonExp
 }
 
 """
@@ -3175,6 +3207,10 @@ type ConfigPostgresSettings {
 
     """
     maxReplicationSlots: ConfigInt32
+    """
+
+    """
+    archiveTimeout: ConfigInt32
 }
 
 input ConfigPostgresSettingsUpdateInput {
@@ -3199,6 +3235,7 @@ input ConfigPostgresSettingsUpdateInput {
     walLevel: String
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
+    archiveTimeout: ConfigInt32
 }
 
 input ConfigPostgresSettingsInsertInput {
@@ -3223,6 +3260,7 @@ input ConfigPostgresSettingsInsertInput {
     walLevel: String
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
+    archiveTimeout: ConfigInt32
 }
 
 input ConfigPostgresSettingsComparisonExp {
@@ -3250,6 +3288,7 @@ input ConfigPostgresSettingsComparisonExp {
     walLevel: ConfigStringComparisonExp
     maxWalSenders: ConfigInt32ComparisonExp
     maxReplicationSlots: ConfigInt32ComparisonExp
+    archiveTimeout: ConfigInt32ComparisonExp
 }
 
 """

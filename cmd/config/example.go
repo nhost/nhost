@@ -418,6 +418,10 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				WalLevel:                      ptr("replica"),
 				MaxWalSenders:                 ptr(int32(10)),
 				MaxReplicationSlots:           ptr(int32(10)),
+				ArchiveTimeout:                ptr(int32(300)),
+			},
+			Pitr: &model.ConfigPostgresPitr{
+				Retention: ptr(uint8(7)),
 			},
 		},
 		Provider: &model.ConfigProvider{

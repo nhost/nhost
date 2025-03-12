@@ -340,6 +340,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				Storage:            nil,
 				Replicas:           nil,
 			},
+			Pitr:     nil,
 			Settings: nil,
 		},
 		Provider: &model.ConfigProvider{
