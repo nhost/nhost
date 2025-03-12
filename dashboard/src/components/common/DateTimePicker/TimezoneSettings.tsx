@@ -27,7 +27,7 @@ function TimezoneSettings({ dateTime, onTimezoneChange }: Props) {
         selectedTimezone={selectedTimezone}
         onTimezoneSelect={handleTimezoneSelect}
         button={
-          <Button variant="link" size="icon">
+          <Button variant="ghost" size="icon">
             <Settings2 className="h-4 w-4 dark:text-foreground" />
           </Button>
         }

@@ -5,7 +5,7 @@ import EarliestBackup from './EarliestBackup';
 import RestoreBackupDialogButton from './RestoreBackupDialogButton';
 
 interface Props {
-  appId?: string;
+  appId: string;
   title?: string;
   dialogTitle?: string;
   dialogButtonText?: string;

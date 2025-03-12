@@ -194,3 +194,26 @@ export const mockOrganizationsWithNewOrg: Organization[] = [
   ...mockOrganizations,
   newOrg,
 ];
+
+export const fetchPiTRBaseBackups = async () => ({
+  data: {
+    getPiTRBaseBackups: [
+      {
+        date: '2025-03-11T03:00:05Z',
+        name: 'base_00000001000000000000004C',
+        __typename: 'PiTRBaseBackup',
+      },
+      {
+        date: '2025-03-10T03:00:05Z',
+        name: 'base_000000010000000000000047',
+        __typename: 'PiTRBaseBackup',
+      },
+    ],
+  },
+});
+
+export const fetchEmptyPiTRBaseBackups = async () => ({
+  data: {
+    getPiTRBaseBackups: [],
+  },
+});

@@ -20,7 +20,9 @@ function EarliestBackupDateTime({ dateTime }: Pick<Props, 'dateTime'>) {
   }
   return (
     <p className="flex items-center gap-2 text-[1.125rem]">
-      {getDateTimeStringWithUTCOffset(dateTime, selectedTimezone)}
+      <span data-testid="EarliestBackupDateTime">
+        {getDateTimeStringWithUTCOffset(dateTime, selectedTimezone)}
+      </span>
       <TimezonePicker
         dateTime={dateTime}
         selectedTimezone={selectedTimezone}

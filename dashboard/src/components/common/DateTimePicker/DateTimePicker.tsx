@@ -17,7 +17,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
 import TimezoneSettings from './TimezoneSettings';
 
-interface Props {
+export interface DateTimePickerProps {
   dateTime: string;
   onDateTimeChange: (newDate: string) => void;
   withTimezone?: boolean;
@@ -39,7 +39,7 @@ function DateTimePicker({
   isCalendarDayDisabled,
   align = 'start',
   validateDateFn,
-}: Props) {
+}: DateTimePickerProps) {
   const [date, setDate] = useState(() => {
     if (withTimezone) {
       const tz = defaultTimezone || guessTimezone();

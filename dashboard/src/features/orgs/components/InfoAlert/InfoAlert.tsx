@@ -13,7 +13,7 @@ function InfoAlert({ children, title, icon }: PropsWithChildren<Props>) {
   });
 
   const descClassNames = cn('text-[0.9375rem] leading-[22px]', {
-    'text-[0.75rem] leading-[1rem]': !!icon,
+    'text-[0.875rem] leading-[1rem]': !!icon,
   });
   return (
     <Alert className={alertClassNames}>
