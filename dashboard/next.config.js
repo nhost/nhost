@@ -7,7 +7,7 @@ const { version } = require('./package.json');
 const cspHeader = `
     default-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run;
     script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.segment.com js.stripe.com;
-    connect-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run discord.com;
+    connect-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run;
     font-src 'self' data:;
@@ -16,6 +16,8 @@ const cspHeader = `
     form-action 'self';
     frame-ancestors 'none';
     frame-src 'self' js.stripe.com;
+    block-all-mixed-content;
+    upgrade-insecure-requests;
 `;
 
 module.exports = withBundleAnalyzer({
@@ -37,8 +39,12 @@ module.exports = withBundleAnalyzer({
         source: '/(.*)',
         headers: [
           {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\s+/g, ' ').trim(),
+          },
+          {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
+            value: 'DENY',
           },
         ],
       },

@@ -10,6 +10,8 @@ Free projects do not have daily backups, but you can create manual backups whene
 
 In addition, for projects with critical data or those requiring precise recovery control, we offer point-in-time recovery as an add-on. This feature continuously backs up your data and lets you restore your database to any specific moment. It's ideal for applications where every transaction matters and you need the ability to recover from any point in time, not just daily backups.
 
+Something important to note is that backups don't include your storage files. A backup will include all of your files metadata and permissions but not the files themselves. Similarly, Run services' data (if any) is not included in our managed backups.
+
 For details visit the [pricing page](https://nhost.io/pricing)
 
 ## Daily Backups
@@ -124,11 +126,41 @@ Projects with Point-in-Time Recovery enabled have their data continuously backed
 
 Point-in-Time Recovery is an add-on and not included in the base price. For details visit the [pricing page](https://nhost.io/pricing). When Point-in-Time Recovery is enabled, daily backups are disabled.
 
+### Configuring Point-in-Time Recovery
+
+You can configure Point-in-Time Recovery via the dashboard or using your `nhost.toml`:
+
+<Tabs>
+ <Tab title="Dashboard">
+  1. Go to the [backups](https://app.nhost.io/orgs/_/projects/_/settings/database) section in your project's dashboard.
+  2. Enable "Point-in-Time Recovery"
+
+  ![Point-in-Time Recovery](/images/guides/backups/pitr-settings.png)
+
+ </Tab>
+ <Tab title="nhost.toml">
+  Add the following to your `nhost.toml`:
+
+  ```toml
+  [postgres.pitr]
+  retention = 7
+  ```
+  </Tab>
+</Tabs>
+
 ### Restoring to a Specific Point in Time
 
 To restore to a specific point in time, go to the [backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and follow the instructions there. Keep in mind though that this will wipe out all of the project's data prior to initiating the restore.
 
 Even though you can specify a point in time down to the second, the actual restore may include data modified after that point in time. This is because we capture changes in segments every 16MB or 5 minutes, whichever occurs first, and the restore needs to execute entire segments to ensure consistency. In some cases postgres may be able to execute the entire segment and revert some changes to get closer to the desired point in time, but this is not guaranteed.
+
+<Warning>
+When restoring a backup with Point-in-Time Recovery, the restore process needs to download a few files related to the restore. These files will take some space on your project's volume temporarily. Make sure you have enough space available before starting the restore. A good rule of thumb would be to have around 25% of your database size available. If you run into issues you can always increase the size and try again.
+</Warning>
+
+<Warning>
+We recommend testing your restore on a different project before doing it on your production project (see next section). This will help you make sure the restore process works as expected, the point in time you selected is the actual one you want to restore to, and reduce downtime.
+</Warning>
 
 ### Restoring to a Specific Point in Time on a Different Project
 
@@ -136,7 +168,7 @@ You can restore to a specific point in time on a different project in our cloud 
 
 <Steps>
  <Step title="Create a new project">
- First, create a new project where we will restore the data into. The project will need to be in the same organization and region as the original project.
+ First, create a new project where we will restore the data into. The project will need to be in the same organization and region as the original project. Before starting the restore make sure the target project is running the same database version as the original project and that you have enough space available for the restore.
  </Step>
 
  <Step title="Ensure database version is the same">
