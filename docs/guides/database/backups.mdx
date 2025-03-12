@@ -150,7 +150,41 @@ You can configure Point-in-Time Recovery via the dashboard or using your `nhost.
 
 ### Restoring to a Specific Point in Time
 
-To restore to a specific point in time, go to the [backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and follow the instructions there. Keep in mind though that this will wipe out all of the project's data prior to initiating the restore.
+To restore to a specific point in time:
+
+<Steps>
+  <Step>
+
+  Go to the [backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and click on "Start Restore"
+
+  ![Point-in-Time Recovery](/images/guides/backups/pitr-restore-1.png)
+
+  </Step>
+
+  <Step title="Select a point in time">
+
+  Here you can click on the calendar icon to select the restore time:
+
+  ![Point-in-Time Recovery](/images/guides/backups/pitr-restore-2.png)
+
+  </Step>
+
+  <Step>
+
+  Select the time you want to restore to and click on "Select". Be mindfule of timezones.
+
+  ![Point-in-Time Recovery](/images/guides/backups/pitr-restore-3.png)
+
+  </Step>
+
+  <Step>
+
+  Finally, acknowledge the warning and click on "Restore"
+
+  ![Point-in-Time Recovery](/images/guides/backups/pitr-restore-4.png)
+
+ </Step>
+</Steps>
 
 Even though you can specify a point in time down to the second, the actual restore may include data modified after that point in time. This is because we capture changes in segments every 16MB or 5 minutes, whichever occurs first, and the restore needs to execute entire segments to ensure consistency. In some cases postgres may be able to execute the entire segment and revert some changes to get closer to the desired point in time, but this is not guaranteed.
 
@@ -176,7 +210,9 @@ You can restore to a specific point in time on a different project in our cloud 
  </Step>
 
  <Step title="Restore backup">
- Finally, go to the new project's [backups](https://app.nhost.io/orgs/_/projects/_/backups) section, navigate to "Import Backup", select the original project and follow the instructions.
+ Finally, go to the new project's [backups](https://app.nhost.io/orgs/_/projects/_/backups) section, navigate to "Import Backup" and select the original project. After this the steps are the same as restoring to a specific point in time on the same project.
+
+ ![Point-in-Time Recovery import](/images/guides/backups/pitr-import-1.png)
  </Step>
 </Steps>
 
