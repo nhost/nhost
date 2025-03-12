@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/nextjs-server-components",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "private": true,
   "scripts": {
     "dev": "next dev",
