@@ -1,5 +1,14 @@
 # @nhost-examples/nextjs
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [ad57a9e]
+  - @nhost/react@3.10.2
+  - @nhost/react-apollo@17.0.2
+  - @nhost/nextjs@2.2.5
+
 ## 0.4.4
 
 ### Patch Changes

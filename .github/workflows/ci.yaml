@@ -146,6 +146,7 @@ jobs:
         uses: ./.github/actions/nhost-cli
       # * Install Nhost CLI to test Dashboard locally
       - name: Install Nhost CLI (Local Dashboard tests)
+        timeout-minutes: 5
         if: matrix.package.path == 'dashboard'
         uses: ./.github/actions/nhost-cli
         with:

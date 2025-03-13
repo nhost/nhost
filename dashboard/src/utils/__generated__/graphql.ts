@@ -2246,6 +2246,7 @@ export type ConfigPortComparisonExp = {
 /** Configuration for postgres service */
 export type ConfigPostgres = {
   __typename?: 'ConfigPostgres';
+  pitr?: Maybe<ConfigPostgresPitr>;
   /** Resources for the service */
   resources: ConfigPostgresResources;
   settings?: Maybe<ConfigPostgresSettings>;
@@ -2260,15 +2261,37 @@ export type ConfigPostgresComparisonExp = {
   _and?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
   _not?: InputMaybe<ConfigPostgresComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
+  pitr?: InputMaybe<ConfigPostgresPitrComparisonExp>;
   resources?: InputMaybe<ConfigPostgresResourcesComparisonExp>;
   settings?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigPostgresInsertInput = {
+  pitr?: InputMaybe<ConfigPostgresPitrInsertInput>;
   resources: ConfigPostgresResourcesInsertInput;
   settings?: InputMaybe<ConfigPostgresSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresPitr = {
+  __typename?: 'ConfigPostgresPitr';
+  retention?: Maybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigPostgresPitrComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresPitrComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresPitrComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresPitrComparisonExp>>;
+  retention?: InputMaybe<ConfigUint8ComparisonExp>;
+};
+
+export type ConfigPostgresPitrInsertInput = {
+  retention?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigPostgresPitrUpdateInput = {
+  retention?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
 /** Resources for the service */
@@ -2276,6 +2299,7 @@ export type ConfigPostgresResources = {
   __typename?: 'ConfigPostgresResources';
   compute?: Maybe<ConfigResourcesCompute>;
   enablePublicAccess?: Maybe<Scalars['Boolean']>;
+  replicas?: Maybe<Scalars['Int']>;
   storage: ConfigPostgresResourcesStorage;
 };
 
@@ -2285,12 +2309,14 @@ export type ConfigPostgresResourcesComparisonExp = {
   _or?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
   enablePublicAccess?: InputMaybe<ConfigBooleanComparisonExp>;
+  replicas?: InputMaybe<ConfigIntComparisonExp>;
   storage?: InputMaybe<ConfigPostgresResourcesStorageComparisonExp>;
 };
 
 export type ConfigPostgresResourcesInsertInput = {
   compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
+  replicas?: InputMaybe<Scalars['Int']>;
   storage: ConfigPostgresResourcesStorageInsertInput;
 };
 
@@ -2317,11 +2343,13 @@ export type ConfigPostgresResourcesStorageUpdateInput = {
 export type ConfigPostgresResourcesUpdateInput = {
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
+  replicas?: InputMaybe<Scalars['Int']>;
   storage?: InputMaybe<ConfigPostgresResourcesStorageUpdateInput>;
 };
 
 export type ConfigPostgresSettings = {
   __typename?: 'ConfigPostgresSettings';
+  archiveTimeout?: Maybe<Scalars['ConfigInt32']>;
   checkpointCompletionTarget?: Maybe<Scalars['Float']>;
   defaultStatisticsTarget?: Maybe<Scalars['ConfigInt32']>;
   effectiveCacheSize?: Maybe<Scalars['String']>;
@@ -2349,6 +2377,7 @@ export type ConfigPostgresSettingsComparisonExp = {
   _and?: InputMaybe<Array<ConfigPostgresSettingsComparisonExp>>;
   _not?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresSettingsComparisonExp>>;
+  archiveTimeout?: InputMaybe<ConfigInt32ComparisonExp>;
   checkpointCompletionTarget?: InputMaybe<ConfigFloatComparisonExp>;
   defaultStatisticsTarget?: InputMaybe<ConfigInt32ComparisonExp>;
   effectiveCacheSize?: InputMaybe<ConfigStringComparisonExp>;
@@ -2373,6 +2402,7 @@ export type ConfigPostgresSettingsComparisonExp = {
 };
 
 export type ConfigPostgresSettingsInsertInput = {
+  archiveTimeout?: InputMaybe<Scalars['ConfigInt32']>;
   checkpointCompletionTarget?: InputMaybe<Scalars['Float']>;
   defaultStatisticsTarget?: InputMaybe<Scalars['ConfigInt32']>;
   effectiveCacheSize?: InputMaybe<Scalars['String']>;
@@ -2397,6 +2427,7 @@ export type ConfigPostgresSettingsInsertInput = {
 };
 
 export type ConfigPostgresSettingsUpdateInput = {
+  archiveTimeout?: InputMaybe<Scalars['ConfigInt32']>;
   checkpointCompletionTarget?: InputMaybe<Scalars['Float']>;
   defaultStatisticsTarget?: InputMaybe<Scalars['ConfigInt32']>;
   effectiveCacheSize?: InputMaybe<Scalars['String']>;
@@ -2421,6 +2452,7 @@ export type ConfigPostgresSettingsUpdateInput = {
 };
 
 export type ConfigPostgresUpdateInput = {
+  pitr?: InputMaybe<ConfigPostgresPitrUpdateInput>;
   resources?: InputMaybe<ConfigPostgresResourcesUpdateInput>;
   settings?: InputMaybe<ConfigPostgresSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -3226,6 +3258,15 @@ export type Log = {
 export type Metrics = {
   __typename?: 'Metrics';
   value: Scalars['float64'];
+};
+
+export type PiTrBaseBackup = {
+  __typename?: 'PiTRBaseBackup';
+  LSNHigh: Scalars['bigint'];
+  LSNLow: Scalars['bigint'];
+  date: Scalars['Timestamp'];
+  name: Scalars['String'];
+  timeline: Scalars['Int'];
 };
 
 export type PostOrganizationRequestResponse = {
@@ -8896,6 +8937,7 @@ export type Billing_Resources = {
   id: Scalars['uuid'];
   organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume: Scalars['Int'];
+  pitr: Scalars['Int'];
   updatedAt: Scalars['timestamptz'];
 };
 
@@ -8935,6 +8977,7 @@ export type Billing_Resources_Avg_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** Boolean expression to filter rows from the table "billing.resources". All fields are combined with a logical 'AND'. */
@@ -8949,6 +8992,7 @@ export type Billing_Resources_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   organizationID?: InputMaybe<Uuid_Comparison_Exp>;
   persistentVolume?: InputMaybe<Int_Comparison_Exp>;
+  pitr?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -8965,6 +9009,7 @@ export type Billing_Resources_Inc_Input = {
   customDomains?: InputMaybe<Scalars['Int']>;
   functionsAmount?: InputMaybe<Scalars['Int']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
+  pitr?: InputMaybe<Scalars['Int']>;
 };
 
 /** input type for inserting data into table "billing.resources" */
@@ -8976,6 +9021,7 @@ export type Billing_Resources_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
+  pitr?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -8989,6 +9035,7 @@ export type Billing_Resources_Max_Fields = {
   id?: Maybe<Scalars['uuid']>;
   organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume?: Maybe<Scalars['Int']>;
+  pitr?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -9002,6 +9049,7 @@ export type Billing_Resources_Min_Fields = {
   id?: Maybe<Scalars['uuid']>;
   organizationID?: Maybe<Scalars['uuid']>;
   persistentVolume?: Maybe<Scalars['Int']>;
+  pitr?: Maybe<Scalars['Int']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -9037,6 +9085,7 @@ export type Billing_Resources_Order_By = {
   id?: InputMaybe<Order_By>;
   organizationID?: InputMaybe<Order_By>;
   persistentVolume?: InputMaybe<Order_By>;
+  pitr?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -9062,6 +9111,8 @@ export enum Billing_Resources_Select_Column {
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
+  Pitr = 'pitr',
+  /** column name */
   UpdatedAt = 'updatedAt'
 }
 
@@ -9074,6 +9125,7 @@ export type Billing_Resources_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
+  pitr?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -9083,6 +9135,7 @@ export type Billing_Resources_Stddev_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate stddev_pop on columns */
@@ -9091,6 +9144,7 @@ export type Billing_Resources_Stddev_Pop_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate stddev_samp on columns */
@@ -9099,6 +9153,7 @@ export type Billing_Resources_Stddev_Samp_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** Streaming cursor of the table "billing_resources" */
@@ -9118,6 +9173,7 @@ export type Billing_Resources_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   organizationID?: InputMaybe<Scalars['uuid']>;
   persistentVolume?: InputMaybe<Scalars['Int']>;
+  pitr?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -9127,6 +9183,7 @@ export type Billing_Resources_Sum_Fields = {
   customDomains?: Maybe<Scalars['Int']>;
   functionsAmount?: Maybe<Scalars['Int']>;
   persistentVolume?: Maybe<Scalars['Int']>;
+  pitr?: Maybe<Scalars['Int']>;
 };
 
 /** update columns of table "billing.resources" */
@@ -9146,6 +9203,8 @@ export enum Billing_Resources_Update_Column {
   /** column name */
   PersistentVolume = 'persistentVolume',
   /** column name */
+  Pitr = 'pitr',
+  /** column name */
   UpdatedAt = 'updatedAt'
 }
 
@@ -9164,6 +9223,7 @@ export type Billing_Resources_Var_Pop_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate var_samp on columns */
@@ -9172,6 +9232,7 @@ export type Billing_Resources_Var_Samp_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate variance on columns */
@@ -9180,6 +9241,7 @@ export type Billing_Resources_Variance_Fields = {
   customDomains?: Maybe<Scalars['Float']>;
   functionsAmount?: Maybe<Scalars['Float']>;
   persistentVolume?: Maybe<Scalars['Float']>;
+  pitr?: Maybe<Scalars['Float']>;
 };
 
 /** columns and relationships of "billing.subscription_items" */
@@ -9193,6 +9255,7 @@ export type Billing_Subscription_Items = {
   functions_usage_seconds: Scalars['String'];
   id: Scalars['uuid'];
   persistent_volume: Scalars['String'];
+  pitr: Scalars['String'];
   subscription: Scalars['String'];
   updated_at: Scalars['timestamptz'];
 };
@@ -9232,6 +9295,7 @@ export type Billing_Subscription_Items_Bool_Exp = {
   functions_usage_seconds?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   persistent_volume?: InputMaybe<String_Comparison_Exp>;
+  pitr?: InputMaybe<String_Comparison_Exp>;
   subscription?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -9252,6 +9316,7 @@ export type Billing_Subscription_Items_Insert_Input = {
   functions_usage_seconds?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   persistent_volume?: InputMaybe<Scalars['String']>;
+  pitr?: InputMaybe<Scalars['String']>;
   subscription?: InputMaybe<Scalars['String']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9267,6 +9332,7 @@ export type Billing_Subscription_Items_Max_Fields = {
   functions_usage_seconds?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   persistent_volume?: Maybe<Scalars['String']>;
+  pitr?: Maybe<Scalars['String']>;
   subscription?: Maybe<Scalars['String']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
 };
@@ -9282,6 +9348,7 @@ export type Billing_Subscription_Items_Min_Fields = {
   functions_usage_seconds?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   persistent_volume?: Maybe<Scalars['String']>;
+  pitr?: Maybe<Scalars['String']>;
   subscription?: Maybe<Scalars['String']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
 };
@@ -9312,6 +9379,7 @@ export type Billing_Subscription_Items_Order_By = {
   functions_usage_seconds?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   persistent_volume?: InputMaybe<Order_By>;
+  pitr?: InputMaybe<Order_By>;
   subscription?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -9340,6 +9408,8 @@ export enum Billing_Subscription_Items_Select_Column {
   /** column name */
   PersistentVolume = 'persistent_volume',
   /** column name */
+  Pitr = 'pitr',
+  /** column name */
   Subscription = 'subscription',
   /** column name */
   UpdatedAt = 'updated_at'
@@ -9355,6 +9425,7 @@ export type Billing_Subscription_Items_Set_Input = {
   functions_usage_seconds?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   persistent_volume?: InputMaybe<Scalars['String']>;
+  pitr?: InputMaybe<Scalars['String']>;
   subscription?: InputMaybe<Scalars['String']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9377,6 +9448,7 @@ export type Billing_Subscription_Items_Stream_Cursor_Value_Input = {
   functions_usage_seconds?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   persistent_volume?: InputMaybe<Scalars['String']>;
+  pitr?: InputMaybe<Scalars['String']>;
   subscription?: InputMaybe<Scalars['String']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -9399,6 +9471,8 @@ export enum Billing_Subscription_Items_Update_Column {
   Id = 'id',
   /** column name */
   PersistentVolume = 'persistent_volume',
+  /** column name */
+  Pitr = 'pitr',
   /** column name */
   Subscription = 'subscription',
   /** column name */
@@ -13147,8 +13221,11 @@ export type Jsonb_Comparison_Exp = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
+  /** Backup all applications databases. It will skip databases with PiTR */
   backupAllApplicationsDatabase: Array<Maybe<BackupResultsItem>>;
   backupApplicationDatabase: BackupResult;
+  /** Triggers a backup of the application database with PiTR */
+  backupApplicationDatabasePiTR: Scalars['Boolean'];
   billingChangeOrganizationPlan: Scalars['Boolean'];
   billingCreateOrganizationRequest: Scalars['String'];
   billingDeleteApp: Scalars['Boolean'];
@@ -13164,6 +13241,7 @@ export type Mutation_Root = {
   billingUpdateDedicatedCompute: Scalars['Boolean'];
   billingUpdateFunctionsAmount: Scalars['Boolean'];
   billingUpdateOrganizationThresholds: Scalars['Boolean'];
+  billingUpdatePITR: Scalars['Boolean'];
   billingUpdatePersistentVolume: Scalars['Boolean'];
   billingUpdateReports: Scalars['Boolean'];
   billingUploadReports: Scalars['Boolean'];
@@ -13615,6 +13693,12 @@ export type Mutation_Root = {
   replaceRunServiceConfig: ConfigRunServiceConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
+  /**
+   * Triggers a restore of the application database with PiTR
+   * If `baseBackupName` is not provided, we will attempt to determine the base backup
+   * by using the newest backup that is older than `recoveryTarget`
+   */
+  restoreApplicationDatabasePiTR: Scalars['Boolean'];
   sendEmailInvite: Scalars['Boolean'];
   sendEmailOrganizationStatusChange: Scalars['Boolean'];
   sendEmailOrganizationThreshold: Scalars['Boolean'];
@@ -13958,6 +14042,12 @@ export type Mutation_RootBackupApplicationDatabaseArgs = {
 
 
 /** mutation root */
+export type Mutation_RootBackupApplicationDatabasePiTrArgs = {
+  appID: Scalars['String'];
+};
+
+
+/** mutation root */
 export type Mutation_RootBillingChangeOrganizationPlanArgs = {
   organizationID: Scalars['uuid'];
   planID: Scalars['uuid'];
@@ -14033,6 +14123,14 @@ export type Mutation_RootBillingUpdateDedicatedComputeArgs = {
 
 /** mutation root */
 export type Mutation_RootBillingUpdateFunctionsAmountArgs = {
+  amount: Scalars['Int'];
+  appID: Scalars['uuid'];
+  organizationID?: InputMaybe<Scalars['uuid']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingUpdatePitrArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
   organizationID?: InputMaybe<Scalars['uuid']>;
@@ -15546,6 +15644,15 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootRestoreApplicationDatabasePiTrArgs = {
+  appID: Scalars['String'];
+  baseBackupName?: InputMaybe<Scalars['String']>;
+  fromAppID?: InputMaybe<Scalars['String']>;
+  recoveryTarget: Scalars['Timestamp'];
 };
 
 
@@ -18981,6 +19088,7 @@ export type Plans = {
   stripePriceIDFunctionsUsageSeconds: Scalars['String'];
   stripePriceIDPersistentVolumesGB: Scalars['String'];
   stripePriceId: Scalars['String'];
+  stripe_price_id_pitr: Scalars['String'];
   upatedAt: Scalars['timestamptz'];
 };
 
@@ -19105,6 +19213,7 @@ export type Plans_Bool_Exp = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<String_Comparison_Exp>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<String_Comparison_Exp>;
   stripePriceId?: InputMaybe<String_Comparison_Exp>;
+  stripe_price_id_pitr?: InputMaybe<String_Comparison_Exp>;
   upatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -19162,6 +19271,7 @@ export type Plans_Insert_Input = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
+  stripe_price_id_pitr?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -19187,6 +19297,7 @@ export type Plans_Max_Fields = {
   stripePriceIDFunctionsUsageSeconds?: Maybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: Maybe<Scalars['String']>;
   stripePriceId?: Maybe<Scalars['String']>;
+  stripe_price_id_pitr?: Maybe<Scalars['String']>;
   upatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -19212,6 +19323,7 @@ export type Plans_Min_Fields = {
   stripePriceIDFunctionsUsageSeconds?: Maybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: Maybe<Scalars['String']>;
   stripePriceId?: Maybe<Scalars['String']>;
+  stripe_price_id_pitr?: Maybe<Scalars['String']>;
   upatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -19270,6 +19382,7 @@ export type Plans_Order_By = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<Order_By>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<Order_By>;
   stripePriceId?: InputMaybe<Order_By>;
+  stripe_price_id_pitr?: InputMaybe<Order_By>;
   upatedAt?: InputMaybe<Order_By>;
 };
 
@@ -19337,6 +19450,8 @@ export enum Plans_Select_Column {
   /** column name */
   StripePriceId = 'stripePriceId',
   /** column name */
+  StripePriceIdPitr = 'stripe_price_id_pitr',
+  /** column name */
   UpatedAt = 'upatedAt'
 }
 
@@ -19373,6 +19488,7 @@ export type Plans_Set_Input = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
+  stripe_price_id_pitr?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -19459,6 +19575,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
   stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
+  stripe_price_id_pitr?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -19534,6 +19651,8 @@ export enum Plans_Update_Column {
   StripePriceIdPersistentVolumesGb = 'stripePriceIDPersistentVolumesGB',
   /** column name */
   StripePriceId = 'stripePriceId',
+  /** column name */
+  StripePriceIdPitr = 'stripe_price_id_pitr',
   /** column name */
   UpatedAt = 'upatedAt'
 }
@@ -19796,6 +19915,7 @@ export type Query_Root = {
   getFunctionsDuration: Metrics;
   getFunctionsInvocations: Metrics;
   getLogsVolume: Metrics;
+  getPiTRBaseBackups: Array<PiTrBaseBackup>;
   getPostgresVolumeCapacity: Metrics;
   getPostgresVolumeUsage: Metrics;
   getProjectStatus: ProjectStatusResponse;
@@ -20760,6 +20880,11 @@ export type Query_RootGetLogsVolumeArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetPiTrBaseBackupsArgs = {
+  appID: Scalars['String'];
 };
 
 
@@ -27633,7 +27758,7 @@ export type GetPostgresSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } } } } | null };
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', version?: string | null, resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any } }, pitr?: { __typename?: 'ConfigPostgresPitr', retention?: any | null } | null } } | null };
 
 export type ResetDatabasePasswordMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -27667,6 +27792,22 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
 
 
 export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
+
+export type GetPiTrBaseBackupsQueryVariables = Exact<{
+  appId: Scalars['String'];
+}>;
+
+
+export type GetPiTrBaseBackupsQuery = { __typename?: 'query_root', getPiTRBaseBackups: Array<{ __typename?: 'PiTRBaseBackup', date: any, name: string }> };
+
+export type RestoreApplicationDatabasePiTrMutationVariables = Exact<{
+  appId: Scalars['String'];
+  recoveryTarget: Scalars['Timestamp'];
+  fromAppId?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type RestoreApplicationDatabasePiTrMutation = { __typename?: 'mutation_root', restoreApplicationDatabasePiTR: boolean };
 
 export type GetPersistentVolumesEncryptedQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -29429,6 +29570,9 @@ export const GetPostgresSettingsDocument = gql`
         }
         enablePublicAccess
       }
+      pitr {
+        retention
+      }
     }
   }
 }
@@ -29645,6 +29789,82 @@ export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresi
 export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
       return { query: GetBackupPresignedUrlDocument, variables: variables }
     }
+export const GetPiTrBaseBackupsDocument = gql`
+    query GetPiTRBaseBackups($appId: String!) {
+  getPiTRBaseBackups(appID: $appId) {
+    date
+    name
+  }
+}
+    `;
+
+/**
+ * __useGetPiTrBaseBackupsQuery__
+ *
+ * To run a query within a React component, call `useGetPiTrBaseBackupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPiTrBaseBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPiTrBaseBackupsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetPiTrBaseBackupsQuery(baseOptions: Apollo.QueryHookOptions<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>(GetPiTrBaseBackupsDocument, options);
+      }
+export function useGetPiTrBaseBackupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>(GetPiTrBaseBackupsDocument, options);
+        }
+export type GetPiTrBaseBackupsQueryHookResult = ReturnType<typeof useGetPiTrBaseBackupsQuery>;
+export type GetPiTrBaseBackupsLazyQueryHookResult = ReturnType<typeof useGetPiTrBaseBackupsLazyQuery>;
+export type GetPiTrBaseBackupsQueryResult = Apollo.QueryResult<GetPiTrBaseBackupsQuery, GetPiTrBaseBackupsQueryVariables>;
+export function refetchGetPiTrBaseBackupsQuery(variables: GetPiTrBaseBackupsQueryVariables) {
+      return { query: GetPiTrBaseBackupsDocument, variables: variables }
+    }
+export const RestoreApplicationDatabasePiTrDocument = gql`
+    mutation RestoreApplicationDatabasePiTR($appId: String!, $recoveryTarget: Timestamp!, $fromAppId: String) {
+  restoreApplicationDatabasePiTR(
+    appID: $appId
+    recoveryTarget: $recoveryTarget
+    fromAppID: $fromAppId
+  )
+}
+    `;
+export type RestoreApplicationDatabasePiTrMutationFn = Apollo.MutationFunction<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>;
+
+/**
+ * __useRestoreApplicationDatabasePiTrMutation__
+ *
+ * To run a mutation, you first call `useRestoreApplicationDatabasePiTrMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRestoreApplicationDatabasePiTrMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [restoreApplicationDatabasePiTrMutation, { data, loading, error }] = useRestoreApplicationDatabasePiTrMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      recoveryTarget: // value for 'recoveryTarget'
+ *      fromAppId: // value for 'fromAppId'
+ *   },
+ * });
+ */
+export function useRestoreApplicationDatabasePiTrMutation(baseOptions?: Apollo.MutationHookOptions<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>(RestoreApplicationDatabasePiTrDocument, options);
+      }
+export type RestoreApplicationDatabasePiTrMutationHookResult = ReturnType<typeof useRestoreApplicationDatabasePiTrMutation>;
+export type RestoreApplicationDatabasePiTrMutationResult = Apollo.MutationResult<RestoreApplicationDatabasePiTrMutation>;
+export type RestoreApplicationDatabasePiTrMutationOptions = Apollo.BaseMutationOptions<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>;
 export const GetPersistentVolumesEncryptedDocument = gql`
     query GetPersistentVolumesEncrypted($appId: uuid!) {
   systemConfig(appID: $appId) {
