@@ -3,12 +3,12 @@ import { Input } from '@/components/ui/v3/input';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import {
-  type Period,
-  type TimePickerType,
   copyDate,
   getArrowByType,
   getDateByType,
   setDateByType,
+  type Period,
+  type TimePickerType,
 } from './time-picker-utils';
 
 export interface TimePickerInputProps
