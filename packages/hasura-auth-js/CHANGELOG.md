@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.10.2
+
+### Patch Changes
+
+- ad57a9e: fix(auth): allow to pass custom headers to signup
+
 ## 2.10.1
 
 ### Patch Changes

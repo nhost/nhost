@@ -39,7 +39,12 @@ export type AuthEvents =
       options?: SignUpOptions
       requestOptions?: RequestOptions
     }
-  | { type: 'SIGNUP_SECURITY_KEY'; email?: string; options?: SignUpSecurityKeyOptions }
+  | {
+      type: 'SIGNUP_SECURITY_KEY'
+      email?: string
+      options?: SignUpSecurityKeyOptions
+      requestOptions?: RequestOptions
+    }
   | { type: 'SIGNOUT'; all?: boolean }
   | { type: 'SIGNIN_MFA_TOTP'; ticket?: string; otp?: string }
   | { type: 'SIGNED_IN' }

@@ -1,5 +1,12 @@
 # @nhost/react
 
+## 3.10.2
+
+### Patch Changes
+
+- ad57a9e: fix(auth): allow to pass custom headers to signup
+  - @nhost/nhost-js@3.2.6
+
 ## 3.10.1
 
 ### Patch Changes
