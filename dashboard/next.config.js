@@ -7,7 +7,7 @@ const { version } = require('./package.json');
 const cspHeader = `
     default-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run;
     script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.segment.com js.stripe.com;
-    connect-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com;
+    connect-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run discord.com api.segment.io api.segment.com cdn.segment.com nhost.zendesk.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run;
     font-src 'self' data:;
