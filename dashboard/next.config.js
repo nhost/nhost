@@ -38,10 +38,10 @@ module.exports = withBundleAnalyzer({
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: cspHeader.replace(/\s+/g, ' ').trim(),
-          },
+          // {
+          //   key: 'Content-Security-Policy',
+          //   hgvalue: cspHeader.replace(/\s+/g, ' ').trim(),
+          // },
           {
             key: 'X-Frame-Options',
             value: 'DENY',
