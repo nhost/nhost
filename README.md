@@ -73,7 +73,7 @@ const nhost = new NhostClient({
   region: '<your-region>'
 })
 
-await nhost.auth.signIn({ email: 'elon@musk.com', password: 'spaceX' })
+await nhost.auth.signIn({ email: 'user@domain.com', password: 'userPassword' })
 
 await nhost.graphql.request(`{
   users {
