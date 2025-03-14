@@ -41,6 +41,8 @@ overrides:
   tough-cookie@<4.1.3: '>=4.1.3'
   protobufjs@>=7.0.0 <7.2.4: '>=7.2.4'
   vite@=4.5.0: '>=4.5.1'
+  '@babel/runtime@<7.26.10': '>=7.26.10'
+  '@babel/helpers@<7.26.10': '>=7.26.10'
   '@babel/traverse@<7.23.2': '>=7.23.2'
   '@adobe/css-tools@<4.3.2': '>=4.3.2'
   semver@<5.7.2: '>=5.7.2'
@@ -85,18 +87,12 @@ importers:
       '@babel/eslint-parser':
         specifier: ^7.26.10
         version: 7.26.10(@babel/core@7.26.10)(eslint@8.57.0)
-      '@babel/helpers':
-        specifier: ^7.26.10
-        version: 7.26.10
       '@babel/plugin-syntax-flow':
         specifier: ^7.26.0
         version: 7.26.0(@babel/core@7.26.10)
       '@babel/plugin-transform-react-jsx':
         specifier: ^7.25.9
         version: 7.25.9(@babel/core@7.26.10)
-      '@babel/runtime':
-        specifier: ^7.26.10
-        version: 7.26.10
       '@changesets/cli':
         specifier: ^2.27.5
         version: 2.27.6
@@ -1497,7 +1493,7 @@ importers:
         specifier: ^7.20.0
         version: 7.24.7(@babel/core@7.24.7)
       '@babel/runtime':
-        specifier: ^7.20.0
+        specifier: '>=7.26.10'
         version: 7.26.10
       '@jest/globals':
         specifier: ^29.7.0
@@ -2365,7 +2361,7 @@ importers:
         specifier: ^7.20.0
         version: 7.24.7(@babel/core@7.24.7)
       '@babel/runtime':
-        specifier: ^7.20.0
+        specifier: '>=7.26.10'
         version: 7.26.10
       '@react-native/babel-preset':
         specifier: 0.73.21
@@ -3376,12 +3372,6 @@ packages:
   '@babel/runtime@7.26.10':
     resolution: {integrity: sha512-2WJMeRQPHKSPemqk/awGrAiuFfzBmOIPXKizAsVhWH9YJqLZ0H+HS4c8loHGgW6utJ3E/ejXQUsiGaQy2NZ9Fw==}
     engines: {node: '>=6.9.0'}
-
-  '@babel/runtime@7.5.5':
-    resolution: {integrity: sha512-28QvEGyQyNkB0/m2B4FU7IEZGK2NUrcMtT6BZEFALTguLk+AUT6ofsHtPk5QyjAdUkpMJ+/Em+quwz4HOt30AQ==}
-
-  '@babel/runtime@7.7.2':
-    resolution: {integrity: sha512-JONRbXbTXc9WQE2mAZd1p0Z3DZ/6vaQIkgYMSTP3KjRCyd7rCZCcfhCyX+YjwcKxcZ82UrxbRD358bpExNgrjw==}
 
   '@babel/template@7.24.7':
     resolution: {integrity: sha512-jYqfPrU9JTF0PmPy1tLYHW4Mp4KlgxJD9l2nP9fD6yT/ICi554DmrWBAEYpIelzjHf1msDP3PxJIRt/nFNfBig==}
@@ -15446,7 +15436,7 @@ packages:
   react-native-dotenv@3.4.11:
     resolution: {integrity: sha512-6vnIE+WHABSeHCaYP6l3O1BOEhWxKH6nHAdV7n/wKn/sciZ64zPPp2NUdEUf1m7g4uuzlLbjgr+6uDt89q2DOg==}
     peerDependencies:
-      '@babel/runtime': ^7.20.6
+      '@babel/runtime': '>=7.26.10'
 
   react-native-gesture-handler@2.21.2:
     resolution: {integrity: sha512-HcwB225K9aeZ8e/B8nFzEh+2T4EPWTeamO1l/y3PcQ9cyCDYO2zja/G31ITpYRIqkip7XzGs6wI/gnHOQn1LDQ==}
@@ -20687,14 +20677,6 @@ snapshots:
     dependencies:
       regenerator-runtime: 0.14.1
 
-  '@babel/runtime@7.5.5':
-    dependencies:
-      regenerator-runtime: 0.13.11
-
-  '@babel/runtime@7.7.2':
-    dependencies:
-      regenerator-runtime: 0.13.11
-
   '@babel/template@7.24.7':
     dependencies:
       '@babel/code-frame': 7.24.7
@@ -21109,7 +21091,7 @@ snapshots:
 
   '@devtools-ds/object-inspector@1.2.1(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      '@babel/runtime': 7.7.2
+      '@babel/runtime': 7.26.10
       '@devtools-ds/object-parser': 1.2.1
       '@devtools-ds/themes': 1.2.1(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@devtools-ds/tree': 1.2.1(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -21121,11 +21103,11 @@ snapshots:
 
   '@devtools-ds/object-parser@1.2.1':
     dependencies:
-      '@babel/runtime': 7.5.5
+      '@babel/runtime': 7.26.10
 
   '@devtools-ds/themes@1.2.1(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      '@babel/runtime': 7.5.5
+      '@babel/runtime': 7.26.10
       '@design-systems/utils': 2.12.0(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       clsx: 1.1.0
       react: 18.2.0
@@ -21135,7 +21117,7 @@ snapshots:
 
   '@devtools-ds/tree@1.2.1(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      '@babel/runtime': 7.7.2
+      '@babel/runtime': 7.26.10
       '@devtools-ds/themes': 1.2.1(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       clsx: 1.1.0
       react: 18.2.0
