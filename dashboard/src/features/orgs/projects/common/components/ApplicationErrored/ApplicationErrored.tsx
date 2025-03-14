@@ -9,21 +9,21 @@ import { ApplicationInfo } from '@/features/orgs/projects/common/components/Appl
 import { ApplicationLive } from '@/features/orgs/projects/common/components/ApplicationLive';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
+import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
+import { getPreviousApplicationState } from '@/features/orgs/projects/common/utils/getPreviousApplicationState';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
-import { getPreviousApplicationState } from '@/features/projects/common/utils/getPreviousApplicationState';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getApplicationStatusString } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
 import {
   useDeleteApplicationMutation,
   useGetApplicationStateQuery,
   useInsertApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/utils/__generated__/graphql';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getApplicationStatusString } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';

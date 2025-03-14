@@ -7,11 +7,11 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
 } from '@/utils/__generated__/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';

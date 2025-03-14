@@ -11,10 +11,10 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeleteServiceModal } from '@/features/orgs/projects/common/components/DeleteServiceModal';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { type RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { type RunService } from '@/hooks/useRunServices';
 import { copy } from '@/utils/copy';
 import { formatDistanceToNow } from 'date-fns';
 

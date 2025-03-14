@@ -5,8 +5,8 @@ import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
+import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
 
 interface VerifyDomainProps {

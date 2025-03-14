@@ -12,9 +12,9 @@ import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/d
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import type { FileUploadButtonProps } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
 import { FileUploadButton } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
-import type { Files } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
+import type { Files } from '@/utils/__generated__/graphql';
 import type { PropsWithoutRef } from 'react';
 import { useState } from 'react';
 import type { Row } from 'react-table';

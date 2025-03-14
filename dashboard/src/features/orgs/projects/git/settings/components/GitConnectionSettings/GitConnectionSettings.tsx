@@ -7,8 +7,8 @@ import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
+import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
 
 export default function GitConnectionSettings() {
   const { maintenanceActive } = useUI();
