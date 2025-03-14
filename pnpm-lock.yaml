@@ -2165,11 +2165,11 @@ importers:
         specifier: ^9.6.0
         version: 9.6.0(react@18.2.0)
       '@nhost/react':
-        specifier: ^3.10.2
+        specifier: ^3.10.1
         version: 3.10.2(@types/react@18.3.4)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@nhost/react-apollo':
-        specifier: ^17.0.2
-        version: 17.0.2(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.6(graphql@16.8.1))(@nhost/react@3.10.2(@types/react@18.3.4)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^16.0.1
+        version: 16.0.1(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.6(graphql@16.8.1))(@nhost/react@3.10.2(@types/react@18.3.4)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@radix-ui/react-dialog':
         specifier: ^1.1.1
         version: 1.1.3(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -2218,9 +2218,6 @@ importers:
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
-      craco-babel-loader:
-        specifier: ^1.0.4
-        version: 1.0.4(@craco/craco@7.1.0(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/node@16.18.105)(postcss@8.4.49)(react-scripts@5.0.1(@babel/plugin-syntax-flow@7.26.0(@babel/core@7.26.10))(@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.10))(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/babel__core@7.20.5)(react@18.2.0)(sass@1.32.0)(ts-node@10.9.2(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/node@16.18.105)(typescript@4.9.5))(type-fest@2.19.0)(typescript@4.9.5)(vue-template-compiler@2.7.16)(webpack-hot-middleware@2.26.1))(typescript@4.9.5))
       lucide-react:
         specifier: ^0.416.0
         version: 0.416.0(react@18.2.0)
@@ -5233,16 +5230,16 @@ packages:
       '@apollo/client': ^3.7.10
       '@nhost/nhost-js': 3.1.8
 
-  '@nhost/apollo@8.0.6':
-    resolution: {integrity: sha512-bYpoA8afig9xzaKgraun7gE8m8ErcKuYr/zcWRL3GllWmEQZykE8QDN/FKr7Ns2E3i6CXpOp7fVRO6J8yWXzVA==}
+  '@nhost/apollo@8.0.4':
+    resolution: {integrity: sha512-rCvV55EkwcjfhLes2DQ0WgF2pOAxEIaefCu/pxwI1Xryh0FH3sAVVeTpGkLJRdGzKCsibvMj9r+CRDYZTYIwnA==}
     peerDependencies:
       '@apollo/client': ^3.7.10
-      '@nhost/nhost-js': 3.2.6
+      '@nhost/nhost-js': 3.2.4
 
   '@nhost/graphql-js@0.3.0':
     resolution: {integrity: sha512-CVYq6wx0VbaYdpUBmfNO/6mZatHB5+YBCqFjWyxhpN1nzHCHEO6rgdL7j0qk31OFE6XAX0z7AQZSXg1Pn63GUw==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
 
   '@nhost/hasura-auth-js@2.10.2':
     resolution: {integrity: sha512-ZIPV1fLA4TRI0AfYkogVNv2PHExw0PMlJcb/kBFt2uVrvUYCHh946Jnfi4Jv0eqG+NvG50/NUpv4XKp/LAQzWg==}
@@ -5283,11 +5280,11 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0
 
-  '@nhost/react-apollo@17.0.2':
-    resolution: {integrity: sha512-PWtZuCSnr1OF97nuKH458bmpPApEtfCUyTGlT0ZtJRHI7NJ44JlegylM06KOtXhGTrftmZ1/2XemUC2W656p9Q==}
+  '@nhost/react-apollo@16.0.1':
+    resolution: {integrity: sha512-oxe2beywrLIEZMVjys5y553JXs0/7POuamIv9jGGmirkyDr22nlx2MzFipxqpnEpg5LizgbDqW5YRM0g82Ufhw==}
     peerDependencies:
       '@apollo/client': ^3.7.10
-      '@nhost/react': 3.10.2
+      '@nhost/react': 3.9.1
       graphql: '>=16.8.1'
       react: 18.2.0
       react-dom: 18.2.0
@@ -9603,11 +9600,6 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
-
-  craco-babel-loader@1.0.4:
-    resolution: {integrity: sha512-qoCsRWV/cMcucuIe+m09GRudCwAWtEhZl830MR2N0/weXBK+0VybsL19pUQtH0TwC33v9ll4myu/4TGBxnqZeA==}
-    peerDependencies:
-      '@craco/craco': ^7.0.0 || ^6.4.2
 
   create-jest@29.7.0:
     resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
@@ -23727,7 +23719,7 @@ snapshots:
       graphql-ws: 5.16.0(graphql@16.8.1)
       jwt-decode: 4.0.0
 
-  '@nhost/apollo@8.0.6(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.6(graphql@16.8.1))':
+  '@nhost/apollo@8.0.4(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.6(graphql@16.8.1))':
     dependencies:
       '@apollo/client': 3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@nhost/nhost-js': 3.2.6(encoding@0.1.13)(graphql@16.8.1)
@@ -23834,10 +23826,10 @@ snapshots:
     transitivePeerDependencies:
       - '@nhost/nhost-js'
 
-  '@nhost/react-apollo@17.0.2(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.6(graphql@16.8.1))(@nhost/react@3.10.2(@types/react@18.3.4)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@nhost/react-apollo@16.0.1(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.6(graphql@16.8.1))(@nhost/react@3.10.2(@types/react@18.3.4)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@apollo/client': 3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@nhost/apollo': 8.0.6(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.6(graphql@16.8.1))
+      '@nhost/apollo': 8.0.4(@apollo/client@3.11.4(@types/react@18.3.4)(graphql-ws@5.16.0(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@nhost/nhost-js@3.2.6(graphql@16.8.1))
       '@nhost/react': 3.10.2(@types/react@18.3.4)(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       graphql: 16.8.1
       react: 18.2.0
@@ -29825,10 +29817,6 @@ snapshots:
       path-type: 4.0.0
     optionalDependencies:
       typescript: 5.7.2
-
-  craco-babel-loader@1.0.4(@craco/craco@7.1.0(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/node@16.18.105)(postcss@8.4.49)(react-scripts@5.0.1(@babel/plugin-syntax-flow@7.26.0(@babel/core@7.26.10))(@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.10))(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/babel__core@7.20.5)(react@18.2.0)(sass@1.32.0)(ts-node@10.9.2(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/node@16.18.105)(typescript@4.9.5))(type-fest@2.19.0)(typescript@4.9.5)(vue-template-compiler@2.7.16)(webpack-hot-middleware@2.26.1))(typescript@4.9.5)):
-    dependencies:
-      '@craco/craco': 7.1.0(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/node@16.18.105)(postcss@8.4.49)(react-scripts@5.0.1(@babel/plugin-syntax-flow@7.26.0(@babel/core@7.26.10))(@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.10))(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/babel__core@7.20.5)(react@18.2.0)(sass@1.32.0)(ts-node@10.9.2(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/node@16.18.105)(typescript@4.9.5))(type-fest@2.19.0)(typescript@4.9.5)(vue-template-compiler@2.7.16)(webpack-hot-middleware@2.26.1))(typescript@4.9.5)
 
   create-jest@29.7.0(@types/node@22.13.9)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.4.11(@swc/helpers@0.5.5))(@types/node@22.13.9)(typescript@5.0.4)):
     dependencies:
