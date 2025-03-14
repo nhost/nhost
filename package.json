@@ -56,10 +56,10 @@
     "dashboard"
   ],
   "devDependencies": {
-    "@babel/core": "^7.24.7",
-    "@babel/eslint-parser": "^7.24.7",
-    "@babel/plugin-syntax-flow": "^7.24.7",
-    "@babel/plugin-transform-react-jsx": "^7.24.7",
+    "@babel/core": "^7.26.10",
+    "@babel/eslint-parser": "^7.26.10",
+    "@babel/plugin-syntax-flow": "^7.26.0",
+    "@babel/plugin-transform-react-jsx": "^7.25.9",
     "@changesets/cli": "^2.27.5",
     "@faker-js/faker": "^7.6.0",
     "@rollup/plugin-replace": "^5.0.7",
@@ -137,6 +137,8 @@
       "tough-cookie@<4.1.3": ">=4.1.3",
       "protobufjs@>=7.0.0 <7.2.4": ">=7.2.4",
       "vite@=4.5.0": ">=4.5.1",
+      "@babel/runtime@<7.26.10": ">=7.26.10",
+      "@babel/helpers@<7.26.10": ">=7.26.10",
       "@babel/traverse@<7.23.2": ">=7.23.2",
       "@adobe/css-tools@<4.3.2": ">=4.3.2",
       "semver@<5.7.2": ">=5.7.2",
