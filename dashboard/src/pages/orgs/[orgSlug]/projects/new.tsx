@@ -11,14 +11,14 @@ import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSubmitState } from '@/hooks/useSubmitState';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { getErrorMessage } from '@/utils/getErrorMessage';
 import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
   type GetOrganizationsQuery,
   type PrefetchNewAppRegionsFragment,
 } from '@/utils/__generated__/graphql';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { FormEvent, ReactElement } from 'react';

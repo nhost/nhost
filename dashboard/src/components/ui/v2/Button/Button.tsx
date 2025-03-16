@@ -2,8 +2,8 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { SxProps, Theme } from '@mui/material';
 import { alpha, styled } from '@mui/material';
 import type {
-  ButtonProps as MaterialButtonProps,
   ButtonTypeMap,
+  ButtonProps as MaterialButtonProps,
 } from '@mui/material/Button';
 import MaterialButton, { buttonClasses } from '@mui/material/Button';
 import type { ForwardedRef } from 'react';
