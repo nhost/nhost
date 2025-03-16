@@ -18,11 +18,6 @@ import { calculateBillableResources } from '@/features/orgs/projects/resources/s
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  RESOURCE_VCPU_MULTIPLIER,
-  RESOURCE_VCPU_PRICE,
-} from '@/utils/constants/common';
-import { removeTypename } from '@/utils/helpers';
 import type {
   ConfigConfigUpdateInput,
   GetResourcesQuery,
@@ -31,6 +26,11 @@ import {
   useGetResourcesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import {
+  RESOURCE_VCPU_MULTIPLIER,
+  RESOURCE_VCPU_PRICE,
+} from '@/utils/constants/common';
+import { removeTypename } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';

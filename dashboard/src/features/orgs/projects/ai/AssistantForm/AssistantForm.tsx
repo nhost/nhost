@@ -14,11 +14,11 @@ import { WebhooksDataSourcesFormSection } from '@/features/orgs/projects/ai/Assi
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
+import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

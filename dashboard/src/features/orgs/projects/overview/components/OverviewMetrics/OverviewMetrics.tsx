@@ -3,12 +3,12 @@ import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteAp
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetricsCardProps } from '@/features/orgs/projects/overview/components/MetricsCard';
 import { MetricsCard } from '@/features/orgs/projects/overview/components/MetricsCard';
-import { prettifyNumber } from '@/utils/prettifyNumber';
 import {
   useGetProjectMetricsQuery,
   useGetProjectRequestsMetricQuery,
   useGetUserProjectMetricsQuery,
 } from '@/utils/__generated__/graphql';
+import { prettifyNumber } from '@/utils/prettifyNumber';
 import { twMerge } from 'tailwind-merge';
 
 import { prettifySize } from '@/utils/prettifySize';

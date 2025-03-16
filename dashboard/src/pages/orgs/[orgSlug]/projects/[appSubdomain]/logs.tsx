@@ -8,11 +8,11 @@ import {
 } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
-import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import {
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
+import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { subMinutes } from 'date-fns';
 import {
   useCallback,
