@@ -49,10 +49,8 @@ const CommandInput = React.forwardRef<
     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
     {prefix && (
       <span
-        className={cn(
-          'pointer-events-none text-muted-foreground',
-          prefixClassName,
-        )}
+        title={prefix}
+        className={cn('text-muted-foreground', prefixClassName)}
       >
         {prefix}
       </span>

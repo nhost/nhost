@@ -198,7 +198,14 @@ function ColumnAutocomplete(
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger
+        asChild
+        title={
+          buttonPrefix
+            ? `${buttonPrefix}.${selectedColumn?.label}`
+            : selectedColumn?.label || 'Select a column'
+        }
+      >
         <Button
           ref={ref}
           disabled={disabled}
@@ -207,20 +214,18 @@ function ColumnAutocomplete(
           aria-expanded={open}
           className="w-full justify-between"
         >
-          <div className="flex min-w-0 items-center gap-0">
-            {buttonPrefix ? (
-              <div className="flex min-w-0 flex-shrink items-center gap-0">
-                <span className="flex-shrink truncate text-sm text-muted-foreground lg:max-w-[200px]">
-                  {buttonPrefix}.
-                </span>
-                <span className="truncate">{selectedColumn?.label}</span>
-              </div>
-            ) : (
-              <span className="truncate">
-                {selectedColumn?.label || 'Select a column'}
+          {buttonPrefix ? (
+            <div className="flex min-w-0 flex-shrink items-center gap-0">
+              <span className="flex-shrink truncate text-sm text-muted-foreground lg:max-w-[200px]">
+                {buttonPrefix}.
               </span>
-            )}
-          </div>
+              <span className="truncate">{selectedColumn?.label}</span>
+            </div>
+          ) : (
+            <span className="truncate">
+              {selectedColumn?.label || 'Select a column'}
+            </span>
+          )}
           <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -248,12 +253,11 @@ function ColumnAutocomplete(
             placeholder=""
             prefix={
               relationshipDotNotation
-                ? `
-              ${selectedTable}.${relationshipDotNotation}.`
-                : ``
+                ? `${selectedTable}.${relationshipDotNotation}.`
+                : ''
             }
-            className="min-w-0"
-            prefixClassName="truncate max-w-[60%]"
+            className="w-auto min-w-0 flex-grow items-center gap-0 pl-0"
+            prefixClassName="flex-shrink truncate max-w-[200px]"
           />
           {pages?.length > 0 ? (
             <div className="flex flex-row items-center gap-2 px-2 py-1.5">
@@ -292,7 +296,10 @@ function ColumnAutocomplete(
                         )}
                       />
                       <div className="flex gap-3">
-                        <span className="line-clamp-2 break-all">
+                        <span
+                          title={option.label}
+                          className="line-clamp-2 break-all"
+                        >
                           {option.label}
                         </span>
                         <div className="flex items-center">
@@ -336,7 +343,10 @@ function ColumnAutocomplete(
                         )}
                       />
                       <div className="flex gap-3">
-                        <span className="line-clamp-2 break-all">
+                        <span
+                          title={option.label}
+                          className="line-clamp-2 break-all"
+                        >
                           {option.label}
                         </span>
                         <div className="flex items-center">
