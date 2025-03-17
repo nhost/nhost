@@ -205,18 +205,22 @@ function ColumnAutocomplete(
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className="w-full justify-between"
         >
-          {buttonPrefix ? (
-            <div className="flex flex-shrink-0 gap-0 truncate">
-              <span className="flex-shrink-0 truncate text-sm text-muted-foreground lg:max-w-[200px]">
-                {buttonPrefix}.
+          <div className="flex min-w-0 items-center gap-0">
+            {buttonPrefix ? (
+              <div className="flex min-w-0 flex-shrink items-center gap-0">
+                <span className="flex-shrink truncate text-sm text-muted-foreground lg:max-w-[200px]">
+                  {buttonPrefix}.
+                </span>
+                <span className="truncate">{selectedColumn?.label}</span>
+              </div>
+            ) : (
+              <span className="truncate">
+                {selectedColumn?.label || 'Select a column'}
               </span>
-              {selectedColumn?.label}
-            </div>
-          ) : (
-            selectedColumn?.label || 'Select a column'
-          )}
+            )}
+          </div>
           <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -248,6 +252,8 @@ function ColumnAutocomplete(
               ${selectedTable}.${relationshipDotNotation}.`
                 : ``
             }
+            className="min-w-0"
+            prefixClassName="truncate max-w-[60%]"
           />
           {pages?.length > 0 ? (
             <div className="flex flex-row items-center gap-2 px-2 py-1.5">

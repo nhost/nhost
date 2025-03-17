@@ -35,16 +35,25 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   );
 };
 
+interface CommandInputProps {
+  prefix?: React.ReactNode;
+  prefixClassName?: string;
+}
+
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
-    prefix?: React.ReactNode;
-  }
->(({ className, prefix, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> &
+    CommandInputProps
+>(({ className, prefix, prefixClassName, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
     {prefix && (
-      <span className="pointer-events-none flex items-center text-muted-foreground">
+      <span
+        className={cn(
+          'pointer-events-none text-muted-foreground',
+          prefixClassName,
+        )}
+      >
         {prefix}
       </span>
     )}
