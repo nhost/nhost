@@ -10,9 +10,7 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import {
-  useGetAllWorkspacesAndProjectsQuery,
   useGetOrganizationsQuery,
-  type GetAllWorkspacesAndProjectsQuery,
   type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -23,11 +21,6 @@ import { type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
-type Workspace = Omit<
-  GetAllWorkspacesAndProjectsQuery['workspaces'][0],
-  '__typename'
->;
-
 type Organization = Omit<
   GetOrganizationsQuery['organizations'][0],
   '__typename'
@@ -35,7 +28,6 @@ type Organization = Omit<
 
 const validationSchema = Yup.object({
   organization: Yup.string().label('Organization'),
-  workspace: Yup.string().label('Workspace'),
   project: Yup.string().label('Project').required(),
   services: Yup.array()
     .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
@@ -60,7 +52,7 @@ function TicketPage() {
   const form = useForm<CreateTicketFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      workspace: '',
+      organization: '',
       project: '',
       services: [],
       priority: '',
@@ -77,32 +69,21 @@ function TicketPage() {
     formState: { errors, isSubmitting },
   } = form;
 
-  const selectedWorkspace = watch('workspace');
   const selectedOrganization = watch('organization');
   const user = useUserData();
 
-  const { data } = useGetAllWorkspacesAndProjectsQuery({
-    skip: !user,
-  });
   const { data: organizationsData } = useGetOrganizationsQuery({
     variables: {
       userId: user?.id,
     },
   });
 
-  const workspaces: Workspace[] = data?.workspaces || [];
   const organizations: Organization[] = organizationsData?.organizations || [];
 
   const getAvailableProjects = () => {
     if (selectedOrganization) {
       return (
         organizations.find((org) => org.id === selectedOrganization)?.apps || []
-      );
-    }
-    if (selectedWorkspace) {
-      return (
-        workspaces.find((workspace) => workspace.id === selectedWorkspace)
-          ?.projects || []
       );
     }
 
@@ -192,69 +173,32 @@ function TicketPage() {
                 >
                   <Text className="font-bold">Which project is affected ?</Text>
 
-                  <Box className="grid grid-cols-[1fr,auto,1fr] items-start gap-4">
-                    <ControlledSelect
-                      id="organization"
-                      name="organization"
-                      label="Organization"
-                      placeholder="Organization"
-                      slotProps={{
-                        root: { className: 'grid grid-flow-col gap-1' },
-                      }}
-                      error={!!errors.organization}
-                      helperText={errors.organization?.message}
-                      disabled={!!selectedWorkspace}
-                      renderValue={(option) => (
-                        <span className="inline-grid grid-flow-col items-center gap-2">
-                          {option?.label}
-                        </span>
-                      )}
-                    >
-                      <Option value="" label="" />
-                      {organizations.map((organization) => (
-                        <Option
-                          key={organization.name}
-                          value={organization.id}
-                          label={organization.name}
-                        >
-                          {organization.name}
-                        </Option>
-                      ))}
-                    </ControlledSelect>
-
-                    <Text className="mt-[34px] text-center font-medium">
-                      or
-                    </Text>
-
-                    <ControlledSelect
-                      id="workspace"
-                      name="workspace"
-                      label="Workspace"
-                      placeholder="Workspace"
-                      slotProps={{
-                        root: { className: 'grid grid-flow-col gap-1' },
-                      }}
-                      error={!!errors.workspace}
-                      helperText={errors.workspace?.message}
-                      disabled={!!selectedOrganization}
-                      renderValue={(option) => (
-                        <span className="inline-grid grid-flow-col items-center gap-2">
-                          {option?.label}
-                        </span>
-                      )}
-                    >
-                      <Option value="" label="" />
-                      {workspaces.map((workspace) => (
-                        <Option
-                          key={workspace.name}
-                          value={workspace.id}
-                          label={workspace.name}
-                        >
-                          {workspace.name}
-                        </Option>
-                      ))}
-                    </ControlledSelect>
-                  </Box>
+                  <ControlledSelect
+                    id="organization"
+                    name="organization"
+                    label="Organization"
+                    placeholder="Organization"
+                    slotProps={{
+                      root: { className: 'grid grid-flow-col gap-1 mb-4' },
+                    }}
+                    error={!!errors.organization}
+                    helperText={errors.organization?.message}
+                    renderValue={(option) => (
+                      <span className="inline-grid grid-flow-col items-center gap-2">
+                        {option?.label}
+                      </span>
+                    )}
+                  >
+                    {organizations.map((organization) => (
+                      <Option
+                        key={organization.name}
+                        value={organization.id}
+                        label={organization.name}
+                      >
+                        {organization.name}
+                      </Option>
+                    ))}
+                  </ControlledSelect>
 
                   <ControlledSelect
                     id="project"
