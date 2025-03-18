@@ -15,20 +15,23 @@ on:
         type: string
         default: "."
         required: false
-      DOCKER:
-        type: boolean
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
         required: true
 
 jobs:
   artifacts:
-    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
     permissions:
       id-token: write
       contents: write
 
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-arm64-22.04-2cores]
+        os: [blacksmith-2vcpu-ubuntu-2204-arm, blacksmith-2vcpu-ubuntu-2204]
       fail-fast: true
 
     runs-on: ${{ matrix.os }}
@@ -41,17 +44,13 @@ jobs:
         fetch-depth: 0
         ref: ${{ inputs.GIT_REF }}
 
-    - uses: actions/cache@v4
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        path: |
-          /nix/store
-          /nix/var/nix/db
-          ~/.cache/nix
-        key: ${{ runner.os }}-${{ runner.arch }}-nix-build-${{ hashFiles('**/*.nix') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-nix-build-
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
 
-    - uses: cachix/install-nix-action@v31
+    - uses: cachix/install-nix-action@v30
       with:
         install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
         install_options: "--no-daemon"
@@ -59,36 +58,58 @@ jobs:
           experimental-features = nix-command flakes
           sandbox = false
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+
+    - name: "Verify if we need to build"
+      id: verify-build
+      run: |
+        export drvPath=$(make check-dry-run)
+        # nix store verify --no-trust --store http://127.0.0.1:37515 $drvPath \
+        nix store verify --no-trust --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
+          && export BUILD_NEEDED=no \
+          || export BUILD_NEEDED=yes
+        echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
+        echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
 
     - name: Compute common env vars
       id: vars
       run: |
         echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
-        echo "ARCHITECTURE=$(uname -m)" >> $GITHUB_OUTPUT
 
     - name: "Build artifact"
       run: |
-        make build
+        make get-version VER=0.0.0-dev # we revert this to avoid rebuilding just due to version change
+        make build ARCH=${{ matrix.platform }}
         zip -r result.zip result
 
     - name: "Push artifact to artifact repository"
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.NAME }}-artifact-${{ steps.vars.outputs.ARCHITECTURE }}-${{ steps.vars.outputs.VERSION }}
-        path: result/bin/hasura-auth
+        name: ${{ inputs.NAME }}-artifact-${{ matrix.platform }}-${{ steps.vars.outputs.VERSION }}
+        path: ${{ inputs.PROJECT }}/result.zip
         retention-days: 7
 
     - name: "Build docker image"
       run: |
-        make build-docker-image
-      if: ${{ ( inputs.DOCKER ) }}
+        sudo chmod 755 /run/containers
+        sudo mkdir -p "/run/containers/$(id -u runner)"
+        sudo chown runner: "/run/containers/$(id -u runner)"
+        make build-docker-image ARCH=${{ matrix.platform }}
 
     - name: "Push docker image to artifact repository"
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.NAME }}-docker-image-${{ steps.vars.outputs.ARCHITECTURE }}-${{ steps.vars.outputs.VERSION }}
-        path: result
+        name: ${{ inputs.NAME }}-docker-image-${{ matrix.platform }}-${{ steps.vars.outputs.VERSION }}
+        path: ${{ inputs.PROJECT }}/result
         retention-days: 7
-      if: ${{ ( inputs.DOCKER ) }}
+
+    - name: "Cache build"
+      run: |
+       echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
+       nix store sign --key-file cache-priv-key.pem --all
+       find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
+      if: always()
+
+    - run: rm -f cache-priv-key.pem
+      if: always()

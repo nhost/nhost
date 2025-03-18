@@ -47,20 +47,24 @@ check:   ## Run nix flake check
 
 .PHONY: check-dry-run-node
 check-dry-run-node:  ## Returns the derivation of the check
-	@nix path-info \
-		--derivation \
-		.\#checks.$(ARCH)-$(OS).node-checks
+	@nix build \
+		--dry-run \
+		--json \
+		--print-build-logs \
+		.\#checks.$(ARCH)-$(OS).node-checks | jq -r '.[].outputs.out'
 
 
 .PHONY: check-dry-run-go
 check-dry-run-go:  ## Run nix flake check
-	@nix path-info \
-		--derivation \
-		.\#checks.$(ARCH)-$(OS).go-checks
+	@nix build \
+		--dry-run \
+		--json \
+		--print-build-logs \
+		.\#checks.$(ARCH)-$(OS).go-checks | jq -r '.[].outputs.out'
 
 
 .PHONY: dev-env-up
-dev-env-up:  ## Starts development environment
+dev-env-up: build-docker-image  ## Starts development environment
 	cd build/dev/docker && docker compose \
 		--project-name auth-dev \
 		up \

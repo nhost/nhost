@@ -98,7 +98,6 @@ jobs:
 
           docker manifest create \
             $CONTAINER_NAME:$VERSION \
-            --amend $CONTAINER_NAME:$VERSION-x86_64 \
-            --amend $CONTAINER_NAME:$VERSION-aarch64
+            $OPTS
 
           docker manifest push $CONTAINER_NAME:$VERSION

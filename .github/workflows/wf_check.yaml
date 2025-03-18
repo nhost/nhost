@@ -8,17 +8,22 @@ on:
       GIT_REF:
         type: string
         required: false
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
 
 jobs:
   tests:
-    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    runs-on: blacksmith-2vcpu-ubuntu-2204-arm
+    timeout-minutes: 30
+
     permissions:
       id-token: write
       contents: write
-
-
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
 
     steps:
     - name: "Check out repository"
@@ -26,18 +31,21 @@ jobs:
       with:
         fetch-depth: 0
         ref: ${{ inputs.GIT_REF }}
+        actions: read
 
-    - uses: actions/cache@v4
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        path: |
-          /nix/store
-          /nix/var/nix/db
-          ~/.cache/nix
-        key: ${{ runner.os }}-${{ runner.arch }}-nix-check-${{ hashFiles('**/*.nix') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-nix-check-
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
 
-    - uses: cachix/install-nix-action@v31
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+      with:
+        mask-password: 'true'
+
+    - uses: cachix/install-nix-action@v30
       with:
         install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
         install_options: "--no-daemon"
@@ -45,35 +53,47 @@ jobs:
           experimental-features = nix-command flakes
           sandbox = false
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
 
     - name: "Verify if we need to build"
       id: verify-build
       run: |
-        export drvPath=$(make check-dry-run-go)
-        echo "drvPath - $drvPath"
-        nix store verify $drvPath \
-          && export BUILD_NEEDED=no \
-          || export BUILD_NEEDED=yes
+        export drvPathGo=$(make check-dry-run-go)
+        export drvPathNode=$(make check-dry-run-node)
 
-        if [ "$BUILD_NEEDED" != "yes" ]; then
-          export check_dry_run_output=$(make check-dry-run-node)
-          export drvPath=$(echo "$check_dry_run_output" | grep -oE '"out":.*"' | awk -F\" '{ print $4 }')
-          nix store verify $drvPath \
-            && export BUILD_NEEDED=no \
-            || export BUILD_NEEDED=yes
+        nix store verify --no-trust --store s3://nhost-nix-cache\?region=eu-central-1 $drvPathGo \
+          && export GO_BUILD_NEEDED=no \
+          || export GO_BUILD_NEEDED=yes
+
+        nix store verify --no-trust --store s3://nhost-nix-cache\?region=eu-central-1 $drvPathNode \
+          && export NODE_BUILD_NEEDED=no \
+          || export NODE_BUILD_NEEDED=yes
+
+        # Set BUILD_NEEDED to yes if either Go or Node build is needed
+        if [ "$GO_BUILD_NEEDED" = "yes" ] || [ "$NODE_BUILD_NEEDED" = "yes" ]; then
+          export BUILD_NEEDED=yes
+        else
+          export BUILD_NEEDED=no
         fi
 
         echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
-        echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
 
     - name: "Start containters for integration tests"
       run: |
-        make build-docker-image
-        nix develop -c make dev-env-up
+        nix develop .\#${{ inputs.NAME }} -c make dev-env-up
       if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
 
     - name: "Run checks"
       run: make check
       if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+
+    - name: "Cache build"
+      run: |
+       echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
+       nix store sign --key-file cache-priv-key.pem --all
+       find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
+      if: always()
+
+    - run: rm -f cache-priv-key.pem
+      if: always()
