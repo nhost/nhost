@@ -18,16 +18,23 @@ function TimezoneSettings({ dateTime, onTimezoneChange }: Props) {
     setTimezone(tz.value);
     onTimezoneChange?.(tz.value);
   }
+
   const utcOffset = getUTCOffsetInHours(selectedTimezone, dateTime, 'OOOO');
+
   return (
     <div className="flex w-full items-center justify-between">
-      Timezone: {utcOffset}{' '}
+      <span>Timezone: {utcOffset}</span>
       <TimezonePicker
         dateTime={dateTime}
         selectedTimezone={selectedTimezone}
         onTimezoneSelect={handleTimezoneSelect}
         button={
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Open timezone settings"
+            data-testid="timezoneSettingsButton"
+          >
             <Settings2 className="h-4 w-4 dark:text-foreground" />
           </Button>
         }

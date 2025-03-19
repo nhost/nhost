@@ -6,6 +6,7 @@ export default defineConfig({
   // @ts-ignore
   plugins: [tsconfigPaths({ projects: ['./tsconfig.test.json'] }), react()],
   test: {
+    globalSetup: './vitest.global-setup.ts',
     testTimeout: 30000,
     environment: 'jsdom',
     globals: true,
