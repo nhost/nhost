@@ -1,5 +1,4 @@
-import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { createUser, generateTestEmail } from '@/e2e/utils';
+import { createUser, generateTestEmail, gotoAuthURL } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
@@ -11,9 +10,7 @@ test.beforeAll(async ({ browser }) => {
 });
 
 test.beforeEach(async () => {
-  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
-  await page.goto(authUrl);
-  await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
+  await gotoAuthURL(page);
 });
 
 test.afterAll(async () => {

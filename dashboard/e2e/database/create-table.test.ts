@@ -1,5 +1,9 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { navigateToProject, prepareTable } from '@/e2e/utils';
+import {
+  navigateToProject,
+  prepareTable,
+  updatePageContext,
+} from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
@@ -23,6 +27,7 @@ test.beforeEach(async () => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
   await page.goto(databaseRoute);
   await page.waitForURL(databaseRoute);
+  await updatePageContext(page);
 });
 
 test.afterAll(async () => {

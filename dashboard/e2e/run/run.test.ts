@@ -1,7 +1,7 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
+import { navigateToProject, updatePageContext } from '@/e2e/utils';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { navigateToProject } from '../utils';
 
 let page: Page;
 
@@ -21,6 +21,7 @@ test.beforeEach(async () => {
   const runRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/run`;
   await page.goto(runRoute);
   await page.waitForURL(runRoute);
+  await updatePageContext(page);
 });
 
 test.afterAll(async () => {

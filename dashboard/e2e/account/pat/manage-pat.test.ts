@@ -1,3 +1,4 @@
+import { updatePageContext } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
@@ -10,6 +11,7 @@ test.beforeAll(async ({ browser }) => {
 
 test.beforeEach(async () => {
   await page.goto('/');
+  await updatePageContext(page);
 });
 
 test.afterAll(async () => {

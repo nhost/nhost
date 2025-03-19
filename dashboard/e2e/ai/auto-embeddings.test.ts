@@ -1,5 +1,5 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { navigateToProject } from '@/e2e/utils';
+import { navigateToProject, updatePageContext } from '@/e2e/utils';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
@@ -21,6 +21,7 @@ test.beforeEach(async () => {
   const AIRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/ai/auto-embeddings`;
   await page.goto(AIRoute);
   await page.waitForURL(AIRoute);
+  await updatePageContext(page);
 });
 
 test.afterAll(async () => {
