@@ -9,7 +9,7 @@ import { useTreeNavState } from './TreeNavStateContext';
 export default function PinnedMainNav() {
   const {
     asPath,
-    query: { workspaceSlug, orgSlug },
+    query: { orgSlug },
   } = useRouter();
 
   const scrollContainerRef = useRef();
@@ -44,7 +44,7 @@ export default function PinnedMainNav() {
     };
   }, [asPath]);
 
-  if (!orgSlug && !workspaceSlug) {
+  if (!orgSlug) {
     return null;
   }
 

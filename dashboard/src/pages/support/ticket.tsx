@@ -9,11 +9,11 @@ import { EnvelopeIcon } from '@/components/ui/v2/icons/EnvelopeIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useGetOrganizationsQuery,
   type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { useUserData } from '@nhost/nextjs';

@@ -20,7 +20,6 @@ import type { ChangeEvent, ReactElement } from 'react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 
 interface ProjectSelectorOption {
-  type: 'workspace-project' | 'org-project';
   projectName: string;
   projectPathDescriptor: string;
   route: string;
@@ -35,7 +34,6 @@ export default function SelectWorkspaceAndProject() {
 
   const orgProjects: ProjectSelectorOption[] = orgs.flatMap((org) =>
     org.apps.map((project) => ({
-      type: 'org-project',
       projectName: project.name,
       projectPathDescriptor: `${org.name}/${project.name}`,
       route: `/orgs/${org.slug}/projects/${project.subdomain}/run`,
@@ -192,13 +190,9 @@ export default function SelectWorkspaceAndProject() {
                               className={cn(
                                 'hover:none ml-2 h-5 px-[6px] text-[10px]',
                                 project.isFree && 'bg-muted',
-                                project.type === 'workspace-project' &&
-                                  'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500',
                               )}
                             >
-                              {project.type === 'workspace-project'
-                                ? 'Legacy'
-                                : project.plan}
+                              {project.plan}
                             </Badge>
                           </div>
                         }

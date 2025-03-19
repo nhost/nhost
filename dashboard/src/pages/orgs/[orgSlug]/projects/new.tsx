@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import {
   useInsertOrgApplicationMutation,
@@ -17,7 +18,6 @@ import {
   type GetOrganizationsQuery,
   type PrefetchNewAppRegionsFragment,
 } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -344,8 +344,8 @@ export default function NewProjectPage() {
 
   const { regions } = data;
 
-  // get pre-selected workspace
-  // use query param to get workspace or just pick first workspace
+  // get pre-selected organization
+  // use query param to get organization or just pick first organization
   const preSelectedOrg = currentOrg || orgs[0];
   const preSelectedRegion = regions.find((region) => region.active);
 

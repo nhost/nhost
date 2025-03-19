@@ -1,9 +1,9 @@
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   CheckoutStatus,
   type PostOrganizationRequestMutation,
   usePostOrganizationRequestMutation,
 } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';

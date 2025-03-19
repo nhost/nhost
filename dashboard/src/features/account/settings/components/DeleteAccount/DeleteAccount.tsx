@@ -4,11 +4,11 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useDeleteUserAccountMutation,
   useGetAllWorkspacesAndProjectsQuery,
 } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useSignOut, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
