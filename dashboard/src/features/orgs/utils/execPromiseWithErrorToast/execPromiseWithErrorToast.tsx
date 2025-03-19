@@ -1,4 +1,4 @@
-import { ErrorToast } from '@/features/orgs/components/ui/v2/ErrorToast';
+import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { toast } from 'react-hot-toast';
 

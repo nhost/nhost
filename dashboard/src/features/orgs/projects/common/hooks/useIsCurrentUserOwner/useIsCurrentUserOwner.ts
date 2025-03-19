@@ -4,9 +4,9 @@ import { Organization_Members_Role_Enum } from '@/utils/__generated__/graphql';
 import { useUserData } from '@nhost/nextjs';
 
 /**
- * Returns true if the current user is the owner of the current workspace.
+ * Returns true if the current user is the owner of the current organization.
  *
- * @returns True if the current user is the owner of the current workspace.
+ * @returns True if the current user is the owner of the current organization.
  */
 export default function useIsCurrentUserOwner() {
   const { org, loading: loadingOrg } = useCurrentOrg();

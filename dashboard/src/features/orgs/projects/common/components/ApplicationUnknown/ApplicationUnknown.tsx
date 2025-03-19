@@ -1,8 +1,8 @@
-import { ContactUs } from '@/components/common/ContactUs';
 import { Container } from '@/components/layout/Container';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Modal } from '@/components/ui/v1/Modal';
 import { Button } from '@/components/ui/v2/Button';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
@@ -13,9 +13,13 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 export default function ApplicationUnknown() {
-  const { project } = useProject();
+  const { project, loading } = useProject();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const isOwner = useIsCurrentUserOwner();
+
+  if (!project || loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <>
@@ -47,28 +51,20 @@ export default function ApplicationUnknown() {
 
           <Text className="mt-1 font-normal">
             Something on our end went wrong and we could not finish setup. If
-            this keeps happening, contact support.
+            this keeps happening,{' '}
+            <Link
+              className="font-semibold underline underline-offset-2"
+              href="/support"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              contact support
+            </Link>
+            .
           </Text>
         </div>
 
         <div className="mx-auto grid grid-flow-row gap-2">
-          <Dropdown.Root>
-            <Dropdown.Trigger
-              hideChevron
-              asChild
-              className="w-full max-w-[240px]"
-            >
-              <Button variant="borderless">Contact Support</Button>
-            </Dropdown.Trigger>
-
-            <Dropdown.Content
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
-              <ContactUs />
-            </Dropdown.Content>
-          </Dropdown.Root>
-
           {isOwner && (
             <Button
               variant="borderless"

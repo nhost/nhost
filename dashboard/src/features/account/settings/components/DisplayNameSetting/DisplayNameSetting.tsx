@@ -1,8 +1,8 @@
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUpdateUserDisplayNameMutation } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';

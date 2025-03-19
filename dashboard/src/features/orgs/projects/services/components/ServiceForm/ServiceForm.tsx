@@ -28,6 +28,7 @@ import {
 
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
@@ -35,7 +36,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { removeTypename } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useState } from 'react';

@@ -26,13 +26,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
 import {
   useCreateOrganizationRequestMutation,
   usePrefetchNewAppQuery,
   type PrefetchNewAppPlansFragment,
 } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useUserData } from '@nhost/nextjs';
 import { DialogDescription } from '@radix-ui/react-dialog';

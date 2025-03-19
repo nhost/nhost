@@ -1,4 +1,3 @@
-import { ContactUs } from '@/components/common/ContactUs';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Nav } from '@/components/presentational/Nav';
@@ -6,7 +5,6 @@ import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Drawer } from '@/components/ui/v2/Drawer';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { MenuIcon } from '@/components/ui/v2/icons/MenuIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { List } from '@/components/ui/v2/List';
@@ -159,30 +157,16 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
           <List className="grid grid-flow-row gap-2">
             {isPlatform && (
-              <Dropdown.Root>
-                <Dropdown.Trigger
-                  className="justify-initial w-full"
-                  hideChevron
-                  asChild
+              <ListItem.Root>
+                <ListItem.Button
+                  component={NavLink}
+                  href="/support"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  <ListItem.Root>
-                    <ListItem.Button
-                      component="span"
-                      className="w-full"
-                      role={undefined}
-                    >
-                      <ListItem.Text>Contact us</ListItem.Text>
-                    </ListItem.Button>
-                  </ListItem.Root>
-                </Dropdown.Trigger>
-
-                <Dropdown.Content
-                  transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                >
-                  <ContactUs className="max-w-md" />
-                </Dropdown.Content>
-              </Dropdown.Root>
+                  <ListItem.Text>Contact us</ListItem.Text>
+                </ListItem.Button>
+              </ListItem.Root>
             )}
 
             <Divider component="li" />
