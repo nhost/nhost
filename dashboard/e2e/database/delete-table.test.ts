@@ -1,35 +1,17 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { deleteTable, navigateToProject, prepareTable } from '@/e2e/utils';
+import { deleteTable, prepareTable } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
+
+import { expect, test } from '@/e2e/fixtures/auth-hook';
 import { snakeCase } from 'snake-case';
 
-let page: Page;
-
-test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
-});
-
-test.beforeEach(async () => {
-  await page.goto('/');
-
-  await navigateToProject({
-    page,
-    orgSlug: TEST_ORGANIZATION_SLUG,
-    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
-  });
-
+test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
   await page.goto(databaseRoute);
   await page.waitForURL(databaseRoute);
 });
 
-test.afterAll(async () => {
-  await page.close();
-});
-
-test('should delete a table', async () => {
+test('should delete a table', async ({ authenticatedNhostPage: page }) => {
   const tableName = snakeCase(faker.lorem.words(3));
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -65,7 +47,9 @@ test('should delete a table', async () => {
   ).not.toBeVisible();
 });
 
-test('should not be able to delete a table if other tables have foreign keys referencing it', async () => {
+test('should not be able to delete a table if other tables have foreign keys referencing it', async ({
+  authenticatedNhostPage: page,
+}) => {
   test.setTimeout(60000);
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();

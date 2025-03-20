@@ -1,26 +1,14 @@
-import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { createUser, generateTestEmail } from '@/e2e/utils';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { createUser, generateTestEmail, gotoAuthURL } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
 
-let page: Page;
-
-test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
+test.beforeEach(async ({ authenticatedNhostPage: page }) => {
+  await gotoAuthURL(page);
 });
 
-test.beforeEach(async () => {
-  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
-  await page.goto(authUrl);
-  await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
-});
-
-test.afterAll(async () => {
-  await page.close();
-});
-
-test('should be able to verify the email of a user', async () => {
+test('should be able to verify the email of a user', async ({
+  authenticatedNhostPage: page,
+}) => {
   const email = generateTestEmail();
   const password = faker.internet.password();
 
@@ -50,7 +38,9 @@ test('should be able to verify the email of a user', async () => {
   ).toBeChecked();
 });
 
-test('should be able to verify the phone number of a user', async () => {
+test('should be able to verify the phone number of a user', async ({
+  authenticatedNhostPage: page,
+}) => {
   const email = generateTestEmail();
   const password = faker.internet.password();
   const phoneNumber = faker.phone.number();

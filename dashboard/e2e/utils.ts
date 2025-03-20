@@ -1,3 +1,4 @@
+import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 
@@ -210,4 +211,10 @@ export async function clickPermissionButton({
     .nth(permissionIndex)
     .locator('button')
     .click();
+}
+
+export async function gotoAuthURL(page) {
+  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
+  await page.goto(authUrl);
+  await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
 }

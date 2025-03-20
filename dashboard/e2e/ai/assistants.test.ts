@@ -1,17 +1,8 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
 import { navigateToProject } from '@/e2e/utils';
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
 
-let page: Page;
-
-test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
-});
-
-test.beforeEach(async () => {
-  await page.goto('/');
-
+test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   await navigateToProject({
     page,
     orgSlug: TEST_ORGANIZATION_SLUG,
@@ -23,11 +14,9 @@ test.beforeEach(async () => {
   await page.waitForURL(AIRoute);
 });
 
-test.afterAll(async () => {
-  await page.close();
-});
-
-test('should create and delete an Assistant', async () => {
+test('should create and delete an Assistant', async ({
+  authenticatedNhostPage: page,
+}) => {
   await page.getByRole('link', { name: 'Assistants' }).click();
 
   await expect(page.getByText(/no assistants are configured/i)).toBeVisible();

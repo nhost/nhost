@@ -1,13 +1,14 @@
-import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { createUser, generateTestEmail } from '@/e2e/utils';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { createUser, generateTestEmail, gotoAuthURL } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
-import test, { expect } from '@playwright/test';
 
-test('should be able to ban and unban a user', async ({ page }) => {
-  const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
-  await page.goto(authUrl);
-  await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
+test.beforeEach(async ({ authenticatedNhostPage: page }) => {
+  await gotoAuthURL(page);
+});
 
+test('should be able to ban and unban a user', async ({
+  authenticatedNhostPage: page,
+}) => {
   const email = generateTestEmail();
   const password = faker.internet.password();
 

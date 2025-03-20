@@ -1,39 +1,18 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import {
-  clickPermissionButton,
-  navigateToProject,
-  prepareTable,
-} from '@/e2e/utils';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { clickPermissionButton, prepareTable } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
 import { snakeCase } from 'snake-case';
 
-let page: Page;
-
-test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
-});
-
-test.beforeEach(async () => {
-  await page.goto('/');
-
-  await navigateToProject({
-    page,
-    orgSlug: TEST_ORGANIZATION_SLUG,
-    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
-  });
-
+test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;
   await page.goto(databaseRoute);
   await page.waitForURL(databaseRoute);
 });
 
-test.afterAll(async () => {
-  await page.close();
-});
-
-test('should create a table with role permissions to select row', async () => {
+test('should create a table with role permissions to select row', async ({
+  authenticatedNhostPage: page,
+}) => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
@@ -79,7 +58,9 @@ test('should create a table with role permissions to select row', async () => {
   ).toBeVisible();
 });
 
-test('should create a table with role permissions and a custom check to select rows', async () => {
+test('should create a table with role permissions and a custom check to select rows', async ({
+  authenticatedNhostPage: page,
+}) => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
