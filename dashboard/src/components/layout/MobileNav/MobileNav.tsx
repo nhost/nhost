@@ -106,7 +106,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         anchor="right"
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        className="z-[39] w-full sm:hidden"
+        className="z-[1200] w-full sm:hidden"
         hideCloseButton
         componentsProps={{ backdrop: { className: 'pt-18' } }}
         PaperProps={{
