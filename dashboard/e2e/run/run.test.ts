@@ -1,34 +1,15 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { navigateToProject, updatePageContext } from '@/e2e/utils';
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
 
-let page: Page;
-
-test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
-});
-
-test.beforeEach(async () => {
-  await page.goto('/');
-
-  await navigateToProject({
-    page,
-    orgSlug: TEST_ORGANIZATION_SLUG,
-    projectSubdomain: TEST_PROJECT_SUBDOMAIN,
-  });
-
+test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const runRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/run`;
   await page.goto(runRoute);
   await page.waitForURL(runRoute);
-  await updatePageContext(page);
 });
 
-test.afterAll(async () => {
-  await page.close();
-});
-
-test('should create and delete a run service', async () => {
+test('should create and delete a run service', async ({
+  authenticatedNhostPage: page,
+}) => {
   await page.getByRole('button', { name: 'Add service' }).first().click();
   await expect(page.getByText(/create a new service/i)).toBeVisible();
   await page.getByPlaceholder(/service name/i).click();

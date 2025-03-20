@@ -1,17 +1,9 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { navigateToProject, updatePageContext } from '@/e2e/utils';
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
+import { navigateToProject } from '@/e2e/utils';
 
-let page: Page;
+import { expect, test } from '@/e2e/fixtures/auth-hook';
 
-test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
-});
-
-test.beforeEach(async () => {
-  await page.goto('/');
-
+test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   await navigateToProject({
     page,
     orgSlug: TEST_ORGANIZATION_SLUG,
@@ -21,14 +13,11 @@ test.beforeEach(async () => {
   const AIRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/ai/auto-embeddings`;
   await page.goto(AIRoute);
   await page.waitForURL(AIRoute);
-  await updatePageContext(page);
 });
 
-test.afterAll(async () => {
-  await page.close();
-});
-
-test('should create and delete an Auto-Embeddings', async () => {
+test('should create and delete an Auto-Embeddings', async ({
+  authenticatedNhostPage: page,
+}) => {
   await page.getByRole('button', { name: 'Add a new Auto-Embeddings' }).click();
 
   await page.getByLabel('Name').fill('test');

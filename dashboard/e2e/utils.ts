@@ -213,14 +213,8 @@ export async function clickPermissionButton({
     .click();
 }
 
-export async function updatePageContext(page: Page) {
-  await page.context().storageState({ path: 'e2e/.auth/user.json' });
-}
-
-export async function gotoAuthURL(page: Page) {
-  await page.goto('/');
+export async function gotoAuthURL(page) {
   const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
   await page.goto(authUrl);
   await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
-  await updatePageContext(page);
 }

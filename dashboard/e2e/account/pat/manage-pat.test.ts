@@ -1,24 +1,10 @@
-import { updatePageContext } from '@/e2e/utils';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
+
 import { faker } from '@faker-js/faker';
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
 
-let page: Page;
-
-test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
-});
-
-test.beforeEach(async () => {
-  await page.goto('/');
-  await updatePageContext(page);
-});
-
-test.afterAll(async () => {
-  await page.close();
-});
-
-test('should be able to create then delete a personal access token', async () => {
+test('should be able to create then delete a personal access token', async ({
+  authenticatedNhostPage: page,
+}) => {
   await page.waitForTimeout(1000);
   await page.getByRole('banner').getByRole('button').last().click();
   await page.getByRole('link', { name: /account settings/i }).click();

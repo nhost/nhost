@@ -1,28 +1,18 @@
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
-import { navigateToProject, updatePageContext } from '@/e2e/utils';
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
+import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { navigateToProject } from '@/e2e/utils';
 
-let page: Page;
-
-test.beforeAll(async ({ browser }) => {
-  page = await browser.newPage();
-
-  await page.goto('/');
-
+test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   await navigateToProject({
     page,
     orgSlug: TEST_ORGANIZATION_SLUG,
     projectSubdomain: TEST_PROJECT_SUBDOMAIN,
   });
-  await updatePageContext(page);
 });
 
-test.afterAll(async () => {
-  await page.close();
-});
-
-test('should show the navtree with all links visible', async () => {
+test('should show the navtree with all links visible', async ({
+  authenticatedNhostPage: page,
+}) => {
   const navLocator = page.getByLabel('Navigation Tree');
   await expect(navLocator).toBeVisible();
 
@@ -54,7 +44,9 @@ test('should show the navtree with all links visible', async () => {
   }
 });
 
-test("should show the project's region and subdomain", async () => {
+test("should show the project's region and subdomain", async ({
+  authenticatedNhostPage: page,
+}) => {
   await expect(page.locator('p:has-text("Region") + div p').nth(0)).toHaveText(
     /frankfurt \(eu-central-1\)/i,
   );
@@ -63,7 +55,9 @@ test("should show the project's region and subdomain", async () => {
   ).toHaveText(/[a-z]{20}/i);
 });
 
-test('should not have a GitHub repository connected', async () => {
+test('should not have a GitHub repository connected', async ({
+  authenticatedNhostPage: page,
+}) => {
   await expect(
     page.getByRole('button', { name: /connect to github/i }).first(),
   ).toBeVisible();
