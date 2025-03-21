@@ -27,8 +27,10 @@ function ProjectCard({ project }: { project: Project }) {
     >
       <div className="flex flex-row items-start gap-2">
         <Box className="mt-[2px] h-5 w-5 flex-shrink-0" />
-        <div className="flex w-full flex-col">
-          <p className="truncate font-bold">{project.name}</p>
+        <div className="flex w-full flex-col overflow-hidden">
+          <p title={project.name} className="truncate font-bold">
+            {project.name}
+          </p>
           <span className="text-xs text-muted-foreground">
             {project.region.name}
           </span>
