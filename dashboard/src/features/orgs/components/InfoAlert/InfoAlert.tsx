@@ -5,11 +5,18 @@ import { type PropsWithChildren, type ReactNode } from 'react';
 interface Props {
   title?: string;
   icon?: ReactNode;
+  borderLess?: boolean;
 }
 
-function InfoAlert({ children, title, icon }: PropsWithChildren<Props>) {
+function InfoAlert({
+  children,
+  title,
+  icon,
+  borderLess = false,
+}: PropsWithChildren<Props>) {
   const alertClassNames = cn('bg-[#ebf3ff] dark:bg-muted', {
     'flex gap-2 items-center': !!icon,
+    'border-none': borderLess,
   });
 
   const descClassNames = cn('text-[0.9375rem] leading-[22px]', {
@@ -20,9 +27,11 @@ function InfoAlert({ children, title, icon }: PropsWithChildren<Props>) {
       {icon && <div>{icon}</div>}
       <div>
         {title && <AlertTitle>{title}</AlertTitle>}
-        <AlertDescription className={descClassNames}>
-          {children}
-        </AlertDescription>
+        {children && (
+          <AlertDescription className={descClassNames}>
+            {children}
+          </AlertDescription>
+        )}
       </div>
     </Alert>
   );

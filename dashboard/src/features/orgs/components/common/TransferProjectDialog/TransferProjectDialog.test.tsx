@@ -57,6 +57,7 @@ const getUseRouterObject = (session_id?: string) => ({
   },
   isFallback: false,
 });
+
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
   useOrgs: vi.fn(),

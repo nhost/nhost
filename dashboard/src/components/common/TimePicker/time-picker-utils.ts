@@ -229,7 +229,7 @@ export function getArrowByType(
   }
 }
 
-function isTZDate(date: Date | TZDate): date is TZDate {
+export function isTZDate(date: Date | TZDate): date is TZDate {
   return date instanceof TZDate;
 }
 

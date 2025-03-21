@@ -23,18 +23,17 @@ declare namespace Intl {
   // eslint-disable-next-line vars-on-top, no-var
   var DateTimeFormat: DateTimeFormat;
 }
-// Common
+
 export const UTC_GMT_TIMEZONE = {
   label: 'UTC, GMT (UTC+00:00)',
   value: 'UTC',
   key: 'UTC',
 };
-// Common
-// Common
+
 export function guessTimezone() {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
-// Common
+
 export function getUTCOffsetInHours(
   timezone: string,
   dateTime: string,
@@ -43,7 +42,7 @@ export function getUTCOffsetInHours(
   const date = new TZDate(dateTime, timezone);
   return format(date, dateFormat).replace('GMT', 'UTC');
 }
-// Common
+
 export function createTimezoneOptions(dateTime: string) {
   const validTimezones = new Set(Intl.supportedValuesOf('timeZone'));
 

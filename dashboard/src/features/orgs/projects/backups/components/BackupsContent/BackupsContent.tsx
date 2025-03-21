@@ -8,11 +8,12 @@ function BackupsContent({ isPiTREnabled }: { isPiTREnabled: boolean }) {
   const [tab, setTab] = useState(() =>
     isPiTREnabled ? 'pointInTime' : 'scheduledBackups',
   );
+
   return (
     <Tabs value={tab} onValueChange={setTab}>
       <TabsList>
         <TabsTrigger value="scheduledBackups">Scheduled backups</TabsTrigger>
-        <TabsTrigger value="pointInTime">Point-in-time</TabsTrigger>
+        <TabsTrigger value="pointInTime">Point-in-Time</TabsTrigger>
         <TabsTrigger value="importBackup">Import backup</TabsTrigger>
       </TabsList>
       <div className="pt-7">
