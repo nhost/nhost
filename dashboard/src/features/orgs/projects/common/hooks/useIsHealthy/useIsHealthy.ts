@@ -1,6 +1,6 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { useQuery } from '@tanstack/react-query';
 
 /**

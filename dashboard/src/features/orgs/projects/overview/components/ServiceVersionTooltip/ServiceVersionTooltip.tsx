@@ -1,7 +1,7 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import type { baseServices } from '@/features/projects/overview/health';
+import type { baseServices } from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/utils/__generated__/graphql';
 import { useTheme } from '@mui/material';
 

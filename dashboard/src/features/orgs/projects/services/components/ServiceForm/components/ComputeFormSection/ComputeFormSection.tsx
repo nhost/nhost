@@ -10,8 +10,8 @@ import {
   MAX_SERVICES_MEM,
   MEM_CPU_RATIO,
   MIN_SERVICES_MEM,
-} from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
+} from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 interface ComputeFormSectionProps {

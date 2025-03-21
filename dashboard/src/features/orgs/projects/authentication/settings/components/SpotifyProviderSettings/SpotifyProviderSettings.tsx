@@ -8,11 +8,11 @@ import { IconButton } from '@/components/ui/v2/IconButton';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import type { BaseProviderSettingsFormValues } from '@/features/authentication/settings/components/BaseProviderSettings';
+import type { BaseProviderSettingsFormValues } from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
 import {
   BaseProviderSettings,
   baseProviderValidationSchema,
-} from '@/features/authentication/settings/components/BaseProviderSettings';
+} from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
 import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
