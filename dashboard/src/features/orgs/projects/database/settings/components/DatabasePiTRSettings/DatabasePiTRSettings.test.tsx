@@ -1,5 +1,5 @@
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { render, screen } from '@/tests/orgs/testUtils';
+import { render, screen } from '@/tests/testUtils';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import DatabasePiTRSettings from './DatabasePiTRSettings';

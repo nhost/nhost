@@ -17,7 +17,7 @@ import {
   render,
   screen,
   waitFor,
-} from '@/tests/orgs/testUtils';
+} from '@/tests/testUtils';
 import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { useState } from 'react';

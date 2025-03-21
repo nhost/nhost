@@ -27,7 +27,7 @@ interface ProjectSelectorOption {
   plan: string;
 }
 
-export default function SelectWorkspaceAndProject() {
+export default function SelectOrganizationAndProject() {
   const router = useRouter();
   const { openAlertDialog } = useDialog();
   const { orgs, loading: loadingOrgs } = useOrgs();
@@ -212,7 +212,9 @@ export default function SelectWorkspaceAndProject() {
   );
 }
 
-SelectWorkspaceAndProject.getLayout = function getLayout(page: ReactElement) {
+SelectOrganizationAndProject.getLayout = function getLayout(
+  page: ReactElement,
+) {
   return (
     <AuthenticatedLayout title="New Run Service">{page}</AuthenticatedLayout>
   );

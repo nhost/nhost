@@ -1,5 +1,0 @@
-mutation deleteWorkspace($id: uuid!) {
-  deleteWorkspace(id: $id) {
-    id
-  }
-}

@@ -1,6 +1,6 @@
+import { mockApplication, mockOrganization } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { mockApplication, mockOrganization } from '@/tests/orgs/mocks';
-import { queryClient, render, screen } from '@/tests/orgs/testUtils';
+import { queryClient, render, screen } from '@/tests/testUtils';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';

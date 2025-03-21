@@ -5,10 +5,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  useDeleteUserAccountMutation,
-  useGetAllWorkspacesAndProjectsQuery,
-} from '@/utils/__generated__/graphql';
+import { useDeleteUserAccountMutation } from '@/utils/__generated__/graphql';
 import { useSignOut, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -23,15 +20,6 @@ function ConfirmDeleteAccountModal({
 }) {
   const [remove, setRemove] = useState(false);
   const [loadingRemove, setLoadingRemove] = useState(false);
-
-  const user = useUserData();
-
-  const { data, loading } = useGetAllWorkspacesAndProjectsQuery({
-    skip: !user,
-  });
-
-  const userHasProjects =
-    !loading && data?.workspaces.some((workspace) => workspace.projects.length);
 
   const userData = useUserData();
 
@@ -64,17 +52,6 @@ function ConfirmDeleteAccountModal({
           Delete Account?
         </Text>
 
-        {userHasProjects && (
-          <Text
-            variant="subtitle2"
-            className="font-bold"
-            sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-          >
-            You still have active projects. Please delete your projects before
-            proceeding with the account deletion.
-          </Text>
-        )}
-
         <Box className="my-4">
           <Checkbox
             id="accept-1"
@@ -90,7 +67,6 @@ function ConfirmDeleteAccountModal({
           <Button
             color="error"
             onClick={onClickConfirm}
-            disabled={userHasProjects}
             loading={loadingRemove}
           >
             Delete

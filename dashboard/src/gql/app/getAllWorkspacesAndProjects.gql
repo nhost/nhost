@@ -1,5 +1,0 @@
-query GetAllWorkspacesAndProjects {
-  workspaces(order_by: { name: asc }) {
-    ...Workspace
-  }
-}
