@@ -5,7 +5,10 @@ import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useBillingDeleteAppMutation } from '@/generated/graphql';
+import {
+  GetAllOrganizationsAndProjectsDocument,
+  useBillingDeleteAppMutation,
+} from '@/generated/graphql';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
 import { formatDistance } from 'date-fns';
@@ -16,7 +19,9 @@ export default function ApplicationInfo() {
   const { project } = useProject();
   const { currentOrg: org } = useOrgs();
 
-  const [deleteApplication] = useBillingDeleteAppMutation();
+  const [deleteApplication] = useBillingDeleteAppMutation({
+    refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
+  });
 
   async function handleClickRemove() {
     await execPromiseWithErrorToast(

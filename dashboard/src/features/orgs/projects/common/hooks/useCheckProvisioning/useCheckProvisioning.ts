@@ -1,9 +1,12 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetApplicationStateQuery } from '@/generated/graphql';
+import {
+  GetAllOrganizationsAndProjectsDocument,
+  useGetApplicationStateQuery,
+} from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 type ApplicationStateMetadata = {
   state: ApplicationStatus;
@@ -22,10 +25,19 @@ export default function useCheckProvisioning() {
     useState<ApplicationStateMetadata>({ state: ApplicationStatus.Empty });
   const isPlatform = useIsPlatform();
 
-  const { data, startPolling, stopPolling } = useGetApplicationStateQuery({
-    variables: { appId: project?.id },
-    skip: !isPlatform || !project?.id,
-  });
+  const { data, startPolling, stopPolling, client } =
+    useGetApplicationStateQuery({
+      variables: { appId: project?.id },
+      skip: !isPlatform || !project?.id,
+    });
+
+  async function updateOwnCache() {
+    await client.refetchQueries({
+      include: [GetAllOrganizationsAndProjectsDocument],
+    });
+  }
+
+  const memoizedUpdateCache = useCallback(updateOwnCache, [client]);
 
   const currentApplicationId = project?.id;
 
@@ -58,6 +70,10 @@ export default function useCheckProvisioning() {
         createdAt: data.app.appStates[0].createdAt,
       });
       stopPolling();
+      // Will update the cache and update with the new application state
+      // which will trigger the correct application component
+      // under `src\components\applications\App.tsx`
+      memoizedUpdateCache();
       return;
     }
     if (data.app.appStates[0].stateId === ApplicationStatus.Errored) {
@@ -73,8 +89,15 @@ export default function useCheckProvisioning() {
         `Application ${currentApplicationId} errored after provisioning: ${data.app.appStates[0].message}`,
       );
       stopPolling();
+      memoizedUpdateCache();
     }
-  }, [data, stopPolling, currentApplicationId, currentApplicationState.state]);
+  }, [
+    data,
+    stopPolling,
+    memoizedUpdateCache,
+    currentApplicationId,
+    currentApplicationState.state,
+  ]);
 
   return currentApplicationState;
 }

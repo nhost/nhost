@@ -4,12 +4,17 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
-import { useUpdateApplicationMutation } from '@/generated/graphql';
+import {
+  GetAllOrganizationsAndProjectsDocument,
+  useUpdateApplicationMutation,
+} from '@/generated/graphql';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { useApolloClient } from '@apollo/client';
 
 export interface BaseDirectoryFormValues {
   /**
@@ -22,6 +27,7 @@ export default function BaseDirectorySettings() {
   const { maintenanceActive } = useUI();
   const { project } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
+  const client = useApolloClient();
 
   const form = useForm<BaseDirectoryFormValues>({
     reValidateMode: 'onSubmit',
@@ -60,6 +66,16 @@ export default function BaseDirectorySettings() {
           "An error occurred while trying to update the project's base directory.",
       },
     );
+
+    try {
+      await client.refetchQueries({
+        include: [GetAllOrganizationsAndProjectsDocument],
+      });
+    } catch (error) {
+      await discordAnnounce(
+        error.message || 'Error while trying to update application cache',
+      );
+    }
   };
 
   return (
