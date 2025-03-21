@@ -19,15 +19,6 @@ fragment PrefetchNewAppPlans on plans {
   featureMaxDbSize
 }
 
-fragment PrefetchNewAppWorkspace on workspaces {
-  id
-  name
-  slug
-  paymentMethods {
-    id
-  }
-}
-
 query PrefetchNewApp {
   regions(order_by: { city: asc }) {
     ...PrefetchNewAppRegions
@@ -37,8 +28,5 @@ query PrefetchNewApp {
     where: { deprecated: { _eq: false }, isPublic: { _eq: true } }
   ) {
     ...PrefetchNewAppPlans
-  }
-  workspaces {
-    ...PrefetchNewAppWorkspace
   }
 }

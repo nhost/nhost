@@ -13,8 +13,8 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { convertToHasuraPermissions } from '@/features/orgs/projects/database/dataGrid/utils/convertToHasuraPermissions';
 import { convertToRuleGroup } from '@/features/orgs/projects/database/dataGrid/utils/convertToRuleGroup';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';

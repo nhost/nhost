@@ -5,7 +5,7 @@ import type {
   GetApplicationStateQueryVariables,
 } from '@/utils/__generated__/graphql';
 import {
-  GetAllWorkspacesAndProjectsDocument,
+  GetAllOrganizationsAndProjectsDocument,
   useGetApplicationStateQuery,
 } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
@@ -34,10 +34,9 @@ export default function useProjectRedirectWhenReady(
   useEffect(() => {
     async function updateOwnCache() {
       await client.refetchQueries({
-        include: [GetAllWorkspacesAndProjectsDocument],
+        include: [GetAllOrganizationsAndProjectsDocument],
       });
     }
-
     if (!data) {
       return;
     }
@@ -55,9 +54,6 @@ export default function useProjectRedirectWhenReady(
       lastState.stateId === ApplicationStatus.Live ||
       lastState.stateId === ApplicationStatus.Errored
     ) {
-      // Will update the cache and update with the new application state
-      // which will trigger the correct application component
-      // under `src\components\applications\App.tsx`
       updateOwnCache();
     }
   }, [data, client]);

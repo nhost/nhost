@@ -4,7 +4,7 @@
 export const TEST_DASHBOARD_URL = process.env.NHOST_TEST_DASHBOARD_URL;
 
 /**
- * Name of the workspace to test against.
+ * Name of the organization to test against.
  */
 export const TEST_ORGANIZATION_NAME = process.env.NHOST_TEST_ORGANIZATION_NAME;
 

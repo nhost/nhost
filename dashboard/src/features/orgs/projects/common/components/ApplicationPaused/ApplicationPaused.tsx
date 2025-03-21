@@ -10,7 +10,7 @@ import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/use
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  GetAllWorkspacesAndProjectsDocument,
+  GetAllOrganizationsAndProjectsDocument,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
 import { useState } from 'react';
@@ -24,7 +24,7 @@ export default function ApplicationPaused() {
 
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   useUnpauseApplicationMutation({
-    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
+    refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
   });
 
   return (

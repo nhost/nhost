@@ -14,7 +14,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
-  GetAllWorkspacesAndProjectsDocument,
+  GetAllOrganizationsAndProjectsDocument,
   useInsertDeploymentMutation,
 } from '@/utils/__generated__/graphql';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
@@ -57,7 +57,7 @@ export default function DeploymentListItem({
     : '';
 
   const [insertDeployment, { loading }] = useInsertDeploymentMutation({
-    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
+    refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
   });
   const { commitMessage } = deployment;
 

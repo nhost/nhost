@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 /**
- * Redirects to 404 page if either currentWorkspace/currentProject resolves to undefined
+ * Redirects to 404 page if currentProject resolves to undefined
  * or if the current pathname is not a valid organization/project.
  * Not applicable if running dashboard with local Nhost backend.
  */
@@ -14,7 +14,6 @@ export default function useNotFoundRedirect() {
   const {
     query: {
       orgSlug: urlOrgSlug,
-      workspaceSlug: urlWorkspaceSlug,
       appSubdomain: urlAppSubdomain,
       updating,
       appSlug: urlAppSlug,
@@ -68,7 +67,6 @@ export default function useNotFoundRedirect() {
     orgLoading,
     currentOrgSlug,
     projectSubdomain,
-    urlWorkspaceSlug,
     urlOrgSlug,
     isPlatform,
   ]);

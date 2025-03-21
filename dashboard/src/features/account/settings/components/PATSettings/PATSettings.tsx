@@ -15,12 +15,12 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetPersonalAccessTokensDocument,
   useDeletePersonalAccessTokenMutation,
   useGetPersonalAccessTokensQuery,
 } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 

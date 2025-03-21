@@ -1,7 +1,7 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  GetAllWorkspacesAndProjectsDocument,
+  GetAllOrganizationsAndProjectsDocument,
   useGetApplicationStateQuery,
 } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
@@ -33,7 +33,7 @@ export default function useCheckProvisioning() {
 
   async function updateOwnCache() {
     await client.refetchQueries({
-      include: [GetAllWorkspacesAndProjectsDocument],
+      include: [GetAllOrganizationsAndProjectsDocument],
     });
   }
 

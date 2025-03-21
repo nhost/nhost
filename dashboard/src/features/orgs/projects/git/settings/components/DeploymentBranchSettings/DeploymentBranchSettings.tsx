@@ -4,16 +4,16 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
 import {
-  GetAllWorkspacesAndProjectsDocument,
+  GetAllOrganizationsAndProjectsDocument,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { useApolloClient } from '@apollo/client';
 
 export interface DeploymentBranchFormValues {
   /**
@@ -70,7 +70,7 @@ export default function DeploymentBranchSettings() {
 
     try {
       await client.refetchQueries({
-        include: [GetAllWorkspacesAndProjectsDocument],
+        include: [GetAllOrganizationsAndProjectsDocument],
       });
     } catch (error) {
       await discordAnnounce(

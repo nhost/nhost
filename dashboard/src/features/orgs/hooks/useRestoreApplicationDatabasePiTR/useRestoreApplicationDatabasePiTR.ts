@@ -1,5 +1,5 @@
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useRestoreApplicationDatabasePiTrMutation } from '@/utils/__generated__/graphql';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 
 function useRestoreApplicationDatabasePiTR() {
   const [restoreApplicationDatabaseMutation, { loading }] =

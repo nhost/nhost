@@ -25,7 +25,6 @@ type Option = {
   value: string;
   label: string;
   plan: string;
-  type: 'organization' | 'workspace';
 };
 
 export default function OrgsComboBox() {
@@ -51,7 +50,6 @@ export default function OrgsComboBox() {
         label: selectedItemFromUrl.name,
         value: selectedItemFromUrl.slug,
         plan: selectedOrgFromUrl ? selectedOrgFromUrl.plan.name : 'Legacy',
-        type: selectedOrgFromUrl ? 'organization' : 'workspace',
       });
     }
   }, [selectedOrgFromUrl]);
@@ -60,7 +58,6 @@ export default function OrgsComboBox() {
     label: org.name,
     value: org.slug,
     plan: org.plan.name,
-    type: 'organization',
   }));
 
   const [open, setOpen] = useState(false);
@@ -100,7 +97,7 @@ export default function OrgsComboBox() {
               {renderBadge(selectedItem.plan)}
             </div>
           ) : (
-            'Select organization / workspace'
+            'Select organization'
           )}
           <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
@@ -124,11 +121,7 @@ export default function OrgsComboBox() {
                     // persist last slug in local storage
                     setLastSlug(option.value);
 
-                    if (option.type === 'organization') {
-                      push(`/orgs/${option.value}/projects`);
-                    } else {
-                      push(`/${option.value}`);
-                    }
+                    push(`/orgs/${option.value}/projects`);
                   }}
                 >
                   <Check
