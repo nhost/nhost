@@ -1,0 +1,5 @@
+query GetAllOrganizationsAndProjects {
+  organizations(order_by: { name: asc }) {
+    ...Organization
+  }
+}

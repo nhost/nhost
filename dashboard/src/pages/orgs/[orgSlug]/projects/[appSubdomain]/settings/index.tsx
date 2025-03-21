@@ -20,6 +20,7 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
+  GetAllOrganizationsAndProjectsDocument,
   useBillingDeleteAppMutation,
   usePauseApplicationMutation,
   useUnpauseApplicationMutation,
@@ -74,13 +75,13 @@ export default function SettingsGeneralPage() {
   const [pauseApplication, { loading: pauseApplicationLoading }] =
     usePauseApplicationMutation({
       variables: { appId: project?.id },
+      refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
     });
 
   const [unpauseApplication, { loading: unpauseApplicationLoading }] =
     useUnpauseApplicationMutation({
-      variables: {
-        appId: project?.id,
-      },
+      variables: { appId: project?.id },
+      refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
     });
 
   const form = useForm<ProjectNameValidationSchema>({

@@ -4,7 +4,10 @@ import type {
   GetApplicationStateQuery,
   GetApplicationStateQueryVariables,
 } from '@/utils/__generated__/graphql';
-import { useGetApplicationStateQuery } from '@/utils/__generated__/graphql';
+import {
+  GetAllOrganizationsAndProjectsDocument,
+  useGetApplicationStateQuery,
+} from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
 import { useEffect } from 'react';
 
@@ -29,6 +32,11 @@ export default function useProjectRedirectWhenReady(
   }, [options.pollInterval, startPolling]);
 
   useEffect(() => {
+    async function updateOwnCache() {
+      await client.refetchQueries({
+        include: [GetAllOrganizationsAndProjectsDocument],
+      });
+    }
     if (!data) {
       return;
     }
@@ -46,6 +54,7 @@ export default function useProjectRedirectWhenReady(
       lastState.stateId === ApplicationStatus.Live ||
       lastState.stateId === ApplicationStatus.Errored
     ) {
+      updateOwnCache();
     }
   }, [data, client]);
 

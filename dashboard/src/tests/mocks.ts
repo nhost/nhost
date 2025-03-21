@@ -46,8 +46,8 @@ export const mockRouter: NextRouter = {
 
 export const mockApplication: Project = {
   id: '1',
-  name: 'Test Application',
-  slug: 'test-application',
+  name: 'Test Project',
+  slug: 'test-project',
   appStates: [],
   subdomain: 'subdomain',
   region: {
@@ -121,15 +121,7 @@ export const mockOrganization: Organization = {
     __typename: 'plans',
   },
   members: [],
-  apps: [
-    {
-      id: '1',
-      name: 'Test Application',
-      subdomain: '',
-      slug: 'test-application',
-      __typename: 'apps',
-    },
-  ],
+  apps: [mockApplication],
   __typename: 'organizations',
 };
 

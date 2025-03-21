@@ -13,7 +13,10 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
-import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
+import {
+  GetAllOrganizationsAndProjectsDocument,
+  useInsertDeploymentMutation,
+} from '@/utils/__generated__/graphql';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import type { MouseEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -53,7 +56,9 @@ export default function DeploymentListItem({
       })
     : '';
 
-  const [insertDeployment, { loading }] = useInsertDeploymentMutation({});
+  const [insertDeployment, { loading }] = useInsertDeploymentMutation({
+    refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
+  });
   const { commitMessage } = deployment;
 
   async function redeployDeployment(event: MouseEvent<HTMLButtonElement>) {

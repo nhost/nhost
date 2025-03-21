@@ -9,7 +9,10 @@ import { StagingMetadata } from '@/features/orgs/projects/common/components/Stag
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUnpauseApplicationMutation } from '@/generated/graphql';
+import {
+  GetAllOrganizationsAndProjectsDocument,
+  useUnpauseApplicationMutation,
+} from '@/generated/graphql';
 import { useState } from 'react';
 
 export default function ApplicationPaused() {
@@ -20,7 +23,9 @@ export default function ApplicationPaused() {
     useState(false);
 
   const [showDeletingModal, setShowDeletingModal] = useState(false);
-  useUnpauseApplicationMutation();
+  useUnpauseApplicationMutation({
+    refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
+  });
 
   return (
     <>

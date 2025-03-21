@@ -6,7 +6,10 @@ import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isEmptyValue } from '@/lib/utils';
-import { useBillingDeleteAppMutation } from '@/utils/__generated__/graphql';
+import {
+  GetAllOrganizationsAndProjectsDocument,
+  useBillingDeleteAppMutation,
+} from '@/utils/__generated__/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import router from 'next/router';
@@ -46,7 +49,9 @@ export default function RemoveApplicationModal({
   const { project } = useProject();
   const { currentOrg: org } = useOrgs();
   const [loadingRemove, setLoadingRemove] = useState(false);
-  const [deleteApplication] = useBillingDeleteAppMutation();
+  const [deleteApplication] = useBillingDeleteAppMutation({
+    refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
+  });
 
   const [remove, setRemove] = useState(false);
   const [remove2, setRemove2] = useState(false);

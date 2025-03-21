@@ -28141,6 +28141,8 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
+export type OrganizationFragment = { __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+
 export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
@@ -28262,6 +28264,11 @@ export type DeleteOrganizationMemberMutationVariables = Exact<{
 
 
 export type DeleteOrganizationMemberMutation = { __typename?: 'mutation_root', deleteOrganizationMember?: { __typename: 'organization_members' } | null };
+
+export type GetAllOrganizationsAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllOrganizationsAndProjectsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type GetOrganizationQueryVariables = Exact<{
   orgSlug: Scalars['String'];
@@ -28863,6 +28870,35 @@ export const ProjectFragmentDoc = gql`
   }
 }
     `;
+export const OrganizationFragmentDoc = gql`
+    fragment Organization on organizations {
+  id
+  name
+  slug
+  plan {
+    id
+    name
+    price
+    deprecated
+    individual
+    isFree
+    featureMaxDbSize
+  }
+  members {
+    id
+    role
+    user {
+      id
+      email
+      displayName
+      avatarUrl
+    }
+  }
+  projects: apps(order_by: {name: asc}) {
+    ...Project
+  }
+}
+    ${ProjectFragmentDoc}`;
 export const GithubRepositoryFragmentDoc = gql`
     fragment GithubRepository on githubRepositories {
   id
@@ -32209,6 +32245,43 @@ export function useDeleteOrganizationMemberMutation(baseOptions?: Apollo.Mutatio
 export type DeleteOrganizationMemberMutationHookResult = ReturnType<typeof useDeleteOrganizationMemberMutation>;
 export type DeleteOrganizationMemberMutationResult = Apollo.MutationResult<DeleteOrganizationMemberMutation>;
 export type DeleteOrganizationMemberMutationOptions = Apollo.BaseMutationOptions<DeleteOrganizationMemberMutation, DeleteOrganizationMemberMutationVariables>;
+export const GetAllOrganizationsAndProjectsDocument = gql`
+    query GetAllOrganizationsAndProjects {
+  organizations(order_by: {name: asc}) {
+    ...Organization
+  }
+}
+    ${OrganizationFragmentDoc}`;
+
+/**
+ * __useGetAllOrganizationsAndProjectsQuery__
+ *
+ * To run a query within a React component, call `useGetAllOrganizationsAndProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllOrganizationsAndProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllOrganizationsAndProjectsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAllOrganizationsAndProjectsQuery(baseOptions?: Apollo.QueryHookOptions<GetAllOrganizationsAndProjectsQuery, GetAllOrganizationsAndProjectsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllOrganizationsAndProjectsQuery, GetAllOrganizationsAndProjectsQueryVariables>(GetAllOrganizationsAndProjectsDocument, options);
+      }
+export function useGetAllOrganizationsAndProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllOrganizationsAndProjectsQuery, GetAllOrganizationsAndProjectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllOrganizationsAndProjectsQuery, GetAllOrganizationsAndProjectsQueryVariables>(GetAllOrganizationsAndProjectsDocument, options);
+        }
+export type GetAllOrganizationsAndProjectsQueryHookResult = ReturnType<typeof useGetAllOrganizationsAndProjectsQuery>;
+export type GetAllOrganizationsAndProjectsLazyQueryHookResult = ReturnType<typeof useGetAllOrganizationsAndProjectsLazyQuery>;
+export type GetAllOrganizationsAndProjectsQueryResult = Apollo.QueryResult<GetAllOrganizationsAndProjectsQuery, GetAllOrganizationsAndProjectsQueryVariables>;
+export function refetchGetAllOrganizationsAndProjectsQuery(variables?: GetAllOrganizationsAndProjectsQueryVariables) {
+      return { query: GetAllOrganizationsAndProjectsDocument, variables: variables }
+    }
 export const GetOrganizationDocument = gql`
     query getOrganization($orgSlug: String!) {
   organizations(where: {slug: {_eq: $orgSlug}}) {
