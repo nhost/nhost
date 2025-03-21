@@ -137,7 +137,6 @@ module.exports = {
         welcome: '640px',
         account: '344px',
         app: '896px',
-        workspaceSidebar: '320px',
         apps: '928px',
         dash: '1376px',
         info: '494px',
@@ -218,13 +217,13 @@ module.exports = {
           '40%': { transform: 'translateX(0) scaleX(0.4)' },
           '100%': { transform: 'translateX(100%) scaleX(0.5)' },
         },
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
       },
       animation: {
@@ -232,8 +231,8 @@ module.exports = {
         toastenter: 'enter 200ms ease-out',
         toastleave: 'leave 150ms ease-in forwards',
         progress: 'progress 1s infinite linear',
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
       },
     },
   },

@@ -20,7 +20,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 
 import {
   GetPostgresSettingsDocument,
-  GetWorkspaceAndProjectDocument,
   Software_Type_Enum,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
@@ -71,10 +70,7 @@ export default function DatabaseServiceVersionSettings() {
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [
-      GetPostgresSettingsDocument,
-      GetWorkspaceAndProjectDocument,
-    ],
+    refetchQueries: [GetPostgresSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

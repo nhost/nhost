@@ -1,9 +1,7 @@
-import { mockMatchMediaValue } from '@/tests/mocks';
+import { mockMatchMediaValue, mockSession } from '@/tests/mocks';
 import { getOrganizations } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
-
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { mockSession } from '@/tests/orgs/mocks';
-import { queryClient, render, waitFor } from '@/tests/orgs/testUtils';
+import { queryClient, render, waitFor } from '@/tests/testUtils';
 import { CheckoutStatus } from '@/utils/__generated__/graphql';
 
 import { setupServer } from 'msw/node';

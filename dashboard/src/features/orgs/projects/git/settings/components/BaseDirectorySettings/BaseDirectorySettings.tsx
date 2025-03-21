@@ -4,12 +4,7 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
-import {
-  GetAllWorkspacesAndProjectsDocument,
-  useUpdateApplicationMutation,
-} from '@/generated/graphql';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { useApolloClient } from '@apollo/client';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -27,7 +22,6 @@ export default function BaseDirectorySettings() {
   const { maintenanceActive } = useUI();
   const { project } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
-  const client = useApolloClient();
 
   const form = useForm<BaseDirectoryFormValues>({
     reValidateMode: 'onSubmit',
@@ -66,16 +60,6 @@ export default function BaseDirectorySettings() {
           "An error occurred while trying to update the project's base directory.",
       },
     );
-
-    try {
-      await client.refetchQueries({
-        include: [GetAllWorkspacesAndProjectsDocument],
-      });
-    } catch (error) {
-      await discordAnnounce(
-        error.message || 'Error while trying to update application cache',
-      );
-    }
   };
 
   return (

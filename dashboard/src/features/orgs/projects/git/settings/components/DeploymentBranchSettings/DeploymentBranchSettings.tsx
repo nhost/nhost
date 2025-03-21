@@ -3,12 +3,7 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
-import {
-  GetAllWorkspacesAndProjectsDocument,
-  useUpdateApplicationMutation,
-} from '@/generated/graphql';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { useApolloClient } from '@apollo/client';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -26,7 +21,6 @@ export default function DeploymentBranchSettings() {
   const { maintenanceActive } = useUI();
   const { project } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
-  const client = useApolloClient();
 
   const form = useForm<DeploymentBranchFormValues>({
     reValidateMode: 'onSubmit',
@@ -67,16 +61,6 @@ export default function DeploymentBranchSettings() {
           'An error occurred while trying to create the permission variable.',
       },
     );
-
-    try {
-      await client.refetchQueries({
-        include: [GetAllWorkspacesAndProjectsDocument],
-      });
-    } catch (error) {
-      await discordAnnounce(
-        error.message || 'Error while trying to update application cache',
-      );
-    }
   };
 
   return (

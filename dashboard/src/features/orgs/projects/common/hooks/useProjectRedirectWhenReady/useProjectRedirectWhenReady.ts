@@ -4,10 +4,7 @@ import type {
   GetApplicationStateQuery,
   GetApplicationStateQueryVariables,
 } from '@/utils/__generated__/graphql';
-import {
-  GetAllWorkspacesAndProjectsDocument,
-  useGetApplicationStateQuery,
-} from '@/utils/__generated__/graphql';
+import { useGetApplicationStateQuery } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
 import { useEffect } from 'react';
 
@@ -32,12 +29,6 @@ export default function useProjectRedirectWhenReady(
   }, [options.pollInterval, startPolling]);
 
   useEffect(() => {
-    async function updateOwnCache() {
-      await client.refetchQueries({
-        include: [GetAllWorkspacesAndProjectsDocument],
-      });
-    }
-
     if (!data) {
       return;
     }
@@ -55,10 +46,6 @@ export default function useProjectRedirectWhenReady(
       lastState.stateId === ApplicationStatus.Live ||
       lastState.stateId === ApplicationStatus.Errored
     ) {
-      // Will update the cache and update with the new application state
-      // which will trigger the correct application component
-      // under `src\components\applications\App.tsx`
-      updateOwnCache();
     }
   }, [data, client]);
 

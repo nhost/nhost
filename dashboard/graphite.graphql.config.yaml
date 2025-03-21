@@ -1,5 +1,5 @@
 schema:
-  - https://local.graphql.local.nhost.run/v1:
+  - http://localhost:8080/v1/graphql:
       headers:
         x-hasura-admin-secret: nhost-admin-secret
 generates:

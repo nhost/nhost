@@ -10,7 +10,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetPostgresSettingsDocument,
-  GetWorkspaceAndProjectDocument,
   useUpdateDatabaseVersionMutation,
 } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
@@ -42,10 +41,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
   const [loading, setLoading] = useState(false);
   const { project } = useProject();
   const [updatePostgresMajor] = useUpdateDatabaseVersionMutation({
-    refetchQueries: [
-      GetPostgresSettingsDocument,
-      GetWorkspaceAndProjectDocument,
-    ],
+    refetchQueries: [GetPostgresSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

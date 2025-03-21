@@ -1,6 +1,0 @@
-mutation insertWorkspace($workspace: workspaces_insert_input!) {
-  insertWorkspace(object: $workspace) {
-    name
-    id
-  }
-}
