@@ -357,14 +357,6 @@ ALTER TABLE ONLY auth.user_providers
 
 
 --
--- Name: user_providers user_providers_user_id_provider_id_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
---
-
-ALTER TABLE ONLY auth.user_providers
-    ADD CONSTRAINT user_providers_user_id_provider_id_key UNIQUE (user_id, provider_id);
-
-
---
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
 --
 

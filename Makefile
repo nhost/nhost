@@ -1,7 +1,7 @@
 ifdef VER
 VERSION=$(shell echo $(VER) | sed -e 's/^v//g' -e 's/\//_/g')
 else
-VERSION=$(shell grep -oP 'version\s*=\s*"\K[^"]+' flake.nix)
+VERSION=$(shell grep -oP 'version\s*=\s*"\K[^"]+' flake.nix | head -n 1)
 endif
 
 ifeq ($(shell uname -m),x86_64)
@@ -36,7 +36,7 @@ help: ## Show this help.
 
 .PHONY: get-version
 get-version:  ## Return version
-	@sed -i "s/version\s*=\s*\"[^\"]*\"/version = \"${VERSION}\"/" flake.nix
+	@sed -i '/^\s*version = "0\.0\.0-dev";/s//version = "${VERSION}";/' flake.nix
 	@echo $(VERSION)
 
 

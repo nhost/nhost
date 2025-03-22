@@ -203,8 +203,8 @@
 
         packages = flake-utils.lib.flattenTree rec {
           node-auth = pkgs.stdenv.mkDerivation {
-            inherit version;
             pname = "node-${name}";
+            version = "hardcoded";
 
             buildInputs = with pkgs; [
               pkgs.nodejs-slim_20

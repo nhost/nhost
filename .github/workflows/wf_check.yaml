@@ -90,10 +90,6 @@ jobs:
 
     - name: "Cache build"
       run: |
-       echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
-       nix store sign --key-file cache-priv-key.pem --all
-       find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
-      if: always()
-
-    - run: rm -f cache-priv-key.pem
+        nix store sign --key-file <(echo "${{ secrets.NIX_CACHE_PRIV_KEY }}") --all
+        find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
       if: always()
