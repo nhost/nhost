@@ -390,14 +390,17 @@ func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
 func (wf *Workflows) UpdateSession( //nolint:funlen
 	ctx context.Context,
 	user sql.AuthUser,
-	refreshToken string,
+	oldRefreshToken string,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
+	refreshToken := uuid.New().String()
+
 	userRoles, err := wf.db.RefreshTokenAndGetUserRoles(ctx, sql.RefreshTokenAndGetUserRolesParams{
-		RefreshTokenHash: sql.Text(hashRefreshToken([]byte(refreshToken))),
+		NewRefreshTokenHash: sql.Text(hashRefreshToken([]byte(refreshToken))),
 		ExpiresAt: sql.TimestampTz(
 			time.Now().Add(time.Duration(wf.config.RefreshTokenExpiresIn) * time.Second),
 		),
+		OldRefreshTokenHash: sql.Text(hashRefreshToken([]byte(oldRefreshToken))),
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.Warn("invalid refresh token")

@@ -147,6 +147,10 @@ func cmpDBParams(
 				return x != "" || y != ""
 			}),
 		),
+		testhelpers.FilterPathLast(
+			[]string{".NewRefreshTokenHash", "text()"},
+			cmp.Comparer(func(x, y string) bool { return x != "" || y != "" }),
+		),
 	}, options...)
 
 	return testhelpers.GomockCmpOpts(

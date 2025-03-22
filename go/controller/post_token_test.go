@@ -56,8 +56,8 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 	token := uuid.MustParse("1fb17604-86c7-444e-b337-09a644465f2d")
-	tokenID := uuid.MustParse("1fb13604-86c7-4444-a337-09a644465f2d")
 	hashedToken := `\x9698157153010b858587119503cbeef0cf288f11775e51cdb6bfd65e930d9310`
+	newTokenID := uuid.MustParse("1fb13604-86c7-4444-a337-09a644465f2d")
 
 	cases := []testRequest[api.PostTokenRequestObject, api.PostTokenResponseObject]{
 		{
@@ -77,14 +77,15 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().RefreshTokenAndGetUserRoles(
 					gomock.Any(),
 					cmpDBParams(sql.RefreshTokenAndGetUserRolesParams{
-						RefreshTokenHash: sql.Text(hashedToken),
+						NewRefreshTokenHash: sql.Text(""),
 						ExpiresAt: sql.TimestampTz(
 							time.Now().Add(time.Duration(2592000) * time.Second),
 						),
+						OldRefreshTokenHash: sql.Text(hashedToken),
 					}),
 				).Return([]sql.RefreshTokenAndGetUserRolesRow{
-					{Role: sql.Text("user"), RefreshTokenID: tokenID},
-					{Role: sql.Text("me"), RefreshTokenID: tokenID},
+					{Role: sql.Text("user"), RefreshTokenID: newTokenID},
+					{Role: sql.Text("me"), RefreshTokenID: newTokenID},
 				}, nil)
 
 				return mock
@@ -159,13 +160,14 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().RefreshTokenAndGetUserRoles(
 					gomock.Any(),
 					cmpDBParams(sql.RefreshTokenAndGetUserRolesParams{
-						RefreshTokenHash: sql.Text(hashedToken),
+						NewRefreshTokenHash: sql.Text(""),
 						ExpiresAt: sql.TimestampTz(
 							time.Now().Add(time.Duration(2592000) * time.Second),
 						),
+						OldRefreshTokenHash: sql.Text(hashedToken),
 					}),
 				).Return([]sql.RefreshTokenAndGetUserRolesRow{
-					{Role: sql.Text("anonymous"), RefreshTokenID: tokenID},
+					{Role: sql.Text("anonymous"), RefreshTokenID: newTokenID},
 				}, nil)
 
 				return mock

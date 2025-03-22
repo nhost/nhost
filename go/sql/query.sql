@@ -252,8 +252,10 @@ RETURNING id;
 -- name: RefreshTokenAndGetUserRoles :many
 WITH refreshed_token AS (
     UPDATE auth.refresh_tokens
-    SET expires_at = $2
-    WHERE refresh_token_hash = $1
+    SET
+        expires_at = $2,
+        refresh_token_hash = sqlc.arg(new_refresh_token_hash)
+    WHERE refresh_token_hash = sqlc.arg(old_refresh_token_hash)
     RETURNING id AS refresh_token_id, user_id
 ),
 updated_user AS (
