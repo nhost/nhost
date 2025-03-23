@@ -16,8 +16,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
 import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
+import { nhost } from '@/utils/nhost';
 import { useApolloClient } from '@apollo/client';
-import { useSignOut } from '@nhost/nextjs';
 import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
@@ -84,10 +84,13 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
   const { allRoutes } = useProjectRoutes();
   const shouldDisplayNav = useNavigationVisible();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { signOut } = useSignOut();
   const apolloClient = useApolloClient();
   const router = useRouter();
   const { publicRuntimeConfig } = getConfig();
+
+  const signOut = async () => {
+    await nhost.auth.signOut();
+  };
 
   return (
     <>
@@ -108,9 +111,18 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         onClose={() => setMenuOpen(false)}
         className="z-[1200] w-full sm:hidden"
         hideCloseButton
-        componentsProps={{ backdrop: { className: 'pt-18' } }}
+        componentsProps={{
+          backdrop: {
+            className: 'top-[64px] pt-0',
+            style: { top: 'var(--header-height, 64px)' },
+          },
+        }}
         PaperProps={{
-          className: 'w-full px-4 pt-18 pb-12 grid grid-flow-row gap-6',
+          className: 'w-full px-4 pb-12 grid grid-flow-row gap-6',
+          style: {
+            top: 'var(--header-height, 64px)',
+            height: 'calc(100% - var(--header-height, 64px))',
+          },
         }}
       >
         {shouldDisplayNav && (
