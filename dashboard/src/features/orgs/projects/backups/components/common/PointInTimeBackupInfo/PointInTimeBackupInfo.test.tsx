@@ -8,7 +8,7 @@ import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, waitFor } from '@/tests/orgs/testUtils';
 import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
+import { test, vi } from 'vitest';
 
 import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
@@ -64,37 +64,62 @@ describe('PointInTimeBackupInfo', () => {
     server.listen();
   });
 
-  afterAll(() => {
-    server.close();
+  afterEach(() => {
+    server.resetHandlers();
     vi.restoreAllMocks();
   });
 
-  test('will fetch the earliest backup and will display the date in with timezone', async () => {
-    server.use(getOrganization);
+  afterAll(() => {
+    server.close();
+  });
+
+  test("will display the earliest backup's date with the local timezone", async () => {
     server.use(getProjectQuery);
+    server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchPiTRBaseBackups,
       { loading: false },
     ]);
 
-    await waitFor(() => render(<PointInTimeBackupInfo appId="randomId" />));
-    // '10 March 2025, 05:00:05 (UTC+02:00)'
+    await waitFor(() =>
+      render(<PointInTimeBackupInfo appId={mockApplication.id} />),
+    );
     const earliestBackup = await screen.getByTestId('EarliestBackupDateTime');
     expect(earliestBackup).toHaveTextContent(
       '10 Mar 2025, 05:00:05 (UTC+02:00)',
     );
   });
 
-  test('will update the date after the timezone is changed', async () => {
+  test("that the system fetches the earliest backup, displays 'Project has no backups yet' message when no backups exist, and verifies that the restore button is disabled.", async () => {
     server.use(getOrganization);
-    server.use(getProjectQuery);
+    mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
+      fetchEmptyPiTRBaseBackups,
+      { loading: false },
+    ]);
+
+    await waitFor(() =>
+      render(<PointInTimeBackupInfo appId={mockApplication.id} />),
+    );
+
+    const earliestBackup = await screen.getByText(
+      'Project has no backups yet.',
+    );
+    expect(earliestBackup).toBeInTheDocument();
+    const startRestoreButton = await screen.getByRole('button', {
+      name: 'Start restore',
+    });
+    expect(startRestoreButton).toBeDisabled();
+  });
+
+  test('will update the date after the timezone has changed', async () => {
+    server.use(getOrganization);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchPiTRBaseBackups,
       { loading: false },
     ]);
     await waitFor(() => render(<PointInTimeBackupInfo appId="randomId" />));
     const user = userEvent.setup();
-    // '10 March 2025, 05:00:05 (UTC+02:00)'
+
     const earliestBackup = await screen.getByTestId('EarliestBackupDateTime');
     expect(earliestBackup).toHaveTextContent(
       '10 Mar 2025, 05:00:05 (UTC+02:00)',
@@ -116,29 +141,8 @@ describe('PointInTimeBackupInfo', () => {
     );
   });
 
-  test('will fetch the earliest backup and display "Project has no backups yet." test if there are now backups and start restore is disabled', async () => {
-    server.use(getOrganization);
-    server.use(getProjectQuery);
-    mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
-      fetchEmptyPiTRBaseBackups,
-      { loading: false },
-    ]);
-
-    await waitFor(() => render(<PointInTimeBackupInfo appId="randomId" />));
-    // '10 March 2025, 05:00:05 (UTC+02:00)'
-    const earliestBackup = await screen.getByText(
-      'Project has no backups yet.',
-    );
-    expect(earliestBackup).toBeInTheDocument();
-    const startRestoreButton = await screen.getByRole('button', {
-      name: 'Start restore',
-    });
-    expect(startRestoreButton).toBeDisabled();
-  });
-
   test('will schedule a restore', async () => {
     server.use(getOrganization);
-    server.use(getProjectQuery);
     mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
       fetchPiTRBaseBackups,
       { loading: false },
@@ -167,11 +171,8 @@ describe('PointInTimeBackupInfo', () => {
         await screen.getByRole('button', { name: 'Select' }),
       ).toBeInTheDocument(),
     );
-    await user.click(
-      await screen.getByRole('gridcell', {
-        name: /13/i,
-      }),
-    );
+
+    await user.click(await screen.getByText('13'));
 
     const hoursInput = await screen.getByLabelText('Hours');
     await user.type(hoursInput, '18');
@@ -236,5 +237,121 @@ describe('PointInTimeBackupInfo', () => {
     expect(
       mocks.restoreApplicationDatabase.mock.calls[0][0].recoveryTarget,
     ).toBe('2025-03-13T16:00:05.000Z');
+
+    // call the onCompleted cb
+    await waitFor(() => mocks.restoreApplicationDatabase.mock.calls[0][1]());
+    expect(
+      screen.getByText('Backup has been scheduled successfully.'),
+    ).toBeInTheDocument();
+  });
+
+  test('that dates before the earliest backup cannot be selected', async () => {
+    server.use(getOrganization);
+    mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
+      fetchPiTRBaseBackups,
+      { loading: false },
+    ]);
+
+    await waitFor(() =>
+      render(<PointInTimeBackupInfo appId={mockApplication.id} />),
+    );
+    const user = userEvent.setup();
+    const startRestoreButton = await screen.getByRole('button', {
+      name: 'Start restore',
+    });
+
+    await user.click(startRestoreButton);
+    await waitFor(async () =>
+      expect(
+        await screen.getByText('Recover your database from a backup'),
+      ).toBeInTheDocument(),
+    );
+    const dateTimePickerButton = await screen.getByRole('button', {
+      name: /UTC/i,
+    });
+
+    await user.click(dateTimePickerButton);
+
+    await waitFor(async () =>
+      expect(
+        await screen.getByRole('button', { name: 'Select' }),
+      ).toBeInTheDocument(),
+    );
+
+    expect(await screen.getByText('March 2025')).toBeInTheDocument();
+
+    expect(await screen.getByText('9')).toBeDisabled();
+
+    expect(await screen.getAllByText('1')[0]).toBeDisabled();
+
+    expect(await screen.getAllByText('5')[0]).toBeDisabled();
+
+    expect(await screen.getByText('10')).not.toBeDisabled();
+
+    expect(await screen.getByText('15')).not.toBeDisabled();
+
+    const hoursInput = await screen.getByLabelText('Hours');
+    await user.type(hoursInput, '{ArrowDown}');
+
+    expect(await screen.getByLabelText('Hours')).toHaveValue('04');
+
+    const updatedDateTimeButton = await screen.getByRole('button', {
+      name: /UTC/i,
+    });
+    expect(updatedDateTimeButton).toHaveTextContent(
+      '10 Mar 2025, 04:00:05 (UTC+02:00)',
+    );
+    expect(
+      await screen.queryByRole('button', { name: 'Select' }),
+    ).toBeDisabled();
+
+    expect(
+      await screen.queryByText(
+        'Selected date and time is before the earliest available backup',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      await screen.getByRole('button', {
+        name: /UTC/i,
+      }),
+    ).toHaveClass('border-destructive');
+  });
+
+  test('Learn more link is displayed in the "footer" and aligned to the left and the "Start restore" button is to the right', async () => {
+    server.use(getOrganization);
+    mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
+      fetchPiTRBaseBackups,
+      { loading: false },
+    ]);
+
+    await waitFor(() =>
+      render(<PointInTimeBackupInfo appId={mockApplication.id} showLink />),
+    );
+    const learMoreAboutPiTRLink = screen.getByText(
+      /Learn more about Point-in-Time Recover/,
+    );
+    expect(learMoreAboutPiTRLink).toBeInTheDocument();
+    const linkWrapper = learMoreAboutPiTRLink.closest('div');
+    expect(linkWrapper).toHaveClass('justify-between');
+    expect(linkWrapper).not.toHaveClass('justify-end');
+  });
+
+  test('Learn more link is in not displayed in the "footer" the "Start restore" button is aligned to the right', async () => {
+    server.use(getOrganization);
+    mocks.useGetPiTrBaseBackupsLazyQuery.mockImplementation(() => [
+      fetchPiTRBaseBackups,
+      { loading: false },
+    ]);
+
+    await waitFor(() =>
+      render(<PointInTimeBackupInfo appId={mockApplication.id} />),
+    );
+    expect(
+      screen.queryByText(/Learn more about Point-in-Time Recover/),
+    ).not.toBeInTheDocument();
+    const startRestoreButton = screen.getByText('Start restore');
+    const linkWrapper = startRestoreButton.closest('div');
+    expect(linkWrapper).not.toHaveClass('justify-between');
+    expect(linkWrapper).toHaveClass('justify-end');
   });
 });

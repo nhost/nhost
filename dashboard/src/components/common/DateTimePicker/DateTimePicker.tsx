@@ -27,8 +27,6 @@ export interface DateTimePickerProps {
   align?: 'start' | 'center' | 'end';
   validateDateFn?: (date: Date) => string;
 }
-// in: UTC datetime
-// out: UTC dateTime
 
 function DateTimePicker({
   dateTime,
@@ -48,6 +46,10 @@ function DateTimePicker({
     return parseISO(dateTime);
   });
   const [open, setOpen] = useState(false);
+
+  const [timezone, setTimezone] = useState(
+    () => defaultTimezone || guessTimezone(),
+  );
 
   function emitNewDateTime() {
     onDateTimeChange(new Date(date.getTime()).toISOString());
@@ -73,6 +75,7 @@ function DateTimePicker({
 
   function handleTimezoneChange(newTimezone: string) {
     const newDateWithTimezone = new TZDate(date.toISOString(), newTimezone);
+    setTimezone(newTimezone);
     setDate(newDateWithTimezone);
   }
 
@@ -80,6 +83,7 @@ function DateTimePicker({
     if (!newOpenState) {
       if (withTimezone) {
         const tz = defaultTimezone || guessTimezone();
+        setTimezone(tz);
         setDate(new TZDate(dateTime, tz));
       }
       setDate(parseISO(dateTime));
@@ -92,6 +96,8 @@ function DateTimePicker({
     setOpen(false);
   }
 
+  const selectedDateInUTC = new Date(date.getTime()).toISOString();
+
   const dateString = formatDateFn?.(date) || format(date, 'PPP HH:mm:ss');
 
   const errorText = validateDateFn?.(date);
@@ -101,6 +107,7 @@ function DateTimePicker({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
+          data-testid="dateTimePickerTrigger"
           variant="outline"
           className={cn(
             'w-full justify-between text-left font-normal',
@@ -113,6 +120,7 @@ function DateTimePicker({
           <CalendarIcon className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
+
       <PopoverContent className="w-auto p-0" align={align}>
         <div className="flex">
           <div className="flex">
@@ -120,8 +128,8 @@ function DateTimePicker({
               mode="single"
               selected={date}
               onSelect={(d) => handleSelect(d)}
-              initialFocus
               disabled={isCalendarDayDisabled}
+              timeZone={timezone}
             />
             <div className="flex flex-col justify-between">
               <div>
@@ -131,7 +139,7 @@ function DateTimePicker({
                 {withTimezone && (
                   <div className="border-t border-border p-3">
                     <TimezoneSettings
-                      dateTime={dateTime}
+                      dateTime={selectedDateInUTC}
                       onTimezoneChange={handleTimezoneChange}
                     />
                   </div>

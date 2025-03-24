@@ -96,7 +96,7 @@
     "react": "18.2.0",
     "react-children-utilities": "^2.10.0",
     "react-complex-tree": "^2.4.5",
-    "react-day-picker": "8.10.1",
+    "react-day-picker": "9.6.3",
     "react-dom": "18.2.0",
     "react-error-boundary": "^4.0.13",
     "react-hook-form": "^7.53.0",
