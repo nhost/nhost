@@ -1,5 +1,20 @@
 # @nhost/dashboard
 
+## 2.25.0
+
+### Minor Changes
+
+- 34fdcb8: chore: add prettier plugins as devDependencies to root of monorepo
+- 4937c5e: fix: stop content overflowing in projects and database permissions page
+- 1542132: fix: update babel dependencies to address security audit vulnerabilities
+
+### Patch Changes
+
+- 78436ca: chore (dashboard): add tests and small updates to PiTR settings and restore page
+- b5a3895: chore (dashboard): update page context after each navigation
+- 9b24807: chore: fix link to PiTR documentation
+- ea65846: chore (dashboard): update nextjs to fix middleware exploit
+
 ## 2.17.0
 
 ### Minor Changes
