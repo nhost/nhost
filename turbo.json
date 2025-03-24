@@ -13,7 +13,7 @@
     "@nhost-examples/sveltekit#build": {
       "dependsOn": ["^build"],
       "outputs": [".svelte-kit/**", ".vercel/**"],
-      "env": ["PUBLIC_NHOST_SUBDOMAIN", "PUBLIC_NHOST_REGION"]
+      "env": ["PUBLIC_NHOST_SUBDOMAIN", "PUBLIC_NHOST_REGION", "ENABLE_EXPERIMENTAL_COREPACK"]
     },
     "@nhost-examples/vue-apollo#build": {
       "dependsOn": ["^build"],
