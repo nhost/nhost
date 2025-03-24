@@ -6,7 +6,7 @@
     "@craco/craco": "^7.1.0",
     "@hookform/resolvers": "^3.9.0",
     "@icons-pack/react-simple-icons": "^9.6.0",
-    "@nhost/react": "^3.10.1",
+    "@nhost/react": "^3.10.2",
     "@nhost/react-apollo": "^16.0.1",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",

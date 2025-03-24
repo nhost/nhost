@@ -105,20 +105,12 @@ function VirtualizedCommand<O extends Option>({
     }
   };
 
-  React.useEffect(() => {
-    if (selectedOption) {
-      const option = filteredOptions.find(
-        (opt) => opt.value === selectedOption,
-      );
-      if (option) {
-        const index = filteredOptions.indexOf(option);
-        setFocusedIndex(index);
-      }
-    }
-  }, [selectedOption, filteredOptions, virtualizer]);
-
   return (
-    <Command shouldFilter={false} onKeyDown={handleKeyDown}>
+    <Command
+      shouldFilter={false}
+      onKeyDown={handleKeyDown}
+      value={selectedOption}
+    >
       <CommandInput onValueChange={handleSearch} placeholder={placeholder} />
       <CommandList
         ref={parentRef}
@@ -145,7 +137,6 @@ function VirtualizedCommand<O extends Option>({
                   filteredOptions[virtualOption.index].key ??
                   filteredOptions[virtualOption.index].value
                 }
-                disabled={isKeyboardNavActive}
                 className={cn(
                   'absolute left-0 top-0 w-full bg-transparent',
                   focusedIndex === virtualOption.index &&

@@ -9,6 +9,26 @@ interface Props {
   dateTime: string;
 }
 
+function getOrderedTimezones(dateTime: string, selectedTimezone: string) {
+  const [utcTimezone, browserTimezone, ...timezones] =
+    createTimezoneOptions(dateTime);
+  let orderedTimezones = [...timezones];
+  if (
+    selectedTimezone !== browserTimezone.value &&
+    selectedTimezone !== 'UTC'
+  ) {
+    const selectedTimezoneOption = timezones.find(
+      (tz) => tz.value === selectedTimezone,
+    );
+    orderedTimezones = [
+      selectedTimezoneOption,
+      ...timezones.filter((tz) => tz.value !== selectedTimezone),
+    ];
+  }
+
+  return [utcTimezone, browserTimezone, ...orderedTimezones];
+}
+
 function TimezonePicker({
   selectedTimezone,
   onTimezoneSelect,
@@ -16,9 +36,10 @@ function TimezonePicker({
   dateTime,
 }: Props) {
   const timezoneOptions = useMemo(
-    () => createTimezoneOptions(dateTime),
-    [dateTime],
+    () => getOrderedTimezones(dateTime, selectedTimezone),
+    [dateTime, selectedTimezone],
   );
+
   return (
     <VirtualizedCombobox
       options={timezoneOptions}
@@ -27,6 +48,7 @@ function TimezonePicker({
       searchPlaceholder="Search timezones..."
       button={button}
       side="right"
+      width="370px"
     />
   );
 }

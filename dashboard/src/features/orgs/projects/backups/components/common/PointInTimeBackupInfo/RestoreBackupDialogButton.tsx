@@ -1,4 +1,5 @@
 import { DateTimePicker } from '@/components/common/DateTimePicker';
+import { isTZDate } from '@/components/common/TimePicker/time-picker-utils';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -12,7 +13,7 @@ import {
 import { useRestoreApplicationDatabasePiTR } from '@/features/orgs/hooks/useRestoreApplicationDatabasePiTR';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { TZDate } from '@date-fns/tz';
+import { TZDate } from '@date-fns/tz';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { format, isBefore, startOfDay } from 'date-fns-v4';
 import { memo, useCallback, useEffect, useState } from 'react';
@@ -77,8 +78,21 @@ function RestoreBackupDialogButton({
     return format(date, 'dd MMM yyyy, HH:mm:ss (OOOO)').replace('GMT', 'UTC');
   }
 
-  function isCalendarDayDisabled(date: Date) {
-    return isBefore(startOfDay(date), startOfDay(earliestBackupDate));
+  function isCalendarDayDisabled(date: Date | TZDate) {
+    if (isTZDate(date)) {
+      const utcDay = new Date(date.getTime()).toISOString();
+      const tzDate = new TZDate(utcDay, date.timeZone);
+      const earliestBackupDateInTz = new TZDate(
+        earliestBackupDate,
+        date.timeZone,
+      );
+      return isBefore(startOfDay(tzDate), startOfDay(earliestBackupDateInTz));
+    }
+
+    return isBefore(
+      startOfDay(new Date(date.getTime()).toISOString()),
+      startOfDay(earliestBackupDate),
+    );
   }
 
   const resetState = useCallback(() => {
