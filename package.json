@@ -85,7 +85,7 @@
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "turbo": "2.3.3",
-    "typedoc": "^0.22.18",
+    "typedoc": "^0.24.8",
     "typescript": "4.9.5",
     "vite": "^5.4.15",
     "vite-plugin-dts": "^3.9.1",
@@ -175,5 +175,12 @@
       "prismjs@<1.30.0": ">=1.30.0",
       "axios@<1.8.2": ">=1.8.2"
     }
-  }
+  },
+  "main": ".prettierrc.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "keywords": [],
+  "type": "commonjs"
 }
