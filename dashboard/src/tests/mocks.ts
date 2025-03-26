@@ -49,7 +49,7 @@ export const mockApplication: Project = {
   name: 'Test Project',
   slug: 'test-project',
   appStates: [],
-  subdomain: 'subdomain',
+  subdomain: 'test-project',
   region: {
     name: 'us-east-1',
     city: 'New York',

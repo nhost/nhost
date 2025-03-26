@@ -6,7 +6,7 @@ import {
 } from '@/tests/msw/mocks/graphql/getPostgresSettings';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen } from '@/tests/orgs/testUtils';
+import { render, screen } from '@/tests/testUtils';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import BackupsContent from './BackupsContent';
