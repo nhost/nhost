@@ -6,11 +6,12 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetAllOrganizationsAndProjectsDocument,
+  GetOrganizationsDocument,
   useBillingDeleteAppMutation,
 } from '@/generated/graphql';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
+import { useUserData } from '@nhost/nextjs';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 
@@ -18,9 +19,12 @@ export default function ApplicationInfo() {
   const router = useRouter();
   const { project } = useProject();
   const { currentOrg: org } = useOrgs();
+  const userData = useUserData();
 
   const [deleteApplication] = useBillingDeleteAppMutation({
-    refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
+    refetchQueries: [
+      { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+    ],
   });
 
   async function handleClickRemove() {

@@ -17,7 +17,6 @@ import ProjectSettingsPagesComboBox from './ProjectSettingsPagesComboBox';
 export default function BreadcrumbNav() {
   const { query, asPath, route } = useRouter();
 
-  // Extract appSubdomain from router.query
   const { appSubdomain } = query;
 
   // Extract path segments from the URL

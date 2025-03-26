@@ -5,10 +5,11 @@ import type {
   GetApplicationStateQueryVariables,
 } from '@/utils/__generated__/graphql';
 import {
-  GetAllOrganizationsAndProjectsDocument,
   useGetApplicationStateQuery,
+  useGetOrganizationsLazyQuery,
 } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
+import { useUserData } from '@nhost/nextjs';
 import { useEffect } from 'react';
 
 export interface UseProjectRedirectWhenReadyOptions
@@ -21,7 +22,10 @@ export default function useProjectRedirectWhenReady(
   options: UseProjectRedirectWhenReadyOptions = {},
 ) {
   const { project } = useProject();
-  const { data, client, startPolling, ...rest } = useGetApplicationStateQuery({
+  const userData = useUserData();
+  const [getOrgs] = useGetOrganizationsLazyQuery();
+
+  const { data, startPolling, ...rest } = useGetApplicationStateQuery({
     ...options,
     variables: { ...options.variables, appId: project?.id },
     skip: !project?.id,
@@ -33,9 +37,7 @@ export default function useProjectRedirectWhenReady(
 
   useEffect(() => {
     async function updateOwnCache() {
-      await client.refetchQueries({
-        include: [GetAllOrganizationsAndProjectsDocument],
-      });
+      await getOrgs({ variables: { userId: userData.id } });
     }
     if (!data) {
       return;
@@ -56,7 +58,7 @@ export default function useProjectRedirectWhenReady(
     ) {
       updateOwnCache();
     }
-  }, [data, client]);
+  }, [data, getOrgs, userData?.id]);
 
-  return { data, client, ...rest };
+  return { data, ...rest };
 }

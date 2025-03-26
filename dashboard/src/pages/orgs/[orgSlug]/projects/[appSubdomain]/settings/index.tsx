@@ -20,7 +20,7 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  GetAllOrganizationsAndProjectsDocument,
+  GetOrganizationsDocument,
   useBillingDeleteAppMutation,
   usePauseApplicationMutation,
   useUnpauseApplicationMutation,
@@ -29,6 +29,7 @@ import {
 import { ApplicationStatus } from '@/types/application';
 import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -53,6 +54,7 @@ export default function SettingsGeneralPage() {
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
+  const userData = useUserData();
   const { project, loading, refetch: refetchProject } = useProject();
   const { state } = useAppState();
 
@@ -75,13 +77,17 @@ export default function SettingsGeneralPage() {
   const [pauseApplication, { loading: pauseApplicationLoading }] =
     usePauseApplicationMutation({
       variables: { appId: project?.id },
-      refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
+      refetchQueries: [
+        { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+      ],
     });
 
   const [unpauseApplication, { loading: unpauseApplicationLoading }] =
     useUnpauseApplicationMutation({
       variables: { appId: project?.id },
-      refetchQueries: [{ query: GetAllOrganizationsAndProjectsDocument }],
+      refetchQueries: [
+        { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+      ],
     });
 
   const form = useForm<ProjectNameValidationSchema>({

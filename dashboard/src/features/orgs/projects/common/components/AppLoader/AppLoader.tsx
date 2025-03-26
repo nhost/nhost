@@ -94,7 +94,7 @@ export default function AppLoader({
       {timeElapsed > 20 && <Text color="disabled">Doing final cleanup</Text>}
       <ActivityIndicator className="mx-auto" />
 
-      {timeElapsed > 0 && (
+      {timeElapsed > 180 && (
         <Link
           className="font-semibold underline underline-offset-2"
           href="/support"

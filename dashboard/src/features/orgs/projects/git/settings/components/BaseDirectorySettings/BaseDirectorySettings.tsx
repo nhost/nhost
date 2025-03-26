@@ -5,7 +5,7 @@ import { InlineCode } from '@/components/presentational/InlineCode';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
 import {
-  GetAllOrganizationsAndProjectsDocument,
+  GetOrganizationsDocument,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useEffect } from 'react';
@@ -13,8 +13,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { useApolloClient } from '@apollo/client';
+import { useUserData } from '@nhost/nextjs';
 
 export interface BaseDirectoryFormValues {
   /**
@@ -27,7 +26,7 @@ export default function BaseDirectorySettings() {
   const { maintenanceActive } = useUI();
   const { project } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
-  const client = useApolloClient();
+  const userData = useUserData();
 
   const form = useForm<BaseDirectoryFormValues>({
     reValidateMode: 'onSubmit',
@@ -52,6 +51,9 @@ export default function BaseDirectorySettings() {
           ...values,
         },
       },
+      refetchQueries: [
+        { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+      ],
     });
 
     await execPromiseWithErrorToast(
@@ -66,16 +68,6 @@ export default function BaseDirectorySettings() {
           "An error occurred while trying to update the project's base directory.",
       },
     );
-
-    try {
-      await client.refetchQueries({
-        include: [GetAllOrganizationsAndProjectsDocument],
-      });
-    } catch (error) {
-      await discordAnnounce(
-        error.message || 'Error while trying to update application cache',
-      );
-    }
   };
 
   return (

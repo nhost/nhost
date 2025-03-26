@@ -1,11 +1,12 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  GetAllOrganizationsAndProjectsDocument,
   useGetApplicationStateQuery,
+  useGetOrganizationsLazyQuery,
 } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
+import { useUserData } from '@nhost/nextjs';
 import { useCallback, useEffect, useState } from 'react';
 
 type ApplicationStateMetadata = {
@@ -24,20 +25,23 @@ export default function useCheckProvisioning() {
   const [currentApplicationState, setCurrentApplicationState] =
     useState<ApplicationStateMetadata>({ state: ApplicationStatus.Empty });
   const isPlatform = useIsPlatform();
+  const userData = useUserData();
 
-  const { data, startPolling, stopPolling, client } =
-    useGetApplicationStateQuery({
-      variables: { appId: project?.id },
-      skip: !isPlatform || !project?.id,
-    });
+  const [getOrgs] = useGetOrganizationsLazyQuery();
+
+  const { data, startPolling, stopPolling } = useGetApplicationStateQuery({
+    variables: { appId: project?.id },
+    skip: !isPlatform || !project?.id,
+  });
 
   async function updateOwnCache() {
-    await client.refetchQueries({
-      include: [GetAllOrganizationsAndProjectsDocument],
-    });
+    await getOrgs({ variables: { userId: userData.id } });
   }
 
-  const memoizedUpdateCache = useCallback(updateOwnCache, [client]);
+  const memoizedUpdateCache = useCallback(updateOwnCache, [
+    userData?.id,
+    getOrgs,
+  ]);
 
   const currentApplicationId = project?.id;
 
