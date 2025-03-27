@@ -46,7 +46,7 @@ export default function DatabaseStorageCapacity() {
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
-  const isFreeProject = !!org?.plan.isFree;
+  const isFreeProject = !!org?.plan?.isFree;
 
   const {
     data,

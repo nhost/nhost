@@ -2,8 +2,8 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
+import { type RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { type RunService } from '@/hooks/useRunServices';
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,

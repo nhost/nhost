@@ -4,8 +4,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { AppLoader } from '@/features/orgs/projects/common/components/AppLoader';
 import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
+import { useCheckProvisioning } from '@/features/orgs/projects/common/hooks/useCheckProvisioning';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useCheckProvisioning } from '@/features/projects/common/hooks/useCheckProvisioning';
 import { ApplicationStatus } from '@/types/application';
 import Image from 'next/image';
 

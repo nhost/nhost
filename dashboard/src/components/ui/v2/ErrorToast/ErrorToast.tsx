@@ -2,7 +2,7 @@ import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 import type { ApolloError } from '@apollo/client';
@@ -73,11 +73,11 @@ export default function ErrorToast({
   const { asPath } = useRouter();
 
   const [showInfo, setShowInfo] = useState(false);
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { project } = useProject();
 
   const errorDetails: ErrorDetails = {
     info: {
-      projectId: currentProject?.id,
+      projectId: project?.id,
       userId: userData?.id || 'local',
       url: asPath,
     },

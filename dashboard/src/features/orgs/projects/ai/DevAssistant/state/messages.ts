@@ -1,4 +1,4 @@
-import { type Message } from '@/features/ai/DevAssistant';
+import { type Message } from '@/features/orgs/projects/ai/DevAssistant';
 import { persistAtom } from '@/utils/recoil';
 import { atom } from 'recoil';
 

@@ -7,7 +7,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@/components/ui/v3/command';
 import {
   Popover,
@@ -16,7 +15,6 @@ import {
 } from '@/components/ui/v3/popover';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -33,24 +31,20 @@ type Option = {
 export default function OrgsComboBox() {
   const { orgs } = useOrgs();
   const isPlatform = useIsPlatform();
-  const { workspaces } = useWorkspaces();
   const [, setLastSlug] = useSSRLocalStorage('slug', null);
 
   const {
-    query: { orgSlug, workspaceSlug },
+    query: { orgSlug },
     push,
   } = useRouter();
 
   const selectedOrgFromUrl =
     Boolean(orgSlug) && orgs.find((item) => item.slug === orgSlug);
-  const selectedWorkspaceFromUrl =
-    Boolean(workspaceSlug) &&
-    workspaces.find((item) => item.slug === workspaceSlug);
 
   const [selectedItem, setSelectedItem] = useState<Option | null>(null);
 
   useEffect(() => {
-    const selectedItemFromUrl = selectedOrgFromUrl || selectedWorkspaceFromUrl;
+    const selectedItemFromUrl = selectedOrgFromUrl;
 
     if (selectedItemFromUrl) {
       setSelectedItem({
@@ -60,20 +54,13 @@ export default function OrgsComboBox() {
         type: selectedOrgFromUrl ? 'organization' : 'workspace',
       });
     }
-  }, [selectedOrgFromUrl, selectedWorkspaceFromUrl]);
+  }, [selectedOrgFromUrl]);
 
   const orgsOptions: Option[] = orgs.map((org) => ({
     label: org.name,
     value: org.slug,
     plan: org.plan.name,
     type: 'organization',
-  }));
-
-  const workspacesOptions: Option[] = workspaces.map((workspace) => ({
-    label: workspace.name,
-    value: workspace.slug,
-    plan: 'Legacy',
-    type: 'workspace',
   }));
 
   const [open, setOpen] = useState(false);
@@ -157,47 +144,6 @@ export default function OrgsComboBox() {
                 </CommandItem>
               ))}
             </CommandGroup>
-
-            {workspaces.length > 0 && (
-              <>
-                <CommandSeparator />
-
-                <CommandGroup heading="Workspaces">
-                  {workspacesOptions.map((option) => (
-                    <CommandItem
-                      keywords={[option.label]}
-                      key={option.value}
-                      value={option.value}
-                      className="flex items-center text-foreground dark:hover:bg-muted"
-                      onSelect={() => {
-                        setSelectedItem(option);
-                        setOpen(false);
-
-                        // persist last slug in local storage
-                        setLastSlug(option.value);
-
-                        if (option.type === 'organization') {
-                          push(`/orgs/${option.value}/projects`);
-                        } else {
-                          push(`/${option.value}`);
-                        }
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          selectedItem?.value === option.value
-                            ? 'opacity-100'
-                            : 'opacity-0',
-                        )}
-                      />
-                      <span className="w-full truncate">{option.label}</span>
-                      {renderBadge(option.plan)}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </>
-            )}
           </CommandList>
         </Command>
       </PopoverContent>

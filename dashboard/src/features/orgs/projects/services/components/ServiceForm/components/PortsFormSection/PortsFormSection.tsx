@@ -10,9 +10,9 @@ import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { InfoCard } from '@/features/projects/overview/components/InfoCard';
-import { PortTypes } from '@/features/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import { type ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
+import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
+import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import { type ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { getRunServicePortURL } from '@/utils/helpers';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 

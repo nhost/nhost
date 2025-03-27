@@ -6,7 +6,7 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
+import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 

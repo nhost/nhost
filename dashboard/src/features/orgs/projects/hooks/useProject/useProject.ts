@@ -1,5 +1,5 @@
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetProjectDocument,
   type GetProjectQuery,
