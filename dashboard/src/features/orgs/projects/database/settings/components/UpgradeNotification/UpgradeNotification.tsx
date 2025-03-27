@@ -4,7 +4,7 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
+import { TransferOrUpgradeProjectDialog } from '@/features/orgs/components/common/TransferOrUpgradeProjectDialog';
 import { useState } from 'react';
 
 interface Props {
@@ -54,7 +54,7 @@ function UpgradeNotification({ description }: Props) {
           <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
         </Link>
         <OpenTransferDialogButton onClick={handleTransferDialogOpen} />
-        <TransferProjectDialog
+        <TransferOrUpgradeProjectDialog
           open={transferProjectDialogOpen}
           setOpen={setTransferProjectDialogOpen}
         />

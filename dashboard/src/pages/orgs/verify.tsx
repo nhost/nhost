@@ -3,7 +3,6 @@
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
 import { FinishOrgCreationProcess } from '@/features/orgs/components/common/FinishOrgCreationProcess';
-import { useFinishOrgCreation } from '@/features/orgs/hooks/useFinishOrgCreation';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { PostOrganizationRequestMutation } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus } from '@nhost/nextjs';
@@ -33,15 +32,12 @@ export default function PostCheckout() {
     [router],
   );
 
-  const [loading, status] = useFinishOrgCreation({ onCompleted });
-
   return (
     <BaseLayout className="flex h-screen flex-col">
       <Header className="flex py-1" />
       <div className="flex h-screen w-full flex-col">
         <FinishOrgCreationProcess
-          loading={loading}
-          status={status}
+          onCompleted={onCompleted}
           loadingMessage="Processing new organization request"
           successMessage="Organization created successfully. Redirecting..."
           pendingMessage="Organization creation is pending..."

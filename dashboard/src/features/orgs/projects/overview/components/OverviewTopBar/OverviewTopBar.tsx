@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import UpgradeProjectDialog from '@/features/orgs/projects/overview/components/OverviewTopBar/UpgradeProjectDialog';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
+import UpgradeProjectDialog from './UpgradeProjectDialog';
 
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
