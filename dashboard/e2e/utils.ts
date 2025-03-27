@@ -213,8 +213,13 @@ export async function clickPermissionButton({
     .click();
 }
 
-export async function gotoAuthURL(page) {
+export async function gotoAuthURL(page: Page) {
   const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
   await page.goto(authUrl);
   await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
+}
+
+export async function gotoUrl(page: Page, url: string) {
+  await page.goto(url);
+  await page.waitForURL(url, { waitUntil: 'networkidle' });
 }

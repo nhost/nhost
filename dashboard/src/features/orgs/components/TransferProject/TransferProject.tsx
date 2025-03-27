@@ -1,6 +1,6 @@
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
+import { TransferOrUpgradeProjectDialog } from '@/features/orgs/components/common/TransferOrUpgradeProjectDialog';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useState } from 'react';
 
@@ -26,7 +26,7 @@ export default function TransferProject() {
         }}
       />
 
-      <TransferProjectDialog open={open} setOpen={setOpen} />
+      <TransferOrUpgradeProjectDialog open={open} setOpen={setOpen} />
     </>
   );
 }

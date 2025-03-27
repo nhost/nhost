@@ -6,7 +6,7 @@ import {
 } from '@/e2e/env';
 import { test as setup } from '@playwright/test';
 
-setup('authenticate user', async ({ page }) => {
+setup.only('authenticate user', async ({ page }) => {
   await page.goto('/');
   await page.waitForURL('/signin');
   await page.getByRole('link', { name: /continue with email/i }).click();
