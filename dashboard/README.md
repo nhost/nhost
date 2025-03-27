@@ -149,8 +149,11 @@ Next, you need to create a project. Create a `.env.test` file with the following
 NHOST_TEST_DASHBOARD_URL=<test_dashboard_url>
 NHOST_TEST_USER_EMAIL=<test_user_email>
 NHOST_TEST_USER_PASSWORD=<test_user_password>
-NHOST_TEST_WORKSPACE_NAME=<test_workspace_name>
+NHOST_TEST_ORGANIZATION_NAME=<test_organization_name>
+NHOST_TEST_ORGANIZATION_SLUG=<test_organization_slug>
+NHOST_TEST_PERSONAL_ORG_SLUG=<test_personal_org_slug>
 NHOST_TEST_PROJECT_NAME=<test_project_name>
+NHOST_TEST_PROJECT_SUBDOMAIN=<test_project_subdomain>
 NHOST_TEST_PROJECT_ADMIN_SECRET=<test_project_admin_secret>
 ```
 
@@ -159,11 +162,14 @@ NHOST_TEST_PROJECT_ADMIN_SECRET=<test_project_admin_secret>
 - `NHOST_TEST_DASHBOARD_URL`: The URL to run the tests against (e.g: http://localhost:3000 or https://staging.app.nhost.io)
 - `NHOST_TEST_USER_EMAIL`: Email address of the test user that owns the test project
 - `NHOST_TEST_USER_PASSWORD`: Password of the test user that owns the test project
-- `NHOST_TEST_WORKSPACE_NAME`: Name of the workspace that contains the test project
+- `NHOST_TEST_ORGANIZATION_NAME`: Name of the organization that contains the test project
+- `NHOST_TEST_ORGANIZATION_SLUG`: Slug of the organization that contains the test project
+- `NHOST_TEST_PERSONAL_ORG_SLUG`: Slug of the personal organization that contains the test project
 - `NHOST_TEST_PROJECT_NAME`: Name of the test project
+- `NHOST_TEST_PROJECT_SUBDOMAIN`: Subdomain of the test project
 - `NHOST_TEST_PROJECT_ADMIN_SECRET`: Admin secret of the test project
 
-Make sure to copy the workspace and project information from the [Nhost Dashboard](https://app.nhost.io/).
+Make sure to copy the organization and project information from the [Nhost Dashboard](https://app.nhost.io/).
 
 End-to-end tests are written using [Playwright](https://playwright.dev/). To run the tests, run the following command:
 

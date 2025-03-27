@@ -1,4 +1,4 @@
-import type { Organization, Project, Workspace } from '@/types/application';
+import type { Organization, Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 import { faker } from '@faker-js/faker';
@@ -19,15 +19,15 @@ export const mockMatchMediaValue = (query: any) => ({
 
 export const mockRouter: NextRouter = {
   basePath: '',
-  pathname: '/test-workspace/test-application',
-  route: '/[workspaceSlug]/[appSlug]',
-  asPath: '/test-workspace/test-application',
+  pathname: '/orgs/xyz/projects/test-project',
+  route: '/orgs/[orgSlug]/projects/[appSubdomain]',
+  asPath: '/orgs/xyz/projects/test-project',
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
   query: {
-    workspaceSlug: 'test-workspace',
-    appSlug: 'test-application',
+    orgSlug: 'xyz',
+    appSubdomain: 'test-project',
   },
   push: vi.fn(),
   replace: vi.fn(),
@@ -46,10 +46,10 @@ export const mockRouter: NextRouter = {
 
 export const mockApplication: Project = {
   id: '1',
-  name: 'Test Application',
-  slug: 'test-application',
+  name: 'Test Project',
+  slug: 'test-project',
   appStates: [],
-  subdomain: 'subdomain',
+  subdomain: 'test-project',
   region: {
     name: 'us-east-1',
     city: 'New York',
@@ -81,15 +81,6 @@ export const mockApplication: Project = {
       adminSecret: 'nhost-admin-secret',
     },
   },
-};
-
-export const mockWorkspace: Workspace = {
-  id: '1',
-  name: 'Test Workspace',
-  slug: 'test-workspace',
-  workspaceMembers: [],
-  projects: [mockApplication],
-  creatorUserId: '1',
 };
 
 export const mockSession: NhostSession = {
@@ -130,15 +121,7 @@ export const mockOrganization: Organization = {
     __typename: 'plans',
   },
   members: [],
-  apps: [
-    {
-      id: '1',
-      name: 'Test Application',
-      subdomain: '',
-      slug: 'test-application',
-      __typename: 'apps',
-    },
-  ],
+  apps: [mockApplication],
   __typename: 'organizations',
 };
 

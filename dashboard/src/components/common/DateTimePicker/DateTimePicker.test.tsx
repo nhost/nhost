@@ -1,5 +1,5 @@
 import { isTZDate } from '@/components/common/TimePicker/time-picker-utils';
-import { render, screen, waitFor } from '@/tests/orgs/testUtils';
+import { render, screen, waitFor } from '@/tests/testUtils';
 import userEvent from '@testing-library/user-event';
 import { isBefore, startOfDay } from 'date-fns-v4';
 import { useState } from 'react';

@@ -8,7 +8,11 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import { useUnpauseApplicationMutation } from '@/utils/__generated__/graphql';
+import {
+  GetOrganizationsDocument,
+  useUnpauseApplicationMutation,
+} from '@/utils/__generated__/graphql';
+import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useCallback } from 'react';
 
@@ -25,12 +29,19 @@ export default function ApplicationPausedBanner({
   const { state } = useAppState();
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
   const { project, refetch: refetchProject } = useProject();
+  const userData = useUserData();
 
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
     useUnpauseApplicationMutation({
       variables: {
         appId: project?.id,
       },
+      refetchQueries: [
+        {
+          query: GetOrganizationsDocument,
+          variables: { userId: userData.id },
+        },
+      ],
     });
 
   const handleTriggerUnpausing = useCallback(async () => {

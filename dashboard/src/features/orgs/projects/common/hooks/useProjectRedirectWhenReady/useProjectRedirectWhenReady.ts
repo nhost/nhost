@@ -5,10 +5,11 @@ import type {
   GetApplicationStateQueryVariables,
 } from '@/utils/__generated__/graphql';
 import {
-  GetAllWorkspacesAndProjectsDocument,
   useGetApplicationStateQuery,
+  useGetOrganizationsLazyQuery,
 } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
+import { useUserData } from '@nhost/nextjs';
 import { useEffect } from 'react';
 
 export interface UseProjectRedirectWhenReadyOptions
@@ -21,7 +22,10 @@ export default function useProjectRedirectWhenReady(
   options: UseProjectRedirectWhenReadyOptions = {},
 ) {
   const { project } = useProject();
-  const { data, client, startPolling, ...rest } = useGetApplicationStateQuery({
+  const userData = useUserData();
+  const [getOrgs] = useGetOrganizationsLazyQuery();
+
+  const { data, startPolling, ...rest } = useGetApplicationStateQuery({
     ...options,
     variables: { ...options.variables, appId: project?.id },
     skip: !project?.id,
@@ -33,11 +37,8 @@ export default function useProjectRedirectWhenReady(
 
   useEffect(() => {
     async function updateOwnCache() {
-      await client.refetchQueries({
-        include: [GetAllWorkspacesAndProjectsDocument],
-      });
+      await getOrgs({ variables: { userId: userData.id } });
     }
-
     if (!data) {
       return;
     }
@@ -55,12 +56,9 @@ export default function useProjectRedirectWhenReady(
       lastState.stateId === ApplicationStatus.Live ||
       lastState.stateId === ApplicationStatus.Errored
     ) {
-      // Will update the cache and update with the new application state
-      // which will trigger the correct application component
-      // under `src\components\applications\App.tsx`
       updateOwnCache();
     }
-  }, [data, client]);
+  }, [data, getOrgs, userData?.id]);
 
-  return { data, client, ...rest };
+  return { data, ...rest };
 }

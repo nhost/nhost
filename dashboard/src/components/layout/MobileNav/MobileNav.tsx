@@ -1,88 +1,26 @@
-import { ContactUs } from '@/components/common/ContactUs';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
-import { Nav } from '@/components/presentational/Nav';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Drawer } from '@/components/ui/v2/Drawer';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { MenuIcon } from '@/components/ui/v2/icons/MenuIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { List } from '@/components/ui/v2/List';
-import type { ListItemButtonProps } from '@/components/ui/v2/ListItem';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useNavigationVisible } from '@/features/orgs/projects/common/hooks/useNavigationVisible';
-import { useProjectRoutes } from '@/features/orgs/projects/common/hooks/useProjectRoutes';
 import { useApolloClient } from '@apollo/client';
 import { useSignOut } from '@nhost/nextjs';
 import getConfig from 'next/config';
 import { useRouter } from 'next/router';
-import type { ReactNode } from 'react';
-import { cloneElement, Fragment, isValidElement, useState } from 'react';
+import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface MobileNavProps extends ButtonProps {}
 
-interface MobileNavLinkProps extends ListItemButtonProps {
-  /**
-   * Link to navigate to.
-   */
-  href: string;
-  /**
-   * Determines whether or not the link should be active if it's href exactly
-   * matches the current route.
-   */
-  exact?: boolean;
-  /**
-   * Icon to display next to the text.
-   */
-  icon?: ReactNode;
-}
-
-function MobileNavLink({
-  className,
-  exact = true,
-  href,
-  icon,
-  ...props
-}: MobileNavLinkProps) {
-  const router = useRouter();
-  const baseUrl = `/${router.query.workspaceSlug}/${router.query.appSlug}`;
-  const finalUrl = href && href !== '/' ? `${baseUrl}${href}` : baseUrl;
-
-  const active = exact
-    ? router.asPath === finalUrl
-    : router.asPath.startsWith(finalUrl);
-
-  return (
-    <ListItem.Root
-      className={twMerge('grid grid-flow-row gap-2 py-2', className)}
-    >
-      <ListItem.Button
-        className="w-full"
-        component={NavLink}
-        href={finalUrl}
-        selected={active}
-        {...props}
-      >
-        <ListItem.Icon>
-          {isValidElement(icon)
-            ? cloneElement(icon, { ...icon.props, className: 'w-4.5 h-4.5' })
-            : null}
-        </ListItem.Icon>
-
-        <ListItem.Text>{props.children}</ListItem.Text>
-      </ListItem.Button>
-    </ListItem.Root>
-  );
-}
 export default function MobileNav({ className, ...props }: MobileNavProps) {
   const isPlatform = useIsPlatform();
-  const { allRoutes } = useProjectRoutes();
-  const shouldDisplayNav = useNavigationVisible();
   const [menuOpen, setMenuOpen] = useState(false);
   const { signOut } = useSignOut();
   const apolloClient = useApolloClient();
@@ -113,76 +51,23 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
           className: 'w-full px-4 pt-18 pb-12 grid grid-flow-row gap-6',
         }}
       >
-        {shouldDisplayNav && (
-          <section>
-            <Nav
-              flow="row"
-              className="w-full"
-              aria-label="Mobile navigation"
-              listProps={{ className: 'gap-2' }}
-            >
-              <List>
-                {allRoutes.map(
-                  ({ relativePath, label, icon, exact, disabled }, index) => (
-                    <Fragment key={relativePath}>
-                      <MobileNavLink
-                        href={relativePath}
-                        className="w-full"
-                        exact={exact}
-                        icon={icon}
-                        onClick={() => setMenuOpen(false)}
-                        disabled={disabled}
-                      >
-                        {label}
-                      </MobileNavLink>
-
-                      {index < allRoutes.length - 1 && (
-                        <Divider component="li" />
-                      )}
-                    </Fragment>
-                  ),
-                )}
-              </List>
-            </Nav>
-          </section>
-        )}
-
-        <section
-          className={twMerge(
-            'grid grid-flow-row gap-3',
-            !shouldDisplayNav && 'mt-2',
-          )}
-        >
+        <section className="mt-2 grid grid-flow-row gap-3">
           <Text variant="h2" className="text-xl font-semibold">
             Resources
           </Text>
 
           <List className="grid grid-flow-row gap-2">
             {isPlatform && (
-              <Dropdown.Root>
-                <Dropdown.Trigger
-                  className="justify-initial w-full"
-                  hideChevron
-                  asChild
+              <ListItem.Root>
+                <ListItem.Button
+                  component={NavLink}
+                  href="/support"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  <ListItem.Root>
-                    <ListItem.Button
-                      component="span"
-                      className="w-full"
-                      role={undefined}
-                    >
-                      <ListItem.Text>Contact us</ListItem.Text>
-                    </ListItem.Button>
-                  </ListItem.Root>
-                </Dropdown.Trigger>
-
-                <Dropdown.Content
-                  transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                >
-                  <ContactUs className="max-w-md" />
-                </Dropdown.Content>
-              </Dropdown.Root>
+                  <ListItem.Text>Contact us</ListItem.Text>
+                </ListItem.Button>
+              </ListItem.Root>
             )}
 
             <Divider component="li" />

@@ -67,7 +67,6 @@ export const prefetchNewAppQuery = nhostGraphQLLink.query(
             __typename: 'plans',
           },
         ],
-        workspaces: [],
       }),
     ),
 );

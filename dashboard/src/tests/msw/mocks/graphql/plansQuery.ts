@@ -1,4 +1,3 @@
-import { mockApplication, mockWorkspace } from '@/tests/mocks';
 import nhostGraphQLLink from './nhostGraphQLLink';
 
 /**
@@ -46,21 +45,6 @@ export const getAllPlansQuery = nhostGraphQLLink.query(
             isFree: false,
           },
         ],
-      }),
-    ),
-);
-
-/**
- * Use this handler to simulate a query that returns a workspace and a project.
- * Useful if you want to mock the currently selected project.
- */
-export const getWorkspaceAndProjectQuery = nhostGraphQLLink.query(
-  'GetWorkspaceAndProject',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
-        workspaces: [mockWorkspace],
-        projects: [mockApplication],
       }),
     ),
 );

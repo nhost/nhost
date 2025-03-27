@@ -4,12 +4,7 @@ import {
   mockMatchMediaValue,
 } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  waitFor,
-} from '@/tests/orgs/testUtils';
+import { mockPointerEvent, render, screen, waitFor } from '@/tests/testUtils';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 

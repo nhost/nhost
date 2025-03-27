@@ -1,4 +1,4 @@
-import { render, screen } from '@/tests/orgs/testUtils';
+import { render, screen } from '@/tests/testUtils';
 import { guessTimezone } from '@/utils/timezoneUtils';
 import { TZDate } from '@date-fns/tz';
 import userEvent from '@testing-library/user-event';

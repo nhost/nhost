@@ -1,8 +1,6 @@
-import { ContactUs } from '@/components/common/ContactUs';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v2/Button';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useInterval } from '@/hooks/useInterval';
@@ -97,22 +95,14 @@ export default function AppLoader({
       <ActivityIndicator className="mx-auto" />
 
       {timeElapsed > 180 && (
-        <Dropdown.Root className="mx-auto flex flex-col">
-          <Dropdown.Trigger
-            className="mx-auto flex font-medium"
-            hideChevron
-            asChild
-          >
-            <Button variant="borderless">Contact Support</Button>
-          </Dropdown.Trigger>
-
-          <Dropdown.Content
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-          >
-            <ContactUs />
-          </Dropdown.Content>
-        </Dropdown.Root>
+        <Link
+          className="font-semibold underline underline-offset-2"
+          href="/support"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Contact Support
+        </Link>
       )}
     </div>
   );

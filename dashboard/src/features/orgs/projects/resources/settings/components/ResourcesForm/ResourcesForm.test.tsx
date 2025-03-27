@@ -1,8 +1,5 @@
 import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
-import {
-  getProPlanOnlyQuery,
-  getWorkspaceAndProjectQuery,
-} from '@/tests/msw/mocks/graphql/plansQuery';
+import { getProPlanOnlyQuery } from '@/tests/msw/mocks/graphql/plansQuery';
 import {
   resourcesAvailableQuery,
   resourcesUnavailableQuery,
@@ -40,7 +37,6 @@ const server = setupServer(
   tokenQuery,
   resourcesAvailableQuery,
   getProPlanOnlyQuery,
-  getWorkspaceAndProjectQuery,
 );
 
 beforeAll(() => {

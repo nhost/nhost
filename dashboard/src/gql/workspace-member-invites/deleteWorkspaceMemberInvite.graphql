@@ -1,5 +1,0 @@
-mutation deleteWorkspaceMemberInvites($id: uuid!) {
-  deleteWorkspaceMemberInvites(where: { id: { _eq: $id } }) {
-    affected_rows
-  }
-}

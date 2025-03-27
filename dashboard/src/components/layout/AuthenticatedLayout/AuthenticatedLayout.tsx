@@ -1,4 +1,3 @@
-import { InviteNotification } from '@/components/common/InviteNotification';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
@@ -146,8 +145,6 @@ export default function AuthenticatedLayout({
               {children}
             </div>
           </RetryableErrorBoundary>
-
-          <InviteNotification />
         </div>
       </div>
     </BaseLayout>
