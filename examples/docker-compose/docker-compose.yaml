@@ -1,6 +1,6 @@
 services:
     auth:
-        image: nhost/hasura-auth:0.36.1
+        image: nhost/hasura-auth:0.37.1
         depends_on:
             graphql:
                 condition: service_healthy
@@ -20,7 +20,7 @@ services:
             AUTH_DISABLE_NEW_USERS: "false"
             AUTH_DISABLE_SIGNUP: "false"
             AUTH_EMAIL_PASSWORDLESS_ENABLED: "false"
-            AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: "true"
+            AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: "${AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED}"
             AUTH_GRAVATAR_DEFAULT: blank
             AUTH_GRAVATAR_ENABLED: "true"
             AUTH_GRAVATAR_RATING: g
@@ -59,10 +59,10 @@ services:
             AUTH_TURNSTILE_SECRET: ""
             AUTH_USER_DEFAULT_ALLOWED_ROLES: user,me
             AUTH_USER_DEFAULT_ROLE: user
-            HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+            HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
             HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8080/v1/graphql
-            HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+            HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
             POSTGRES_MIGRATIONS_CONNECTION: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
         extra_hosts:
             - host.docker.internal:host-gateway
@@ -70,7 +70,6 @@ services:
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         healthcheck:
             test:
@@ -110,12 +109,12 @@ services:
           - --address=0.0.0.0
           - --console-port=9695
           - --api-port=80
-          - --api-host=http://${HASURA_URL}
-          - --console-hge-endpoint=http://${HASURA_URL}
+          - --api-host=http://${GRAPHQL_URL}
+          - --console-hge-endpoint=http://${GRAPHQL_URL}
         environment:
             GRAPHITE_WEBHOOK_SECRET: ""
             HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS: "true"
-            HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+            HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
             HASURA_GRAPHQL_CORS_DOMAIN: '*'
             HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
@@ -129,7 +128,7 @@ services:
             HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log
             HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
             HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS: "true"
-            HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+            HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
             HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
             HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
             HASURA_GRAPHQL_LOG_LEVEL: warn
@@ -145,8 +144,7 @@ services:
             - ${AUTH_URL}:host-gateway
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
-            - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:0.0.0.0
+            - ${GRAPHQL_URL}:0.0.0.0
             - ${STORAGE_URL}:host-gateway
         healthcheck:
             test:
@@ -158,11 +156,11 @@ services:
         labels:
             traefik.enable: "true"
             traefik.http.routers.console.entrypoints: web
-            traefik.http.routers.console.rule: Host(`${HASURA_URL}`)
+            traefik.http.routers.console.rule: Host(`${GRAPHQL_URL}`)
             traefik.http.routers.console.service: console
             traefik.http.routers.console.tls: "false"
             traefik.http.routers.migrate.entrypoints: web
-            traefik.http.routers.migrate.rule: Host(`${HASURA_URL}`) && PathPrefix(`/apis/`)
+            traefik.http.routers.migrate.rule: Host(`${GRAPHQL_URL}`) && PathPrefix(`/apis/`)
             traefik.http.routers.migrate.service: migrate
             traefik.http.routers.migrate.tls: "false"
             traefik.http.services.console.loadbalancer.server.port: "9695"
@@ -179,14 +177,14 @@ services:
         image: nhost/dashboard:2.20.0
         environment:
             NEXT_PUBLIC_ENV: dev
-            NEXT_PUBLIC_NHOST_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+            NEXT_PUBLIC_NHOST_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             NEXT_PUBLIC_NHOST_AUTH_URL: http://${AUTH_URL}/v1
             NEXT_PUBLIC_NHOST_CONFIGSERVER_URL: http://unused.in.self.hosting
             NEXT_PUBLIC_NHOST_FUNCTIONS_URL: http://${FUNCTIONS_URL}/v1
-            NEXT_PUBLIC_NHOST_GRAPHQL_URL: http://${GRAPHQL_URL}/v1
-            NEXT_PUBLIC_NHOST_HASURA_API_URL: http://${HASURA_URL}
-            NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: http://${HASURA_URL}/console
-            NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: http://${HASURA_URL}
+            NEXT_PUBLIC_NHOST_GRAPHQL_URL: http://${GRAPHQL_URL}/v1/graphql
+            NEXT_PUBLIC_NHOST_HASURA_API_URL: http://${GRAPHQL_URL}
+            NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: http://${GRAPHQL_URL}/console
+            NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: http://${GRAPHQL_URL}
             NEXT_PUBLIC_NHOST_PLATFORM: "false"
             NEXT_PUBLIC_NHOST_STORAGE_URL: http://${STORAGE_URL}/v1
         extra_hosts:
@@ -195,7 +193,6 @@ services:
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         labels:
             traefik.enable: "true"
@@ -211,17 +208,16 @@ services:
         image: nhost/functions:22-1.4.0
         environment:
             GRAPHITE_WEBHOOK_SECRET: ""
-            HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+            HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
             HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8080/v1/graphql
-            HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+            HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
         extra_hosts:
             - host.docker.internal:host-gateway
             - ${AUTH_URL}:host-gateway
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         healthcheck:
             test:
@@ -266,7 +262,7 @@ services:
         environment:
             GRAPHITE_WEBHOOK_SECRET: ""
             HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS: "true"
-            HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+            HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
             HASURA_GRAPHQL_CORS_DOMAIN: '*'
             HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
@@ -280,7 +276,7 @@ services:
             HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log
             HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
             HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS: "true"
-            HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+            HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
             HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
             HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
             HASURA_GRAPHQL_LOG_LEVEL: warn
@@ -297,7 +293,6 @@ services:
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         healthcheck:
             test:
@@ -310,13 +305,8 @@ services:
             traefik.enable: "true"
             traefik.http.middlewares.replace-graphql.replacepathregex.regex: /v1(/|$$)(.*)
             traefik.http.middlewares.replace-graphql.replacepathregex.replacement: /v1/graphql$$2
-            traefik.http.routers.graphql.entrypoints: web
-            traefik.http.routers.graphql.middlewares: replace-graphql
-            traefik.http.routers.graphql.rule: Host(`${GRAPHQL_URL}`) && PathPrefix(`/v1`)
-            traefik.http.routers.graphql.service: graphql
-            traefik.http.routers.graphql.tls: "false"
             traefik.http.routers.hasura.entrypoints: web
-            traefik.http.routers.hasura.rule: Host(`${HASURA_URL}`) && ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )
+            traefik.http.routers.hasura.rule: Host(`${GRAPHQL_URL}`) && ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )
             traefik.http.routers.hasura.service: hasura
             traefik.http.routers.hasura.tls: "false"
             traefik.http.services.graphql.loadbalancer.server.port: "8080"
@@ -338,7 +328,6 @@ services:
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         labels:
             traefik.enable: "true"
@@ -369,7 +358,6 @@ services:
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         restart: always
         volumes:
@@ -390,7 +378,6 @@ services:
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         healthcheck:
             test:
@@ -419,7 +406,7 @@ services:
               read_only: true
 
     storage:
-        image: nhost/hasura-storage:0.6.1
+        image: nhost/hasura-storage:0.7.1
         depends_on:
             graphql:
                 condition: service_healthy
@@ -432,7 +419,7 @@ services:
         environment:
             BIND: :5000
             HASURA_ENDPOINT: http://graphql:8080/v1
-            HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+            HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             HASURA_METADATA: "1"
             POSTGRES_MIGRATIONS: "1"
             POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable
@@ -449,7 +436,6 @@ services:
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         labels:
             traefik.enable: "true"
@@ -476,7 +462,6 @@ services:
             - ${DB_URL}:host-gateway
             - ${FUNCTIONS_URL}:host-gateway
             - ${GRAPHQL_URL}:host-gateway
-            - ${HASURA_URL}:host-gateway
             - ${STORAGE_URL}:host-gateway
         ports:
             - mode: ingress

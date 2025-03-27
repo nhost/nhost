@@ -206,6 +206,16 @@
               "/platform/cli/configuration-overlays",
               "/platform/cli/seeds"
             ]
+          },
+          {
+              "dropdown": "Self-Hosting",
+              "icon": "server",
+              "pages": [
+                "/platform/self-hosting/overview",
+                "/platform/self-hosting/community",
+                "/platform/self-hosting/support",
+                "/platform/self-hosting/dedicated"
+              ]
           }
         ]
       },
