@@ -15,7 +15,7 @@ It is important to keep in mind the claim is added to the access token so, for a
 
 # API Endpoints and SDK components
 
-To implement this functionality [auth](/products/auth/overview) [0.26.0](https://github.com/nhost/hasura-auth/releases/tag/0.26.0) introduces the new endpoint [/elevate/webauthn](/products/auth/webauthn). This endpoint works the same way as [/signin/webauthn](/reference/auth/sign-in-using-email-via-fido2-webauthn-authentication) but it requires an Authorization header with a valid token to add the elevated claim to.
+To implement this functionality [auth](/products/auth/overview) [0.26.0](https://github.com/nhost/hasura-auth/releases/tag/0.26.0) introduces the new endpoint [/elevate/webauthn](/reference/auth/post-elevate-webauthn). This endpoint works the same way as [/signin/webauthn](/reference/auth/post-signin-webauthn) but it requires an Authorization header with a valid token to add the elevated claim to.
 
 In addition, a few methods and components have also been added to simplify it's usage:
 
@@ -38,11 +38,11 @@ While the following permissions would require them first to elevate their access
 
 Some user information needs to be changed via hasura-auth's API rather than via graphql mutations. These endpoints are:
 
-- [/user/password](/reference/auth/set-a-new-password) for changing passwords
-- [/user/email/change](/reference/auth/change-the-current-users-email) for changing emails
-- [/user/mfa](/reference/auth/activatedeactivate-multi-factor-authentication) for enabling or disabling MFA
-- [/user/webauthn/add](/reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser) for adding security keys
-- [/pat](/reference/auth/create-personal-access-token-pat) for PAT creation
+- [/user/password](/reference/auth/post-user-password) for changing passwords
+- [/user/email/change](/reference/auth/post-user-email-change) for changing emails
+- [/user/mfa](/reference/auth/post-user-mfa) for enabling or disabling MFA
+- [/user/webauthn/add](/reference/auth/post-user-webauthn-add) for adding security keys
+- [/pat](/reference/auth/post-pat) for PAT creation
 
 To protect these endpoints and require the elevated claim you can use the following configuration option:
 

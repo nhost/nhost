@@ -145,7 +145,7 @@ One of the most common permission requirements is that authenticated users shoul
 
 ### Permissions are slow
 
-In certain situations, permission checks can cause significant delays. One way to identify this issue is by comparing the execution time of a GraphQL query when performed as an admin versus as a regular user. To resolve such cases, disabling the Just-in-Time (JIT) compilation in [Postgres](/database/settings) can be beneficial.
+In certain situations, permission checks can cause significant delays. One way to identify this issue is by comparing the execution time of a GraphQL query when performed as an admin versus as a regular user. To resolve such cases, disabling the Just-in-Time (JIT) compilation in [Postgres](/products/database/configuring-postgres) can be beneficial.
 
 [Github issue](https://github.com/hasura/graphql-engine/issues/3672)
 
