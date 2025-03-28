@@ -5,7 +5,7 @@ description: Require extra permissions to perform critical operations
 icon: unlock
 ---
 
-In some scenarios you may want to add an extra layer of security to perform certain actions or view certain data. For instance, you may wish to allow users to view their profile information after authenticating but you may want to require users to confirm changes to their profile by performing an extra validation step with a [security key](sign-in-webauthn).
+In some scenarios you may want to add an extra layer of security to perform certain actions or view certain data. For instance, you may wish to allow users to view their profile information after authenticating but you may want to require users to confirm changes to their profile by performing an extra validation step with a [security key](/products/auth/webauthn#add-a-security-key).
 
 ![overview-flow](/images/auth/elevated-permissions/overview.png)
 
@@ -15,7 +15,7 @@ It is important to keep in mind the claim is added to the access token so, for a
 
 # API Endpoints and SDK components
 
-To implement this functionality [auth](/product/authentication) [0.26.0](https://github.com/nhost/hasura-auth/releases/tag/0.26.0) introduces the new endpoint [/elevate/webauthn](/reference/auth/elevate-webauthn). This endpoint works the same way as [/signin/webauthn](/reference/auth/sign-in-using-email-via-fido2-webauthn-authentication) but it requires an Authorization header with a valid token to add the elevated claim to.
+To implement this functionality [auth](/products/auth/overview) [0.26.0](https://github.com/nhost/hasura-auth/releases/tag/0.26.0) introduces the new endpoint [/elevate/webauthn](/products/auth/webauthn). This endpoint works the same way as [/signin/webauthn](/reference/auth/sign-in-using-email-via-fido2-webauthn-authentication) but it requires an Authorization header with a valid token to add the elevated claim to.
 
 In addition, a few methods and components have also been added to simplify it's usage:
 
