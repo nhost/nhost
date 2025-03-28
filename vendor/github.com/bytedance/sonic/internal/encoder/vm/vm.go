@@ -26,7 +26,6 @@ import (
 	"github.com/bytedance/sonic/internal/encoder/ir"
 	"github.com/bytedance/sonic/internal/encoder/vars"
 	"github.com/bytedance/sonic/internal/rt"
-	"github.com/bytedance/sonic/internal/base64"
 )
 
 const (
@@ -176,7 +175,7 @@ func Execute(b *[]byte, p unsafe.Pointer, s *vars.Stack, flags uint64, prog *ir.
 			buf = alg.F64toa(buf, v)
 		case ir.OP_bin:
 			v := *(*[]byte)(p)
-			buf = base64.EncodeBase64(buf, v)
+			buf = rt.EncodeBase64(buf, v)
 		case ir.OP_quote:
 			v := *(*string)(p)
 			buf = alg.Quote(buf, v, true)
@@ -202,13 +201,13 @@ func Execute(b *[]byte, p unsafe.Pointer, s *vars.Stack, flags uint64, prog *ir.
 			}
 			buf = *b
 		case ir.OP_is_zero_map:
-			v := *(**rt.GoMap)(p)
-			if v == nil || v.Count == 0 {
+			v := *(*unsafe.Pointer)(p)
+			if v == nil || rt.Maplen(v) == 0 {
 				pc = ins.Vi()
 				continue
 			}
 		case ir.OP_map_iter:
-			v := *(**rt.GoMap)(p)
+			v := *(*unsafe.Pointer)(p)
 			vt := ins.Vr()
 			it, err := alg.IteratorStart(rt.MapType(vt), v, flags)
 			if err != nil {
@@ -284,6 +283,12 @@ func Execute(b *[]byte, p unsafe.Pointer, s *vars.Stack, flags uint64, prog *ir.
 				pc = ins.Vi()
 				continue
 			}
+		case ir.OP_is_zero:
+			fv := ins.VField()
+			if alg.IsZero(p, fv) {
+				pc = ins.Vi()
+				continue
+			}
 		case ir.OP_is_zero_1:
 			if *(*uint8)(p) == 0 {
 				pc = ins.Vi()
@@ -338,6 +343,8 @@ func Execute(b *[]byte, p unsafe.Pointer, s *vars.Stack, flags uint64, prog *ir.
 			if err := alg.EncodeJsonMarshaler(&buf, *(*json.Marshaler)(unsafe.Pointer(&it)), (flags)); err != nil {
 				return err
 			}
+		case ir.OP_unsupported:
+			return vars.Error_unsuppoted(ins.GoType())
 		default:
 			panic(fmt.Sprintf("not implement %s at %d", ins.Op().String(), pc))
 		}
@@ -347,13 +354,6 @@ func Execute(b *[]byte, p unsafe.Pointer, s *vars.Stack, flags uint64, prog *ir.
 	return nil
 }
 
-// func to_buf(w unsafe.Pointer, l int, c int) []byte {
-// 	return rt.BytesFrom(unsafe.Pointer(uintptr(w)-uintptr(l)), l, c)
-// }
-
-// func from_buf(buf []byte) (unsafe.Pointer, int, int) {
-// 	return rt.IndexByte(buf, len(buf)), len(buf), cap(buf)
-// }
 
 func has_opts(opts uint64, bit int) bool {
 	return opts & (1<<bit) != 0

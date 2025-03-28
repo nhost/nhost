@@ -543,6 +543,7 @@ func (e *Encoder) Encode(v reflect.Value) ([]byte, error) {
 	}
 
 	t := v.Type()
+
 	switch t.Kind() {
 	case reflect.Ptr:
 		return e.encodePtr(v)
@@ -676,18 +677,6 @@ func (e *Encoder) encodeStruct(v reflect.Value) ([]byte, error) {
 			continue
 		}
 
-		// omitemptyが無効な場合、nilスライスは空のスライス[]として扱う
-		if !e.EnableInputJsonOmitemptyTag && fieldValue.Kind() == reflect.Slice && fieldValue.IsNil() {
-			result[field.jsonName] = []byte("[]")
-			continue
-		}
-
-		// omitemptyが無効な場合、nilポインタはnullとして扱い、出力に含める
-		if !e.EnableInputJsonOmitemptyTag && fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil() {
-			result[field.jsonName] = []byte("null")
-			continue
-		}
-
 		encodedValue, err := e.Encode(fieldValue)
 		if err != nil {
 			return nil, err
@@ -699,6 +688,10 @@ func (e *Encoder) encodeStruct(v reflect.Value) ([]byte, error) {
 
 // encodeMap encodes a map value
 func (e *Encoder) encodeMap(v reflect.Value) ([]byte, error) {
+	if v.IsNil() {
+		return []byte("null"), nil
+	}
+
 	result := make(map[string]json.RawMessage)
 	for _, key := range v.MapKeys() {
 		encodedKey, err := e.Encode(key)
@@ -720,6 +713,10 @@ func (e *Encoder) encodeMap(v reflect.Value) ([]byte, error) {
 
 // encodeSlice encodes a slice value
 func (e *Encoder) encodeSlice(v reflect.Value) ([]byte, error) {
+	if v.IsNil() {
+		return []byte("null"), nil
+	}
+
 	result := make([]json.RawMessage, v.Len())
 	for i := range v.Len() {
 		encodedValue, err := e.Encode(v.Index(i))

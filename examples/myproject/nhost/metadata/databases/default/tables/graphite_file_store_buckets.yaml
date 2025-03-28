@@ -1,0 +1,59 @@
+table:
+  name: file_store_buckets
+  schema: graphite
+configuration:
+  column_config:
+    bucket_id:
+      custom_name: bucketID
+    created_at:
+      custom_name: createdAt
+    file_store_id:
+      custom_name: fileStoreID
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    bucket_id: bucketID
+    created_at: createdAt
+    file_store_id: fileStoreID
+    updated_at: updatedAt
+  custom_name: _graphiteFileStoreBuckets
+  custom_root_fields:
+    delete: _deleteGraphiteFileStoreBuckets
+    delete_by_pk: _deleteGraphiteFileStoreBucket
+    insert: _insertGraphiteFileStoreBuckets
+    insert_one: _insertGraphiteFileStoreBucket
+    select: _graphiteFileStoreBuckets
+    select_aggregate: _graphiteFileStoreBucketAggregate
+    select_by_pk: _graphiteFileStoreBucket
+    select_stream: _graphiteFileStoreBucketStream
+    update: _updateGraphiteFileStoreBuckets
+    update_by_pk: _updateGraphiteFileStoreBucket
+    update_many: _updateManyGraphiteFileStoreBuckets
+event_triggers:
+  - name: graphite_file_store_buckets_events
+    definition:
+      delete:
+        columns: '*'
+        payload: '*'
+      enable_manual: false
+      insert:
+        columns: '*'
+        payload: '*'
+      update:
+        columns: '*'
+        payload: '*'
+    retry_conf:
+      interval_sec: 30
+      num_retries: 3
+      timeout_sec: 30
+    webhook: http://ai:8090/v1/webhooks/file-store-buckets
+    headers:
+      - name: X-Graphite-Webhook-Secret
+        value_from_env: GRAPHITE_WEBHOOK_SECRET
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: true
+      clear_older_than: 168
+      paused: false
+      schedule: 0 0 * * *
+      timeout: 60

@@ -14,7 +14,7 @@ import (
 //
 // See https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-PC-Style-Function-Keys
 const (
-	RequestNameVersion = "\x1b[>0q"
+	RequestNameVersion = "\x1b[>q"
 	XTVERSION          = RequestNameVersion
 )
 
@@ -24,6 +24,7 @@ const (
 //	DCS > | text ST
 //
 // See https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-PC-Style-Function-Keys
+//
 // Deprecated: use [RequestNameVersion] instead.
 const RequestXTVersion = RequestNameVersion
 
@@ -40,7 +41,7 @@ const RequestXTVersion = RequestNameVersion
 // See https://vt100.net/docs/vt510-rm/DA1.html
 func PrimaryDeviceAttributes(attrs ...int) string {
 	if len(attrs) == 0 {
-		return "\x1b[c"
+		return RequestPrimaryDeviceAttributes
 	} else if len(attrs) == 1 && attrs[0] == 0 {
 		return "\x1b[0c"
 	}
@@ -75,7 +76,7 @@ const RequestPrimaryDeviceAttributes = "\x1b[c"
 // See https://vt100.net/docs/vt510-rm/DA2.html
 func SecondaryDeviceAttributes(attrs ...int) string {
 	if len(attrs) == 0 {
-		return "\x1b[>c"
+		return RequestSecondaryDeviceAttributes
 	}
 
 	as := make([]string, len(attrs))
@@ -89,6 +90,14 @@ func SecondaryDeviceAttributes(attrs ...int) string {
 func DA2(attrs ...int) string {
 	return SecondaryDeviceAttributes(attrs...)
 }
+
+// RequestSecondaryDeviceAttributes is a control sequence that requests the
+// terminal's secondary device attributes (DA2).
+//
+//	CSI > c
+//
+// See https://vt100.net/docs/vt510-rm/DA2.html
+const RequestSecondaryDeviceAttributes = "\x1b[>c"
 
 // TertiaryDeviceAttributes (DA3) is a control sequence that reports the
 // terminal's tertiary device attributes.
@@ -106,7 +115,7 @@ func DA2(attrs ...int) string {
 func TertiaryDeviceAttributes(unitID string) string {
 	switch unitID {
 	case "":
-		return "\x1b[=c"
+		return RequestTertiaryDeviceAttributes
 	case "0":
 		return "\x1b[=0c"
 	}
@@ -118,3 +127,11 @@ func TertiaryDeviceAttributes(unitID string) string {
 func DA3(unitID string) string {
 	return TertiaryDeviceAttributes(unitID)
 }
+
+// RequestTertiaryDeviceAttributes is a control sequence that requests the
+// terminal's tertiary device attributes (DA3).
+//
+//	CSI = c
+//
+// See https://vt100.net/docs/vt510-rm/DA3.html
+const RequestTertiaryDeviceAttributes = "\x1b[=c"

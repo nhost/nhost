@@ -29,6 +29,14 @@ let
         (inDirectory "lib/tracing")
         (matchExt "go")
       )
+      (and
+        (inDirectory "lib/graphql")
+        (matchExt "go")
+      )
+      (and
+        (inDirectory "lib/nhost")
+        (matchExt "go")
+      )
     ];
   };
 

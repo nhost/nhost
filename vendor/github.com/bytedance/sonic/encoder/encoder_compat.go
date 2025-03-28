@@ -1,4 +1,4 @@
-// +build !amd64,!arm64 go1.24 !go1.17 arm64,!go1.20
+// +build !amd64,!arm64 go1.25 !go1.17 arm64,!go1.20
 
 /*
 * Copyright 2023 ByteDance Inc.
@@ -19,16 +19,17 @@
 package encoder
 
 import (
-   `io`
+    `io`
     `bytes`
     `encoding/json`
     `reflect`
 
     `github.com/bytedance/sonic/option`
+    `github.com/bytedance/sonic/internal/compat`
 )
 
 func init() {
-    println("WARNING:(encoder) sonic only supports (Go1.17~1.23 && CPU amd64) or (G01.20~1.23  && CPU arm64) , but your environment is not suitable")
+    compat.Warn("sonic/encoder")
 }
 
 // EnableFallback indicates if encoder use fallback

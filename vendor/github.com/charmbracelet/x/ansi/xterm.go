@@ -91,6 +91,7 @@ const (
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Functions-using-CSI-_-ordered-by-the-final-character_s_
 // See: https://invisible-island.net/xterm/manpage/xterm.html#VT100-Widget-Resources:modifyOtherKeys
+//
 // Deprecated: use [SetModifyOtherKeys1] or [SetModifyOtherKeys2] instead.
 func ModifyOtherKeys(mode int) string {
 	return "\x1b[>4;" + strconv.Itoa(mode) + "m"
@@ -102,6 +103,7 @@ func ModifyOtherKeys(mode int) string {
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Functions-using-CSI-_-ordered-by-the-final-character_s_
 // See: https://invisible-island.net/xterm/manpage/xterm.html#VT100-Widget-Resources:modifyOtherKeys
+//
 // Deprecated: use [ResetModifyOtherKeys] instead.
 const DisableModifyOtherKeys = "\x1b[>4;0m"
 
@@ -111,6 +113,7 @@ const DisableModifyOtherKeys = "\x1b[>4;0m"
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Functions-using-CSI-_-ordered-by-the-final-character_s_
 // See: https://invisible-island.net/xterm/manpage/xterm.html#VT100-Widget-Resources:modifyOtherKeys
+//
 // Deprecated: use [SetModifyOtherKeys1] instead.
 const EnableModifyOtherKeys1 = "\x1b[>4;1m"
 
@@ -120,6 +123,7 @@ const EnableModifyOtherKeys1 = "\x1b[>4;1m"
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Functions-using-CSI-_-ordered-by-the-final-character_s_
 // See: https://invisible-island.net/xterm/manpage/xterm.html#VT100-Widget-Resources:modifyOtherKeys
+//
 // Deprecated: use [SetModifyOtherKeys2] instead.
 const EnableModifyOtherKeys2 = "\x1b[>4;2m"
 
@@ -129,5 +133,6 @@ const EnableModifyOtherKeys2 = "\x1b[>4;2m"
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Functions-using-CSI-_-ordered-by-the-final-character_s_
 // See: https://invisible-island.net/xterm/manpage/xterm.html#VT100-Widget-Resources:modifyOtherKeys
+//
 // Deprecated: use [QueryModifyOtherKeys] instead.
 const RequestModifyOtherKeys = "\x1b[?4m"

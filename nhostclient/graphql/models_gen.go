@@ -7990,7 +7990,7 @@ func (e UsersSelectColumn) MarshalGQL(w io.Writer) {
 type WorkspaceMemberInvitesConstraint string
 
 const (
-	// unique or primary key constraint on columns "workspace_id", "email"
+	// unique or primary key constraint on columns "email", "workspace_id"
 	WorkspaceMemberInvitesConstraintWorkspaceMemberInvitesEmailWorkspaceIDKey WorkspaceMemberInvitesConstraint = "workspace_member_invites_email_workspace_id_key"
 	// unique or primary key constraint on columns "id"
 	WorkspaceMemberInvitesConstraintWorkspaceMemberInvitesPkey WorkspaceMemberInvitesConstraint = "workspace_member_invites_pkey"
@@ -8136,7 +8136,7 @@ type WorkspaceMembersConstraint string
 const (
 	// unique or primary key constraint on columns "id"
 	WorkspaceMembersConstraintWorkspaceMembersPkey WorkspaceMembersConstraint = "workspace_members_pkey"
-	// unique or primary key constraint on columns "workspace_id", "user_id"
+	// unique or primary key constraint on columns "user_id", "workspace_id"
 	WorkspaceMembersConstraintWorkspaceMembersUserIDWorkspaceIDKey WorkspaceMembersConstraint = "workspace_members_user_id_workspace_id_key"
 )
 

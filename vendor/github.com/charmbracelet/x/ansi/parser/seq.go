@@ -4,9 +4,9 @@ import "math"
 
 // Shift and masks for sequence parameters and intermediates.
 const (
-	MarkerShift    = 8
+	PrefixShift    = 8
 	IntermedShift  = 16
-	CommandMask    = 0xff
+	FinalMask      = 0xff
 	HasMoreFlag    = math.MinInt32
 	ParamMask      = ^HasMoreFlag
 	MissingParam   = ParamMask
@@ -22,12 +22,12 @@ const (
 	DefaultParamValue = 0
 )
 
-// Marker returns the marker byte of the sequence.
+// Prefix returns the prefix byte of the sequence.
 // This is always gonna be one of the following '<' '=' '>' '?' and in the
 // range of 0x3C-0x3F.
-// Zero is returned if the sequence does not have a marker.
-func Marker(cmd int) int {
-	return (cmd >> MarkerShift) & CommandMask
+// Zero is returned if the sequence does not have a prefix.
+func Prefix(cmd int) int {
+	return (cmd >> PrefixShift) & FinalMask
 }
 
 // Intermediate returns the intermediate byte of the sequence.
@@ -36,12 +36,12 @@ func Marker(cmd int) int {
 // ',', '-', '.', '/'.
 // Zero is returned if the sequence does not have an intermediate byte.
 func Intermediate(cmd int) int {
-	return (cmd >> IntermedShift) & CommandMask
+	return (cmd >> IntermedShift) & FinalMask
 }
 
 // Command returns the command byte of the CSI sequence.
 func Command(cmd int) int {
-	return cmd & CommandMask
+	return cmd & FinalMask
 }
 
 // Param returns the parameter at the given index.

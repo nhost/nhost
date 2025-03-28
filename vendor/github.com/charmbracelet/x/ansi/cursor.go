@@ -36,6 +36,8 @@ const (
 //
 // Where Pl is the line number and Pc is the column number.
 // See: https://vt100.net/docs/vt510-rm/CPR.html
+//
+// Deprecated: use [RequestCursorPositionReport] instead.
 const RequestCursorPosition = "\x1b[6n"
 
 // RequestExtendedCursorPosition (DECXCPR) is a sequence for requesting the
@@ -51,6 +53,8 @@ const RequestCursorPosition = "\x1b[6n"
 // Where Pl is the line number, Pc is the column number, and Pp is the page
 // number.
 // See: https://vt100.net/docs/vt510-rm/DECXCPR.html
+//
+// Deprecated: use [RequestExtendedCursorPositionReport] instead.
 const RequestExtendedCursorPosition = "\x1b[?6n"
 
 // CursorUp (CUU) returns a sequence for moving the cursor up n cells.

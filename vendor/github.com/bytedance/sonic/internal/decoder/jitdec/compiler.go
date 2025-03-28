@@ -54,6 +54,7 @@ const (
     _OP_nil_1
     _OP_nil_2
     _OP_nil_3
+    _OP_empty_bytes
     _OP_deref
     _OP_index
     _OP_is_null
@@ -99,6 +100,7 @@ const (
     _OP_skip_emtpy
     _OP_add
     _OP_check_empty
+    _OP_unsupported
     _OP_debug
 )
 
@@ -134,6 +136,7 @@ var _OpNames = [256]string {
     _OP_nil_1            : "nil_1",
     _OP_nil_2            : "nil_2",
     _OP_nil_3            : "nil_3",
+    _OP_empty_bytes      : "empty bytes",
     _OP_deref            : "deref",
     _OP_index            : "index",
     _OP_is_null          : "is_null",
@@ -176,6 +179,7 @@ var _OpNames = [256]string {
     _OP_add              : "add",
     _OP_go_skip          : "go_skip",
     _OP_check_empty      : "check_empty",
+    _OP_unsupported      : "unsupported type",
     _OP_debug            : "debug",
 }
 
@@ -630,8 +634,15 @@ func (self *_Compiler) compileOps(p *_Program, sp int, vt reflect.Type) {
         case reflect.Ptr       : self.compilePtr       (p, sp, vt)
         case reflect.Slice     : self.compileSlice     (p, sp, vt)
         case reflect.Struct    : self.compileStruct    (p, sp, vt)
-        default                : panic                 (&json.UnmarshalTypeError{Type: vt})
+        default                : self.compileUnsupportedType      (p, vt)
     }
+}
+
+func (self *_Compiler) compileUnsupportedType(p *_Program, vt reflect.Type) {
+    i := p.pc()
+    p.add(_OP_is_null)
+    p.rtt(_OP_unsupported, vt)
+    p.pin(i)
 }
 
 func (self *_Compiler) compileMap(p *_Program, sp int, vt reflect.Type) {
@@ -819,12 +830,19 @@ func (self *_Compiler) compileSliceBin(p *_Program, sp int, vt reflect.Type) {
     self.compileSliceBody(p, sp, vt.Elem())
     y := p.pc()
     p.add(_OP_goto)
+
+    // unmarshal `null` and `"` is different
     p.pin(i)
-    p.pin(k)
     p.add(_OP_nil_3)
+    y2 := p.pc()
+    p.add(_OP_goto)
+
+    p.pin(k)
+    p.add(_OP_empty_bytes)
     p.pin(x)
     p.pin(skip)
     p.pin(y)
+    p.pin(y2)
 }
 
 func (self *_Compiler) compileSliceList(p *_Program, sp int, vt reflect.Type) {
@@ -1135,13 +1153,11 @@ func (self *_Compiler) compileInterface(p *_Program, vt reflect.Type) {
     p.pin(j)
 }
 
-func (self *_Compiler) compilePrimitive(vt reflect.Type, p *_Program, op _Op) {
+func (self *_Compiler) compilePrimitive(_ reflect.Type, p *_Program, op _Op) {
     i := p.pc()
     p.add(_OP_is_null)
-    // skip := self.checkPrimitive(p, vt)
     p.add(op)
     p.pin(i)
-    // p.pin(skip)
 }
 
 func (self *_Compiler) compileUnmarshalEnd(p *_Program, vt reflect.Type, i int) {

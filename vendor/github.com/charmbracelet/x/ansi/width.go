@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/charmbracelet/x/ansi/parser"
+	"github.com/mattn/go-runewidth"
 	"github.com/rivo/uniseg"
 )
 
@@ -62,7 +63,21 @@ func Strip(s string) string {
 // cells that the string will occupy when printed in a terminal. ANSI escape
 // codes are ignored and wide characters (such as East Asians and emojis) are
 // accounted for.
+// This treats the text as a sequence of grapheme clusters.
 func StringWidth(s string) int {
+	return stringWidth(GraphemeWidth, s)
+}
+
+// StringWidthWc returns the width of a string in cells. This is the number of
+// cells that the string will occupy when printed in a terminal. ANSI escape
+// codes are ignored and wide characters (such as East Asians and emojis) are
+// accounted for.
+// This treats the text as a sequence of wide characters and runes.
+func StringWidthWc(s string) int {
+	return stringWidth(WcWidth, s)
+}
+
+func stringWidth(m Method, s string) int {
 	if s == "" {
 		return 0
 	}
@@ -78,6 +93,9 @@ func StringWidth(s string) int {
 		if state == parser.Utf8State {
 			var w int
 			cluster, _, w, _ = uniseg.FirstGraphemeClusterInString(s[i:], -1)
+			if m == WcWidth {
+				w = runewidth.StringWidth(cluster)
+			}
 			width += w
 			i += len(cluster) - 1
 			pstate = parser.GroundState

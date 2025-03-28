@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/charmbracelet/x/ansi/parser"
+	"github.com/mattn/go-runewidth"
 	"github.com/rivo/uniseg"
 )
 
@@ -17,7 +18,22 @@ const nbsp = 0xA0
 // wide-characters in the string.
 // When preserveSpace is true, spaces at the beginning of a line will be
 // preserved.
+// This treats the text as a sequence of graphemes.
 func Hardwrap(s string, limit int, preserveSpace bool) string {
+	return hardwrap(GraphemeWidth, s, limit, preserveSpace)
+}
+
+// HardwrapWc wraps a string or a block of text to a given line length, breaking
+// word boundaries. This will preserve ANSI escape codes and will account for
+// wide-characters in the string.
+// When preserveSpace is true, spaces at the beginning of a line will be
+// preserved.
+// This treats the text as a sequence of wide characters and runes.
+func HardwrapWc(s string, limit int, preserveSpace bool) string {
+	return hardwrap(WcWidth, s, limit, preserveSpace)
+}
+
+func hardwrap(m Method, s string, limit int, preserveSpace bool) string {
 	if limit < 1 {
 		return s
 	}
@@ -42,6 +58,9 @@ func Hardwrap(s string, limit int, preserveSpace bool) string {
 		if state == parser.Utf8State {
 			var width int
 			cluster, _, width, _ = uniseg.FirstGraphemeCluster(b[i:], -1)
+			if m == WcWidth {
+				width = runewidth.StringWidth(string(cluster))
+			}
 			i += len(cluster)
 
 			if curWidth+width > limit {
@@ -108,7 +127,27 @@ func Hardwrap(s string, limit int, preserveSpace bool) string {
 // breakpoint.
 //
 // Note: breakpoints must be a string of 1-cell wide rune characters.
+//
+// This treats the text as a sequence of graphemes.
 func Wordwrap(s string, limit int, breakpoints string) string {
+	return wordwrap(GraphemeWidth, s, limit, breakpoints)
+}
+
+// WordwrapWc wraps a string or a block of text to a given line length, not
+// breaking word boundaries. This will preserve ANSI escape codes and will
+// account for wide-characters in the string.
+// The breakpoints string is a list of characters that are considered
+// breakpoints for word wrapping. A hyphen (-) is always considered a
+// breakpoint.
+//
+// Note: breakpoints must be a string of 1-cell wide rune characters.
+//
+// This treats the text as a sequence of wide characters and runes.
+func WordwrapWc(s string, limit int, breakpoints string) string {
+	return wordwrap(WcWidth, s, limit, breakpoints)
+}
+
+func wordwrap(m Method, s string, limit int, breakpoints string) string {
 	if limit < 1 {
 		return s
 	}
@@ -154,6 +193,9 @@ func Wordwrap(s string, limit int, breakpoints string) string {
 		if state == parser.Utf8State {
 			var width int
 			cluster, _, width, _ = uniseg.FirstGraphemeCluster(b[i:], -1)
+			if m == WcWidth {
+				width = runewidth.StringWidth(string(cluster))
+			}
 			i += len(cluster)
 
 			r, _ := utf8.DecodeRune(cluster)
@@ -236,7 +278,26 @@ func Wordwrap(s string, limit int, breakpoints string) string {
 // (-) is always considered a breakpoint.
 //
 // Note: breakpoints must be a string of 1-cell wide rune characters.
+//
+// This treats the text as a sequence of graphemes.
 func Wrap(s string, limit int, breakpoints string) string {
+	return wrap(GraphemeWidth, s, limit, breakpoints)
+}
+
+// WrapWc wraps a string or a block of text to a given line length, breaking word
+// boundaries if necessary. This will preserve ANSI escape codes and will
+// account for wide-characters in the string. The breakpoints string is a list
+// of characters that are considered breakpoints for word wrapping. A hyphen
+// (-) is always considered a breakpoint.
+//
+// Note: breakpoints must be a string of 1-cell wide rune characters.
+//
+// This treats the text as a sequence of wide characters and runes.
+func WrapWc(s string, limit int, breakpoints string) string {
+	return wrap(WcWidth, s, limit, breakpoints)
+}
+
+func wrap(m Method, s string, limit int, breakpoints string) string {
 	if limit < 1 {
 		return s
 	}
@@ -282,6 +343,9 @@ func Wrap(s string, limit int, breakpoints string) string {
 		if state == parser.Utf8State {
 			var width int
 			cluster, _, width, _ = uniseg.FirstGraphemeCluster(b[i:], -1)
+			if m == WcWidth {
+				width = runewidth.StringWidth(string(cluster))
+			}
 			i += len(cluster)
 
 			r, _ := utf8.DecodeRune(cluster)

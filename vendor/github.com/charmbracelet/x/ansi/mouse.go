@@ -70,7 +70,7 @@ func (b MouseButton) String() string {
 	return mouseButtons[b]
 }
 
-// Button returns a byte representing a mouse button.
+// EncodeMouseButton returns a byte representing a mouse button.
 // The button is a bitmask of the following leftmost values:
 //
 //   - The first two bits are the button number:
@@ -94,7 +94,7 @@ func (b MouseButton) String() string {
 //
 // If button is [MouseNone], and motion is false, this returns a release event.
 // If button is undefined, this function returns 0xff.
-func (b MouseButton) Button(motion, shift, alt, ctrl bool) (m byte) {
+func EncodeMouseButton(b MouseButton, motion, shift, alt, ctrl bool) (m byte) {
 	// mouse bit shifts
 	const (
 		bitShift  = 0b0000_0100

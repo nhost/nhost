@@ -8,7 +8,7 @@ const (
 	NoneAction Action = iota
 	ClearAction
 	CollectAction
-	MarkerAction
+	PrefixAction
 	DispatchAction
 	ExecuteAction
 	StartAction // Start of a data string
@@ -24,7 +24,7 @@ var ActionNames = []string{
 	"NoneAction",
 	"ClearAction",
 	"CollectAction",
-	"MarkerAction",
+	"PrefixAction",
 	"DispatchAction",
 	"ExecuteAction",
 	"StartAction",

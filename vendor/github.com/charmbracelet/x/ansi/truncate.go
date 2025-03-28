@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/charmbracelet/x/ansi/parser"
+	"github.com/mattn/go-runewidth"
 	"github.com/rivo/uniseg"
 )
 
@@ -11,22 +12,57 @@ import (
 // aware of ANSI escape codes and will not break them, and accounts for
 // wide-characters (such as East-Asian characters and emojis). Note that the
 // [left] parameter is inclusive, while [right] isn't.
+// This treats the text as a sequence of graphemes.
 func Cut(s string, left, right int) string {
+	return cut(GraphemeWidth, s, left, right)
+}
+
+// CutWc the string, without adding any prefix or tail strings. This function is
+// aware of ANSI escape codes and will not break them, and accounts for
+// wide-characters (such as East-Asian characters and emojis). Note that the
+// [left] parameter is inclusive, while [right] isn't.
+// This treats the text as a sequence of wide characters and runes.
+func CutWc(s string, left, right int) string {
+	return cut(WcWidth, s, left, right)
+}
+
+func cut(m Method, s string, left, right int) string {
 	if right <= left {
 		return ""
 	}
 
-	if left == 0 {
-		return Truncate(s, right, "")
+	truncate := Truncate
+	truncateLeft := TruncateLeft
+	if m == WcWidth {
+		truncate = TruncateWc
+		truncateLeft = TruncateWc
 	}
-	return TruncateLeft(Truncate(s, right, ""), left, "")
+
+	if left == 0 {
+		return truncate(s, right, "")
+	}
+	return truncateLeft(Truncate(s, right, ""), left, "")
 }
 
 // Truncate truncates a string to a given length, adding a tail to the end if
 // the string is longer than the given length. This function is aware of ANSI
 // escape codes and will not break them, and accounts for wide-characters (such
 // as East-Asian characters and emojis).
+// This treats the text as a sequence of graphemes.
 func Truncate(s string, length int, tail string) string {
+	return truncate(GraphemeWidth, s, length, tail)
+}
+
+// TruncateWc truncates a string to a given length, adding a tail to the end if
+// the string is longer than the given length. This function is aware of ANSI
+// escape codes and will not break them, and accounts for wide-characters (such
+// as East-Asian characters and emojis).
+// This treats the text as a sequence of wide characters and runes.
+func TruncateWc(s string, length int, tail string) string {
+	return truncate(WcWidth, s, length, tail)
+}
+
+func truncate(m Method, s string, length int, tail string) string {
 	if sw := StringWidth(s); sw <= length {
 		return s
 	}
@@ -57,6 +93,9 @@ func Truncate(s string, length int, tail string) string {
 			// This action happens when we transition to the Utf8State.
 			var width int
 			cluster, _, width, _ = uniseg.FirstGraphemeCluster(b[i:], -1)
+			if m == WcWidth {
+				width = runewidth.StringWidth(string(cluster))
+			}
 
 			// increment the index by the length of the cluster
 			i += len(cluster)
@@ -122,13 +161,27 @@ func Truncate(s string, length int, tail string) string {
 	return buf.String()
 }
 
-// TruncateLeft truncates a string from the left side to a given length, adding
-// a prefix to the beginning if the string is longer than the given length.
+// TruncateLeft truncates a string from the left side by removing n characters,
+// adding a prefix to the beginning if the string is longer than n.
 // This function is aware of ANSI escape codes and will not break them, and
 // accounts for wide-characters (such as East-Asian characters and emojis).
-func TruncateLeft(s string, length int, prefix string) string {
-	if length == 0 {
-		return ""
+// This treats the text as a sequence of graphemes.
+func TruncateLeft(s string, n int, prefix string) string {
+	return truncateLeft(GraphemeWidth, s, n, prefix)
+}
+
+// TruncateLeftWc truncates a string from the left side by removing n characters,
+// adding a prefix to the beginning if the string is longer than n.
+// This function is aware of ANSI escape codes and will not break them, and
+// accounts for wide-characters (such as East-Asian characters and emojis).
+// This treats the text as a sequence of wide characters and runes.
+func TruncateLeftWc(s string, n int, prefix string) string {
+	return truncateLeft(WcWidth, s, n, prefix)
+}
+
+func truncateLeft(m Method, s string, n int, prefix string) string {
+	if n <= 0 {
+		return s
 	}
 
 	var cluster []byte
@@ -149,11 +202,14 @@ func TruncateLeft(s string, length int, prefix string) string {
 		if state == parser.Utf8State {
 			var width int
 			cluster, _, width, _ = uniseg.FirstGraphemeCluster(b[i:], -1)
+			if m == WcWidth {
+				width = runewidth.StringWidth(string(cluster))
+			}
 
 			i += len(cluster)
 			curWidth += width
 
-			if curWidth > length && ignoring {
+			if curWidth > n && ignoring {
 				ignoring = false
 				buf.WriteString(prefix)
 			}
@@ -162,7 +218,7 @@ func TruncateLeft(s string, length int, prefix string) string {
 				continue
 			}
 
-			if curWidth > length {
+			if curWidth > n {
 				buf.Write(cluster)
 			}
 
@@ -174,7 +230,7 @@ func TruncateLeft(s string, length int, prefix string) string {
 		case parser.PrintAction:
 			curWidth++
 
-			if curWidth > length && ignoring {
+			if curWidth > n && ignoring {
 				ignoring = false
 				buf.WriteString(prefix)
 			}
@@ -191,11 +247,36 @@ func TruncateLeft(s string, length int, prefix string) string {
 		}
 
 		pstate = state
-		if curWidth > length && ignoring {
+		if curWidth > n && ignoring {
 			ignoring = false
 			buf.WriteString(prefix)
 		}
 	}
 
 	return buf.String()
+}
+
+// ByteToGraphemeRange takes start and stop byte positions and converts them to
+// grapheme-aware char positions.
+// You can use this with [Truncate], [TruncateLeft], and [Cut].
+func ByteToGraphemeRange(str string, byteStart, byteStop int) (charStart, charStop int) {
+	bytePos, charPos := 0, 0
+	gr := uniseg.NewGraphemes(str)
+	for byteStart > bytePos {
+		if !gr.Next() {
+			break
+		}
+		bytePos += len(gr.Str())
+		charPos += max(1, gr.Width())
+	}
+	charStart = charPos
+	for byteStop > bytePos {
+		if !gr.Next() {
+			break
+		}
+		bytePos += len(gr.Str())
+		charPos += max(1, gr.Width())
+	}
+	charStop = charPos
+	return
 }

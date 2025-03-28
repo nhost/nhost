@@ -5,25 +5,25 @@ import (
 	"strings"
 )
 
-// Status represents a terminal status report.
-type Status interface {
-	// Status returns the status report identifier.
-	Status() int
+// StatusReport represents a terminal status report.
+type StatusReport interface {
+	// StatusReport returns the status report identifier.
+	StatusReport() int
 }
 
-// ANSIStatus represents an ANSI terminal status report.
-type ANSIStatus int //nolint:revive
+// ANSIReport represents an ANSI terminal status report.
+type ANSIStatusReport int //nolint:revive
 
-// Status returns the status report identifier.
-func (s ANSIStatus) Status() int {
+// Report returns the status report identifier.
+func (s ANSIStatusReport) StatusReport() int {
 	return int(s)
 }
 
-// DECStatus represents a DEC terminal status report.
-type DECStatus int
+// DECStatusReport represents a DEC terminal status report.
+type DECStatusReport int
 
 // Status returns the status report identifier.
-func (s DECStatus) Status() int {
+func (s DECStatusReport) StatusReport() int {
 	return int(s)
 }
 
@@ -38,14 +38,14 @@ func (s DECStatus) Status() int {
 // format.
 //
 // See also https://vt100.net/docs/vt510-rm/DSR.html
-func DeviceStatusReport(statues ...Status) string {
+func DeviceStatusReport(statues ...StatusReport) string {
 	var dec bool
 	list := make([]string, len(statues))
 	seq := "\x1b["
 	for i, status := range statues {
-		list[i] = strconv.Itoa(status.Status())
+		list[i] = strconv.Itoa(status.StatusReport())
 		switch status.(type) {
-		case DECStatus:
+		case DECStatusReport:
 			dec = true
 		}
 	}
@@ -56,9 +56,38 @@ func DeviceStatusReport(statues ...Status) string {
 }
 
 // DSR is an alias for [DeviceStatusReport].
-func DSR(status Status) string {
+func DSR(status StatusReport) string {
 	return DeviceStatusReport(status)
 }
+
+// RequestCursorPositionReport is an escape sequence that requests the current
+// cursor position.
+//
+//	CSI 6 n
+//
+// The terminal will report the cursor position as a CSI sequence in the
+// following format:
+//
+//	CSI Pl ; Pc R
+//
+// Where Pl is the line number and Pc is the column number.
+// See: https://vt100.net/docs/vt510-rm/CPR.html
+const RequestCursorPositionReport = "\x1b[6n"
+
+// RequestExtendedCursorPositionReport (DECXCPR) is a sequence for requesting
+// the cursor position report including the current page number.
+//
+//	CSI ? 6 n
+//
+// The terminal will report the cursor position as a CSI sequence in the
+// following format:
+//
+//	CSI ? Pl ; Pc ; Pp R
+//
+// Where Pl is the line number, Pc is the column number, and Pp is the page
+// number.
+// See: https://vt100.net/docs/vt510-rm/DECXCPR.html
+const RequestExtendedCursorPositionReport = "\x1b[?6n"
 
 // CursorPositionReport (CPR) is a control sequence that reports the cursor's
 // position.

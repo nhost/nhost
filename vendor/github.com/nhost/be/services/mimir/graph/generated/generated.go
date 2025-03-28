@@ -45,7 +45,7 @@ type ResolverRoot interface {
 
 type DirectiveRoot struct {
 	HasAppVisibility func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
-	IsAdmin          func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
+	HasRole          func(ctx context.Context, obj any, next graphql.Resolver, role []string) (res any, err error)
 }
 
 type ComplexityRoot struct {
@@ -3825,7 +3825,9 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../../schema/schema.graphqls", Input: `directive @hasAppVisibility on ARGUMENT_DEFINITION
-directive @isAdmin on ARGUMENT_DEFINITION
+directive @hasRole(
+    role: [String!]!,
+) on FIELD_DEFINITION
 
 scalar uuid
 
@@ -3873,8 +3875,8 @@ type Query {
     ):ConfigConfig
     configs(
         resolve: Boolean!,
-        where: ConfigConfigComparisonExp @isAdmin,
-    ): [ConfigAppConfig!]!
+        where: ConfigConfigComparisonExp
+    ): [ConfigAppConfig!]! @hasRole(role: ["admin"]),
 
     appSecrets(
         appID: uuid! @hasAppVisibility,
@@ -3886,8 +3888,8 @@ type Query {
         appID: uuid! @hasAppVisibility,
     ):ConfigSystemConfig
     systemConfigs(
-        where: ConfigSystemConfigComparisonExp @isAdmin,
-    ): [ConfigAppSystemConfig!]!
+        where: ConfigSystemConfigComparisonExp
+    ): [ConfigAppSystemConfig!]! @hasRole(role: ["admin", "sa:factorio", "sa:bragi", "sa:watchtower"])
 
     runServiceConfigRawJSON(
         appID: uuid! @hasAppVisibility,
@@ -3905,8 +3907,8 @@ type Query {
     ): [ConfigRunServiceConfigWithID!]!
     runServiceConfigsAll(
         resolve: Boolean!,
-        where: ConfigRunServiceConfigComparisonExp, @isAdmin,
-    ): [ConfigRunServiceConfigWithID!]!
+        where: ConfigRunServiceConfigComparisonExp,
+    ): [ConfigRunServiceConfigWithID!]! @hasRole(role: ["admin"]),
 }
 
 
@@ -3952,9 +3954,9 @@ type Mutation {
     ): ConfigEnvironmentVariable
 
     updateSystemConfig(
-        appID: uuid! @hasAppVisibility, @isAdmin,
+        appID: uuid! @hasAppVisibility,
         systemConfig: ConfigSystemConfigUpdateInput!,
-    ): ConfigSystemConfig!
+    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:watchtower"])
 
     insertRunServiceConfig(
         appID: uuid! @hasAppVisibility,
@@ -8241,6 +8243,34 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.dir_hasRole_argsRole(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["role"] = arg0
+	return args, nil
+}
+func (ec *executionContext) dir_hasRole_argsRole(
+	ctx context.Context,
+	rawArgs map[string]any,
+) ([]string, error) {
+	if _, ok := rawArgs["role"]; !ok {
+		var zeroVal []string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+	if tmp, ok := rawArgs["role"]; ok {
+		return ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+	}
+
+	var zeroVal []string
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Mutation_changeDatabaseVersion_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9323,15 +9353,8 @@ func (ec *executionContext) field_Mutation_updateSystemConfig_argsAppID(
 		}
 		return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
 	}
-	directive2 := func(ctx context.Context) (any, error) {
-		if ec.directives.IsAdmin == nil {
-			var zeroVal string
-			return zeroVal, errors.New("directive isAdmin is not implemented")
-		}
-		return ec.directives.IsAdmin(ctx, rawArgs, directive1)
-	}
 
-	tmp, err := directive2(ctx)
+	tmp, err := directive1(ctx)
 	if err != nil {
 		var zeroVal string
 		return zeroVal, graphql.ErrorOnPath(ctx, err)
@@ -9629,37 +9652,12 @@ func (ec *executionContext) field_Query_configs_argsWhere(
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-	directive0 := func(ctx context.Context) (any, error) {
-		tmp, ok := rawArgs["where"]
-		if !ok {
-			var zeroVal *model.ConfigConfigComparisonExp
-			return zeroVal, nil
-		}
+	if tmp, ok := rawArgs["where"]; ok {
 		return ec.unmarshalOConfigConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConfigComparisonExp(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (any, error) {
-		if ec.directives.IsAdmin == nil {
-			var zeroVal *model.ConfigConfigComparisonExp
-			return zeroVal, errors.New("directive isAdmin is not implemented")
-		}
-		return ec.directives.IsAdmin(ctx, rawArgs, directive0)
-	}
-
-	tmp, err := directive1(ctx)
-	if err != nil {
-		var zeroVal *model.ConfigConfigComparisonExp
-		return zeroVal, graphql.ErrorOnPath(ctx, err)
-	}
-	if data, ok := tmp.(*model.ConfigConfigComparisonExp); ok {
-		return data, nil
-	} else if tmp == nil {
-		var zeroVal *model.ConfigConfigComparisonExp
-		return zeroVal, nil
-	} else {
-		var zeroVal *model.ConfigConfigComparisonExp
-		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigConfigComparisonExp`, tmp))
-	}
+	var zeroVal *model.ConfigConfigComparisonExp
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_runServiceConfigRawJSON_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
@@ -9897,37 +9895,12 @@ func (ec *executionContext) field_Query_runServiceConfigsAll_argsWhere(
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-	directive0 := func(ctx context.Context) (any, error) {
-		tmp, ok := rawArgs["where"]
-		if !ok {
-			var zeroVal *model.ConfigRunServiceConfigComparisonExp
-			return zeroVal, nil
-		}
+	if tmp, ok := rawArgs["where"]; ok {
 		return ec.unmarshalOConfigRunServiceConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRunServiceConfigComparisonExp(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (any, error) {
-		if ec.directives.IsAdmin == nil {
-			var zeroVal *model.ConfigRunServiceConfigComparisonExp
-			return zeroVal, errors.New("directive isAdmin is not implemented")
-		}
-		return ec.directives.IsAdmin(ctx, rawArgs, directive0)
-	}
-
-	tmp, err := directive1(ctx)
-	if err != nil {
-		var zeroVal *model.ConfigRunServiceConfigComparisonExp
-		return zeroVal, graphql.ErrorOnPath(ctx, err)
-	}
-	if data, ok := tmp.(*model.ConfigRunServiceConfigComparisonExp); ok {
-		return data, nil
-	} else if tmp == nil {
-		var zeroVal *model.ConfigRunServiceConfigComparisonExp
-		return zeroVal, nil
-	} else {
-		var zeroVal *model.ConfigRunServiceConfigComparisonExp
-		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigRunServiceConfigComparisonExp`, tmp))
-	}
+	var zeroVal *model.ConfigRunServiceConfigComparisonExp
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field_Query_runServiceConfigs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
@@ -10073,37 +10046,12 @@ func (ec *executionContext) field_Query_systemConfigs_argsWhere(
 	}
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
-	directive0 := func(ctx context.Context) (any, error) {
-		tmp, ok := rawArgs["where"]
-		if !ok {
-			var zeroVal *model.ConfigSystemConfigComparisonExp
-			return zeroVal, nil
-		}
+	if tmp, ok := rawArgs["where"]; ok {
 		return ec.unmarshalOConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx, tmp)
 	}
 
-	directive1 := func(ctx context.Context) (any, error) {
-		if ec.directives.IsAdmin == nil {
-			var zeroVal *model.ConfigSystemConfigComparisonExp
-			return zeroVal, errors.New("directive isAdmin is not implemented")
-		}
-		return ec.directives.IsAdmin(ctx, rawArgs, directive0)
-	}
-
-	tmp, err := directive1(ctx)
-	if err != nil {
-		var zeroVal *model.ConfigSystemConfigComparisonExp
-		return zeroVal, graphql.ErrorOnPath(ctx, err)
-	}
-	if data, ok := tmp.(*model.ConfigSystemConfigComparisonExp); ok {
-		return data, nil
-	} else if tmp == nil {
-		var zeroVal *model.ConfigSystemConfigComparisonExp
-		return zeroVal, nil
-	} else {
-		var zeroVal *model.ConfigSystemConfigComparisonExp
-		return zeroVal, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigSystemConfigComparisonExp`, tmp))
-	}
+	var zeroVal *model.ConfigSystemConfigComparisonExp
+	return zeroVal, nil
 }
 
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
@@ -26419,8 +26367,35 @@ func (ec *executionContext) _Mutation_updateSystemConfig(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateSystemConfig(rctx, fc.Args["appID"].(string), fc.Args["systemConfig"].(model.ConfigSystemConfigUpdateInput))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateSystemConfig(rctx, fc.Args["appID"].(string), fc.Args["systemConfig"].(model.ConfigSystemConfigUpdateInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin", "sa:factorio", "sa:watchtower"})
+			if err != nil {
+				var zeroVal *model.ConfigSystemConfig
+				return zeroVal, err
+			}
+			if ec.directives.HasRole == nil {
+				var zeroVal *model.ConfigSystemConfig
+				return zeroVal, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.ConfigSystemConfig); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/nhost/be/services/mimir/model.ConfigSystemConfig`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26884,8 +26859,35 @@ func (ec *executionContext) _Query_configs(ctx context.Context, field graphql.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Configs(rctx, fc.Args["resolve"].(bool), fc.Args["where"].(*model.ConfigConfigComparisonExp))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Configs(rctx, fc.Args["resolve"].(bool), fc.Args["where"].(*model.ConfigConfigComparisonExp))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin"})
+			if err != nil {
+				var zeroVal []*model.ConfigAppConfig
+				return zeroVal, err
+			}
+			if ec.directives.HasRole == nil {
+				var zeroVal []*model.ConfigAppConfig
+				return zeroVal, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.ConfigAppConfig); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/nhost/be/services/mimir/model.ConfigAppConfig`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27115,8 +27117,35 @@ func (ec *executionContext) _Query_systemConfigs(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SystemConfigs(rctx, fc.Args["where"].(*model.ConfigSystemConfigComparisonExp))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().SystemConfigs(rctx, fc.Args["where"].(*model.ConfigSystemConfigComparisonExp))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin", "sa:factorio", "sa:bragi", "sa:watchtower"})
+			if err != nil {
+				var zeroVal []*model.ConfigAppSystemConfig
+				return zeroVal, err
+			}
+			if ec.directives.HasRole == nil {
+				var zeroVal []*model.ConfigAppSystemConfig
+				return zeroVal, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.ConfigAppSystemConfig); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/nhost/be/services/mimir/model.ConfigAppSystemConfig`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27360,8 +27389,35 @@ func (ec *executionContext) _Query_runServiceConfigsAll(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RunServiceConfigsAll(rctx, fc.Args["resolve"].(bool), fc.Args["where"].(*model.ConfigRunServiceConfigComparisonExp))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().RunServiceConfigsAll(rctx, fc.Args["resolve"].(bool), fc.Args["where"].(*model.ConfigRunServiceConfigComparisonExp))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin"})
+			if err != nil {
+				var zeroVal []*model.ConfigRunServiceConfigWithID
+				return zeroVal, err
+			}
+			if ec.directives.HasRole == nil {
+				var zeroVal []*model.ConfigRunServiceConfigWithID
+				return zeroVal, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.ConfigRunServiceConfigWithID); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/nhost/be/services/mimir/model.ConfigRunServiceConfigWithID`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -301,6 +301,17 @@ func (self Node) AsI64(ctx *Context) (int64, bool) {
 	}
 }
 
+func (self Node) AsByte(ctx *Context) (uint8, bool) {
+	typ := self.Type()
+	if typ == KUint && self.U64() <= math.MaxUint8 {
+		return uint8(self.U64()), true
+	} else if typ == KSint && self.I64() == 0 {
+		return 0, true
+	} else {
+		return 0, false
+	}
+}
+
 /********* Parse Node String into Value ***************/
 
 func (val Node) ParseI64(ctx *Context) (int64, bool) {
@@ -457,20 +468,6 @@ func (val Node) AsStrRef(ctx *Context) (string, bool) {
 	}
 }
 
-func (val Node) AsBytesRef(ctx *Context) ([]byte, bool) {
-	switch val.Type() {
-	case KStringEscaped:
-		node := ptrCast(val.cptr)
-		offset := val.Position()
-		len := int(node.val)
-		return ctx.Parser.JsonBytes()[offset : offset + len], true
-	case KStringCommon:
-		return rt.Str2Mem(val.StringRef(ctx)), true
-	default:
-		return nil, false
-	}
-}
-
 func (val Node) AsStringText(ctx *Context) ([]byte, bool) {
 	if !val.IsStr() {
 		return nil, false
@@ -551,7 +548,7 @@ func (val Node) AsRaw(ctx *Context) string {
 		node := ptrCast(val.cptr)
 		len := int(node.val)
 		offset := val.Position()
-		// add start abd end quote
+		// add start and end quote
 		ref := rt.Str2Mem(ctx.Parser.Json)[offset-1 : offset+len+1]
 		return rt.Mem2Str(ref)
 	case KRawNumber: fallthrough
@@ -867,15 +864,38 @@ func (node *Node) AsSliceString(ctx *Context, vp unsafe.Pointer) error {
 	return gerr
 }
 
-func (node *Node) AsSliceBytes(ctx *Context) ([]byte, error) {
-	b, ok := node.AsBytesRef(ctx)
-	if !ok {
-		return nil, newUnmatched(node.Position(), rt.BytesType)
+func (val *Node) AsSliceBytes(ctx *Context) ([]byte, error) {
+	var origin []byte
+	switch val.Type() {
+	case KStringEscaped:
+		node := ptrCast(val.cptr)
+		offset := val.Position()
+		len := int(node.val)
+		origin = ctx.Parser.JsonBytes()[offset : offset + len]
+	case KStringCommon:
+		origin = rt.Str2Mem(val.StringRef(ctx))
+	case KArray:
+		arr := val.Array()
+		size := arr.Len()
+		a := make([]byte, size)
+		elem := NewNode(arr.Children())
+		var gerr error
+		var ok bool
+		for i := 0; i < size; i++ {
+			a[i], ok = elem.AsByte(ctx)
+			if !ok && gerr == nil {
+				gerr = newUnmatched(val.Position(), rt.BytesType)
+			}
+			elem = NewNode(PtrOffset(elem.cptr, 1))
+		}
+		return a, gerr
+	default:
+		return nil,  newUnmatched(val.Position(), rt.BytesType)
 	}
-
-	b64, err := rt.DecodeBase64(b)
+	
+	b64, err := rt.DecodeBase64(origin)
 	if err != nil {
-		return nil, newUnmatched(node.Position(), rt.BytesType)
+		return nil, newUnmatched(val.Position(), rt.BytesType)
 	}
 	return b64, nil
 }

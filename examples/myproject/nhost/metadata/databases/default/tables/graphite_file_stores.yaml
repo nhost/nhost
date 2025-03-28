@@ -1,0 +1,37 @@
+table:
+  name: file_stores
+  schema: graphite
+configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    id:
+      custom_name: id
+    last_synced_at:
+      custom_name: lastSyncedAt
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userID
+    vector_store_id:
+      custom_name: vectorStoreID
+  custom_column_names:
+    created_at: createdAt
+    id: id
+    last_synced_at: lastSyncedAt
+    updated_at: updatedAt
+    user_id: userID
+    vector_store_id: vectorStoreID
+  custom_name: _graphiteFileStores
+  custom_root_fields:
+    delete: _deleteGraphiteFileStores
+    delete_by_pk: _deleteGraphiteFileStore
+    insert: _insertGraphiteFileStores
+    insert_one: _insertGraphiteFileStore
+    select: _graphiteFileStores
+    select_aggregate: _graphiteFileStoreAggregate
+    select_by_pk: _graphiteFileStore
+    select_stream: _graphiteFileStoreStream
+    update: _updateGraphiteFileStores
+    update_by_pk: _updateGraphiteFileStore
+    update_many: _updateManyGraphiteFileStores

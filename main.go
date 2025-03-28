@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -49,6 +50,18 @@ func main() {
 			secrets.Command(),
 			software.Command(),
 			user.CommandLogin(),
+			{
+				Name:   "docs",
+				Hidden: true,
+				Action: func(ctx *cli.Context) error {
+					s, err := ctx.App.ToMarkdown()
+					if err != nil {
+						return fmt.Errorf("failed to generate docs: %w", err)
+					}
+					fmt.Println(s) //nolint:forbidigo
+					return nil
+				},
+			},
 		},
 		Metadata: map[string]any{
 			"Author":  "Nhost",
@@ -60,11 +73,9 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		var graphqlErr *clientv2.ErrorResponse
 
-		switch {
-		case errors.As(err, &graphqlErr):
+		if errors.As(err, &graphqlErr) {
 			log.Fatal(graphqlErr.GqlErrors)
-		case err != nil:
-			log.Fatal(err)
 		}
+		log.Fatal(err)
 	}
 }

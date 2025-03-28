@@ -1,0 +1,31 @@
+table:
+  name: assistant_file_stores
+  schema: graphite
+configuration:
+  column_config:
+    assistant_id:
+      custom_name: assistantID
+    created_at:
+      custom_name: createdAt
+    file_store_id:
+      custom_name: fileStoreID
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    assistant_id: assistantID
+    created_at: createdAt
+    file_store_id: fileStoreID
+    updated_at: updatedAt
+  custom_name: _graphiteAssistantFileStores
+  custom_root_fields:
+    delete: _deleteGraphiteAssistantFileStores
+    delete_by_pk: _deleteGraphiteAssistantFileStore
+    insert: _insertGraphiteAssistantFileStores
+    insert_one: _insertGraphiteAssistantFileStore
+    select: _graphiteAssistantFileStores
+    select_aggregate: _graphiteAssistantFileStoreAggregate
+    select_by_pk: _graphiteAssistantFileStore
+    select_stream: _graphiteAssistantFileStoreStream
+    update: _updateGraphiteAssistantFileStores
+    update_by_pk: _updateGraphiteAssistantFileStore
+    update_many: _updateManyGraphiteAssistantFileStores

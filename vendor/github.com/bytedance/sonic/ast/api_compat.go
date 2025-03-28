@@ -1,4 +1,4 @@
-// +build !amd64,!arm64 go1.24 !go1.17 arm64,!go1.20
+// +build !amd64,!arm64 go1.25 !go1.17 arm64,!go1.20
 
 /*
 * Copyright 2022 ByteDance Inc.
@@ -24,10 +24,11 @@ import (
 
     `github.com/bytedance/sonic/internal/native/types`
     `github.com/bytedance/sonic/internal/rt`
+    `github.com/bytedance/sonic/internal/compat`
 )
 
 func init() {
-    println("WARNING:(ast) sonic only supports go1.17~1.23, but your environment is not suitable")
+    compat.Warn("sonic/ast")
 }
 
 func quote(buf *[]byte, val string) {

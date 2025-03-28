@@ -256,10 +256,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 	}, nil
 }
 
-func minio(subdomain, dataFolder string) (*Service, error) {
-	if err := os.MkdirAll(dataFolder+"/minio", 0o755); err != nil { //nolint:mnd
-		return nil, fmt.Errorf("failed to create minio data folder: %w", err)
-	}
+func minio(subdomain, volumeName string) *Service {
 	return &Service{
 		Image:      "minio/minio:RELEASE.2025-02-28T09-55-16Z",
 		DependsOn:  nil,
@@ -278,14 +275,14 @@ func minio(subdomain, dataFolder string) (*Service, error) {
 		Labels:      nil,
 		Volumes: []Volume{
 			{
-				Type:     "bind",
-				Source:   dataFolder + "/minio",
+				Type:     "volume",
+				Source:   volumeName,
 				Target:   "/data",
 				ReadOnly: nil,
 			},
 		},
 		WorkingDir: nil,
-	}, nil
+	}
 }
 
 func dashboard(
@@ -423,12 +420,7 @@ func functions( //nolint:funlen
 	}
 }
 
-func mailhog(subdomain, dataFolder string, useTLS bool) (*Service, error) {
-	mailhogDataFolder := filepath.Join(dataFolder, "mailhog")
-	if err := os.MkdirAll(mailhogDataFolder, 0o755); err != nil { //nolint:mnd
-		return nil, fmt.Errorf("failed to create mailhog folder: %w", err)
-	}
-
+func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 	return &Service{
 		Image:      "jcalonso/mailhog:v1.0.1",
 		DependsOn:  nil,
@@ -457,14 +449,14 @@ func mailhog(subdomain, dataFolder string, useTLS bool) (*Service, error) {
 		Restart: "always",
 		Volumes: []Volume{
 			{
-				Type:     "bind",
-				Source:   mailhogDataFolder,
+				Type:     "volume",
+				Source:   volumeName,
 				Target:   "/maildir",
 				ReadOnly: ptr(false),
 			},
 		},
 		WorkingDir: nil,
-	}, nil
+	}
 }
 
 type ExposePorts struct {
@@ -510,10 +502,8 @@ func getServices( //nolint: funlen,cyclop
 	startFunctions bool,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
-	minio, err := minio(subdomain, dataFolder)
-	if err != nil {
-		return nil, err
-	}
+	minioVolumeName := "minio_" + sanitizeBranch(branch)
+	minio := minio(subdomain, minioVolumeName)
 
 	storage, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
 	if err != nil {
@@ -542,10 +532,8 @@ func getServices( //nolint: funlen,cyclop
 		return nil, err
 	}
 
-	mailhog, err := mailhog(subdomain, dataFolder, useTLS)
-	if err != nil {
-		return nil, err
-	}
+	mailhogVolumeName := "mailhog_" + sanitizeBranch(branch)
+	mailhog := mailhog(subdomain, mailhogVolumeName, useTLS)
 
 	services := map[string]*Service{
 		"console":   console,
@@ -658,10 +646,11 @@ func ComposeFileFromConfig( //nolint:funlen
 		return nil, err
 	}
 
-	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	volumes := map[string]struct{}{
-		rootNodeModules(branch): {},
-		pgVolumeName:            {},
+		rootNodeModules(branch):             {},
+		"pgdata_" + sanitizeBranch(branch):  {},
+		"minio_" + sanitizeBranch(branch):   {},
+		"mailhog_" + sanitizeBranch(branch): {},
 	}
 
 	if startFunctions {

@@ -2,8 +2,8 @@ package ansi
 
 // Notify sends a desktop notification using iTerm's OSC 9.
 //
-//	 OSC 9 ; Mc ST
-//	 OSC 9 ; Mc BEL
+//	OSC 9 ; Mc ST
+//	OSC 9 ; Mc BEL
 //
 // Where Mc is the notification body.
 //

@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"context"
+
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -20,7 +22,7 @@ func SetupRouter(
 	pathPrefix string,
 	resolver *Resolver,
 	hasAppVisibilityFunc nhgraphql.Directive,
-	isAdminFunc nhgraphql.Directive,
+	hasRole func(context.Context, any, graphql.Resolver, []string) (any, error),
 	enablePlayground bool,
 	version string,
 	fieldMiddleWareList []graphql.FieldMiddleware,
@@ -37,7 +39,7 @@ func SetupRouter(
 			Resolvers: resolver,
 			Directives: generated.DirectiveRoot{
 				HasAppVisibility: hasAppVisibilityFunc,
-				IsAdmin:          isAdminFunc,
+				HasRole:          hasRole,
 			},
 		},
 		),

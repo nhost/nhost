@@ -1,5 +1,7 @@
 directive @hasAppVisibility on ARGUMENT_DEFINITION
-directive @isAdmin on ARGUMENT_DEFINITION
+directive @hasRole(
+    role: [String!]!,
+) on FIELD_DEFINITION
 
 scalar uuid
 
@@ -47,8 +49,8 @@ type Query {
     ):ConfigConfig
     configs(
         resolve: Boolean!,
-        where: ConfigConfigComparisonExp @isAdmin,
-    ): [ConfigAppConfig!]!
+        where: ConfigConfigComparisonExp
+    ): [ConfigAppConfig!]! @hasRole(role: ["admin"]),
 
     appSecrets(
         appID: uuid! @hasAppVisibility,
@@ -60,8 +62,8 @@ type Query {
         appID: uuid! @hasAppVisibility,
     ):ConfigSystemConfig
     systemConfigs(
-        where: ConfigSystemConfigComparisonExp @isAdmin,
-    ): [ConfigAppSystemConfig!]!
+        where: ConfigSystemConfigComparisonExp
+    ): [ConfigAppSystemConfig!]! @hasRole(role: ["admin", "sa:factorio", "sa:bragi", "sa:watchtower"])
 
     runServiceConfigRawJSON(
         appID: uuid! @hasAppVisibility,
@@ -79,8 +81,8 @@ type Query {
     ): [ConfigRunServiceConfigWithID!]!
     runServiceConfigsAll(
         resolve: Boolean!,
-        where: ConfigRunServiceConfigComparisonExp, @isAdmin,
-    ): [ConfigRunServiceConfigWithID!]!
+        where: ConfigRunServiceConfigComparisonExp,
+    ): [ConfigRunServiceConfigWithID!]! @hasRole(role: ["admin"]),
 }
 
 
@@ -126,9 +128,9 @@ type Mutation {
     ): ConfigEnvironmentVariable
 
     updateSystemConfig(
-        appID: uuid! @hasAppVisibility, @isAdmin,
+        appID: uuid! @hasAppVisibility,
         systemConfig: ConfigSystemConfigUpdateInput!,
-    ): ConfigSystemConfig!
+    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:watchtower"])
 
     insertRunServiceConfig(
         appID: uuid! @hasAppVisibility,

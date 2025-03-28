@@ -83,6 +83,15 @@ func dummyMiddleware(
 	return next(ctx)
 }
 
+func dummyMiddleware2(
+	ctx context.Context,
+	_ any,
+	next graphql.Resolver,
+	_ []string,
+) (any, error) {
+	return next(ctx)
+}
+
 func runServicesFiles(runServices ...string) map[string]string {
 	m := make(map[string]string)
 	for _, path := range runServices {
@@ -118,7 +127,7 @@ func serve(cCtx *cli.Context) error {
 		"/v1/configserver",
 		resolver,
 		dummyMiddleware,
-		dummyMiddleware,
+		dummyMiddleware2,
 		cCtx.Bool(enablePlaygroundFlag),
 		cCtx.App.Version,
 		[]graphql.FieldMiddleware{},
