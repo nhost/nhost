@@ -1,6 +1,6 @@
 package openapi3
 
-const originKey = "origin"
+const originKey = "__origin__"
 
 // Origin contains the origin of a collection.
 // Key is the location of the collection itself.

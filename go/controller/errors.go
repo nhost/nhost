@@ -25,6 +25,7 @@ var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
 var (
 	ErrJWTConfiguration = errors.New("jwt-configuration")
 
+	ErrAnonymousUsersDisabled          = &APIError{api.DisabledEndpoint}
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
@@ -63,6 +64,10 @@ func (response ErrorResponse) visit(w http.ResponseWriter) error {
 }
 
 func (response ErrorResponse) VisitPostSignupEmailPasswordResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostSigninAnonymousResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 

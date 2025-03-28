@@ -96,6 +96,7 @@ const (
 	flagAppleAudience                    = "apple-audience"
 	flagGoogleAudience                   = "google-audience"
 	flagOTPEmailEnabled                  = "otp-email-enabled"
+	flagAnonymousUsersEnabled            = "enable-anonymous-users"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -582,6 +583,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Enable OTP via email",
 				Category: "otp",
 				EnvVars:  []string{"AUTH_OTP_EMAIL_ENABLED"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagAnonymousUsersEnabled,
+				Usage:    "Enable anonymous users",
+				Category: "signup",
+				Value:    false,
+				EnvVars:  []string{"AUTH_ANONYMOUS_USERS_ENABLED"},
 			},
 		},
 		Action: serve,

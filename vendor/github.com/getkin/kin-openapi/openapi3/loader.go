@@ -15,6 +15,11 @@ import (
 	"strings"
 )
 
+// IncludeOrigin specifies whether to include the origin of the OpenAPI elements
+// Set this to true before loading a spec to include the origin of the OpenAPI elements
+// Note it is global and affects all loaders
+var IncludeOrigin = false
+
 func foundUnresolvedRef(ref string) error {
 	return fmt.Errorf("found unresolved ref: %q", ref)
 }
@@ -27,9 +32,6 @@ func failedToResolveRefFragmentPart(value, what string) error {
 type Loader struct {
 	// IsExternalRefsAllowed enables visiting other files
 	IsExternalRefsAllowed bool
-
-	// IncludeOrigin specifies whether to include the origin of the OpenAPI elements
-	IncludeOrigin bool
 
 	// ReadFromURIFunc allows overriding the any file/URL reading func
 	ReadFromURIFunc ReadFromURIFunc
@@ -106,7 +108,7 @@ func (loader *Loader) loadSingleElementFromURI(ref string, rootPath *url.URL, el
 	if err != nil {
 		return nil, err
 	}
-	if err := unmarshal(data, element, loader.IncludeOrigin); err != nil {
+	if err := unmarshal(data, element, IncludeOrigin); err != nil {
 		return nil, err
 	}
 
@@ -142,7 +144,7 @@ func (loader *Loader) LoadFromIoReader(reader io.Reader) (*T, error) {
 func (loader *Loader) LoadFromData(data []byte) (*T, error) {
 	loader.resetVisitedPathItemRefs()
 	doc := &T{}
-	if err := unmarshal(data, doc, loader.IncludeOrigin); err != nil {
+	if err := unmarshal(data, doc, IncludeOrigin); err != nil {
 		return nil, err
 	}
 	if err := loader.ResolveRefsIn(doc, nil); err != nil {
@@ -171,7 +173,7 @@ func (loader *Loader) loadFromDataWithPathInternal(data []byte, location *url.UR
 	doc := &T{}
 	loader.visitedDocuments[uri] = doc
 
-	if err := unmarshal(data, doc, loader.IncludeOrigin); err != nil {
+	if err := unmarshal(data, doc, IncludeOrigin); err != nil {
 		return nil, err
 	}
 
@@ -425,7 +427,7 @@ func (loader *Loader) resolveComponent(doc *T, ref string, path *url.URL, resolv
 		if err2 != nil {
 			return nil, nil, err
 		}
-		if err2 = unmarshal(data, &cursor, loader.IncludeOrigin); err2 != nil {
+		if err2 = unmarshal(data, &cursor, IncludeOrigin); err2 != nil {
 			return nil, nil, err
 		}
 		if cursor, err2 = drill(cursor); err2 != nil || cursor == nil {

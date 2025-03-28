@@ -94,7 +94,7 @@ func ValidateResponse(ctx context.Context, input *ResponseValidationInput) error
 	}
 
 	content := response.Content
-	if len(content) == 0 || options.ExcludeResponseBody {
+	if len(content) == 0 {
 		// An operation does not contains a validation schema for responses with this status code.
 		return nil
 	}

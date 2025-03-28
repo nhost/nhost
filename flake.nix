@@ -13,9 +13,7 @@
       let
         overlays = [
           nixops.overlays.default
-          (final: prev: {
-            nodejs = prev.nodejs_20;
-          })
+          (import ./overlays.nix)
         ];
 
         pkgs = import nixpkgs {

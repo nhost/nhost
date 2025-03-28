@@ -71,6 +71,7 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 	}
 
 	return controller.Config{
+		AnonymousUsersEnabled:      cCtx.Bool(flagAnonymousUsersEnabled),
 		HasuraGraphqlURL:           cCtx.String(flagGraphqlURL),
 		HasuraAdminSecret:          cCtx.String(flagHasuraAdminSecret),
 		AllowedEmailDomains:        allowedDomains,

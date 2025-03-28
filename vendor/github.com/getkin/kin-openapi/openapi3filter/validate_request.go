@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
@@ -111,15 +112,26 @@ func appendToQueryValues[T any](q url.Values, parameterName string, v []T) {
 	}
 }
 
+func joinValues(values []any, sep string) string {
+	strValues := make([]string, 0, len(values))
+	for _, v := range values {
+		strValues = append(strValues, fmt.Sprintf("%v", v))
+	}
+	return strings.Join(strValues, sep)
+}
+
 // populateDefaultQueryParameters populates default values inside query parameters, while ensuring types are respected
-func populateDefaultQueryParameters(q url.Values, parameterName string, value any) {
+func populateDefaultQueryParameters(q url.Values, parameterName string, value any, explode bool) {
 	switch t := value.(type) {
 	case []any:
-		appendToQueryValues(q, parameterName, t)
+		if explode {
+			appendToQueryValues(q, parameterName, t)
+		} else {
+			q.Add(parameterName, joinValues(t, ","))
+		}
 	default:
 		q.Add(parameterName, fmt.Sprintf("%v", value))
 	}
-
 }
 
 // ValidateParameter validates a parameter's value by JSON schema.
@@ -175,7 +187,8 @@ func ValidateParameter(ctx context.Context, input *RequestValidationInput, param
 				// Next check `parameter.Required && !found` will catch this.
 			case openapi3.ParameterInQuery:
 				q := req.URL.Query()
-				populateDefaultQueryParameters(q, parameter.Name, value)
+				explode := parameter.Explode != nil && *parameter.Explode
+				populateDefaultQueryParameters(q, parameter.Name, value, explode)
 				req.URL.RawQuery = q.Encode()
 			case openapi3.ParameterInHeader:
 				req.Header.Add(parameter.Name, fmt.Sprintf("%v", value))

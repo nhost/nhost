@@ -223,10 +223,11 @@ WITH inserted_user AS (
         email_verified,
         locale,
         default_role,
+        is_anonymous,
         metadata,
         last_seen
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now()
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, now()
     )
     RETURNING id
 ), inserted_refresh_token AS (

@@ -12,7 +12,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#path-item-object
 type PathItem struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
+	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
 
 	Ref         string     `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 	Summary     string     `json:"summary,omitempty" yaml:"summary,omitempty"`

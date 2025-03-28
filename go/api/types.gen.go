@@ -170,6 +170,11 @@ type SessionPayload struct {
 	Session *Session `json:"session,omitempty"`
 }
 
+// SignInAnonymousResponse defines model for SignInAnonymousResponse.
+type SignInAnonymousResponse struct {
+	Session *Session `json:"session,omitempty"`
+}
+
 // SignInEmailPasswordRequest defines model for SignInEmailPasswordRequest.
 type SignInEmailPasswordRequest struct {
 	// Email A valid email
@@ -298,6 +303,15 @@ type SignUpWebauthnVerifyRequest struct {
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
+// SigninAnonymousRequest defines model for SigninAnonymousRequest.
+type SigninAnonymousRequest struct {
+	DisplayName *string `json:"displayName,omitempty"`
+
+	// Locale A two-characters locale
+	Locale   *string                 `json:"locale,omitempty"`
+	Metadata *map[string]interface{} `json:"metadata,omitempty"`
+}
+
 // User defines model for User.
 type User struct {
 	AvatarUrl   string    `json:"avatarUrl"`
@@ -400,6 +414,9 @@ type PostLinkIdtokenJSONRequestBody = LinkIdTokenRequest
 
 // PostPatJSONRequestBody defines body for PostPat for application/json ContentType.
 type PostPatJSONRequestBody = CreatePATRequest
+
+// PostSigninAnonymousJSONRequestBody defines body for PostSigninAnonymous for application/json ContentType.
+type PostSigninAnonymousJSONRequestBody = SigninAnonymousRequest
 
 // PostSigninEmailPasswordJSONRequestBody defines body for PostSigninEmailPassword for application/json ContentType.
 type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordRequest

@@ -20,6 +20,8 @@ import (
 	"github.com/oapi-codegen/runtime/types"
 )
 
+const anonymousRole = "anonymous"
+
 type HIBPClient interface {
 	IsPasswordPwned(ctx context.Context, password string) (bool, error)
 }
@@ -860,6 +862,84 @@ func (wf *Workflows) SignupUserWithouthSession(
 	}
 
 	return nil
+}
+
+func (wf *Workflows) SignupAnonymousUser( //nolint:funlen
+	ctx context.Context,
+	locale string,
+	displayName string,
+	reqMetadata map[string]any,
+	logger *slog.Logger,
+) (*api.Session, *APIError) {
+	if wf.config.DisableSignup {
+		logger.Warn("signup disabled")
+		return nil, ErrSignupDisabled
+	}
+
+	refreshToken := uuid.New()
+	refreshTokenExpiresAt := time.Now().
+		Add(time.Duration(wf.config.RefreshTokenExpiresIn) * time.Second)
+
+	metadata, err := json.Marshal(reqMetadata)
+	if err != nil {
+		logger.Error("error marshaling metadata", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	resp, err := wf.db.InsertUserWithRefreshToken(
+		ctx,
+		sql.InsertUserWithRefreshTokenParams{
+			Disabled:              false,
+			DisplayName:           displayName,
+			AvatarUrl:             "",
+			Email:                 pgtype.Text{}, //nolint:exhaustruct
+			PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
+			Ticket:                pgtype.Text{}, //nolint:exhaustruct
+			TicketExpiresAt:       sql.TimestampTz(time.Now()),
+			IsAnonymous:           true,
+			EmailVerified:         false,
+			Locale:                locale,
+			DefaultRole:           anonymousRole,
+			Metadata:              metadata,
+			RefreshTokenHash:      sql.Text(hashRefreshToken([]byte(refreshToken.String()))),
+			RefreshTokenExpiresAt: sql.TimestampTz(refreshTokenExpiresAt),
+			Roles:                 []string{anonymousRole},
+		},
+	)
+	if err != nil {
+		logger.Error("error inserting user", logError(err))
+		return nil, &APIError{api.InternalServerError}
+	}
+
+	accessToken, expiresIn, err := wf.jwtGetter.GetToken(
+		ctx, resp.ID, true, []string{anonymousRole}, anonymousRole, logger,
+	)
+	if err != nil {
+		logger.Error("error getting jwt", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	return &api.Session{
+		AccessToken:          accessToken,
+		AccessTokenExpiresIn: expiresIn,
+		RefreshTokenId:       resp.RefreshTokenID.String(),
+		RefreshToken:         refreshToken.String(),
+		User: &api.User{
+			AvatarUrl:           "",
+			CreatedAt:           time.Now(),
+			DefaultRole:         anonymousRole,
+			DisplayName:         displayName,
+			Email:               nil,
+			EmailVerified:       false,
+			Id:                  resp.ID.String(),
+			IsAnonymous:         true,
+			Locale:              locale,
+			Metadata:            reqMetadata,
+			PhoneNumber:         nil,
+			PhoneNumberVerified: false,
+			Roles:               []string{anonymousRole},
+		},
+	}, nil
 }
 
 func (wf *Workflows) DeanonymizeUser(

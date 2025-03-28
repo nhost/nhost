@@ -54,6 +54,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:           "user",
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
+						IsAnonymous:           false,
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
@@ -138,6 +139,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:           "me",
 						Metadata:              []byte(`{"firstName":"Jane","lastName":"Doe"}`),
 						Roles:                 []string{"me"},
+						IsAnonymous:           false,
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
@@ -365,6 +367,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:           "user",
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
+						IsAnonymous:           false,
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
@@ -417,6 +420,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:           "user",
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
+						IsAnonymous:           false,
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
@@ -538,6 +542,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:           "user",
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
+						IsAnonymous:           false,
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
@@ -669,6 +674,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:           "user",
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
+						IsAnonymous:           false,
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
@@ -757,6 +763,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:           "user",
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
+						IsAnonymous:           false,
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),

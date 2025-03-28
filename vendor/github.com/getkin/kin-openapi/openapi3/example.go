@@ -10,7 +10,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#example-object
 type Example struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
+	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
 
 	Summary       string `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description   string `json:"description,omitempty" yaml:"description,omitempty"`

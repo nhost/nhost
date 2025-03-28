@@ -11,7 +11,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#encoding-object
 type Encoding struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
+	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
 
 	ContentType   string  `json:"contentType,omitempty" yaml:"contentType,omitempty"`
 	Headers       Headers `json:"headers,omitempty" yaml:"headers,omitempty"`

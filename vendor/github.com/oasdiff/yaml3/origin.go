@@ -2,7 +2,7 @@ package yaml
 
 import "fmt"
 
-const originTag = "origin"
+const originTag = "__origin__"
 
 func isScalar(n *Node) bool {
 	return n.Kind == ScalarNode

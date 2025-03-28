@@ -17,6 +17,7 @@ func getConfig() *controller.Config {
 
 	//nolint:lll
 	return &controller.Config{
+		AnonymousUsersEnabled:      false,
 		HasuraGraphqlURL:           "http://localhost:8080/v1/graphql",
 		HasuraAdminSecret:          "nhost-admin-secret",
 		AllowedEmailDomains:        []string{},

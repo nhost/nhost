@@ -11,7 +11,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#link-object
 type Link struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
+	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
 
 	OperationRef string         `json:"operationRef,omitempty" yaml:"operationRef,omitempty"`
 	OperationID  string         `json:"operationId,omitempty" yaml:"operationId,omitempty"`

@@ -105,6 +105,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithSession(
 				DefaultRole:           deptr(options.DefaultRole),
 				Metadata:              metadata,
 				Roles:                 deptr(options.AllowedRoles),
+				IsAnonymous:           false,
 				RefreshTokenHash:      refreshTokenHash,
 				RefreshTokenExpiresAt: refreshTokenExpiresAt,
 			},

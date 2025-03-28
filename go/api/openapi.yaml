@@ -93,6 +93,27 @@ paths:
           description: >-
             Successfully refreshed the JWT access token
 
+  /signin/anonymous:
+    post:
+      summary: Sign in anonymously
+      tags:
+        - signin
+        - anonymous
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SigninAnonymousRequest'
+        required: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInAnonymousResponse'
+          description: >-
+            Successfully signed in
+
   /signin/email-password:
     post:
       summary: Sign in with email and password
@@ -396,6 +417,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserDeanonymizeRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -418,6 +440,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserEmailChangeRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -463,6 +486,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserPasswordRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -484,6 +508,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserPasswordResetRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -903,6 +928,34 @@ components:
           type: string
           format: uri
           example: https://my-app.com/catch-redirection
+
+    SigninAnonymousRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName:
+          example: John Smith
+          type: string
+        locale:
+          description: A two-characters locale
+          example: en
+          maxLength: 2
+          minLength: 2
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            firstName: John
+            lastName: Smith
+          properties: {}
+
+    SignInAnonymousResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
 
     SignInEmailPasswordRequest:
       type: object

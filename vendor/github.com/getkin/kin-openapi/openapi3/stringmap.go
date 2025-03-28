@@ -18,11 +18,10 @@ func unmarshalStringMapP[V any](data []byte) (map[string]*V, *Origin, error) {
 		return nil, nil, err
 	}
 
-	origin, err := deepCast[Origin](m[originKey])
+	origin, err := popOrigin(m, originKey)
 	if err != nil {
 		return nil, nil, err
 	}
-	delete(m, originKey)
 
 	result := make(map[string]*V, len(m))
 	for k, v := range m {
@@ -43,11 +42,10 @@ func unmarshalStringMap[V any](data []byte) (map[string]V, *Origin, error) {
 		return nil, nil, err
 	}
 
-	origin, err := deepCast[Origin](m[originKey])
+	origin, err := popOrigin(m, originKey)
 	if err != nil {
 		return nil, nil, err
 	}
-	delete(m, originKey)
 
 	result := make(map[string]V, len(m))
 	for k, v := range m {
@@ -73,4 +71,18 @@ func deepCast[V any](value any) (*V, error) {
 		return nil, err
 	}
 	return &result, nil
+}
+
+// popOrigin removes the origin from the map and returns it.
+func popOrigin(m map[string]any, key string) (*Origin, error) {
+	if !IncludeOrigin {
+		return nil, nil
+	}
+
+	origin, err := deepCast[Origin](m[key])
+	if err != nil {
+		return nil, err
+	}
+	delete(m, key)
+	return origin, nil
 }

@@ -3,7 +3,6 @@ import { Router } from 'express';
 import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
 
-import { signInAnonymousHandler, signInAnonymousSchema } from './anonymous';
 import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
 import {
   signInPasswordlessSmsHandler,
@@ -43,21 +42,6 @@ router.post(
   '/signin/passwordless/sms/otp',
   bodyValidator(signInOtpSchema),
   aw(signInOtpHandler)
-);
-
-/**
- * POST /signin/anonymous
- * @summary Anonymous authentication
- * @param {SignInAnonymousSchema} request.body.required
- * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
- */
-router.post(
-  '/signin/anonymous',
-  bodyValidator(signInAnonymousSchema),
-  aw(signInAnonymousHandler)
 );
 
 /**

@@ -47,7 +47,7 @@ describe('anonymous', () => {
     expect(await isValidAccessToken(accessToken)).toBe(true);
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
-    expect(mfa).toBe(null);
+    expect(mfa).toBe(undefined);
   });
 
   it('should fail to sign in anonymously with email', async () => {

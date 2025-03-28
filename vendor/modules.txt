@@ -70,7 +70,7 @@ github.com/gabriel-vasile/mimetype
 github.com/gabriel-vasile/mimetype/internal/charset
 github.com/gabriel-vasile/mimetype/internal/json
 github.com/gabriel-vasile/mimetype/internal/magic
-# github.com/getkin/kin-openapi v0.129.0
+# github.com/getkin/kin-openapi v0.131.0
 ## explicit; go 1.22.5
 github.com/getkin/kin-openapi/openapi3
 github.com/getkin/kin-openapi/openapi3filter
@@ -224,10 +224,10 @@ github.com/oapi-codegen/gin-middleware
 github.com/oapi-codegen/runtime
 github.com/oapi-codegen/runtime/strictmiddleware/gin
 github.com/oapi-codegen/runtime/types
-# github.com/oasdiff/yaml v0.0.0-20241214135536-5f7845c759c8
+# github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037
 ## explicit; go 1.22.5
 github.com/oasdiff/yaml
-# github.com/oasdiff/yaml3 v0.0.0-20241214160948-977117996672
+# github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90
 ## explicit; go 1.22.5
 github.com/oasdiff/yaml3
 # github.com/pelletier/go-toml/v2 v2.2.3
