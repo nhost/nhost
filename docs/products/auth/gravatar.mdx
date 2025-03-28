@@ -1,0 +1,39 @@
+---
+title: Gravatar
+description: Fetch user profiles automatically from gravatar
+icon: image-portrait
+---
+
+## Gravatar
+
+If Gravatar is enabled, Nhost Auth will use the user's email address to fetch their Gravatar profile picture. If the user doesn't have a Gravatar profile picture, a default image will be used.
+
+There are two options for Gravatars.
+
+<Steps>
+  <Step title="Default Image">
+
+If the user doesn't have a Gravatar profile picture, a default image will be used. You can choose between the following options:
+
+- `404`: Do not load any image if none is associated with the email hash, instead return an HTTP 404 (File Not Found) response.
+- `mp`: (mystery-person) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash).
+- `identicon`: a geometric pattern based on an email hash.
+- `monsterid`: a generated 'monster' with different colors, faces, etc.
+- `wavatar`: generated faces with differing features and backgrounds.
+- `retro`: awesome generated, 8-bit arcade-style pixelated faces.
+- `robohash`: a generated robot with different colors, faces, etc.
+- `blank`: a transparent PNG image.
+
+</Step>
+
+<Step title="Rating">
+
+Gravatar images are rated by default. You can choose between the following options:
+
+- `g`: suitable for display on all websites with any audience type.
+- `pg`: may contain rude gestures, provocatively dressed individuals, lesser swear words or mild violence.
+- `r`: may contain such things as harsh profanity, intense violence, nudity, or hard drug use.
+- `x`: may contain hardcore sexual imagery or extremely disturbing violence.
+
+</Step>
+</Steps>
