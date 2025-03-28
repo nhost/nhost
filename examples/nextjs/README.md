@@ -24,7 +24,7 @@ cd examples/nextjs
 
 4. Terminal 1: Start Nhost
 
-> Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
+> Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli/local-development).
 
 ```sh
 nhost up
