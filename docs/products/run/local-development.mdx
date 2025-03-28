@@ -4,13 +4,13 @@ description: Developing with the Nhost stack and Run services locally
 icon: code
 ---
 
-You can start Nhost Run services alongside your Nhost project very easily using the [Nhost CLI](/guides/cli/local-development) by simply using the option `--run-service path/to/run-service.toml[:overlay_name]`, for instance:
+You can start Nhost Run services alongside your Nhost project very easily using the [Nhost CLI](/platform/cli/local-development) by simply using the option `--run-service path/to/run-service.toml[:overlay_name]`, for instance:
 
 ![cli](/images/run/local_development_1.png)
 
 Let's first take a look at the commend above, the first thing you can notice is that multiple `--run-service` flags are supported. You can pass as many as you need and they all will be added to your project. You can also add or remove Run services to an already running instance by re-running the command specifying the final list of `--run-service` you want. Any missing service will be removed and any new one will be added.
 
-The second thing you will notice is that one of the `--run-service` flags contains the suffix `:mysvc` while the other one doesn't. If you add to the configuration path the suffix `:overlay_name` the [configuration overlay](configuration-overlays) with name `overlay_name` will be applied.
+The second thing you will notice is that one of the `--run-service` flags contains the suffix `:mysvc` while the other one doesn't. If you add to the configuration path the suffix `:overlay_name` the [configuration overlay](/products/run/configuration-overlays) with name `overlay_name` will be applied.
 
 The last thing to notice in the screenshot is that the URLs include information on how to connect to the Run service (in the example used in this guide only one of the started services expose a port):
 
@@ -97,6 +97,6 @@ ENVIRONMENT="dev"
   services in the stack. For instance, in the example above we are using
   `http://hasura-service:8080/v1/graphql` to connect to hasura in production and in the CLI but when
   running the service in the host machine using the env file we are using an overlay to change the
-  value to `https://local.graphql.local.nhost.run/v1/graphql`. Refer to the [network](networking)
+  value to `https://local.graphql.local.nhost.run/v1/graphql`. Refer to the [network](/products/run/networking)
   configuration for more details.
 </Warning>

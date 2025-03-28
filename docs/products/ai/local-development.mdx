@@ -9,7 +9,7 @@ If you are using the Nhost CLI for local development, as of [v0.12.0](https://gi
 
 <Steps>
   <Step title="Configuring the Service">
-    Follow the steps highlighed in the [Enabling Service](enabling-service) guide and don't forget to add the relevant secrets to your `.secrets` file.
+    Follow the steps highlighed in the [Enabling Service](/products/ai/enabling-service) guide and don't forget to add the relevant secrets to your `.secrets` file.
   </Step>
   <Step title="Start nhost">
     Run `nhost up`:
@@ -30,7 +30,7 @@ If you are using the Nhost CLI for local development, as of [v0.12.0](https://gi
 
 ### Synhcronizing Auto-Embeddings
 
-If you add [auto-embeddings](/guides/ai/auto-embeddings) configuration locally and want to synchronize them with the cloud we recommend inserting them using a migration rather than with the auto-embeddings UI:
+If you add [auto-embeddings](/products/ai/auto-embeddings) configuration locally and want to synchronize them with the cloud we recommend inserting them using a migration rather than with the auto-embeddings UI:
 
 ![migration](/images/ai/local-development/migration.png)
 
@@ -42,4 +42,4 @@ Pushing them to your deployment branch will also deploy them to your cloud proje
 
 ### Synhcronizing Assistants
 
-Similar to auto-embeddings, if you want to synchronize [assistants](/guides/ai/assistants) we recommend you to insert them using a migration and then running `nhost up` to update any metadata if necessary. After pushing the proposed changes to the deployment branch all the changes should be deployed to the cloud project.
+Similar to auto-embeddings, if you want to synchronize [assistants](/products/ai/assistants) we recommend you to insert them using a migration and then running `nhost up` to update any metadata if necessary. After pushing the proposed changes to the deployment branch all the changes should be deployed to the cloud project.

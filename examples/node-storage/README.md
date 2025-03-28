@@ -1,6 +1,6 @@
 # Node.js Storage Example
 
-This example demonstrates how to use the [Nhost Storage SDK](https://docs.nhost.io/reference/javascript/storage) in Node.js.
+This example demonstrates how to use the [Nhost Storage SDK](https://docs.nhost.io/reference/javascript/storage/hasura-storage-client) in Node.js.
 
 Make sure to install the dependencies:
 

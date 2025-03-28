@@ -8,7 +8,7 @@ Compute resources are the fundamental units that represent the processing power 
 
 This documentation outlines the key aspects of compute resources in the context of the Nhost Cloud Platform.
 
-<Tip>To further improve availability and fault tolerance, check out [Service Replicas](/platform/service-replicas)</Tip>
+<Tip>To further improve availability and fault tolerance, check out [Service Replicas](/platform/cloud/service-replicas#service-replicas)</Tip>
 
 ## Shared Compute
 
@@ -100,7 +100,7 @@ By default disks are provisioned with a capacity for 3000 IOPS and 125 Mbps of t
 
 ## Encryption at Rest
 
-All files uploaded to the [storage](/product/storage) service are encrypted at rest using AES-256 encryption. Similarly, any volumes provisioned for your [database](/product/database) and [Run services](/product/run) are also encrypted using AES-256.
+All files uploaded to the [storage](/products/storage/overview) service are encrypted at rest using AES-256 encryption. Similarly, any volumes provisioned for your [database](/products/database/overview) and [Run services](/products/run/overview) are also encrypted using AES-256.
 
 <Warning>
 Only volumes provisioned after December 2024 are encrypted with AES-256. You can verify your volume's encryption status by navigating to your project's settings -> Database -> Storage capacity. If your volume is not encrypted, you'll see a warning message indicating this. To enable encryption on your volume, you can pause and then unpause your project. This action will provision new volumes with encryption enabled.
