@@ -59,7 +59,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "This dashboard shows the overall resources used by every service in your project.\n\nMetrics service is currently in **beta** so things may change.\n\nKeep in mind that while you might be change settings, edit the dashboard or even create new ones these changes are not persisted. If you want to have different settings or even your own dashboards, please, contact us as we are looking for use cases to build the feature.\n\nDocumentation about our platform:\n\n- [Compute Resources](https://docs.nhost.io/platform/compute)\n- [Service Replicas](https://docs.nhost.io/platform/service-replicas)",
+        "content": "This dashboard shows the overall resources used by every service in your project.\n\nMetrics service is currently in **beta** so things may change.\n\nKeep in mind that while you might be change settings, edit the dashboard or even create new ones these changes are not persisted. If you want to have different settings or even your own dashboards, please, contact us as we are looking for use cases to build the feature.\n\nDocumentation about our platform:\n\n- [Compute Resources](https://docs.nhost.io/platform/cloud/compute-resources)\n- [Service Replicas](https://docs.nhost.io/platform/cloud/service-replicas)",
         "mode": "markdown"
       },
       "pluginVersion": "11.2.0",
@@ -83,7 +83,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "#### Pods\n\nEach service is comprised by at least one \"pod\" and, in the case of [replicas](https://docs.nhost.io/platform/service-replicas), you should see as many pods as replicas configured. Each pod is identified by the sevice name + some unique identifier, for instance, `\nhasura-auth-7995bfd767-mvthp`.\n\nPods can come and go for various reasons:\n\n1. When there is a configuration change. When this happens a new pod is created witht he new configuration. After the new pod is ready the old one is decommissioned. This means changes in configuration are hitless. The exception is postgres, when postgres configuration changes we need to bring it down cleanly before we start a new one so there is a short donwtime while this occurrs (1-2 min).\n2. When the process crashes due to an unexpected error. In this case the platform should detect the event and create a new pod immediately.\n3. When the process exceeds its allotted memory the pod is terminated and a new one is created.\n\n#### Throttling\n\nAs pro projects have shared CPUs services can throttle when they attempt to use more resources than they have available. Throttling metrics are hard to grasp but it is important to understand they can have a big impact on response times. Thottling happens in internvals of time (100ms) so it is important to look at both the throttling time and throttling % metrics. If the % is low throttling time might not be very impactful but the higher the percentage gets the higher the impact it can have.\n\nTo avoid throttling consider using [dedicated compute resources](https://docs.nhost.io/platform/compute#dedicated-compute)",
+        "content": "#### Pods\n\nEach service is comprised by at least one \"pod\" and, in the case of [replicas](https://docs.nhost.io/platform/cloud/service-replicas), you should see as many pods as replicas configured. Each pod is identified by the sevice name + some unique identifier, for instance, `\nhasura-auth-7995bfd767-mvthp`.\n\nPods can come and go for various reasons:\n\n1. When there is a configuration change. When this happens a new pod is created witht he new configuration. After the new pod is ready the old one is decommissioned. This means changes in configuration are hitless. The exception is postgres, when postgres configuration changes we need to bring it down cleanly before we start a new one so there is a short donwtime while this occurrs (1-2 min).\n2. When the process crashes due to an unexpected error. In this case the platform should detect the event and create a new pod immediately.\n3. When the process exceeds its allotted memory the pod is terminated and a new one is created.\n\n#### Throttling\n\nAs pro projects have shared CPUs services can throttle when they attempt to use more resources than they have available. Throttling metrics are hard to grasp but it is important to understand they can have a big impact on response times. Thottling happens in internvals of time (100ms) so it is important to look at both the throttling time and throttling % metrics. If the % is low throttling time might not be very impactful but the higher the percentage gets the higher the impact it can have.\n\nTo avoid throttling consider using [dedicated compute resources](https://docs.nhost.io/platform/cloud/compute-resources#dedicated-compute)",
         "mode": "markdown"
       },
       "pluginVersion": "11.2.0",
@@ -607,7 +607,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows when a service was restarted. There are two main reasons why a service may be restarted:\n\n- OOMKilled - This means the service tried to use more memory than it has available and had to be restarted. For more information on resources you can check the [documentation](https://docs.nhost.io/platform/compute).\n- Error - This can show for mainly two reasons; when new configuration needs to be applied the service is terminated and due to limitations this shows as \"Error\" but it is, in fact, part of normal operations. This can also show if your service is misconfigured and/or can't start correctly for some reason. If this error doesn't show constantly it is safe to ignore this error.",
+      "description": "This graph shows when a service was restarted. There are two main reasons why a service may be restarted:\n\n- OOMKilled - This means the service tried to use more memory than it has available and had to be restarted. For more information on resources you can check the [documentation](https://docs.nhost.io/platform/cloud/compute-resources).\n- Error - This can show for mainly two reasons; when new configuration needs to be applied the service is terminated and due to limitations this shows as \"Error\" but it is, in fact, part of normal operations. This can also show if your service is misconfigured and/or can't start correctly for some reason. If this error doesn't show constantly it is safe to ignore this error.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -927,7 +927,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/compute) this line should match the amount of resources configured.",
+      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/cloud/compute-resources) this line should match the amount of resources configured.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1362,7 +1362,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/compute) this line should match the amount of resources configured.",
+      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io//platform/cloud/compute-resources) this line should match the amount of resources configured.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1586,7 +1586,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/compute) this line should match the amount of resources configured.",
+      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/cloud/compute-resources) this line should match the amount of resources configured.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1810,7 +1810,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/compute) this line should match the amount of resources configured.",
+      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/cloud/compute-resources) this line should match the amount of resources configured.",
       "fieldConfig": {
         "defaults": {
           "color": {

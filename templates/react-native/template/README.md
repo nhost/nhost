@@ -6,4 +6,4 @@ For comprehensive guidance on using Nhost with React Native, check out these res
 
 - [Nhost](https://nhost.io)
 - [Documentation](https://docs.nhost.io)
-- [React Native Quickstart Guide](https://docs.nhost.io/guides/quickstarts/react-native)
+- [React Native Quickstart Guide](https://docs.nhost.io/getting-started/quickstart/reactnative)

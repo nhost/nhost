@@ -498,7 +498,7 @@ components:
       scheme: bearer
       description: >-
         This endpoint may require elevated permissions, depending on server settings.
-        For details see https://docs.nhost.io/guides/auth/elevated-permissions
+        For details see https://docs.nhost.io/products/auth/elevated-permissions
 
   schemas:
     JWKSet:

@@ -104,7 +104,7 @@ Learn more about [Google Projects and API keys](https://cloud.google.com/transla
 nhost up
 ```
 
-Learn more about the [Nhost CLI](https://docs.nhost.io/platform/cli).
+Learn more about the [Nhost CLI](https://docs.nhost.io/platform/cli/local-development).
 
 ### Test
 

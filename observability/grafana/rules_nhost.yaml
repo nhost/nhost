@@ -55,7 +55,7 @@ groups:
           execErrState: Error
           for: 5m
           annotations:
-            runbook_url: https://docs.nhost.io/platform/compute-resources
+            runbook_url: https://docs.nhost.io/platform/cloud/compute-resources
             Project Subdomain: {{ .Subdomain }}
             Project Name: {{ .ProjectName }}
             description: |
@@ -71,7 +71,7 @@ groups:
 
               High CPU usage can lead to service instability, increased latency and downtime.
 
-              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/compute-resources)
+              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/cloud/compute-resources)
             summary: |
               The service replica {{ print "{{ index $labels \"pod\" }}" }} is experiencing, or has experienced, high CPU usage. Current usage is at {{ print "{{ index $values \"A\" }}" }}%.
           labels: {}
@@ -127,7 +127,7 @@ groups:
           execErrState: Error
           for: 5m
           annotations:
-            runbook_url: https://docs.nhost.io/guides/database/configuring-postgres
+            runbook_url: https://docs.nhost.io/products/database/configuring-postgres
             Subdomain: {{ .Subdomain }}
             Project Name: {{ .ProjectName }}
             description: |
@@ -143,7 +143,7 @@ groups:
 
               Running out of disk space can lead to service downtime and potential data loss.
 
-              For more information, see the [Nhost documentation](https://docs.nhost.io/guides/database/configuring-postgres)
+              For more information, see the [Nhost documentation](https://docs.nhost.io/products/database/configuring-postgres)
             summary: |
               The persistent volume claim {{ print "{{ index $labels \"persistentvolumeclaim\" }}" }} current usage is at {{ print "{{ index $values \"A\" }}" }}%.
           labels: {}
@@ -199,7 +199,7 @@ groups:
           execErrState: Error
           for: 5m
           annotations:
-            runbook_url: https://docs.nhost.io/platform/compute-resources
+            runbook_url: https://docs.nhost.io/platform/cloud/compute-resources
             Subdomain: {{ .Subdomain }}
             Project Name: {{ .ProjectName }}
             description: |
@@ -214,7 +214,7 @@ groups:
 
               Running out of memory can lead to service instability, increased latency and downtime.
 
-              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/compute-resources)
+              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/cloud/compute-resources)
 
             summary: |
               The service replica {{ print "{{ index $labels \"pod\" }}" }} is experiencing, or has experienced, low memory. Current usage is at {{ print "{{ index $values \"A\" }}" }}%.
@@ -289,8 +289,8 @@ groups:
               This can lead to service instability, increased latency and downtime.
 
 
-              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/compute-resources)
-            runbook_url: https://docs.nhost.io/platform/compute-resources
+              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/cloud/compute-resources)
+            runbook_url: https://docs.nhost.io/platform/cloud/compute-resources
             Subdomain: {{ .Subdomain }}
             Project Name: {{ .ProjectName }}
           labels: {}
@@ -364,6 +364,6 @@ groups:
 
               A high error rate means there is something fundamentally wrong with the service or your application. It can lead to service instability, increased latency and downtime.
 
-              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/compute-resources)
+              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/cloud/compute-resources)
           labels: {}
           isPaused: false

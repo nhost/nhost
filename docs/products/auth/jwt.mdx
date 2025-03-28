@@ -60,7 +60,7 @@ key = 'f03d5f5a0ed055e3fcbc0a3639405aca0511e6abe6d60e40d1fff610c6248f2a'
 </Tabs>
 
 <Note>
-We recommend using a [secret](/platform/secrets) to configure the key.
+We recommend using a [secret](/platform/cloud/secrets) to configure the key.
 </Note>
 
 In addition to `HS256`, you can also use `HS384` and `HS512` for extra security. To quickly generate a key, you can use the following command:
@@ -312,4 +312,4 @@ export default (req: Request, res: Response) => {
 
 ## Custom Claims
 
-You can attach extra information to your JWTs in the form of custom claims. These claims can be used for authorization purposes in your application. For more details on how to add custom claims to your JWTs and how to use them, see the [Permissions Variables](/guides/api/permissions#permission-variables) documentation.
+You can attach extra information to your JWTs in the form of custom claims. These claims can be used for authorization purposes in your application. For more details on how to add custom claims to your JWTs and how to use them, see the [Permissions Variables](/products/graphql/permissions#permission-variables) documentation.
