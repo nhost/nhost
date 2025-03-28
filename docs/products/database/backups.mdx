@@ -1,0 +1,223 @@
+---
+title: Backups
+description: How backups work and how to restore data
+icon: box-archive
+---
+
+Every Pro and Team project comes with daily backups and 7 days retention. This means your data is automatically saved every day, and you can restore from any backup taken in the last week.
+
+Free projects do not have daily backups, but you can create manual backups whenever you need them utilizing the connection string and backup tools like `pg_dump`.
+
+In addition, for projects with critical data or those requiring precise recovery control, we offer point-in-time recovery as an add-on. This feature continuously backs up your data and lets you restore your database to any specific moment. It's ideal for applications where every transaction matters and you need the ability to recover from any point in time, not just daily backups.
+
+Something important to note is that backups don't include your storage files. A backup will include all of your files metadata and permissions but not the files themselves. Similarly, Run services' data (if any) is not included in our managed backups.
+
+For details visit the [pricing page](https://nhost.io/pricing)
+
+## Daily Backups
+
+All Pro and Team projects come with daily backups enabled with a 7-day retention by default. You can view, download and restore your project's backups by visiting the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard.
+
+### Restoring a Backup
+
+To restore a backup, go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard, pick the backup you want to restore from and click on "Restore". Keep in mind this will wipe out all of the project's data prior to initiating the restore.
+
+### Restoring a Backup on a Different Project
+
+You can restore a backup on a different project or to a database running locally by following these steps:
+
+<Warning>
+When using postgres tools like `psql`, `pg_dump` or `pg_restore` it is recommended to use a version as close as possible to your database.
+</Warning>
+
+<Steps>
+  <Step title="Download the backup and uncompress it">
+  1. Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and download the backup you want.
+  2. Uncompress it with `unzip` or similar tool
+  3. You should see two files `globals.sql` and `database.custom`
+
+  For instance:
+
+  ```
+    $ unzip a857e914-7553-4f87-8be2-47fa365a1cb8
+    Archive:  a857e914-7553-4f87-8be2-47fa365a1cb8
+      inflating: globals.sql
+     extracting: database.custom
+  ```
+  </Step>
+
+<Step title="Restore global objects">
+
+Global database objects (i.e. roles) are stored in the file `globals.sql`, you can restore those objects with `psql`:
+
+  ```
+    $ psql postgres://postgres:postgres@localhost:5432/local -f globals.sql
+    SET
+    SET
+    SET
+    DETAIL:  owner of schema auth
+    owner of schema storage
+    owner of schema pgbouncer
+    DETAIL:  privileges for schema hdb_catalog
+    privileges for schema auth
+    owner of default privileges on new relations belonging to role nhost_auth_admin in schema auth
+    ...
+  ```
+
+<Info>There may be warnings and errors when executing this file, those are typically safe to ignore but caution is advised, pay attention to the errors to make sure nothing critical failed.</Info>
+
+</Step>
+
+<Step title="Restore the database">
+Finally, you can restore your database using `pg_restore`:
+
+  ```
+    ### We have no data initially
+    $ psql postgres://postgres:postgres@localhost:5432/local -c "SELECT COUNT(*) FROM auth.users"
+     count
+    -------
+         0
+    (1 row)
+
+    $ pg_restore -d postgres://postgres:postgres@localhost:5432/local database.custom --clean --if-exists
+    pg_restore: error: could not execute query: ERROR:  relation "pg_catalog.pg_ident_file_mappings" does not exist
+    Command was: GRANT SELECT ON TABLE pg_catalog.pg_ident_file_mappings TO nhost_hasura;
+
+
+    pg_restore: error: could not execute query: ERROR:  relation "pg_catalog.pg_parameter_acl" does not exist
+    Command was: GRANT SELECT ON TABLE pg_catalog.pg_parameter_acl TO nhost_hasura;
+
+
+    pg_restore: error: could not execute query: ERROR:  relation "pg_catalog.pg_publication_namespace" does not exist
+    Command was: GRANT SELECT ON TABLE pg_catalog.pg_publication_namespace TO nhost_hasura;
+
+
+    pg_restore: error: could not execute query: ERROR:  relation "pg_catalog.pg_stat_io" does not exist
+    Command was: GRANT SELECT ON TABLE pg_catalog.pg_stat_io TO nhost_hasura;
+
+
+    pg_restore: error: could not execute query: ERROR:  relation "pg_catalog.pg_stat_recovery_prefetch" does not exist
+    Command was: GRANT SELECT ON TABLE pg_catalog.pg_stat_recovery_prefetch TO nhost_hasura;
+
+
+    pg_restore: error: could not execute query: ERROR:  relation "pg_catalog.pg_stat_subscription_stats" does not exist
+    Command was: GRANT SELECT ON TABLE pg_catalog.pg_stat_subscription_stats TO nhost_hasura;
+
+
+    pg_restore: warning: errors ignored on restore: 6
+
+    ### Now we do have data
+    $ psql postgres://postgres:postgres@localhost:5432/local -c "SELECT COUNT(*) FROM auth.users"
+     count
+    -------
+       247
+    (1 row)
+  ```
+
+   <Info>There may be warnings and errors when executing this file, those are typically safe to ignore but caution is advised, pay attention to the errors to make sure nothing critical failed.</Info>
+
+  </Step>
+
+</Steps>
+
+## Point-in-Time Recovery
+
+Projects with Point-in-Time Recovery enabled have their data continuously backed up, not bound to a specific schedule. You can recover to almost any point in time within your retention period. We perform a daily base backup and then capture database changes every 16MB or 5 minutes (whichever occurs first). This ensures that even your most recent data is safe and can be recovered.
+
+Point-in-Time Recovery is an add-on and not included in the base price. For details visit the [pricing page](https://nhost.io/pricing). When Point-in-Time Recovery is enabled, daily backups are disabled.
+
+### Configuring Point-in-Time Recovery
+
+You can configure Point-in-Time Recovery via the dashboard or using your `nhost.toml`:
+
+<Tabs>
+ <Tab title="Dashboard">
+  1. Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/settings/database) section in your project's dashboard.
+  2. Enable "Point-in-Time Recovery"
+
+  ![Point-in-Time Recovery](/images/database/backups/pitr-settings.png)
+
+ </Tab>
+ <Tab title="nhost.toml">
+  Add the following to your `nhost.toml`:
+
+  ```toml
+  [postgres.pitr]
+  retention = 7
+  ```
+  </Tab>
+</Tabs>
+
+### Restoring to a Specific Point in Time
+
+To restore to a specific point in time:
+
+<Steps>
+  <Step>
+
+  Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and click on "Start Restore"
+
+  ![Point-in-Time Recovery](/images/database/backups/pitr-restore-1.png)
+
+  </Step>
+
+  <Step title="Select a point in time">
+
+  Here you can click on the calendar icon to select the restore time:
+
+  ![Point-in-Time Recovery](/images/database/backups/pitr-restore-2.png)
+
+  </Step>
+
+  <Step>
+
+  Select the time you want to restore to and click on "Select". Be mindfule of timezones.
+
+  ![Point-in-Time Recovery](/images/database/backups/pitr-restore-3.png)
+
+  </Step>
+
+  <Step>
+
+  Finally, acknowledge the warning and click on "Restore"
+
+  ![Point-in-Time Recovery](/images/database/backups/pitr-restore-4.png)
+
+  This will trigger the restore in the background, you can now proceed to the logs and filter by "Service: Backup Jobs" to see the progress.
+
+ </Step>
+</Steps>
+
+Even though you can specify a point in time down to the second, the actual restore may include data modified after that point in time. This is because we capture changes in segments every 16MB or 5 minutes, whichever occurs first, and the restore needs to execute entire segments to ensure consistency. In some cases postgres may be able to execute the entire segment and revert some changes to get closer to the desired point in time, but this is not guaranteed.
+
+<Warning>
+When restoring a backup with Point-in-Time Recovery, the restore process needs to download a few files related to the restore. These files will take some space on your project's volume temporarily. Make sure you have enough space available before starting the restore. A good rule of thumb would be to have around 25% of your database size available. If you run into issues you can always increase the size and try again.
+</Warning>
+
+<Warning>
+We recommend testing your restore on a different project before doing it on your production project (see next section). This will help you make sure the restore process works as expected, the point in time you selected is the actual one you want to restore to, and reduce downtime.
+</Warning>
+
+### Restoring to a Specific Point in Time on a Different Project
+
+You can restore to a specific point in time on a different project in our cloud by following these steps:
+
+<Steps>
+ <Step title="Create a new project">
+ First, create a new project where we will restore the data into. The project will need to be in the same organization and region as the original project. Before starting the restore make sure the target project is running the same database version as the original project and that you have enough space available for the restore.
+ </Step>
+
+ <Step title="Ensure database version is the same">
+ Go to settings -> database in both the new and the original projects and make sure the new project is running the same exact database version as the original project.
+ </Step>
+
+ <Step title="Restore backup">
+ Finally, go to the new project's [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section, navigate to "Import Backup" and select the original project. After this the steps are the same as restoring to a specific point in time on the same project.
+
+ ![Point-in-Time Recovery import](/images/database/backups/pitr-import-1.png)
+ </Step>
+</Steps>
+
+### Downloading a Backup
+
+Downloading a backup isn't supported as with Point-in-Time Recovery there is no such thing as a backup that can be downloaded. However, you can restore to a specific point in time on a different project and then use pg_dump to create a backup yourself.

@@ -14,10 +14,10 @@ The easiest way to install `pnpm` if it's not installed on your machine yet is t
 $ npm install -g pnpm
 ```
 
-### [Nhost CLI](https://docs.nhost.io/cli)
+### [Nhost CLI](https://docs.nhost.io/platform/cli/local-development)
 
 - The CLI is primarily used for running the E2E tests
-- Please refer to the [installation guide](https://docs.nhost.io/get-started/cli-workflow/install-cli) if you have not installed it yet
+- Please refer to the [installation guide](https://docs.nhost.io/platform/cli/local-development) if you have not installed it yet
 
 ## File Structure
 

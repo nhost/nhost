@@ -47,7 +47,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "This dashboard is part of our \"Advanced GraphQL\" product. You can refer to our [documentation](https://docs.nhost.io/guides/api/advanced_features) for further details.",
+        "content": "This dashboard is part of our \"Advanced GraphQL\" product. You can refer to our [documentation](https://docs.nhost.io/products/graphql/advanced-features) for further details.",
         "mode": "markdown"
       },
       "pluginVersion": "9.2.0",

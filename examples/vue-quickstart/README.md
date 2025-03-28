@@ -2,5 +2,4 @@
 
 ## Get started
 
-Follow the [quickstart instructions](https://docs.nhost.io/platform/quickstarts/vue)
-
+Follow the [quickstart instructions](https://docs.nhost.io/getting-started/quickstart/vue)

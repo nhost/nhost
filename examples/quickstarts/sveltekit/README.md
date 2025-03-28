@@ -72,7 +72,7 @@ This is a quickstart that showcases how to use the Nhost SDK running on server `
 
 3. Terminal 1: Start the Nhost Backend
 
-   > Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
+   > Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli/local-development).
 
    ```sh
    cd examples/quickstarts/sveltekit
