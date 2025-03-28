@@ -6,7 +6,7 @@ icon: users
 
 ## Creating Users
 
-Users are created using the sign-up or sign-in flows described under [Supported Methods](/guides/auth/overview#supported-methods).
+Users are created using the sign-up or sign-in flows described under [Supported Methods](/products/auth/overview#supported-methods).
 
 - **Avoid** creating users directly via GraphQL or the database, unless you are [importing users](#import-users) from an external system.
 - **Avoid** modifying the database schema for the `auth.users` table.
@@ -19,7 +19,7 @@ You're allowed to:
 
 ## Roles
 
-Each user has one **default role** and a list of **allowed roles**. These roles are used to resolve permissions for requests to [GraphQL](/guides/api/permissions) and [Storage](/guides/storage/overview#permissions).
+Each user has one **default role** and a list of **allowed roles**. These roles are used to resolve permissions for requests to [GraphQL](/products/graphql/permissions) and [Storage](/products/storage/overview#permissions).
 
 When the user makes a request, only one role is used to resolve permissions. The default role is used if no role is explicitly specified. Users can only make requests using the default role or one of the allowed roles.
 
