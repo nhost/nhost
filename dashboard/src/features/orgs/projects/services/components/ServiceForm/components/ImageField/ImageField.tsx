@@ -156,7 +156,7 @@ export default function ImageField({
           <Text>
             Learn more about{' '}
             <Link
-              href="https://docs.nhost.io/guides/run/registry#using-your-own-private-registry"
+              href="https://docs.nhost.io/products/run/registry#using-your-own-private-registry"
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"
