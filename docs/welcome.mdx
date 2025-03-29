@@ -5,105 +5,63 @@ icon: hand-wave
 mode: "custom"
 ---
 
+<div className="welcome-page">
+  <div className="welcome-hero">
+    # Build. Deploy. Scale.
+    <p>Learn how to get started with Nhost</p>
+    <b>
+      [Explore the docs →](/getting-started)
+    </b>
+  </div>
 
-<div style={{ align: 'center', textAlign: 'left', padding: '20px' }}>
+  <div className="welcome-get-started">
+    # Get started with our guides or explore our community
 
-<img
-  className="block dark:hidden"
-  src="/images/introduction-light.svg"
-  alt="Hero Light"
-/>
-<img
-  className="hidden dark:block"
-  src="/images/introduction-dark.svg"
-  alt="Hero Dark"
-/>
-
-# Quickstart Guides and Tutorials
-
-To get up and running in no time explore our quickstart guides
-
-<CardGroup cols={2}>
-  <Card
-    title="React"
-    icon="react"
-    href="/getting-started/quickstart/react"
-  >
-    Learn how to connect Nhost with React
-  </Card>
-  <Card
-    title="Vue"
-    icon="vuejs"
-    href="/getting-started/quickstart/vue"
-  >
-    Learn how to connect Nhost with Vue
-  </Card>
-  <Card
-    title="Next.js"
-    icon="react"
-    href="/getting-started/quickstart/nextjs"
-  >
-    Learn how to connect Nhost with Next.js
-  </Card>
-  <Card
-    title="RedwoodJS (coming soon)"
-    icon="image"
-  >
-    Learn how to connect Nhost with RedwoodJS
-  </Card>
-</CardGroup>
-
-
-# Explore our Documentation
-
-<CardGroup cols={2}>
-  <Card
-    title="Getting started"
-    icon="hand-wave"
-    href="/getting-started/"
-  >
-    Documentation and guides about specific Nhost products
-  </Card>
-
-  <Card
-    title="Products"
-    icon="n"
-    href="/products/"
-  >
-    Documentation and guides about specific Nhost products
-  </Card>
-
-  <Card
-    title="Platform"
-    icon="layer-group"
-    href="/platform/"
-  >
-    Learn more about our cloud platform, our CLI tool for local development and how to self-host.
-  </Card>
-  <Card
-    title="Reference"
-    icon="book"
-    href="/reference/"
-  >
-    Explore our reference documentation for the various APIs and SDKs.
-  </Card>
-
-  <Card
-    title="Community"
-    icon="city"
-    href="/community/"
-  >
-    Read about how to our community, contributing guidelines, code of conduct, etc.
-  </Card>
-
-  <Card
-    title="Blog"
-    icon="rss"
-    href="https://nhost.io/blog"
-  >
-    Read everything our team has to say.
-  </Card>
-</CardGroup>
-
-
+    <CardGroup cols={3}>
+      <Card
+        title="Getting Started"
+        icon="rocket"
+        href="/getting-started"
+      >
+        Learn the fundamentals of Nhost and how to set up your first project
+      </Card>
+      <Card
+        title="API Reference"
+        icon="api"
+        href="/reference"
+      >
+        Integrate with our APIs or use our SDKs
+      </Card>
+      <Card
+        title="Platform"
+        icon="cloud"
+        href="/platform/overview"
+      >
+        Learn about Nhost cloud platform and local development
+      </Card>
+      <Card
+        title="Products"
+        icon="products"
+        href="/products/overview"
+      >
+        Explore our products like database & auth.
+      </Card>
+      <Card
+        title="Next.js"
+        icon="react"
+        href="/getting-started/quickstart/nextjs"
+      >
+        Integrate Nhost with your Next.js application
+      </Card>
+      <Card
+        title="Example Applications"
+        icon="mobile"
+        href="https://github.com/nhost/nhost/tree/main/examples"
+      >
+        Deployable applications built with Nhost.
+      </Card>
+    </CardGroup>
+    
+  </div>
 </div>
+

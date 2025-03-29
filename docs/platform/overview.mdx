@@ -4,13 +4,25 @@ icon: eye
 mode: "custom"
 ---
 
+<div className="welcome-page">
+  <div className="welcome-hero">
+    # Platform
+    <p>Learn about platform features</p>
+    <b>
+      [Explore Nhost Cloud →](/platform/cloud)
+    </b>
+  </div>
+
+  <div className="welcome-get-started">
+    # Explore different deployment options
+
 <CardGroup cols={2}>
   <Card
     title="Cloud"
     icon="cloud"
     href="/platform/cloud/"
   >
-    Elevator pitch for service
+    Fully managed backend infrastructure
   </Card>
 
   <Card
@@ -18,9 +30,11 @@ mode: "custom"
     icon="terminal"
     href="/platform/cli/"
   >
-    Elevator pitch for service
+    Develop your project with a local instance of Nhost
   </Card>
 
+</CardGroup>
+<CardGroup cols={1}>
   <Card
     title="Self-Hosting"
     icon="server"
@@ -28,4 +42,9 @@ mode: "custom"
   >
     Options to run Nhost on your own infrastructure; self-hosted with or without support or dedicated clusters for your organization
   </Card>
-</CardGroup>
+  </CardGroup>
+    
+  </div>
+</div>
+
+

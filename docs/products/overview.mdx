@@ -4,15 +4,20 @@ icon: eye
 mode: "custom"
 ---
 
-<CardGroup cols={2}>
-  <Card
-    title="Auth"
-    icon="lock"
-    href="/products/auth/"
-  >
-    Elevator pitch for service
-  </Card>
 
+<div className="welcome-page">
+  <div className="welcome-hero">
+    # Products
+    <p>Turn-key convenience plus extensibility</p>
+    <b>
+      [Explore products →](/getting-started)
+    </b>
+  </div>
+
+  <div className="welcome-get-started">
+    # Nhost Stack
+
+<CardGroup cols={2}>
   <Card
     title="Database"
     icon="database"
@@ -20,15 +25,16 @@ mode: "custom"
   >
     Elevator pitch for service
   </Card>
-
   <Card
-    title="Functions"
-    icon="lambda"
-    href="/products/functions/"
+    title="Auth"
+    icon="lock"
+    href="/products/auth/"
   >
     Elevator pitch for service
   </Card>
+  </CardGroup>
 
+<CardGroup cols={3}>
   <Card
     title="GraphQL"
     icon="webhook"
@@ -36,7 +42,6 @@ mode: "custom"
   >
     Elevator pitch for service
   </Card>
-
   <Card
     title="Storage"
     icon="warehouse"
@@ -44,7 +49,6 @@ mode: "custom"
   >
     Elevator pitch for service
   </Card>
-
   <Card
     title="AI"
     icon="robot"
@@ -53,6 +57,17 @@ mode: "custom"
     Elevator pitch for service
   </Card>
 
+</CardGroup>
+
+# Nhost PaaS
+<CardGroup cols={2}>
+  <Card
+    title="Functions"
+    icon="lambda"
+    href="/products/functions/"
+  >
+    Elevator pitch for service
+  </Card>
   <Card
     title="Run"
     icon="play"
@@ -60,5 +75,8 @@ mode: "custom"
   >
     Elevator pitch for service
   </Card>
-
 </CardGroup>
+  </div>
+</div>
+
+
