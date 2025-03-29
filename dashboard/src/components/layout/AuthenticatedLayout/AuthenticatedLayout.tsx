@@ -23,7 +23,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-export interface AuthenticatedLayoutProps extends BaseLayoutProps {}
+export interface AuthenticatedLayoutProps extends BaseLayoutProps { }
 
 export default function AuthenticatedLayout({
   children,
@@ -98,7 +98,7 @@ export default function AuthenticatedLayout({
             <HighlightedText className="font-mono">nhost up</HighlightedText>?
             Please refer to the{' '}
             <Link
-              href="https://docs.nhost.io/platform/cli"
+              href="https://docs.nhost.io/platform/cli/local-development"
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"

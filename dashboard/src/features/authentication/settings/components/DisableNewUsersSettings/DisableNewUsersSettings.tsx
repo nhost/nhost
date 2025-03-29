@@ -116,7 +116,7 @@ export default function DisableNewUsersSettings() {
         <SettingsContainer
           title="Disable New Users"
           description="If set, newly registered users are disabled and won't be able to sign in."
-          docsLink="https://docs.nhost.io/guides/auth/overview#disable-new-users"
+          docsLink="https://docs.nhost.io/products/auth/overview#disable-new-users"
           switchId="disabled"
           showSwitch
           slotProps={{

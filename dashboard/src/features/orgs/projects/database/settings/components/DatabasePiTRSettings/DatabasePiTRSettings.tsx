@@ -45,7 +45,7 @@ export default function DatabasePiTRSettings() {
       showSwitch={shouldShowSwitch}
       enabled={isPiTREnabled}
       onEnabledChange={handleEnabledChange}
-      docsLink="https://docs.nhost.io/guides/database/backups#point-in-time-recovery"
+      docsLink="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
       docsTitle="enabling or disabling PiTR"
     >
       {isFreeProject ? (

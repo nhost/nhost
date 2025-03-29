@@ -42,7 +42,7 @@ export default function HealthCheckFormSection() {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://docs.nhost.io/guides/run/health-checks"
+                  href="https://docs.nhost.io/products/run/health-checks"
                   className="underline"
                 >
                   Health Check

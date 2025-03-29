@@ -44,7 +44,7 @@ export default function CustomDomains() {
             Add a custom domain to Auth, Hasura, PostgreSQL, and your Run
             services for only a $10 flat fee 🚀 <br /> Learn more about
             <Link
-              href="https://docs.nhost.io/platform/custom-domains"
+              href="https://docs.nhost.io/platform/cloud/custom-domains"
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"

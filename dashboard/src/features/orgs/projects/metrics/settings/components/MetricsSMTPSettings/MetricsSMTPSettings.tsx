@@ -125,7 +125,7 @@ export default function MetricsSMTPSettings() {
         <SettingsContainer
           title="SMTP Settings"
           description="Configure your SMTP settings to send emails as part of your alerting."
-          docsLink="https://docs.nhost.io/platform/metrics#smtp"
+          docsLink="https://docs.nhost.io/platform/cloud/metrics#smtp"
           submitButtonText="Save"
           className="grid gap-4 lg:grid-cols-9"
           slotProps={{

@@ -7,7 +7,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTheme } from '@mui/material';
 import { twMerge } from 'tailwind-merge';
 
-export interface SettingsLayoutProps extends ProjectLayoutProps {}
+export interface SettingsLayoutProps extends ProjectLayoutProps { }
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const theme = useTheme();
@@ -52,7 +52,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline"
-                    href="https://docs.nhost.io/guides/cli/configuration-overlays#configuration-overlays"
+                    href="https://docs.nhost.io/platform/cli/configuration-overlays"
                   >
                     Configuration Overlays
                   </a>{' '}

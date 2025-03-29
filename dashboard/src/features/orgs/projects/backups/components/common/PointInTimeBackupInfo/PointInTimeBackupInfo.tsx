@@ -8,7 +8,7 @@ import RestoreBackupDialogButton from './RestoreBackupDialogButton';
 function LearnMoreAboutPiTRLink() {
   return (
     <Link
-      href="https://docs.nhost.io/guides/database/backups#point-in-time-recovery"
+      href="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
       className="flex items-center gap-1 text-[0.9375rem] leading-[1.375rem] text-[#0052cd] hover:underline dark:text-[#3888ff]"
       target="_blank"
       rel="noopener noreferrer"

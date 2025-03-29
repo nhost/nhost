@@ -75,7 +75,7 @@ export default function ResourcesFormFooter() {
       return Math.max(
         priceForTotalAvailableVCPU,
         (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
-          RESOURCE_VCPU_PRICE,
+        RESOURCE_VCPU_PRICE,
       );
     }
 
@@ -90,7 +90,7 @@ export default function ResourcesFormFooter() {
       <Text>
         Learn more about{' '}
         <Link
-          href="https://docs.nhost.io/platform/compute-resources"
+          href="https://docs.nhost.io/platform/cloud/compute-resources"
           target="_blank"
           rel="noopener noreferrer"
           underline="hover"

@@ -36,7 +36,7 @@ export default function RateLimiting() {
           <Text color="secondary">
             Learn more about
             <Link
-              href="https://docs.nhost.io/platform/rate-limits"
+              href="https://docs.nhost.io/platform/cloud/rate-limits"
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"

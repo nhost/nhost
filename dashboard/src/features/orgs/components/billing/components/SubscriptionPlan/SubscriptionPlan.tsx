@@ -168,7 +168,7 @@ export default function SubscriptionPlan() {
               </Link>
               <span> You can also visit our </span>
               <Link
-                href="https://docs.nhost.io/platform/billing"
+                href="https://docs.nhost.io/platform/cloud/billing"
                 target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"

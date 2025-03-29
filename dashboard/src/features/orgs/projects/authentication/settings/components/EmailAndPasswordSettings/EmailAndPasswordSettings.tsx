@@ -141,7 +141,7 @@ export default function EmailAndPasswordSettings() {
         <SettingsContainer
           title="Email and Password"
           description="Allow users to sign in with email and password."
-          docsLink="https://docs.nhost.io/guides/auth/sign-in-email-password"
+          docsLink="https://docs.nhost.io/products/auth/sign-in-email-password"
           docsTitle="how to sign in users with email and password"
           className="grid grid-flow-row"
           showSwitch

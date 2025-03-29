@@ -70,7 +70,7 @@ export default function ComputeFormSection({
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://docs.nhost.io/guides/run/resources#compute"
+                  href="https://docs.nhost.io/products/run/resources#compute"
                   className="underline"
                 >
                   resources
