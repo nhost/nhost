@@ -144,7 +144,7 @@ export default function GravatarSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/guides/auth/overview#gravatar"
+          docsLink="https://docs.nhost.io/products/auth/overview#gravatar"
           switchId="enabled"
           showSwitch
           className={twMerge(
