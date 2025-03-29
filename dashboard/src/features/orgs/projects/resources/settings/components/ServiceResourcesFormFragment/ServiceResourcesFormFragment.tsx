@@ -316,7 +316,7 @@ export default function ServiceResourcesFormFragment({
         <Text>
           Learn more about{' '}
           <Link
-            href="https://docs.nhost.io/platform/service-replicas"
+            href="https://docs.nhost.io/platform/cloud/service-replicas"
             target="_blank"
             rel="noopener noreferrer"
             underline="hover"
