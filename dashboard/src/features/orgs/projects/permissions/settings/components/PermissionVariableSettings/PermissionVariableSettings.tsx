@@ -158,7 +158,7 @@ export default function PermissionVariableSettings() {
     <SettingsContainer
       title="Permission Variables"
       description="Permission variables are used to define permission rules in the GraphQL API."
-      docsLink="https://docs.nhost.io/guides/api/permissions#permission-variables"
+      docsLink="https://docs.nhost.io/products/graphql/permissions#permission-variables"
       rootClassName="gap-0"
       className="my-2 px-0"
       slotProps={{ submitButton: { className: 'hidden' } }}
