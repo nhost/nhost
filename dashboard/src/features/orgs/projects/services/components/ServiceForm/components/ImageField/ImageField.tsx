@@ -86,7 +86,7 @@ export default function ImageField({
           <Text>
             Learn more about{' '}
             <Link
-              href="https://docs.nhost.io/guides/run/registry#creating-a-private-repository-for-your-image"
+              href="https://docs.nhost.io/products/run/registry#creating-a-private-repository-for-your-image"
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"
