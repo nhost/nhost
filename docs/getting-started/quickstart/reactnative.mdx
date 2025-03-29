@@ -6,7 +6,7 @@ icon: mobile-notch
 ---
 
 <Card>
-  Throughout this guide, we'll utilize the **@nhost/react-native-template**, which comes pre-configured with 
+  Throughout this guide, we'll utilize the **@nhost/react-native-template**, which comes pre-configured with
   authentication and storage capabilities provided by Nhost.
 </Card>
 
@@ -36,13 +36,11 @@ icon: mobile-notch
       user_id uuid NOT NULL,
       contents text NOT NULL,
       PRIMARY KEY (id),
-      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE cascade ON DELETE cascade 
+      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE cascade ON DELETE cascade
     );
     ```
 
-    <Frame caption="Create Todos Table">
-      <img src="/images/quickstarts/react-native/create-table-todos.png" />
-    </Frame>
+    ![Create Todos Table](/images/quickstarts/react-native/create-table-todos.png)
 
   </Step>
 
@@ -55,10 +53,8 @@ icon: mobile-notch
         - Select all columns except `user_id` on `Column insert permissions`
         - Add a new `Column preset` and set `Column Name` to `user_id` and `Column Value` to `X-Hasura-User-Id`
         - Save
-    
-    <Frame caption="Insert Permissions">
-      <img src="/images/quickstarts/react-native/todos-insert-permissions.png" />
-    </Frame>
+
+    ![Insert Permissions](/images/quickstarts/react-native/todos-insert-permissions.png)
 
     2. `Select`
         - Set `Row select permissions` to `With custom check` and fill in the following rule:
@@ -68,9 +64,7 @@ icon: mobile-notch
         - Select all columns except `user_id` on `Column select permissions`
         - Save
 
-    <Frame caption="Select Permissions">
-      <img src="/images/quickstarts/react-native/todos-select-permissions.png" />
-    </Frame>
+    ![Select Permissions](/images/quickstarts/react-native/todos-select-permissions.png)
 
     3. `Update`
         - Set `Row update permissions` to `With custom check` and fill in the following rule:
@@ -80,9 +74,7 @@ icon: mobile-notch
         - Select all columns except `user_id` on `Column select permissions`
         - Save
 
-    <Frame caption="Update permissions">
-      <img src="/images/quickstarts/react-native/todos-update-permissions.png" />
-    </Frame>
+    ![Update permissions](/images/quickstarts/react-native/todos-update-permissions.png)
 
     4. `Delete`
         - Set `Row delete permissions` to `With custom check` and fill in the following rule:
@@ -91,9 +83,7 @@ icon: mobile-notch
             - Set the value to `X-Hasura-User-Id`
         - Save
 
-    <Frame caption="Delete permissions">
-      <img src="/images/quickstarts/react-native/todos-delete-permissions.png" />
-    </Frame>
+    ![Delete permissions](/images/quickstarts/react-native/todos-delete-permissions.png)
   </Step>
 
   <Step title="Configure permissions to enable user file uploads">
@@ -109,9 +99,7 @@ icon: mobile-notch
           2. Select all columns on `Column insert permissions`
           4. Save
 
-    <Frame caption="Insert Permissions">
-      <img src="/images/quickstarts/react-native/files-insert-permissions.png" />
-    </Frame>
+    ![Insert Permissions](/images/quickstarts/react-native/files-insert-permissions.png)
 
     3. `Select`
         - Set `Row select permissions` to `With custom check` and fill in the following rule:
@@ -121,14 +109,12 @@ icon: mobile-notch
         - Select all columns on `Column select permissions`
         - Save
 
-    <Frame caption="Select permissions">
-      <img src="/images/quickstarts/react-native/files-select-permissions.png" />
-    </Frame>
+![Select permissions](/images/quickstarts/react-native/files-select-permissions.png)
   </Step>
 
   <Step title="Bootstrap your React Native app">
     Intialize a new React Native project using the template `@nhost/react-native-template`
-    
+
     ```bash Terminal
     npx react-native init myapp --template @nhost/react-native-template
     ```
