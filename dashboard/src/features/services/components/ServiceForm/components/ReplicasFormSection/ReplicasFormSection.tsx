@@ -57,7 +57,7 @@ export default function ReplicasFormSection() {
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href="https://docs.nhost.io/platform/service-replicas"
+                href="https://docs.nhost.io/platform/cloud/service-replicas"
                 className="underline"
               >
                 Service Replicas
