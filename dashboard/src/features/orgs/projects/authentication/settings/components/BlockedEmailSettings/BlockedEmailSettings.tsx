@@ -99,12 +99,12 @@ export default function BlockedEmailSettings() {
                 blocked:
                   values.enabled && values.blockedEmails
                     ? [
-                        ...new Set(
-                          values.blockedEmails
-                            .split(',')
-                            .map((blockedEmail) => blockedEmail.trim()),
-                        ),
-                      ]
+                      ...new Set(
+                        values.blockedEmails
+                          .split(',')
+                          .map((blockedEmail) => blockedEmail.trim()),
+                      ),
+                    ]
                     : [],
               },
               emailDomains: {
@@ -112,14 +112,14 @@ export default function BlockedEmailSettings() {
                 blocked:
                   values.enabled && values.blockedEmailDomains
                     ? [
-                        ...new Set(
-                          values.blockedEmailDomains
-                            .split(',')
-                            .map((blockedEmailDomain) =>
-                              blockedEmailDomain.trim(),
-                            ),
-                        ),
-                      ]
+                      ...new Set(
+                        values.blockedEmailDomains
+                          .split(',')
+                          .map((blockedEmailDomain) =>
+                            blockedEmailDomain.trim(),
+                          ),
+                      ),
+                    ]
                     : [],
               },
             },
@@ -168,7 +168,7 @@ export default function BlockedEmailSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/guides/auth/overview#allowed-emails-and-domains"
+          docsLink="https://docs.nhost.io/products/auth/overview#allowed-emails-and-domains"
           switchId="enabled"
           showSwitch
           className={twMerge(
