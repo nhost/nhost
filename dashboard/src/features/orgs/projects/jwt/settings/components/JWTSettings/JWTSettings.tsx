@@ -381,7 +381,7 @@ export default function JWTSettings() {
                         <a
                           target="_blank"
                           rel="noopener noreferrer"
-                          href="https://docs.nhost.io/guides/auth/jwt#external-signing"
+                          href="https://docs.nhost.io/products/auth/jwt#external-signing"
                           className="underline"
                         >
                           external signing
