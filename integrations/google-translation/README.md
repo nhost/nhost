@@ -77,7 +77,7 @@ npm install @nhost/google-translation
 
 ### Serverless Function Setup
 
-Create a new [Serverless Function](https://docs.nhost.io/platform/serverless-functions) `functions/graphql/google-translation.ts`:
+Create a new [Serverless Function](https://docs.nhost.io/products/functions/overview) `functions/graphql/google-translation.ts`:
 
 ```js
 import { createGoogleTranslationGraphQLServer } from '@nhost/google-translation'
