@@ -38,7 +38,7 @@ These files are added to `.gitignore`, so you don't need to worry about committi
 
 ### Enable Local Development
 
-You can connect the Nhost Dashboard to your **locally running** Nhost backend in a few steps. Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli#installation).
+You can connect the Nhost Dashboard to your **locally running** Nhost backend in a few steps. Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli/local-development).
 
 First, you need to run the following command to start your backend locally:
 
