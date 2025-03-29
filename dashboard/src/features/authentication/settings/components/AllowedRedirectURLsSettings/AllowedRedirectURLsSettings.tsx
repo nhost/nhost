@@ -134,7 +134,7 @@ export default function AllowedRedirectURLsSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/guides/auth/overview#allowed-redirect-urls"
+          docsLink="https://docs.nhost.io/products/auth/overview#allowed-redirect-urls"
           className="grid grid-flow-row px-4 lg:grid-cols-5"
         >
           <Input
