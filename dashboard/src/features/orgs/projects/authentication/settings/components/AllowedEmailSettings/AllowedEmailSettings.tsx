@@ -102,8 +102,8 @@ export default function AllowedEmailDomainsSettings() {
                 allowed:
                   values.enabled && values.allowedEmails
                     ? values.allowedEmails
-                        .split(',')
-                        .map((allowedEmail) => allowedEmail.trim())
+                      .split(',')
+                      .map((allowedEmail) => allowedEmail.trim())
                     : [],
               },
               emailDomains: {
@@ -111,8 +111,8 @@ export default function AllowedEmailDomainsSettings() {
                 allowed:
                   values.enabled && values.allowedEmailDomains
                     ? values.allowedEmailDomains
-                        .split(',')
-                        .map((allowedEmailDomain) => allowedEmailDomain.trim())
+                      .split(',')
+                      .map((allowedEmailDomain) => allowedEmailDomain.trim())
                     : [],
               },
             },
@@ -162,7 +162,7 @@ export default function AllowedEmailDomainsSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/guides/auth/overview#allowed-emails-and-domains"
+          docsLink="https://docs.nhost.io/products/auth/overview#allowed-emails-and-domains"
           switchId="enabled"
           showSwitch
           className={twMerge(
