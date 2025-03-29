@@ -56,7 +56,7 @@ export default function PortsFormSection() {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://docs.nhost.io/run/networking"
+                  href="https://docs.nhost.io/products/run/networking"
                   className="underline"
                 >
                   Networking
