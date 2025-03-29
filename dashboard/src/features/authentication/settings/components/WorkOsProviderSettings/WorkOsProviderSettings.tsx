@@ -178,7 +178,7 @@ export default function WorkOsProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/guides/auth/social/sign-in-workos"
+          docsLink="https://docs.nhost.io/products/auth/social/sign-in-workos"
           docsTitle="how to sign in users with WorkOS"
           icon="/assets/brands/workos.svg"
           switchId="enabled"
