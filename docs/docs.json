@@ -188,7 +188,7 @@
               "platform/cloud/metrics",
               "platform/cloud/environment-variables",
               "platform/cloud/secrets",
-              "platform/cloud/deployments",
+              "platform/cloud/git",
               "platform/cloud/custom-domains",
               "platform/cloud/rate-limits",
               "platform/cloud/tls",

@@ -98,7 +98,7 @@ export default function BaseDirectorySettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/github-integration#base-directory"
+          docsLink="https://docs.nhost.io/platform/platform/cloud/git#base-directory"
           className="grid grid-flow-row lg:grid-cols-5"
         >
           {project?.githubRepository ? (

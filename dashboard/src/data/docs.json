@@ -27,7 +27,7 @@
   {
     "title": "GitHub Integration",
     "desc": "You can connect your Nhost project to a GitHub repository.",
-    "href": "https://docs.nhost.io/platform/nhost/github-integration"
+    "href": "https://docs.nhost.io/platform/cloud/git"
   },
   {
     "title": "Nhost CLI",
