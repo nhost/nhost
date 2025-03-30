@@ -1,30 +1,23 @@
 ---
-title: Overview
-description: Local development with Nhost CLI
+title: Local Development
+sidebarTitle: Overview
+description: Run and develop Nhost locally
 icon: terminal
 ---
-
-# CLI Overview
 
 The Nhost CLI provides a seamless local development experience, allowing you to run the entire Nhost stack on your local machine. This approach enables fast iteration times, offline development capabilities, and an environment that closely mirrors production.
 
 ## Key Features
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="Complete Local Stack" icon="layer-group">
     Run the entire Nhost platform locally including PostgreSQL, GraphQL, Auth, Storage, and custom services.
   </Card>
   <Card title="Fast Iteration" icon="bolt">
-    Make changes to your schema, auth settings, or storage rules and see them take effect instantly.
+    Make changes to your schema, auth settings, or storage permissions and see them take effect instantly.
   </Card>
   <Card title="Configuration as Code" icon="code">
     Define your project's configuration in version-controlled files for easy collaboration.
-  </Card>
-  <Card title="Seed Data" icon="seedling" href="/platform/cli/seeds">
-    Populate your development database with realistic test data for consistent testing environments.
-  </Card>
-  <Card title="Multi-project Support" icon="folder-tree" href="/platform/cli/multiple-projects">
-    Work on multiple Nhost projects simultaneously with isolated environments for each.
   </Card>
 </CardGroup>
 
@@ -37,11 +30,8 @@ The Nhost CLI provides a seamless local development experience, allowing you to 
   <Card title="Configuration Overlays" icon="layer-group" href="/platform/cli/configuration-overlays">
     Manage environment-specific settings without duplicating your base configuration
   </Card>
-  <Card title="Migration Management" icon="database" href="/platform/cli/migrate-config">
-    Track schema changes and apply them consistently across environments
-  </Card>
   <Card title="Custom Subdomains" icon="globe" href="/platform/cli/subdomain">
-    Configure custom subdomains for local development to match production
+    Configure dynamic DNS to connect from a different device to your local project
   </Card>
   <Card title="Multiple Projects" icon="folder-tree" href="/platform/cli/multiple-projects">
     Work on multiple projects simultaneously with isolated environments
@@ -51,13 +41,6 @@ The Nhost CLI provides a seamless local development experience, allowing you to 
   </Card>
 </CardGroup>
 
-## CLI Workflow
-
-The Nhost CLI follows a simple workflow pattern:
-
-1. **Set Up** - Install the CLI and dependencies
-2. **Initialize** - Create a new project or link to existing one
-3. **Develop** - Make changes locally with immediate feedback
-4. **Deploy** - Push changes to production when ready
+## Next steps
 
 For detailed installation and setup instructions, see the [Local Development](/platform/cli/local-development) guide.
