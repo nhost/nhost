@@ -17,7 +17,9 @@
     "build-storybook": "build-storybook",
     "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
     "e2e": "pnpm install-browsers && pnpm playwright test --config=playwright.config.ts",
-    "e2e-local": "pnpm install-browsers && pnpm playwright test --config=playwright.local.config.ts"
+    "e2e:main" :"pnpm e2e --project=main",
+    "e2e:local": "pnpm e2e --project=local",
+    "e2e:upgrade-project": "pnpm e2e --project=upgrade-project"
   },
   "dependencies": {
     "@apollo/client": "^3.9.9",

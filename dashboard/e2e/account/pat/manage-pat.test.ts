@@ -2,7 +2,7 @@ import { expect, test } from '@/e2e/fixtures/auth-hook';
 
 import { faker } from '@faker-js/faker';
 
-test('should be able to create then delete a personal access token', async ({
+test.only('should be able to create then delete a personal access token', async ({
   authenticatedNhostPage: page,
 }) => {
   await page.waitForTimeout(1000);

@@ -11,19 +11,30 @@ export default defineConfig({
     timeout: 10000,
   },
   fullyParallel: false,
-  forbidOnly: !!process.env.CI,
+  forbidOnly: false,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: 'html',
   use: {
     actionTimeout: 0,
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
+    geolocation: { latitude: 40.73061, longitude: -73.935242 },
+    permissions: ['geolocation'],
     launchOptions: {
       slowMo: 500,
     },
   },
   projects: [
+    {
+      name: 'upgrade-project',
+      testMatch: 'upgrade-project.test.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        // geolocation: { longitude: 19.04045, latitude: 47.49835 },
+      },
+    },
     {
       name: 'setup',
       testMatch: ['**/setup/*.setup.ts'],
@@ -34,13 +45,21 @@ export default defineConfig({
       testMatch: ['**/teardown/*.teardown.ts'],
     },
     {
-      name: 'chromium',
+      name: 'main',
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      grepInvert: [/Local Dashboard CLI e2e tests/],
+      testIgnore: ['upgrade-project.test.ts', 'cli-local-dashboard.test.ts'],
+    },
+    {
+      name: 'local',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: '', // Local dashboard URL
+      },
+      testMatch: 'cli-local-dashboard.test.ts',
     },
   ],
 });

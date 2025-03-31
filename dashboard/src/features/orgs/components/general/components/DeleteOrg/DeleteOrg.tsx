@@ -130,6 +130,7 @@ export default function DeleteOrg() {
                   e.preventDefault();
                   await handleDeleteOrg();
                 }}
+                data-testid="deleteOrgButton"
                 className={buttonVariants({ variant: 'destructive' })}
                 disabled={
                   deleting ||

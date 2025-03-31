@@ -67,12 +67,15 @@ function UpgradeProjectDialogContent({
       {showContent ? (
         <>
           <DialogDescription className="text-base">
-            To access premium features, a project must belong to an organization
-            with a paid subscription plan.
+            To access premium features from a paid plan, a project must belong
+            to an organization on that plan.
             <br />
             Continue to create a new organization with a subscription plan. Your
-            project will then automatically transfer, unlocking all paid
-            features.
+            project will be automatically transferred to the new organization,
+            unlocking all paid features.
+            <br />
+            Alternatively, you can transfer your project to an existing paid
+            organization in your project&apos;s settings.
           </DialogDescription>
           <DialogFooter>
             <Button variant="secondary" type="button" onClick={onCancel}>
