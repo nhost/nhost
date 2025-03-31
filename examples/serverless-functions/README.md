@@ -2,7 +2,7 @@
 
 Here are examples of Serverless Functions with Nhost.
 
-Docs: [https://docs.nhost.io/platform/serverless-functions](https://docs.nhost.io/platform/serverless-functions)
+Docs: [https://docs.nhost.io/products/functions/overview](https://docs.nhost.io/products/functions/overview)
 
 ## Examples
 
