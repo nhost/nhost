@@ -96,10 +96,10 @@ export default function ContactPointsSettings() {
     const newSlack =
       sanitizedValues.slack?.length > 0
         ? sanitizedValues.slack.map((elem) => ({
-          ...elem,
-          mentionUsers: elem.mentionUsers.split(','),
-          mentionGroups: elem.mentionGroups.split(','),
-        }))
+            ...elem,
+            mentionUsers: elem.mentionUsers.split(','),
+            mentionGroups: elem.mentionGroups.split(','),
+          }))
         : null;
 
     const newWebhook =

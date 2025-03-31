@@ -75,7 +75,7 @@ export default function ResourcesFormFooter() {
       return Math.max(
         priceForTotalAvailableVCPU,
         (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
-        RESOURCE_VCPU_PRICE,
+          RESOURCE_VCPU_PRICE,
       );
     }
 

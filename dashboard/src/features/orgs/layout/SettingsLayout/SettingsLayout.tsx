@@ -7,7 +7,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTheme } from '@mui/material';
 import { twMerge } from 'tailwind-merge';
 
-export interface SettingsLayoutProps extends ProjectLayoutProps { }
+export interface SettingsLayoutProps extends ProjectLayoutProps {}
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const theme = useTheme();

@@ -23,7 +23,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-export interface AuthenticatedLayoutProps extends BaseLayoutProps { }
+export interface AuthenticatedLayoutProps extends BaseLayoutProps {}
 
 export default function AuthenticatedLayout({
   children,

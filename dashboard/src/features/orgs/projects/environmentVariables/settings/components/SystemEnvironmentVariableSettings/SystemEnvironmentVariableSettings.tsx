@@ -92,11 +92,11 @@ export default function SystemEnvironmentVariableSettings() {
         process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
           ? `${getHasuraConsoleServiceUrl()}/console`
           : generateAppServiceUrl(
-            project?.subdomain,
-            project?.region,
-            'hasura',
-            { ...defaultRemoteBackendSlugs, hasura: '/console' },
-          ),
+              project?.subdomain,
+              project?.region,
+              'hasura',
+              { ...defaultRemoteBackendSlugs, hasura: '/console' },
+            ),
     },
     { key: 'NHOST_AUTH_URL', value: appClient.auth.url },
     { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.httpUrl },
