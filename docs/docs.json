@@ -182,6 +182,7 @@
             "dropdown": "Cloud",
             "icon": "cloud",
             "pages": [
+              "/platform/cloud/overview",
               "platform/cloud/subdomain",
               "platform/cloud/compute-resources",
               "platform/cloud/service-replicas",
@@ -199,6 +200,7 @@
             "dropdown": "Local Development",
             "icon": "terminal",
             "pages": [
+              "/platform/cli/overview",
               "/platform/cli/local-development",
               "/platform/cli/subdomain",
               "/platform/cli/migrate-config",
