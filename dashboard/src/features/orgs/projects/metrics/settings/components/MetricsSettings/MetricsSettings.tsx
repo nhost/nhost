@@ -147,7 +147,7 @@ export default function MetricsSettings() {
             }}
             switchId="enabled"
             docsTitle="enabling or disabling Alerting"
-            docsLink="https://docs.nhost.io/platform/metrics#alerting"
+            docsLink="https://docs.nhost.io/platform/cloud/metrics#alerting"
             showSwitch
             className="hidden"
           />

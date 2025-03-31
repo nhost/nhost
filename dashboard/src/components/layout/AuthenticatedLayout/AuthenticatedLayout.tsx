@@ -97,7 +97,7 @@ export default function AuthenticatedLayout({
             <HighlightedText className="font-mono">nhost up</HighlightedText>?
             Please refer to the{' '}
             <Link
-              href="https://docs.nhost.io/platform/cli"
+              href="https://docs.nhost.io/platform/cli/local-development"
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"

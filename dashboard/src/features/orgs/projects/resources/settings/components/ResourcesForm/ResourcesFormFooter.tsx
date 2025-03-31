@@ -90,7 +90,7 @@ export default function ResourcesFormFooter() {
       <Text>
         Learn more about{' '}
         <Link
-          href="https://docs.nhost.io/platform/compute-resources"
+          href="https://docs.nhost.io/platform/cloud/compute-resources"
           target="_blank"
           rel="noopener noreferrer"
           underline="hover"

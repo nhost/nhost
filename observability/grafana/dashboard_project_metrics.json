@@ -1362,7 +1362,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io//platform/cloud/compute-resources) this line should match the amount of resources configured.",
+      "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/cloud/compute-resources) this line should match the amount of resources configured.",
       "fieldConfig": {
         "defaults": {
           "color": {

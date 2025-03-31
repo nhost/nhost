@@ -10,28 +10,28 @@ const features: CardProps[] = [
     description: 'Learn how to use Postgres with Nhost',
     icon: <DatabaseIcon className="h-8 w-8" sx={{ color: 'text.secondary' }} />,
     disableIconBackground: true,
-    link: 'https://docs.nhost.io/product/database',
+    link: 'https://docs.nhost.io/products/database/overview',
   },
   {
     title: 'GraphQL API',
     description: 'Learn how to interact with the GraphQL API',
     icon: <GraphQLIcon className="h-8 w-8" sx={{ color: 'text.secondary' }} />,
     disableIconBackground: true,
-    link: 'https://docs.nhost.io/product/graphql',
+    link: 'https://docs.nhost.io/products/graphql/overview',
   },
   {
     title: 'Authentication',
     description: 'Learn how to authenticate users with Nhost',
     icon: <UserIcon className="h-8 w-8" sx={{ color: 'text.secondary' }} />,
     disableIconBackground: true,
-    link: 'https://docs.nhost.io/product/authentication',
+    link: 'https://docs.nhost.io/products/auth/overview',
   },
   {
     title: 'Storage',
     description: 'Learn how to use Storage with Nhost',
     icon: <StorageIcon className="h-8 w-8" sx={{ color: 'text.secondary' }} />,
     disableIconBackground: true,
-    link: 'https://docs.nhost.io/product/storage',
+    link: 'https://docs.nhost.io/products/storage/overview',
   },
 ];
 
