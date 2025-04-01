@@ -50,7 +50,6 @@ You can see the cute cat pictures [here](https://tcspovfliddfqpzfloes-5000.svc.e
 
 We can also use a configuration file to define Run Services as we already to configure the main Nhost Stack using `nhost.toml`. Because we used the dashboard to create the service, we will now use the Nhost CLI to pull its configuration and deploy a small change to it.
 
-
 ```bash
 $ nhost run config-pull \
 --service-id 8fa4048e-782f-445c-9a56-d583ecef1c76 \
@@ -62,20 +61,12 @@ The service ID can be found in the dashboard and the name of the config file is 
 The contents of `nhost-service.toml` should look like the following:
 
 ```js
-name = 'cat-generator'
-
-[image]
-image = 'nhost/cat-generator:0.0.1'
-
-[[ports]]
+name = 'cat-generator'[image]
+image = 'nhost/cat-generator:0.0.1'[[ports]]
 port = 5000
 type = 'http'
-publish = true
-
-[resources]
-replicas = 1
-
-[resources.compute]
+publish = true[resources]
+replicas = (1)[resources.compute]
 cpu = 62
 memory = 128
 ```
@@ -109,8 +100,7 @@ Getting secrets...
 Config is valid!
 ```
 
-You can refer to the full documentation [here](https://docs.nhost.io/run).
-
+You can refer to the full documentation [here](https://docs.nhost.io/products/run/overview).
 
 ## Benefits of Run
 
@@ -138,5 +128,4 @@ Nhost Run is the missing puzzle piece that bridges the gap between the convenien
 
 ## Next
 
-Give Nhost Run a try and let us know what you think! To learn more, please refer to the [product](https://nhost.io/product/run) and [documentation](https://docs.nhost.io/run) pages.
-
+Give Nhost Run a try and let us know what you think! To learn more, please refer to the [product](https://nhost.io/product/run) and [documentation](https://docs.nhost.io/products/run/overview) pages.

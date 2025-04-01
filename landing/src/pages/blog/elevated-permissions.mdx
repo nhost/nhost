@@ -3,8 +3,7 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
   title: 'Elevated Permissions',
-  description:
-    'Add an extra layer of security to your data and user workflows',
+  description: 'Add an extra layer of security to your data and user workflows',
   image: '/images/blog/elevated-permissions/elevated-permissions.png',
   date: '2024-02-19',
   authors: [
@@ -20,23 +19,20 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Sometimes we want to add an extra layer of security for specific bits of data or certain user workflows like changing a user email or resetting a password. 
+Sometimes we want to add an extra layer of security for specific bits of data or certain user workflows like changing a user email or resetting a password.
 
-**Elevated Permissions** is a new feature from Nhost Auth that allows developers to require an extra validation step using a [Security Key](https://docs.nhost.io/guides/auth/sign-in-webauthn).
+**Elevated Permissions** is a new feature from Nhost Auth that allows developers to require an extra validation step using a [Security Key](https://docs.nhost.io/products/auth/webauthn).
 
 ### How does it work?
 
-A new claim `x-hasura-auth-elevated: $user-id` is added to the access token of an already logged in user once the extra security challenge is passed and it will be available for as long as the access token is valid. 
+A new claim `x-hasura-auth-elevated: $user-id` is added to the access token of an already logged in user once the extra security challenge is passed and it will be available for as long as the access token is valid.
 
 #### GraphQL API
 
-`x-hasura-auth-elevated` can be used as a [Permission Variable](https://docs.nhost.io/guides/api/permissions#permission-variables) to define permissions on your GraphQL data and actions that require the extra security check. In the same way as we would use `x-hasura-user-id`. 
+`x-hasura-auth-elevated` can be used as a [Permission Variable](https://docs.nhost.io/products/graphql/permissions#permission-variables) to define permissions on your GraphQL data and actions that require the extra security check. In the same way as we would use `x-hasura-user-id`.
 
 <video width="99%" autoPlay loop muted controls>
-  <source
-    src="/videos/elevated-graphql.mp4"
-    type="video/mp4"
-  />
+  <source src="/videos/elevated-graphql.mp4" type="video/mp4" />
 </video>
 
 #### Auth API
@@ -46,7 +42,7 @@ Some user information is changed through Auth's API rather then through GraphQL:
 - changing passwords
 - changing emails
 - enabling or disabling MFA
-- adding security keys 
+- adding security keys
 - creating PATs
 
 You can add the extra check for these Auth endpoints and require the elevated claim by setting the following configuration:
@@ -57,16 +53,7 @@ You can add the extra check for these Auth endpoints and require the elevated cl
 ```
 
 <video width="99%" autoPlay loop muted controls>
-  <source
-    src="/videos/elevated-auth.mp4"
-    type="video/mp4"
-  />
+  <source src="/videos/elevated-auth.mp4" type="video/mp4" />
 </video>
 
-For more detailed information on Elevated Permissions you can read the [documentation](https://docs.nhost.io/guides/auth/elevated-permissions) or check [one of our examples](https://github.com/nhost/nhost/tree/main/examples/react-apollo).
-
-
-
-
-
-
+For more detailed information on Elevated Permissions you can read the [documentation](https://docs.nhost.io/products/auth/elevated-permissions) or check [one of our examples](https://github.com/nhost/nhost/tree/main/examples/react-apollo).

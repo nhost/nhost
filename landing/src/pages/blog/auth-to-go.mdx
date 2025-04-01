@@ -3,8 +3,7 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
   title: 'Auth Service to Go',
-  description:
-    'Faster, leaner, better',
+  description: 'Faster, leaner, better',
   image: '/images/blog/og-auth-migration-to-go.png',
   date: '2024-04-23',
   authors: [
@@ -48,7 +47,7 @@ I knew someone was going to ask. See previous paragraph :)
 
 Now that all the excuses are out of the way, let's start with the fun details. According to the [wikipedia](https://en.wikipedia.org/wiki/Strangler_fig_pattern):
 
-> In programming, the strangler fig pattern or strangler pattern is an architectural pattern that involves wrapping old code [...]  One use of this pattern is during software rewrites. Code can be divided into many small sections, wrapped with the strangler fig pattern, then that section of old code can be swapped out with new code before moving on to the next section. This is less risky and more incremental than swapping out the entire piece of software.
+> In programming, the strangler fig pattern or strangler pattern is an architectural pattern that involves wrapping old code [...] One use of this pattern is during software rewrites. Code can be divided into many small sections, wrapped with the strangler fig pattern, then that section of old code can be swapped out with new code before moving on to the next section. This is less risky and more incremental than swapping out the entire piece of software.
 
 Let's see what this actually means. In PR [#464](https://github.com/nhost/hasura-auth/pull/464) we added to the Auth service a Go process that simply proxied all requests. When a request would come in, it would forward the request to the Node.js process, nothing else:
 
@@ -74,7 +73,7 @@ Let's start with the elephant in the room; "wouldn't adding a second process act
 
 In order to perform the benchmarks we have set the following scenario:
 
-- We are using a [Pro project without dedicated compute](https://docs.nhost.io/platform/compute-resources#pro-plan). This means half a core for each service (shared).
+- We are using a [Pro project without dedicated compute](https://docs.nhost.io/platform/cloud/compute-resources#pro-plan). This means half a core for each service (shared).
 - The project has been deployed in `eu-central-1` and the tests are being executed from Stockholm, resulting in ~25ms of latency.
 - For each test we are going to use a different number of workers. Workers are processes that can trigger requests so if you have 100 workers that means that 100 concurrent requests will be made.
 - We will test Auth v0.26.0 (Node.js) against Auth v0.29.1 (Go)
@@ -82,7 +81,7 @@ In order to perform the benchmarks we have set the following scenario:
 Without further ado, let's see the raw results:
 
 |                        | **Node.js (10)** | **Node,js (100)** | **Node,js (200)** | **Go (10)** | **Go (100)** | **Go (200)** | **Go (800)** |
-|------------------------|------------------|-------------------|-------------------|-------------|--------------|--------------|--------------|
+| ---------------------- | ---------------- | ----------------- | ----------------- | ----------- | ------------ | ------------ | ------------ |
 | **requests completed** | 557              | 1582              | 1522              | 580         | 5312         | 8943         | 23934        |
 | **avg**                | 86.31ms          | 2s 690ms          | 6s 510ms          | 38.04ms     | 35ms         | 38ms         | 181.4ms      |
 | **min**                | 45ms             | 53ms              | 47ms              | 27.02ms     | 26ms         | 26ms         | 25.74ms      |

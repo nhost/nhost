@@ -22,21 +22,18 @@ Today we are happy to announce you can now chose whether you want to use Node.js
 
 Doing so is very easy, just select your preferred version in your `nhost.toml`. For instance, imagine you have the following function in your project
 
-
 ```ts
 // functions/echo.ts
 import { Request, Response } from 'express'
 import process from 'process'
 
 export default (req: Request, res: Response) => {
-    res.status(201).json(
-        {
-            headers: req.headers,
-            query: req.query,
-            node: process.version, // return node version
-            arch: process.arch,
-        },
-    )
+  res.status(201).json({
+    headers: req.headers,
+    query: req.query,
+    node: process.version, // return node version
+    arch: process.arch,
+  })
 }
 ```
 
@@ -70,4 +67,4 @@ $ curl -s https://local.functions.nhost.run/v1/echo | jq .node
 
 While a small improvement, we hope this new addition will help you homogenize your runtime environments and simplify your setups.
 
-For more details don't hesitate to check our [documentation](https://docs.nhost.io/guides/functions/runtimes).
+For more details don't hesitate to check our [documentation](https://docs.nhost.io/products/functions/runtimes).

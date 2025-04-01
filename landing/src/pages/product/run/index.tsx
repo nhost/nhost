@@ -114,7 +114,7 @@ export default function NhostRunPage() {
             variant="borderless"
             className="text-base font-bold"
             size="sm"
-            href="https://docs.nhost.io/product/run"
+            href="https://docs.nhost.io/products/run/overview"
             rel="noopener noreferrer"
             target="_blank"
           >

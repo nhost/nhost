@@ -27,7 +27,7 @@ Today we're launching an open source Stripe GraphQL API that makes it possible t
 
 ## How does it work?
 
-The generated Stripe GraphQL API can be hosted using a [Serverless Function](https://docs.nhost.io/platform/serverless-functions) and added as a [Hasura Remote Schema](https://hasura.io/docs/latest/remote-schemas/index/). After that, a GraphQL relationship is created between your data in Postgres and Stripe using [Hasura Data Federation](https://hasura.io/docs/latest/data-federation/data-federation-types/#database-to-remote-schema-relationships).
+The generated Stripe GraphQL API can be hosted using a [Serverless Function](https://docs.nhost.io/products/functions/overview) and added as a [Hasura Remote Schema](https://hasura.io/docs/latest/remote-schemas/index/). After that, a GraphQL relationship is created between your data in Postgres and Stripe using [Hasura Data Federation](https://hasura.io/docs/latest/data-federation/data-federation-types/#database-to-remote-schema-relationships).
 
 We'll explain how it works in more detail. But first…
 
@@ -83,7 +83,7 @@ The Stripe GraphQL API will available at:
 {{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe
 ```
 
-> We're using here a [System Environment Variable](https://docs.nhost.io/platform/environment-variables#system-environment-variables), `NHOST_BACKEND_URL`, to make sure the URL works both locally and in production.
+> We're using here a [System Environment Variable](https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables), `NHOST_BACKEND_URL`, to make sure the URL works both locally and in production.
 
 <video width="99%" autoPlay loop muted controls>
   <source
@@ -295,7 +295,7 @@ The Stripe GraphQL API schema is built using [Pothos](https://github.com/hayes/p
 
 Btw, Nhost is a proud sponsor of Pothos.
 
-We also used the awesome [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga), a fully-featured GraphQL Server built-in TypeScript for the actual GraphQL Server. The core of GraphQL Yoga implements [W3C Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and can run on any JS environment - perfect for [Serverless Functions](https://docs.nhost.io/platform/serverless-functions).
+We also used the awesome [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga), a fully-featured GraphQL Server built-in TypeScript for the actual GraphQL Server. The core of GraphQL Yoga implements [W3C Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and can run on any JS environment - perfect for [Serverless Functions](https://docs.nhost.io/products/functions/overview).
 
 GraphQL Yoga is maintained by [The Guild](https://www.the-guild.dev/), a team that does fantastic work for the GraphQL community.
 

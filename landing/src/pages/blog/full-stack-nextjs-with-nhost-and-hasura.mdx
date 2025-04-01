@@ -87,7 +87,7 @@ Create an account (if you don't already have one) and then click the create proj
 
 The project dashboard might be a bit overwhelming with all the options listed there but don't worry too much about it for now. We're going to go over all of them one by one when we use them within our app. Something really cool to note though is that by simply creating a new project, we already have a database and GraphQL APIs set up with Hasura along with authentication and storage.
 
-The next thing we want to do is set up the [Nhost CLI](https://docs.nhost.io/cli) to work with our app locally. We can start by globally installing the CLI.
+The next thing we want to do is set up the [Nhost CLI](https://docs.nhost.io/platform/cli/local-development) to work with our app locally. We can start by globally installing the CLI.
 
 ```bash
 npm install -g nhost
@@ -375,7 +375,7 @@ On my end, I have integrated GitHub with both Vercel and Nhost. That way, whenev
 
 ### A few notes
 
-- We didn't build the registration flow. The reason for that is, I want to keep the platform invite-only for the time being. So the idea is, I add users manually, and then they can log in and configure everything they want to. You probably want to allow your users to sign up and to do that, you can refer to [this example](https://github.com/vercel/next.js/tree/canary/examples/with-nhost-auth-realtime-graphql) (specifically [this file](https://github.com/vercel/next.js/blob/canary/examples/with-nhost-auth-realtime-graphql/pages/register.js)) by the Nhost team. You can also view all the available methods in the docs [here](https://docs.nhost.io/libraries/nhost-js-sdk#auth).
+- We didn't build the registration flow. The reason for that is, I want to keep the platform invite-only for the time being. So the idea is, I add users manually, and then they can log in and configure everything they want to. You probably want to allow your users to sign up and to do that, you can refer to [this example](https://github.com/vercel/next.js/tree/canary/examples/with-nhost-auth-realtime-graphql) (specifically [this file](https://github.com/vercel/next.js/blob/canary/examples/with-nhost-auth-realtime-graphql/pages/register.js)) by the Nhost team. You can also view all the available methods in the docs [here](https://docs.nhost.io/reference/javascript/auth/hasura-auth-client).
 - We didn't do any error handling. Yep, not in this demo we didn't. But, we probably will in subsequent posts as and when we make the product more production-ready. I can see this turning into a pretty complicated app by the time we're done.
 - If you want to check the flow live, you can visit [this URL](https://usebotler.com/). I have created a dummy user that you can log in with. The email is test@email.com and the password is password.
 

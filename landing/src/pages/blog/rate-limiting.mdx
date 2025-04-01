@@ -46,14 +46,12 @@ We've implemented rate limits across the Nhost Stack, with customized rules for 
 - These services have independent rate limits based on the client IP.
 - Requests to one service don't affect the limits of another.
 
-
 2. Auth
 
 - Features more complex rate-limiting rules due to the varying sensitivity of different endpoints.
 - Special limits are in place for email-sending, SMS-sending, and brute-force-sensitive endpoints.
 
 You can configure rate limiting for your services either on the [Nhost Dashboard](https://app.nhost.io/) or by using the configuration file:
-
 
 ```toml
 # Example for Auth
@@ -80,7 +78,7 @@ limit = 100
 interval = '1m'
 ```
 
-Very neat, if you ask me. For a full list of configurations available to all services, please check out the [documentation page](https://docs.nhost.io/platform/rate-limits).
+Very neat, if you ask me. For a full list of configurations available to all services, please check out the [documentation page](https://docs.nhost.io/platform/cloud/rate-limits).
 
 ## What this means for you and your users
 
@@ -91,7 +89,3 @@ With rate limiting in place, you can expect:
 - A more stable and reliable service for all your projects
 
 We're constantly working to improve our platform, and rate limiting is just another example. As always, we're here to support you. If you have any questions or need assistance, please don't hesitate to reach out to our support team.
-
-
-
-

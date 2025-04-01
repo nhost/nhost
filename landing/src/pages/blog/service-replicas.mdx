@@ -20,7 +20,7 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-We are excited to launch Service Replicas, another powerful addition to the Nhost Platform that complements our recently introduced [Dedicated Compute](https://docs.nhost.io/platform/compute#dedicated-compute). Service Replicas improve [high availability](https://en.wikipedia.org/wiki/High_availability) and [fault tolerance](https://en.wikipedia.org/wiki/Fault_tolerance) across your Nhost stack while making it very easy to manage through the Dashboard you already know and love. If you haven't yet, I recommend reviewing our previous blog post on [Dedicated Compute](https://nhost.io/blog/dedicated-compute) to better understand its role in scaling your Nhost apps. 
+We are excited to launch Service Replicas, another powerful addition to the Nhost Platform that complements our recently introduced [Dedicated Compute](https://docs.nhost.io/platform/cloud/compute-resources#dedicated-compute). Service Replicas improve [high availability](https://en.wikipedia.org/wiki/High_availability) and [fault tolerance](https://en.wikipedia.org/wiki/Fault_tolerance) across your Nhost stack while making it very easy to manage through the Dashboard you already know and love. If you haven't yet, I recommend reviewing our previous blog post on [Dedicated Compute](https://nhost.io/blog/dedicated-compute) to better understand its role in scaling your Nhost apps.
 
 ## Understanding and Visualizing Service Replicas
 
@@ -28,7 +28,7 @@ On a high level, Service Replicas are multiple concurrent instances of the same 
 
 ![Hasura configured with 3 Replicas](/images/blog/service-replicas/replicas-diagram.png)
 
-This diagram displays a scenario where a Nhost Project has 3 replicas configured for Hasura. It shows the load balancer distributing requests among all available Hasura replicas while users interact with your web and mobile apps. In case of replica failure, the load balancer redirects user requests to remaining replicas, while Nhost ensures that a replacement replica is up-and-running as quickly as possible. 
+This diagram displays a scenario where a Nhost Project has 3 replicas configured for Hasura. It shows the load balancer distributing requests among all available Hasura replicas while users interact with your web and mobile apps. In case of replica failure, the load balancer redirects user requests to remaining replicas, while Nhost ensures that a replacement replica is up-and-running as quickly as possible.
 
 This is an addition that allows you to scale your application horizontally to both increase performance and the overall availability of your Nhost project.
 
@@ -41,7 +41,6 @@ This is an addition that allows you to scale your application horizontally to bo
 - Scale applications horizontally by adding more replicas as traffic increases. This is particulartly interesting if you're building real-time apps using subscriptions.
 
 - Enhance user experience with faster response times by distributing the load among replicas.
-
 
 ## Scaling with the Replicas Slider
 
@@ -61,12 +60,12 @@ You can configure the number of replicas for your Hasura, Auth and Storage servi
 
 ## What's Next?
 
-- We're actively working on providing metrics around compute utilization for each service. 
+- We're actively working on providing metrics around compute utilization for each service.
 
 - Service Replicas will also be configurable using the new config file we're working on.
 
 ## Conclusion
 
-Service Replicas offer a powerful solution to enhance your apps' availability, complementing Dedicated Compute which we launched just a week ago. With easy-to-use sliders in our Dashboard, you can now configure not only dedicated resources, but also multiple replicas of your services. 
+Service Replicas offer a powerful solution to enhance your apps' availability, complementing Dedicated Compute which we launched just a week ago. With easy-to-use sliders in our Dashboard, you can now configure not only dedicated resources, but also multiple replicas of your services.
 
 We are committed to making Nhost a reliable and scalable platform where you can easily scale both horizontally and vertically, giving you the tools, power, and flexibility as your app grows.
