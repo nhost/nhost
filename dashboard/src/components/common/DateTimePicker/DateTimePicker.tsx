@@ -127,6 +127,7 @@ function DateTimePicker({
             <Calendar
               mode="single"
               selected={date}
+              defaultMonth={date}
               onSelect={(d) => handleSelect(d)}
               disabled={isCalendarDayDisabled}
               timeZone={timezone}

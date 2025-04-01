@@ -42,6 +42,7 @@ export type CalendarProps = DayPickerProps & {
   disabledClassName?: string;
   rangeMiddleClassName?: string;
   hiddenClassName?: string;
+  defaultMonth: Date;
 };
 
 /**
@@ -54,6 +55,7 @@ function Calendar({
   className,
   showOutsideDays = true,
   numberOfMonths,
+  defaultMonth,
   ...props
 }: CalendarProps) {
   const monthsClassName = cn('relative flex', props.monthsClassName);
@@ -170,6 +172,7 @@ function Calendar({
           return <Icon className="h-4 w-4" />;
         },
       }}
+      defaultMonth={defaultMonth}
       {...props}
     />
   );
