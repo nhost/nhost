@@ -141,7 +141,7 @@ export default function DiscordProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/guides/auth/social/sign-in-discord"
+          docsLink="https://docs.nhost.io/products/auth/social/sign-in-discord"
           docsTitle="how to sign in users with Discord"
           icon="/assets/brands/discord.svg"
           switchId="enabled"

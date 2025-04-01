@@ -298,7 +298,7 @@ export default function JWTSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/guides/auth/jwt"
+          docsLink="https://docs.nhost.io/products/auth/jwt"
           docsTitle="JSON Web Token (JWT) Settings"
           className="grid grid-flow-row gap-x-4 gap-y-2 px-4"
         >
@@ -321,7 +321,7 @@ export default function JWTSettings() {
                         <a
                           target="_blank"
                           rel="noopener noreferrer"
-                          href="https://docs.nhost.io/guides/auth/jwt#symmetric-keys"
+                          href="https://docs.nhost.io/products/auth/jwt#symmetric-keys"
                           className="underline"
                         >
                           symmetric keys
@@ -351,7 +351,7 @@ export default function JWTSettings() {
                         <a
                           target="_blank"
                           rel="noopener noreferrer"
-                          href="https://docs.nhost.io/guides/auth/jwt#asymmetric-keys"
+                          href="https://docs.nhost.io/products/auth/jwt#asymmetric-keys"
                           className="underline"
                         >
                           asymmetric keys
@@ -381,7 +381,7 @@ export default function JWTSettings() {
                         <a
                           target="_blank"
                           rel="noopener noreferrer"
-                          href="https://docs.nhost.io/guides/auth/jwt#external-signing"
+                          href="https://docs.nhost.io/products/auth/jwt#external-signing"
                           className="underline"
                         >
                           external signing

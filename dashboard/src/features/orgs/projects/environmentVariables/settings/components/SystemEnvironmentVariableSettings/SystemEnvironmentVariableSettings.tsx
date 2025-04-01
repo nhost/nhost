@@ -108,7 +108,7 @@ export default function SystemEnvironmentVariableSettings() {
     <SettingsContainer
       title="System Environment Variables"
       description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
-      docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
+      docsLink="https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables"
       rootClassName="gap-0"
       className="mb-2.5 mt-2 px-0"
       slotProps={{ submitButton: { className: 'hidden' } }}

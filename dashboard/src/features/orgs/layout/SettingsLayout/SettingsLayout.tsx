@@ -52,7 +52,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline"
-                    href="https://docs.nhost.io/guides/cli/configuration-overlays#configuration-overlays"
+                    href="https://docs.nhost.io/platform/cli/configuration-overlays"
                   >
                     Configuration Overlays
                   </a>{' '}

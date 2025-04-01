@@ -2,7 +2,7 @@
 
 Here are examples of Serverless Functions with Nhost.
 
-Docs: [https://docs.nhost.io/platform/serverless-functions](https://docs.nhost.io/platform/serverless-functions)
+Docs: [https://docs.nhost.io/products/functions/overview](https://docs.nhost.io/products/functions/overview)
 
 ## Examples
 
@@ -45,7 +45,7 @@ cd examples/serverless-functions
 
 4. Terminal 1: Start Nhost
 
-> Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
+> Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli/local-development).
 
 ```
 nhost up

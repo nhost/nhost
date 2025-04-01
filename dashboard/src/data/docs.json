@@ -2,36 +2,36 @@
   {
     "title": "Create Your Project",
     "desc": "Create a simple todo app using Nhost.",
-    "href": "https://docs.nhost.io/get-started/quick-start"
+    "href": "https://docs.nhost.io/getting-started/overview"
   },
   {
     "title": "Authenticate Users",
     "desc": "Nhost provides a ready-to-use authentication service.",
-    "href": "https://docs.nhost.io/platform/authentication"
+    "href": "https://docs.nhost.io/products/auth/overview"
   },
   {
     "title": "Creating Functions",
     "desc": "Nhost gives you the option to run serverless functions.",
-    "href": "https://docs.nhost.io/platform/serverless-functions"
+    "href": "https://docs.nhost.io/products/functions/overview"
   },
   {
     "title": "File Storage",
     "desc": "Nhost stores and serves files of any type in your backend.",
-    "href": "https://docs.nhost.io/platform/storage"
+    "href": "https://docs.nhost.io/products/storage/overview"
   },
   {
     "title": "Environment Variables",
     "desc": "Environment variables are key-value pairs configured outside your source code.",
-    "href": "https://docs.nhost.io/platform/nhost/environment-variables"
+    "href": "https://docs.nhost.io/platform/cloud/environment-variables"
   },
   {
     "title": "GitHub Integration",
     "desc": "You can connect your Nhost project to a GitHub repository.",
-    "href": "https://docs.nhost.io/platform/nhost/github-integration"
+    "href": "https://docs.nhost.io/platform/cloud/git"
   },
   {
     "title": "Nhost CLI",
     "desc": "Nhost CLI lets you run Nhost's development environment locally.",
-    "href": "https://docs.nhost.io/platform/nhost/local-development"
+    "href": "https://docs.nhost.io/platform/cli/local-development"
   }
 ]

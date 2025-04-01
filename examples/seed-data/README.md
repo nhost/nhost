@@ -20,4 +20,4 @@ Seed data is only applied **the first time** when Nhost starts. If you want to r
 
 ## Documentation
 
-Learn more about [Seed data](https://docs.nhost.io/platform/database#seed-data).
+Learn more about [Seed data](https://docs.nhost.io/platform/cli/seeds).

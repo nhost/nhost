@@ -161,7 +161,7 @@ export default function EnvironmentVariableSettings() {
     <SettingsContainer
       title="Project Environment Variables"
       description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
-      docsLink="https://docs.nhost.io/platform/environment-variables"
+      docsLink="https://docs.nhost.io/platform/cloud/environment-variables"
       docsTitle="Environment Variables"
       rootClassName="gap-0"
       className={twMerge(

@@ -173,7 +173,7 @@ export default function ContactPointsSettings() {
         <SettingsContainer
           title="Contact Points"
           description="Define the contact points where your notifications will be sent."
-          docsLink="https://docs.nhost.io/platform/metrics#configure-contact-points"
+          docsLink="https://docs.nhost.io/platform/cloud/metrics#configure-contact-points"
           rootClassName="gap-0"
           className={twMerge('my-2 px-0')}
           slotProps={{

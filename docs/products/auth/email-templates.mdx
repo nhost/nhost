@@ -1,0 +1,142 @@
+---
+title: Email Templates
+description: Learn how to customize transactional emails
+icon: circle-envelope
+---
+
+Nhost Auth sends out transactional emails as part of certain authentication workflows. These emails can be modified using email templates.
+
+<Info>Changing email templates is only available starting on the [Pro](https://nhost.io/pricing) plan</Info>
+
+## Customize your emails
+
+Email Templates are deployed as part of a [Deployment](/platform/cloud/git) so your project must be connected to a Git repository.
+
+### File Structure
+
+Email Templates can be found under your project's `./nhost/emails` folder and have the following structure:
+
+```bash Terminal
+> tree ./nhost
+
+nhost
+├── config.yaml
+├── emails
+│   ├── en
+│   │   ├── email-confirm-change
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   ├── email-verify
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   ├── password-reset
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   ├── signin-otp
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   ├── signin-passwordless
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
+│   │   └── signin-passwordless-sms
+│   │       └── body.txt
+│   └── fr
+│       ├── email-confirm-change
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── email-verify
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── password-reset
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── signin-otp
+│       │   ├── body.html
+│       │   └── subject.txt
+│       ├── signin-passwordless
+│       │   ├── body.html
+│       │   └── subject.txt
+│       └── signin-passwordless-sms
+│           └── body.txt
+├── metadata
+├── migrations
+├── nhost.toml
+└── seeds
+```
+
+As you can see templates can be defined for various languages and, with the exception of `signin-passwordless-sms`, they require 2 files for the subject and body.
+
+```
+/{two-letter-language-code}/{email-template}/[subject.txt, body.html]
+```
+
+### Languages
+
+A user's language is stored in the `auth.users` table in the `locale` column. This `locale` column contains a two-letter language code ([ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)) which is used to infer what language and template to use in the email.
+
+<Info>The default value of the `locale` column is `en`</Info>
+
+### Template Variables
+
+The following variables are available to all email templates:
+
+| Variable      | Description                                                                                                                        |
+| -----------   | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `link`        | The full URL to the target of the transaction. This should be used in the main call to action. 				     |
+| `serverUrl`   | URL of the authentication server                                                                                                   |
+| `clientUrl`   | URL of your client app                                                                                                             |
+| `redirectTo`  | URL where the user will be redirected to after clicking the link and finishing the action of the email                             |
+| `ticket`      | Ticket or OTP that is used to authorize the request.                                                                                  |
+| `displayName` | The display name of the user                                                                                                      |
+| `email`       | The email of the user                                                                                                             |
+| `locale`      | Locale of the user as a two-letter language code (e.g. "en")                                                                       |
+
+Variables can be referenced by enclosing them with `${}` as in the following example:
+
+```html
+<h2>Verify You Email</h2>
+
+<p>Hi, ${displayName}! Please click the link to verify your email:</p>
+
+<p>
+  <a href="${link}">Verify Email</a>
+</p>
+```
+
+# Postmark Integration
+
+Alternatively, you can use postmark's native integration and leverage postmark's templates. To do so, you need to:
+
+1. Configure SMTP settings like below:
+
+```toml
+[provider.smtp]
+host = 'postmark'
+password = '{{ secrets.POSTMARK_API_KEY }}'
+sender = 'myapp@mydomain.com'
+```
+
+<Warning>
+It is very important that the `host` is set exactly to `postmark`.
+</Warning>
+
+2. In postmark you need to create thre templates for each locale with the following alias:
+
+- $locale.email-change
+- $locale.email-verify
+- $locale.password-reset
+
+For instance:
+
+- en.email-change
+- en.email-verify
+- en.password-reset
+- se.email-change
+- se.email-verify
+- se.password-reset
+
+After these two steps have been completed, the Auth service will leverage these templates instead of the ones described in the previous section.
+
+<Note>
+Postmark templates should have access to the same variables as described [previously](#template-variables)
+</Note>
