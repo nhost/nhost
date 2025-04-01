@@ -4,18 +4,14 @@ module.exports = {
   bracketSameLine: false,
   bracketSpacing: true,
   endOfLine: 'lf',
-  printWidth: 100,
+  printWidth: 80,
   proseWrap: 'preserve',
-  semi: false,
+  semi: true,
   singleQuote: true,
   tabWidth: 2,
-  trailingComma: 'none',
+  trailingComma: 'all',
   useTabs: false,
-  // TODO: add import sort configuration to match ESLint rules
-  // plugins: ['./node_modules/@trivago/prettier-plugin-sort-imports'],
-  // importOrderSeparation: true,
-  // importOrderSortSpecifiers: true
-  plugins: [],
+  plugins: ['prettier-plugin-organize-imports', 'prettier-plugin-tailwindcss'],
   overrides: [
     {
       files: ['*.json', '*.yaml'],
