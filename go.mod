@@ -18,6 +18,7 @@ require (
 	github.com/lmittmann/tint v1.0.7
 	github.com/oapi-codegen/gin-middleware v1.0.2
 	github.com/oapi-codegen/runtime v1.1.1
+	github.com/pquerna/otp v1.4.0
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/valyala/fasttemplate v1.2.2
 	go.uber.org/mock v0.5.0
@@ -28,6 +29,7 @@ require (
 require (
 	github.com/MicahParks/jwkset v0.8.0 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/bytedance/sonic v1.12.8 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect

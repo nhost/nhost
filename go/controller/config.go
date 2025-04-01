@@ -29,6 +29,7 @@ type Config struct {
 	HasuraGraphqlURL           string        `json:"HASURA_GRAPHQL_GRAPHQL_URL"`
 	HasuraAdminSecret          string        `json:"HASURA_GRAPHQL_ADMIN_SECRET"`
 	AnonymousUsersEnabled      bool          `json:"AUTH_ANONYMOUS_USERS_ENABLED"`
+	MfaEnabled                 bool          `json:"AUTH_MFA_ENABLED"`
 	AllowedEmailDomains        stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"`
 	AllowedEmails              stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"`
 	AllowedRedirectURLs        []string      `json:"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"`

@@ -21,6 +21,7 @@ const (
 const (
 	DefaultRoleMustBeInAllowedRoles ErrorResponseError = "default-role-must-be-in-allowed-roles"
 	DisabledEndpoint                ErrorResponseError = "disabled-endpoint"
+	DisabledMfaTotp                 ErrorResponseError = "disabled-mfa-totp"
 	DisabledUser                    ErrorResponseError = "disabled-user"
 	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
 	EmailAlreadyVerified            ErrorResponseError = "email-already-verified"
@@ -31,7 +32,9 @@ const (
 	InvalidRefreshToken             ErrorResponseError = "invalid-refresh-token"
 	InvalidRequest                  ErrorResponseError = "invalid-request"
 	InvalidTicket                   ErrorResponseError = "invalid-ticket"
+	InvalidTotp                     ErrorResponseError = "invalid-totp"
 	LocaleNotAllowed                ErrorResponseError = "locale-not-allowed"
+	NoTotpSecret                    ErrorResponseError = "no-totp-secret"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
 	PasswordTooShort                ErrorResponseError = "password-too-short"
 	RedirectToNotAllowed            ErrorResponseError = "redirectTo-not-allowed"
@@ -170,11 +173,6 @@ type SessionPayload struct {
 	Session *Session `json:"session,omitempty"`
 }
 
-// SignInAnonymousResponse defines model for SignInAnonymousResponse.
-type SignInAnonymousResponse struct {
-	Session *Session `json:"session,omitempty"`
-}
-
 // SignInEmailPasswordRequest defines model for SignInEmailPasswordRequest.
 type SignInEmailPasswordRequest struct {
 	// Email A valid email
@@ -199,6 +197,15 @@ type SignInIdTokenRequest struct {
 	Nonce    *string        `json:"nonce,omitempty"`
 	Options  *SignUpOptions `json:"options,omitempty"`
 	Provider Provider       `json:"provider"`
+}
+
+// SignInMfaTotpRequest defines model for SignInMfaTotpRequest.
+type SignInMfaTotpRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+
+	// Ticket Ticket
+	Ticket string `json:"ticket"`
 }
 
 // SignInOTPEmailRequest defines model for SignInOTPEmailRequest.
@@ -423,6 +430,9 @@ type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordRequest
 
 // PostSigninIdtokenJSONRequestBody defines body for PostSigninIdtoken for application/json ContentType.
 type PostSigninIdtokenJSONRequestBody = SignInIdTokenRequest
+
+// PostSigninMfaTotpJSONRequestBody defines body for PostSigninMfaTotp for application/json ContentType.
+type PostSigninMfaTotpJSONRequestBody = SignInMfaTotpRequest
 
 // PostSigninOtpEmailJSONRequestBody defines body for PostSigninOtpEmail for application/json ContentType.
 type PostSigninOtpEmailJSONRequestBody = SignInOTPEmailRequest

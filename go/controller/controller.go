@@ -118,6 +118,7 @@ type DBClient interface { //nolint:interfacebloat
 }
 
 type Controller struct {
+	totp             *Totp
 	idTokenValidator *oidc.IDTokenValidatorProviders
 	wf               *Workflows
 	config           Config
@@ -132,6 +133,7 @@ func New(
 	emailer Emailer,
 	hibp HIBPClient,
 	idTokenValidator *oidc.IDTokenValidatorProviders,
+	totp *Totp,
 	version string,
 ) (*Controller, error) {
 	validator, err := NewWorkflows(
@@ -162,6 +164,7 @@ func New(
 		wf:               validator,
 		Webauthn:         wa,
 		idTokenValidator: idTokenValidator,
+		totp:             totp,
 		version:          version,
 	}, nil
 }

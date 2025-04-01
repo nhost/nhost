@@ -51,6 +51,7 @@ func getConfig() *controller.Config {
 		WebauthnRPOrigins:          []string{"https://react-apollo.example.nhost.io"},
 		WebauhtnAttestationTimeout: time.Minute,
 		OTPEmailEnabled:            true,
+		MfaEnabled:                 true,
 	}
 }
 

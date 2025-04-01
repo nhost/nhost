@@ -110,7 +110,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SignInAnonymousResponse'
+                $ref: '#/components/schemas/SessionPayload'
           description: >-
             Successfully signed in
 
@@ -135,6 +135,30 @@ paths:
                 $ref: '#/components/schemas/SignInEmailPasswordResponse'
           description: >-
             Successfully signed in. Null session means TOTP challenge is needed
+
+  /signin/mfa/totp:
+    post:
+      summary: Verify TOTP and return a session if validation is successful
+      tags:
+        - signin
+        - mfa
+        - totp
+        - email-and-password
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInMfaTotpRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+          description: >-
+            Successfully signed in
 
   /signin/passwordless/email:
     post:
@@ -689,6 +713,9 @@ components:
             - invalid-pat
             - invalid-refresh-token
             - invalid-ticket
+            - disabled-mfa-totp
+            - no-totp-secret
+            - invalid-totp
       required:
         - status
         - message
@@ -950,13 +977,6 @@ components:
             lastName: Smith
           properties: {}
 
-    SignInAnonymousResponse:
-      type: object
-      additionalProperties: false
-      properties:
-        session:
-          $ref: "#/components/schemas/Session"
-
     SignInEmailPasswordRequest:
       type: object
       additionalProperties: false
@@ -1184,6 +1204,21 @@ components:
       required:
         - provider
         - idToken
+
+    SignInMfaTotpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        ticket:
+          type: string
+          description: Ticket
+          pattern: ^mfaTotp:.*$
+        otp:
+          type: string
+          description: One time password
+      required:
+        - ticket
+        - otp
 
     Provider:
       type: string

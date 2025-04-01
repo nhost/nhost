@@ -97,6 +97,7 @@ const (
 	flagGoogleAudience                   = "google-audience"
 	flagOTPEmailEnabled                  = "otp-email-enabled"
 	flagAnonymousUsersEnabled            = "enable-anonymous-users"
+	flagMfaEnabled                       = "mfa-enabled"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -591,6 +592,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Value:    false,
 				EnvVars:  []string{"AUTH_ANONYMOUS_USERS_ENABLED"},
 			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagMfaEnabled,
+				Usage:    "Enable MFA",
+				Category: "mfa",
+				Value:    false,
+				EnvVars:  []string{"AUTH_MFA_ENABLED"},
+			},
 		},
 		Action: serve,
 	}
@@ -740,7 +748,14 @@ func getGoServer( //nolint:funlen
 	}
 
 	ctrl, err := controller.New(
-		db, config, jwtGetter, emailer, hibp.NewClient(), idTokenValidator, cCtx.App.Version,
+		db,
+		config,
+		jwtGetter,
+		emailer,
+		hibp.NewClient(),
+		idTokenValidator,
+		controller.NewTotp(time.Now),
+		cCtx.App.Version,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create controller: %w", err)

@@ -3,7 +3,6 @@ import { Router } from 'express';
 import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
 
-import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
 import {
   signInPasswordlessSmsHandler,
   signInPasswordlessSmsSchema,
@@ -42,21 +41,6 @@ router.post(
   '/signin/passwordless/sms/otp',
   bodyValidator(signInOtpSchema),
   aw(signInOtpHandler)
-);
-
-/**
- * POST /signin/mfa/totp
- * @summary Sign in with a Time-base One-Time Password (TOTP) ticket
- * @param {SignInMfaTotpSchema} request.body.required
- * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
- */
-router.post(
-  '/signin/mfa/totp',
-  bodyValidator(signInMfaTotpSchema),
-  aw(signInMfaTotpHandler)
 );
 
 // TODO: Implement:
