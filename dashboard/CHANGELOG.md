@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 2.26.0
+
+### Minor Changes
+
+- 7b9cdf1: chore: remove legacy workspaces
+- 1c4f321: fix: update vite to fix audit vulnerabilities
+
 ## 2.25.0
 
 ### Minor Changes

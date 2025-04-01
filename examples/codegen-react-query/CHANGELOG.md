@@ -1,5 +1,11 @@
 # @nhost-examples/codegen-react-query
 
+## 0.6.0
+
+### Minor Changes
+
+- 1c4f321: fix: update vite to fix audit vulnerabilities
+
 ## 0.5.2
 
 ### Patch Changes
