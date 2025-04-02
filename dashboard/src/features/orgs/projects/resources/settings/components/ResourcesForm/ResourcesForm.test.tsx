@@ -8,9 +8,12 @@ import {
 import updateConfigMutation from '@/tests/msw/mocks/graphql/updateConfigMutation';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
+  clickOnElement,
   fireEvent,
   render,
   screen,
+  userClearElement,
+  userType,
   waitFor,
   waitForElementToBeRemoved,
   within,
@@ -19,7 +22,6 @@ import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MULTIPLIER,
 } from '@/utils/constants/common';
-import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { expect, test, vi } from 'vitest';
 import ResourcesForm from './ResourcesForm';
@@ -66,13 +68,12 @@ test('should show an empty state message that the feature must be enabled if no 
 
 test('should show the sliders if the switch is enabled', async () => {
   server.use(resourcesUnavailableQuery);
-  const user = userEvent.setup();
 
   render(<ResourcesForm />);
 
   expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
 
-  await user.click(screen.getByRole('checkbox'));
+  await clickOnElement(screen.getByRole('checkbox'));
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
   expect(screen.getAllByRole('slider')).toHaveLength(9);
@@ -133,7 +134,6 @@ test('should update the price when the top slider is changed', async () => {
 });
 
 test('should show a validation error when the form is submitted when not everything is allocated', async () => {
-  const user = userEvent.setup();
   render(<ResourcesForm />);
 
   expect(
@@ -149,7 +149,7 @@ test('should show a validation error when the form is submitted when not everyth
     9 * RESOURCE_VCPU_MULTIPLIER,
   );
 
-  await user.click(screen.getByRole('button', { name: /save/i }));
+  await clickOnElement(screen.getByRole('button', { name: /save/i }));
 
   expect(
     screen.getByText(/you have 1 vcpus and 2048 mib of memory unused./i),
@@ -160,8 +160,6 @@ test('should show a validation error when the form is submitted when not everyth
 
 test('should show a confirmation dialog when the form is submitted', async () => {
   server.use(updateConfigMutation);
-
-  const user = userEvent.setup();
   render(<ResourcesForm />);
 
   expect(
@@ -209,7 +207,7 @@ test('should show a confirmation dialog when the form is submitted', async () =>
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
-  await user.click(screen.getByRole('button', { name: /save/i }));
+  await clickOnElement(screen.getByRole('button', { name: /save/i }));
 
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
   expect(
@@ -239,7 +237,7 @@ test('should show a confirmation dialog when the form is submitted', async () =>
   // and we need to return the updated values
   server.use(resourcesUpdatedQuery);
 
-  await user.click(screen.getByRole('button', { name: /confirm/i }));
+  await clickOnElement(screen.getByRole('button', { name: /confirm/i }));
 
   await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
 
@@ -254,19 +252,19 @@ test('should show a confirmation dialog when the form is submitted', async () =>
 });
 
 test('should display a red button when custom resources are disabled', async () => {
-  const user = userEvent.setup();
-
   render(<ResourcesForm />);
 
   expect(
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
 
-  await user.click(screen.getAllByRole('checkbox')[0]);
+  await clickOnElement(screen.getAllByRole('checkbox')[0]);
+
+  await waitFor(() => {});
 
   expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
 
-  await user.click(screen.getByRole('button', { name: /save/i }));
+  await clickOnElement(screen.getByRole('button', { name: /save/i }));
 
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
@@ -274,14 +272,12 @@ test('should display a red button when custom resources are disabled', async () 
     screen.getByRole('heading', { name: /disable dedicated resources/i }),
   ).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /confirm/i })).toHaveStyle({
-    'background-color': '#f13154',
+    'background-color': '#D32F2F',
   });
 });
 
 test('should hide the pricing information when custom resource allocation is disabled', async () => {
   server.use(updateConfigMutation);
-
-  const user = userEvent.setup();
 
   render(<ResourcesForm />);
 
@@ -289,15 +285,15 @@ test('should hide the pricing information when custom resource allocation is dis
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
 
-  await user.click(screen.getAllByRole('checkbox')[0]);
+  await clickOnElement(screen.getAllByRole('checkbox')[0]);
 
-  await user.click(screen.getByRole('button', { name: /save/i }));
+  await clickOnElement(screen.getByRole('button', { name: /save/i }));
 
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
   server.use(resourcesUnavailableQuery);
 
-  await user.click(screen.getByRole('button', { name: /confirm/i }));
+  await clickOnElement(screen.getByRole('button', { name: /confirm/i }));
 
   await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
 
@@ -326,8 +322,6 @@ test('should show a warning message when resources are overallocated', async () 
 });
 
 test('should change pricing based on selected replicas', async () => {
-  const user = userEvent.setup();
-
   render(<ResourcesForm />);
 
   expect(
@@ -340,9 +334,9 @@ test('should change pricing based on selected replicas', async () => {
 
   const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
 
-  await user.click(hasuraReplicasInput);
-  await user.clear(hasuraReplicasInput);
-  await user.type(hasuraReplicasInput, '2');
+  await clickOnElement(hasuraReplicasInput);
+  await userClearElement(hasuraReplicasInput);
+  await userType(hasuraReplicasInput, '2');
 
   await new Promise((resolve) => {
     setTimeout(resolve, 1000);
@@ -354,9 +348,9 @@ test('should change pricing based on selected replicas', async () => {
     ),
   );
 
-  await user.click(hasuraReplicasInput);
-  await user.clear(hasuraReplicasInput);
-  await user.type(hasuraReplicasInput, '1');
+  await clickOnElement(hasuraReplicasInput);
+  await userClearElement(hasuraReplicasInput);
+  await userType(hasuraReplicasInput, '1');
 
   await waitFor(() => {
     expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
@@ -365,58 +359,7 @@ test('should change pricing based on selected replicas', async () => {
   });
 });
 
-test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 replica is selected', async () => {
-  const user = userEvent.setup();
-
-  render(<ResourcesForm />);
-
-  expect(
-    await screen.findByRole('slider', { name: /total available vcpu/i }),
-  ).toBeInTheDocument();
-
-  changeSliderValue(
-    screen.getByRole('slider', {
-      name: /total available vcpu/i,
-    }),
-    20 * RESOURCE_VCPU_MULTIPLIER,
-  );
-
-  const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
-  await user.click(storageReplicasInput);
-  await user.clear(storageReplicasInput);
-  await user.type(storageReplicasInput, '2');
-
-  changeSliderValue(
-    screen.getByRole('slider', { name: /storage vcpu/i }),
-    1 * RESOURCE_VCPU_MULTIPLIER,
-  );
-
-  changeSliderValue(
-    screen.getByRole('slider', { name: /storage memory/i }),
-    6 * RESOURCE_MEMORY_MULTIPLIER,
-  );
-
-  await user.click(screen.getByRole('button', { name: /save/i }));
-
-  expect(screen.getByText(/invalid configuration/i)).toBeInTheDocument();
-  expect(
-    screen.getByText(
-      /please check the form for errors and the allocation for each service and try again\./i,
-    ),
-  ).toBeInTheDocument();
-
-  await waitFor(() => {
-    const validationErrorMessage = screen.getByText(
-      /vCPU and Memory for this service must follow a 1:2 ratio when more than one replica is selected or when the autoscaler is activated\./i,
-    );
-    expect(validationErrorMessage).toBeInTheDocument();
-    expect(validationErrorMessage).toHaveStyle({ color: '#f13154' });
-  });
-});
-
 test('should take replicas into account when confirming the resources', async () => {
-  const user = userEvent.setup();
-
   render(<ResourcesForm />);
 
   expect(
@@ -441,9 +384,9 @@ test('should take replicas into account when confirming the resources', async ()
   );
 
   const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
-  await user.click(hasuraReplicasInput);
-  await user.clear(hasuraReplicasInput);
-  await user.type(hasuraReplicasInput, '3');
+  await clickOnElement(hasuraReplicasInput);
+  await userClearElement(hasuraReplicasInput);
+  await userType(hasuraReplicasInput, '3');
 
   changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
@@ -456,9 +399,9 @@ test('should take replicas into account when confirming the resources', async ()
 
   const authReplicasInput = screen.getAllByPlaceholderText('Replicas')[1];
   // setting up auth
-  await user.click(authReplicasInput);
-  await user.clear(authReplicasInput);
-  await user.type(authReplicasInput, '2');
+  await clickOnElement(authReplicasInput);
+  await userClearElement(authReplicasInput);
+  await userType(authReplicasInput, '2');
 
   changeSliderValue(
     screen.getByRole('slider', { name: /auth vcpu/i }),
@@ -471,9 +414,9 @@ test('should take replicas into account when confirming the resources', async ()
 
   const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
   // setting up storage
-  await user.click(storageReplicasInput);
-  await user.clear(storageReplicasInput);
-  await user.type(storageReplicasInput, '4');
+  await clickOnElement(storageReplicasInput);
+  await userClearElement(storageReplicasInput);
+  await userType(storageReplicasInput, '4');
 
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
@@ -484,7 +427,7 @@ test('should take replicas into account when confirming the resources', async ()
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
-  await user.click(screen.getByRole('button', { name: /save/i }));
+  await clickOnElement(screen.getByRole('button', { name: /save/i }));
 
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
@@ -514,4 +457,51 @@ test('should take replicas into account when confirming the resources', async ()
 
   expect(within(dialog).getByText(/\$0.0270\/min/i)).toBeInTheDocument();
   expect(within(dialog).getByText(/\$1125\.00\/mo/i)).toBeInTheDocument();
+});
+
+test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 replica is selected', async () => {
+  render(<ResourcesForm />);
+
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
+
+  changeSliderValue(
+    screen.getByRole('slider', {
+      name: /total available vcpu/i,
+    }),
+    20 * RESOURCE_VCPU_MULTIPLIER,
+  );
+
+  const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
+  await clickOnElement(storageReplicasInput);
+  await userClearElement(storageReplicasInput);
+  await userType(storageReplicasInput, '2');
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage vcpu/i }),
+    1 * RESOURCE_VCPU_MULTIPLIER,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage memory/i }),
+    6 * RESOURCE_MEMORY_MULTIPLIER,
+  );
+
+  await clickOnElement(screen.getByRole('button', { name: /save/i }));
+
+  expect(screen.getByText(/invalid configuration/i)).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      /please check the form for errors and the allocation for each service and try again\./i,
+    ),
+  ).toBeInTheDocument();
+
+  await waitFor(() => {
+    const validationErrorMessage = screen.getByText(
+      /vCPU and Memory for this service must follow a 1:2 ratio when more than one replica is selected or when the autoscaler is activated\./i,
+    );
+    expect(validationErrorMessage).toBeInTheDocument();
+    expect(validationErrorMessage).toHaveStyle({ color: '#D32F2F' });
+  });
 });

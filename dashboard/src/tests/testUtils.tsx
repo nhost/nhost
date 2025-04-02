@@ -20,7 +20,9 @@ import type {
 import {
   render as rtlRender,
   waitForElementToBeRemoved as rtlWaitForElementToBeRemoved,
+  waitFor,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -159,6 +161,27 @@ export const mockPointerEvent = () => {
   window.HTMLElement.prototype.releasePointerCapture = vi.fn();
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
 };
+
+export async function clickOnElement(element: Element) {
+  const user = userEvent.setup();
+  await waitFor(async () => {
+    await user.click(element);
+  });
+}
+
+export async function userType(element: Element, value: string, options?: any) {
+  const user = userEvent.setup();
+  await waitFor(async () => {
+    await user.type(element, value, options);
+  });
+}
+
+export async function userClearElement(element: Element) {
+  const user = userEvent.setup();
+  await waitFor(async () => {
+    await user.clear(element);
+  });
+}
 
 export * from '@testing-library/react';
 export { render, waitForElementToBeRemoved };
