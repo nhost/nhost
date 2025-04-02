@@ -1,0 +1,34 @@
+---
+title: Postgres
+---
+
+## [v0.38.0](https://github.com/nhost/hasura-auth/releases/edit/v0.38.0) - 20250328
+
+### Changes
+
+- feat: port /signin/anonymous to go @dbarrosop (#621)
+- feat: refresh session with new refresh token @antoinecaputo (#617)
+- feat: drop user\_providers\_user\_id\_provider\_id\_key to allow connecting multiple oauth accounts @dbarrosop (#618)
+- chore: ci: bring back nix cache @dbarrosop (#619)
+- chore: bump cachix/install-nix-action from 30 to 31 @[dependabot[bot]](https://github.com/apps/dependabot) (#615)
+- feat: added support for smtp login authentication @dbarrosop (#613)
+- chore: bump Codium-ai/pr-agent from 0.26 to 0.27 @[dependabot[bot]](https://github.com/apps/dependabot) (#611)
+- chore: bump nixbuild/nix-quick-install-action from 29 to 30 @[dependabot[bot]](https://github.com/apps/dependabot) (#609)
+
+### Potential breaking change
+
+⚠️⚠️⚠️ #617 changes the way refresh tokens work. Previously when you utilized the `/token` endpoint to refresh the token, the current refresh token was reused in the response. For instance:
+
+```
+POST /token {"refresh_token": "same-random-refresh-token"}
+  {"access_token": "...", "refresh_token": "same-random-refresh-token"}
+```
+
+After the #617 the auth service invalidates the used token and returns a new one:
+
+```
+POST /token {"refresh_token": "random-refresh-token"}
+  {"access_token": "...", "refresh_token": "some-other-random-refresh-token"}
+```
+
+If you are using our official SDKs this is a transparent change as our SDK already updated the refresh token from the response and you don't need to worry about this change. If you are not using our SDK we recommend you to make sure you are updating the refresh token based on the response prior to upgrading.

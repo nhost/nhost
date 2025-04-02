@@ -1,0 +1,38 @@
+---
+title: 'Product Updates'
+---
+
+## April 2nd, 2025
+
+### Point-in-Time Recovery Now Available
+
+Great news for database protection! We've officially launched Point-in-Time Recovery for PostgreSQL as an addon for Pro, Teams, and Enterprise projects. This powerful feature lets you restore your database to any specific moment, giving you:
+
+- Enhanced data protection against accidental changes
+- More flexibility in recovery options
+- Peace of mind knowing your data is safe
+
+Learn more in our [documentation](https://docs.nhost.io/products/database/backups#point-in-time-recovery) or [blog post](https://nhost.io/blog/point-in-time-recovery).
+
+### Refreshed Documentation Experience
+
+We've completely revamped our documentation to make it more user-friendly and easier to navigate. The new docs focus on:
+
+- Improved navigation structure
+- Better content organization
+- Clearer explanations
+
+We're now working on adding more examples and guides. Have a suggestion for content you'd like to see? Let us know! And remember, our docs are [open source](https://github.com/nhost/nhost/tree/main/docs) if you'd like to contribute.
+
+### Product Updates
+
+#### Auth Improvements
+
+- **Enhanced Security**: New refresh token system provides better security by issuing a new token with each refresh. Please, refer to the Auth's [release notes](https://github.com/nhost/hasura-auth/releases/tag/v0.38.0) for more details and potential impact on your application.
+- **More OAuth Options**: Connect multiple OAuth accounts for the same provider to a single user profile
+- **SMTP Login Authentication**: Added support for more email provider options
+
+#### AI Enhancements
+
+- **Smarter File Search**: File search tool now activates only when needed. This improves models' support by allowing the use of reasoning models like o1 which don't support file search.
+- **Improved Embedding Generation**: System now continues processing even if embedding generation encounters errors. This ensures that the rest of the data is still processed, improving overall performance and reliability.
