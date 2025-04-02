@@ -579,11 +579,6 @@
         ]
       },
       {
-        "tab":"Community",
-        "icon":"users-line",
-        "pages":["/community/coc", "/community/getting-involved"]
-      },
-      {
         "tab": "Blog",
         "href":"https://nhost.io/blog"
       }
