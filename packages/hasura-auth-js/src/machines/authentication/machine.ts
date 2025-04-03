@@ -759,16 +759,19 @@ export const createAuthMachine = ({
           }
         },
 
-        // * Broadcast the token to other tabs when `autoSignIn` is activated
+        // * Broadcast the session to other tabs when `autoSignIn` is activated
         broadcastToken: (context) => {
           if (autoSignIn && broadcastKey) {
             try {
               const channel = new BroadcastChannel(broadcastKey)
-              // ? broadcast session instead of token ?
               channel.postMessage({
-                type: 'broadcast_token',
+                type: 'broadcast_session',
                 payload: {
-                  token: context.refreshToken.value
+                  token: context.refreshToken.value,
+                  accessToken: context.accessToken.value,
+                  user: context.user,
+                  expiresAt: context.accessToken.expiresAt ? context.accessToken.expiresAt.toISOString() : null,
+                  expiresInSeconds: context.accessToken.expiresInSeconds
                 }
               })
             } catch (error) {

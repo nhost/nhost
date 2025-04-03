@@ -66,10 +66,23 @@ export class AuthClient {
           this._channel?.addEventListener('message', (event) => {
             const { type, payload } = event.data
 
-            if (type === 'broadcast_token') {
-              const existingToken = this.interpreter?.getSnapshot().context.refreshToken.value
+            if (type === 'broadcast_session') {
+              const context = this.interpreter?.getSnapshot().context
+              const existingToken = context?.refreshToken.value
+
+              // Only update if this is a new token or if we don't have a token yet
               if (this.interpreter && payload.token && payload.token !== existingToken) {
-                this.interpreter.send('TRY_TOKEN', { token: payload.token })
+                // Send a SESSION_UPDATE event with the full session data instead of making a token call
+                this.interpreter.send('SESSION_UPDATE', {
+                  data: {
+                    session: {
+                      user: payload.user,
+                      accessToken: payload.accessToken,
+                      refreshToken: payload.token,
+                      accessTokenExpiresIn: payload.expiresInSeconds
+                    }
+                  }
+                })
               }
             }
           })
