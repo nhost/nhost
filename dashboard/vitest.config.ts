@@ -12,5 +12,8 @@ export default defineConfig({
     globals: true,
     setupFiles: 'src/setupTests.ts',
     include: ['src/**/*.(spec|test).{js,jsx,ts,tsx}'],
+    deps: {
+      inline: ['clsx'],
+    },
   },
 });
