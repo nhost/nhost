@@ -22,6 +22,7 @@ import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MULTIPLIER,
 } from '@/utils/constants/common';
+import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { expect, test, vi } from 'vitest';
 import ResourcesForm from './ResourcesForm';
@@ -68,12 +69,13 @@ test('should show an empty state message that the feature must be enabled if no 
 
 test('should show the sliders if the switch is enabled', async () => {
   server.use(resourcesUnavailableQuery);
+  const user = userEvent.setup();
 
   render(<ResourcesForm />);
 
   expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
 
-  await clickOnElement(screen.getByRole('checkbox'));
+  await user.click(screen.getByRole('checkbox'));
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
   expect(screen.getAllByRole('slider')).toHaveLength(9);
@@ -356,6 +358,55 @@ test('should change pricing based on selected replicas', async () => {
     expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
       /approximate cost: \$400\.00\/mo/i,
     );
+  });
+});
+
+test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 replica is selected', async () => {
+  const user = userEvent.setup();
+
+  render(<ResourcesForm />);
+
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
+
+  changeSliderValue(
+    screen.getByRole('slider', {
+      name: /total available vcpu/i,
+    }),
+    20 * RESOURCE_VCPU_MULTIPLIER,
+  );
+
+  const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
+  await user.click(storageReplicasInput);
+  await user.clear(storageReplicasInput);
+  await user.type(storageReplicasInput, '2');
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage vcpu/i }),
+    1 * RESOURCE_VCPU_MULTIPLIER,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage memory/i }),
+    6 * RESOURCE_MEMORY_MULTIPLIER,
+  );
+
+  await user.click(screen.getByRole('button', { name: /save/i }));
+
+  expect(screen.getByText(/invalid configuration/i)).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      /please check the form for errors and the allocation for each service and try again\./i,
+    ),
+  ).toBeInTheDocument();
+
+  await waitFor(() => {
+    const validationErrorMessage = screen.getByText(
+      /vCPU and Memory for this service must follow a 1:2 ratio when more than one replica is selected or when the autoscaler is activated\./i,
+    );
+    expect(validationErrorMessage).toBeInTheDocument();
+    expect(validationErrorMessage).toHaveStyle({ color: '#D32F2F' });
   });
 });
 
