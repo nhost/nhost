@@ -106,6 +106,18 @@ export const createAuthMachine = ({
 
     return result.data
   }
+
+  // Create a shared BroadcastChannel for broadcasting tokens and signout events
+  let sharedBroadcastChannel: BroadcastChannel | null = null
+  if (typeof window !== 'undefined' && broadcastKey) {
+    try {
+      sharedBroadcastChannel = new BroadcastChannel(broadcastKey)
+      console.debug('[AUTH] Created shared BroadcastChannel with key:', broadcastKey)
+    } catch (error) {
+      console.debug('[AUTH] BroadcastChannel is not available e.g. react-native')
+    }
+  }
+
   return createMachine(
     {
       schema: {
@@ -385,10 +397,14 @@ export const createAuthMachine = ({
                             src: 'refreshToken',
                             id: 'refreshToken',
                             onDone: {
-                              actions: ['saveSession', 'resetTimer', 'reportTokenChanged'],
+                              actions: ['saveSession', 'resetTimer', 'reportTokenChanged', 'broadcastToken'],
                               target: 'pending'
                             },
                             onError: [
+                              {
+                                cond: 'isUnauthorizedError',
+                                target: '#nhost.authentication.signedOut'
+                              },
                               { actions: 'saveRefreshAttempt', target: 'pending' }
                             ]
                           }
@@ -416,7 +432,7 @@ export const createAuthMachine = ({
                 src: 'refreshToken',
                 id: 'authenticateWithToken',
                 onDone: {
-                  actions: ['saveSession', 'reportTokenChanged'],
+                  actions: ['saveSession', 'reportTokenChanged', 'broadcastToken'],
                   target: ['#nhost.authentication.signedIn', 'idle.noErrors']
                 },
                 onError: [
@@ -598,10 +614,7 @@ export const createAuthMachine = ({
       actions: {
         reportSignedIn: send('SIGNED_IN'),
         reportSignedOut: send('SIGNED_OUT'),
-        reportTokenChanged: send((ctx) => {
-          console.debug('[AUTH] reportTokenChanged called with token:', ctx.refreshToken.value ? ctx.refreshToken.value.substring(0, 6) + '...' : 'null');
-          return { type: 'TOKEN_CHANGED' };
-        }),
+        reportTokenChanged: send('TOKEN_CHANGED'),
         incrementTokenImportAttempts: assign({
           importTokenAttempts: ({ importTokenAttempts }) => importTokenAttempts + 1
         }),
@@ -760,7 +773,6 @@ export const createAuthMachine = ({
 
         // * Broadcast the session to other tabs when `autoSignIn` is activated
         broadcastToken: (context) => {
-          console.debug('[AUTH] broadcastToken action called, autoSignIn:', autoSignIn, 'broadcastKey:', !!broadcastKey, 'refreshToken:', context.refreshToken.value ? context.refreshToken.value.substring(0, 6) + '...' : 'null');
           if (autoSignIn && broadcastKey) {
             try {
               const channel = new BroadcastChannel(broadcastKey)

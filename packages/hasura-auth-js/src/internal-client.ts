@@ -68,9 +68,11 @@ export class AuthClient {
               const context = this.interpreter?.getSnapshot().context
               const existingToken = context?.refreshToken.value
 
+              console.debug('[AUTH] Received broadcast session:', payload.token.substring(0,6), existingToken?.substring(0,6))
+
               // Only update if this is a new token or if we don't have a token yet
               if (this.interpreter && payload.token && payload.token !== existingToken) {
-                console.debug('[AUTH] Received broadcast with new token:', payload.token ? payload.token.substring(0, 6) + '...' : 'null', 
+                console.debug('[AUTH] Received broadcast with new token:', payload.token ? payload.token.substring(0, 6) + '...' : 'null',
                   'Previous token:', existingToken ? existingToken.substring(0, 6) + '...' : 'null')
                 // Send a SESSION_UPDATE event with the full session data instead of making a token call
                 this.interpreter.send('SESSION_UPDATE', {
