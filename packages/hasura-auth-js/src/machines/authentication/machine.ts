@@ -389,10 +389,6 @@ export const createAuthMachine = ({
                               target: 'pending'
                             },
                             onError: [
-                              {
-                                cond: 'isUnauthorizedError',
-                                target: '#nhost.authentication.signedOut'
-                              },
                               { actions: 'saveRefreshAttempt', target: 'pending' }
                             ]
                           }
@@ -764,6 +760,7 @@ export const createAuthMachine = ({
           if (autoSignIn && broadcastKey) {
             try {
               const channel = new BroadcastChannel(broadcastKey)
+              console.debug('[AUTH] Broadcasting new token to other tabs:', context.refreshToken.value ? context.refreshToken.value.substring(0, 6) + '...' : 'null')
               channel.postMessage({
                 type: 'broadcast_session',
                 payload: {
@@ -789,6 +786,12 @@ export const createAuthMachine = ({
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         refreshTimerShouldRefresh: (ctx) => {
+          // Add 1/20 chance (5%) to refresh the token randomly
+          // this is to minimize the risk of all the tabs to refresh the token at the same time
+          if (Math.random() < 0.05) {
+            return true;
+          }
+          
           const { expiresAt } = ctx.accessToken
 
           if (!expiresAt) {
@@ -993,9 +996,11 @@ export const createAuthMachine = ({
         },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
+          console.debug('[AUTH] Refreshing token with:', refreshToken ? refreshToken.substring(0, 6) + '...' : 'null')
           const session: NhostSession = await postRequest<RefreshSessionResponse>('/token', {
             refreshToken
           })
+          console.debug('[AUTH] Token refreshed successfully:', session.refreshToken ? session.refreshToken.substring(0, 6) + '...' : 'null')
           return { session, error: null }
         },
         signInSecurityKey: async (): Promise<SignInResponse> => {
