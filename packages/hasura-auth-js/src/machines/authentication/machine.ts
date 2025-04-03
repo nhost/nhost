@@ -786,12 +786,6 @@ export const createAuthMachine = ({
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         refreshTimerShouldRefresh: (ctx) => {
-          // Add 1/20 chance (5%) to refresh the token randomly
-          // this is to minimize the risk of all the tabs to refresh the token at the same time
-          if (Math.random() < 0.05) {
-            return true;
-          }
-          
           const { expiresAt } = ctx.accessToken
 
           if (!expiresAt) {
@@ -838,7 +832,9 @@ export const createAuthMachine = ({
             expiresInMilliseconds -
             1_000 * Math.min(TOKEN_REFRESH_MARGIN_SECONDS, accessTokenExpirationTime * 0.5)
 
-          return remainingMilliseconds <= 0
+          // Add 1/20 chance (5%) to skip refreshing the token randomly regardless
+          // this is to minimize the risk of all the tabs to refresh the token at the same time
+          return remainingMilliseconds <= 0 && Math.random() < 0.05
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         /** Should retry to import the token on network error or any internal server error.
