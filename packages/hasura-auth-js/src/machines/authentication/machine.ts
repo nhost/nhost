@@ -598,7 +598,10 @@ export const createAuthMachine = ({
       actions: {
         reportSignedIn: send('SIGNED_IN'),
         reportSignedOut: send('SIGNED_OUT'),
-        reportTokenChanged: send('TOKEN_CHANGED'),
+        reportTokenChanged: send((ctx) => {
+          console.debug('[AUTH] reportTokenChanged called with token:', ctx.refreshToken.value ? ctx.refreshToken.value.substring(0, 6) + '...' : 'null');
+          return { type: 'TOKEN_CHANGED' };
+        }),
         incrementTokenImportAttempts: assign({
           importTokenAttempts: ({ importTokenAttempts }) => importTokenAttempts + 1
         }),
@@ -757,6 +760,7 @@ export const createAuthMachine = ({
 
         // * Broadcast the session to other tabs when `autoSignIn` is activated
         broadcastToken: (context) => {
+          console.debug('[AUTH] broadcastToken action called, autoSignIn:', autoSignIn, 'broadcastKey:', !!broadcastKey, 'refreshToken:', context.refreshToken.value ? context.refreshToken.value.substring(0, 6) + '...' : 'null');
           if (autoSignIn && broadcastKey) {
             try {
               const channel = new BroadcastChannel(broadcastKey)
@@ -832,9 +836,9 @@ export const createAuthMachine = ({
             expiresInMilliseconds -
             1_000 * Math.min(TOKEN_REFRESH_MARGIN_SECONDS, accessTokenExpirationTime * 0.5)
 
-          // Add 1/20 chance (5%) to skip refreshing the token randomly regardless
+          // Add 1/10 chance to skip refreshing the token randomly regardless
           // this is to minimize the risk of all the tabs to refresh the token at the same time
-          return remainingMilliseconds <= 0 && Math.random() < 0.05
+          return remainingMilliseconds <= 0 && Math.random() < 0.10
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         /** Should retry to import the token on network error or any internal server error.
