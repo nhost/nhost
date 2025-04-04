@@ -16,9 +16,9 @@ import {
   queryClient,
   render,
   screen,
+  TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { useState } from 'react';
 import { afterAll, beforeAll, vi } from 'vitest';
@@ -111,7 +111,7 @@ afterAll(() => {
 
 test('opens create org dialog when selecting "create new org" and closes transfer dialog', async () => {
   mocks.useRouter.mockImplementation(() => getUseRouterObject());
-  const user = userEvent.setup();
+  const user = new TestUserEvent();
 
   server.use(getProjectQuery);
   server.use(getOrganization);

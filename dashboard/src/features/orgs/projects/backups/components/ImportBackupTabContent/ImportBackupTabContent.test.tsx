@@ -5,10 +5,10 @@ import {
 } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  clickOnElement,
   mockPointerEvent,
   render,
   screen,
+  TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
 import { setupServer } from 'msw/node';
@@ -24,7 +24,6 @@ import {
   getEmptyProjectsQuery,
   getProjectsQuery,
 } from '@/tests/msw/mocks/graphql/getProjectsQuery';
-import userEvent from '@testing-library/user-event';
 import ImportBackupContent from './ImportBackupTabContent';
 
 function TestComponent() {
@@ -92,6 +91,7 @@ describe('ImportBackupContent', () => {
   });
 
   test("will display the target project's name and a select with the projects from the same region", async () => {
+    const user = new TestUserEvent();
     server.use(getOrganization);
     server.use(getProjectsQuery);
 
@@ -104,7 +104,7 @@ describe('ImportBackupContent', () => {
 
     const projectComboBox = await screen.findByRole('combobox');
 
-    await clickOnElement(projectComboBox);
+    await user.click(projectComboBox);
     // check for only projects from the same region are listed
     expect(screen.getByRole('option', { name: /pitr14/i })).toBeInTheDocument();
     expect(
@@ -132,6 +132,7 @@ describe('ImportBackupContent', () => {
   });
 
   test('will schedule an import from the selected project', async () => {
+    const user = new TestUserEvent();
     server.use(getOrganization);
     server.use(getProjectsQuery);
     server.use(getPostgresSettings);
@@ -139,8 +140,6 @@ describe('ImportBackupContent', () => {
       fetchPiTRBaseBackups,
       { loading: false },
     ]);
-
-    const user = userEvent.setup();
 
     render(<TestComponent />);
     expect(
@@ -151,7 +150,7 @@ describe('ImportBackupContent', () => {
 
     const projectComboBox = await screen.findByRole('combobox');
 
-    await clickOnElement(projectComboBox);
+    await user.click(projectComboBox);
 
     await waitFor(async () => {
       await user.click(
@@ -168,7 +167,7 @@ describe('ImportBackupContent', () => {
     const startImportButton = await screen.getByRole('button', {
       name: 'Start import',
     });
-    await clickOnElement(startImportButton);
+    await user.click(startImportButton);
 
     await waitFor(async () =>
       expect(
@@ -180,7 +179,7 @@ describe('ImportBackupContent', () => {
       name: /UTC/i,
     });
 
-    await clickOnElement(dateTimePickerButton);
+    await user.click(dateTimePickerButton);
 
     await waitFor(async () =>
       expect(
@@ -188,7 +187,7 @@ describe('ImportBackupContent', () => {
       ).toBeInTheDocument(),
     );
 
-    await clickOnElement(await screen.getByText('13'));
+    await user.click(await screen.getByText('13'));
 
     const hoursInput = await screen.getByLabelText('Hours');
     await waitFor(async () => {
@@ -200,7 +199,7 @@ describe('ImportBackupContent', () => {
     expect(updatedDateTimeButton).toHaveTextContent(
       '13 Mar 2025, 18:00:05 (UTC+02:00)',
     );
-    await clickOnElement(await screen.getByRole('button', { name: 'Select' }));
+    await user.click(await screen.getByRole('button', { name: 'Select' }));
 
     await waitFor(async () =>
       expect(
@@ -214,11 +213,11 @@ describe('ImportBackupContent', () => {
 
     // check checkboxes
 
-    await clickOnElement(
+    await user.click(
       await screen.getByLabelText(/I understand that restoring this backup/),
     );
 
-    await clickOnElement(
+    await user.click(
       await screen.getByLabelText(/I understand this cannot be undone/),
     );
 
@@ -228,7 +227,7 @@ describe('ImportBackupContent', () => {
       ).not.toBeDisabled(),
     );
 
-    await clickOnElement(
+    await user.click(
       await screen.getByRole('button', { name: 'Import backup' }),
     );
 
@@ -242,6 +241,7 @@ describe('ImportBackupContent', () => {
   });
 
   test('Pitr is not enabled on project', async () => {
+    const user = new TestUserEvent();
     server.use(getOrganization);
     server.use(getProjectsQuery);
     server.use(getPiTRNotEnabledPostgresSettings);
@@ -250,9 +250,9 @@ describe('ImportBackupContent', () => {
 
     const projectComboBox = await screen.findByRole('combobox');
 
-    await clickOnElement(projectComboBox);
+    await user.click(projectComboBox);
 
-    await clickOnElement(
+    await user.click(
       screen.getByRole('option', {
         name: 'pitr-not-enabled-usa (us-east-1)',
       }),

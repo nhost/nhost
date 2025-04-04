@@ -5,8 +5,7 @@ import {
   mockMatchMediaValue,
 } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, waitFor } from '@/tests/testUtils';
-import userEvent from '@testing-library/user-event';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import { setupServer } from 'msw/node';
 import { test, vi } from 'vitest';
 
@@ -118,7 +117,7 @@ describe('PointInTimeBackupInfo', () => {
       { loading: false },
     ]);
     await waitFor(() => render(<PointInTimeBackupInfo appId="randomId" />));
-    const user = userEvent.setup();
+    const user = new TestUserEvent();
 
     const earliestBackup = await screen.getByTestId('EarliestBackupDateTime');
     expect(earliestBackup).toHaveTextContent(
@@ -151,7 +150,7 @@ describe('PointInTimeBackupInfo', () => {
     await waitFor(() =>
       render(<PointInTimeBackupInfo appId={mockApplication.id} />),
     );
-    const user = userEvent.setup();
+    const user = new TestUserEvent();
     const startRestoreButton = await screen.getByRole('button', {
       name: 'Start restore',
     });
@@ -255,7 +254,7 @@ describe('PointInTimeBackupInfo', () => {
     await waitFor(() =>
       render(<PointInTimeBackupInfo appId={mockApplication.id} />),
     );
-    const user = userEvent.setup();
+    const user = new TestUserEvent();
     const startRestoreButton = await screen.getByRole('button', {
       name: 'Start restore',
     });

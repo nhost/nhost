@@ -1,6 +1,5 @@
 import { isTZDate } from '@/components/common/TimePicker/time-picker-utils';
-import { render, screen, waitFor } from '@/tests/testUtils';
-import userEvent from '@testing-library/user-event';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import { isBefore, startOfDay } from 'date-fns-v4';
 import { useState } from 'react';
 import { TZDate } from 'react-day-picker';
@@ -57,7 +56,7 @@ function TestComponent(
 describe('DateTimePicker', () => {
   test('when the date changes datetime is emitted in utc string format', async () => {
     render(<TestComponent />);
-    const user = userEvent.setup();
+    const user = new TestUserEvent();
 
     await user.click(await screen.findByTestId('dateTimePickerTrigger'));
 
@@ -98,7 +97,7 @@ describe('DateTimePicker', () => {
 
   test('timezone can be changed and the calendar is updated', async () => {
     await waitFor(() => render(<TestComponent withTimezone />));
-    const user = userEvent.setup();
+    const user = new TestUserEvent();
 
     await user.click(await screen.findByTestId('dateTimePickerTrigger'));
 
@@ -136,7 +135,7 @@ describe('DateTimePicker', () => {
 
   test('Displays the correct time zone offset when changing the selected date from standard time (ST) to daylight saving time (DST)', async () => {
     await waitFor(() => render(<TestComponent withTimezone />));
-    const user = userEvent.setup();
+    const user = new TestUserEvent();
 
     await user.click(await screen.findByTestId('dateTimePickerTrigger'));
 
