@@ -1,5 +1,11 @@
 # @nhost-examples/vue-quickstart
 
+## 0.4.1
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+
 ## 0.4.0
 
 ### Minor Changes

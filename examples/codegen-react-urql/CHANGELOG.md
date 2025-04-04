@@ -1,5 +1,11 @@
 # @nhost-examples/react-urql
 
+## 0.5.1
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+
 ## 0.5.0
 
 ### Minor Changes

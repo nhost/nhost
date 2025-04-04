@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.30.0
+
+### Minor Changes
+
+- 38e7e9d: fix: remove community as it isn't ready
+
 ## 2.29.0
 
 ### Minor Changes
