@@ -20,6 +20,7 @@ export default defineConfig({
     port: 3000
   },
   use: {
+    trace: 'on-first-retry',
     baseURL: 'http://localhost:3000'
   },
   fullyParallel: true,
