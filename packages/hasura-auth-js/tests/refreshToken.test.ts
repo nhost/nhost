@@ -102,7 +102,7 @@ describe(`Time based token refresh`, () => {
 
   test(`access token should always be refreshed when reaching the expiration margin`, async () => {
     // Fast forward to the initial expiration date
-    vi.setSystemTime(new Date(initialExpiration.getTime() - TOKEN_REFRESH_MARGIN_SECONDS * 1000))
+    vi.setSystemTime(new Date(initialExpiration.getTime() - (TOKEN_REFRESH_MARGIN_SECONDS * 1000 / 2)))
 
     await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
@@ -123,7 +123,7 @@ describe(`Time based token refresh`, () => {
 
     // Fast forward to the expiration date of the access token
     vi.setSystemTime(
-      new Date(firstRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN_SECONDS * 1000)
+      new Date(firstRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN_SECONDS * 1000 / 2)
     )
 
     await waitFor(authServiceWithInitialSession, (state) =>

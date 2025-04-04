@@ -106,6 +106,18 @@ export const createAuthMachine = ({
 
     return result.data
   }
+
+  // Create a shared BroadcastChannel for broadcasting tokens and signout events
+  let sharedBroadcastChannel: BroadcastChannel | null = null
+  if (typeof window !== 'undefined' && broadcastKey) {
+    try {
+      sharedBroadcastChannel = new BroadcastChannel(broadcastKey)
+      // console.debug('[AUTH] Created shared BroadcastChannel with key:', broadcastKey)
+    } catch (error) {
+      // console.debug('[AUTH] BroadcastChannel is not available e.g. react-native')
+    }
+  }
+
   return createMachine(
     {
       schema: {
@@ -385,7 +397,7 @@ export const createAuthMachine = ({
                             src: 'refreshToken',
                             id: 'refreshToken',
                             onDone: {
-                              actions: ['saveSession', 'resetTimer', 'reportTokenChanged'],
+                              actions: ['saveSession', 'resetTimer', 'reportTokenChanged', 'broadcastToken'],
                               target: 'pending'
                             },
                             onError: [
@@ -420,7 +432,7 @@ export const createAuthMachine = ({
                 src: 'refreshToken',
                 id: 'authenticateWithToken',
                 onDone: {
-                  actions: ['saveSession', 'reportTokenChanged'],
+                  actions: ['saveSession', 'reportTokenChanged', 'broadcastToken'],
                   target: ['#nhost.authentication.signedIn', 'idle.noErrors']
                 },
                 onError: [
@@ -759,16 +771,19 @@ export const createAuthMachine = ({
           }
         },
 
-        // * Broadcast the token to other tabs when `autoSignIn` is activated
+        // * Broadcast the session to other tabs when `autoSignIn` is activated
         broadcastToken: (context) => {
-          if (autoSignIn && broadcastKey) {
+          if (autoSignIn && broadcastKey && sharedBroadcastChannel) {
             try {
-              const channel = new BroadcastChannel(broadcastKey)
-              // ? broadcast session instead of token ?
-              channel.postMessage({
-                type: 'broadcast_token',
+              // console.debug('[AUTH] Broadcasting new token to other tabs:', context.refreshToken.value ? context.refreshToken.value.substring(0, 6) + '...' : 'null')
+              sharedBroadcastChannel.postMessage({
+                type: 'broadcast_session',
                 payload: {
-                  token: context.refreshToken.value
+                  token: context.refreshToken.value,
+                  accessToken: context.accessToken.value,
+                  user: context.user,
+                  expiresAt: context.accessToken.expiresAt ? context.accessToken.expiresAt.toISOString() : null,
+                  expiresInSeconds: context.accessToken.expiresInSeconds
                 }
               })
             } catch (error) {
@@ -825,14 +840,9 @@ export const createAuthMachine = ({
 
           const expiresInMilliseconds = expiresAt.getTime() - Date.now()
 
-          // If the token expires in less time than the margin, we should use
-          // a margin based on the token expiration time to avoid refreshing
-          // the token infinitely
-          const remainingMilliseconds =
-            expiresInMilliseconds -
-            1_000 * Math.min(TOKEN_REFRESH_MARGIN_SECONDS, accessTokenExpirationTime * 0.5)
+          return expiresInMilliseconds <= TOKEN_REFRESH_MARGIN_SECONDS*1000/2 ||
+              expiresInMilliseconds <= TOKEN_REFRESH_MARGIN_SECONDS*1000 && Math.random() < 0.10
 
-          return remainingMilliseconds <= 0
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         /** Should retry to import the token on network error or any internal server error.
@@ -990,9 +1000,11 @@ export const createAuthMachine = ({
         },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
+          // console.debug('[AUTH] Refreshing token with:', refreshToken ? refreshToken.substring(0, 6) + '...' : 'null')
           const session: NhostSession = await postRequest<RefreshSessionResponse>('/token', {
             refreshToken
           })
+          // console.debug('[AUTH] Token refreshed successfully:', session.refreshToken ? session.refreshToken.substring(0, 6) + '...' : 'null')
           return { session, error: null }
         },
         signInSecurityKey: async (): Promise<SignInResponse> => {
@@ -1023,11 +1035,10 @@ export const createAuthMachine = ({
             !!e.all ? ctx.accessToken.value : undefined
           )
 
-          if (broadcastKey) {
+          if (broadcastKey && sharedBroadcastChannel) {
             try {
-              const channel = new BroadcastChannel(broadcastKey)
               // ? broadcast the signout event to other tabs to remove the accessToken
-              channel.postMessage({ type: 'signout' })
+              sharedBroadcastChannel.postMessage({ type: 'signout' })
             } catch (error) {
               // * BroadcastChannel is not available e.g. react-native
             }
