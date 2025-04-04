@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 2.26.1
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+- 0420e4f: fix (dashboard): Display the selected date's month in the datetime picker component
+
 ## 2.26.0
 
 ### Minor Changes

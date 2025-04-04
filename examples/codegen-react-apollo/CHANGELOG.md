@@ -1,5 +1,11 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.6.1
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+
 ## 0.6.0
 
 ### Minor Changes

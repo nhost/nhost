@@ -1,5 +1,11 @@
 # @nhost-examples/react-gqty
 
+## 1.4.1
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+
 ## 1.4.0
 
 ### Minor Changes
