@@ -35,7 +35,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@nhost/nhost-js": "^3.2.1",
+    "@nhost/nhost-js": "workspace:*",
     "graphql": "16.8.1",
     "graphql-tag": "^2.12.6",
     "js-cookie": "^3.0.5",
