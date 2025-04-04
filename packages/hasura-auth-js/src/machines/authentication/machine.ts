@@ -112,9 +112,9 @@ export const createAuthMachine = ({
   if (typeof window !== 'undefined' && broadcastKey) {
     try {
       sharedBroadcastChannel = new BroadcastChannel(broadcastKey)
-      console.debug('[AUTH] Created shared BroadcastChannel with key:', broadcastKey)
+      // console.debug('[AUTH] Created shared BroadcastChannel with key:', broadcastKey)
     } catch (error) {
-      console.debug('[AUTH] BroadcastChannel is not available e.g. react-native')
+      // console.debug('[AUTH] BroadcastChannel is not available e.g. react-native')
     }
   }
 
@@ -773,11 +773,10 @@ export const createAuthMachine = ({
 
         // * Broadcast the session to other tabs when `autoSignIn` is activated
         broadcastToken: (context) => {
-          if (autoSignIn && broadcastKey) {
+          if (autoSignIn && broadcastKey && sharedBroadcastChannel) {
             try {
-              const channel = new BroadcastChannel(broadcastKey)
-              console.debug('[AUTH] Broadcasting new token to other tabs:', context.refreshToken.value ? context.refreshToken.value.substring(0, 6) + '...' : 'null')
-              channel.postMessage({
+              // console.debug('[AUTH] Broadcasting new token to other tabs:', context.refreshToken.value ? context.refreshToken.value.substring(0, 6) + '...' : 'null')
+              sharedBroadcastChannel.postMessage({
                 type: 'broadcast_session',
                 payload: {
                   token: context.refreshToken.value,
@@ -1008,11 +1007,11 @@ export const createAuthMachine = ({
         },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
-          console.debug('[AUTH] Refreshing token with:', refreshToken ? refreshToken.substring(0, 6) + '...' : 'null')
+          // console.debug('[AUTH] Refreshing token with:', refreshToken ? refreshToken.substring(0, 6) + '...' : 'null')
           const session: NhostSession = await postRequest<RefreshSessionResponse>('/token', {
             refreshToken
           })
-          console.debug('[AUTH] Token refreshed successfully:', session.refreshToken ? session.refreshToken.substring(0, 6) + '...' : 'null')
+          // console.debug('[AUTH] Token refreshed successfully:', session.refreshToken ? session.refreshToken.substring(0, 6) + '...' : 'null')
           return { session, error: null }
         },
         signInSecurityKey: async (): Promise<SignInResponse> => {
@@ -1043,11 +1042,10 @@ export const createAuthMachine = ({
             !!e.all ? ctx.accessToken.value : undefined
           )
 
-          if (broadcastKey) {
+          if (broadcastKey && sharedBroadcastChannel) {
             try {
-              const channel = new BroadcastChannel(broadcastKey)
               // ? broadcast the signout event to other tabs to remove the accessToken
-              channel.postMessage({ type: 'signout' })
+              sharedBroadcastChannel.postMessage({ type: 'signout' })
             } catch (error) {
               // * BroadcastChannel is not available e.g. react-native
             }
