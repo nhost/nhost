@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "palm",
+  "theme": "mint",
   "name": "Documentation",
   "colors": {
     "primary": "#3787ff",
@@ -579,9 +579,13 @@
         ]
       },
       {
-        "tab":"Community",
-        "icon":"users-line",
-        "pages":["/community/coc", "/community/getting-involved"]
+        "tab": "Changelog",
+        "pages": [
+            "changelog/overview",
+            "changelog/product",
+            "changelog/services",
+            "changelog/ai"
+        ]
       },
       {
         "tab": "Blog",
