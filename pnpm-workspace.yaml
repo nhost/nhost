@@ -7,5 +7,4 @@ packages:
   - '!out/**'
   - 'examples/**'
   - '!templates/**'
-  - 'examples/quickstarts/*'
   - '!**/functions'
