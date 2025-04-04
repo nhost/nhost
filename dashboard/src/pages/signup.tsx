@@ -7,6 +7,7 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { analytics } from '@/lib/segment';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -39,6 +40,19 @@ export default function SignUpPage() {
   const { signUpEmailPassword, error } = useSignUpEmailPassword();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [anonId, setAnonId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getAnonId = async () => {
+      try {
+        const user = await analytics.user();
+        setAnonId(user.anonymousId());
+      } catch (err) {
+        console.error('Failed to get anonymous ID:', err);
+      }
+    };
+    getAnonId();
+  }, []);
 
   // x-cf-turnstile-response
   const [turnstileResponse, setTurnstileResponse] = useState(null);
@@ -85,6 +99,7 @@ export default function SignUpPage() {
         password,
         {
           displayName,
+          metadata: { anonId },
         },
         {
           headers: {
@@ -126,7 +141,10 @@ export default function SignUpPage() {
             setLoading(true);
 
             try {
-              await nhost.auth.signIn({ provider: 'github' });
+              await nhost.auth.signIn({
+                provider: 'github',
+                options: { metadata: { anonId } },
+              });
             } catch {
               toast.error(
                 `An error occurred while trying to sign up using GitHub. Please try again.`,
