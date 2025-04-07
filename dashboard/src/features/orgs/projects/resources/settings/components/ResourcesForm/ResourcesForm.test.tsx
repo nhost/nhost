@@ -285,7 +285,7 @@ test('should display a red button when custom resources are disabled', async () 
     screen.getByRole('heading', { name: /disable dedicated resources/i }),
   ).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /confirm/i })).toHaveStyle({
-    'background-color': '#D32F2F',
+    'background-color': '#f13154',
   });
 });
 
@@ -419,7 +419,7 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
       /vCPU and Memory for this service must follow a 1:2 ratio when more than one replica is selected or when the autoscaler is activated\./i,
     );
     expect(validationErrorMessage).toBeInTheDocument();
-    expect(validationErrorMessage).toHaveStyle({ color: '#D32F2F' });
+    expect(validationErrorMessage).toHaveStyle({ color: '#f13154' });
   });
 });
 
