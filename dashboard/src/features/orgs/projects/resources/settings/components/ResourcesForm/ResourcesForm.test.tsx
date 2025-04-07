@@ -77,11 +77,9 @@ test('should show the sliders if the switch is enabled', async () => {
   await user.click(screen.getByRole('checkbox'));
 
   // Wait for the empty state message to disappear and sliders to appear
-  await waitFor(() => {
-    expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
-    const sliders = screen.getAllByRole('slider');
-    expect(sliders).toHaveLength(9);
-  });
+  expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
+  const sliders = screen.getAllByRole('slider');
+  expect(sliders).toHaveLength(9);
 });
 
 test('should not show an empty state message if there is data available', async () => {
