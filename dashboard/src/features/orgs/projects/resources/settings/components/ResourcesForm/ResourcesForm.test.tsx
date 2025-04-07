@@ -52,8 +52,10 @@ afterAll(() => {
 
 // Note: Workaround based on https://github.com/testing-library/user-event/issues/871#issuecomment-1059317998
 function changeSliderValue(slider: HTMLElement, value: number) {
-  fireEvent.input(slider, { target: { value } });
-  fireEvent.change(slider, { target: { value } });
+  return waitFor(() => {
+    fireEvent.input(slider, { target: { value } });
+    fireEvent.change(slider, { target: { value } });
+  });
 }
 
 test('should show an empty state message that the feature must be enabled if no data is available', async () => {
@@ -74,8 +76,12 @@ test('should show the sliders if the switch is enabled', async () => {
 
   await user.click(screen.getByRole('checkbox'));
 
-  expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
-  expect(screen.getAllByRole('slider')).toHaveLength(9);
+  // Wait for the empty state message to disappear and sliders to appear
+  await waitFor(() => {
+    expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
+    const sliders = screen.getAllByRole('slider');
+    expect(sliders).toHaveLength(9);
+  });
 });
 
 test('should not show an empty state message if there is data available', async () => {
@@ -414,25 +420,24 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
 
 test('should take replicas into account when confirming the resources', async () => {
   const user = new TestUserEvent();
+  server.use(updateConfigMutation);
   render(<ResourcesForm />);
 
-  expect(
-    await screen.findByRole('slider', { name: /total available vcpu/i }),
-  ).toBeInTheDocument();
+  // Wait for initial render
+  const totalVCPUSlider = await screen.findByRole('slider', {
+    name: /total available vcpu/i,
+  });
+  expect(totalVCPUSlider).toBeInTheDocument();
 
-  changeSliderValue(
-    screen.getByRole('slider', {
-      name: /total available vcpu/i,
-    }),
-    8.5 * RESOURCE_VCPU_MULTIPLIER,
-  );
+  // Change slider values and wait for updates
+  await changeSliderValue(totalVCPUSlider, 8.5 * RESOURCE_VCPU_MULTIPLIER);
 
   // setting up database
-  changeSliderValue(
+  await changeSliderValue(
     screen.getByRole('slider', { name: /database vcpu/i }),
     2 * RESOURCE_VCPU_MULTIPLIER,
   );
-  changeSliderValue(
+  await changeSliderValue(
     screen.getByRole('slider', { name: /database memory/i }),
     4 * RESOURCE_MEMORY_MULTIPLIER,
   );
@@ -442,11 +447,16 @@ test('should take replicas into account when confirming the resources', async ()
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '3');
 
-  changeSliderValue(
+  // Wait for state updates after replica change
+  await waitFor(() => {
+    expect(hasuraReplicasInput).toHaveValue('3');
+  });
+
+  await changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
   );
-  changeSliderValue(
+  await changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql memory/i }),
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
@@ -457,11 +467,16 @@ test('should take replicas into account when confirming the resources', async ()
   await user.clear(authReplicasInput);
   await user.type(authReplicasInput, '2');
 
-  changeSliderValue(
+  // Wait for state updates after replica change
+  await waitFor(() => {
+    expect(authReplicasInput).toHaveValue('2');
+  });
+
+  await changeSliderValue(
     screen.getByRole('slider', { name: /auth vcpu/i }),
     1.5 * RESOURCE_VCPU_MULTIPLIER,
   );
-  changeSliderValue(
+  await changeSliderValue(
     screen.getByRole('slider', { name: /auth memory/i }),
     3 * RESOURCE_MEMORY_MULTIPLIER,
   );
@@ -472,20 +487,26 @@ test('should take replicas into account when confirming the resources', async ()
   await user.clear(storageReplicasInput);
   await user.type(storageReplicasInput, '4');
 
-  changeSliderValue(
+  // Wait for state updates after replica change
+  await waitFor(() => {
+    expect(storageReplicasInput).toHaveValue('4');
+  });
+
+  await changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
   );
-  changeSliderValue(
+  await changeSliderValue(
     screen.getByRole('slider', { name: /storage memory/i }),
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
+  // Click save and wait for all state updates
   await user.click(screen.getByRole('button', { name: /save/i }));
 
-  expect(await screen.findByRole('dialog')).toBeInTheDocument();
-
-  const dialog = screen.getByRole('dialog');
+  // Wait for dialog to appear
+  const dialog = await screen.findByRole('dialog', {}, { timeout: 5000 });
+  expect(dialog).toBeInTheDocument();
 
   expect(
     within(dialog).getByText(/postgresql database/i).parentElement,
