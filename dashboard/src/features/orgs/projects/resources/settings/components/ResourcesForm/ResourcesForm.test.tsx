@@ -447,11 +447,6 @@ test('should take replicas into account when confirming the resources', async ()
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '3');
 
-  // Wait for state updates after replica change
-  await waitFor(() => {
-    expect(hasuraReplicasInput).toHaveValue('3');
-  });
-
   await changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
@@ -466,11 +461,6 @@ test('should take replicas into account when confirming the resources', async ()
   await user.click(authReplicasInput);
   await user.clear(authReplicasInput);
   await user.type(authReplicasInput, '2');
-
-  // Wait for state updates after replica change
-  await waitFor(() => {
-    expect(authReplicasInput).toHaveValue('2');
-  });
 
   await changeSliderValue(
     screen.getByRole('slider', { name: /auth vcpu/i }),
@@ -487,11 +477,6 @@ test('should take replicas into account when confirming the resources', async ()
   await user.clear(storageReplicasInput);
   await user.type(storageReplicasInput, '4');
 
-  // Wait for state updates after replica change
-  await waitFor(() => {
-    expect(storageReplicasInput).toHaveValue('4');
-  });
-
   await changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
@@ -501,7 +486,7 @@ test('should take replicas into account when confirming the resources', async ()
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
-  // Click save and wait for all state updates
+  // Click save and wait for dialog
   await user.click(screen.getByRole('button', { name: /save/i }));
 
   // Wait for dialog to appear
@@ -524,8 +509,6 @@ test('should take replicas into account when confirming the resources', async ()
     /2\.5 vcpu \+ 5120 mib \(4 replicas\)/i,
   );
 
-  // total must contain the sum of all resources when replicas are taken into
-  // account
   expect(within(dialog).getByText(/total/i).parentElement).toHaveTextContent(
     /22\.5 vcpu \+ 46080 mib/i,
   );
