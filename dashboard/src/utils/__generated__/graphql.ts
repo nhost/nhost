@@ -6307,9 +6307,7 @@ export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
   /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
-  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
-  /** unique or primary key constraint on columns "user_id", "provider_id" */
-  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
+  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key'
 }
 
 /** input type for inserting data into table "auth.user_providers" */
@@ -21937,7 +21935,7 @@ export type Regions_Allowed_Organization_Bool_Exp = {
 export enum Regions_Allowed_Organization_Constraint {
   /** unique or primary key constraint on columns "id" */
   RegionsAllowedOrganizationPkey = 'regions_allowed_organization_pkey',
-  /** unique or primary key constraint on columns "region_id", "organization_id" */
+  /** unique or primary key constraint on columns "organization_id", "region_id" */
   RegionsAllowedOrganizationRegionIdOrganizationIdKey = 'regions_allowed_organization_region_id_organization_id_key'
 }
 
@@ -26663,7 +26661,7 @@ export type WorkspaceMemberInvites_Bool_Exp = {
 
 /** unique or primary key constraints on table "workspace_member_invites" */
 export enum WorkspaceMemberInvites_Constraint {
-  /** unique or primary key constraint on columns "workspace_id", "email" */
+  /** unique or primary key constraint on columns "email", "workspace_id" */
   WorkspaceMemberInvitesEmailWorkspaceIdKey = 'workspace_member_invites_email_workspace_id_key',
   /** unique or primary key constraint on columns "id" */
   WorkspaceMemberInvitesPkey = 'workspace_member_invites_pkey'
@@ -26946,7 +26944,7 @@ export type WorkspaceMembers_Bool_Exp = {
 export enum WorkspaceMembers_Constraint {
   /** unique or primary key constraint on columns "id" */
   WorkspaceMembersPkey = 'workspace_members_pkey',
-  /** unique or primary key constraint on columns "workspace_id", "user_id" */
+  /** unique or primary key constraint on columns "user_id", "workspace_id" */
   WorkspaceMembersUserIdWorkspaceIdKey = 'workspace_members_user_id_workspace_id_key'
 }
 
@@ -28478,7 +28476,7 @@ export type GetRemoteAppMetricsQueryVariables = Exact<{ [key: string]: never; }>
 
 export type GetRemoteAppMetricsQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number, sum?: { __typename?: 'files_sum_fields', size?: number | null } | null } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
-export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
+export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, isAnonymous: boolean, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
 
 export type RemoteAppGetUsersAndAuthRolesQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -28487,7 +28485,7 @@ export type RemoteAppGetUsersAndAuthRolesQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersAndAuthRolesQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, authRoles: Array<{ __typename?: 'authRoles', role: string }> };
+export type RemoteAppGetUsersAndAuthRolesQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, isAnonymous: boolean, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, authRoles: Array<{ __typename?: 'authRoles', role: string }> };
 
 export type RemoteAppGetUsersCustomQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -28504,7 +28502,7 @@ export type RemoteAppGetUsersWholeQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, isAnonymous: boolean, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
 export type TotalUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -28901,6 +28899,7 @@ export const RemoteAppGetUsersFragmentDoc = gql`
     providerId
   }
   disabled
+  isAnonymous
 }
     `;
 export const RunServiceConfigFragmentDoc = gql`

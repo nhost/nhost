@@ -2,7 +2,8 @@ import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { DEFAULT_ROLES } from '@/features/orgs/projects/graphql/common/utils/constants';
 import {
-  useRemoteAppGetUsersCustomLazyQuery,
+  useRemoteAppGetUsersAndAuthRolesLazyQuery,
+  type RemoteAppGetUsersAndAuthRolesQuery,
   type RemoteAppGetUsersCustomQuery,
 } from '@/utils/__generated__/graphql';
 import { debounce } from '@mui/material/utils';
@@ -26,22 +27,24 @@ export default function UserSelect({
   const [inputValue, setInputValue] = useState('');
   const [users, setUsers] = useState([]);
   const [active, setActive] = useState(true);
+  const [authRoles, setAuthRoles] = useState<string[]>(DEFAULT_ROLES);
 
   const userApplicationClient = useRemoteApplicationGQLClient();
 
-  const [fetchAppUsers, { loading }] = useRemoteAppGetUsersCustomLazyQuery({
-    client: userApplicationClient,
-    variables: {
-      where: {},
-      limit: 250,
-      offset: 0,
-    },
-  });
+  const [fetchAppUsers, { loading }] =
+    useRemoteAppGetUsersAndAuthRolesLazyQuery({
+      client: userApplicationClient,
+      variables: {
+        where: {},
+        limit: 250,
+        offset: 0,
+      },
+    });
 
   const fetchUsers = useCallback(
     async (
       request: { input: string },
-      callback: (results?: RemoteAppGetUsersCustomQuery['users']) => void,
+      callback: (results?: RemoteAppGetUsersAndAuthRolesQuery) => void,
     ) => {
       const ilike = `%${request.input === 'Admin' ? '' : request.input}%`;
       const { data } = await fetchAppUsers({
@@ -55,7 +58,7 @@ export default function UserSelect({
         },
       });
 
-      callback(data?.users);
+      callback(data);
     },
     [fetchAppUsers, userApplicationClient],
   );
@@ -65,7 +68,12 @@ export default function UserSelect({
   useEffect(() => {
     fetchOptions({ input: inputValue }, (results) => {
       if (active || inputValue === '') {
-        setUsers(results || []);
+        setUsers(results?.users || []);
+        const newAuthRoles =
+          results?.authRoles?.map((authRole) => authRole.role) || DEFAULT_ROLES;
+        console.log('newAuthRoles', newAuthRoles);
+        setAuthRoles(newAuthRoles);
+        onUserChange('admin', newAuthRoles);
       }
     });
   }, [inputValue, fetchOptions, active]);
@@ -109,7 +117,7 @@ export default function UserSelect({
         }
 
         if (userId === 'admin') {
-          onUserChange('admin', DEFAULT_ROLES);
+          onUserChange('admin', authRoles ?? DEFAULT_ROLES);
 
           return;
         }
@@ -124,7 +132,11 @@ export default function UserSelect({
 
         fetchUsers({ input: '' }, (results) => {
           if (results) {
-            setUsers(results);
+            setUsers(results?.users || []);
+            const newAuthRoles =
+              results?.authRoles?.map((authRole) => authRole.role) ||
+              DEFAULT_ROLES;
+            setAuthRoles(newAuthRoles);
           }
         });
       }}
