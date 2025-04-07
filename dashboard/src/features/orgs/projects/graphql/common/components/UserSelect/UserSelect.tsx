@@ -1,6 +1,7 @@
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { DEFAULT_ROLES } from '@/features/orgs/projects/graphql/common/utils/constants';
+import { getAdminRoles } from '@/features/orgs/projects/roles/settings/utils/getAdminRoles';
 import {
   useRemoteAppGetUsersAndAuthRolesLazyQuery,
   type RemoteAppGetUsersAndAuthRolesQuery,
@@ -73,7 +74,7 @@ export default function UserSelect({
           results?.authRoles?.map((authRole) => authRole.role) || DEFAULT_ROLES;
         console.log('newAuthRoles', newAuthRoles);
         setAuthRoles(newAuthRoles);
-        onUserChange('admin', newAuthRoles);
+        onUserChange('admin', getAdminRoles(newAuthRoles));
       }
     });
   }, [inputValue, fetchOptions, active]);
@@ -116,8 +117,18 @@ export default function UserSelect({
           return;
         }
 
+        fetchUsers({ input: '' }, (results) => {
+          if (results) {
+            setUsers(results?.users || []);
+            const newAuthRoles =
+              results?.authRoles?.map((authRole) => authRole.role) ||
+              DEFAULT_ROLES;
+            setAuthRoles(newAuthRoles);
+          }
+        });
+
         if (userId === 'admin') {
-          onUserChange('admin', authRoles ?? DEFAULT_ROLES);
+          onUserChange('admin', getAdminRoles(authRoles ?? DEFAULT_ROLES));
 
           return;
         }
@@ -129,16 +140,6 @@ export default function UserSelect({
         const roles = user?.roles?.map(({ role }) => role);
 
         onUserChange(userId, roles ?? DEFAULT_ROLES);
-
-        fetchUsers({ input: '' }, (results) => {
-          if (results) {
-            setUsers(results?.users || []);
-            const newAuthRoles =
-              results?.authRoles?.map((authRole) => authRole.role) ||
-              DEFAULT_ROLES;
-            setAuthRoles(newAuthRoles);
-          }
-        });
       }}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
