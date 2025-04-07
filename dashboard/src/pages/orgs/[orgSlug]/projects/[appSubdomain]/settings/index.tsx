@@ -78,7 +78,10 @@ export default function SettingsGeneralPage() {
     usePauseApplicationMutation({
       variables: { appId: project?.id },
       refetchQueries: [
-        { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+        {
+          query: GetOrganizationsDocument,
+          variables: { userId: userData?.id },
+        },
       ],
     });
 
@@ -86,7 +89,10 @@ export default function SettingsGeneralPage() {
     useUnpauseApplicationMutation({
       variables: { appId: project?.id },
       refetchQueries: [
-        { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+        {
+          query: GetOrganizationsDocument,
+          variables: { userId: userData?.id },
+        },
       ],
     });
 

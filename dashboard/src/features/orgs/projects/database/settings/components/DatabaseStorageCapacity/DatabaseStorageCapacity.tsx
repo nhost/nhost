@@ -94,6 +94,10 @@ export default function DatabaseStorageCapacity() {
   const decreasingSize = newCapacity < capacity;
 
   const submitDisabled = useMemo(() => {
+    if (!isPlatform) {
+      return false;
+    }
+
     if (!isDirty) {
       return true;
     }
