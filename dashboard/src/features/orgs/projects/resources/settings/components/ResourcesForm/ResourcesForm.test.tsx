@@ -1,4 +1,5 @@
 import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
+import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import { getProPlanOnlyQuery } from '@/tests/msw/mocks/graphql/plansQuery';
 import {
   resourcesAvailableQuery,
@@ -36,6 +37,7 @@ vi.mock('next/router', () => ({
 const server = setupServer(
   tokenQuery,
   resourcesAvailableQuery,
+  getProjectQuery,
   getProPlanOnlyQuery,
 );
 
@@ -51,9 +53,12 @@ afterAll(() => {
 });
 
 // Note: Workaround based on https://github.com/testing-library/user-event/issues/871#issuecomment-1059317998
-function changeSliderValue(slider: HTMLElement, value: number) {
-  return waitFor(() => {
+async function changeSliderValue(slider: HTMLElement, value: number) {
+  await waitFor(() => {
     fireEvent.input(slider, { target: { value } });
+  });
+
+  await waitFor(() => {
     fireEvent.change(slider, { target: { value } });
   });
 }
@@ -102,12 +107,14 @@ test('should show a warning message if not all the resources are allocated', asy
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
 
-  changeSliderValue(
-    screen.getByRole('slider', {
-      name: /total available vcpu/i,
-    }),
-    9 * RESOURCE_VCPU_MULTIPLIER,
-  );
+  await waitFor(() => {
+    changeSliderValue(
+      screen.getByRole('slider', {
+        name: /total available vcpu/i,
+      }),
+      9 * RESOURCE_VCPU_MULTIPLIER,
+    );
+  });
 
   expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 9/i);
   expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 18432 mib/i);
@@ -428,14 +435,14 @@ test('should take replicas into account when confirming the resources', async ()
   expect(totalVCPUSlider).toBeInTheDocument();
 
   // Change slider values and wait for updates
-  await changeSliderValue(totalVCPUSlider, 8.5 * RESOURCE_VCPU_MULTIPLIER);
+  changeSliderValue(totalVCPUSlider, 8.5 * RESOURCE_VCPU_MULTIPLIER);
 
   // setting up database
-  await changeSliderValue(
+  changeSliderValue(
     screen.getByRole('slider', { name: /database vcpu/i }),
     2 * RESOURCE_VCPU_MULTIPLIER,
   );
-  await changeSliderValue(
+  changeSliderValue(
     screen.getByRole('slider', { name: /database memory/i }),
     4 * RESOURCE_MEMORY_MULTIPLIER,
   );
@@ -445,11 +452,11 @@ test('should take replicas into account when confirming the resources', async ()
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '3');
 
-  await changeSliderValue(
+  changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
   );
-  await changeSliderValue(
+  changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql memory/i }),
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
@@ -460,11 +467,11 @@ test('should take replicas into account when confirming the resources', async ()
   await user.clear(authReplicasInput);
   await user.type(authReplicasInput, '2');
 
-  await changeSliderValue(
+  changeSliderValue(
     screen.getByRole('slider', { name: /auth vcpu/i }),
     1.5 * RESOURCE_VCPU_MULTIPLIER,
   );
-  await changeSliderValue(
+  changeSliderValue(
     screen.getByRole('slider', { name: /auth memory/i }),
     3 * RESOURCE_MEMORY_MULTIPLIER,
   );
@@ -475,11 +482,11 @@ test('should take replicas into account when confirming the resources', async ()
   await user.clear(storageReplicasInput);
   await user.type(storageReplicasInput, '4');
 
-  await changeSliderValue(
+  changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
   );
-  await changeSliderValue(
+  changeSliderValue(
     screen.getByRole('slider', { name: /storage memory/i }),
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
