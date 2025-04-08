@@ -179,6 +179,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.importRefreshToken'
       | 'done.invoke.passwordlessSmsOtp'
+      | 'done.invoke.refreshToken'
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.signUpEmailPassword'
       | 'done.invoke.signUpSecurityKey'
