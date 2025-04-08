@@ -32,9 +32,8 @@ function useFinishOrgCreation({
 
   useEffect(() => {
     async function finishOrgCreation() {
-      if (session_id && isAuthenticated) {
+      if (router.isReady && session_id && isAuthenticated) {
         setLoading(true);
-
         execPromiseWithErrorToast(
           async () => {
             const {

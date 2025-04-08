@@ -13,13 +13,13 @@ Object.defineProperty(window, 'matchMedia', {
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-export const getUseRouterObject = (session_id?: string) => ({
+export const getUseRouterObject = (session_id?: string, isReady = true) => ({
   basePath: '',
   pathname: '/orgs/xyz/projects/test-project',
   route: '/orgs/[orgSlug]/projects/[appSubdomain]',
   asPath: '/orgs/xyz/projects/test-project',
   isLocaleDomain: false,
-  isReady: true,
+  isReady,
   isPreview: false,
   query: {
     orgSlug: 'xyz',
@@ -113,16 +113,18 @@ const fetchOrganizationNewRequestsResponseMock = async () => ({
 
 const fetchPostOrganizationResponseMock = vi.fn();
 
-test('if there is NO session_id in the url the billingPostOrganizationRequest is fetched from the server', async () => {
+test('if there is NO session_id in the url and the router is ready the billingPostOrganizationRequest is fetched from the server', async () => {
   server.use(getOrganizations);
   mocks.useOrganizationMemberInvitesLazyQuery.mockImplementation(
     fetchOrganizationMemberInvitesMock,
   );
-  mocks.useRouter.mockImplementation(() => getUseRouterObject());
+
+  mocks.useRouter.mockImplementation(() => getUseRouterObject(undefined, true));
   mocks.userData.mockImplementation(() => mockSession.user);
   mocks.useOrganizationNewRequestsLazyQuery.mockImplementation(() => [
     fetchOrganizationNewRequestsResponseMock,
   ]);
+
   mocks.usePostOrganizationRequestMutation.mockImplementation(() => [
     fetchPostOrganizationResponseMock.mockImplementation(() => ({
       data: {
@@ -141,6 +143,39 @@ test('if there is NO session_id in the url the billingPostOrganizationRequest is
     /* Wait for the component to be update */
   });
   expect(fetchPostOrganizationResponseMock).toHaveBeenCalled();
+});
+
+test('if the router is not ready the billingPostOrganizationRequest is not fetched from the server', async () => {
+  server.use(getOrganizations);
+  mocks.useOrganizationMemberInvitesLazyQuery.mockImplementation(
+    fetchOrganizationMemberInvitesMock,
+  );
+  mocks.useRouter.mockImplementation(() =>
+    getUseRouterObject(undefined, false),
+  );
+  mocks.userData.mockImplementation(() => mockSession.user);
+  mocks.useOrganizationNewRequestsLazyQuery.mockImplementation(() => [
+    fetchOrganizationNewRequestsResponseMock,
+  ]);
+
+  mocks.usePostOrganizationRequestMutation.mockImplementation(() => [
+    fetchPostOrganizationResponseMock.mockImplementation(() => ({
+      data: {
+        billingPostOrganizationRequest: {
+          Status: CheckoutStatus.Open,
+          Slug: 'newOrgSlug',
+          ClientSecret: 'very_secret_secret',
+          __typename: 'PostOrganizationRequestResponse',
+        },
+      },
+    })),
+  ]);
+
+  render(<NotificationsTray />);
+  await waitFor(() => {
+    /* Wait for the component to be update */
+  });
+  expect(fetchPostOrganizationResponseMock).not.toHaveBeenCalled();
 });
 
 test('if there is a session_id in the url the billingPostOrganizationRequest is NOT fetched from the server ', async () => {

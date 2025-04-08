@@ -17,7 +17,7 @@ export default defineConfig({
   reporter: 'html',
   use: {
     actionTimeout: 0,
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
       slowMo: 500,
@@ -34,13 +34,28 @@ export default defineConfig({
       testMatch: ['**/teardown/*.teardown.ts'],
     },
     {
-      name: 'chromium',
+      name: 'main',
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      grepInvert: [/Local Dashboard CLI e2e tests/],
+      testIgnore: ['upgrade-project.test.ts', 'cli-local-dashboard.test.ts'],
+    },
+    {
+      name: 'local',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: '', // Local dashboard URL
+      },
+      testMatch: 'cli-local-dashboard.test.ts',
+    },
+    {
+      name: 'upgrade-project',
+      testMatch: 'upgrade-project.test.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+      },
     },
   ],
 });

@@ -82,7 +82,7 @@ describe('DateTimePicker', () => {
     const secondsInput = await screen.getByLabelText('Seconds');
     await user.type(secondsInput, '13');
 
-    user.click(await screen.getByRole('button', { name: 'Select' }));
+    await user.click(await screen.getByRole('button', { name: 'Select' }));
 
     await waitFor(async () =>
       expect(

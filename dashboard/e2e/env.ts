@@ -40,3 +40,7 @@ export const TEST_USER_EMAIL = process.env.NHOST_TEST_USER_EMAIL;
 export const TEST_USER_PASSWORD = process.env.NHOST_TEST_USER_PASSWORD;
 
 export const TEST_PERSONAL_ORG_SLUG = process.env.NHOST_TEST_PERSONAL_ORG_SLUG;
+
+const freeUserEmails = process.env.NHOST_TEST_FREE_USER_EMAILS;
+
+export const TEST_FREE_USER_EMAILS = JSON.parse(freeUserEmails);

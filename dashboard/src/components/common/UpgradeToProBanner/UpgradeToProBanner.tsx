@@ -3,7 +3,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
+import { TransferOrUpgradeProjectDialog } from '@/features/orgs/components/common/TransferOrUpgradeProjectDialog';
 import { useState } from 'react';
 
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
@@ -51,7 +51,7 @@ export default function UpgradeToProBanner({
 
         <div className="flex flex-col gap-2 space-y-2 lg:flex-row lg:items-center lg:space-x-2 lg:space-y-0">
           <OpenTransferDialogButton onClick={handleTransferDialogOpen} />
-          <TransferProjectDialog
+          <TransferOrUpgradeProjectDialog
             open={transferProjectDialogOpen}
             setOpen={setTransferProjectDialogOpen}
           />

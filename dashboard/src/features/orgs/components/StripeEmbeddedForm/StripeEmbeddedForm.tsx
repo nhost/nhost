@@ -14,13 +14,15 @@ export default function StripeEmbeddedForm({
   clientSecret: string;
 }) {
   return (
-    <EmbeddedCheckoutProvider
-      stripe={stripePromise}
-      options={{
-        clientSecret,
-      }}
-    >
-      <EmbeddedCheckout />
-    </EmbeddedCheckoutProvider>
+    <div className="h-[80vh] overflow-y-scroll">
+      <EmbeddedCheckoutProvider
+        stripe={stripePromise}
+        options={{
+          clientSecret,
+        }}
+      >
+        <EmbeddedCheckout />
+      </EmbeddedCheckoutProvider>
+    </div>
   );
 }

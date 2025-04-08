@@ -1,5 +1,5 @@
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
-import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
+import { TransferOrUpgradeProjectDialog } from '@/features/orgs/components/common/TransferOrUpgradeProjectDialog';
 import { useCallback, useState } from 'react';
 
 function UpgradeProjectDialog() {
@@ -12,7 +12,7 @@ function UpgradeProjectDialog() {
         buttonText="Upgrade project"
         onClick={handleDialogOpen}
       />
-      <TransferProjectDialog open={open} setOpen={setOpen} />
+      <TransferOrUpgradeProjectDialog open={open} setOpen={setOpen} isUpgrade />
     </>
   );
 }
