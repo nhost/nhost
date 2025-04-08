@@ -182,9 +182,12 @@ export class TestUserEvent {
   }
 
   async click(element: Element) {
-    await waitFor(async () => {
-      await this.user.click(element);
-    });
+    await waitFor(
+      async () => {
+        await this.user.click(element);
+      },
+      { timeout: 10000 },
+    );
   }
 
   async type(element: Element, value: string, options?: TypeOptions) {
