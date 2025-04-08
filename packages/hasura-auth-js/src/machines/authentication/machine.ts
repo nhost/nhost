@@ -397,7 +397,12 @@ export const createAuthMachine = ({
                             src: 'refreshToken',
                             id: 'refreshToken',
                             onDone: {
-                              actions: ['saveSession', 'resetTimer', 'reportTokenChanged', 'broadcastToken'],
+                              actions: [
+                                'saveSession',
+                                'resetTimer',
+                                'reportTokenChanged',
+                                'broadcastToken'
+                              ],
                               target: 'pending'
                             },
                             onError: [
@@ -782,7 +787,9 @@ export const createAuthMachine = ({
                   token: context.refreshToken.value,
                   accessToken: context.accessToken.value,
                   user: context.user,
-                  expiresAt: context.accessToken.expiresAt ? context.accessToken.expiresAt.toISOString() : null,
+                  expiresAt: context.accessToken.expiresAt
+                    ? context.accessToken.expiresAt.toISOString()
+                    : null,
                   expiresInSeconds: context.accessToken.expiresInSeconds
                 }
               })
@@ -840,9 +847,10 @@ export const createAuthMachine = ({
 
           const expiresInMilliseconds = expiresAt.getTime() - Date.now()
 
-          return expiresInMilliseconds <= TOKEN_REFRESH_MARGIN_SECONDS*1000/2 ||
-              expiresInMilliseconds <= TOKEN_REFRESH_MARGIN_SECONDS*1000 && Math.random() < 0.10
-
+          return (
+            expiresInMilliseconds <= (TOKEN_REFRESH_MARGIN_SECONDS * 1000) / 2 ||
+            (expiresInMilliseconds <= TOKEN_REFRESH_MARGIN_SECONDS * 1000 && Math.random() < 0.1)
+          )
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         /** Should retry to import the token on network error or any internal server error.
