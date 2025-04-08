@@ -1,5 +1,19 @@
 # @nhost/dashboard
 
+## 2.27.0
+
+### Minor Changes
+
+- 013e1c1: fix: update vite and image-size dependencies to address security audit vulnerabilities
+- 4fd176b: chore: re-add user event ci tests, updated sveltekit example tests to e2e suite
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+- 0420e4f: fix (dashboard): Display the selected date's month in the datetime picker component
+  - @nhost/react-apollo@17.0.3
+  - @nhost/nextjs@2.2.6
+
 ## 2.26.0
 
 ### Minor Changes
