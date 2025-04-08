@@ -1,5 +1,17 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.7.0
+
+### Minor Changes
+
+- 013e1c1: fix: update vite and image-size dependencies to address security audit vulnerabilities
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+  - @nhost/react@3.10.3
+  - @nhost/react-apollo@17.0.3
+
 ## 0.6.0
 
 ### Minor Changes
