@@ -26,6 +26,7 @@
     "dev:dashboard": "turbo run dev --filter=@nhost/dashboard",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples/**,templates/**}/*,docs,dashboard}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{dist,umd,.next,.turbo,coverage}",
+    "clean:install": "pnpm clean:all && pnpm install",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
     "coverage": "pnpm run test -- --coverage",
     "prettier": "prettier --check .",

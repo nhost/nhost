@@ -16,11 +16,11 @@ export default defineConfig({
     timeout: 5000
   },
   webServer: {
-    command: 'pnpm dev',
+    command: 'pnpm build:preview',
     port: 3000
   },
   use: {
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     baseURL: 'http://localhost:3000'
   },
   fullyParallel: true,
