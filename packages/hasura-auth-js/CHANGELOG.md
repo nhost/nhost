@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.11.0
+
+### Minor Changes
+
+- d26b6b8: fix: update broadcasted session directly
+
 ## 2.10.2
 
 ### Patch Changes

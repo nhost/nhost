@@ -1,5 +1,17 @@
 ---
 
+## 0.7.0
+### Minor Changes
+
+- 013e1c1: fix: update vite and image-size dependencies to address security audit vulnerabilities
+- 4fd176b: chore: re-add user event ci tests, updated sveltekit example tests to e2e suite
+
+### Patch Changes
+
+- b89500d: fix: use nhost-js version from the workspace
+- a1333df: fix: update vite because of vulnerability
+  - @nhost/nhost-js@3.2.7
+
 ## 0.6.0
 ### Minor Changes
 

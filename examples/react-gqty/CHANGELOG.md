@@ -1,5 +1,16 @@
 # @nhost-examples/react-gqty
 
+## 1.5.0
+
+### Minor Changes
+
+- 013e1c1: fix: update vite and image-size dependencies to address security audit vulnerabilities
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+  - @nhost/react@3.10.3
+
 ## 1.4.0
 
 ### Minor Changes
