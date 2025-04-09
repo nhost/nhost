@@ -2,13 +2,10 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
 import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
-import { DEFAULT_ROLES } from '@/features/orgs/projects/graphql/common/utils/constants';
+import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { triggerToast } from '@/utils/toast';
 import {
@@ -41,11 +38,6 @@ interface GraphiQLHeaderProps {
 }
 
 function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
-  const [availableRoles, setAvailableRoles] = useState<string[]>(DEFAULT_ROLES);
-  const [role, setRole] = useState<string>(() =>
-    availableRoles.includes('user') ? 'user' : availableRoles[0],
-  );
-
   const copyQuery = useCopyQuery();
   const prettifyEditors = usePrettifyEditors();
   const {
@@ -119,42 +111,10 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
   return (
     <header className="grid grid-flow-row items-end gap-2 p-2 md:grid-flow-col md:justify-between">
       <div className="grid grid-flow-row gap-2 md:grid-flow-col md:items-end">
-        <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
-          <UserSelect
-            className="col-span-1 md:col-auto md:w-52"
-            onUserChange={(userId, availableUserRoles) => {
-              onUserChange(userId);
-              setAvailableRoles(availableUserRoles);
-
-              const newRole = availableUserRoles.includes('user')
-                ? 'user'
-                : availableUserRoles[0];
-
-              setRole(newRole);
-              onRoleChange(newRole);
-            }}
-          />
-
-          <Select
-            id="role-select"
-            label="Role"
-            value={role}
-            onChange={(_event, value) => {
-              if (typeof value === 'string') {
-                setRole(value);
-                onRoleChange(value);
-              }
-            }}
-            hideEmptyHelperText
-            className="col-span-1 md:col-auto md:w-52"
-          >
-            {availableRoles.map((availableRole) => (
-              <Option value={availableRole} key={availableRole}>
-                {availableRole}
-              </Option>
-            ))}
-          </Select>
-        </div>
+        <UserAndRoleSelect
+          onUserChange={onUserChange}
+          onRoleChange={onRoleChange}
+        />
 
         <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
           <Tooltip title="Prettify query (Shift+Ctrl+P)">
