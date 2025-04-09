@@ -29,9 +29,11 @@ export default function UserAndRoleSelect({
     onUserChange(userId);
     setAvailableRoles(availableUserRoles);
 
-    if (availableUserRoles[0]) {
-      setRole(availableUserRoles[0]);
-      onRoleChange(availableUserRoles[0]);
+    const newRole = availableUserRoles[0];
+
+    if (newRole) {
+      setRole(newRole);
+      onRoleChange(newRole);
     }
   };
 
