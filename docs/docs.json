@@ -1,7 +1,12 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "palm",
+  "theme": "mint",
   "name": "Documentation",
+  "integrations": {
+    "segment": {
+      "key": "kD6QfDOMGR2IoJ9D1U1H5Q9X7AEjoVfN"
+    }
+  },
   "colors": {
     "primary": "#3787ff",
     "light": "#569aff",
@@ -577,11 +582,6 @@
             ]
           }
         ]
-      },
-      {
-        "tab":"Community",
-        "icon":"users-line",
-        "pages":["/community/coc", "/community/getting-involved"]
       },
       {
         "tab": "Blog",

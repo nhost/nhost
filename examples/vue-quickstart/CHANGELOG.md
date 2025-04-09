@@ -1,5 +1,17 @@
 # @nhost-examples/vue-quickstart
 
+## 0.5.0
+
+### Minor Changes
+
+- 013e1c1: fix: update vite and image-size dependencies to address security audit vulnerabilities
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+  - @nhost/apollo@8.0.7
+  - @nhost/vue@2.9.4
+
 ## 0.4.0
 
 ### Minor Changes

@@ -1,5 +1,18 @@
 # @nhost-examples/react-apollo
 
+## 1.5.0
+
+### Minor Changes
+
+- 013e1c1: fix: update vite and image-size dependencies to address security audit vulnerabilities
+- 25f07a3: fix: update versions
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+  - @nhost/react@3.10.3
+  - @nhost/react-apollo@17.0.3
+
 ## 1.4.0
 
 ### Minor Changes

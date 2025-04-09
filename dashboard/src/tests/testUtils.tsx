@@ -1,4 +1,5 @@
 /* eslint-disable no-restricted-imports */
+/* eslint-disable max-classes-per-file */
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -22,7 +23,10 @@ import {
   waitForElementToBeRemoved as rtlWaitForElementToBeRemoved,
   waitFor,
 } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent, {
+  type Options,
+  type UserEvent,
+} from '@testing-library/user-event';
 import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -31,6 +35,14 @@ import nhostGraphQLLink from './msw/mocks/graphql/nhostGraphQLLink';
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const emotionCache = createEmotionCache();
+
+/* Workaround to avoid error importing type declarations for typeOptions from @testing-library/user-event */
+export interface TypeOptions {
+  skipClick?: Options['skipClick'];
+  skipAutoClose?: Options['skipAutoClose'];
+  initialSelectionStart?: number;
+  initialSelectionEnd?: number;
+}
 
 process.env = {
   TEST_MODE: 'true',
@@ -162,25 +174,33 @@ export const mockPointerEvent = () => {
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
 };
 
-export async function clickOnElement(element: Element) {
-  const user = userEvent.setup();
-  await waitFor(async () => {
-    await user.click(element);
-  });
-}
+export class TestUserEvent {
+  private user: UserEvent;
 
-export async function userType(element: Element, value: string, options?: any) {
-  const user = userEvent.setup();
-  await waitFor(async () => {
-    await user.type(element, value, options);
-  });
-}
+  constructor() {
+    this.user = userEvent.setup();
+  }
 
-export async function userClearElement(element: Element) {
-  const user = userEvent.setup();
-  await waitFor(async () => {
-    await user.clear(element);
-  });
+  async click(element: Element) {
+    await waitFor(
+      async () => {
+        await this.user.click(element);
+      },
+      { timeout: 10000 },
+    );
+  }
+
+  async type(element: Element, value: string, options?: TypeOptions) {
+    await waitFor(async () => {
+      await this.user.type(element, value, options);
+    });
+  }
+
+  async clear(element: Element) {
+    await waitFor(async () => {
+      await this.user.clear(element);
+    });
+  }
 }
 
 export * from '@testing-library/react';

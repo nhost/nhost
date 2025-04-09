@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/sveltekit",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "scripts": {
     "dev": "vite dev",
@@ -9,7 +9,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
     "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
-    "test": "pnpm install-browsers && pnpm playwright test",
+    "e2e": "pnpm install-browsers && pnpm playwright test",
     "lint": "eslint ."
   },
   "devDependencies": {
@@ -30,12 +30,13 @@
     "svelte-check": "^3.6.8",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.3",
-    "vite": "^6.0.12",
+    "vite": "^6.0.14",
     "vitest": "^0.25.8"
   },
   "type": "module",
   "dependencies": {
-    "@nhost/nhost-js": "^3.2.1",
+    "@nhost/nhost-js": "workspace:*",
+    "esm-env": "^1.2.2",
     "graphql": "16.8.1",
     "graphql-tag": "^2.12.6",
     "js-cookie": "^3.0.5",

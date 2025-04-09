@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/codegen-react-query",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "scripts": {
     "codegen": "graphql-codegen",
@@ -37,6 +37,6 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "typescript": "^4.9.5",
-    "vite": "^5.4.15"
+    "vite": "^5.4.17"
   }
 }

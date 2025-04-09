@@ -1,5 +1,18 @@
 # @nhost-examples/vue-apollo
 
+## 0.11.0
+
+### Minor Changes
+
+- 013e1c1: fix: update vite and image-size dependencies to address security audit vulnerabilities
+
+### Patch Changes
+
+- a1333df: fix: update vite because of vulnerability
+  - @nhost/nhost-js@3.2.7
+  - @nhost/apollo@8.0.7
+  - @nhost/vue@2.9.4
+
 ## 0.10.0
 
 ### Minor Changes
