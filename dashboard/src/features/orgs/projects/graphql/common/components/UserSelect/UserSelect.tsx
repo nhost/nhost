@@ -1,6 +1,5 @@
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { DEFAULT_ROLES } from '@/features/orgs/projects/graphql/common/utils/constants';
 import { getAdminRoles } from '@/features/orgs/projects/roles/settings/utils/getAdminRoles';
 import {
   useRemoteAppGetUsersAndAuthRolesLazyQuery,
@@ -28,7 +27,9 @@ export default function UserSelect({
   const [inputValue, setInputValue] = useState('');
   const [users, setUsers] = useState([]);
   const [active, setActive] = useState(true);
-  const [authRoles, setAuthRoles] = useState<string[]>(DEFAULT_ROLES);
+  const [adminAuthRoles, setAdminAuthRoles] = useState<string[]>(() =>
+    getAdminRoles(),
+  ); // Roles from the auth.roles table
 
   const userApplicationClient = useRemoteApplicationGQLClient();
 
@@ -71,13 +72,16 @@ export default function UserSelect({
       if (active || inputValue === '') {
         setUsers(results?.users || []);
         const newAuthRoles =
-          results?.authRoles?.map((authRole) => authRole.role) || DEFAULT_ROLES;
-        console.log('newAuthRoles', newAuthRoles);
-        setAuthRoles(newAuthRoles);
-        onUserChange('admin', getAdminRoles(newAuthRoles));
+          results?.authRoles?.map((authRole) => authRole.role) || [];
+        setAdminAuthRoles(newAuthRoles);
       }
     });
   }, [inputValue, fetchOptions, active]);
+
+  useEffect(() => {
+    onUserChange('admin', getAdminRoles(adminAuthRoles));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminAuthRoles]);
 
   const autocompleteOptions = [
     {
@@ -117,19 +121,8 @@ export default function UserSelect({
           return;
         }
 
-        fetchUsers({ input: '' }, (results) => {
-          if (results) {
-            setUsers(results?.users || []);
-            const newAuthRoles =
-              results?.authRoles?.map((authRole) => authRole.role) ||
-              DEFAULT_ROLES;
-            setAuthRoles(newAuthRoles);
-          }
-        });
-
         if (userId === 'admin') {
-          onUserChange('admin', getAdminRoles(authRoles ?? DEFAULT_ROLES));
-
+          onUserChange('admin', getAdminRoles(adminAuthRoles));
           return;
         }
 
@@ -139,7 +132,7 @@ export default function UserSelect({
 
         const roles = user?.roles?.map(({ role }) => role);
 
-        onUserChange(userId, roles ?? DEFAULT_ROLES);
+        onUserChange(userId, roles ?? []);
       }}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
