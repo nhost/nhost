@@ -1,7 +1,6 @@
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
-import { DEFAULT_ROLES } from '@/features/orgs/projects/graphql/common/utils/constants';
 import { useState } from 'react';
 
 /**
@@ -22,7 +21,7 @@ export default function UserAndRoleSelect({
   onUserChange,
   onRoleChange,
 }: UserAndRoleSelectProps) {
-  const [availableRoles, setAvailableRoles] = useState<string[]>(DEFAULT_ROLES);
+  const [availableRoles, setAvailableRoles] = useState<string[]>([]);
   const [role, setRole] = useState<string>(() => availableRoles[0]);
 
   const handleUserChange = (userId: string, availableUserRoles: string[]) => {
