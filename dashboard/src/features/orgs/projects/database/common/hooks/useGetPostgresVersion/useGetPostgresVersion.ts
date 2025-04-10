@@ -23,7 +23,7 @@ export default function useGetPostgresVersion() {
   });
 
   const { version } = postgresSettingsData?.config?.postgres || {};
-  const { major, minor } = splitPostgresMajorMinorVersions(version);
+  const { major, minor } = splitPostgresMajorMinorVersions(version || '');
 
   return {
     version,
