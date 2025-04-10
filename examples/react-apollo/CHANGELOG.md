@@ -1,5 +1,11 @@
 # @nhost-examples/react-apollo
 
+## 1.5.1
+
+### Patch Changes
+
+- efd68c3: chore (react-apollo): use preview build instead of local dev server for e2e tests
+
 ## 1.5.0
 
 ### Minor Changes

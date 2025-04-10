@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 2.28.0
+
+### Minor Changes
+
+- cef6471: fix: dashboard: add anonid to user's metadata
+
+### Patch Changes
+
+- 233232b: feat (dashboard): improve Upgrade project dialog
+
 ## 2.27.0
 
 ### Minor Changes
