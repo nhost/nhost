@@ -1,6 +1,12 @@
-import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
+import {
+  TEST_FREE_USER_EMAILS,
+  TEST_ORGANIZATION_SLUG,
+  TEST_PROJECT_SUBDOMAIN,
+  TEST_USER_PASSWORD,
+} from '@/e2e/env';
 import { faker } from '@faker-js/faker';
-import type { Page } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
+import { add, format } from 'date-fns-v4';
 
 /**
  * Open a project by navigating to the project's overview page.
@@ -213,8 +219,96 @@ export async function clickPermissionButton({
     .click();
 }
 
-export async function gotoAuthURL(page) {
+export async function gotoAuthURL(page: Page) {
   const authUrl = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/users`;
   await page.goto(authUrl);
   await page.waitForURL(authUrl, { waitUntil: 'networkidle' });
+}
+
+export async function gotoUrl(page: Page, url: string) {
+  await page.url;
+  await page.goto(url);
+  await page.waitForURL(url, { waitUntil: 'networkidle' });
+}
+
+let newOrgSlug: string;
+
+export function getNewOrgSlug() {
+  return newOrgSlug;
+}
+
+export function setNewOrgSlug(slug: string) {
+  newOrgSlug = slug;
+}
+
+let freeUserStarterOrgSlug: string;
+
+export function getFreeUserStarterOrgSlug() {
+  return freeUserStarterOrgSlug;
+}
+
+export function setFreeUserStarterOrgSlug(slug: string) {
+  freeUserStarterOrgSlug = slug;
+}
+
+let newProjectSlug: string;
+
+export function getNewProjectSlug() {
+  return newProjectSlug;
+}
+
+export function setNewProjectSlug(slug: string) {
+  newProjectSlug = slug;
+}
+
+export function getProjectSlugFromUrl(url: string) {
+  const [, projectSlug] = url.split('/projects/');
+
+  return projectSlug;
+}
+
+export function getOrgSlugFromUrl(url: string) {
+  const orgSlug = url.split('/orgs/')[1].replace('/projects', '');
+  return orgSlug;
+}
+
+export function getCardExpiration() {
+  const now = add(new Date(), { years: 3 });
+  return format(now, 'MMyy');
+}
+
+let newProjectName: string;
+
+export function getNewProjectName() {
+  return newProjectName;
+}
+
+export function setNewProjectName(name: string) {
+  newProjectName = name;
+}
+
+function getRandomUserIndex(): number {
+  return Math.floor(Math.random() * 5);
+}
+
+export async function loginWithFreeUser(page: Page) {
+  const userIndex = getRandomUserIndex();
+
+  const freeUserEmail = TEST_FREE_USER_EMAILS[userIndex];
+
+  // eslint-disable-next-line no-console
+  console.log(`Selected userIndex: ${userIndex}`);
+  await page.goto('/');
+  await page.waitForURL('/signin');
+  await page.getByRole('link', { name: /continue with email/i }).click();
+
+  await page.waitForURL('/signin/email');
+  await page.getByLabel('Email').fill(freeUserEmail);
+  await page.getByLabel('Password').fill(TEST_USER_PASSWORD);
+  await page.getByRole('button', { name: /sign in/i }).click();
+  expect(
+    await page.getByRole('button', { name: 'Create project' }),
+  ).not.toBeVisible();
+  await page.waitForSelector('h2:has-text("Welcome to")', { timeout: 20000 });
+  setFreeUserStarterOrgSlug(getOrgSlugFromUrl(await page.url()));
 }

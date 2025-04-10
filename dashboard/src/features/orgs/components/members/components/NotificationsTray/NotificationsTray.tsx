@@ -39,7 +39,7 @@ type Invite = OrganizationMemberInvitesQuery['organizationMemberInvites'][0];
 
 export default function NotificationsTray() {
   const userData = useUserData();
-  const { asPath, route, push, query } = useRouter();
+  const { asPath, route, push, query, isReady: isRouterReady } = useRouter();
   const { session_id } = query;
   const { refetch: refetchOrgs } = useOrgs();
   const [open, setOpen] = useState(false);
@@ -113,6 +113,7 @@ export default function NotificationsTray() {
     if (
       userData &&
       !['/', '/orgs/verify'].includes(route) &&
+      isRouterReady &&
       isEmptyValue(session_id)
     ) {
       checkForPendingOrgRequests();
@@ -120,6 +121,7 @@ export default function NotificationsTray() {
   }, [
     route,
     userData,
+    isRouterReady,
     getOrganizationNewRequests,
     postOrganizationRequest,
     session_id,

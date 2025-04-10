@@ -22,12 +22,17 @@ import {
 import { setupServer } from 'msw/node';
 import { useState } from 'react';
 import { afterAll, beforeAll, vi } from 'vitest';
-import TransferProjectDialog from './TransferProjectDialog';
+import TransferorUpgradeProjectDialog from './TransferOrUpgradeProjectDialog';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
+const mocks = vi.hoisted(() => ({
+  useRouter: vi.fn(),
+  useOrgs: vi.fn(),
+  push: vi.fn(),
+}));
 
 mockPointerEvent();
 
@@ -44,7 +49,7 @@ const getUseRouterObject = (session_id?: string) => ({
     appSubdomain: 'test-project',
     session_id,
   },
-  push: vi.fn(),
+  push: mocks.push,
   replace: vi.fn(),
   reload: vi.fn(),
   back: vi.fn(),
@@ -57,11 +62,6 @@ const getUseRouterObject = (session_id?: string) => ({
   },
   isFallback: false,
 });
-
-const mocks = vi.hoisted(() => ({
-  useRouter: vi.fn(),
-  useOrgs: vi.fn(),
-}));
 
 vi.mock('@/features/orgs/projects/hooks/useOrgs', async () => {
   const actualUseOrgs = await vi.importActual<any>(
@@ -78,17 +78,42 @@ const postOrganizationRequestResolver = createGraphqlMockResolver(
   'mutation',
 );
 
+const billingTransferAppRequestResolver = createGraphqlMockResolver(
+  'billingTransferApp',
+  'mutation',
+);
+
 vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
+async function asyncFireEvent(element: Document | Element | Window | Node) {
+  await waitFor(() => {
+    fireEvent(
+      element,
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  });
+}
+
 export function DialogWrapper({
   defaultOpen = true,
+  isUpgrade = false,
 }: {
   defaultOpen?: boolean;
+  isUpgrade?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  return <TransferProjectDialog open={open} setOpen={setOpen} />;
+  return (
+    <TransferorUpgradeProjectDialog
+      open={open}
+      setOpen={setOpen}
+      isUpgrade={isUpgrade}
+    />
+  );
 }
 
 const server = setupServer(tokenQuery);
@@ -102,11 +127,12 @@ beforeAll(() => {
 afterEach(() => {
   queryClient.clear();
   mocks.useRouter.mockRestore();
+  mocks.push.mockRestore();
+  vi.restoreAllMocks();
 });
 
 afterAll(() => {
   server.close();
-  vi.restoreAllMocks();
 });
 
 test('opens create org dialog when selecting "create new org" and closes transfer dialog', async () => {
@@ -141,13 +167,7 @@ test('opens create org dialog when selecting "create new org" and closes transfe
   const submitButton = await screen.findByText('Continue');
   expect(submitButton).toHaveTextContent('Continue');
 
-  fireEvent(
-    submitButton,
-    new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
+  asyncFireEvent(submitButton);
 
   await waitFor(() => {
     expect(submitButton).not.toBeInTheDocument();
@@ -156,13 +176,48 @@ test('opens create org dialog when selecting "create new org" and closes transfe
   const newOrgTitle = await screen.findByText('New Organization');
   expect(newOrgTitle).toBeInTheDocument();
   const closeButton = await screen.findByText('Close');
-  fireEvent(
-    closeButton,
-    new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
+  asyncFireEvent(closeButton);
+  await waitFor(() => {
+    expect(newOrgTitle).not.toBeInTheDocument();
+  });
+
+  const submitButtonAfterClosingNewOrgDialog =
+    await screen.findByText('Continue');
+  await waitFor(() => {
+    expect(submitButtonAfterClosingNewOrgDialog).toHaveTextContent('Continue');
+  });
+});
+test('when upgrading a project by clicking on the Continue button the create new org modal is opened and the initial dialog is closed', async () => {
+  mocks.useRouter.mockImplementation(() => getUseRouterObject());
+
+  server.use(getProjectQuery);
+  server.use(getOrganization);
+  mocks.useOrgs.mockImplementation(() => ({
+    orgs: mockOrganizations,
+    currentOrg: mockOrganization,
+    loading: false,
+    refetch: vi.fn(),
+  }));
+  server.use(prefetchNewAppQuery);
+
+  render(<DialogWrapper isUpgrade />);
+
+  expect(await screen.findByText('Upgrade project')).toBeInTheDocument();
+
+  const submitButton = await screen.findByText('Continue');
+  expect(submitButton).toHaveTextContent('Continue');
+
+  asyncFireEvent(submitButton);
+
+  await waitFor(() => {
+    expect(submitButton).not.toBeInTheDocument();
+  });
+
+  const newOrgTitle = await screen.findByText('New Organization');
+  expect(newOrgTitle).toBeInTheDocument();
+  const closeButton = await screen.findByText('Close');
+
+  asyncFireEvent(closeButton);
   await waitFor(() => {
     expect(newOrgTitle).not.toBeInTheDocument();
   });
@@ -182,7 +237,9 @@ test(`transfer dialog opens automatically when there is a session_id and selects
     orgs: mockOrganizations,
     currentOrg: mockOrganization,
     loading: false,
-    refetch: vi.fn(),
+    refetch: async () => ({
+      data: { organizations: mockOrganizationsWithNewOrg },
+    }),
   }));
   server.use(prefetchNewAppQuery);
   server.use(postOrganizationRequestResolver.handler);
@@ -196,13 +253,7 @@ test(`transfer dialog opens automatically when there is a session_id and selects
 
   const closeButton = await screen.findByText('Close');
 
-  fireEvent(
-    closeButton,
-    new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
+  asyncFireEvent(closeButton);
 
   await waitFor(() => {});
   expect(closeButton).toBeInTheDocument();
@@ -220,15 +271,84 @@ test(`transfer dialog opens automatically when there is a session_id and selects
     orgs: mockOrganizationsWithNewOrg,
     currentOrg: mockOrganization,
     loading: false,
-    refetch: vi.fn(),
+    refetch: async () => ({
+      data: { organizations: mockOrganizationsWithNewOrg },
+    }),
   }));
+
+  await waitFor(async () => {
+    expect(
+      await screen.queryByRole('combobox', {
+        name: /Organization/i,
+      }),
+    ).toBeInTheDocument();
+  });
 
   const organizationCombobox = await screen.findByRole('combobox', {
     name: /Organization/i,
   });
 
   expect(organizationCombobox).toHaveTextContent(newOrg.name);
-
   const submitButton = await screen.findByText('Transfer');
   expect(submitButton).not.toBeDisabled();
+});
+test(`upgrade project dialog opens automatically when there is a session_id and transfers the project to ${newOrg.name}`, async () => {
+  mocks.useRouter.mockImplementation(() => getUseRouterObject('session_id'));
+  server.use(getProjectQuery);
+  server.use(getOrganization);
+
+  mocks.useOrgs.mockImplementation(() => ({
+    orgs: mockOrganizations,
+    currentOrg: mockOrganization,
+    loading: false,
+    refetch: async () => ({
+      data: { organizations: mockOrganizationsWithNewOrg },
+    }),
+  }));
+  server.use(prefetchNewAppQuery);
+  server.use(postOrganizationRequestResolver.handler);
+  server.use(billingTransferAppRequestResolver.handler);
+
+  render(<DialogWrapper defaultOpen={false} isUpgrade />);
+  const processingNewOrgText = await screen.findByText(
+    'Creating new organization',
+  );
+
+  expect(processingNewOrgText).toBeInTheDocument();
+
+  const closeButton = await screen.findByText('Close');
+
+  asyncFireEvent(closeButton);
+
+  await waitFor(() => {});
+  expect(closeButton).toBeInTheDocument();
+
+  postOrganizationRequestResolver.resolve({
+    billingPostOrganizationRequest: {
+      Status: 'COMPLETED',
+      Slug: newOrg.slug,
+      ClientSecret: null,
+      __typename: 'PostOrganizationRequestResponse',
+    },
+  });
+
+  mocks.useOrgs.mockImplementation(() => ({
+    orgs: mockOrganizationsWithNewOrg,
+    currentOrg: mockOrganization,
+    loading: false,
+    refetch: async () => ({
+      data: { organizations: mockOrganizationsWithNewOrg },
+    }),
+  }));
+  await waitFor(async () => {
+    expect(await screen.findByText('Upgrading project...')).toBeInTheDocument();
+  });
+
+  billingTransferAppRequestResolver.resolve({
+    billingTransferApp: true,
+  });
+
+  await waitFor(async () => {});
+
+  expect(mocks.push).toHaveBeenCalledWith('/orgs/new-org/projects');
 });
