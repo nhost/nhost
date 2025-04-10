@@ -2,4 +2,4 @@
 '@nhost/docs': minor
 ---
 
-fix: center heading in hero section
+fix: center heading in hero section, update mintlify
