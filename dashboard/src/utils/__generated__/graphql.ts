@@ -6307,7 +6307,9 @@ export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
   /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
-  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key'
+  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
+  /** unique or primary key constraint on columns "user_id", "provider_id" */
+  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
 }
 
 /** input type for inserting data into table "auth.user_providers" */
@@ -21935,7 +21937,7 @@ export type Regions_Allowed_Organization_Bool_Exp = {
 export enum Regions_Allowed_Organization_Constraint {
   /** unique or primary key constraint on columns "id" */
   RegionsAllowedOrganizationPkey = 'regions_allowed_organization_pkey',
-  /** unique or primary key constraint on columns "organization_id", "region_id" */
+  /** unique or primary key constraint on columns "region_id", "organization_id" */
   RegionsAllowedOrganizationRegionIdOrganizationIdKey = 'regions_allowed_organization_region_id_organization_id_key'
 }
 
@@ -26661,7 +26663,7 @@ export type WorkspaceMemberInvites_Bool_Exp = {
 
 /** unique or primary key constraints on table "workspace_member_invites" */
 export enum WorkspaceMemberInvites_Constraint {
-  /** unique or primary key constraint on columns "email", "workspace_id" */
+  /** unique or primary key constraint on columns "workspace_id", "email" */
   WorkspaceMemberInvitesEmailWorkspaceIdKey = 'workspace_member_invites_email_workspace_id_key',
   /** unique or primary key constraint on columns "id" */
   WorkspaceMemberInvitesPkey = 'workspace_member_invites_pkey'
@@ -26944,7 +26946,7 @@ export type WorkspaceMembers_Bool_Exp = {
 export enum WorkspaceMembers_Constraint {
   /** unique or primary key constraint on columns "id" */
   WorkspaceMembersPkey = 'workspace_members_pkey',
-  /** unique or primary key constraint on columns "user_id", "workspace_id" */
+  /** unique or primary key constraint on columns "workspace_id", "user_id" */
   WorkspaceMembersUserIdWorkspaceIdKey = 'workspace_members_user_id_workspace_id_key'
 }
 
