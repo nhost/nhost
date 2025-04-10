@@ -23,6 +23,7 @@ html:not([class~="dark"]) .welcome-hero {
 }
 
 .welcome-hero h1 {
+  display: block;
   font-size: 3rem;
   margin-bottom: 1.5rem;
   font-weight: 700;
