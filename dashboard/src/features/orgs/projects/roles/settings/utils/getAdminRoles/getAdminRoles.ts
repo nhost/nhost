@@ -1,3 +1,5 @@
+import { isEmptyValue } from '@/lib/utils';
+
 /**
  * Adds the admin public and anonymous roles to the given list of roles with duplicates
  *
@@ -5,7 +7,7 @@
  * @returns An array with the admin roles
  */
 export default function getAdminRoles(roles?: string[]) {
-  if (!roles) {
+  if (isEmptyValue(roles)) {
     return ['admin', 'public', 'anonymous'];
   }
 

@@ -1,6 +1,7 @@
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { getAdminRoles } from '@/features/orgs/projects/roles/settings/utils/getAdminRoles';
+import { isNotEmptyValue } from '@/lib/utils';
 import {
   useRemoteAppGetUsersAndAuthRolesLazyQuery,
   type RemoteAppGetUsersAndAuthRolesQuery,
@@ -70,10 +71,19 @@ export default function UserSelect({
   useEffect(() => {
     fetchOptions({ input: inputValue }, (results) => {
       if (active || inputValue === '') {
-        setUsers(results?.users || []);
-        const newAuthRoles =
-          results?.authRoles?.map((authRole) => authRole.role) || [];
-        setAdminAuthRoles(newAuthRoles);
+        if (
+          isNotEmptyValue(results?.users) &&
+          isNotEmptyValue(results?.authRoles)
+        ) {
+          setUsers(results.users);
+          const newAuthRoles = results.authRoles.map(
+            (authRole) => authRole.role,
+          );
+          setAdminAuthRoles(newAuthRoles);
+        } else {
+          setUsers([]);
+          setAdminAuthRoles(getAdminRoles());
+        }
       }
     });
   }, [inputValue, fetchOptions, active]);
@@ -130,9 +140,11 @@ export default function UserSelect({
           ({ id }) => id === userId,
         );
 
-        const roles = user?.roles?.map(({ role }) => role);
+        if (isNotEmptyValue(user?.roles)) {
+          const roles = user.roles.map(({ role }) => role);
 
-        onUserChange(userId, roles ?? []);
+          onUserChange(userId, roles);
+        }
       }}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
