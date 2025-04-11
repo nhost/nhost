@@ -5,7 +5,6 @@ import { isNotEmptyValue } from '@/lib/utils';
 import {
   useRemoteAppGetUsersAndAuthRolesLazyQuery,
   type RemoteAppGetUsersAndAuthRolesQuery,
-  type RemoteAppGetUsersCustomQuery,
 } from '@/utils/__generated__/graphql';
 import { debounce } from '@mui/material/utils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -136,7 +135,7 @@ export default function UserSelect({
           return;
         }
 
-        const user: RemoteAppGetUsersCustomQuery['users'][0] = users.find(
+        const user: RemoteAppGetUsersAndAuthRolesQuery['users'][0] = users.find(
           ({ id }) => id === userId,
         );
 
