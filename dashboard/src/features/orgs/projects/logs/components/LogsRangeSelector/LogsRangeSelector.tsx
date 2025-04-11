@@ -27,11 +27,13 @@ function LogsToDatePickerLiveButton() {
     if (isLive) {
       setValue('from', subMinutes(new Date(), 20));
       setValue('to', new Date());
+      setValue('interval', null);
       return;
     }
 
     setValue('to', null);
     setCurrentTime(new Date());
+    setValue('interval', null);
   }
 
   useInterval(() => setCurrentTime(new Date()), isLive ? 1000 : 0);
@@ -84,7 +86,7 @@ function LogsRangeSelectorIntervalPickers({
   const applicationCreationDate = new Date(project.createdAt);
 
   const { setValue, getValues } = useFormContext<LogsFilterFormValues>();
-  const { from } = useWatch<LogsFilterFormValues>();
+  const { from, interval } = useWatch<LogsFilterFormValues>();
 
   const { handleClose } = useDropdown();
 
@@ -99,8 +101,13 @@ function LogsRangeSelectorIntervalPickers({
   function handleIntervalChange({
     minutesToDecreaseFromCurrentDate,
   }: LogsCustomInterval) {
+    console.log(
+      'minutesToDecreaseFromCurrentDate',
+      minutesToDecreaseFromCurrentDate,
+    );
     setValue('from', subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
     setValue('to', new Date());
+    setValue('interval', minutesToDecreaseFromCurrentDate);
   }
 
   return (
@@ -121,7 +128,11 @@ function LogsRangeSelectorIntervalPickers({
         {LOGS_AVAILABLE_INTERVALS.map((logInterval) => (
           <Button
             key={logInterval.label}
-            variant="outlined"
+            variant={
+              interval === logInterval.minutesToDecreaseFromCurrentDate
+                ? 'contained'
+                : 'outlined'
+            }
             color="secondary"
             className="self-center"
             onClick={() => handleIntervalChange(logInterval)}

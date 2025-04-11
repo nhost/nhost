@@ -28,6 +28,7 @@ import LogsServiceFilter from './LogsServiceFilter';
 export const validationSchema = Yup.object({
   from: Yup.date(),
   to: Yup.date().nullable(),
+  interval: Yup.number().nullable(), // in minutes
   service: Yup.string().oneOf(Object.values(AvailableLogsService)),
   regexFilter: Yup.string(),
 });
@@ -100,8 +101,12 @@ export default function LogsHeader({
     onSubmitFilterValues(getValues());
   }, [service, getValues, onSubmitFilterValues]);
 
-  const handleSubmit = (values: LogsFilterFormValues) =>
+  const handleSubmit = (values: LogsFilterFormValues) => {
+    console.log('values', values);
+    if (getValues('interval')) {
+    }
     onSubmitFilterValues(values);
+  };
 
   return (
     <Box
