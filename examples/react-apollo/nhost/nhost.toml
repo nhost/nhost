@@ -32,7 +32,7 @@ version = 22
 version = '0.38.0'
 
 [auth.elevatedPrivileges]
-mode = 'recommended'
+mode = 'required'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
