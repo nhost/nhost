@@ -1,8 +1,8 @@
 ---
-title: Setup Nhost with SvelteKit  
-sidebarTitle: SvelteKit  
-description: Get up and running with Nhost and SvelteKit  
-icon: svelte
+title: Setup Nhost with SvelteKit
+sidebarTitle: SvelteKit
+description: Get up and running with Nhost and SvelteKit
+icon: s
 ---
 
 <Steps>
@@ -44,7 +44,7 @@ icon: svelte
   </Step>
 
   <Step title="Setup a SvelteKit Application">
-    Create a Next.js application.
+    Create a SvelteKit application.
 
     ```bash Terminal
     mkdir nhost-sveltekit-quickstart && \
@@ -84,10 +84,10 @@ icon: svelte
     <script>
       import { onMount } from 'svelte';
       import { nhost } from '../lib/nhost';
-    
+
       let loading = true;
       let movies = [];
-    
+
       const getMovies = `
         query {
           movies {
@@ -97,7 +97,7 @@ icon: svelte
           }
         }
       `;
-    
+
       onMount(async () => {
         const { data, error } = await nhost.graphql.request(getMovies);
         if (!error) {
@@ -106,7 +106,7 @@ icon: svelte
         loading = false;
       });
     </script>
-    
+
     {#if loading}
       <p>Loading...</p>
     {:else}
