@@ -41,10 +41,6 @@
         "interval": "5m",
         "limit": 100
       },
-      "emails": {
-        "interval": "1h",
-        "limit": 100
-      },
       "global": {
         "interval": "1m",
         "limit": 1000
