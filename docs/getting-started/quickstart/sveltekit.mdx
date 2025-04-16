@@ -1,0 +1,133 @@
+---
+title: Setup Nhost with SvelteKit
+sidebarTitle: SvelteKit
+description: Get up and running with Nhost and SvelteKit
+icon: s
+---
+
+<Steps>
+  <Step title="Create Project">
+    If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+  </Step>
+
+  <Step title="Setup Database">
+    Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+    ```sql SQL Editor
+    CREATE TABLE movies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      director VARCHAR(255),
+      release_year INTEGER,
+      genre VARCHAR(100),
+      rating FLOAT
+    );
+
+    INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+      ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+      ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+      ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+      ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+    ```
+
+    <Warning>Make sure the option `Track this` is enabled</Warning>
+
+    ![SQL Editor](/images/quickstarts/react/sql-editor.png)
+
+  </Step>
+
+  <Step title="permissions">
+    Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
+
+    ![Permission Rules](/images/quickstarts/react/permissions.png)
+
+  </Step>
+
+  <Step title="Setup a SvelteKit Application">
+    Create a SvelteKit application.
+
+    ```bash Terminal
+    mkdir nhost-sveltekit-quickstart && \
+    cd nhost-sveltekit-quickstart && \
+    npx sv create --template minimal --no-types --no-add-ons --install npm
+    ```
+
+  </Step>
+
+  <Step title="Install the Nhost package for SvelteKit">
+    Navigate to the SvelteKit application and install `@nhost/nhost-js`.
+
+    ```bash Terminal
+    npm install @nhost/nhost-js
+    ```
+
+  </Step>
+
+  <Step title="Configure the Nhost client and fetch the list of movies">
+
+    Create a new file with the following code to creates the Nhost client.
+
+    ```js ./src/lib/nhost.js
+    import { NhostClient } from "@nhost/nhost-js";
+
+    export const nhost = new NhostClient({
+      subdomain: "<subdomain>",
+      region: "<region>",
+    })
+    ```
+
+    <Note>Replace `<subdomain>` and `<region>` with the subdomain and region for the project</Note>
+
+    Finally, update `src/routes/+page.svelte` to fetch the list of movies.
+
+    ```js src/routes/+page.svelte
+    <script>
+      import { onMount } from 'svelte';
+      import { nhost } from '../lib/nhost';
+
+      let loading = true;
+      let movies = [];
+
+      const getMovies = `
+        query {
+          movies {
+            title
+            genre
+            rating
+          }
+        }
+      `;
+
+      onMount(async () => {
+        const { data, error } = await nhost.graphql.request(getMovies);
+        if (!error) {
+          movies = data.movies;
+        }
+        loading = false;
+      });
+    </script>
+
+    {#if loading}
+      <p>Loading...</p>
+    {:else}
+      <table>
+        <tbody>
+          {#each movies as movie}
+            <tr>
+              <td>{movie.title}</td>
+              <td>{movie.genre}</td>
+              <td>{movie.rating}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    {/if}
+    ```
+
+  </Step>
+
+  <Step title="The end">
+    Run your project with `npm run dev` and navigate to `http://localhost:5173` in your browser.
+
+  </Step>
+</Steps>
