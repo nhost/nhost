@@ -1,5 +1,13 @@
 # @nhost-examples/nextjs
 
+## 0.4.7
+
+### Patch Changes
+
+- d9eb906: fix: update vite and nextjs because of vulnerability
+- Updated dependencies [d9eb906]
+  - @nhost/nextjs@2.2.7
+
 ## 0.4.6
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.30.1
+
+### Patch Changes
+
+- 5e96230: fix: fixing mintlify breaking our docs
+
 ## 2.30.0
 
 ### Minor Changes
