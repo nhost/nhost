@@ -7,6 +7,7 @@ import PlausibleProvider from 'next-plausible'
 import { DefaultSeo } from 'next-seo'
 import type { AppProps } from 'next/app'
 import { ReactElement } from 'react'
+import Analytics from '@/components/analytics/analytics'
 
 export type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactElement
@@ -38,6 +39,8 @@ export default function App({ Component, pageProps }: LandingPageProps) {
           cardType: 'summary_large_image',
         }}
       />
+
+      {process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' && <Analytics />}
 
       {getLayout(
         <PlausibleProvider

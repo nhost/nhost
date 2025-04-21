@@ -3,8 +3,7 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
   title: 'Nhost Autoscaler: a powerful new addition to the Nhost platform',
-  description:
-    'From 0 to ludicrous speed',
+  description: 'From 0 to ludicrous speed',
   image: '/images/blog/og-platform-autoscaler.png',
   date: '2024-05-23',
   authors: [
@@ -36,6 +35,7 @@ This approach allows us to test and assess various components of the system. Not
 The objective is to observe the behavior of different configurations without aiming for maximum throughput or conducting traditional load testing on the application. In all scenarios, we maintain a fixed load to observe how stable the system remains and how fast it can do its job.
 
 The load is created by the following process:
+
 - A specific number of workers is designated for the task.
 - Workers will run the task independently from each other and will continuously execute it for the duration of the test
 - Each test will run for 5 minutes
@@ -48,7 +48,7 @@ It's important to note that there are no optimizations or caching mechanisms imp
 
 ### No dedicated resources, no autoscaler, 10 workers
 
-We start by testing the application using a vanilla Pro project. Under this configuration the project is assigned [0.5 cores to each service](https://docs.nhost.io/platform/compute-resources#pro-plan) and, of course, there is no autoscaler involved yet.
+We start by testing the application using a vanilla Pro project. Under this configuration the project is assigned [0.5 cores to each service](https://docs.nhost.io/platform/cloud/compute-resources#pro-plan) and, of course, there is no autoscaler involved yet.
 
 It is important to note that with this configuration, the compute is shared. A quota mechanism is implemented to ensure that everyone uses these shared CPUs fairly. This mechanism may lead to "throttling", where a process might need to be paused for a number of milliseconds if the quota is exceeded.
 
@@ -66,7 +66,7 @@ The results are quite good given the amount of shared compute assigned, speciall
 
 ### Dedicated resources, no autoscaler, 10 workers
 
-Now we are going to perform exactly the same test with the same number of workers but using [dedicated compute](https://docs.nhost.io/platform/compute-resources#dedicated-compute). With dedicated compute the resources you assign to each service is guaranteed and there is no throttling. To make it even more appealing, if resources are available we will allow you to exceed your assigned resources if they are available (for more information on how this work, please, refer to our [docs](https://docs.nhost.io/platform/compute-resources#bursting-with-dedicated-compute).
+Now we are going to perform exactly the same test with the same number of workers but using [dedicated compute](https://docs.nhost.io/platform/cloud/compute-resources#dedicated-compute). With dedicated compute the resources you assign to each service is guaranteed and there is no throttling. To make it even more appealing, if resources are available we will allow you to exceed your assigned resources if they are available (for more information on how this work, please, refer to our [docs](https://docs.nhost.io/platform/compute-resources#bursting-with-dedicated-compute).
 
 We are assigning the following dedicated compute to each service:
 
@@ -125,7 +125,7 @@ In addition, we can observe how the autoscaler behaved during the tests:
 
 In the graphs above you can see how the autoscaler provisions extra replicas as each one exceeds their assigned resources and how they are decommissioned when they are no longer needed.
 
-If you consider the amount of compute assigned to each service and the total number of replicas we can see that we achieved a sustained peak RPS of 1055 RPS with a P95 of 114ms with 5 cores (10 Auth replicas * 0.25 cores + 5 Hasura replicas * 0.5 cores)
+If you consider the amount of compute assigned to each service and the total number of replicas we can see that we achieved a sustained peak RPS of 1055 RPS with a P95 of 114ms with 5 cores (10 Auth replicas _ 0.25 cores + 5 Hasura replicas _ 0.5 cores)
 
 ### Autoscaler, 80 workers, max 40 replicas
 

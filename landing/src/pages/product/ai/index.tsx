@@ -100,7 +100,7 @@ export default function AIPage() {
             variant="borderless"
             className="text-base font-bold"
             size="sm"
-            href="https://docs.nhost.io/product/ai"
+            href="https://docs.nhost.io/products/ai/overview"
             rel="noopener noreferrer"
             target="_blank"
           >

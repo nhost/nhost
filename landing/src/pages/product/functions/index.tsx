@@ -136,7 +136,7 @@ export default function FunctionsPage() {
             variant="borderless"
             className="text-base font-bold"
             size="sm"
-            href="https://docs.nhost.io/serverless-functions"
+            href="https://docs.nhost.io/products/functions/overview"
             rel="noopener noreferrer"
             target="_blank"
           >

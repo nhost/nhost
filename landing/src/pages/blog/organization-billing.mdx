@@ -3,7 +3,8 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
   title: 'Organizations, and Organization-based Billing',
-  description: 'We are moving from project-based billing to organization-based billing',
+  description:
+    'We are moving from project-based billing to organization-based billing',
   image: '/images/blog/og-org-billing.png',
   date: '2024-10-14',
   authors: [
@@ -12,15 +13,14 @@ export const article = {
       title: 'CEO',
       avatarUrl: '/images/avatars/nuno.jpeg',
       url: 'https://twitter.com/nunopato',
-    } 
+    },
   ],
   tags: ['Product', 'Platform', 'Dashboard'],
 }
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-
-We're actively working on implementing user feedback and improving the billing experience on our platform. These improvements aim to make billing more predictable, transparent, and user-friendly. Additionally, they lay the groundwork for exciting new features such as preview environments, and the option to pause paid projects when needed. 
+We're actively working on implementing user feedback and improving the billing experience on our platform. These improvements aim to make billing more predictable, transparent, and user-friendly. Additionally, they lay the groundwork for exciting new features such as preview environments, and the option to pause paid projects when needed.
 
 As part of these updates, we are deprecating workspaces in favor of organizations and shifting from a project-based billing model to an organization-based billing one. This change will provide a more streamlined and scalable approach, especially for users managing multiple projects within the same organization.
 
@@ -28,7 +28,7 @@ As part of these updates, we are deprecating workspaces in favor of organization
 
 When we launched V2, we introduced Workspaces as a way to organize projects. However, after listening to user feedback and seeing industry trends, we are moving back to Organizations to better align with users' expectations and industry standards.
 
-Organizations function similarly to workspaces, allowing you to group projects together. Organizations can also accommodate multiple members with different roles. However, they will aggregate all projects within the organization in a single invoice. 
+Organizations function similarly to workspaces, allowing you to group projects together. Organizations can also accommodate multiple members with different roles. However, they will aggregate all projects within the organization in a single invoice.
 
 Your existing workspaces will remain accessible on the Nhost Dashboard until February 1st, 2025. During this time you won't be able to edit or create new ones. We encourage you to transition to organizations as soon as possible to take full advantage of the new improvements.
 
@@ -38,13 +38,13 @@ Your existing workspaces will remain accessible on the Nhost Dashboard until Feb
 
 Currently, each project has its own plan and subscription, which has led to frustration for many of you due to the number of invoices involved and the complexity of managing billing across multiple projects.
 
-To simplify the billing process and address these concerns, we are transitioning from project-based billing to organization-based billing. Going forward, each organization will have a single plan — Starter, Pro, Team, or Enterprise — that covers all associated projects. This includes any additional resources or features tied to those projects, such as software addons like [Graphite](https://docs.nhost.io/product/ai), or platform features like [Compute Resources](https://docs.nhost.io/platform/compute-resources) and [Custom Domains](https://docs.nhost.io/platform/custom-domains).
+To simplify the billing process and address these concerns, we are transitioning from project-based billing to organization-based billing. Going forward, each organization will have a single plan — Starter, Pro, Team, or Enterprise — that covers all associated projects. This includes any additional resources or features tied to those projects, such as software addons like [Graphite](https://docs.nhost.io/products/ai/overview), or platform features like [Compute Resources](https://docs.nhost.io/platform/cloud/compute-resources) and [Custom Domains](https://docs.nhost.io/platform/cloud/custom-domains).
 
 This means fewer invoices and a simpler billing experience: one plan, one invoice, covering everything under your organization.
 
 ### Quotas & Features shared across organizations
 
-No matter how many projects you manage within an organization, the included quota applies to the organization as a whole, rather than being split between individual projects. For billing purposes, we aggregate the usage from all projects within the organization and reflect it in a single, consolidated invoice. 
+No matter how many projects you manage within an organization, the included quota applies to the organization as a whole, rather than being split between individual projects. For billing purposes, we aggregate the usage from all projects within the organization and reflect it in a single, consolidated invoice.
 
 This approach simplifies managing multiple projects by unifying your resources under one quota.
 
@@ -75,14 +75,3 @@ For our Teams and Enterprise customers, we will reach out directly to assist wit
 We are aiming to have everything ready and released by October 27th. If there are any changes to the schedule, we will let you know in advance.
 
 If you have any questions, don't hesitate to let me know.
-
-
-
-
-
-
-
-
-
-
-

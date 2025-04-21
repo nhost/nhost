@@ -10,6 +10,19 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       {

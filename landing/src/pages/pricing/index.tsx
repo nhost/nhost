@@ -384,6 +384,9 @@ export default function PricingPage() {
                       title: 'Automated backups',
                     },
                     {
+                      title: 'Point in time recovery',
+                    },
+                    {
                       title: 'Bring your own services',
                     },
                     {
@@ -399,7 +402,7 @@ export default function PricingPage() {
                 />
 
                 <Button
-                  className="w-full justify-center text-center"
+                  className=""
                   href="https://app.nhost.io"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -745,11 +748,19 @@ export default function PricingPage() {
                 />
 
                 <PricingListItem
-                  title="Automated Backups"
+                  title="Automated backups"
                   titleTooltip="Daily backups of your database that can be restored."
                   starterIcon="x"
                   proContent="7 days of backups"
                   teamContent="7 days of backups"
+                  enterpriseContent="Custom"
+                />
+                <PricingListItem
+                  title="Point in time recovery"
+                  titleTooltip="Recover to any point between backups"
+                  starterIcon="x"
+                  proContent="Starts at $100 with 7 days retention"
+                  teamContent="Starts at $100 with 7 days retention"
                   enterpriseContent="Custom"
                 />
               </ul>
@@ -1249,7 +1260,12 @@ export default function PricingPage() {
                   enterpriseContent="Unlimited"
                 />
                 <SelfHostedPricingListItem
-                  title="Automated Backups"
+                  title="Automated backups"
+                  ossContent="Self-managed"
+                  enterpriseContent="Self-managed with Nhost Support"
+                />
+                <SelfHostedPricingListItem
+                  title="Point in time recovery"
                   ossContent="Self-managed"
                   enterpriseContent="Self-managed with Nhost Support"
                 />
