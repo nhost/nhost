@@ -15,7 +15,7 @@ export function SecurityFeatures() {
         <ServiceCard
           icon={<ShieldCheck size={24} />}
           title="SOC 2 Type II (coming soon)"
-          description="Nhost is working towards SOC2 Type 2 compliance. This is an audit report that evaluates our security controls when handling sensitive customer data. Team & Enterprise customers will be able to access our SOC2 report on the dashboard once the audit is complete."
+          description="Nhost is working towards SOC 2 Type II compliance, a comprehensive audit that verifies our security controls and data handling practices meet industry standards. Once certified, Team & Enterprise customers will have access to our SOC 2 report directly through the dashboard."
         />
         <ServiceCard
           icon={<ActivitySquare size={24} />}
