@@ -2,6 +2,9 @@ import { ActivitySquare, Key, Lock, ShieldCheck } from "lucide-react"
 import { Container } from '@/components/common/Container'
 import { ServiceCard } from '@/components/common/ServiceCard'
 import { CreditCard, Database, Cloud } from "lucide-react"
+import { Button } from "@/components/common/Button"
+import { Mail } from "lucide-react"
+
 export function SecurityFeatures() {
   return (
     <>
@@ -64,6 +67,23 @@ export function SecurityFeatures() {
           title="Incident Response"
           description="We have a documented incident response plan in place to ensure we can respond to security incidents quickly and effectively."
         />
+    </Container>
+    <Container
+        component="section"
+        className="relative flex flex-col items-center justify-center gap-4 py-16 text-center"
+    >
+        <h2 className="text-2xl font-bold">Found a Security Vulnerability?</h2>
+        <p className="max-w-2xl text-muted-foreground">
+            We take security seriously. If you've discovered a security vulnerability, please report it to our security team.
+        </p>
+        <Button
+            href="mailto:security@nhost.io"
+            className="mt-4"
+            variant="outlined"
+        >
+            <Mail size={16} className="mr-2" />
+            Report Vulnerability
+        </Button>
     </Container>
     </>
   )
