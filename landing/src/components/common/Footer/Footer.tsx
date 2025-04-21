@@ -140,6 +140,9 @@ export default function Footer() {
         <li>
           <Link href="/legal">Legal</Link>
         </li>
+        <li>
+          <Link href="/security">Security</Link>
+        </li>
       </List>
     </Container>
   )

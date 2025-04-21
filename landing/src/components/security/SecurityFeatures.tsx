@@ -30,11 +30,6 @@ export function SecurityFeatures() {
           description="Nhost is hosted on AWS, a leading cloud provider with a strong track record of security and reliability."
         />
         <ServiceCard
-          icon={<Lock size={24} />}
-          title="Multi-factor Authentication"
-          description="Nhost lets users enable Multi-Factor Authentication (MFA) for their accounts, adding an extra layer of security by requiring a second factor for identity verification."
-        />
-        <ServiceCard
           icon={<Key size={24} />}
           title="Encryption at Rest"
           description="All data is encrypted at rest with AES-256. This includes databases, storage files, and run services volumes."
@@ -56,8 +51,8 @@ export function SecurityFeatures() {
         />
         <ServiceCard
           icon={<Database size={24} />}
-          title="Vulnerability Scanning"
-          description="We perform regular vulnerability scans to ensure our platform is secure."
+          title="Dependency Scanning"
+          description="We perform regular dependency scans to ensure our platform is secure."
         />
         <ServiceCard
           icon={<Database size={24} />}
