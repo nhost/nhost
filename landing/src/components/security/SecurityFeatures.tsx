@@ -74,7 +74,7 @@ export function SecurityFeatures() {
     >
         <h2 className="text-2xl font-bold">Found a Security Vulnerability?</h2>
         <p className="max-w-2xl text-muted-foreground">
-            We take security seriously. If you've discovered a security vulnerability, please report it to our security team.
+            We take security seriously. If you have discovered a security vulnerability, please report it to our security team.
         </p>
         <Button
             href="mailto:security@nhost.io"
