@@ -259,7 +259,7 @@ func getController(
 	}
 
 	if controllerOpts.totp == nil {
-		controllerOpts.totp = controller.NewTotp(time.Now)
+		controllerOpts.totp = controller.NewTotp("auth", time.Now)
 	}
 
 	c, err := controller.New(

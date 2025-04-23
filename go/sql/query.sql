@@ -349,3 +349,13 @@ WHERE provider_user_id = $1 AND provider_id = $2;
 INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
 VALUES ($1, $2, $3, 'unset')
 RETURNING *;
+
+-- name: UpdateUserTotpSecret :exec
+UPDATE auth.users
+SET totp_secret = $2
+WHERE id = $1;
+
+-- name: UpdateUserActiveMFAType :exec
+UPDATE auth.users
+SET active_mfa_type = $2
+WHERE id = $1;

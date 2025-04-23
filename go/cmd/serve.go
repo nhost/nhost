@@ -98,6 +98,7 @@ const (
 	flagOTPEmailEnabled                  = "otp-email-enabled"
 	flagAnonymousUsersEnabled            = "enable-anonymous-users"
 	flagMfaEnabled                       = "mfa-enabled"
+	flagMfaTotpIssuer                    = "mfa-totp-issuer"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -599,6 +600,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Value:    false,
 				EnvVars:  []string{"AUTH_MFA_ENABLED"},
 			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagMfaTotpIssuer,
+				Usage:    "Issuer for MFA TOTP",
+				Category: "mfa",
+				Value:    "auth",
+				EnvVars:  []string{"AUTH_MFA_TOTP_ISSUER"},
+			},
 		},
 		Action: serve,
 	}
@@ -754,7 +762,7 @@ func getGoServer( //nolint:funlen
 		emailer,
 		hibp.NewClient(),
 		idTokenValidator,
-		controller.NewTotp(time.Now),
+		controller.NewTotp(cCtx.String(flagMfaTotpIssuer), time.Now),
 		cCtx.App.Version,
 	)
 	if err != nil {

@@ -971,6 +971,22 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 	return items, nil
 }
 
+const updateUserActiveMFAType = `-- name: UpdateUserActiveMFAType :exec
+UPDATE auth.users
+SET active_mfa_type = $2
+WHERE id = $1
+`
+
+type UpdateUserActiveMFATypeParams struct {
+	ID            uuid.UUID
+	ActiveMfaType pgtype.Text
+}
+
+func (q *Queries) UpdateUserActiveMFAType(ctx context.Context, arg UpdateUserActiveMFATypeParams) error {
+	_, err := q.db.Exec(ctx, updateUserActiveMFAType, arg.ID, arg.ActiveMfaType)
+	return err
+}
+
 const updateUserChangeEmail = `-- name: UpdateUserChangeEmail :one
 UPDATE auth.users
 SET (ticket, ticket_expires_at, new_email, email_verified) = ($2, $3, $4, true)
@@ -1164,6 +1180,22 @@ func (q *Queries) UpdateUserTicket(ctx context.Context, arg UpdateUserTicketPara
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const updateUserTotpSecret = `-- name: UpdateUserTotpSecret :exec
+UPDATE auth.users
+SET totp_secret = $2
+WHERE id = $1
+`
+
+type UpdateUserTotpSecretParams struct {
+	ID         uuid.UUID
+	TotpSecret pgtype.Text
+}
+
+func (q *Queries) UpdateUserTotpSecret(ctx context.Context, arg UpdateUserTotpSecretParams) error {
+	_, err := q.db.Exec(ctx, updateUserTotpSecret, arg.ID, arg.TotpSecret)
+	return err
 }
 
 const updateUserVerifyEmail = `-- name: UpdateUserVerifyEmail :one

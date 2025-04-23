@@ -4,7 +4,6 @@ import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
 import { authenticationGate } from '@/middleware/auth';
 
-import { userMFAHandler, userMfaSchema } from './mfa';
 import { userHandler } from './user';
 import {
   userProviderTokensHandler,
@@ -30,23 +29,6 @@ router.get(
     '/user',
     authenticationGate(false),
     aw(userHandler),
-);
-
-/**
- * POST /user/mfa
- * @summary Activate/deactivate Multi-factor authentication
- * @param {UserMfaSchema} request.body.required
- * @return {string} 200 - Success - application/json
- * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
- * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
- * @security BearerAuth
- * @tags Authentication
- */
-router.post(
-  '/user/mfa',
-  bodyValidator(userMfaSchema),
-  authenticationGate(true),
-  aw(userMFAHandler)
 );
 
 /**

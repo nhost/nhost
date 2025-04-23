@@ -46,7 +46,7 @@ func (ctrl *Controller) PostSigninEmailPassword( //nolint:ireturn
 		return ctrl.sendError(ErrInvalidEmailPassword), nil
 	}
 
-	if user.ActiveMfaType.String == "totp" {
+	if user.ActiveMfaType.String == string(api.Totp) {
 		return ctrl.postSigninEmailPasswordWithTOTP(ctx, user.ID, logger)
 	}
 

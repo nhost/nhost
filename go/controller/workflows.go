@@ -404,7 +404,7 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 		),
 		OldRefreshTokenHash: sql.Text(hashRefreshToken([]byte(oldRefreshToken))),
 	})
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) || len(userRoles) == 0 {
 		logger.Warn("invalid refresh token")
 		return &api.Session{}, ErrInvalidRefreshToken
 	}

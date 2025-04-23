@@ -1,7 +1,6 @@
 import * as express from 'express';
 import nocache from 'nocache';
 import env from './env';
-import { mfaRouter } from './mfa';
 import { oauthProviders } from './oauth';
 import { signInRouter } from './signin';
 import { elevateRouter } from './elevate';
@@ -28,7 +27,6 @@ router.use(signInRouter);
 router.use(signOutRouter);
 router.use(elevateRouter);
 router.use(userRouter);
-router.use(mfaRouter);
 router.use(tokenRouter);
 
 // admin

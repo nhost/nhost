@@ -52,6 +52,8 @@ var (
 	ErrDisabledMfaTotp                 = &APIError{api.DisabledMfaTotp}
 	ErrNoTotpSecret                    = &APIError{api.NoTotpSecret}
 	ErrInvalidTotp                     = &APIError{api.InvalidTotp}
+	ErrMfaTypeNotFound                 = &APIError{api.MfaTypeNotFound}
+	ErrTotpAlreadyActive               = &APIError{api.TotpAlreadyActive}
 )
 
 func logError(err error) slog.Attr {
@@ -75,6 +77,14 @@ func (response ErrorResponse) VisitPostSigninAnonymousResponse(w http.ResponseWr
 }
 
 func (response ErrorResponse) VisitPostSigninMfaTotpResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostUserMfaResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitGetMfaTotpGenerateResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -185,7 +195,9 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.PasswordTooShort,
 		api.PasswordInHibpDatabase,
 		api.RedirectToNotAllowed,
-		api.UserNotAnonymous:
+		api.UserNotAnonymous,
+		api.MfaTypeNotFound,
+		api.TotpAlreadyActive:
 		return false
 	}
 	return false
@@ -326,7 +338,7 @@ func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:cyclop,
 		}
 	case api.NoTotpSecret:
 		return ErrorResponse{
-			Status:  http.StatusUnauthorized,
+			Status:  http.StatusBadRequest,
 			Error:   err.t,
 			Message: "User does not have a TOTP secret",
 		}
@@ -335,6 +347,18 @@ func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:cyclop,
 			Status:  http.StatusUnauthorized,
 			Error:   err.t,
 			Message: "Invalid TOTP code",
+		}
+	case api.MfaTypeNotFound:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "MFA type not found",
+		}
+	case api.TotpAlreadyActive:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "TOTP MFA is already active",
 		}
 	}
 

@@ -582,6 +582,45 @@ paths:
                 required:
                   - version
 
+  /user/mfa:
+    post:
+      summary: Activate/deactivate Multi-factor authentication
+      tags:
+        - mfa
+        - totp
+        - user
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserMfaRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /mfa/totp/generate:
+    get:
+      summary: Generate TOTP secret for MFA setup
+      tags:
+        - mfa
+        - totp
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotpGenerateResponse'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -716,6 +755,8 @@ components:
             - disabled-mfa-totp
             - no-totp-secret
             - invalid-totp
+            - mfa-type-not-found
+            - totp-already-active
       required:
         - status
         - message
@@ -1242,6 +1283,34 @@ components:
       required:
         - provider
         - idToken
+
+    UserMfaRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          description: MFA activation code
+        activeMfaType:
+          type: string
+          enum: [totp, ""]
+          description: Type of MFA to activate. If not set or set to empty string, disable MFA
+      required:
+        - code
+
+    TotpGenerateResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        imageUrl:
+          type: string
+          description: URL to QR code image for TOTP setup
+        totpSecret:
+          type: string
+          description: TOTP secret for manual setup
+      required:
+        - imageUrl
+        - totpSecret
 
   parameters:
     TicketQuery:

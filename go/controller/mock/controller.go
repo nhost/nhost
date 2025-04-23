@@ -265,6 +265,20 @@ func (mr *MockDBClientUpdateUserMockRecorder) InsertUserWithSecurityKey(ctx, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserWithSecurityKey", reflect.TypeOf((*MockDBClientUpdateUser)(nil).InsertUserWithSecurityKey), ctx, arg)
 }
 
+// UpdateUserActiveMFAType mocks base method.
+func (m *MockDBClientUpdateUser) UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserActiveMFAType", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserActiveMFAType indicates an expected call of UpdateUserActiveMFAType.
+func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserActiveMFAType(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserActiveMFAType", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserActiveMFAType), ctx, arg)
+}
+
 // UpdateUserChangeEmail mocks base method.
 func (m *MockDBClientUpdateUser) UpdateUserChangeEmail(ctx context.Context, arg sql.UpdateUserChangeEmailParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -352,6 +366,20 @@ func (m *MockDBClientUpdateUser) UpdateUserTicket(ctx context.Context, arg sql.U
 func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserTicket(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserTicket", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserTicket), ctx, arg)
+}
+
+// UpdateUserTotpSecret mocks base method.
+func (m *MockDBClientUpdateUser) UpdateUserTotpSecret(ctx context.Context, arg sql.UpdateUserTotpSecretParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserTotpSecret", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserTotpSecret indicates an expected call of UpdateUserTotpSecret.
+func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserTotpSecret(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserTotpSecret", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserTotpSecret), ctx, arg)
 }
 
 // UpdateUserVerifyEmail mocks base method.
@@ -805,6 +833,20 @@ func (mr *MockDBClientMockRecorder) RefreshTokenAndGetUserRoles(ctx, arg any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshTokenAndGetUserRoles", reflect.TypeOf((*MockDBClient)(nil).RefreshTokenAndGetUserRoles), ctx, arg)
 }
 
+// UpdateUserActiveMFAType mocks base method.
+func (m *MockDBClient) UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserActiveMFAType", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserActiveMFAType indicates an expected call of UpdateUserActiveMFAType.
+func (mr *MockDBClientMockRecorder) UpdateUserActiveMFAType(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserActiveMFAType", reflect.TypeOf((*MockDBClient)(nil).UpdateUserActiveMFAType), ctx, arg)
+}
+
 // UpdateUserChangeEmail mocks base method.
 func (m *MockDBClient) UpdateUserChangeEmail(ctx context.Context, arg sql.UpdateUserChangeEmailParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -892,6 +934,20 @@ func (m *MockDBClient) UpdateUserTicket(ctx context.Context, arg sql.UpdateUserT
 func (mr *MockDBClientMockRecorder) UpdateUserTicket(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserTicket", reflect.TypeOf((*MockDBClient)(nil).UpdateUserTicket), ctx, arg)
+}
+
+// UpdateUserTotpSecret mocks base method.
+func (m *MockDBClient) UpdateUserTotpSecret(ctx context.Context, arg sql.UpdateUserTotpSecretParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserTotpSecret", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserTotpSecret indicates an expected call of UpdateUserTotpSecret.
+func (mr *MockDBClientMockRecorder) UpdateUserTotpSecret(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserTotpSecret", reflect.TypeOf((*MockDBClient)(nil).UpdateUserTotpSecret), ctx, arg)
 }
 
 // UpdateUserVerifyEmail mocks base method.

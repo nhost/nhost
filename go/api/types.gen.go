@@ -34,12 +34,14 @@ const (
 	InvalidTicket                   ErrorResponseError = "invalid-ticket"
 	InvalidTotp                     ErrorResponseError = "invalid-totp"
 	LocaleNotAllowed                ErrorResponseError = "locale-not-allowed"
+	MfaTypeNotFound                 ErrorResponseError = "mfa-type-not-found"
 	NoTotpSecret                    ErrorResponseError = "no-totp-secret"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
 	PasswordTooShort                ErrorResponseError = "password-too-short"
 	RedirectToNotAllowed            ErrorResponseError = "redirectTo-not-allowed"
 	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
+	TotpAlreadyActive               ErrorResponseError = "totp-already-active"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
 	UserNotAnonymous                ErrorResponseError = "user-not-anonymous"
 )
@@ -59,6 +61,12 @@ const (
 const (
 	EmailPassword UserDeanonymizeRequestSignInMethod = "email-password"
 	Passwordless  UserDeanonymizeRequestSignInMethod = "passwordless"
+)
+
+// Defines values for UserMfaRequestActiveMfaType.
+const (
+	Empty UserMfaRequestActiveMfaType = ""
+	Totp  UserMfaRequestActiveMfaType = "totp"
 )
 
 // Defines values for TicketTypeQuery.
@@ -319,6 +327,15 @@ type SigninAnonymousRequest struct {
 	Metadata *map[string]interface{} `json:"metadata,omitempty"`
 }
 
+// TotpGenerateResponse defines model for TotpGenerateResponse.
+type TotpGenerateResponse struct {
+	// ImageUrl URL to QR code image for TOTP setup
+	ImageUrl string `json:"imageUrl"`
+
+	// TotpSecret TOTP secret for manual setup
+	TotpSecret string `json:"totpSecret"`
+}
+
 // User defines model for User.
 type User struct {
 	AvatarUrl   string    `json:"avatarUrl"`
@@ -375,6 +392,18 @@ type UserEmailSendVerificationEmailRequest struct {
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
 }
+
+// UserMfaRequest defines model for UserMfaRequest.
+type UserMfaRequest struct {
+	// ActiveMfaType Type of MFA to activate. If not set or set to empty string, disable MFA
+	ActiveMfaType *UserMfaRequestActiveMfaType `json:"activeMfaType,omitempty"`
+
+	// Code MFA activation code
+	Code string `json:"code"`
+}
+
+// UserMfaRequestActiveMfaType Type of MFA to activate. If not set or set to empty string, disable MFA
+type UserMfaRequestActiveMfaType string
 
 // UserPasswordRequest defines model for UserPasswordRequest.
 type UserPasswordRequest struct {
@@ -472,6 +501,9 @@ type PostUserEmailChangeJSONRequestBody = UserEmailChangeRequest
 
 // PostUserEmailSendVerificationEmailJSONRequestBody defines body for PostUserEmailSendVerificationEmail for application/json ContentType.
 type PostUserEmailSendVerificationEmailJSONRequestBody = UserEmailSendVerificationEmailRequest
+
+// PostUserMfaJSONRequestBody defines body for PostUserMfa for application/json ContentType.
+type PostUserMfaJSONRequestBody = UserMfaRequest
 
 // PostUserPasswordJSONRequestBody defines body for PostUserPassword for application/json ContentType.
 type PostUserPasswordJSONRequestBody = UserPasswordRequest
