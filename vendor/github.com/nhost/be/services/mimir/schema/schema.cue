@@ -149,7 +149,7 @@ import (
 #Hasura: {
 	// Version of hasura, you can see available versions in the URL below:
 	// https://hub.docker.com/r/hasura/graphql-engine/tags
-	version: string | *"v2.36.9-ce"
+	version: string | *"v2.46.0-ce"
 
 	// JWT Secrets configuration
 	jwtSecrets: [#JWTSecret]
@@ -224,7 +224,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.6.1"
+	version: string | *"0.7.1"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -311,7 +311,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.36.1"
+	version: string | *"0.38.0"
 
 	// Resources for the service
 	resources?: #Resources
@@ -652,7 +652,7 @@ import (
 }
 
 #AI: {
-	version: string | *"0.7.1"
+	version: string | *"0.8.0"
 	resources: {
 		compute: #ComputeResources
 	}

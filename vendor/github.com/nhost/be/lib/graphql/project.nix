@@ -12,6 +12,10 @@ let
       ".golangci.yaml"
       "go.mod"
       "go.sum"
+      (and
+        (inDirectory "lib")
+        (matchExt "go")
+      )
       (inDirectory "vendor")
       isDirectory
       "${submodule}/directive/sql/sqlc.yaml"
@@ -19,22 +23,6 @@ let
       "services/console-next/schema.sql"
       (and
         (inDirectory submodule)
-        (matchExt "go")
-      )
-      (and
-        (inDirectory "lib/consoleNextClient")
-        (matchExt "go")
-      )
-      (and
-        (inDirectory "lib/tracing")
-        (matchExt "go")
-      )
-      (and
-        (inDirectory "lib/graphql")
-        (matchExt "go")
-      )
-      (and
-        (inDirectory "lib/nhost")
         (matchExt "go")
       )
     ];

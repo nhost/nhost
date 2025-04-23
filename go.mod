@@ -1,8 +1,6 @@
 module github.com/nhost/cli
 
-go 1.23.4
-
-toolchain go1.23.5
+go 1.23.8
 
 replace cuelang.org/go => cuelang.org/go v0.4.3
 
@@ -16,7 +14,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-getter v1.7.8
-	github.com/nhost/be v0.0.0-20250327070040-df9f1f732b6a
+	github.com/nhost/be v0.0.0-20250422101003-abc23b01cf94
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/rs/cors/wrapper/gin v0.0.0-20240830163046-1084d89a1692
 	github.com/sirupsen/logrus v1.9.3
@@ -77,6 +75,7 @@ require (
 	github.com/go-playground/validator/v10 v10.25.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect

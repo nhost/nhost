@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	nhgraphql "github.com/nhost/be/lib/graphql"
 	nhhandler "github.com/nhost/be/lib/graphql/handler"
+	nhmiddleware "github.com/nhost/be/lib/graphql/middleware"
 	"github.com/nhost/be/services/mimir/graph/generated"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -56,7 +57,7 @@ func SetupRouter(
 
 	apiRoot := r.Group(pathPrefix)
 	{
-		apiRoot.POST(graphQLPath, nhhandler.Graphql(srv))
+		apiRoot.POST(graphQLPath, nhmiddleware.GraphqlAccounting, nhhandler.Graphql(srv))
 		apiRoot.GET(graphQLPath, nhhandler.Graphql(srv))
 		if enablePlayground {
 			apiRoot.GET("/", nhhandler.Playground(pathPrefix+graphQLPath))

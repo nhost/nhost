@@ -4,7 +4,7 @@ sql:
     queries: "query.sql"
     schema: "../../console-next/schema.sql"
     database:
-      uri: postgresql://postgres:postgres@localhost:5432/local
+      uri: postgresql://mimir@localhost:5432/local
     gen:
       go:
         package: "nhost"

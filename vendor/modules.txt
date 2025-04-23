@@ -504,6 +504,9 @@ github.com/goccy/go-json/internal/encoder/vm_color_indent
 github.com/goccy/go-json/internal/encoder/vm_indent
 github.com/goccy/go-json/internal/errors
 github.com/goccy/go-json/internal/runtime
+# github.com/golang-jwt/jwt/v5 v5.2.2
+## explicit; go 1.18
+github.com/golang-jwt/jwt/v5
 # github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
 ## explicit; go 1.20
 github.com/golang/groupcache/lru
@@ -654,11 +657,13 @@ github.com/muesli/termenv
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
-# github.com/nhost/be v0.0.0-20250327070040-df9f1f732b6a
+# github.com/nhost/be v0.0.0-20250422101003-abc23b01cf94
 ## explicit; go 1.23.4
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context
 github.com/nhost/be/lib/graphql/handler
+github.com/nhost/be/lib/graphql/middleware
+github.com/nhost/be/lib/tracing
 github.com/nhost/be/services/mimir/graph
 github.com/nhost/be/services/mimir/graph/generated
 github.com/nhost/be/services/mimir/model
@@ -696,6 +701,7 @@ github.com/prometheus/client_golang/internal/github.com/golang/gddo/httputil
 github.com/prometheus/client_golang/internal/github.com/golang/gddo/httputil/header
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
+github.com/prometheus/client_golang/prometheus/promauto
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.6.1
 ## explicit; go 1.19

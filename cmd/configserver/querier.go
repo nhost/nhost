@@ -9,5 +9,5 @@ import (
 type Querier struct{}
 
 func (q Querier) GetAppDesiredState(_ context.Context, _ uuid.UUID) (int32, error) {
-	return 5, nil //nolint:mnd
+	return 0, nil
 }

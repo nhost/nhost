@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/google/uuid"
 	nhcontext "github.com/nhost/be/lib/graphql/context"
@@ -40,7 +41,7 @@ func (r *mutationResolver) changeDatabaseVersionValidate(
 		return ErrDatabaseVersionMustBeGreater
 	}
 
-	if desiredState != appLive {
+	if !slices.Contains([]int32{appLive, appEmpty}, desiredState) {
 		return ErrAppMustBeLive
 	}
 

@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 )
 
 const (
+	appEmpty  = 0
 	appLive   = 5
 	appPaused = 6
 )
@@ -35,7 +37,8 @@ func (r *mutationResolver) configValidateVerifyPersistentVolumeEncryption(
 		return ErrPersVolEncryptionCantBeDis
 	}
 
-	if !oldEncrypted && newEncrypted && desiredState != appPaused {
+	if !oldEncrypted && newEncrypted &&
+		!slices.Contains([]int32{appPaused, appEmpty}, desiredState) {
 		return ErrPersVolEncryptionCantBeChanged
 	}
 
@@ -68,7 +71,8 @@ func (r *mutationResolver) configValidateVerifyPostgresVersionChange(
 		return ErrDatabaseVersionMustBeGreater
 	}
 
-	if oldMajorVersion != newMajorVersion && desiredState != appPaused {
+	if oldMajorVersion != newMajorVersion &&
+		!slices.Contains([]int32{appPaused, appEmpty}, desiredState) {
 		return ErrDatabaseVersionMismatch
 	}
 
@@ -121,7 +125,7 @@ func (r *mutationResolver) configValidate(
 
 	if oldApp != nil && oldApp.Config.GetPostgres().GetResources().GetStorage().GetCapacity() >
 		newApp.Config.GetPostgres().GetResources().GetStorage().GetCapacity() &&
-		desiredState != appPaused {
+		!slices.Contains([]int32{appPaused, appEmpty}, desiredState) {
 		return fmt.Errorf("postgres: %w", ErrStorageCantBeDownsized)
 	}
 
@@ -149,7 +153,7 @@ func verifyStorageIsntDownsized(
 	oldStorage []*model.ConfigRunServiceResourcesStorage,
 	newStorage []*model.ConfigRunServiceResourcesStorage,
 ) error {
-	if desiredState == appPaused {
+	if slices.Contains([]int32{appPaused, appEmpty}, desiredState) {
 		return nil
 	}
 
