@@ -6,9 +6,11 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrgCreation/useFinishOrgCreation';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { analytics } from '@/lib/segment';
 import { isEmptyValue } from '@/lib/utils';
 import { useBillingTransferAppMutation } from '@/utils/__generated__/graphql';
 import { useRouter } from 'next/router';
@@ -28,6 +30,7 @@ function UpgradeProjectDialogContent({
 }: Props) {
   const [transferProjectMutation] = useBillingTransferAppMutation();
   const { project } = useProject();
+  const { org: currentOrg } = useCurrentOrg();
   const { refetch: refetchOrgs } = useOrgs();
   const { push, query } = useRouter();
   const { session_id } = query;
@@ -44,6 +47,23 @@ function UpgradeProjectDialogContent({
             organizationID: newOrg?.id,
           },
         });
+
+        analytics.track('Project Upgraded', {
+          projectId: project?.id,
+          projectName: project?.name,
+          projectSubdomain: project?.subdomain,
+          previousOrganizationId: currentOrg?.id,
+          previousOrganizationName: currentOrg?.name,
+          previousOrganizationSlug: currentOrg?.slug,
+          previousOrganizationPlan: currentOrg?.plan?.name,
+          previousOrganizationPlanId: currentOrg?.plan?.id,
+          newOrganizationId: newOrg?.id,
+          newOrganizationName: newOrg?.name,
+          newOrganizationSlug: newOrg?.slug,
+          newOrganizationPlan: newOrg?.plan?.name,
+          newOrganizationPlanId: newOrg?.plan?.id,
+        });
+
         await push(`/orgs/${newOrg?.slug}/projects`);
       },
       {
