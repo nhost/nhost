@@ -78,7 +78,7 @@
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
     "@types/js-cookie": "^3.0.6",
-    "next": "^14.2.25",
+    "next": "^14.2.26",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }

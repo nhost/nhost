@@ -7,12 +7,14 @@ on:
       - 'assets/**'
       - '**.md'
       - 'LICENSE'
+      - 'docs/**'
   pull_request:
     types: [opened, synchronize]
     paths-ignore:
       - 'assets/**'
       - '**.md'
       - 'LICENSE'
+      - 'docs/**'
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: nhost
