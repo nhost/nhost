@@ -51,9 +51,9 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: NoData
-          execErrState: Error
-          for: 5m
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 15m
           annotations:
             runbook_url: https://docs.nhost.io/platform/cloud/compute-resources
             Project Subdomain: {{ .Subdomain }}
@@ -123,9 +123,9 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: NoData
-          execErrState: Error
-          for: 5m
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 15m
           annotations:
             runbook_url: https://docs.nhost.io/products/database/configuring-postgres
             Subdomain: {{ .Subdomain }}
@@ -195,9 +195,9 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: NoData
-          execErrState: Error
-          for: 5m
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 15m
           annotations:
             runbook_url: https://docs.nhost.io/platform/cloud/compute-resources
             Subdomain: {{ .Subdomain }}
@@ -268,7 +268,7 @@ groups:
                 refId: B
                 type: threshold
           noDataState: OK
-          execErrState: Error
+          execErrState: OK
           for: 0s
           annotations:
             summary: |
@@ -342,9 +342,9 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: OK
-          execErrState: Error
-          for: 5m
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 15m
           annotations:
             Subdomain: {{ .Subdomain }}
             Project Name: {{ .ProjectName }}
