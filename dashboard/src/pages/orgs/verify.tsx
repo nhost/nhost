@@ -4,8 +4,10 @@ import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
 import { FinishOrgCreationProcess } from '@/features/orgs/components/common/FinishOrgCreationProcess';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { analytics } from '@/lib/segment';
 import type { PostOrganizationRequestMutation } from '@/utils/__generated__/graphql';
-import { useAuthenticationStatus } from '@nhost/nextjs';
+import { useGetOrganizationQuery } from '@/utils/__generated__/graphql';
+import { useAuthenticationStatus, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect } from 'react';
 
@@ -13,6 +15,7 @@ export default function PostCheckout() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const currentUser = useUserData();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -23,10 +26,30 @@ export default function PostCheckout() {
   }, [isLoading, isAuthenticated, router, isPlatform]);
 
   const onCompleted = useCallback(
-    (
+    async (
       data: PostOrganizationRequestMutation['billingPostOrganizationRequest'],
     ) => {
       const { Slug } = data;
+      
+      const { data: orgData } = await useGetOrganizationQuery({
+        variables: {
+          orgSlug: Slug,
+        },
+      });
+
+      if (orgData?.organizations[0]) {
+        const { id, name, slug, plan } = orgData.organizations[0];
+
+        analytics.track('Organization Created', {
+          organizationId: id,
+          organizationSlug: slug,
+          organizationName: name,
+          organizationPlan: plan?.name,
+          organizationOwnerId: currentUser?.id,
+          organizationOwnerEmail: currentUser?.email,
+        });
+      }
+
       router.push(`/orgs/${Slug}/projects`);
     },
     [router],
