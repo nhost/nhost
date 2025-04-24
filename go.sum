@@ -1044,6 +1044,8 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/nhost/be v0.0.0-20250422101003-abc23b01cf94 h1:6LHDqiuJ7PPYgJLgPx1h0aawmAfUq22aRZQf0Xmqn5Q=
 github.com/nhost/be v0.0.0-20250422101003-abc23b01cf94/go.mod h1:iCDJSYqKoUYJrO2/bRJBRltPweMnrKZKsfzgzS7z1/M=
+github.com/nhost/be v0.0.0-20250424140218-1be7f62eade6 h1:N3fk5163vs93510svymHslBoH/RziWEVB+h/yBAiYgE=
+github.com/nhost/be v0.0.0-20250424140218-1be7f62eade6/go.mod h1:iCDJSYqKoUYJrO2/bRJBRltPweMnrKZKsfzgzS7z1/M=
 github.com/onsi/gomega v1.34.1 h1:EUMJIKUjM8sKjYbtxQI9A4z2o+rruxnzNvpknOXie6k=
 github.com/onsi/gomega v1.34.1/go.mod h1:kU1QgUvBDLXBJq618Xvm2LUX6rSAfRaFRTcdOeDLwwY=
 github.com/pelletier/go-toml/v2 v2.2.3 h1:YmeHyLY8mFWbdkNWwpr+qIL2bEqT0o95WSdkNHvL12M=

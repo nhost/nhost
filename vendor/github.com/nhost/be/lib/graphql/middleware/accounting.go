@@ -40,6 +40,16 @@ func GraphqlAccounting(c *gin.Context) {
 	}
 
 	sessionVariables := SessionVariablesFromCtx(c.Request.Context())
+	if sessionVariables == nil {
+		sessionVariables = &SessionVariables{
+			HasAdminSecret:   false,
+			HasWebhookSecret: false,
+			UserID:           "",
+			Role:             "public",
+			AllowedRoles:     []any{},
+			DefaultRole:      nil,
+		}
+	}
 
 	logger.WithFields(logrus.Fields{
 		"session_variables": map[string]any{
