@@ -32,7 +32,7 @@ setup('refresh metadata', async () => {
   } catch (error) {
     // Log safe error information
     console.error(
-      'Failed to refresh metadata',
+      'Failed to refresh metadata:',
       error instanceof Error ? error.message : 'Unknown error',
     );
     throw new Error('Failed to refresh metadata');
