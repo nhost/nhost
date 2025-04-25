@@ -38,15 +38,15 @@ export default function PostCheckout() {
         },
       });
 
-        const { id, name, slug, plan } = orgData.organizations[0];
-        analytics.track('Organization Created', {
-          organizationId: id,
-          organizationSlug: slug,
-          organizationName: name,
-          organizationPlan: plan?.name,
-          organizationOwnerId: currentUser?.id,
-          organizationOwnerEmail: currentUser?.email,
-        });
+      const { id, name, slug, plan } = orgData.organizations[0];
+      analytics.track('Organization Created', {
+        organizationId: id,
+        organizationSlug: slug,
+        organizationName: name,
+        organizationPlan: plan?.name,
+        organizationOwnerId: currentUser?.id,
+        organizationOwnerEmail: currentUser?.email,
+      });
 
       router.push(`/orgs/${Slug}/projects`);
     },
