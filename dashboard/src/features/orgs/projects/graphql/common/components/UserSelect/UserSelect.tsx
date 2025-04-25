@@ -1,9 +1,10 @@
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { DEFAULT_ROLES } from '@/features/orgs/projects/graphql/common/utils/constants';
+import { getAdminRoles } from '@/features/orgs/projects/roles/settings/utils/getAdminRoles';
+import { isNotEmptyValue } from '@/lib/utils';
 import {
-  useRemoteAppGetUsersCustomLazyQuery,
-  type RemoteAppGetUsersCustomQuery,
+  useRemoteAppGetUsersAndAuthRolesLazyQuery,
+  type RemoteAppGetUsersAndAuthRolesQuery,
 } from '@/utils/__generated__/graphql';
 import { debounce } from '@mui/material/utils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -26,22 +27,26 @@ export default function UserSelect({
   const [inputValue, setInputValue] = useState('');
   const [users, setUsers] = useState([]);
   const [active, setActive] = useState(true);
+  const [adminAuthRoles, setAdminAuthRoles] = useState<string[]>(() =>
+    getAdminRoles(),
+  ); // Roles from the auth.roles table
 
   const userApplicationClient = useRemoteApplicationGQLClient();
 
-  const [fetchAppUsers, { loading }] = useRemoteAppGetUsersCustomLazyQuery({
-    client: userApplicationClient,
-    variables: {
-      where: {},
-      limit: 250,
-      offset: 0,
-    },
-  });
+  const [fetchAppUsers, { loading }] =
+    useRemoteAppGetUsersAndAuthRolesLazyQuery({
+      client: userApplicationClient,
+      variables: {
+        where: {},
+        limit: 250,
+        offset: 0,
+      },
+    });
 
   const fetchUsers = useCallback(
     async (
       request: { input: string },
-      callback: (results?: RemoteAppGetUsersCustomQuery['users']) => void,
+      callback: (results?: RemoteAppGetUsersAndAuthRolesQuery) => void,
     ) => {
       const ilike = `%${request.input === 'Admin' ? '' : request.input}%`;
       const { data } = await fetchAppUsers({
@@ -55,7 +60,7 @@ export default function UserSelect({
         },
       });
 
-      callback(data?.users);
+      callback(data);
     },
     [fetchAppUsers, userApplicationClient],
   );
@@ -65,10 +70,27 @@ export default function UserSelect({
   useEffect(() => {
     fetchOptions({ input: inputValue }, (results) => {
       if (active || inputValue === '') {
-        setUsers(results || []);
+        if (
+          isNotEmptyValue(results?.users) &&
+          isNotEmptyValue(results?.authRoles)
+        ) {
+          setUsers(results.users);
+          const newAuthRoles = results.authRoles.map(
+            (authRole) => authRole.role,
+          );
+          setAdminAuthRoles(newAuthRoles);
+        } else {
+          setUsers([]);
+          setAdminAuthRoles(getAdminRoles());
+        }
       }
     });
   }, [inputValue, fetchOptions, active]);
+
+  useEffect(() => {
+    onUserChange('admin', getAdminRoles(adminAuthRoles));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminAuthRoles]);
 
   const autocompleteOptions = [
     {
@@ -109,24 +131,19 @@ export default function UserSelect({
         }
 
         if (userId === 'admin') {
-          onUserChange('admin', DEFAULT_ROLES);
-
+          onUserChange('admin', getAdminRoles(adminAuthRoles));
           return;
         }
 
-        const user: RemoteAppGetUsersCustomQuery['users'][0] = users.find(
+        const user: RemoteAppGetUsersAndAuthRolesQuery['users'][0] = users.find(
           ({ id }) => id === userId,
         );
 
-        const roles = user?.roles?.map(({ role }) => role);
+        if (isNotEmptyValue(user?.roles)) {
+          const roles = user.roles.map(({ role }) => role);
 
-        onUserChange(userId, roles ?? DEFAULT_ROLES);
-
-        fetchUsers({ input: '' }, (results) => {
-          if (results) {
-            setUsers(results);
-          }
-        });
+          onUserChange(userId, roles);
+        }
       }}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
