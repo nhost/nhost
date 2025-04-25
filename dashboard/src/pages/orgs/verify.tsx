@@ -30,7 +30,7 @@ export default function PostCheckout() {
       data: PostOrganizationRequestMutation['billingPostOrganizationRequest'],
     ) => {
       const { Slug } = data;
-      
+
       const { data: orgData } = await useGetOrganizationQuery({
         variables: {
           orgSlug: Slug,
