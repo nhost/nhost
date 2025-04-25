@@ -84,5 +84,5 @@ describe('Image transformation', () => {
   })
 
   // TODO implement radius and quality tests
-  // TODO implement pressigned url tests when implemented in hasura-storage
+  // TODO implement presigned url tests when implemented in hasura-storage
 })
