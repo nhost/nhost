@@ -6,7 +6,7 @@ import { FinishOrgCreationProcess } from '@/features/orgs/components/common/Fini
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { analytics } from '@/lib/segment';
 import type { PostOrganizationRequestMutation } from '@/utils/__generated__/graphql';
-import { useGetOrganizationQuery } from '@/utils/__generated__/graphql';
+import { useGetOrganizationLazyQuery } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect } from 'react';
@@ -16,6 +16,7 @@ export default function PostCheckout() {
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const currentUser = useUserData();
+  const [getOrganizations] = useGetOrganizationLazyQuery();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -31,15 +32,13 @@ export default function PostCheckout() {
     ) => {
       const { Slug } = data;
 
-      const { data: orgData } = await useGetOrganizationQuery({
+      const { data: orgData } = await getOrganizations({
         variables: {
           orgSlug: Slug,
         },
       });
 
-      if (orgData?.organizations[0]) {
         const { id, name, slug, plan } = orgData.organizations[0];
-
         analytics.track('Organization Created', {
           organizationId: id,
           organizationSlug: slug,
@@ -48,11 +47,10 @@ export default function PostCheckout() {
           organizationOwnerId: currentUser?.id,
           organizationOwnerEmail: currentUser?.email,
         });
-      }
 
       router.push(`/orgs/${Slug}/projects`);
     },
-    [router],
+    [router, currentUser?.email, currentUser?.id, getOrganizations],
   );
 
   return (

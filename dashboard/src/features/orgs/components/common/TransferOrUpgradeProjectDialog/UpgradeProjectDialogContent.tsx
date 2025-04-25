@@ -6,7 +6,6 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrgCreation/useFinishOrgCreation';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -30,7 +29,6 @@ function UpgradeProjectDialogContent({
 }: Props) {
   const [transferProjectMutation] = useBillingTransferAppMutation();
   const { project } = useProject();
-  const { org: currentOrg } = useCurrentOrg();
   const { refetch: refetchOrgs } = useOrgs();
   const { push, query } = useRouter();
   const { session_id } = query;
