@@ -8,7 +8,7 @@ Make sure to install the dependencies:
 pnpm install
 ```
 
-## Settting up the environment
+## Setting up the environment
 
 Create a `.env` file in the root of the project with the following content:
 

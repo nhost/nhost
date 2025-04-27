@@ -190,6 +190,10 @@ jobs:
         if: matrix.package.path == 'dashboard'
         working-directory: ./nhost-test-project
         run: nhost down
+      - name: Stop Nhost CLI for packages
+        if: always() && (matrix.package.path == 'packages/hasura-auth-js' || matrix.package.path == 'packages/hasura-storage-js')
+        working-directory: ./${{ matrix.package.path }}
+        run: nhost down
       - id: file-name
         if: ${{ failure() }}
         name: Transform package name into a valid file name
