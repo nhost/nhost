@@ -31,6 +31,7 @@ import { OrgInvite } from '@/features/orgs/components/members/components/OrgInvi
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
+import { analytics } from '@/lib/segment';
 import {
   Organization_Members_Role_Enum,
   useGetOrganizationInvitesQuery,
@@ -89,6 +90,16 @@ export default function PendingInvites() {
               role,
             },
           },
+        });
+
+        analytics.track('Organization Invite Sent', {
+          organizationId: org?.id,
+          organizationName: org?.name,
+          organizationSlug: org?.slug,
+          organizationPlan: org?.plan?.name,
+          organizationPlanId: org?.plan?.id,
+          inviteeEmail: email,
+          inviteeRole: role,
         });
 
         setInviteDialogOpen(false);
