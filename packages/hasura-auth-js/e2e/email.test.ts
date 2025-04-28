@@ -65,7 +65,7 @@ describe('emails', () => {
       password
     })
 
-    // sign in shoudl fail
+    // sign in should fail
     const signInA = await auth.signIn({
       email,
       password

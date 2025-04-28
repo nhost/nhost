@@ -3,7 +3,7 @@ import { NextPage } from 'next'
 import { Container, Title } from '@mantine/core'
 import { useAccessToken, useAuthenticated } from '@nhost/nextjs'
 
-const PublicSSRPage: NextPage = () => {
+const PublicCSRPage: NextPage = () => {
   const isAuthenticated = useAuthenticated()
   const accessToken = useAccessToken()
   return (
@@ -15,4 +15,4 @@ const PublicSSRPage: NextPage = () => {
   )
 }
 
-export default PublicSSRPage
+export default PublicCSRPage

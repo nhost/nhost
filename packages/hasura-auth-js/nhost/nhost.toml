@@ -1,7 +1,7 @@
 [global]
 
 [hasura]
-version = 'v2.25.1-ce'
+version = 'v2.44.0-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -25,10 +25,10 @@ httpPoolSize = 100
 
 [functions]
 [functions.node]
-version = 18
+version = 22
 
 [auth]
-version = '0.20.2'
+version = '0.38.0'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
@@ -70,7 +70,7 @@ enabled = true
 
 [auth.method.emailPassword]
 hibpEnabled = false
-emailVerificationRequired = false
+emailVerificationRequired = true
 passwordMinLength = 8
 
 [auth.method.smsPasswordless]
@@ -133,13 +133,41 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.6-20230406-2'
+version = '15.10-20250311-1'
+
+[postgres.resources.storage]
+capacity = 1
 
 [provider]
+[provider.smtp]
+host = "smtp.test.com"
+method = "LOGIN"
+password = "test123123"
+port = 587
+secure = false
+sender = "test@nhost.io"
+user = "test"
 
 [storage]
-version = '0.3.4'
+version = '0.7.1'
 
 [observability]
 [observability.grafana]
 adminPassword = '{{ secrets.GRAFANA_ADMIN_PASSWORD }}'
+
+[auth.rateLimit]
+[auth.rateLimit.emails]
+limit = 100
+interval = '1h'
+
+[auth.rateLimit.bruteForce]
+limit = 100
+interval = '5m'
+
+[auth.rateLimit.signups]
+limit = 100
+interval = '5m'
+
+[auth.rateLimit.global]
+limit = 1000
+interval = '1m'

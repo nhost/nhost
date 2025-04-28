@@ -13,7 +13,7 @@ const auth = new HasuraAuthClient({
 })
 
 const mailhog = createMailhogClient({
-  host: 'local.mailhog.nhost.run',
+  host: 'local.mailhog.local.nhost.run',
   protocol: 'https:',
   port: 443
 })
@@ -21,7 +21,7 @@ const mailhog = createMailhogClient({
 export { auth, mailhog }
 
 /**
- * Get the value of `a href` that follpws a given pattern
+ * Get the value of `a href` that follows a given pattern
  * in the last email sent to a given email address.
  */
 export const getHtmlLink = async (email: string, pattern: string) => {
