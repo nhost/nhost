@@ -1,5 +1,22 @@
 # @nhost/dashboard
 
+## 2.28.0
+
+### Minor Changes
+
+- 8552678: feat: dashboard: add additional events to segment
+- 0bf2808: chore: refresh metadata before end-to-end tests
+- 72a365c: fix: correct graphql page roles dropdown's source
+- cef6471: fix: dashboard: add anonid to user's metadata
+
+### Patch Changes
+
+- d9eb906: fix: update vite and nextjs because of vulnerability
+- 233232b: feat (dashboard): improve Upgrade project dialog
+- Updated dependencies [d9eb906]
+  - @nhost/nextjs@2.2.7
+  - @nhost/react-apollo@17.0.4
+
 ## 2.27.0
 
 ### Minor Changes

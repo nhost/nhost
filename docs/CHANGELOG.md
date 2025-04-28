@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.31.0
+
+### Minor Changes
+
+- b302dbd: feat: added sveltekit quickstart
+
+### Patch Changes
+
+- 5e96230: fix: fixing mintlify breaking our docs
+
 ## 2.30.0
 
 ### Minor Changes

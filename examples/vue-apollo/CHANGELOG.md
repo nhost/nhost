@@ -1,5 +1,14 @@
 # @nhost-examples/vue-apollo
 
+## 0.11.1
+
+### Patch Changes
+
+- d9eb906: fix: update vite and nextjs because of vulnerability
+  - @nhost/nhost-js@3.2.8
+  - @nhost/apollo@8.0.8
+  - @nhost/vue@2.9.5
+
 ## 0.11.0
 
 ### Minor Changes

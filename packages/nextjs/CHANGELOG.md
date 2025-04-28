@@ -1,5 +1,12 @@
 # @nhost/nextjs
 
+## 2.2.7
+
+### Patch Changes
+
+- d9eb906: fix: update vite and nextjs because of vulnerability
+  - @nhost/react@3.10.4
+
 ## 2.2.6
 
 ### Patch Changes
