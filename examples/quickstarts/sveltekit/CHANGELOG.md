@@ -1,5 +1,12 @@
 ---
 
+## 0.7.1
+### Patch Changes
+
+- f8243f9: chore (examples/svelte): update @sveltejs/kit
+- d9eb906: fix: update vite and nextjs because of vulnerability
+  - @nhost/nhost-js@3.2.8
+
 ## 0.7.0
 ### Minor Changes
 

@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.7.1
+
+### Patch Changes
+
+- 5ff4dd6: fix (hasura-auth-js|hasura-storage-js): update e2e config for packages
+
 ## 2.7.0
 
 ### Minor Changes

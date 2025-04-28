@@ -1,5 +1,13 @@
 # @nhost-examples/vue-quickstart
 
+## 0.5.1
+
+### Patch Changes
+
+- d9eb906: fix: update vite and nextjs because of vulnerability
+  - @nhost/apollo@8.0.8
+  - @nhost/vue@2.9.5
+
 ## 0.5.0
 
 ### Minor Changes

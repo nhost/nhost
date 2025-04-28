@@ -1,5 +1,13 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.7.1
+
+### Patch Changes
+
+- d9eb906: fix: update vite and nextjs because of vulnerability
+  - @nhost/react@3.10.4
+  - @nhost/react-apollo@17.0.4
+
 ## 0.7.0
 
 ### Minor Changes
