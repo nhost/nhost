@@ -101,10 +101,6 @@ function LogsRangeSelectorIntervalPickers({
   function handleIntervalChange({
     minutesToDecreaseFromCurrentDate,
   }: LogsCustomInterval) {
-    console.log(
-      'minutesToDecreaseFromCurrentDate',
-      minutesToDecreaseFromCurrentDate,
-    );
     setValue('from', subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
     setValue('to', new Date());
     setValue('interval', minutesToDecreaseFromCurrentDate);

@@ -6,11 +6,13 @@ import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { CalendarIcon } from '@/components/ui/v2/icons/CalendarIcon';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { Text } from '@/components/ui/v2/Text';
+import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { LogsTimePicker } from '@/features/orgs/projects/logs/components/LogsTimePicker';
 import { DATEPICKER_DISPLAY_FORMAT } from '@/features/orgs/projects/logs/utils/constants/datePicker';
 import { usePreviousData } from '@/hooks/usePreviousData';
 import { format } from 'date-fns';
 import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
 export interface LogsDatePickerProps extends DatePickerProps {
@@ -36,6 +38,7 @@ function LogsDatePicker({
   value,
 }: LogsDatePickerProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(value);
+  const { setValue } = useFormContext<LogsFilterFormValues>();
   const { button: buttonSlotProps } = {
     button: componentsProps?.button || {},
   };
@@ -44,6 +47,11 @@ function LogsDatePicker({
   // the `toDate` is set to null. If it's `live` we're
   // going to display the last state set.
   const previousDate = usePreviousData(selectedDate);
+
+  const handleDateChange = (newValue: Date) => {
+    setSelectedDate(new Date(newValue));
+    setValue('interval', null);
+  };
 
   return (
     <Dropdown.Root>
@@ -84,9 +92,7 @@ function LogsDatePicker({
         <Dropdown.Content>
           <DatePicker
             value={disabled ? previousDate : selectedDate}
-            onChange={(newValue) => {
-              setSelectedDate(new Date(newValue));
-            }}
+            onChange={handleDateChange}
             minDate={minDate}
             maxDate={maxDate}
           />

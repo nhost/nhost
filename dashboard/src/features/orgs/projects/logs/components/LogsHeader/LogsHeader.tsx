@@ -88,12 +88,13 @@ export default function LogsHeader({
       to: new Date(),
       regexFilter: '',
       service: AvailableLogsService.ALL,
+      interval: null,
     },
-    reValidateMode: 'onSubmit',
+    mode: 'onChange',
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, watch, getValues } = form;
+  const { register, watch, getValues, setValue } = form;
 
   const service = watch('service');
 
@@ -102,9 +103,27 @@ export default function LogsHeader({
   }, [service, getValues, onSubmitFilterValues]);
 
   const handleSubmit = (values: LogsFilterFormValues) => {
-    console.log('values', values);
-    if (getValues('interval')) {
+    const currentValues = getValues();
+
+    // If there's an interval set, recalculate the dates
+    if (currentValues.interval) {
+      const now = new Date();
+      const newValues = {
+        ...currentValues,
+        from: subMinutes(now, currentValues.interval),
+        to: now,
+        interval: currentValues.interval,
+      };
+
+      // Update form values before submitting, to ensure the dates in LogsRangeSelector are updated
+      setValue('from', newValues.from);
+      setValue('to', newValues.to);
+      setValue('interval', newValues.interval);
+
+      onSubmitFilterValues(newValues);
+      return;
     }
+
     onSubmitFilterValues(values);
   };
 
