@@ -12,8 +12,8 @@ import { useNhostClient } from './useNhostClient'
 
 export interface LinkIdTokenResult
   extends ToRefs<ActionErrorState>,
-    ToRefs<ActionSuccessState>,
-    ToRefs<ActionLoadingState> {
+  ToRefs<ActionSuccessState>,
+  ToRefs<ActionLoadingState> {
   linkIdToken(params: LinkIdTokenHandlerParams): Promise<LinkIdTokenHandlerResult>
 }
 
@@ -38,8 +38,8 @@ export interface LinkIdTokenResult
 export const useLinkIdToken = (): LinkIdTokenResult => {
   const { nhost } = useNhostClient()
   const error = ref<ErrorPayload | null>(null)
-  const isSuccess = computed(() => !error)
-  const isError = computed(() => !!error)
+  const isSuccess = computed(() => !error.value)
+  const isError = computed(() => !!error.value)
   const isLoading = ref<boolean>(false)
 
   const linkIdToken = async ({ provider, idToken, nonce }: LinkIdTokenHandlerParams) => {
@@ -53,7 +53,7 @@ export const useLinkIdToken = (): LinkIdTokenResult => {
 
     const { error: linkIdTokenError } = result
 
-    if (error) {
+    if (error.value) {
       error.value = linkIdTokenError
     }
 

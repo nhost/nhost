@@ -24,6 +24,7 @@
     "umd",
     "README.md"
   ],
+  "type": "module",
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -39,6 +40,7 @@
     "access": "public"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "vite build",
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build",
@@ -53,9 +55,10 @@
     "docgen": "pnpm typedoc && docgen --config ./graphql.docgen.json"
   },
   "dependencies": {
+    "@types/node": "^22.15.2",
     "@graphql-typed-document-node/core": "^3.2.0",
     "base-64": "^1.0.0",
-    "isomorphic-unfetch": "^3.1.0",
+    "fetch-ponyfill": "^7.1.0",
     "jwt-decode": "^4.0.0"
   },
   "peerDependencies": {
@@ -64,6 +67,6 @@
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
     "@types/base-64": "^1.0.2",
-    "graphql": "16.8.1"
+    "graphql": "16.11.0"
   }
 }

@@ -42,8 +42,8 @@ test(`should fail if network is unavailable`, async () => {
 
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
-    ticket: `mfaTotp:${faker.datatype.uuid()}`,
-    otp: faker.random.numeric(6).toString()
+    ticket: `mfaTotp:${faker.string.uuid()}`,
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -66,8 +66,8 @@ test(`should fail if server returns an error`, async () => {
 
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
-    ticket: `mfaTotp:${faker.datatype.uuid()}`,
-    otp: faker.random.numeric(6).toString()
+    ticket: `mfaTotp:${faker.string.uuid()}`,
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -89,7 +89,7 @@ test(`should fail if MFA ticket is not provided or invalid`, async () => {
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
     ticket: '',
-    otp: faker.random.numeric(6).toString()
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const noTicketState = await waitFor(authService, (state) =>
@@ -108,8 +108,8 @@ test(`should fail if MFA ticket is not provided or invalid`, async () => {
 
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
-    ticket: faker.datatype.uuid(),
-    otp: faker.random.numeric(6).toString()
+    ticket: faker.string.uuid(),
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const invalidTicketState = await waitFor(authService, (state) =>
@@ -132,8 +132,8 @@ test(`should fail if TOTP is invalid`, async () => {
 
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
-    ticket: `mfaTotp:${faker.datatype.uuid()}`,
-    otp: faker.random.numeric(6).toString()
+    ticket: `mfaTotp:${faker.string.uuid()}`,
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -154,8 +154,8 @@ test(`should fail if TOTP is invalid`, async () => {
 test(`should succeed if the provided MFA ticket and TOTP were valid`, async () => {
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
-    ticket: `mfaTotp:${faker.datatype.uuid()}`,
-    otp: faker.random.numeric(6).toString()
+    ticket: `mfaTotp:${faker.string.uuid()}`,
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -166,11 +166,11 @@ test(`should succeed if the provided MFA ticket and TOTP were valid`, async () =
 })
 
 test(`should succeed if MFA ticket is already in context and TOTP was valid`, async () => {
-  authService.getSnapshot().context.mfa = { ticket: `mfaTotp:${faker.datatype.uuid()}` }
+  authService.getSnapshot().context.mfa = { ticket: `mfaTotp:${faker.string.uuid()}` }
 
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
-    otp: faker.random.numeric(6).toString()
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>

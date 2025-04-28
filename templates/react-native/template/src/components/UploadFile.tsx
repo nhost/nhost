@@ -2,7 +2,7 @@ import { useNhostClient } from '@nhost/react'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, Text, Alert } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import { pickSingle } from 'react-native-document-picker'
+import { pick } from '@react-native-documents/picker'
 
 export default function UploadFile() {
   const [loading, setLoading] = useState(false)
@@ -15,7 +15,7 @@ export default function UploadFile() {
     setUploadedFile(null)
 
     try {
-      const file = await pickSingle()
+      const file = await pick()
 
       const formData = new FormData()
       formData.append('file', file)

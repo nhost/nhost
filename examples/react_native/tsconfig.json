@@ -1,13 +1,22 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json",
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  // "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "moduleResolution": "Node",
+    "moduleResolution": "Nodenext",
+    "module": "Nodenext",
     "paths": {
       "@components/*": ["src/components/*"],
       "@screens/*": ["src/screens/*"],
       "@graphql/*": ["src/graphql/*"],
       "react": ["./node_modules/@types/react"]
-    }
+    },
+    "typeRoots": [
+      "./node_modules/@types", // NOTE: after update tsc thinks I ask relative to THIS file
+      "**/*/dist",
+      "**/*/build",
+      "**/*/.next",
+      "**/*/umd"
+    ]
   }
 }

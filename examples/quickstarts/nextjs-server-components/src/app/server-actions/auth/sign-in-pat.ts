@@ -11,8 +11,10 @@ export const signInWithPAT = async (formData: FormData) => {
 
   const { session, error } = await nhost.auth.signInPAT(pat)
 
+  const cookieStore = await cookies()
+
   if (session) {
-    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
+    cookieStore.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
     redirect('/protected/todos')
   }
 

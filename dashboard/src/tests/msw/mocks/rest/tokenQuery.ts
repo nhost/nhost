@@ -7,14 +7,14 @@ const tokenQuery = rest.post(
   (_req, res, ctx) =>
     res(
       ctx.json<NhostSession>({
-        accessToken: faker.datatype.string(40),
-        refreshToken: faker.datatype.uuid(),
+        accessToken: faker.string.sample(40),
+        refreshToken: faker.string.uuid(),
         accessTokenExpiresIn: 900,
         user: {
-          id: faker.datatype.uuid(),
+          id: faker.string.uuid(),
           createdAt: faker.date.past().toUTCString(),
           displayName: `${faker.name.firstName()} ${faker.name.lastName()}`,
-          avatarUrl: faker.internet.avatar(),
+          avatarUrl: faker.image.avatar(),
           locale: 'en',
           isAnonymous: false,
           emailVerified: true,

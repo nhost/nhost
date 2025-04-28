@@ -2,7 +2,14 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { FaGlobe, FaHouseUser, FaLock, FaQuestion, FaSignOutAlt } from 'react-icons/fa'
 
-import { Group, MantineColor, Navbar, Text, ThemeIcon, UnstyledButton } from '@mantine/core'
+import {
+  Group,
+  MantineColor,
+  // Navbar,
+  Text,
+  ThemeIcon,
+  UnstyledButton
+} from '@mantine/core'
 import { useAuthenticated, useSignOut } from '@nhost/nextjs'
 
 interface MenuItemProps {
@@ -19,22 +26,22 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, color, label, link, action })
   const Button = (
     <UnstyledButton
       onClick={action}
-      sx={(theme) => ({
-        display: 'block',
-        width: '100%',
-        padding: theme.spacing.xs,
-        borderRadius: theme.radius.sm,
-        color: active
-          ? theme.colors[theme.primaryColor][theme.colorScheme === 'dark' ? 4 : 7]
-          : theme.colorScheme === 'dark'
-          ? theme.colors.dark[0]
-          : theme.black,
-
-        '&:hover': {
-          backgroundColor:
-            theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0]
-        }
-      })}
+    // sx={(theme) => ({
+    //   display: 'block',
+    //   width: '100%',
+    //   padding: theme.spacing.xs,
+    //   borderRadius: theme.radius.sm,
+    //   color: active
+    //     ? theme.colors[theme.primaryColor][theme.colorScheme === 'dark' ? 4 : 7]
+    //     : theme.colorScheme === 'dark'
+    //       ? theme.colors.dark[0]
+    //       : theme.black,
+    //
+    //   '&:hover': {
+    //     backgroundColor:
+    //       theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0]
+    //   }
+    // })}
     >
       <Group>
         <ThemeIcon color={color} variant="outline">
@@ -87,21 +94,22 @@ export default function NavBar() {
   const { signOut } = useSignOut()
   const router = useRouter()
   const links = data.map((link) => <MenuItem {...link} key={link.label} />)
-  return (
-    <Navbar width={{ sm: 300, lg: 400, base: 100 }}>
-      <Navbar.Section grow mt="md">
-        {links}
-        {authenticated && (
-          <MenuItem
-            icon={<FaSignOutAlt />}
-            label="Sign Out"
-            action={async () => {
-              await signOut()
-              router.replace('/')
-            }}
-          />
-        )}
-      </Navbar.Section>
-    </Navbar>
-  )
+  return <div>TODO</div>
+  // return (
+  //   <Navbar width={{ sm: 300, lg: 400, base: 100 }}>
+  //     <Navbar.Section grow mt="md">
+  //       {links}
+  //       {authenticated && (
+  //         <MenuItem
+  //           icon={<FaSignOutAlt />}
+  //           label="Sign Out"
+  //           action={async () => {
+  //             await signOut()
+  //             router.replace('/')
+  //           }}
+  //         />
+  //       )}
+  //     </Navbar.Section>
+  //   </Navbar>
+  // )
 }

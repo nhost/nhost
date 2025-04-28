@@ -236,7 +236,7 @@ describe(`Activation`, () => {
 
     enableMfaService.send({
       type: 'ACTIVATE',
-      code: faker.datatype.string(6),
+      code: faker.string.sample(6),
       activeMfaType: 'totp'
     })
 

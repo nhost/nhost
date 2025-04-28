@@ -1,10 +1,10 @@
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
 import type {
-  AuthenticationCredentialJSON,
+  AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
-  RegistrationCredentialJSON
-} from '@simplewebauthn/typescript-types'
+  RegistrationResponseJSON
+} from '@simplewebauthn/types'
 import { assign, createMachine, InterpreterFrom, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
@@ -113,7 +113,7 @@ export const createAuthMachine = ({
     try {
       sharedBroadcastChannel = new BroadcastChannel(broadcastKey)
       // console.debug('[AUTH] Created shared BroadcastChannel with key:', broadcastKey)
-    } catch (error) {
+    } catch (_error) {
       // console.debug('[AUTH] BroadcastChannel is not available e.g. react-native')
     }
   }
@@ -994,13 +994,13 @@ export const createAuthMachine = ({
           if (!isValidEmail(email)) {
             throw new CodifiedError(INVALID_EMAIL_ERROR)
           }
-          const options = await postRequest<PublicKeyCredentialRequestOptionsJSON>(
+          const optionsJSON = await postRequest<PublicKeyCredentialRequestOptionsJSON>(
             '/signin/webauthn',
             { email }
           )
-          let credential: AuthenticationCredentialJSON
+          let credential: AuthenticationResponseJSON
           try {
-            credential = await startAuthentication(options)
+            credential = await startAuthentication({ optionsJSON })
           } catch (e) {
             throw new CodifiedError(e as Error)
           }
@@ -1017,14 +1017,14 @@ export const createAuthMachine = ({
         },
         signInSecurityKey: async (): Promise<SignInResponse> => {
           try {
-            const options: PublicKeyCredentialRequestOptionsJSON = await postRequest(
+            const optionsJSON: PublicKeyCredentialRequestOptionsJSON = await postRequest(
               '/signin/webauthn',
               {}
             )
 
-            let credential: AuthenticationCredentialJSON
+            let credential: AuthenticationResponseJSON
             try {
-              credential = await startAuthentication(options)
+              credential = await startAuthentication({ optionsJSON })
             } catch (e) {
               throw new CodifiedError(e as Error)
             }
@@ -1040,7 +1040,7 @@ export const createAuthMachine = ({
               refreshToken: ctx.refreshToken.value,
               all: !!e.all
             },
-            !!e.all ? ctx.accessToken.value : undefined
+            e.all ? ctx.accessToken.value : undefined
           )
 
           if (broadcastKey && sharedBroadcastChannel) {
@@ -1105,9 +1105,9 @@ export const createAuthMachine = ({
             null,
             requestOptions?.headers
           )
-          let credential: RegistrationCredentialJSON
+          let credential: RegistrationResponseJSON
           try {
-            credential = await startRegistration(webAuthnOptions)
+            credential = await startRegistration({ optionsJSON: webAuthnOptions })
           } catch (e) {
             throw new CodifiedError(e as Error)
           }

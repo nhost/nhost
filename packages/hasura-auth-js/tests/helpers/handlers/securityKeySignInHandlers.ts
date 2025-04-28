@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/typescript-types'
+import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types'
 import { rest } from 'msw'
 import { Mfa, NhostSession } from '../../../src'
 import { BASE_URL } from '../config'
@@ -32,8 +32,8 @@ export const correctSecurityKeyVerifyHandler = rest.post(
         session: {
           user: fakeUser,
           accessTokenExpiresIn: 900,
-          accessToken: faker.datatype.string(40),
-          refreshToken: faker.datatype.uuid()
+          accessToken: faker.string.sample(40),
+          refreshToken: faker.string.uuid()
         },
         mfa: null
       })

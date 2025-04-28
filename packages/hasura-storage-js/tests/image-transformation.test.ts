@@ -1,5 +1,5 @@
 import FormData from 'form-data'
-import fs from 'fs'
+import fs from 'node:fs'
 import jpeg from 'jpeg-js'
 import pixelmatch from 'pixelmatch'
 import { beforeAll, describe, expect, it } from 'vitest'

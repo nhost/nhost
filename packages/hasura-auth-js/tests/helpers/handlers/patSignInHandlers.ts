@@ -47,7 +47,7 @@ export const patSignInSuccessHandler = rest.post(`${BASE_URL}/signin/pat`, (_req
       session: {
         user: fakeUser,
         accessTokenExpiresIn: 900,
-        accessToken: faker.datatype.string(40),
+        accessToken: faker.string.sample(40),
         refreshToken: null
       },
       mfa: null

@@ -8,8 +8,8 @@ import {
   useProviderLink,
   useSignInEmailPassword,
 } from '@nhost/react';
-import {NavigationProp, ParamListBase} from '@react-navigation/native';
-import {useForm} from 'react-hook-form';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useForm } from 'react-hook-form';
 import {
   Alert,
   SafeAreaView,
@@ -33,17 +33,17 @@ export default function SignIn({
   navigation: NavigationProp<ParamListBase>;
 }) {
   const nhost = useNhostClient();
-  const {apple, google} = useProviderLink({
+  const { apple, google } = useProviderLink({
     redirectTo: 'myapp://',
   });
 
-  const {control, handleSubmit} = useForm<SignInFormValues>();
-  const {signInEmailPassword, isLoading} = useSignInEmailPassword();
+  const { control, handleSubmit } = useForm<SignInFormValues>();
+  const { signInEmailPassword, isLoading } = useSignInEmailPassword();
 
   const onSubmit = async (data: SignInFormValues) => {
-    const {email, password} = data;
+    const { email, password } = data;
 
-    const {isError, error, needsEmailVerification} = await signInEmailPassword(
+    const { isError, error, needsEmailVerification } = await signInEmailPassword(
       email,
       password,
     );
@@ -71,7 +71,7 @@ export default function SignIn({
           response.url.match(/refreshToken=([^&]*)/)?.at(1) ?? null;
 
         if (refreshToken) {
-          const {error} = await nhost.auth.refreshSession(refreshToken);
+          const { error } = await nhost.auth.refreshSession(refreshToken);
 
           if (error) {
             throw error;
@@ -80,7 +80,7 @@ export default function SignIn({
           throw new Error('An error occurred during the sign-in process');
         }
       }
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Error', 'An error occurred during the sign-in process.');
     }
   };
@@ -88,7 +88,7 @@ export default function SignIn({
   const handleSignInWithApple = () => handleSignInWithOAuth(apple);
   const handleSignInWithGoogle = () => handleSignInWithOAuth(google);
 
-  const navigateToSignUp = () => navigation.navigate('signup');
+  const navigateToSignUp = () => navigation.popTo('signup');
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
@@ -140,8 +140,8 @@ export default function SignIn({
 }
 
 const styles = StyleSheet.create({
-  safeAreaView: {flex: 1},
-  scrollView: {backgroundColor: 'white', flex: 1},
+  safeAreaView: { flex: 1 },
+  scrollView: { backgroundColor: 'white', flex: 1 },
   header: {
     height: 200,
     alignItems: 'center',

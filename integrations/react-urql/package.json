@@ -24,6 +24,7 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
+  "type": "module",
   "files": [
     "dist",
     "umd",
@@ -44,6 +45,7 @@
     "access": "public"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "vite build --config ../../config/vite.react.dev.config.js",
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build --config ../../config/vite.react.config.js",
@@ -60,8 +62,8 @@
   },
   "dependencies": {
     "@urql/devtools": "^2.0.3",
-    "@urql/exchange-refocus": "^1.0.2",
-    "graphql-ws": "^5.16.0"
+    "@urql/exchange-refocus": "^1.1.1",
+    "graphql-ws": "^6.0.4"
   },
   "peerDependencies": {
     "@nhost/react": "workspace:*",
@@ -72,10 +74,10 @@
   },
   "devDependencies": {
     "@nhost/react": "workspace:*",
-    "@types/react": "^18.2.73",
-    "graphql": "16.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "urql": "^3.0.3"
+    "@types/react": "^19.1.2",
+    "graphql": "16.11.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "urql": "^4.2.2"
   }
 }

@@ -1,4 +1,11 @@
 {
   "extends": "../../config/react-library.tsconfig.json",
-  "include": ["src"]
+  "include": [
+    "src"
+  ],
+  "compilerOptions": {
+    "typeRoots": [
+      "./node_modules/@types",
+    ],
+  }
 }

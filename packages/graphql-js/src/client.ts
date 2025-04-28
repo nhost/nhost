@@ -1,5 +1,5 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import fetch from 'isomorphic-unfetch'
+import fetchPonyfill from 'fetch-ponyfill'
 import { parseRequestArgs } from './parse-args'
 import { resolveRequestDocument } from './resolve-request-document'
 import {
@@ -13,6 +13,12 @@ import {
 } from './types'
 
 import { jwtDecode, JwtPayload } from 'jwt-decode'
+
+let fetch: any
+
+if (typeof fetch === 'undefined') {
+  fetch = fetchPonyfill().fetch
+}
 
 /**
  * @alias GraphQL
@@ -85,8 +91,8 @@ export class NhostGraphqlClient {
     ...variablesAndRequestHeaders: V extends Record<any, never>
       ? [variables?: V, config?: NhostGraphqlRequestConfig]
       : keyof RemoveIndex<V> extends never
-      ? [variables?: V, config?: NhostGraphqlRequestConfig]
-      : [variables: V, config?: NhostGraphqlRequestConfig]
+        ? [variables?: V, config?: NhostGraphqlRequestConfig]
+        : [variables: V, config?: NhostGraphqlRequestConfig]
   ): Promise<NhostGraphqlRequestResponse<T>>
   async request<T = any, V extends Variables = Variables>(
     options: RequestOptions<V, T>
@@ -96,8 +102,8 @@ export class NhostGraphqlClient {
     ...variablesAndRequestHeaders: V extends Record<any, never>
       ? [variables?: V, config?: NhostGraphqlRequestConfig]
       : keyof RemoveIndex<V> extends never
-      ? [variables?: V, config?: NhostGraphqlRequestConfig]
-      : [variables: V, config?: NhostGraphqlRequestConfig]
+        ? [variables?: V, config?: NhostGraphqlRequestConfig]
+        : [variables: V, config?: NhostGraphqlRequestConfig]
   ): Promise<NhostGraphqlRequestResponse<T>> {
     const [variables, config] = variablesAndRequestHeaders
     const requestOptions = parseRequestArgs(documentOrOptions, variables, config)

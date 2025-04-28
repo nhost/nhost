@@ -42,7 +42,7 @@ test(`should fail if network is unavailable`, async () => {
 
   authService.send({
     type: 'SIGNIN_PAT',
-    pat: faker.datatype.uuid()
+    pat: faker.string.uuid()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -65,7 +65,7 @@ test(`should fail if server returns an error`, async () => {
 
   authService.send({
     type: 'SIGNIN_PAT',
-    pat: faker.datatype.uuid()
+    pat: faker.string.uuid()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -86,7 +86,7 @@ test(`should fail if server returns an error`, async () => {
 test(`should succeed if a correct PAT is used`, async () => {
   authService.send({
     type: 'SIGNIN_PAT',
-    pat: faker.datatype.uuid()
+    pat: faker.string.uuid()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -101,7 +101,7 @@ test(`should fail if an invalid PAT is used`, async () => {
 
   authService.send({
     type: 'SIGNIN_PAT',
-    pat: faker.datatype.uuid()
+    pat: faker.string.uuid()
   })
 
   const state = await waitFor(authService, (state) =>

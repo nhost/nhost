@@ -20,7 +20,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
-jest.mock('react-native-document-picker', () => ({default: jest.fn()}));
+jest.mock('@react-native-documents/picker', () => ({default: jest.fn()}));
 
 jest.mock('@react-navigation/native/lib/commonjs/useLinking.native', () => ({
   default: () => ({getInitialState: {then: jest.fn()}}),

@@ -1,12 +1,12 @@
 import replace from '@rollup/plugin-replace'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 const PWD = process.env.PWD
-const pkg = require(path.join(PWD, 'package.json'))
+const pkg = JSON.parse(fs.readFileSync(path.join(PWD, 'package.json'), 'utf-8'))
 
 const tsEntry = path.resolve(PWD, 'src/index.ts')
 const entry = fs.existsSync(tsEntry) ? tsEntry : tsEntry.replace('.ts', '.tsx')

@@ -90,7 +90,7 @@ test(`should fail if server returns an error`, async () => {
 test(`should fail if email is invalid`, async () => {
   changeEmailService.send({
     type: 'REQUEST',
-    email: faker.internet.userName()
+    email: faker.internet.username()
   })
 
   const state = await waitFor(changeEmailService, (state) => state.matches({ idle: 'error' }))

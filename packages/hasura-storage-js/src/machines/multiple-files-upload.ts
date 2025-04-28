@@ -20,10 +20,10 @@ export type MultipleFilesUploadContext = {
 export type MultipleFilesUploadEvents =
   | { type: 'ADD'; files: AnyFileList; bucketId?: string }
   | ({
-      type: 'UPLOAD'
-      files?: AnyFileList
-      bucketId?: string
-    } & FileUploadConfig)
+    type: 'UPLOAD'
+    files?: AnyFileList
+    bucketId?: string
+  } & FileUploadConfig)
   | { type: 'UPLOAD_PROGRESS'; additions: number }
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }
@@ -132,8 +132,8 @@ export const createMultipleFilesUploadMachine = () => {
             ? Array.isArray(files)
               ? files // File[]
               : 'item' in files // FileList
-              ? Array.from(files)
-              : [files] // File
+                ? Array.from(files)
+                : [files] // File
             : [] // No file
           const total = context.total + additions.reduce((agg, curr) => agg + curr.size, 0)
           const progress = Math.round((context.loaded * 100) / total)

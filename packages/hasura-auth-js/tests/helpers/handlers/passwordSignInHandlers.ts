@@ -16,8 +16,8 @@ export const correctEmailPasswordHandler = rest.post(
         session: {
           user: fakeUser,
           accessTokenExpiresIn: 900,
-          accessToken: faker.datatype.string(40),
-          refreshToken: faker.datatype.uuid()
+          accessToken: faker.string.sample(40),
+          refreshToken: faker.string.uuid()
         },
         mfa: null
       })
@@ -36,7 +36,7 @@ export const correctEmailPasswordWithMfaHandler = rest.post(
       ctx.json<{ mfa: Mfa; session: NhostSession | null }>({
         session: null,
         mfa: {
-          ticket: `mfaTotp:${faker.datatype.uuid()}`
+          ticket: `mfaTotp:${faker.string.uuid()}`
         }
       })
     )

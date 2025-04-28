@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { Button, ButtonVariant } from '@mantine/core'
+import { Button, ButtonVariant, darken } from '@mantine/core'
 
 const AuthLink: React.FC<{
   icon?: React.ReactNode
@@ -17,12 +17,12 @@ const AuthLink: React.FC<{
         component="a"
         variant={variant}
         href={link}
-        leftIcon={icon}
-        styles={(theme) => ({
+        leftSection={icon}
+        styles={() => ({
           root: {
             backgroundColor: color,
             '&:hover': {
-              backgroundColor: color && theme.fn.darken(color, 0.05)
+              backgroundColor: color && darken(color, 0.05)
             }
           },
 

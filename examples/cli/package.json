@@ -3,16 +3,17 @@
   "version": "0.3.20",
   "main": "src/index.mjs",
   "private": true,
+  "type": "module",
   "scripts": {
     "start": "node src/index.mjs"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
-    "commander": "^10.0.1",
-    "dotenv": "^16.4.5",
-    "graphql": "16.8.1",
+    "commander": "^13.1.0",
+    "dotenv": "^16.5.0",
+    "graphql": "16.11.0",
     "graphql-tag": "^2.12.6",
-    "pino": "^8.19.0"
+    "pino": "^9.6.0"
   },
   "engines": {
     "node": ">=16.0.0"

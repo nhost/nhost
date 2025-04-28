@@ -38,9 +38,8 @@ export const SignUpPasswordPage: NextPage = () => {
     <SignUpLayout title="Email + password Sign Up">
       <Modal
         title="Verification email sent"
-        transition="fade"
+        transitionProps={{ transition: 'fade', duration: 600 }}
         centered
-        transitionDuration={600}
         opened={emailVerificationToggle}
         onClose={() => {
           setEmailVerificationToggle(false)

@@ -1,4 +1,4 @@
-import fetch from 'isomorphic-unfetch'
+import fetchPonyfill from 'fetch-ponyfill'
 import { buildUrl, urlFromSubdomain } from '../../utils/helpers'
 import { NhostClientConstructorParams } from '../../utils/types'
 import {
@@ -6,6 +6,13 @@ import {
   NhostFunctionCallResponse,
   NhostFunctionsConstructorParams
 } from './types'
+
+let fetch: any
+
+if (typeof fetch === 'undefined') {
+  fetch = fetchPonyfill().fetch
+}
+
 /**
  * Creates a client for Functions from either a subdomain or a URL
  */

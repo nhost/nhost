@@ -35,16 +35,22 @@ export async function generateFunctions(
   const { baseSlug, verbose } = snapshot(appState)
   const { FunctionTemplate } = await import('../templates')
 
-  const functions: Array<{ name: string; content: string }> = (parsedContent || [])
-    .filter((document) => ['Function', 'Method'].includes(document.kindString))
-    .map((props: Signature) => ({
-      name: props.name,
-      content: FunctionTemplate(
-        props,
-        originalDocument || parsedContent,
-        classSlug || baseSlug ? `${classSlug || baseSlug}/${kebabCase(props.name)}` : undefined
-      )
-    }))
+  const functions: Array<{ name: string; content: string }> = await Promise.all(
+    (parsedContent || [])
+      .filter((document) => ['Function', 'Method'].includes(document.kindString))
+      .map(async (props: Signature) => {
+        const content = await FunctionTemplate(
+          props,
+          originalDocument || parsedContent
+          // TODO
+          // classSlug || baseSlug ? `${classSlug || baseSlug}/${kebabCase(props.name)}` : undefined
+        )
+        return {
+          name: props.name,
+          content
+        }
+      })
+  )
 
   const results = await Promise.allSettled(
     functions.map(async ({ name, content }) => {

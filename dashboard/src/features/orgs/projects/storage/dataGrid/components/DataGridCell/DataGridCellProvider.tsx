@@ -103,8 +103,8 @@ function editAndSelectCellReducer(
 export default function DataGridCellProvider<TInput extends HTMLElement>({
   children,
 }: PropsWithChildren<unknown>) {
-  const cellRef = useRef<HTMLDivElement>();
-  const inputRef = useRef<TInput>();
+  const cellRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<TInput>(null);
   const [{ isEditing, isSelected }, dispatch] = useReducer(
     editAndSelectCellReducer,
     {

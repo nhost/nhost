@@ -1,10 +1,11 @@
-import { AuthErrorPayload, NhostClient, NhostSession } from '@nhost/nhost-js'
+import { type AuthErrorPayload, type NhostSession } from '@nhost/hasura-auth-js'
+import { NhostClient } from '@nhost/nhost-js'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 export const NHOST_SESSION_KEY = 'nhostSession'
 
 export const getNhost = async (request?: NextRequest) => {
-  const $cookies = request?.cookies || cookies()
+  const $cookies = request?.cookies || (await cookies())
 
   const nhost = new NhostClient({
     subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || 'local',

@@ -53,8 +53,8 @@ export const correctPasswordlessSmsOtpHandler = rest.post(
         session: {
           user: fakeUser,
           accessTokenExpiresIn: 900,
-          accessToken: faker.datatype.string(40),
-          refreshToken: faker.datatype.uuid()
+          accessToken: faker.string.sample(40),
+          refreshToken: faker.string.uuid()
         },
         mfa: null
       })

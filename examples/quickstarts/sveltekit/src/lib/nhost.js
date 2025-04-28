@@ -9,24 +9,24 @@ export const NHOST_SESSION_KEY = 'nhostSession';
 export const getNhost = async (cookies) => {
 
   /** @type {import('@nhost/nhost-js').NhostClient} */
-	const nhost = new NhostClient({
+  const nhost = new NhostClient({
     subdomain: env.PUBLIC_NHOST_SUBDOMAIN || 'local',
     region: env.PUBLIC_NHOST_REGION,
     clientStorageType: 'cookie',
-		start: false
+    start: false
   })
 
   const sessionCookieValue = cookies.get(NHOST_SESSION_KEY) || ''
-	
-	/** @type {import('@nhost/nhost-js').NhostSession} */
+
+  /** @type {import('@nhost/nhost-js').NhostSession} */
   const initialSession = JSON.parse(atob(sessionCookieValue) || 'null')
-  
+
   nhost.auth.client.start({ initialSession })
 
-	/** @type {import('@nhost/nhost-js').NhostSession} */
-	if (nhost.auth.client.interpreter) {
-		await waitFor(nhost.auth.client.interpreter, (state) => !state.hasTag('loading'))
-	}
+  /** @type {import('@nhost/nhost-js').NhostSession} */
+  if (nhost.auth.client.interpreter) {
+    await waitFor(nhost.auth.client.interpreter, (state) => !state.hasTag('loading'))
+  }
 
   return nhost
 }
@@ -36,10 +36,10 @@ export const getNhost = async (cookies) => {
  * @param {*} onError
  */
 export const manageAuthSession = async (
-	event,
-	onError
+  event,
+  onError
 ) => {
-	const nhost = await getNhost(event.cookies)
+  const nhost = await getNhost(event.cookies)
   const session = nhost.auth.getSession()
 
   const refreshToken = event.url.searchParams.get('refreshToken') || undefined
@@ -58,10 +58,10 @@ export const manageAuthSession = async (
     }
 
     event.cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(newSession)), { path: '/' })
-		
-		if (refreshToken) {
-			event.url.searchParams.delete('refreshToken')
-			throw redirect(303, event.url.pathname)
-		}
+
+    if (refreshToken) {
+      event.url.searchParams.delete('refreshToken')
+      throw redirect(303, event.url.pathname)
+    }
   }
 }

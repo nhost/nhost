@@ -53,7 +53,7 @@ export const generateMfaTotpSuccessHandler = rest.get(
       ctx.status(200),
       ctx.json({
         imageUrl: faker.image.imageUrl(),
-        totpSecret: faker.datatype.uuid()
+        totpSecret: faker.string.uuid()
       })
     )
   }
