@@ -56,3 +56,31 @@ jobs:
           vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
           vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
           vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+
+      - name: Send Discord notification (success)
+        if: success()
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
+          embed-title: "Dashboard Deployment"
+          embed-description: |
+            **Status**: success
+            **Triggered by**: ${{ github.actor }}
+
+            **Inputs**:
+            - Git Ref: ${{ inputs.git_ref }}
+          embed-color: '5763719'
+
+      - name: Send Discord notification (failure)
+        if: failure()
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
+          embed-title: "Dashboard Deployment"
+          embed-description: |
+            **Status**: failure
+            **Triggered by**: ${{ github.actor }}
+
+            **Inputs**:
+            - Git Ref: ${{ inputs.git_ref }}
+          embed-color: '15548997'
