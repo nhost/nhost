@@ -86,9 +86,9 @@ export const mockApplication: Project = {
 export const mockSession: NhostSession = {
   accessToken: faker.random.alphaNumeric(),
   accessTokenExpiresIn: 900,
-  refreshToken: faker.datatype.uuid(),
+  refreshToken: faker.string.uuid(),
   user: {
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     email: faker.internet.email(),
     displayName: faker.name.fullName(),
     createdAt: faker.date.past().toISOString(),

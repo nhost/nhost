@@ -1,9 +1,9 @@
 import React from 'react';
 import Button from '@components/Button';
 import ControlledInput from '@components/ControlledInput';
-import {useSignUpEmailPassword} from '@nhost/react';
-import {NavigationProp, ParamListBase} from '@react-navigation/native';
-import {useForm} from 'react-hook-form';
+import { useSignUpEmailPassword } from '@nhost/react';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useForm } from 'react-hook-form';
 import {
   Alert,
   SafeAreaView,
@@ -25,14 +25,14 @@ export default function SignUp({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) {
-  const {control, handleSubmit} = useForm<SignUpFormValues>();
+  const { control, handleSubmit } = useForm<SignUpFormValues>();
 
-  const {signUpEmailPassword, isLoading} = useSignUpEmailPassword();
+  const { signUpEmailPassword, isLoading } = useSignUpEmailPassword();
 
   const onSubmit = async (data: SignUpFormValues) => {
-    const {firstName, lastName, email, password} = data;
+    const { firstName, lastName, email, password } = data;
 
-    const {isError, error, needsEmailVerification} = await signUpEmailPassword(
+    const { isError, error, needsEmailVerification } = await signUpEmailPassword(
       email,
       password,
       {
@@ -109,10 +109,7 @@ export default function SignUp({
             onPress={handleSubmit(onSubmit)}
           />
 
-          <Button
-            label="Sign In"
-            onPress={() => navigation.navigate('signin')}
-          />
+          <Button label="Sign In" onPress={() => navigation.popTo('signin')} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -120,8 +117,8 @@ export default function SignUp({
 }
 
 const styles = StyleSheet.create({
-  safeAreaView: {flex: 1},
-  scrollView: {backgroundColor: 'white', flex: 1},
+  safeAreaView: { flex: 1 },
+  scrollView: { backgroundColor: 'white', flex: 1 },
   header: {
     height: 200,
     alignItems: 'center',

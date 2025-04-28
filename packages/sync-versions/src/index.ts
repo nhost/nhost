@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { findWorkspaceDir } from '@pnpm/find-workspace-dir'
-import fs from 'fs'
+import fs from 'node:fs'
 import { globSync } from 'glob'
 import { set } from 'object-path'
-import path from 'path'
+import path from 'node:path'
 import yaml from 'yaml'
 
 interface NhostCloudConfig {

@@ -33,7 +33,7 @@ export interface UploadFileHandlerResult extends StorageActionErrorState {
   name?: string
 }
 
-export interface FileUploadState extends UploadFileHandlerResult, UploadProgressState {}
+export interface FileUploadState extends UploadFileHandlerResult, UploadProgressState { }
 
 export const uploadFilePromise = async (
   params: FileUploadConfig & Partial<StorageUploadFileParams>,

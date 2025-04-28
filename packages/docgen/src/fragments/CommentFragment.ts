@@ -38,8 +38,8 @@ ${
         .map(CommentTagFragment)
         .join('\n\n')
     : returns
-    ? CommentTagFragment({ tag: 'returns', text: removeLinksFromText(returns) })
-    : ``
+      ? CommentTagFragment({ tag: 'returns', text: removeLinksFromText(returns) })
+      : ``
 }`
 
 export default CommentFragment

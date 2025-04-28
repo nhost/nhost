@@ -3,5 +3,8 @@
   "include": ["src"],
   "compilerOptions": {
     "types": [],
+    "typeRoots": [
+      "./node_modules/@types",
+    ],
   }
 }

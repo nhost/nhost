@@ -8,8 +8,8 @@ export const encodeQueryParameters = (baseUrl: string, parameters?: Record<strin
         const stringValue = Array.isArray(value)
           ? value.join(',')
           : typeof value === 'object'
-          ? JSON.stringify(value)
-          : (value as string)
+            ? JSON.stringify(value)
+            : (value as string)
         return `${key}=${encodeURIComponent(stringValue)}`
       })
       .join('&')
@@ -43,11 +43,22 @@ export const rewriteRedirectTo = <T extends RedirectOption>(
       return options
     }
   }
+
+  function urlSearchParamsToObject(params: URLSearchParams): Record<string, string> {
+    const result: Record<string, string> = {}
+
+    params.forEach((value, key) => {
+      result[key] = value
+    })
+
+    return result
+  }
+
   const baseClientUrl = new URL(clientUrl)
-  const clientParams = Object.fromEntries(new URLSearchParams(baseClientUrl.search))
+  const clientParams = urlSearchParamsToObject(new URLSearchParams(baseClientUrl.search))
   const url = new URL(redirectTo.startsWith('/') ? baseClientUrl.origin + redirectTo : redirectTo)
   const additionalParams = new URLSearchParams(url.search)
-  let combinedParams = Object.fromEntries(additionalParams)
+  let combinedParams = urlSearchParamsToObject(additionalParams)
 
   if (redirectTo.startsWith('/')) {
     combinedParams = { ...clientParams, ...combinedParams }
@@ -92,8 +103,8 @@ export function removeParameterFromWindow(name: string) {
     search.delete(name)
     hash.delete(name)
     let url = window.location.pathname
-    if (Array.from(search).length) url += `?${search.toString()}`
-    if (Array.from(hash).length) url += `#${hash.toString()}`
+    if (search.size) url += `?${search.toString()}`
+    if (hash.size) url += `#${hash.toString()}`
     window.history.pushState({}, '', url)
   }
 }

@@ -6,6 +6,6 @@
     "start": "mintlify dev"
   },
   "devDependencies": {
-    "mintlify": "^4.0.476"
+    "mintlify": "^4.0.510"
   }
 }

@@ -24,6 +24,7 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
+  "type": "module",
   "files": [
     "dist",
     "umd",
@@ -65,11 +66,11 @@
     "@nhost/graphql-js": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",
     "@nhost/hasura-storage-js": "workspace:*",
-    "isomorphic-unfetch": "^3.1.0"
+    "fetch-ponyfill": "^7.1.0"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "graphql": "16.8.1"
+    "graphql": "16.11.0"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"

@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/typescript-types'
+import { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/types'
 import { rest } from 'msw'
 import { Mfa, NhostSession } from '../../../src'
 import { BASE_URL } from '../config'
@@ -54,9 +54,9 @@ export const signUpEmailSecurityKeySuccessHandler = rest.post(
   (_req, res, ctx) => {
     return res(
       ctx.json<PublicKeyCredentialCreationOptionsJSON>({
-        challenge: faker.datatype.string(30),
+        challenge: faker.string.sample(30),
         user: {
-          id: faker.datatype.uuid(),
+          id: faker.string.uuid(),
           name: faker.internet.email(),
           displayName: faker.name.firstName()
         },
@@ -99,8 +99,8 @@ export const signUpVerifySecurityKeySuccessWithSessionHandler = rest.post(
         session: {
           user: fakeUser,
           accessTokenExpiresIn: 900,
-          accessToken: faker.datatype.string(40),
-          refreshToken: faker.datatype.uuid()
+          accessToken: faker.string.sample(40),
+          refreshToken: faker.string.uuid()
         },
         mfa: null
       })

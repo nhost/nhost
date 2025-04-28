@@ -20,6 +20,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
+  "type": "module",
   "files": [
     "dist",
     "README.md"
@@ -28,6 +29,7 @@
     "access": "public"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "NODE_ENV=development ts-node-dev -r dotenv/config dev/server.ts",
     "build": "tsc",
     "test:watch": "vitest",
@@ -40,18 +42,18 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@pothos/core": "^3.41.0",
-    "graphql": "16.8.1",
-    "graphql-scalars": "^1.23.0",
-    "graphql-yoga": "^3.9.1",
+    "@pothos/core": "^4.6.0",
+    "graphql": "16.11.0",
+    "graphql-scalars": "^1.24.2",
+    "graphql-yoga": "^5.13.4",
     "jsonwebtoken": "^9.0.2",
     "stripe": "^11.18.0"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.6",
-    "@types/node": "^18.19.28",
-    "dotenv": "^16.4.5",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.2",
+    "dotenv": "^16.5.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.8.3"
   }
 }

@@ -68,7 +68,7 @@ export default function SignIn({ navigation }: { navigation: NavigationProp<Para
   const handleSignInWithApple = () => handleSignInWithOAuth(apple)
   const handleSignInWithGoogle = () => handleSignInWithOAuth(google)
 
-  const navigateToSignUp = () => navigation.navigate('signup')
+  const navigateToSignUp = () => navigation.popTo('signup')
 
   return (
     <SafeAreaView style={styles.safeAreaView}>

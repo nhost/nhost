@@ -24,7 +24,7 @@ function simulateSignIn() {
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   return waitFor(authService, (state) =>

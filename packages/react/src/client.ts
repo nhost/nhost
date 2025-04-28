@@ -6,8 +6,10 @@ import {
 /** @internal */
 export const VanillaNhostClient = _VanillaNhostClient
 
-export interface NhostReactClientConstructorParams
-  extends Omit<VanillaNhostClientConstructorParams, 'start' | 'client'> {}
+export type NhostReactClientConstructorParams = Omit<
+  VanillaNhostClientConstructorParams,
+  'start' | 'client'
+>
 
 export class NhostClient extends VanillaNhostClient {
   constructor(params: NhostReactClientConstructorParams) {

@@ -1,7 +1,7 @@
 import {
-  AuthenticationCredentialJSON,
+  AuthenticationResponseJSON,
   PublicKeyCredentialRequestOptionsJSON
-} from '@simplewebauthn/typescript-types'
+} from '@simplewebauthn/types'
 import {
   AuthActionErrorState,
   AuthActionSuccessState,
@@ -19,63 +19,69 @@ export interface ElevateWithSecurityKeyHandlerResult
   elevated: boolean
 }
 
-export const elevateEmailSecurityKeyPromise = (authClient: AuthClient, email: string) =>
-  new Promise<ElevateWithSecurityKeyHandlerResult>(async (resolve) => {
-    const snapshot = authClient.interpreter?.getSnapshot()
-    const accessToken = snapshot?.context.accessToken.value
+export async function elevateEmailSecurityKeyPromise(
+  authClient: AuthClient,
+  email: string
+): Promise<ElevateWithSecurityKeyHandlerResult> {
+  const snapshot = authClient.interpreter?.getSnapshot()
+  const accessToken = snapshot?.context.accessToken.value
 
-    const { data } = await postFetch<PublicKeyCredentialRequestOptionsJSON>(
-      `${authClient.backendUrl}/elevate/webauthn`,
+  const { data: optionsJSON } = await postFetch<PublicKeyCredentialRequestOptionsJSON>(
+    `${authClient.backendUrl}/elevate/webauthn`,
+    {
+      email
+    },
+    accessToken
+  )
+
+  let credential: AuthenticationResponseJSON
+
+  try {
+    credential = await startAuthentication({ optionsJSON })
+  } catch (e) {
+    throw new CodifiedError(e as Error)
+  }
+
+  try {
+    const {
+      data: { session },
+      error: signInError
+    } = await postFetch<SignInResponse>(
+      `${authClient.backendUrl}/elevate/webauthn/verify`,
       {
-        email
+        email,
+        credential
       },
       accessToken
     )
 
-    let credential: AuthenticationCredentialJSON
-
-    try {
-      credential = await startAuthentication(data)
-    } catch (e) {
-      throw new CodifiedError(e as Error)
-    }
-
-    try {
-      const {
-        data: { session },
-        error: signInError
-      } = await postFetch<SignInResponse>(
-        `${authClient.backendUrl}/elevate/webauthn/verify`,
-        {
-          email,
-          credential
-        },
-        accessToken
-      )
-
-      if (session && !signInError) {
-        authClient.interpreter?.send({
-          type: 'SESSION_UPDATE',
-          data: {
-            session
-          }
-        })
-
-        resolve({
-          error: null,
-          isError: false,
-          isSuccess: true,
-          elevated: true
-        })
-      }
-    } catch (e) {
-      const { error } = e as { error: AuthErrorPayload }
-
-      resolve({
-        error,
-        isError: true,
-        isSuccess: false,
-        elevated: false
+    if (session && !signInError) {
+      authClient.interpreter?.send({
+        type: 'SESSION_UPDATE',
+        data: {
+          session
+        }
       })
+
+      return {
+        error: null,
+        isError: false,
+        isSuccess: true,
+        elevated: true
+      }
     }
-  })
+
+    throw new Error(
+      `IMPOSSIBLE: /elevate/webauthn/verify error -> either session is false OR signInError is true: session = ${session}, signInError = ${String(signInError)}`
+    )
+  } catch (e) {
+    const { error } = e as { error: AuthErrorPayload }
+
+    return {
+      error,
+      isError: true,
+      isSuccess: false,
+      elevated: false
+    }
+  }
+}

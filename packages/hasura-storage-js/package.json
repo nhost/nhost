@@ -21,6 +21,7 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
+  "type": "module",
   "files": [
     "dist",
     "umd",
@@ -63,15 +64,15 @@
   },
   "dependencies": {
     "fetch-ponyfill": "^7.1.0",
-    "form-data": "^4.0.0",
-    "graphql": "16.8.1",
+    "form-data": "^4.0.2",
+    "graphql": "16.11.0",
     "xstate": "^4.38.3"
   },
   "devDependencies": {
+    "@types/node": "^22.15.2",
     "@nhost/docgen": "workspace:*",
-    "@types/uuid": "^9.0.8",
     "jpeg-js": "^0.4.4",
-    "pixelmatch": "^5.3.0",
-    "uuid": "^9.0.1"
+    "pixelmatch": "^7.1.0",
+    "uuid": "^11.1.0"
   }
 }

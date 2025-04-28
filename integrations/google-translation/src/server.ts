@@ -1,5 +1,6 @@
 import { v2 } from '@google-cloud/translate'
-import { createServer, YogaInitialContext } from '@graphql-yoga/node'
+import { createServer } from 'node:http'
+import { createYoga, YogaInitialContext } from '@graphql-yoga/node'
 import SchemaBuilder from '@pothos/core'
 
 import { defaultCanTranslate, defaultGetUserLanguage } from './defaults'
@@ -18,7 +19,7 @@ export const createGoogleTranslationGraphQLServer = ({
   getUserLanguage = defaultGetUserLanguage,
   canTranslate = defaultCanTranslate,
   logger = console.log,
-  maskedErrors = true,
+  maskedErrors = true
 }: CreateServerProps = {}) => {
   const translator = new v2.Translate({ projectId, key: apiKey })
 
@@ -56,14 +57,19 @@ export const createGoogleTranslationGraphQLServer = ({
     })
   })
 
-  return createServer({
+  const yoga = createYoga<Context>({
+    schema: builder.toSchema(),
+    graphqlEndpoint: '/graphql',
+    maskedErrors,
     cors,
     graphiql,
-    context: async (context: YogaInitialContext): Promise<Context> => ({
+    context: async (context) => ({
       ...context,
       userLanguage: await getUserLanguage(context)
-    }),
-    schema: builder.toSchema(),
-    maskedErrors,
+    })
   })
+
+  const server = createServer(yoga)
+
+  return server
 }

@@ -54,7 +54,7 @@ describe(`Token refresh behaviour on first start`, () => {
 })
 
 describe(`Time based token refresh`, () => {
-  const initialToken = faker.datatype.uuid()
+  const initialToken = faker.string.uuid()
   const initialExpiration = faker.date.future()
   const customStorage = new CustomClientStorage(new Map())
 
@@ -77,7 +77,7 @@ describe(`Time based token refresh`, () => {
 
   beforeEach(() => {
     customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
-    customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.datatype.uuid())
+    customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.string.uuid())
     authServiceWithInitialSession.start()
   })
 
@@ -102,7 +102,9 @@ describe(`Time based token refresh`, () => {
 
   test(`access token should always be refreshed when reaching the expiration margin`, async () => {
     // Fast forward to the initial expiration date
-    vi.setSystemTime(new Date(initialExpiration.getTime() - (TOKEN_REFRESH_MARGIN_SECONDS * 1000 / 2)))
+    vi.setSystemTime(
+      new Date(initialExpiration.getTime() - (TOKEN_REFRESH_MARGIN_SECONDS * 1000) / 2)
+    )
 
     await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
@@ -123,7 +125,9 @@ describe(`Time based token refresh`, () => {
 
     // Fast forward to the expiration date of the access token
     vi.setSystemTime(
-      new Date(firstRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN_SECONDS * 1000 / 2)
+      new Date(
+        firstRefreshAccessTokenExpiration.getTime() - (TOKEN_REFRESH_MARGIN_SECONDS * 1000) / 2
+      )
     )
 
     await waitFor(authServiceWithInitialSession, (state) =>
@@ -164,7 +168,7 @@ describe(`Time based token refresh`, () => {
   })
 
   test(`token should be refreshed every N seconds based on the refresh interval`, async () => {
-    const refreshIntervalTime = faker.datatype.number({ min: 1000, max: 1500 })
+    const refreshIntervalTime = faker.number.int({ min: 1000, max: 1500 })
 
     const authMachineWithInitialSession = createAuthMachine({
       backendUrl: BASE_URL,
@@ -222,7 +226,7 @@ describe('General and disabled auto-sign in', () => {
   const customStorage = new CustomClientStorage(new Map())
 
   customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
-  customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.datatype.uuid())
+  customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.string.uuid())
 
   const authMachine = createAuthMachine({
     backendUrl: BASE_URL,
@@ -247,8 +251,8 @@ describe('General and disabled auto-sign in', () => {
 
   test(`should retry token refresh if refresh endpoint is unreachable`, async () => {
     const user = { ...fakeUser }
-    const accessToken = faker.datatype.string(40)
-    const refreshToken = faker.datatype.uuid()
+    const accessToken = faker.string.sample(40)
+    const refreshToken = faker.string.uuid()
     const accessTokenExpiresIn = 900
 
     server.use(authTokenNetworkErrorHandler)
@@ -274,8 +278,8 @@ describe('General and disabled auto-sign in', () => {
 
   test(`should save provided session on session update`, async () => {
     const user = { ...fakeUser }
-    const accessToken = faker.datatype.string(40)
-    const refreshToken = faker.datatype.uuid()
+    const accessToken = faker.string.sample(40)
+    const refreshToken = faker.string.uuid()
 
     expect(authService.getSnapshot().context.user).toBeNull()
     expect(authService.getSnapshot().context.accessToken.value).toBeNull()
@@ -305,8 +309,8 @@ describe('General and disabled auto-sign in', () => {
 
   test(`should automatically refresh token if expiration date was not part in session`, async () => {
     const user = { ...fakeUser }
-    const accessToken = faker.datatype.string(40)
-    const refreshToken = faker.datatype.uuid()
+    const accessToken = faker.string.sample(40)
+    const refreshToken = faker.string.uuid()
 
     authService.send({
       type: 'SESSION_UPDATE',
@@ -335,7 +339,7 @@ describe('General and disabled auto-sign in', () => {
   test(`should fail if network is unavailable`, async () => {
     server.use(authTokenNetworkErrorHandler)
 
-    authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
+    authService.send({ type: 'TRY_TOKEN', token: faker.string.uuid() })
 
     const state = await waitFor(authService, (state) =>
       state.matches('authentication.signedOut.failed')
@@ -355,7 +359,7 @@ describe('General and disabled auto-sign in', () => {
   test(`should fail if refresh token is invalid`, async () => {
     server.use(authTokenUnauthorizedHandler)
 
-    authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
+    authService.send({ type: 'TRY_TOKEN', token: faker.string.uuid() })
 
     const state = await waitFor(authService, (state) =>
       state.matches('authentication.signedOut.failed')
@@ -373,7 +377,7 @@ describe('General and disabled auto-sign in', () => {
   })
 
   test(`should succeed if a valid custom token is provided`, async () => {
-    authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
+    authService.send({ type: 'TRY_TOKEN', token: faker.string.uuid() })
 
     const state = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
@@ -393,7 +397,7 @@ describe(`Auto sign-in`, () => {
 
   beforeAll(() => {
     customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
-    customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.datatype.uuid())
+    customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.string.uuid())
 
     authMachine = createAuthMachine({
       backendUrl: BASE_URL,
@@ -467,7 +471,7 @@ describe(`Auto sign-in`, () => {
     //
     vi.stubGlobal('location', {
       ...globalThis.location,
-      href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
+      href: `http://localhost:3000/?refreshToken=${faker.string.uuid()}`
     })
 
     authService.start()
@@ -482,7 +486,7 @@ describe(`Auto sign-in`, () => {
 
     vi.stubGlobal('location', {
       ...globalThis.location,
-      href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
+      href: `http://localhost:3000/?refreshToken=${faker.string.uuid()}`
     })
 
     authService.start()
@@ -497,7 +501,7 @@ describe(`Auto sign-in`, () => {
 
     vi.stubGlobal('location', {
       ...globalThis.location,
-      href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
+      href: `http://localhost:3000/?refreshToken=${faker.string.uuid()}`
     })
 
     authService.start()
@@ -520,7 +524,7 @@ describe(`Auto sign-in`, () => {
   test(`should automatically sign in if "refreshToken" was in the URL`, async () => {
     vi.stubGlobal('location', {
       ...globalThis.location,
-      href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
+      href: `http://localhost:3000/?refreshToken=${faker.string.uuid()}`
     })
 
     authService.start()

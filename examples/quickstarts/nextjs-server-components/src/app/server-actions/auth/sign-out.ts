@@ -9,7 +9,8 @@ export const signOut = async () => {
 
   await nhost.auth.signOut()
 
-  cookies().delete(NHOST_SESSION_KEY)
+  const cookieStore = await cookies()
+  cookieStore.delete(NHOST_SESSION_KEY)
 
   redirect('/auth/sign-in')
 }

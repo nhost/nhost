@@ -1,4 +1,5 @@
-import path from 'path'
+import path from 'node:path'
+import fs from 'node:fs'
 
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -6,7 +7,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 import baseLibConfig from './vite.lib.config'
 
 const PWD = process.env.PWD
-const pkg = require(path.join(PWD, 'package.json'))
+const pkg = JSON.parse(fs.readFileSync(path.join(PWD, 'package.json'), 'utf-8'))
 
 const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies))]
 

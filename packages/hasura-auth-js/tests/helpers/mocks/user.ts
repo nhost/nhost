@@ -5,10 +5,10 @@ import { User } from '../../../src'
  * A fake user object.
  */
 export const fakeUser: User = {
-  id: faker.datatype.uuid(),
+  id: faker.string.uuid(),
   createdAt: faker.date.past().toUTCString(),
   displayName: `${faker.name.firstName()} ${faker.name.lastName()}`,
-  avatarUrl: faker.internet.avatar(),
+  avatarUrl: faker.image.avatar(),
   locale: 'en',
   isAnonymous: false,
   emailVerified: true,
@@ -27,7 +27,7 @@ export const fakeAnonymousUser: User = {
   ...fakeUser,
 
   displayName: 'Anonymous User',
-  avatarUrl: faker.internet.avatar(),
+  avatarUrl: faker.image.avatar(),
   locale: 'en',
   isAnonymous: true,
   emailVerified: false,

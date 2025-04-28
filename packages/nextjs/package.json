@@ -27,6 +27,7 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
+  "type": "module",
   "files": [
     "dist",
     "umd",
@@ -47,6 +48,7 @@
     "access": "public"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "vite build --config ../../config/vite.react.dev.config.js",
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build --config ../../config/vite.react.config.js",
@@ -65,8 +67,8 @@
   },
   "dependencies": {
     "@nhost/react": "workspace:*",
-    "graphql": "16.8.1",
-    "isomorphic-unfetch": "^3.1.0",
+    "graphql": "16.11.0",
+    "fetch-ponyfill": "^7.1.0",
     "js-cookie": "^3.0.5",
     "xstate": "^4.38.3"
   },
@@ -76,10 +78,11 @@
     "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@types/node": "^22.15.2",
     "@nhost/docgen": "workspace:*",
     "@types/js-cookie": "^3.0.6",
-    "next": "^14.2.26",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "next": "^15.3.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }

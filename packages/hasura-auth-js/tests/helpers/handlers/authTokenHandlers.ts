@@ -10,8 +10,8 @@ import fakeUser from '../mocks/user'
 export const authTokenSuccessHandler = rest.post(`${BASE_URL}/token`, (_req, res, ctx) => {
   return res(
     ctx.json<NhostSession>({
-      accessToken: faker.datatype.string(40),
-      refreshToken: faker.datatype.uuid(),
+      accessToken: faker.string.sample(40),
+      refreshToken: faker.string.uuid(),
       accessTokenExpiresIn: 900,
       user: fakeUser
     })

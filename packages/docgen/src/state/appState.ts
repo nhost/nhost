@@ -1,4 +1,4 @@
-import { proxyWithComputed } from 'valtio/utils'
+import { proxy } from 'valtio'
 
 export type AppState = {
   /**
@@ -32,9 +32,7 @@ export type AppState = {
    * @see {@link https://docusaurus.io/fr/docs/api/plugins/@docusaurus/plugin-content-docs#custom_edit_url}
    */
   baseEditUrl?: string
-}
 
-export type ComputedAppState = {
   /**
    * Generated documentation path relative to Docusaurus root. Leading and trailing slashes are
    * removed.
@@ -42,15 +40,13 @@ export type ComputedAppState = {
   formattedDocsRoot: string
 }
 
-export const appState = proxyWithComputed<AppState, ComputedAppState>(
-  {
-    verbose: false,
-    contentReferences: new Map(),
-    docsRoot: ''
-  },
-  {
-    formattedDocsRoot: (snap) => snap.docsRoot.replace(/(^\/|\/$)/gi, '')
+export const appState = proxy<AppState>({
+  verbose: false,
+  contentReferences: new Map(),
+  docsRoot: '',
+  get formattedDocsRoot() {
+    return this.docsRoot.replace(/(^\/|\/$)/gi, '')
   }
-)
+})
 
 export default appState

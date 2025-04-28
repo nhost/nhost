@@ -91,7 +91,7 @@ export default function SignUp({ navigation }: { navigation: NavigationProp<Para
             onPress={handleSubmit(onSubmit)}
           />
 
-          <Button label="Sign In" onPress={() => navigation.navigate('signin')} />
+          <Button label="Sign In" onPress={() => navigation.popTo('signin')} />
         </View>
       </ScrollView>
     </SafeAreaView>

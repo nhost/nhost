@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   preset: 'react-native',
   transformIgnorePatterns: [
     '../../node_modules/(?!@react-native|react-native|expo-modules-core|burnt)',

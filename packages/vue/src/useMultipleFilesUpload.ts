@@ -88,11 +88,11 @@ export const useMultipleFilesUpload = (): MultipleFilesUploadComposableResult =>
     )
 
   const cancel = () => {
-    service.send('CANCEL')
+    service.send({ type: 'CANCEL' })
   }
 
   const clear = () => {
-    service.send('CLEAR')
+    service.send({ type: 'CLEAR' })
   }
 
   const isUploading = useSelector(service, (state) => state.matches('uploading'))

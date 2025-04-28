@@ -43,7 +43,7 @@ test(`should fail if network is unavailable`, async () => {
   authService.send({
     type: 'PASSWORDLESS_SMS_OTP',
     phoneNumber: faker.phone.number(),
-    otp: faker.random.numeric(6).toString()
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -67,7 +67,7 @@ test(`should fail if server returns an error`, async () => {
   authService.send({
     type: 'PASSWORDLESS_SMS_OTP',
     phoneNumber: faker.phone.number(),
-    otp: faker.random.numeric(6).toString()
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -90,7 +90,7 @@ test(`should fail if the provided phone number was invalid`, async () => {
     type: 'PASSWORDLESS_SMS_OTP',
     // TODO: Phone number validation is not implemented yet
     phoneNumber: '',
-    otp: faker.random.numeric(6).toString()
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -114,7 +114,7 @@ test(`should fail if the provided OTP was invalid`, async () => {
   authService.send({
     type: 'PASSWORDLESS_SMS_OTP',
     phoneNumber: faker.phone.number(),
-    otp: faker.random.numeric(6).toString()
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -136,7 +136,7 @@ test(`should succeed if the provided phone number and OTP were valid`, async () 
   authService.send({
     type: 'PASSWORDLESS_SMS_OTP',
     phoneNumber: faker.phone.number(),
-    otp: faker.random.numeric(6).toString()
+    otp: faker.number.int({ min: 100_000, max: 999_999 }).toString()
   })
 
   const state = await waitFor(authService, (state) =>

@@ -30,6 +30,7 @@ export function useNhostClient(): UseNhostClientReturn {
   let resolveImpl: ResolveClient
 
   // Save current client in current closure scope
+  // @ts-expect-error Variable 'currentNhostClient' is used before being assigned.
   const savedCurrentClient = currentNhostClient
 
   if (!getCurrentInstance()) {
