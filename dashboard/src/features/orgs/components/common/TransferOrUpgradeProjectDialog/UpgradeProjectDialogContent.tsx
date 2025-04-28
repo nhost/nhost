@@ -9,6 +9,7 @@ import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFi
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { analytics } from '@/lib/segment';
 import { isEmptyValue } from '@/lib/utils';
 import { useBillingTransferAppMutation } from '@/utils/__generated__/graphql';
 import { useRouter } from 'next/router';
@@ -44,6 +45,18 @@ function UpgradeProjectDialogContent({
             organizationID: newOrg?.id,
           },
         });
+
+        analytics.track('Project Upgraded', {
+          projectId: project?.id,
+          projectName: project?.name,
+          projectSubdomain: project?.subdomain,
+          newOrganizationId: newOrg?.id,
+          newOrganizationName: newOrg?.name,
+          newOrganizationSlug: newOrg?.slug,
+          newOrganizationPlan: newOrg?.plan?.name,
+          newOrganizationPlanId: newOrg?.plan?.id,
+        });
+
         await push(`/orgs/${newOrg?.slug}/projects`);
       },
       {

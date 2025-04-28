@@ -12,6 +12,7 @@ import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useSubmitState } from '@/hooks/useSubmitState';
+import { analytics } from '@/lib/segment';
 import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
@@ -113,6 +114,15 @@ export function NewProjectPageContent({
           });
 
         if (subdomain) {
+          analytics.track('Project Created', {
+            projectName: name,
+            projectSlug: slug,
+            organizationId: selectedOrg.id,
+            organizationName: selectedOrg.name,
+            regionId: selectedRegion.id,
+            regionName: selectedRegion.name,
+          });
+
           await router.push(`/orgs/${selectedOrg.slug}/projects/${subdomain}`);
         }
       },

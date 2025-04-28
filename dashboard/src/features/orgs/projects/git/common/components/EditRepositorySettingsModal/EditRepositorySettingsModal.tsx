@@ -7,6 +7,7 @@ import { EditRepositoryAndBranchSettings } from '@/features/orgs/projects/git/co
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUpdateApplicationMutation } from '@/generated/graphql';
+import { analytics } from '@/lib/segment';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import { useFormContext } from 'react-hook-form';
@@ -49,6 +50,17 @@ export default function EditRepositorySettingsModal({
             },
           },
         });
+
+        if (selectedRepoId) {
+          analytics.track('Project Connected to GitHub', {
+            projectId: project.id,
+            projectName: project.name,
+            projectSubdomain: project.subdomain,
+            repositoryId: selectedRepoId,
+            productionBranch: data.productionBranch,
+            baseFolder: data.repoBaseFolder,
+          });
+        }
       } else {
         await updateApp({
           variables: {
