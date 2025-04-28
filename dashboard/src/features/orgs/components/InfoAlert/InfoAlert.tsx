@@ -26,7 +26,7 @@ function InfoAlert({
     <Alert className={alertClassNames}>
       {icon && <div>{icon}</div>}
       <div>
-        {title && <AlertTitle>{title}</AlertTitle>}
+        {title && <AlertTitle className="font-semibold">{title}</AlertTitle>}
         {children && (
           <AlertDescription className={descClassNames}>
             {children}

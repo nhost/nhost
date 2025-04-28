@@ -1,7 +1,6 @@
 import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -21,6 +20,8 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import { InfoAlert } from '@/features/orgs/components/InfoAlert';
+import TextLink from '@/features/orgs/projects/common/components/TextLink/TextLink';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -30,10 +31,20 @@ import {
   useGetOrganizationPlansQuery,
 } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Slash } from 'lucide-react';
+import { Plus, Slash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+
+function NewOrgButton() {
+  return (
+    <strong className="inline-flex items-center justify-center gap-2">
+      &quot;
+      <Plus className="h-3 w-3 font-bold" strokeWidth={3} />
+      <span>New Organization</span>&quot;
+    </strong>
+  );
+}
 
 const changeOrgPlanForm = z.object({
   plan: z.string(),
@@ -47,6 +58,8 @@ export default function SubscriptionPlan() {
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
   const [fetchOrganizationCustomePortalLink, { loading }] =
     useBillingOrganizationCustomePortalLazyQuery();
+
+  const isFreeOrg = org?.plan.isFree;
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
     resolver: zodResolver(changeOrgPlanForm),
@@ -125,7 +138,7 @@ export default function SubscriptionPlan() {
           <div className="flex w-full flex-col gap-1 border-b p-4">
             <h4 className="font-medium">Subscription plan</h4>
           </div>
-          <div className="flex w-full flex-col justify-between gap-8 border-b p-4 md:flex-row">
+          <div className="flex w-full flex-col justify-between gap-8 p-4 md:flex-row">
             <div className="flex basis-1/2 flex-col gap-4">
               <span className="font-medium">Organization name</span>
               <span className="font-medium">{org?.name}</span>
@@ -152,31 +165,26 @@ export default function SubscriptionPlan() {
               </div>
             </div>
           </div>
-
-          <div className="flex w-full flex-col-reverse items-end justify-between gap-2 p-4 md:flex-row md:items-center md:gap-0">
+          {isFreeOrg && (
+            <div className="flex w-full flex-col justify-between gap-8 p-4 md:flex-row">
+              <InfoAlert title="Personal Organizations can not be upgraded.">
+                You may create a new organization with premium features by
+                clicking on the <NewOrgButton /> button in the left sidebar.
+              </InfoAlert>
+            </div>
+          )}
+          <div className="flex w-full flex-col-reverse items-end justify-between gap-2 border-t p-4 md:flex-row md:items-center md:gap-0">
             <div>
               <span>For a complete list of features, visit our </span>
-              <Link
-                href="https://nhost.io/pricing"
-                target="_blank"
-                rel="noopener noreferrer"
-                underline="hover"
-                className="font-medium"
-              >
+              <TextLink href="https://nhost.io/pricing">
                 pricing
                 <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
-              </Link>
+              </TextLink>
               <span> You can also visit our </span>
-              <Link
-                href="https://docs.nhost.io/platform/cloud/billing"
-                target="_blank"
-                rel="noopener noreferrer"
-                underline="hover"
-                className="font-medium"
-              >
+              <TextLink href="https://docs.nhost.io/platform/cloud/billing">
                 documentation
                 <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
-              </Link>
+              </TextLink>
               <span> for billing information</span>
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
@@ -245,7 +253,7 @@ export default function SubscriptionPlan() {
                               </div>
 
                               <div className="mt-0 flex h-full items-center text-xl font-semibold">
-                                {plan.isFree ? 'Free' : `${plan.price}/mo`}
+                                {isFreeOrg ? 'Free' : `${plan.price}/mo`}
                               </div>
                             </FormLabel>
                           </FormItem>
@@ -264,16 +272,10 @@ export default function SubscriptionPlan() {
                               </div>
                             </div>
 
-                            <Link
-                              href="mailto:hello@nhost.io"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              underline="hover"
-                              className="font-medium"
-                            >
+                            <TextLink href="mailto:hello@nhost.io">
                               Contact us
                               <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-                            </Link>
+                            </TextLink>
                           </div>
                         </div>
                       </RadioGroup>
