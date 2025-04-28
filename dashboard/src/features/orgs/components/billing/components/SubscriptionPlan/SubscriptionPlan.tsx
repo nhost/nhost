@@ -31,17 +31,15 @@ import {
   useGetOrganizationPlansQuery,
 } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Slash } from 'lucide-react';
+import { Slash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 function NewOrgButton() {
   return (
-    <strong className="inline-flex items-center justify-center gap-2">
-      &quot;
-      <Plus className="h-3 w-3 font-bold" strokeWidth={3} />
-      <span>New Organization</span>&quot;
+    <strong className="inline-flex items-center justify-center gap-2 px-1">
+      <span>+ New Organization</span>
     </strong>
   );
 }
