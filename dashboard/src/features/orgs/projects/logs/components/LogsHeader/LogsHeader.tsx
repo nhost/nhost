@@ -90,7 +90,6 @@ export default function LogsHeader({
       service: AvailableLogsService.ALL,
       interval: null,
     },
-    mode: 'onChange',
     resolver: yupResolver(validationSchema),
   });
 
@@ -115,7 +114,7 @@ export default function LogsHeader({
         interval: currentValues.interval,
       };
 
-      // Update form values before submitting, to ensure the dates in LogsRangeSelector are updated
+      // Update form values before submitting, to ensure the dates have the current date if selected an interval
       setValue('from', newValues.from);
       setValue('to', newValues.to);
       setValue('interval', newValues.interval);
