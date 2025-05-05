@@ -466,7 +466,7 @@ services:
         ports:
             - mode: ingress
               target: 80
-              published: "80"
+              published: 8080
               protocol: tcp
         restart: always
         volumes:
