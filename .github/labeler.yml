@@ -1,24 +1,25 @@
 dashboard:
-  - dashboard/**/*
+  - any:
+      - changed-files:
+          - any-glob-to-any-file: ['dashboard/**/*']
 
 documentation:
-  - any:
-      - docs/**/*
+  - any: ['docs/**/*']
 
 examples:
-  - examples/**/*
+  - any: ['examples/**/*']
 
 sdk:
-  - packages/**/*
+  - any: ['packages/**/*']
 
 integrations:
-  - integrations/**/*
+  - any: ['integrations/**/*']
 
 react:
-  - '{packages,examples,integrations}/*react*/**/*'
+  - any: ['{packages,examples,integrations}/*react*/**/*']
 
 nextjs:
-  - '{packages,examples}/*next*/**/*'
+  - any: ['{packages,examples}/*next*/**/*']
 
 vue:
-  - '{packages,examples,integrations}/*vue*/**/*'
+  - any: ['{packages,examples,integrations}/*vue*/**/*']
