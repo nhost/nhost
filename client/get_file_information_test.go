@@ -252,7 +252,7 @@ func TestGetFileInformation(t *testing.T) {
 			got, err := cl.GetFileInformation(context.Background(), tc.id, tc.opts...)
 
 			if !cmp.Equal(err, tc.expectedErr) {
-				t.Errorf(cmp.Diff(err, tc.expectedErr))
+				t.Error(cmp.Diff(err, tc.expectedErr))
 			}
 
 			copts := cmp.Options{
@@ -260,7 +260,7 @@ func TestGetFileInformation(t *testing.T) {
 			}
 
 			if !cmp.Equal(got, tc.expected, copts...) {
-				t.Errorf(cmp.Diff(got, tc.expected, copts...))
+				t.Error(cmp.Diff(got, tc.expected, copts...))
 			}
 		})
 	}

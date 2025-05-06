@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -107,7 +106,7 @@ func TestListBrokenMetadata(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			req, _ := http.NewRequestWithContext(
-				context.Background(),
+				t.Context(),
 				"POST",
 				"/v1/ops/list-broken-metadata",
 				nil,

@@ -9,9 +9,7 @@ linters:
       - usestdlibvars # needs to be fixed
       - exhaustruct   # needs to be fixed
       - depguard
-      - gomnd
-      - execinquery
-      - exportloopref # deprecated
+      - tenv
 
 issues:
   exclude-rules:

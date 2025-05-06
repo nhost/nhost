@@ -71,7 +71,7 @@ func (self *Node) UnmarshalJSON(data []byte) (err error) {
 /** Node Type Accessor **/
 
 // Type returns json type represented by the node
-// It will be one of belows:
+// It will be one of bellows:
 //    V_NONE   = 0 (empty node, key not exists)
 //    V_ERROR  = 1 (error node)
 //    V_NULL   = 2 (json value `null`, key exists)
@@ -89,7 +89,7 @@ func (self Node) Type() int {
 }
 
 // Type concurrently-safe returns json type represented by the node
-// It will be one of belows:
+// It will be one of bellows:
 //    V_NONE   = 0 (empty node, key not exists)
 //    V_ERROR  = 1 (error node)
 //    V_NULL   = 2 (json value `null`, key exists)
@@ -1678,7 +1678,7 @@ func NewBytes(src []byte) Node {
     if len(src) == 0 {
         panic("empty src bytes")
     }
-    out := rt.EncodeBase64(src)
+    out := rt.EncodeBase64ToString(src)
     return NewString(out)
 }
 

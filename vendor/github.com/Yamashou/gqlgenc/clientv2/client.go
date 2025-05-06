@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -462,87 +463,45 @@ func (c *Client) unmarshal(data []byte, res any) error {
 	return err
 }
 
-// contextKey is a type for context keys
-type contextKey string
-
-const (
-	// EnableInputJsonOmitemptyTagKey is a context key for EnableInputJsonOmitemptyTag
-	EnableInputJsonOmitemptyTagKey contextKey = "enable_input_json_omitempty_tag"
-)
-
-// WithEnableInputJsonOmitemptyTag returns a new context with EnableInputJsonOmitemptyTag value
-func WithEnableInputJsonOmitemptyTag(ctx context.Context, enable bool) context.Context {
-	return context.WithValue(ctx, EnableInputJsonOmitemptyTagKey, enable)
-}
-
-// getEnableInputJsonOmitemptyTagFromContext retrieves the EnableInputJsonOmitemptyTag value from context
-func getEnableInputJsonOmitemptyTagFromContext(ctx context.Context) bool {
-	enableClientJsonOmitemptyTag := true
-	if ctx != nil {
-		enable, ok := ctx.Value(EnableInputJsonOmitemptyTagKey).(bool)
-		if ok {
-			enableClientJsonOmitemptyTag = enable
-		}
-	}
-	return enableClientJsonOmitemptyTag
-}
-
-func MarshalJSON(ctx context.Context, v any) ([]byte, error) {
-	if v == nil {
-		return []byte("null"), nil
-	}
-
-	val := reflect.ValueOf(v)
-	if !val.IsValid() || (val.Kind() == reflect.Ptr && val.IsNil()) {
-		return []byte("null"), nil
-	}
-
-	encoder := &Encoder{
-		EnableInputJsonOmitemptyTag: getEnableInputJsonOmitemptyTagFromContext(ctx),
-	}
-
-	return encoder.Encode(val)
-}
-
-func checkImplements[I any](v reflect.Value) bool {
-	t := v.Type()
-	interfaceType := reflect.TypeOf((*I)(nil)).Elem()
-
-	return t.Implements(interfaceType) || (t.Kind() == reflect.Ptr && reflect.PointerTo(t).Implements(interfaceType))
+func MarshalJSON(_ context.Context, v any) ([]byte, error) {
+	encoder := &Encoder{}
+	return encoder.Encode(reflect.ValueOf(v))
 }
 
 // Encoder is a struct for encoding GraphQL requests to JSON
-type Encoder struct {
-	EnableInputJsonOmitemptyTag bool
-}
+type Encoder struct{}
 
 // fieldInfo holds field information of a struct
 type fieldInfo struct {
 	name      string       // field name
 	jsonName  string       // field name in JSON
 	omitempty bool         // omitempty flag
+	omitzero  bool         // omitzero flag
 	typ       reflect.Type // field type
 }
 
 // Encode encodes any value to JSON
 func (e *Encoder) Encode(v reflect.Value) ([]byte, error) {
-	if !v.IsValid() || (v.Kind() == reflect.Ptr && v.IsNil()) {
+	if !v.IsValid() || isNil(v) {
 		return []byte("null"), nil
 	}
 
-	if checkImplements[graphql.Marshaler](v) {
-		return e.encodeGQLMarshaler(v.Interface())
+	vi := v.Interface()
+	if marshaler, ok := vi.(graphql.ContextMarshaler); ok {
+		return e.encodeGQLContextMarshaler(context.Background(), marshaler)
 	}
-
-	if checkImplements[json.Marshaler](v) {
-		return e.encodeJsonMarshaler(v.Interface())
+	if marshaler, ok := vi.(graphql.Marshaler); ok {
+		return e.encodeGQLMarshaler(marshaler)
 	}
-
-	if checkImplements[encoding.TextMarshaler](v) {
-		return e.encodeTextMarshaler(v.Interface())
+	if marshaler, ok := vi.(json.Marshaler); ok {
+		return e.encodeJsonMarshaler(marshaler)
+	}
+	if marshaler, ok := vi.(encoding.TextMarshaler); ok {
+		return e.encodeTextMarshaler(marshaler)
 	}
 
 	t := v.Type()
+
 	switch t.Kind() {
 	case reflect.Ptr:
 		return e.encodePtr(v)
@@ -573,36 +532,44 @@ func (e *Encoder) Encode(v reflect.Value) ([]byte, error) {
 	}
 }
 
-// encodeGQLMarshaler encodes a value that implements graphql.Marshaler interface
-func (e *Encoder) encodeGQLMarshaler(v any) ([]byte, error) {
-	if v == nil {
+// encodeGQLContextMarshaler encodes a value that implements graphql.ContextMarshaler interface
+func (e *Encoder) encodeGQLContextMarshaler(ctx context.Context, v graphql.ContextMarshaler) ([]byte, error) {
+	if isNil(reflect.ValueOf(v)) {
 		return []byte("null"), nil
 	}
 
 	var buf bytes.Buffer
-	if val, ok := v.(graphql.Marshaler); ok {
-		val.MarshalGQL(&buf)
-	} else {
-		return nil, fmt.Errorf("failed to encode graphql.Marshaler: %v", v)
+	if err := v.MarshalGQLContext(ctx, &buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// encodeGQLMarshaler encodes a value that implements graphql.Marshaler interface
+func (e *Encoder) encodeGQLMarshaler(v graphql.Marshaler) ([]byte, error) {
+	if isNil(reflect.ValueOf(v)) {
+		return []byte("null"), nil
 	}
 
+	var buf bytes.Buffer
+	v.MarshalGQL(&buf)
 	return buf.Bytes(), nil
 }
 
 // encodeJsonMarshaler encodes a value that implements json.Marshaler interface
-func (e *Encoder) encodeJsonMarshaler(v any) ([]byte, error) {
-	if val, ok := v.(json.Marshaler); ok {
-		return val.MarshalJSON()
+func (e *Encoder) encodeJsonMarshaler(v json.Marshaler) ([]byte, error) {
+	if isNil(reflect.ValueOf(v)) {
+		return []byte("null"), nil
 	}
-	return nil, fmt.Errorf("failed to encode json.Marshaler: %v", v)
+	return v.MarshalJSON()
 }
 
 // encodeTextMarshaler encodes a value that implements encoding.TextMarshaler interface
-func (e *Encoder) encodeTextMarshaler(v any) ([]byte, error) {
-	if _, ok := v.(encoding.TextMarshaler); ok {
-		return json.Marshal(v)
+func (e *Encoder) encodeTextMarshaler(v encoding.TextMarshaler) ([]byte, error) {
+	if isNil(reflect.ValueOf(v)) {
+		return []byte("null"), nil
 	}
-	return nil, fmt.Errorf("failed to encode encoding.TextMarshaler: %v", v)
+	return json.Marshal(v)
 }
 
 // encodeBool encodes a boolean value
@@ -616,17 +583,17 @@ func (e *Encoder) encodeBool(v reflect.Value) ([]byte, error) {
 
 // encodeInt encodes an integer value
 func (e *Encoder) encodeInt(v reflect.Value) ([]byte, error) {
-	return []byte(fmt.Sprintf("%d", v.Int())), nil
+	return fmt.Appendf(nil, "%d", v.Int()), nil
 }
 
 // encodeUint encodes an unsigned integer value
 func (e *Encoder) encodeUint(v reflect.Value) ([]byte, error) {
-	return []byte(fmt.Sprintf("%d", v.Uint())), nil
+	return fmt.Appendf(nil, "%d", v.Uint()), nil
 }
 
 // encodeFloat encodes a floating-point value
 func (e *Encoder) encodeFloat(v reflect.Value) ([]byte, error) {
-	return []byte(fmt.Sprintf("%f", v.Float())), nil
+	return fmt.Appendf(nil, "%f", v.Float()), nil
 }
 
 // encodeString encodes a string value
@@ -646,24 +613,86 @@ func (e *Encoder) trimQuotes(s string) string {
 	return s
 }
 
-func (e *Encoder) isSkipOmitemptyField(v reflect.Value, field fieldInfo) bool {
-	if !e.EnableInputJsonOmitemptyTag {
-		return false
-	}
-
-	if !field.omitempty {
-		return false
-	}
-
+func isSkipField(omitempty, omitzero bool, v reflect.Value) bool {
 	if !v.IsValid() {
 		return true
 	}
 
-	if v.Kind() == reflect.Ptr && v.IsNil() {
-		return true
+	var skipByOmitEmpty bool
+	if omitempty {
+		skipByOmitEmpty = isEmptyValue(v)
 	}
 
-	return v.IsZero()
+	var skipByOmitZero bool
+	if omitzero {
+		skipByOmitZero = isZeroValue(v)
+	}
+
+	return skipByOmitEmpty || skipByOmitZero
+}
+
+// https://cs.opensource.google/go/go/+/refs/tags/go1.24.2:src/encoding/json/encode.go;l=318-330
+func isEmptyValue(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+		return v.Len() == 0
+	case reflect.Bool,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64,
+		reflect.Interface, reflect.Pointer:
+		return v.IsZero()
+	}
+	return false
+}
+
+type isZeroer interface {
+	IsZero() bool
+}
+
+var isZeroerType = reflect.TypeFor[isZeroer]()
+
+func isZeroValue(v reflect.Value) bool {
+	// https://cs.opensource.google/go/go/+/refs/tags/go1.24.2:src/encoding/json/encode.go;l=1187-1219
+	var isZero func(v reflect.Value) bool
+	t := v.Type()
+	// Provide a function that uses a type's IsZero method.
+	switch {
+	case t.Kind() == reflect.Interface && t.Implements(isZeroerType):
+		isZero = func(v reflect.Value) bool {
+			// Avoid panics calling IsZero on a nil interface or
+			// non-nil interface with nil pointer.
+			return v.IsNil() ||
+				(v.Elem().Kind() == reflect.Pointer && v.Elem().IsNil()) ||
+				//nolint:forcetypeassert
+				v.Interface().(isZeroer).IsZero()
+		}
+	case t.Kind() == reflect.Pointer && t.Implements(isZeroerType):
+		//nolint:forcetypeassert
+		isZero = func(v reflect.Value) bool {
+			// Avoid panics calling IsZero on nil pointer.
+			return v.IsNil() || v.Interface().(isZeroer).IsZero()
+		}
+	case t.Implements(isZeroerType):
+		//nolint:forcetypeassert
+		isZero = func(v reflect.Value) bool {
+			return v.Interface().(isZeroer).IsZero()
+		}
+	case reflect.PointerTo(t).Implements(isZeroerType):
+		isZero = func(v reflect.Value) bool {
+			if !v.CanAddr() {
+				// Temporarily box v so we can take the address.
+				v2 := reflect.New(v.Type()).Elem()
+				v2.Set(v)
+				v = v2
+			}
+			//nolint:forcetypeassert
+			return v.Addr().Interface().(isZeroer).IsZero()
+		}
+	}
+
+	// https://cs.opensource.google/go/go/+/refs/tags/go1.24.2:src/encoding/json/encode.go;l=716
+	return isZero == nil && v.IsZero() || (isZero != nil && isZero(v))
 }
 
 // encodeStruct encodes a struct value
@@ -672,19 +701,7 @@ func (e *Encoder) encodeStruct(v reflect.Value) ([]byte, error) {
 	result := make(map[string]json.RawMessage)
 	for _, field := range fields {
 		fieldValue := v.FieldByName(field.name)
-		if e.isSkipOmitemptyField(fieldValue, field) {
-			continue
-		}
-
-		// omitemptyが無効な場合、nilスライスは空のスライス[]として扱う
-		if !e.EnableInputJsonOmitemptyTag && fieldValue.Kind() == reflect.Slice && fieldValue.IsNil() {
-			result[field.jsonName] = []byte("[]")
-			continue
-		}
-
-		// omitemptyが無効な場合、nilポインタはnullとして扱い、出力に含める
-		if !e.EnableInputJsonOmitemptyTag && fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil() {
-			result[field.jsonName] = []byte("null")
+		if isSkipField(field.omitempty, field.omitzero, fieldValue) {
 			continue
 		}
 
@@ -699,6 +716,10 @@ func (e *Encoder) encodeStruct(v reflect.Value) ([]byte, error) {
 
 // encodeMap encodes a map value
 func (e *Encoder) encodeMap(v reflect.Value) ([]byte, error) {
+	if v.IsNil() {
+		return []byte("null"), nil
+	}
+
 	result := make(map[string]json.RawMessage)
 	for _, key := range v.MapKeys() {
 		encodedKey, err := e.Encode(key)
@@ -720,6 +741,10 @@ func (e *Encoder) encodeMap(v reflect.Value) ([]byte, error) {
 
 // encodeSlice encodes a slice value
 func (e *Encoder) encodeSlice(v reflect.Value) ([]byte, error) {
+	if v.IsNil() {
+		return []byte("null"), nil
+	}
+
 	result := make([]json.RawMessage, v.Len())
 	for i := range v.Len() {
 		encodedValue, err := e.Encode(v.Index(i))
@@ -773,25 +798,31 @@ func (e *Encoder) prepareFields(t reflect.Type) []fieldInfo {
 		if jsonTag == "-" {
 			continue
 		}
-
-		jsonName := f.Name
-		if jsonTag != "" {
-			parts := strings.Split(jsonTag, ",")
-			jsonName = parts[0]
-		}
-
 		fi := fieldInfo{
 			name:     f.Name,
-			jsonName: jsonName,
+			jsonName: f.Name,
 			typ:      f.Type,
 		}
-
-		if strings.Contains(jsonTag, "omitempty") {
-			fi.omitempty = true
+		if jsonTag != "" {
+			parts := strings.Split(jsonTag, ",")
+			fi.jsonName = parts[0]
+			if len(parts) > 1 {
+				fi.omitempty = slices.Contains(parts[1:], "omitempty")
+				fi.omitzero = slices.Contains(parts[1:], "omitzero")
+			}
 		}
 
 		fields = append(fields, fi)
 	}
 
 	return fields
+}
+
+func isNil(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func, reflect.Interface:
+		return v.IsNil()
+	default:
+		return false
+	}
 }

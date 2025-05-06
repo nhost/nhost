@@ -20,8 +20,10 @@ import (
 
 const ContentType = "text/event-stream;charset=utf-8"
 
-var contentType = []string{ContentType}
-var noCache = []string{"no-cache"}
+var (
+	contentType = []string{ContentType}
+	noCache     = []string{"no-cache"}
+)
 
 var fieldReplacer = strings.NewReplacer(
 	"\n", "\\n",
@@ -48,48 +50,48 @@ func Encode(writer io.Writer, event Event) error {
 
 func writeId(w stringWriter, id string) {
 	if len(id) > 0 {
-		w.WriteString("id:")
-		fieldReplacer.WriteString(w, id)
-		w.WriteString("\n")
+		_, _ = w.WriteString("id:")
+		_, _ = fieldReplacer.WriteString(w, id)
+		_, _ = w.WriteString("\n")
 	}
 }
 
 func writeEvent(w stringWriter, event string) {
 	if len(event) > 0 {
-		w.WriteString("event:")
-		fieldReplacer.WriteString(w, event)
-		w.WriteString("\n")
+		_, _ = w.WriteString("event:")
+		_, _ = fieldReplacer.WriteString(w, event)
+		_, _ = w.WriteString("\n")
 	}
 }
 
 func writeRetry(w stringWriter, retry uint) {
 	if retry > 0 {
-		w.WriteString("retry:")
-		w.WriteString(strconv.FormatUint(uint64(retry), 10))
-		w.WriteString("\n")
+		_, _ = w.WriteString("retry:")
+		_, _ = w.WriteString(strconv.FormatUint(uint64(retry), 10))
+		_, _ = w.WriteString("\n")
 	}
 }
 
 func writeData(w stringWriter, data interface{}) error {
-	w.WriteString("data:")
+	_, _ = w.WriteString("data:")
 
 	bData, ok := data.([]byte)
 	if ok {
-		dataReplacer.WriteString(w, string(bData))
-		w.WriteString("\n\n")
+		_, _ = dataReplacer.WriteString(w, string(bData))
+		_, _ = w.WriteString("\n\n")
 		return nil
 	}
 
-	switch kindOfData(data) {
+	switch kindOfData(data) { //nolint:exhaustive
 	case reflect.Struct, reflect.Slice, reflect.Map:
 		err := json.NewEncoder(w).Encode(data)
 		if err != nil {
 			return err
 		}
-		w.WriteString("\n")
+		_, _ = w.WriteString("\n")
 	default:
-		dataReplacer.WriteString(w, fmt.Sprint(data))
-		w.WriteString("\n\n")
+		_, _ = dataReplacer.WriteString(w, fmt.Sprint(data))
+		_, _ = w.WriteString("\n\n")
 	}
 	return nil
 }

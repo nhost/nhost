@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -66,7 +65,7 @@ func TestDeleteFile(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			req, _ := http.NewRequestWithContext(
-				context.Background(),
+				t.Context(),
 				"DELETE",
 				"/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288",
 				nil,

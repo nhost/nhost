@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -150,7 +149,7 @@ func TestGetFileInfo(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			req, _ := http.NewRequestWithContext(
-				context.Background(),
+				t.Context(),
 				"HEAD",
 				"/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288",
 				nil,

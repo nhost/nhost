@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -114,7 +113,7 @@ func TestDeleteBrokenMetadata(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			req, _ := http.NewRequestWithContext(
-				context.Background(),
+				t.Context(),
 				"POST",
 				"/v1/ops/delete-broken-metadata",
 				nil,

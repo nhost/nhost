@@ -2,7 +2,6 @@ package controller_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -270,7 +269,7 @@ func TestUploadFile(t *testing.T) {
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/files/", body)
+			req, _ := http.NewRequestWithContext(t.Context(), "POST", "/v1/files/", body)
 
 			req.Header.Set("Content-Type", contentType)
 

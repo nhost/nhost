@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -95,7 +94,7 @@ func TestListNotUploaded(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			req, _ := http.NewRequestWithContext(
-				context.Background(),
+				t.Context(),
 				"POST",
 				"/v1/ops/list-not-uploaded",
 				nil,

@@ -66,7 +66,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := cl.GetFilePresignedURL(context.Background(), tc.id)
 			if !cmp.Equal(err, tc.expectedErr) {
-				t.Errorf(cmp.Diff(err, tc.expectedErr))
+				t.Error(cmp.Diff(err, tc.expectedErr))
 			}
 
 			opts := cmp.Options{
@@ -74,7 +74,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 			}
 
 			if !cmp.Equal(got, tc.expected, opts...) {
-				t.Errorf(cmp.Diff(got, tc.expected, opts...))
+				t.Error(cmp.Diff(got, tc.expected, opts...))
 			}
 		})
 	}

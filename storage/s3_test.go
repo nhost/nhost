@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -57,13 +58,7 @@ func findFile(t *testing.T, s3 *storage.S3, filename string) bool {
 	if err != nil {
 		t.Fatal(err)
 	}
-	found := false
-	for _, file := range ff {
-		if file == filename {
-			found = true
-			break
-		}
-	}
+	found := slices.Contains(ff, filename)
 
 	return found
 }
@@ -269,7 +264,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 			}
 
 			if !cmp.Equal(publicResponse, tc.expectedErr) {
-				t.Errorf(cmp.Diff(publicResponse, tc.expectedErr))
+				t.Error(cmp.Diff(publicResponse, tc.expectedErr))
 			}
 
 			if tc.expectedContent != "" {
@@ -278,7 +273,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 					t.Error(err)
 				}
 				if !cmp.Equal(string(b), tc.expectedContent) {
-					t.Errorf(cmp.Diff(string(b), tc.expectedContent))
+					t.Error(cmp.Diff(string(b), tc.expectedContent))
 				}
 			}
 		})

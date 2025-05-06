@@ -53,15 +53,15 @@ var (
 
 // Used to standardized the output of the handers' response.
 type ErrorResponse struct {
-	Message string                 `json:"message"`
-	Data    map[string]interface{} `json:"data,omitempty"`
+	Message string         `json:"message"`
+	Data    map[string]any `json:"data,omitempty"`
 }
 
 type APIError struct {
 	statusCode    int
 	publicMessage string
 	err           error
-	data          map[string]interface{}
+	data          map[string]any
 }
 
 func InternalServerError(err error) *APIError {
@@ -96,7 +96,7 @@ func FileTooBigError(filename string, size, maxSize int) *APIError {
 		statusCode:    http.StatusBadRequest,
 		publicMessage: "file too big",
 		err:           fmt.Errorf("file %s too big: %d > %d", filename, size, maxSize), //nolint
-		data: map[string]interface{}{
+		data: map[string]any{
 			"filename": filename,
 			"size":     size,
 			"maxSize":  maxSize,
@@ -109,7 +109,7 @@ func FileTooSmallError(filename string, size, minSize int) *APIError {
 		statusCode:    http.StatusBadRequest,
 		publicMessage: "file too small",
 		err:           fmt.Errorf("file %s too small: %d < %d", filename, size, minSize), //nolint
-		data: map[string]interface{}{
+		data: map[string]any{
 			"filename": filename,
 			"size":     size,
 			"minSize":  minSize,
@@ -137,7 +137,7 @@ func NewAPIError(
 	statusCode int,
 	publicMessage string,
 	err error,
-	data map[string]interface{},
+	data map[string]any,
 ) *APIError {
 	return &APIError{
 		statusCode:    statusCode,
@@ -166,7 +166,7 @@ func (a *APIError) Error() string {
 }
 
 func (a *APIError) ExtendError(msg string) *APIError {
-	a.err = fmt.Errorf(fmt.Sprintf("%s: %s", msg, a.err.Error())) //nolint
+	a.err = fmt.Errorf("%s: %s", msg, a.err.Error()) //nolint
 	return a
 }
 
@@ -184,7 +184,7 @@ func (a *APIError) GetDataString(k string) string {
 
 func (a *APIError) SetData(k string, v any) {
 	if a.data == nil {
-		a.data = make(map[string]interface{})
+		a.data = make(map[string]any)
 	}
 	a.data[k] = v
 }
