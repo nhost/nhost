@@ -108,7 +108,7 @@ services:
       - --endpoint=http://graphql:8080
       - --address=0.0.0.0
       - --console-port=9695
-      - --api-port=80
+      - --api-port=8080
       - --api-host=http://${GRAPHQL_URL}
       - --console-hge-endpoint=http://${GRAPHQL_URL}
     environment:
@@ -164,7 +164,7 @@ services:
       traefik.http.routers.migrate.service: migrate
       traefik.http.routers.migrate.tls: 'false'
       traefik.http.services.console.loadbalancer.server.port: '9695'
-      traefik.http.services.migrate.loadbalancer.server.port: '80'
+      traefik.http.services.migrate.loadbalancer.server.port: '8080'
     restart: always
     volumes:
       - type: bind
@@ -455,7 +455,7 @@ services:
       - --providers.file.watch=true
       - --providers.docker.exposedbydefault=false
       - --providers.docker.constraints=Label(`com.docker.compose.project`,`docker-compose`)
-      - --entrypoints.web.address=:80
+      - --entrypoints.web.address=:8080
     extra_hosts:
       - host.docker.internal:host-gateway
       - ${AUTH_URL}:host-gateway
