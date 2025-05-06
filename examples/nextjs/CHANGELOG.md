@@ -1,5 +1,16 @@
 # @nhost-examples/nextjs
 
+## 0.4.7
+
+### Patch Changes
+
+- fad7f64: chore: fix typo
+- d9eb906: fix: update vite and nextjs because of vulnerability
+- Updated dependencies [d9eb906]
+  - @nhost/nextjs@2.2.7
+  - @nhost/react@3.10.4
+  - @nhost/react-apollo@17.0.4
+
 ## 0.4.6
 
 ### Patch Changes

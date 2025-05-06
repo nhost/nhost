@@ -1,5 +1,12 @@
 # @nhost-examples/react-gqty
 
+## 1.5.1
+
+### Patch Changes
+
+- d9eb906: fix: update vite and nextjs because of vulnerability
+  - @nhost/react@3.10.4
+
 ## 1.5.0
 
 ### Minor Changes

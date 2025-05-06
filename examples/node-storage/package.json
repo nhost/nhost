@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/node-storage",
-  "version": "0.2.20",
+  "version": "0.2.21",
   "private": true,
   "description": "This is an example of how to use the Storage with Node.js",
   "main": "src/index.mjs",

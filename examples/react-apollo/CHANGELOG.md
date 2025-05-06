@@ -1,5 +1,14 @@
 # @nhost-examples/react-apollo
 
+## 1.5.1
+
+### Patch Changes
+
+- d9eb906: fix: update vite and nextjs because of vulnerability
+- efd68c3: chore (react-apollo): use preview build instead of local dev server for e2e tests
+  - @nhost/react@3.10.4
+  - @nhost/react-apollo@17.0.4
+
 ## 1.5.0
 
 ### Minor Changes
