@@ -1,6 +1,8 @@
 package ansi
 
-import "strconv"
+import (
+	"strconv"
+)
 
 // SaveCursor (DECSC) is an escape sequence that saves the current cursor
 // position.
@@ -260,7 +262,7 @@ func CHA(col int) string {
 // See: https://vt100.net/docs/vt510-rm/CUP.html
 func CursorPosition(col, row int) string {
 	if row <= 0 && col <= 0 {
-		return HomeCursorPosition
+		return CursorHomePosition
 	}
 
 	var r, c string

@@ -266,7 +266,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
-				Version: ptr(18),
+				Version: ptr(22),
 			},
 			RateLimit: nil,
 			Resources: &model.ConfigFunctionsResources{

@@ -1,7 +1,6 @@
 package nhostclient_test
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -95,7 +94,7 @@ func TestMakeJSONRequest(t *testing.T) {
 
 			var responsePayload any
 			err := nhostclient.MakeJSONRequest(
-				context.Background(),
+				t.Context(),
 				&http.Client{}, //nolint: exhaustruct
 				ts.URL,
 				http.MethodPost,

@@ -1,7 +1,6 @@
 package configserver_test
 
 import (
-	"context"
 	"os"
 	"testing"
 
@@ -195,7 +194,7 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 			)
 
 			if err := st.UpdateConfig(
-				context.Background(),
+				t.Context(),
 				nil,
 				tc.newApp,
 				nil,
@@ -265,7 +264,7 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 			)
 
 			if err := st.UpdateSecrets(
-				context.Background(),
+				t.Context(),
 				nil,
 				tc.newApp,
 				nil,

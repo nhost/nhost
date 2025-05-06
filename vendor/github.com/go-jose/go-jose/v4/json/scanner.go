@@ -1,113 +1,26 @@
-// Copyright (c) 2009 The Go Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//    * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//    * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//    * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright 2010 The Go Authors.  All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
-// Package json provides a JSON value parser state machine.
-// This package is almost entirely copied from the Go stdlib.
-// Changes made to it permit users of the package to tell
-// if some slice of bytes is a valid beginning of a json string.
 package json
 
-import (
-	"fmt"
-	"sync"
-)
+// JSON value parser state machine.
+// Just about at the limit of what is reasonable to write by hand.
+// Some parts are a bit tedious, but overall it nicely factors out the
+// otherwise common code from the multiple scanning functions
+// in this package (Compact, Indent, checkValid, nextValue, etc).
+//
+// This file starts with two simple examples using the scanner
+// before diving into the scanner itself.
 
-type (
-	scanStatus int
-)
-
-const (
-	parseObjectKey   = iota // parsing object key (before colon)
-	parseObjectValue        // parsing object value (after colon)
-	parseArrayValue         // parsing array value
-
-	scanContinue     scanStatus = iota // uninteresting byte
-	scanBeginLiteral                   // end implied by next result != scanContinue
-	scanBeginObject                    // begin object
-	scanObjectKey                      // just finished object key (string)
-	scanObjectValue                    // just finished non-last object value
-	scanEndObject                      // end object (implies scanObjectValue if possible)
-	scanBeginArray                     // begin array
-	scanArrayValue                     // just finished array value
-	scanEndArray                       // end array (implies scanArrayValue if possible)
-	scanSkipSpace                      // space byte; can skip; known to be last "continue" result
-	scanEnd                            // top-level value ended *before* this byte; known to be first "stop" result
-	scanError                          // hit an error, scanner.err.
-
-	// This limits the max nesting depth to prevent stack overflow.
-	// This is permitted by https://tools.ietf.org/html/rfc7159#section-9
-	maxNestingDepth = 10000
-)
-
-type (
-	scanner struct {
-		step       func(*scanner, byte) scanStatus
-		parseState []int
-		endTop     bool
-		err        error
-		index      int
-	}
-)
-
-var scannerPool = sync.Pool{
-	New: func() any {
-		return &scanner{}
-	},
-}
-
-func newScanner() *scanner {
-	s := scannerPool.Get().(*scanner)
-	s.reset()
-	return s
-}
-
-func freeScanner(s *scanner) {
-	// Avoid hanging on to too much memory in extreme cases.
-	if len(s.parseState) > 1024 {
-		s.parseState = nil
-	}
-	scannerPool.Put(s)
-}
-
-// Scan returns the number of bytes scanned and if there was any error
-// in trying to reach the end of data.
-func Scan(data []byte) (int, error) {
-	s := newScanner()
-	defer freeScanner(s)
-	_ = checkValid(data, s)
-	return s.index, s.err
-}
+import "strconv"
 
 // checkValid verifies that data is valid JSON-encoded data.
 // scan is passed in for use by checkValid to avoid an allocation.
 func checkValid(data []byte, scan *scanner) error {
+	scan.reset()
 	for _, c := range data {
-		scan.index++
+		scan.bytes++
 		if scan.step(scan, c) == scanError {
 			return scan.err
 		}
@@ -118,21 +31,128 @@ func checkValid(data []byte, scan *scanner) error {
 	return nil
 }
 
-func isSpace(c byte) bool {
-	return c == ' ' || c == '\t' || c == '\r' || c == '\n'
+// nextValue splits data after the next whole JSON value,
+// returning that value and the bytes that follow it as separate slices.
+// scan is passed in for use by nextValue to avoid an allocation.
+func nextValue(data []byte, scan *scanner) (value, rest []byte, err error) {
+	scan.reset()
+	for i, c := range data {
+		v := scan.step(scan, c)
+		if v >= scanEndObject {
+			switch v {
+			// probe the scanner with a space to determine whether we will
+			// get scanEnd on the next character. Otherwise, if the next character
+			// is not a space, scanEndTop allocates a needless error.
+			case scanEndObject, scanEndArray:
+				if scan.step(scan, ' ') == scanEnd {
+					return data[:i+1], data[i+1:], nil
+				}
+			case scanError:
+				return nil, nil, scan.err
+			case scanEnd:
+				return data[:i], data[i:], nil
+			}
+		}
+	}
+	if scan.eof() == scanError {
+		return nil, nil, scan.err
+	}
+	return data, nil, nil
 }
 
+// A SyntaxError is a description of a JSON syntax error.
+type SyntaxError struct {
+	msg    string // description of error
+	Offset int64  // error occurred after reading Offset bytes
+}
+
+func (e *SyntaxError) Error() string { return e.msg }
+
+// A scanner is a JSON scanning state machine.
+// Callers call scan.reset() and then pass bytes in one at a time
+// by calling scan.step(&scan, c) for each byte.
+// The return value, referred to as an opcode, tells the
+// caller about significant parsing events like beginning
+// and ending literals, objects, and arrays, so that the
+// caller can follow along if it wishes.
+// The return value scanEnd indicates that a single top-level
+// JSON value has been completed, *before* the byte that
+// just got passed in.  (The indication must be delayed in order
+// to recognize the end of numbers: is 123 a whole value or
+// the beginning of 12345e+6?).
+type scanner struct {
+	// The step is a func to be called to execute the next transition.
+	// Also tried using an integer constant and a single func
+	// with a switch, but using the func directly was 10% faster
+	// on a 64-bit Mac Mini, and it's nicer to read.
+	step func(*scanner, byte) int
+
+	// Reached end of top-level value.
+	endTop bool
+
+	// Stack of what we're in the middle of - array values, object keys, object values.
+	parseState []int
+
+	// Error that happened, if any.
+	err error
+
+	// 1-byte redo (see undo method)
+	redo      bool
+	redoCode  int
+	redoState func(*scanner, byte) int
+
+	// total bytes consumed, updated by decoder.Decode
+	bytes int64
+}
+
+// These values are returned by the state transition functions
+// assigned to scanner.state and the method scanner.eof.
+// They give details about the current state of the scan that
+// callers might be interested to know about.
+// It is okay to ignore the return value of any particular
+// call to scanner.state: if one call returns scanError,
+// every subsequent call will return scanError too.
+const (
+	// Continue.
+	scanContinue     = iota // uninteresting byte
+	scanBeginLiteral        // end implied by next result != scanContinue
+	scanBeginObject         // begin object
+	scanObjectKey           // just finished object key (string)
+	scanObjectValue         // just finished non-last object value
+	scanEndObject           // end object (implies scanObjectValue if possible)
+	scanBeginArray          // begin array
+	scanArrayValue          // just finished array value
+	scanEndArray            // end array (implies scanArrayValue if possible)
+	scanSkipSpace           // space byte; can skip; known to be last "continue" result
+
+	// Stop.
+	scanEnd   // top-level value ended *before* this byte; known to be first "stop" result
+	scanError // hit an error, scanner.err.
+)
+
+// These values are stored in the parseState stack.
+// They give the current state of a composite value
+// being scanned.  If the parser is inside a nested value
+// the parseState describes the nested state, outermost at entry 0.
+const (
+	parseObjectKey   = iota // parsing object key (before colon)
+	parseObjectValue        // parsing object value (after colon)
+	parseArrayValue         // parsing array value
+)
+
+// reset prepares the scanner for use.
+// It must be called before calling s.step.
 func (s *scanner) reset() {
 	s.step = stateBeginValue
 	s.parseState = s.parseState[0:0]
 	s.err = nil
+	s.redo = false
 	s.endTop = false
-	s.index = 0
 }
 
 // eof tells the scanner that the end of input has been reached.
 // It returns a scan status just as s.step does.
-func (s *scanner) eof() scanStatus {
+func (s *scanner) eof() int {
 	if s.err != nil {
 		return scanError
 	}
@@ -144,19 +164,14 @@ func (s *scanner) eof() scanStatus {
 		return scanEnd
 	}
 	if s.err == nil {
-		s.err = fmt.Errorf("unexpected end of JSON input")
+		s.err = &SyntaxError{"unexpected end of JSON input", s.bytes}
 	}
 	return scanError
 }
 
 // pushParseState pushes a new parse state p onto the parse stack.
-// an error state is returned if maxNestingDepth was exceeded, otherwise successState is returned.
-func (s *scanner) pushParseState(c byte, newParseState int, successState scanStatus) scanStatus {
-	s.parseState = append(s.parseState, newParseState)
-	if len(s.parseState) <= maxNestingDepth {
-		return successState
-	}
-	return s.error(c, "exceeded max depth")
+func (s *scanner) pushParseState(p int) {
+	s.parseState = append(s.parseState, p)
 }
 
 // popParseState pops a parse state (already obtained) off the stack
@@ -164,6 +179,7 @@ func (s *scanner) pushParseState(c byte, newParseState int, successState scanSta
 func (s *scanner) popParseState() {
 	n := len(s.parseState) - 1
 	s.parseState = s.parseState[0:n]
+	s.redo = false
 	if n == 0 {
 		s.step = stateEndTop
 		s.endTop = true
@@ -172,8 +188,12 @@ func (s *scanner) popParseState() {
 	}
 }
 
+func isSpace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\r' || c == '\n'
+}
+
 // stateBeginValueOrEmpty is the state after reading `[`.
-func stateBeginValueOrEmpty(s *scanner, c byte) scanStatus {
+func stateBeginValueOrEmpty(s *scanner, c byte) int {
 	if c <= ' ' && isSpace(c) {
 		return scanSkipSpace
 	}
@@ -184,17 +204,19 @@ func stateBeginValueOrEmpty(s *scanner, c byte) scanStatus {
 }
 
 // stateBeginValue is the state at the beginning of the input.
-func stateBeginValue(s *scanner, c byte) scanStatus {
+func stateBeginValue(s *scanner, c byte) int {
 	if c <= ' ' && isSpace(c) {
 		return scanSkipSpace
 	}
 	switch c {
 	case '{':
 		s.step = stateBeginStringOrEmpty
-		return s.pushParseState(c, parseObjectKey, scanBeginObject)
+		s.pushParseState(parseObjectKey)
+		return scanBeginObject
 	case '[':
 		s.step = stateBeginValueOrEmpty
-		return s.pushParseState(c, parseArrayValue, scanBeginArray)
+		s.pushParseState(parseArrayValue)
+		return scanBeginArray
 	case '"':
 		s.step = stateInString
 		return scanBeginLiteral
@@ -222,7 +244,7 @@ func stateBeginValue(s *scanner, c byte) scanStatus {
 }
 
 // stateBeginStringOrEmpty is the state after reading `{`.
-func stateBeginStringOrEmpty(s *scanner, c byte) scanStatus {
+func stateBeginStringOrEmpty(s *scanner, c byte) int {
 	if c <= ' ' && isSpace(c) {
 		return scanSkipSpace
 	}
@@ -235,7 +257,7 @@ func stateBeginStringOrEmpty(s *scanner, c byte) scanStatus {
 }
 
 // stateBeginString is the state after reading `{"key": value,`.
-func stateBeginString(s *scanner, c byte) scanStatus {
+func stateBeginString(s *scanner, c byte) int {
 	if c <= ' ' && isSpace(c) {
 		return scanSkipSpace
 	}
@@ -248,7 +270,7 @@ func stateBeginString(s *scanner, c byte) scanStatus {
 
 // stateEndValue is the state after completing a value,
 // such as after reading `{}` or `true` or `["x"`.
-func stateEndValue(s *scanner, c byte) scanStatus {
+func stateEndValue(s *scanner, c byte) int {
 	n := len(s.parseState)
 	if n == 0 {
 		// Completed top-level before the current byte.
@@ -297,7 +319,7 @@ func stateEndValue(s *scanner, c byte) scanStatus {
 // stateEndTop is the state after finishing the top-level value,
 // such as after reading `{}` or `[1,2,3]`.
 // Only space characters should be seen now.
-func stateEndTop(s *scanner, c byte) scanStatus {
+func stateEndTop(s *scanner, c byte) int {
 	if c != ' ' && c != '\t' && c != '\r' && c != '\n' {
 		// Complain about non-space byte on next call.
 		s.error(c, "after top-level value")
@@ -306,7 +328,7 @@ func stateEndTop(s *scanner, c byte) scanStatus {
 }
 
 // stateInString is the state after reading `"`.
-func stateInString(s *scanner, c byte) scanStatus {
+func stateInString(s *scanner, c byte) int {
 	if c == '"' {
 		s.step = stateEndValue
 		return scanContinue
@@ -322,7 +344,7 @@ func stateInString(s *scanner, c byte) scanStatus {
 }
 
 // stateInStringEsc is the state after reading `"\` during a quoted string.
-func stateInStringEsc(s *scanner, c byte) scanStatus {
+func stateInStringEsc(s *scanner, c byte) int {
 	switch c {
 	case 'b', 'f', 'n', 'r', 't', '\\', '/', '"':
 		s.step = stateInString
@@ -335,7 +357,7 @@ func stateInStringEsc(s *scanner, c byte) scanStatus {
 }
 
 // stateInStringEscU is the state after reading `"\u` during a quoted string.
-func stateInStringEscU(s *scanner, c byte) scanStatus {
+func stateInStringEscU(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F' {
 		s.step = stateInStringEscU1
 		return scanContinue
@@ -345,7 +367,7 @@ func stateInStringEscU(s *scanner, c byte) scanStatus {
 }
 
 // stateInStringEscU1 is the state after reading `"\u1` during a quoted string.
-func stateInStringEscU1(s *scanner, c byte) scanStatus {
+func stateInStringEscU1(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F' {
 		s.step = stateInStringEscU12
 		return scanContinue
@@ -355,7 +377,7 @@ func stateInStringEscU1(s *scanner, c byte) scanStatus {
 }
 
 // stateInStringEscU12 is the state after reading `"\u12` during a quoted string.
-func stateInStringEscU12(s *scanner, c byte) scanStatus {
+func stateInStringEscU12(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F' {
 		s.step = stateInStringEscU123
 		return scanContinue
@@ -365,7 +387,7 @@ func stateInStringEscU12(s *scanner, c byte) scanStatus {
 }
 
 // stateInStringEscU123 is the state after reading `"\u123` during a quoted string.
-func stateInStringEscU123(s *scanner, c byte) scanStatus {
+func stateInStringEscU123(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F' {
 		s.step = stateInString
 		return scanContinue
@@ -375,7 +397,7 @@ func stateInStringEscU123(s *scanner, c byte) scanStatus {
 }
 
 // stateNeg is the state after reading `-` during a number.
-func stateNeg(s *scanner, c byte) scanStatus {
+func stateNeg(s *scanner, c byte) int {
 	if c == '0' {
 		s.step = state0
 		return scanContinue
@@ -389,7 +411,7 @@ func stateNeg(s *scanner, c byte) scanStatus {
 
 // state1 is the state after reading a non-zero integer during a number,
 // such as after reading `1` or `100` but not `0`.
-func state1(s *scanner, c byte) scanStatus {
+func state1(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' {
 		s.step = state1
 		return scanContinue
@@ -398,7 +420,7 @@ func state1(s *scanner, c byte) scanStatus {
 }
 
 // state0 is the state after reading `0` during a number.
-func state0(s *scanner, c byte) scanStatus {
+func state0(s *scanner, c byte) int {
 	if c == '.' {
 		s.step = stateDot
 		return scanContinue
@@ -412,7 +434,7 @@ func state0(s *scanner, c byte) scanStatus {
 
 // stateDot is the state after reading the integer and decimal point in a number,
 // such as after reading `1.`.
-func stateDot(s *scanner, c byte) scanStatus {
+func stateDot(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' {
 		s.step = stateDot0
 		return scanContinue
@@ -422,7 +444,7 @@ func stateDot(s *scanner, c byte) scanStatus {
 
 // stateDot0 is the state after reading the integer, decimal point, and subsequent
 // digits of a number, such as after reading `3.14`.
-func stateDot0(s *scanner, c byte) scanStatus {
+func stateDot0(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' {
 		return scanContinue
 	}
@@ -435,7 +457,7 @@ func stateDot0(s *scanner, c byte) scanStatus {
 
 // stateE is the state after reading the mantissa and e in a number,
 // such as after reading `314e` or `0.314e`.
-func stateE(s *scanner, c byte) scanStatus {
+func stateE(s *scanner, c byte) int {
 	if c == '+' || c == '-' {
 		s.step = stateESign
 		return scanContinue
@@ -445,7 +467,7 @@ func stateE(s *scanner, c byte) scanStatus {
 
 // stateESign is the state after reading the mantissa, e, and sign in a number,
 // such as after reading `314e-` or `0.314e+`.
-func stateESign(s *scanner, c byte) scanStatus {
+func stateESign(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' {
 		s.step = stateE0
 		return scanContinue
@@ -456,7 +478,7 @@ func stateESign(s *scanner, c byte) scanStatus {
 // stateE0 is the state after reading the mantissa, e, optional sign,
 // and at least one digit of the exponent in a number,
 // such as after reading `314e-2` or `0.314e+1` or `3.14e0`.
-func stateE0(s *scanner, c byte) scanStatus {
+func stateE0(s *scanner, c byte) int {
 	if '0' <= c && c <= '9' {
 		return scanContinue
 	}
@@ -464,7 +486,7 @@ func stateE0(s *scanner, c byte) scanStatus {
 }
 
 // stateT is the state after reading `t`.
-func stateT(s *scanner, c byte) scanStatus {
+func stateT(s *scanner, c byte) int {
 	if c == 'r' {
 		s.step = stateTr
 		return scanContinue
@@ -473,7 +495,7 @@ func stateT(s *scanner, c byte) scanStatus {
 }
 
 // stateTr is the state after reading `tr`.
-func stateTr(s *scanner, c byte) scanStatus {
+func stateTr(s *scanner, c byte) int {
 	if c == 'u' {
 		s.step = stateTru
 		return scanContinue
@@ -482,7 +504,7 @@ func stateTr(s *scanner, c byte) scanStatus {
 }
 
 // stateTru is the state after reading `tru`.
-func stateTru(s *scanner, c byte) scanStatus {
+func stateTru(s *scanner, c byte) int {
 	if c == 'e' {
 		s.step = stateEndValue
 		return scanContinue
@@ -491,7 +513,7 @@ func stateTru(s *scanner, c byte) scanStatus {
 }
 
 // stateF is the state after reading `f`.
-func stateF(s *scanner, c byte) scanStatus {
+func stateF(s *scanner, c byte) int {
 	if c == 'a' {
 		s.step = stateFa
 		return scanContinue
@@ -500,7 +522,7 @@ func stateF(s *scanner, c byte) scanStatus {
 }
 
 // stateFa is the state after reading `fa`.
-func stateFa(s *scanner, c byte) scanStatus {
+func stateFa(s *scanner, c byte) int {
 	if c == 'l' {
 		s.step = stateFal
 		return scanContinue
@@ -509,7 +531,7 @@ func stateFa(s *scanner, c byte) scanStatus {
 }
 
 // stateFal is the state after reading `fal`.
-func stateFal(s *scanner, c byte) scanStatus {
+func stateFal(s *scanner, c byte) int {
 	if c == 's' {
 		s.step = stateFals
 		return scanContinue
@@ -518,7 +540,7 @@ func stateFal(s *scanner, c byte) scanStatus {
 }
 
 // stateFals is the state after reading `fals`.
-func stateFals(s *scanner, c byte) scanStatus {
+func stateFals(s *scanner, c byte) int {
 	if c == 'e' {
 		s.step = stateEndValue
 		return scanContinue
@@ -527,7 +549,7 @@ func stateFals(s *scanner, c byte) scanStatus {
 }
 
 // stateN is the state after reading `n`.
-func stateN(s *scanner, c byte) scanStatus {
+func stateN(s *scanner, c byte) int {
 	if c == 'u' {
 		s.step = stateNu
 		return scanContinue
@@ -536,7 +558,7 @@ func stateN(s *scanner, c byte) scanStatus {
 }
 
 // stateNu is the state after reading `nu`.
-func stateNu(s *scanner, c byte) scanStatus {
+func stateNu(s *scanner, c byte) int {
 	if c == 'l' {
 		s.step = stateNul
 		return scanContinue
@@ -545,7 +567,7 @@ func stateNu(s *scanner, c byte) scanStatus {
 }
 
 // stateNul is the state after reading `nul`.
-func stateNul(s *scanner, c byte) scanStatus {
+func stateNul(s *scanner, c byte) int {
 	if c == 'l' {
 		s.step = stateEndValue
 		return scanContinue
@@ -555,13 +577,47 @@ func stateNul(s *scanner, c byte) scanStatus {
 
 // stateError is the state after reaching a syntax error,
 // such as after reading `[1}` or `5.1.2`.
-func stateError(s *scanner, c byte) scanStatus {
+func stateError(s *scanner, c byte) int {
 	return scanError
 }
 
 // error records an error and switches to the error state.
-func (s *scanner) error(c byte, context string) scanStatus {
+func (s *scanner) error(c byte, context string) int {
 	s.step = stateError
-	s.err = fmt.Errorf("invalid character <<%c>> %s", c, context)
+	s.err = &SyntaxError{"invalid character " + quoteChar(c) + " " + context, s.bytes}
 	return scanError
+}
+
+// quoteChar formats c as a quoted character literal
+func quoteChar(c byte) string {
+	// special cases - different from quoted strings
+	if c == '\'' {
+		return `'\''`
+	}
+	if c == '"' {
+		return `'"'`
+	}
+
+	// use quoted string with different quotation marks
+	s := strconv.Quote(string(c))
+	return "'" + s[1:len(s)-1] + "'"
+}
+
+// undo causes the scanner to return scanCode from the next state transition.
+// This gives callers a simple 1-byte undo mechanism.
+func (s *scanner) undo(scanCode int) {
+	if s.redo {
+		panic("json: invalid use of scanner")
+	}
+	s.redoCode = scanCode
+	s.redoState = s.step
+	s.step = stateRedo
+	s.redo = true
+}
+
+// stateRedo helps implement the scanner's 1-byte undo.
+func stateRedo(s *scanner, c byte) int {
+	s.redo = false
+	s.step = s.redoState
+	return s.redoCode
 }

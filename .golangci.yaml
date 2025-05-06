@@ -7,7 +7,7 @@ linters:
       - nlreturn
       - wsl
       - depguard
-      - exportloopref
+      - tenv # deprecated
 
 issues:
   exclude-rules:

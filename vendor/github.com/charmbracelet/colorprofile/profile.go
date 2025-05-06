@@ -12,15 +12,15 @@ import (
 type Profile byte
 
 const (
-	// NoTTY, not a terminal profile.
+	// NoTTY is a profile with no terminal support.
 	NoTTY Profile = iota
-	// Ascii, uncolored profile.
+	// Ascii is a profile with no color support.
 	Ascii //nolint:revive
-	// ANSI, 4-bit color profile.
+	// ANSI is a profile with 16 colors (4-bit).
 	ANSI
-	// ANSI256, 8-bit color profile.
+	// ANSI256 is a profile with 256 colors (8-bit).
 	ANSI256
-	// TrueColor, 24-bit color profile.
+	// TrueColor is a profile with 16 million colors (24-bit).
 	TrueColor
 )
 

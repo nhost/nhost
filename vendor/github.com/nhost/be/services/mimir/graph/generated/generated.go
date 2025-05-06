@@ -778,7 +778,7 @@ func (e *executableSchema) Schema() *ast.Schema {
 	return parsedSchema
 }
 
-func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]any) (int, bool) {
+func (e *executableSchema) Complexity(ctx context.Context, typeName, field string, childComplexity int, rawArgs map[string]any) (int, bool) {
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
@@ -3217,7 +3217,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_changeDatabaseVersion_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_changeDatabaseVersion_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3229,7 +3229,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3241,7 +3241,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteRunServiceConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteRunServiceConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3253,7 +3253,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteSecret_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteSecret_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3265,7 +3265,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_insertConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_insertConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3277,7 +3277,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_insertRunServiceConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_insertRunServiceConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3289,7 +3289,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_insertSecret_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_insertSecret_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3301,7 +3301,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_replaceConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_replaceConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3313,7 +3313,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_replaceConfigRawJSON_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_replaceConfigRawJSON_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3325,7 +3325,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_replaceRunServiceConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_replaceRunServiceConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3337,7 +3337,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_updateConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3349,7 +3349,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_updateRunServiceConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateRunServiceConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3361,7 +3361,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_updateSecret_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateSecret_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3373,7 +3373,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_updateSystemConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateSystemConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3385,7 +3385,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_appSecrets_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_appSecrets_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3404,7 +3404,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_config_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_config_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3416,7 +3416,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_configRawJSON_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_configRawJSON_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3428,7 +3428,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_configs_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_configs_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3440,7 +3440,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_runServiceConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_runServiceConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3452,7 +3452,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_runServiceConfigRawJSON_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_runServiceConfigRawJSON_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3464,7 +3464,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_runServiceConfigs_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_runServiceConfigs_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3476,7 +3476,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_runServiceConfigsAll_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_runServiceConfigsAll_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3488,7 +3488,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_systemConfig_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_systemConfig_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -3500,7 +3500,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_systemConfigs_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_systemConfigs_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -10051,6 +10051,62 @@ func (ec *executionContext) field_Query_systemConfigs_argsWhere(
 	}
 
 	var zeroVal *model.ConfigSystemConfigComparisonExp
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field___Directive_args_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field___Directive_args_argsIncludeDeprecated(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["includeDeprecated"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field___Directive_args_argsIncludeDeprecated(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*bool, error) {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
+		var zeroVal *bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
+	if tmp, ok := rawArgs["includeDeprecated"]; ok {
+		return ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	}
+
+	var zeroVal *bool
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field___Field_args_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field___Field_args_argsIncludeDeprecated(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["includeDeprecated"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field___Field_args_argsIncludeDeprecated(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*bool, error) {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
+		var zeroVal *bool
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
+	if tmp, ok := rawArgs["includeDeprecated"]; ok {
+		return ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	}
+
+	var zeroVal *bool
 	return zeroVal, nil
 }
 
@@ -27506,6 +27562,8 @@ func (ec *executionContext) fieldContext_Query___type(ctx context.Context, field
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -27518,8 +27576,8 @@ func (ec *executionContext) fieldContext_Query___type(ctx context.Context, field
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -27678,6 +27736,50 @@ func (ec *executionContext) fieldContext___Directive_description(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) ___Directive_isRepeatable(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext___Directive_isRepeatable(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsRepeatable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext___Directive_isRepeatable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "__Directive",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Directive_locations(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_locations(ctx, field)
 	if err != nil {
@@ -27753,7 +27855,7 @@ func (ec *executionContext) ___Directive_args(ctx context.Context, field graphql
 	return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext___Directive_args(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext___Directive_args(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "__Directive",
 		Field:      field,
@@ -27769,53 +27871,24 @@ func (ec *executionContext) fieldContext___Directive_args(_ context.Context, fie
 				return ec.fieldContext___InputValue_type(ctx, field)
 			case "defaultValue":
 				return ec.fieldContext___InputValue_defaultValue(ctx, field)
+			case "isDeprecated":
+				return ec.fieldContext___InputValue_isDeprecated(ctx, field)
+			case "deprecationReason":
+				return ec.fieldContext___InputValue_deprecationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
 		},
 	}
-	return fc, nil
-}
-
-func (ec *executionContext) ___Directive_isRepeatable(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Directive_isRepeatable(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
 	defer func() {
 		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
 		}
 	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsRepeatable, nil
-	})
-	if err != nil {
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field___Directive_args_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext___Directive_isRepeatable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "__Directive",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
+		return fc, err
 	}
 	return fc, nil
 }
@@ -28106,7 +28179,7 @@ func (ec *executionContext) ___Field_args(ctx context.Context, field graphql.Col
 	return ec.marshalN__InputValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐInputValueᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext___Field_args(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext___Field_args(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "__Field",
 		Field:      field,
@@ -28122,9 +28195,24 @@ func (ec *executionContext) fieldContext___Field_args(_ context.Context, field g
 				return ec.fieldContext___InputValue_type(ctx, field)
 			case "defaultValue":
 				return ec.fieldContext___InputValue_defaultValue(ctx, field)
+			case "isDeprecated":
+				return ec.fieldContext___InputValue_isDeprecated(ctx, field)
+			case "deprecationReason":
+				return ec.fieldContext___InputValue_deprecationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field___Field_args_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -28174,6 +28262,8 @@ func (ec *executionContext) fieldContext___Field_type(_ context.Context, field g
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -28186,8 +28276,8 @@ func (ec *executionContext) fieldContext___Field_type(_ context.Context, field g
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -28410,6 +28500,8 @@ func (ec *executionContext) fieldContext___InputValue_type(_ context.Context, fi
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -28422,8 +28514,8 @@ func (ec *executionContext) fieldContext___InputValue_type(_ context.Context, fi
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -28464,6 +28556,91 @@ func (ec *executionContext) fieldContext___InputValue_defaultValue(_ context.Con
 		Object:     "__InputValue",
 		Field:      field,
 		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) ___InputValue_isDeprecated(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext___InputValue_isDeprecated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsDeprecated(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext___InputValue_isDeprecated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "__InputValue",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) ___InputValue_deprecationReason(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext___InputValue_deprecationReason(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeprecationReason(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext___InputValue_deprecationReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "__InputValue",
+		Field:      field,
+		IsMethod:   true,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
@@ -28558,6 +28735,8 @@ func (ec *executionContext) fieldContext___Schema_types(_ context.Context, field
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -28570,8 +28749,8 @@ func (ec *executionContext) fieldContext___Schema_types(_ context.Context, field
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -28624,6 +28803,8 @@ func (ec *executionContext) fieldContext___Schema_queryType(_ context.Context, f
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -28636,8 +28817,8 @@ func (ec *executionContext) fieldContext___Schema_queryType(_ context.Context, f
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -28687,6 +28868,8 @@ func (ec *executionContext) fieldContext___Schema_mutationType(_ context.Context
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -28699,8 +28882,8 @@ func (ec *executionContext) fieldContext___Schema_mutationType(_ context.Context
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -28750,6 +28933,8 @@ func (ec *executionContext) fieldContext___Schema_subscriptionType(_ context.Con
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -28762,8 +28947,8 @@ func (ec *executionContext) fieldContext___Schema_subscriptionType(_ context.Con
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -28814,12 +28999,12 @@ func (ec *executionContext) fieldContext___Schema_directives(_ context.Context, 
 				return ec.fieldContext___Directive_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Directive_description(ctx, field)
+			case "isRepeatable":
+				return ec.fieldContext___Directive_isRepeatable(ctx, field)
 			case "locations":
 				return ec.fieldContext___Directive_locations(ctx, field)
 			case "args":
 				return ec.fieldContext___Directive_args(ctx, field)
-			case "isRepeatable":
-				return ec.fieldContext___Directive_isRepeatable(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Directive", field.Name)
 		},
@@ -28953,6 +29138,47 @@ func (ec *executionContext) fieldContext___Type_description(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext___Type_specifiedByURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SpecifiedByURL(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "__Type",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Type_fields(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Type_fields(ctx, field)
 	if err != nil {
@@ -29061,6 +29287,8 @@ func (ec *executionContext) fieldContext___Type_interfaces(_ context.Context, fi
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -29073,8 +29301,8 @@ func (ec *executionContext) fieldContext___Type_interfaces(_ context.Context, fi
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -29124,6 +29352,8 @@ func (ec *executionContext) fieldContext___Type_possibleTypes(_ context.Context,
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -29136,8 +29366,8 @@ func (ec *executionContext) fieldContext___Type_possibleTypes(_ context.Context,
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -29251,6 +29481,10 @@ func (ec *executionContext) fieldContext___Type_inputFields(_ context.Context, f
 				return ec.fieldContext___InputValue_type(ctx, field)
 			case "defaultValue":
 				return ec.fieldContext___InputValue_defaultValue(ctx, field)
+			case "isDeprecated":
+				return ec.fieldContext___InputValue_isDeprecated(ctx, field)
+			case "deprecationReason":
+				return ec.fieldContext___InputValue_deprecationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __InputValue", field.Name)
 		},
@@ -29300,6 +29534,8 @@ func (ec *executionContext) fieldContext___Type_ofType(_ context.Context, field 
 				return ec.fieldContext___Type_name(ctx, field)
 			case "description":
 				return ec.fieldContext___Type_description(ctx, field)
+			case "specifiedByURL":
+				return ec.fieldContext___Type_specifiedByURL(ctx, field)
 			case "fields":
 				return ec.fieldContext___Type_fields(ctx, field)
 			case "interfaces":
@@ -29312,8 +29548,8 @@ func (ec *executionContext) fieldContext___Type_ofType(_ context.Context, field 
 				return ec.fieldContext___Type_inputFields(ctx, field)
 			case "ofType":
 				return ec.fieldContext___Type_ofType(ctx, field)
-			case "specifiedByURL":
-				return ec.fieldContext___Type_specifiedByURL(ctx, field)
+			case "isOneOf":
+				return ec.fieldContext___Type_isOneOf(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Type", field.Name)
 		},
@@ -29321,8 +29557,8 @@ func (ec *executionContext) fieldContext___Type_ofType(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext___Type_specifiedByURL(ctx, field)
+func (ec *executionContext) ___Type_isOneOf(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext___Type_isOneOf(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -29335,7 +29571,7 @@ func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SpecifiedByURL(), nil
+		return obj.IsOneOf(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29344,19 +29580,19 @@ func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "__Type",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -45763,6 +45999,11 @@ func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionS
 			}
 		case "description":
 			out.Values[i] = ec.___Directive_description(ctx, field, obj)
+		case "isRepeatable":
+			out.Values[i] = ec.___Directive_isRepeatable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "locations":
 			out.Values[i] = ec.___Directive_locations(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -45770,11 +46011,6 @@ func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionS
 			}
 		case "args":
 			out.Values[i] = ec.___Directive_args(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "isRepeatable":
-			out.Values[i] = ec.___Directive_isRepeatable(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -45932,6 +46168,13 @@ func (ec *executionContext) ___InputValue(ctx context.Context, sel ast.Selection
 			}
 		case "defaultValue":
 			out.Values[i] = ec.___InputValue_defaultValue(ctx, field, obj)
+		case "isDeprecated":
+			out.Values[i] = ec.___InputValue_isDeprecated(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deprecationReason":
+			out.Values[i] = ec.___InputValue_deprecationReason(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46030,6 +46273,8 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec.___Type_name(ctx, field, obj)
 		case "description":
 			out.Values[i] = ec.___Type_description(ctx, field, obj)
+		case "specifiedByURL":
+			out.Values[i] = ec.___Type_specifiedByURL(ctx, field, obj)
 		case "fields":
 			out.Values[i] = ec.___Type_fields(ctx, field, obj)
 		case "interfaces":
@@ -46042,8 +46287,8 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec.___Type_inputFields(ctx, field, obj)
 		case "ofType":
 			out.Values[i] = ec.___Type_ofType(ctx, field, obj)
-		case "specifiedByURL":
-			out.Values[i] = ec.___Type_specifiedByURL(ctx, field, obj)
+		case "isOneOf":
+			out.Values[i] = ec.___Type_isOneOf(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47628,9 +47873,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 
 func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -47723,9 +47966,7 @@ func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Conte
 
 func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -47941,9 +48182,7 @@ func (ec *executionContext) unmarshalOBoolean2ᚕboolᚄ(ctx context.Context, v 
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]bool, len(vSlice))
 	for i := range vSlice {
@@ -48009,9 +48248,7 @@ func (ec *executionContext) unmarshalOConfigAIAutoEmbeddingsComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAIAutoEmbeddingsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48054,9 +48291,7 @@ func (ec *executionContext) unmarshalOConfigAIComparisonExp2ᚕᚖgithubᚗcom�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAIComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48090,9 +48325,7 @@ func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAIOpenaiComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48127,9 +48360,7 @@ func (ec *executionContext) unmarshalOConfigAIResourcesComparisonExp2ᚕᚖgithu
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAIResourcesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48227,9 +48458,7 @@ func (ec *executionContext) unmarshalOConfigAuthComparisonExp2ᚕᚖgithubᚗcom
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48262,9 +48491,7 @@ func (ec *executionContext) unmarshalOConfigAuthElevatedPrivilegesComparisonExp2
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthElevatedPrivilegesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48329,9 +48556,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodAnonymousComparisonExp2ᚕ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodAnonymousComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48374,9 +48599,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodComparisonExp2ᚕᚖgithub
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48409,9 +48632,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordComparisonExp
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodEmailPasswordComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48461,9 +48682,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodEmailPasswordlessCompariso
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodEmailPasswordlessComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48528,9 +48747,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAppleComparisonExp2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodOauthAppleComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48580,9 +48797,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthAzureadComparisonExp2
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodOauthAzureadComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48625,9 +48840,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthComparisonExp2ᚕᚖg
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodOauthComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48668,9 +48881,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthTwitterComparisonExp2
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodOauthTwitterComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48729,9 +48940,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOauthWorkosComparisonExp2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodOauthWorkosComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48781,9 +48990,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpComparisonExp2ᚕᚖgit
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodOtpComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48816,9 +49023,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpEmailComparisonExp2ᚕ�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodOtpEmailComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48885,9 +49090,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodSmsPasswordlessComparisonE
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodSmsPasswordlessComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48953,9 +49156,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnAttestationCompari
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodWebauthnAttestationComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -48998,9 +49199,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnComparisonExp2ᚕ�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodWebauthnComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49041,9 +49240,7 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnRelyingPartyCompar
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49102,9 +49299,7 @@ func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthMiscComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49154,9 +49349,7 @@ func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚕᚖgit
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthRateLimitComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49206,9 +49399,7 @@ func (ec *executionContext) unmarshalOConfigAuthRedirectionsComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthRedirectionsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49265,9 +49456,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionAccessTokenComparisonExp2
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthSessionAccessTokenComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49310,9 +49499,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionComparisonExp2ᚕᚖgithu
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthSessionComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49353,9 +49540,7 @@ func (ec *executionContext) unmarshalOConfigAuthSessionRefreshTokenComparisonExp
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthSessionRefreshTokenComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49414,9 +49599,7 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpComparisonExp2ᚕᚖgithub
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthSignUpComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49457,9 +49640,7 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚕ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthSignUpTurnstileComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49518,9 +49699,7 @@ func (ec *executionContext) unmarshalOConfigAuthTotpComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthTotpComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49579,9 +49758,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthUserComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49614,9 +49791,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserEmailComparisonExp2ᚕᚖgit
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthUserEmailComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49649,9 +49824,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserEmailDomainsComparisonExp2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthUserEmailDomainsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49718,9 +49891,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserGravatarComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthUserGravatarComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49778,9 +49949,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserLocaleComparisonExp2ᚕᚖgi
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthUserLocaleComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49830,9 +49999,7 @@ func (ec *executionContext) unmarshalOConfigAuthUserRolesComparisonExp2ᚕᚖgit
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthUserRolesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49931,9 +50098,7 @@ func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsCo
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthsessionaccessTokenCustomClaimsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -49959,9 +50124,7 @@ func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsIn
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthsessionaccessTokenCustomClaimsInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -49979,9 +50142,7 @@ func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsUp
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAuthsessionaccessTokenCustomClaimsUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -50006,9 +50167,7 @@ func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚕᚖgithub
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigAutoscalerComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50106,9 +50265,7 @@ func (ec *executionContext) unmarshalOConfigClaimMapComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigClaimMapComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50134,9 +50291,7 @@ func (ec *executionContext) unmarshalOConfigClaimMapInsertInput2ᚕᚖgithubᚗc
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigClaimMapInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -50154,9 +50309,7 @@ func (ec *executionContext) unmarshalOConfigClaimMapUpdateInput2ᚕᚖgithubᚗc
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigClaimMapUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -50174,9 +50327,7 @@ func (ec *executionContext) unmarshalOConfigComputeResourcesComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigComputeResourcesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50218,9 +50369,7 @@ func (ec *executionContext) unmarshalOConfigConfigComparisonExp2ᚕᚖgithubᚗc
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigConfigComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50246,9 +50395,7 @@ func (ec *executionContext) unmarshalOConfigEmail2ᚕstringᚄ(ctx context.Conte
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -50362,9 +50509,7 @@ func (ec *executionContext) unmarshalOConfigEnvironmentVariableComparisonExp2ᚕ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigEnvironmentVariableComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50390,9 +50535,7 @@ func (ec *executionContext) unmarshalOConfigEnvironmentVariableInsertInput2ᚕ�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigEnvironmentVariableInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -50410,9 +50553,7 @@ func (ec *executionContext) unmarshalOConfigEnvironmentVariableUpdateInput2ᚕ�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigEnvironmentVariableUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -50445,9 +50586,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigFunctionsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50488,9 +50627,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsNodeComparisonExp2ᚕᚖgit
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigFunctionsNodeComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50540,9 +50677,7 @@ func (ec *executionContext) unmarshalOConfigFunctionsResourcesComparisonExp2ᚕ�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigFunctionsResourcesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50601,9 +50736,7 @@ func (ec *executionContext) unmarshalOConfigGlobalComparisonExp2ᚕᚖgithubᚗc
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGlobalComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50676,9 +50809,7 @@ func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonE
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGlobalEnvironmentVariableComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50704,9 +50835,7 @@ func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableInsertInput
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGlobalEnvironmentVariableInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -50724,9 +50853,7 @@ func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableUpdateInput
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGlobalEnvironmentVariableUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -50768,9 +50895,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚕᚖg
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanaAlertingComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50813,9 +50938,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚕᚖgithubᚗ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanaComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50848,9 +50971,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚕᚖg
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanaContactsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -50900,9 +51021,7 @@ func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚕᚖgithu
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanaSmtpComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51001,9 +51120,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsDiscordComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51029,9 +51146,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordInsertInput2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsDiscordInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -51049,9 +51164,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordUpdateInput2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsDiscordUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -51116,9 +51229,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonEx
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsPagerdutyComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51144,9 +51255,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyInsertInput2
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsPagerdutyInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -51164,9 +51273,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyUpdateInput2
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsPagerdutyUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -51231,9 +51338,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsSlackComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51259,9 +51364,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackInsertInput2ᚕ�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsSlackInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -51279,9 +51382,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackUpdateInput2ᚕ�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsSlackUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -51346,9 +51447,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsWebhookComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51374,9 +51473,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookInsertInput2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsWebhookInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -51394,9 +51491,7 @@ func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookUpdateInput2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGrafanacontactsWebhookUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -51421,9 +51516,7 @@ func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚕᚖgithubᚗ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGraphqlComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51464,9 +51557,7 @@ func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚕᚖg
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigGraphqlSecurityComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51518,9 +51609,7 @@ func (ec *executionContext) unmarshalOConfigHasuraAPIs2ᚕstringᚄ(ctx context.
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -51587,9 +51676,7 @@ func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚕᚖgi
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigHasuraAuthHookComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51632,9 +51719,7 @@ func (ec *executionContext) unmarshalOConfigHasuraComparisonExp2ᚕᚖgithubᚗc
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigHasuraComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51667,9 +51752,7 @@ func (ec *executionContext) unmarshalOConfigHasuraEventsComparisonExp2ᚕᚖgith
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigHasuraEventsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51719,9 +51802,7 @@ func (ec *executionContext) unmarshalOConfigHasuraLogsComparisonExp2ᚕᚖgithub
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigHasuraLogsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51771,9 +51852,7 @@ func (ec *executionContext) unmarshalOConfigHasuraSettingsComparisonExp2ᚕᚖgi
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigHasuraSettingsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51832,9 +51911,7 @@ func (ec *executionContext) unmarshalOConfigHealthCheckComparisonExp2ᚕᚖgithu
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigHealthCheckComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51924,9 +52001,7 @@ func (ec *executionContext) unmarshalOConfigIngressComparisonExp2ᚕᚖgithubᚗ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigIngressComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -51952,9 +52027,7 @@ func (ec *executionContext) unmarshalOConfigIngressInsertInput2ᚕᚖgithubᚗco
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigIngressInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -51979,9 +52052,7 @@ func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚕᚖgithub
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigIngressTlsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52024,9 +52095,7 @@ func (ec *executionContext) unmarshalOConfigIngressUpdateInput2ᚕᚖgithubᚗco
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigIngressUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -52044,9 +52113,7 @@ func (ec *executionContext) unmarshalOConfigInt162ᚕint16ᚄ(ctx context.Contex
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]int16, len(vSlice))
 	for i := range vSlice {
@@ -52098,9 +52165,7 @@ func (ec *executionContext) unmarshalOConfigInt322ᚕint32ᚄ(ctx context.Contex
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]int32, len(vSlice))
 	for i := range vSlice {
@@ -52160,9 +52225,7 @@ func (ec *executionContext) unmarshalOConfigInt642ᚕint64ᚄ(ctx context.Contex
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]int64, len(vSlice))
 	for i := range vSlice {
@@ -52214,9 +52277,7 @@ func (ec *executionContext) unmarshalOConfigInt82ᚕint8ᚄ(ctx context.Context,
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]int8, len(vSlice))
 	for i := range vSlice {
@@ -52323,9 +52384,7 @@ func (ec *executionContext) unmarshalOConfigJWTSecretComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigJWTSecretComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52351,9 +52410,7 @@ func (ec *executionContext) unmarshalOConfigJWTSecretInsertInput2ᚕᚖgithubᚗ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigJWTSecretInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -52371,9 +52428,7 @@ func (ec *executionContext) unmarshalOConfigJWTSecretUpdateInput2ᚕᚖgithubᚗ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigJWTSecretUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -52391,9 +52446,7 @@ func (ec *executionContext) unmarshalOConfigLocale2ᚕstringᚄ(ctx context.Cont
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -52460,9 +52513,7 @@ func (ec *executionContext) unmarshalOConfigNetworkingComparisonExp2ᚕᚖgithub
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigNetworkingComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52505,9 +52556,7 @@ func (ec *executionContext) unmarshalOConfigObservabilityComparisonExp2ᚕᚖgit
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigObservabilityComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52542,9 +52591,7 @@ func (ec *executionContext) unmarshalOConfigPort2ᚕuint16ᚄ(ctx context.Contex
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]uint16, len(vSlice))
 	for i := range vSlice {
@@ -52604,9 +52651,7 @@ func (ec *executionContext) unmarshalOConfigPostgresComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigPostgresComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52639,9 +52684,7 @@ func (ec *executionContext) unmarshalOConfigPostgresPitrComparisonExp2ᚕᚖgith
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigPostgresPitrComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52684,9 +52727,7 @@ func (ec *executionContext) unmarshalOConfigPostgresResourcesComparisonExp2ᚕ�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigPostgresResourcesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52712,9 +52753,7 @@ func (ec *executionContext) unmarshalOConfigPostgresResourcesStorageComparisonEx
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigPostgresResourcesStorageComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52765,9 +52804,7 @@ func (ec *executionContext) unmarshalOConfigPostgresSettingsComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigPostgresSettingsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52826,9 +52863,7 @@ func (ec *executionContext) unmarshalOConfigProviderComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigProviderComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52878,9 +52913,7 @@ func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRateLimitComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52930,9 +52963,7 @@ func (ec *executionContext) unmarshalOConfigResourcesComparisonExp2ᚕᚖgithub�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigResourcesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -52965,9 +52996,7 @@ func (ec *executionContext) unmarshalOConfigResourcesComputeComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigResourcesComputeComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53034,9 +53063,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceConfigComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServiceConfigComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53062,9 +53089,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceImageComparisonExp2ᚕᚖg
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServiceImageComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53099,9 +53124,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceName2ᚕstringᚄ(ctx cont
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -53208,9 +53231,7 @@ func (ec *executionContext) unmarshalOConfigRunServicePortComparisonExp2ᚕᚖgi
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServicePortComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53236,9 +53257,7 @@ func (ec *executionContext) unmarshalOConfigRunServicePortInsertInput2ᚕᚖgith
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServicePortInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -53256,9 +53275,7 @@ func (ec *executionContext) unmarshalOConfigRunServicePortUpdateInput2ᚕᚖgith
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServicePortUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -53276,9 +53293,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesComparisonExp2ᚕ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServiceResourcesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53351,9 +53366,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageComparison
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServiceResourcesStorageComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53379,9 +53392,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageInsertInpu
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServiceResourcesStorageInsertInput, len(vSlice))
 	for i := range vSlice {
@@ -53399,9 +53410,7 @@ func (ec *executionContext) unmarshalOConfigRunServiceResourcesStorageUpdateInpu
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigRunServiceResourcesStorageUpdateInput, len(vSlice))
 	for i := range vSlice {
@@ -53435,9 +53444,7 @@ func (ec *executionContext) unmarshalOConfigSmsComparisonExp2ᚕᚖgithubᚗcom�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSmsComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53487,9 +53494,7 @@ func (ec *executionContext) unmarshalOConfigSmtpComparisonExp2ᚕᚖgithubᚗcom
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSmtpComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53539,9 +53544,7 @@ func (ec *executionContext) unmarshalOConfigStandardOauthProviderComparisonExp2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigStandardOauthProviderComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53591,9 +53594,7 @@ func (ec *executionContext) unmarshalOConfigStandardOauthProviderWithScopeCompar
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigStandardOauthProviderWithScopeComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53650,9 +53651,7 @@ func (ec *executionContext) unmarshalOConfigStorageAntivirusComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigStorageAntivirusComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53695,9 +53694,7 @@ func (ec *executionContext) unmarshalOConfigStorageComparisonExp2ᚕᚖgithubᚗ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigStorageComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53762,9 +53759,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthComparisonExp2ᚕᚖ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSystemConfigAuthComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53797,9 +53792,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailComparisonExp2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSystemConfigAuthEmailComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53840,9 +53833,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigAuthEmailTemplatesCompar
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSystemConfigAuthEmailTemplatesComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53911,9 +53902,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigComparisonExp2ᚕᚖgith
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSystemConfigComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53946,9 +53935,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚕ
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSystemConfigGraphqlComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -53991,9 +53978,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresComparisonExp2�
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSystemConfigPostgresComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -54019,9 +54004,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionString
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSystemConfigPostgresConnectionStringComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -54063,9 +54046,7 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonEx
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]*model.ConfigSystemConfigPostgresDiskComparisonExp, len(vSlice))
 	for i := range vSlice {
@@ -54117,9 +54098,7 @@ func (ec *executionContext) unmarshalOConfigUint162ᚕuint16ᚄ(ctx context.Cont
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]uint16, len(vSlice))
 	for i := range vSlice {
@@ -54171,9 +54150,7 @@ func (ec *executionContext) unmarshalOConfigUint2ᚕuintᚄ(ctx context.Context,
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]uint, len(vSlice))
 	for i := range vSlice {
@@ -54225,9 +54202,7 @@ func (ec *executionContext) unmarshalOConfigUint322ᚕuint32ᚄ(ctx context.Cont
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]uint32, len(vSlice))
 	for i := range vSlice {
@@ -54287,9 +54262,7 @@ func (ec *executionContext) unmarshalOConfigUint642ᚕuint64ᚄ(ctx context.Cont
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]uint64, len(vSlice))
 	for i := range vSlice {
@@ -54341,9 +54314,7 @@ func (ec *executionContext) unmarshalOConfigUint82ᚕuint8ᚄ(ctx context.Contex
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]uint8, len(vSlice))
 	for i := range vSlice {
@@ -54411,9 +54382,7 @@ func (ec *executionContext) unmarshalOConfigUrl2ᚕstringᚄ(ctx context.Context
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -54473,9 +54442,7 @@ func (ec *executionContext) unmarshalOConfigUserRole2ᚕstringᚄ(ctx context.Co
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
@@ -54535,9 +54502,7 @@ func (ec *executionContext) unmarshalOFloat2ᚕfloat64ᚄ(ctx context.Context, v
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]float64, len(vSlice))
 	for i := range vSlice {
@@ -54589,9 +54554,7 @@ func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v any) 
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]int, len(vSlice))
 	for i := range vSlice {
@@ -54643,9 +54606,7 @@ func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v
 		return nil, nil
 	}
 	var vSlice []any
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
+	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {

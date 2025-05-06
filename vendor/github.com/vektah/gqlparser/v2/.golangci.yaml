@@ -1,36 +1,13 @@
+version: "2"
 run:
   tests: true
-
-linters-settings:
-  errcheck:
-    exclude-functions:
-      - (io.Writer).Write
-      - io.Copy
-      - io.WriteString
-  revive:
-    enable-all-rules: false
-    rules:
-      - name: empty-lines
-  testifylint:
-    disable-all: true
-    enable:
-      - bool-compare
-      - compares
-      - error-is-as
-      - error-nil
-      - expected-actual
-      - nil-compare
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - bodyclose
     - dupl
     - errcheck
     - gocritic
-    - gofmt
-    - goimports
-    - gosimple
     - govet
     - ineffassign
     - misspell
@@ -39,16 +16,52 @@ linters:
     - revive
     - staticcheck
     - testifylint
-    - typecheck
     - unconvert
     - unused
-
-issues:
-  exclude-dirs:
-    - bin
-  exclude-rules:
-    # Exclude some linters from running on tests files.
-    - path: _test\.go
-      linters:
-        - dupl
-        - errcheck
+  settings:
+    errcheck:
+      exclude-functions:
+        - (io.Writer).Write
+        - io.Copy
+        - io.WriteString
+    revive:
+      enable-all-rules: false
+      rules:
+        - name: empty-lines
+    testifylint:
+      disable-all: true
+      enable:
+        - bool-compare
+        - compares
+        - error-is-as
+        - error-nil
+        - expected-actual
+        - nil-compare
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - errcheck
+        path: _test\.go
+    paths:
+      - bin
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - bin
+      - third_party$
+      - builtin$
+      - examples$
