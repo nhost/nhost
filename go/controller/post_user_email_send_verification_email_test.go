@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -418,7 +417,7 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			assertRequest(
-				context.Background(),
+				t.Context(),
 				t,
 				c.PostUserEmailSendVerificationEmail,
 				tc.request,

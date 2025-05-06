@@ -1,5 +1,3 @@
-//go:build go1.13
-
 package webauthncose
 
 import (

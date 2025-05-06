@@ -44,17 +44,17 @@ func ValidateStatusReports(reports []StatusReport, desired, undesired []Authenti
 	case len(present) == 0 && len(absent) == 0:
 		return nil
 	case len(present) != 0 && len(absent) == 0:
-		return &MetadataError{
+		return &Error{
 			Type:    "invalid_status",
 			Details: fmt.Sprintf("The following undesired status reports were present: %s", strings.Join(present, ", ")),
 		}
 	case len(present) == 0 && len(absent) != 0:
-		return &MetadataError{
+		return &Error{
 			Type:    "invalid_status",
 			Details: fmt.Sprintf("The following desired status reports were absent: %s", strings.Join(absent, ", ")),
 		}
 	default:
-		return &MetadataError{
+		return &Error{
 			Type:    "invalid_status",
 			Details: fmt.Sprintf("The following undesired status reports were present: %s; the following desired status reports were absent: %s", strings.Join(present, ", "), strings.Join(absent, ", ")),
 		}

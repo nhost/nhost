@@ -11,7 +11,7 @@ linters:
       - depguard
       - canonicalheader # for some reason it is very unreliable
       - gci    # we already check the linter did its magic
-      - exportloopref # deprecated
+      - tenv
 
 issues:
   exclude-rules:

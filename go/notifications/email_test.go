@@ -1,7 +1,6 @@
 package notifications_test
 
 import (
-	"context"
 	"log/slog"
 	"net/smtp"
 	"testing"
@@ -98,7 +97,7 @@ func TestEmailSendEmailVerify(t *testing.T) {
 			}
 
 			if err := mail.SendEmail(
-				context.Background(),
+				t.Context(),
 				"user@localhost",
 				tc.locale,
 				notifications.TemplateNameEmailVerify,

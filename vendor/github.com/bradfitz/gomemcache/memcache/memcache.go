@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net"
 	"strconv"
 	"strings"
@@ -154,7 +155,7 @@ type Client struct {
 
 	selector ServerSelector
 
-	lk       sync.Mutex
+	mu       sync.Mutex
 	freeconn map[string][]*conn
 }
 
@@ -212,8 +213,8 @@ func (cn *conn) condRelease(err *error) {
 }
 
 func (c *Client) putFreeConn(addr net.Addr, cn *conn) {
-	c.lk.Lock()
-	defer c.lk.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.freeconn == nil {
 		c.freeconn = make(map[string][]*conn)
 	}
@@ -226,8 +227,8 @@ func (c *Client) putFreeConn(addr net.Addr, cn *conn) {
 }
 
 func (c *Client) getFreeConn(addr net.Addr) (cn *conn, ok bool) {
-	c.lk.Lock()
-	defer c.lk.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.freeconn == nil {
 		return nil, false
 	}
@@ -363,30 +364,31 @@ func (c *Client) withKeyAddr(key string, fn func(net.Addr) error) (err error) {
 	return fn(addr)
 }
 
-func (c *Client) withAddrRw(addr net.Addr, fn func(*bufio.ReadWriter) error) (err error) {
+func (c *Client) withAddrRw(addr net.Addr, fn func(*conn) error) (err error) {
 	cn, err := c.getConn(addr)
 	if err != nil {
 		return err
 	}
 	defer cn.condRelease(&err)
-	return fn(cn.rw)
+	return fn(cn)
 }
 
-func (c *Client) withKeyRw(key string, fn func(*bufio.ReadWriter) error) error {
+func (c *Client) withKeyRw(key string, fn func(*conn) error) error {
 	return c.withKeyAddr(key, func(addr net.Addr) error {
 		return c.withAddrRw(addr, fn)
 	})
 }
 
 func (c *Client) getFromAddr(addr net.Addr, keys []string, cb func(*Item)) error {
-	return c.withAddrRw(addr, func(rw *bufio.ReadWriter) error {
+	return c.withAddrRw(addr, func(conn *conn) error {
+		rw := conn.rw
 		if _, err := fmt.Fprintf(rw, "gets %s\r\n", strings.Join(keys, " ")); err != nil {
 			return err
 		}
 		if err := rw.Flush(); err != nil {
 			return err
 		}
-		if err := parseGetResponse(rw.Reader, cb); err != nil {
+		if err := parseGetResponse(rw.Reader, conn, cb); err != nil {
 			return err
 		}
 		return nil
@@ -395,7 +397,8 @@ func (c *Client) getFromAddr(addr net.Addr, keys []string, cb func(*Item)) error
 
 // flushAllFromAddr send the flush_all command to the given addr
 func (c *Client) flushAllFromAddr(addr net.Addr) error {
-	return c.withAddrRw(addr, func(rw *bufio.ReadWriter) error {
+	return c.withAddrRw(addr, func(conn *conn) error {
+		rw := conn.rw
 		if _, err := fmt.Fprintf(rw, "flush_all\r\n"); err != nil {
 			return err
 		}
@@ -418,7 +421,8 @@ func (c *Client) flushAllFromAddr(addr net.Addr) error {
 
 // ping sends the version command to the given addr
 func (c *Client) ping(addr net.Addr) error {
-	return c.withAddrRw(addr, func(rw *bufio.ReadWriter) error {
+	return c.withAddrRw(addr, func(conn *conn) error {
+		rw := conn.rw
 		if _, err := fmt.Fprintf(rw, "version\r\n"); err != nil {
 			return err
 		}
@@ -441,7 +445,8 @@ func (c *Client) ping(addr net.Addr) error {
 }
 
 func (c *Client) touchFromAddr(addr net.Addr, keys []string, expiration int32) error {
-	return c.withAddrRw(addr, func(rw *bufio.ReadWriter) error {
+	return c.withAddrRw(addr, func(conn *conn) error {
+		rw := conn.rw
 		for _, key := range keys {
 			if _, err := fmt.Fprintf(rw, "touch %s %d\r\n", key, expiration); err != nil {
 				return err
@@ -471,11 +476,11 @@ func (c *Client) touchFromAddr(addr net.Addr, keys []string, expiration int32) e
 // cache misses. Each key must be at most 250 bytes in length.
 // If no error is returned, the returned map will also be non-nil.
 func (c *Client) GetMulti(keys []string) (map[string]*Item, error) {
-	var lk sync.Mutex
+	var mu sync.Mutex
 	m := make(map[string]*Item)
 	addItemToMap := func(it *Item) {
-		lk.Lock()
-		defer lk.Unlock()
+		mu.Lock()
+		defer mu.Unlock()
 		m[it.Key] = it
 	}
 
@@ -509,8 +514,12 @@ func (c *Client) GetMulti(keys []string) (map[string]*Item, error) {
 
 // parseGetResponse reads a GET response from r and calls cb for each
 // read and allocated Item
-func parseGetResponse(r *bufio.Reader, cb func(*Item)) error {
+func parseGetResponse(r *bufio.Reader, conn *conn, cb func(*Item)) error {
 	for {
+		// extend deadline before each additional call, otherwise all cumulative
+		// calls use the same overall deadline
+		conn.extendDeadline()
+
 		line, err := r.ReadSlice('\n')
 		if err != nil {
 			return err
@@ -541,17 +550,52 @@ func parseGetResponse(r *bufio.Reader, cb func(*Item)) error {
 // scanGetResponseLine populates it and returns the declared size of the item.
 // It does not read the bytes of the item.
 func scanGetResponseLine(line []byte, it *Item) (size int, err error) {
-	pattern := "VALUE %s %d %d %d\r\n"
-	dest := []interface{}{&it.Key, &it.Flags, &size, &it.CasID}
-	if bytes.Count(line, space) == 3 {
-		pattern = "VALUE %s %d %d\r\n"
-		dest = dest[:3]
-	}
-	n, err := fmt.Sscanf(string(line), pattern, dest...)
-	if err != nil || n != len(dest) {
+	errf := func(line []byte) (int, error) {
 		return -1, fmt.Errorf("memcache: unexpected line in get response: %q", line)
 	}
-	return size, nil
+	if !bytes.HasPrefix(line, []byte("VALUE ")) || !bytes.HasSuffix(line, []byte("\r\n")) {
+		return errf(line)
+	}
+	s := string(line[6 : len(line)-2])
+	var rest string
+	var found bool
+	it.Key, rest, found = cut(s, ' ')
+	if !found {
+		return errf(line)
+	}
+	val, rest, found := cut(rest, ' ')
+	if !found {
+		return errf(line)
+	}
+	flags64, err := strconv.ParseUint(val, 10, 32)
+	if err != nil {
+		return errf(line)
+	}
+	it.Flags = uint32(flags64)
+	val, rest, found = cut(rest, ' ')
+	size64, err := strconv.ParseUint(val, 10, 32)
+	if err != nil {
+		return errf(line)
+	}
+	if size64 > math.MaxInt { // Can happen if int is 32-bit
+		return errf(line)
+	}
+	if !found { // final CAS ID is optional.
+		return int(size64), nil
+	}
+	it.CasID, err = strconv.ParseUint(rest, 10, 64)
+	if err != nil {
+		return errf(line)
+	}
+	return int(size64), nil
+}
+
+// Similar to strings.Cut in Go 1.18, but sep can only be 1 byte.
+func cut(s string, sep byte) (before, after string, found bool) {
+	if i := strings.IndexByte(s, sep); i >= 0 {
+		return s[:i], s[i+1:], true
+	}
+	return s, "", false
 }
 
 // Set writes the given item, unconditionally.
@@ -694,15 +738,43 @@ func writeExpectf(rw *bufio.ReadWriter, expect []byte, format string, args ...in
 // Delete deletes the item with the provided key. The error ErrCacheMiss is
 // returned if the item didn't already exist in the cache.
 func (c *Client) Delete(key string) error {
-	return c.withKeyRw(key, func(rw *bufio.ReadWriter) error {
-		return writeExpectf(rw, resultDeleted, "delete %s\r\n", key)
+	return c.withKeyRw(key, func(conn *conn) error {
+		return writeExpectf(conn.rw, resultDeleted, "delete %s\r\n", key)
 	})
 }
 
 // DeleteAll deletes all items in the cache.
 func (c *Client) DeleteAll() error {
-	return c.withKeyRw("", func(rw *bufio.ReadWriter) error {
-		return writeExpectf(rw, resultDeleted, "flush_all\r\n")
+	return c.withKeyRw("", func(conn *conn) error {
+		return writeExpectf(conn.rw, resultDeleted, "flush_all\r\n")
+	})
+}
+
+// Get and Touch the item with the provided key. The error ErrCacheMiss is
+// returned if the item didn't already exist in the cache.
+func (c *Client) GetAndTouch(key string, expiration int32) (item *Item, err error) {
+	err = c.withKeyAddr(key, func(addr net.Addr) error {
+		return c.getAndTouchFromAddr(addr, key, expiration, func(it *Item) { item = it })
+	})
+	if err == nil && item == nil {
+		err = ErrCacheMiss
+	}
+	return
+}
+
+func (c *Client) getAndTouchFromAddr(addr net.Addr, key string, expiration int32, cb func(*Item)) error {
+	return c.withAddrRw(addr, func(conn *conn) error {
+		rw := conn.rw
+		if _, err := fmt.Fprintf(rw, "gat %d %s\r\n", expiration, key); err != nil {
+			return err
+		}
+		if err := rw.Flush(); err != nil {
+			return err
+		}
+		if err := parseGetResponse(rw.Reader, conn, cb); err != nil {
+			return err
+		}
+		return nil
 	})
 }
 
@@ -733,7 +805,8 @@ func (c *Client) Decrement(key string, delta uint64) (newValue uint64, err error
 
 func (c *Client) incrDecr(verb, key string, delta uint64) (uint64, error) {
 	var val uint64
-	err := c.withKeyRw(key, func(rw *bufio.ReadWriter) error {
+	err := c.withKeyRw(key, func(conn *conn) error {
+		rw := conn.rw
 		line, err := writeReadLine(rw, "%s %s %d\r\n", verb, key, delta)
 		if err != nil {
 			return err
@@ -761,8 +834,8 @@ func (c *Client) incrDecr(verb, key string, delta uint64) (uint64, error) {
 //
 // After Close, the Client may still be used.
 func (c *Client) Close() error {
-	c.lk.Lock()
-	defer c.lk.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	var ret error
 	for _, conns := range c.freeconn {
 		for _, c := range conns {

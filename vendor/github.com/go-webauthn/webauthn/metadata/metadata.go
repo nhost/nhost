@@ -319,15 +319,26 @@ type Statement struct {
 	AuthenticatorGetInfo AuthenticatorGetInfo
 }
 
-func (s *Statement) Verifier() (opts x509.VerifyOptions) {
+func (s *Statement) Verifier(x5cis []*x509.Certificate) (opts x509.VerifyOptions) {
 	roots := x509.NewCertPool()
 
 	for _, root := range s.AttestationRootCertificates {
 		roots.AddCert(root)
 	}
 
+	var intermediates *x509.CertPool
+
+	if len(x5cis) > 0 {
+		intermediates = x509.NewCertPool()
+
+		for _, x5c := range x5cis {
+			intermediates.AddCert(x5c)
+		}
+	}
+
 	return x509.VerifyOptions{
-		Roots: roots,
+		Roots:         roots,
+		Intermediates: intermediates,
 	}
 }
 

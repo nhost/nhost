@@ -76,7 +76,7 @@ func verifyU2FFormat(att AttestationObject, clientDataHash []byte, _ metadata.Pr
 
 	attCert, err := x509.ParseCertificate(asn1Bytes)
 	if err != nil {
-		return "", nil, ErrAttestationFormat.WithDetails("Error parsing certificate from ASN.1 data into certificate")
+		return "", nil, ErrAttestationFormat.WithDetails("Error parsing certificate from ASN.1 data into certificate").WithError(err)
 	}
 
 	// Step 2.3

@@ -109,7 +109,7 @@ func (d *Decoder) DecodeBytes(bytes []byte) (payload *PayloadJSON, err error) {
 
 		if x5c, ok = token.Header[HeaderX509Certificate].([]any); !ok {
 			// If that attribute is missing as well, Metadata TOC signing trust anchor is considered the TOC signing certificate chain.
-			chain[0] = d.root
+			chain = []any{d.root}
 		} else {
 			chain = x5c
 		}

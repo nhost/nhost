@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"net/http"
 	"strings"
 	"testing"
@@ -180,9 +179,9 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tc.jwtTokenFn != nil {
-				ctx = jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
+				ctx = jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			}
 			assertRequest(
 				ctx, t, c.GetMfaTotpGenerate, tc.request, tc.expectedResponse,

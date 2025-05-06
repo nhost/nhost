@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -445,7 +444,7 @@ func TestPostSigninWebauthnVerify(t *testing.T) { //nolint:maintidx
 			}
 
 			resp := assertRequest(
-				context.Background(),
+				t.Context(),
 				t,
 				c.PostSigninWebauthnVerify,
 				tc.request,

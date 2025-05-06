@@ -57,6 +57,36 @@ type AttestedCredentialData struct {
 	CredentialPublicKey []byte `json:"public_key"`
 }
 
+// CredentialMediationRequirement represents mediation requirements for clients. When making a request via get(options)
+// or create(options), developers can set a case-by-case requirement for user mediation by choosing the appropriate
+// CredentialMediationRequirement enum value.
+//
+// See https://www.w3.org/TR/credential-management-1/#mediation-requirements
+type CredentialMediationRequirement string
+
+const (
+	// MediationSilent indicates user mediation is suppressed for the given operation. If the operation can be performed
+	// without user involvement, wonderful. If user involvement is necessary, then the operation will return null rather
+	// than involving the user.
+	MediationSilent CredentialMediationRequirement = "silent"
+
+	// MediationOptional indicates if credentials can be handed over for a given operation without user mediation, they
+	// will be. If user mediation is required, then the user agent will involve the user in the decision.
+	MediationOptional CredentialMediationRequirement = "optional"
+
+	// MediationConditional indicates for get(), discovered credentials are presented to the user in a non-modal dialog
+	// along with an indication of the origin which is requesting credentials. If the user makes a gesture outside of
+	// the dialog, the dialog closes without resolving or rejecting the Promise returned by the get() method and without
+	// causing a user-visible error condition. If the user makes a gesture that selects a credential, that credential is
+	// returned to the caller. The prevent silent access flag is treated as being true regardless of its actual value:
+	// the conditional behavior always involves user mediation of some sort if applicable credentials are discovered.
+	MediationConditional CredentialMediationRequirement = "conditional"
+
+	// MediationRequired indicates the user agent will not hand over credentials without user mediation, even if the
+	// prevent silent access flag is unset for an origin.
+	MediationRequired CredentialMediationRequirement = "required"
+)
+
 // AuthenticatorAttachment represents the IDL enum of the same name, and is used as part of the Authenticator Selection
 // Criteria.
 //
@@ -319,7 +349,7 @@ func (a *AuthenticatorData) unmarshalAttestedData(rawAuthData []byte) (err error
 
 	a.AttData.CredentialPublicKey, err = unmarshalCredentialPublicKey(rawAuthData[55+idLength:])
 	if err != nil {
-		return ErrBadRequest.WithDetails(fmt.Sprintf("Could not unmarshal Credential Public Key: %v", err))
+		return ErrBadRequest.WithDetails(fmt.Sprintf("Could not unmarshal Credential Public Key: %v", err)).WithError(err)
 	}
 
 	return nil

@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"regexp"
 	"testing"
 	"time"
@@ -546,7 +545,7 @@ func TestGetVerify(t *testing.T) { //nolint:maintidx
 			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			assertRequest(
-				context.Background(), t, c.GetVerify, tc.request, tc.expectedResponse,
+				t.Context(), t, c.GetVerify, tc.request, tc.expectedResponse,
 				LocationRegexpComparer(),
 			)
 		})

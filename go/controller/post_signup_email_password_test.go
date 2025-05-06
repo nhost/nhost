@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -966,7 +965,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			resp := assertRequest(
-				context.Background(), t, c.PostSignupEmailPassword, tc.request, tc.expectedResponse,
+				t.Context(), t, c.PostSignupEmailPassword, tc.request, tc.expectedResponse,
 			)
 
 			resp200, ok := resp.(api.PostSignupEmailPassword200JSONResponse)

@@ -20,15 +20,15 @@ const (
 )
 
 var (
-	errIntermediateCertRevoked = &MetadataError{
+	errIntermediateCertRevoked = &Error{
 		Type:    "intermediate_revoked",
 		Details: "Intermediate certificate is on issuers revocation list",
 	}
-	errLeafCertRevoked = &MetadataError{
+	errLeafCertRevoked = &Error{
 		Type:    "leaf_revoked",
 		Details: "Leaf certificate is on issuers revocation list",
 	}
-	errCRLUnavailable = &MetadataError{
+	errCRLUnavailable = &Error{
 		Type:    "crl_unavailable",
 		Details: "Certificate revocation list is unavailable",
 	}

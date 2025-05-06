@@ -5,11 +5,13 @@ import (
 )
 
 type CredentialCreation struct {
-	Response PublicKeyCredentialCreationOptions `json:"publicKey"`
+	Response  PublicKeyCredentialCreationOptions `json:"publicKey"`
+	Mediation CredentialMediationRequirement     `json:"mediation,omitempty"`
 }
 
 type CredentialAssertion struct {
-	Response PublicKeyCredentialRequestOptions `json:"publicKey"`
+	Response  PublicKeyCredentialRequestOptions `json:"publicKey"`
+	Mediation CredentialMediationRequirement    `json:"mediation,omitempty"`
 }
 
 // PublicKeyCredentialCreationOptions represents the IDL of the same name.
@@ -194,7 +196,7 @@ type AttestationFormat string
 const (
 	// AttestationFormatPacked is the "packed" attestation statement format is a WebAuthn-optimized format for
 	// attestation. It uses a very compact but still extensible encoding method. This format is implementable by
-	//authenticators with limited resources (e.g., secure elements).
+	// authenticators with limited resources (e.g., secure elements).
 	AttestationFormatPacked AttestationFormat = "packed"
 
 	// AttestationFormatTPM is the TPM attestation statement format returns an attestation statement in the same format

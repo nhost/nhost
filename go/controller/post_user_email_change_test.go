@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -314,7 +313,7 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
+			ctx := jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			assertRequest(
 				ctx, t, c.PostUserEmailChange, tc.request, tc.expectedResponse,
 			)

@@ -1,5 +1,5 @@
-//go:build (!amd64 && !arm64) || go1.24 || !go1.17 || (arm64 && !go1.20)
-// +build !amd64,!arm64 go1.24 !go1.17 arm64,!go1.20
+//go:build (!amd64 && !arm64) || go1.25 || !go1.17 || (arm64 && !go1.20)
+// +build !amd64,!arm64 go1.25 !go1.17 arm64,!go1.20
 
 /*
 * Copyright 2023 ByteDance Inc.
@@ -29,10 +29,11 @@ import (
 	"github.com/bytedance/sonic/internal/decoder/consts"
 	"github.com/bytedance/sonic/internal/native/types"
 	"github.com/bytedance/sonic/option"
+	"github.com/bytedance/sonic/internal/compat"
 )
 
 func init() {
-     println("WARNING: sonic/decoder only supports (Go1.17~1.23 && CPU amd64) or (go1.20~1.23 && CPU arm64), but your environment is not suitable")
+     compat.Warn("sonic/decoder")
 }
 
 const (

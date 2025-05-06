@@ -53,7 +53,7 @@ func (e *ParseError) Error() string {
 	if p := e.Path(); len(p) > 0 {
 		var arr []string
 		for _, v := range p {
-			arr = append(arr, fmt.Sprintf("%v", v))
+			arr = append(arr, fmt.Sprint(v))
 		}
 		msg = append(msg, fmt.Sprintf("path %v", strings.Join(arr, ".")))
 	}

@@ -54,8 +54,10 @@ func ParseCredentialRequestResponse(response *http.Request) (*ParsedCredentialAs
 		return nil, ErrBadRequest.WithDetails("No response given")
 	}
 
-	defer response.Body.Close()
-	defer io.Copy(io.Discard, response.Body)
+	defer func(request *http.Request) {
+		_, _ = io.Copy(io.Discard, request.Body)
+		_ = request.Body.Close()
+	}(response)
 
 	return ParseCredentialRequestResponseBody(response.Body)
 }
@@ -67,7 +69,7 @@ func ParseCredentialRequestResponseBody(body io.Reader) (par *ParsedCredentialAs
 	var car CredentialAssertionResponse
 
 	if err = decodeBody(body, &car); err != nil {
-		return nil, ErrBadRequest.WithDetails("Parse error for Assertion").WithInfo(err.Error())
+		return nil, ErrBadRequest.WithDetails("Parse error for Assertion").WithInfo(err.Error()).WithError(err)
 	}
 
 	return car.Parse()
@@ -79,7 +81,7 @@ func ParseCredentialRequestResponseBytes(data []byte) (par *ParsedCredentialAsse
 	var car CredentialAssertionResponse
 
 	if err = decodeBytes(data, &car); err != nil {
-		return nil, ErrBadRequest.WithDetails("Parse error for Assertion").WithInfo(err.Error())
+		return nil, ErrBadRequest.WithDetails("Parse error for Assertion").WithInfo(err.Error()).WithError(err)
 	}
 
 	return car.Parse()
@@ -95,20 +97,18 @@ func (car CredentialAssertionResponse) Parse() (par *ParsedCredentialAssertionDa
 	}
 
 	if _, err = base64.RawURLEncoding.DecodeString(car.ID); err != nil {
-		return nil, ErrBadRequest.WithDetails("CredentialAssertionResponse with ID not base64url encoded")
+		return nil, ErrBadRequest.WithDetails("CredentialAssertionResponse with ID not base64url encoded").WithError(err)
 	}
 
-	if car.Type != "public-key" {
+	if car.Type != string(PublicKeyCredentialType) {
 		return nil, ErrBadRequest.WithDetails("CredentialAssertionResponse with bad type")
 	}
 
 	var attachment AuthenticatorAttachment
 
-	switch car.AuthenticatorAttachment {
-	case "platform":
-		attachment = Platform
-	case "cross-platform":
-		attachment = CrossPlatform
+	switch att := AuthenticatorAttachment(car.AuthenticatorAttachment); att {
+	case Platform, CrossPlatform:
+		attachment = att
 	}
 
 	par = &ParsedCredentialAssertionData{
@@ -129,7 +129,7 @@ func (car CredentialAssertionResponse) Parse() (par *ParsedCredentialAssertionDa
 	}
 
 	if err = par.Response.AuthenticatorData.Unmarshal(car.AssertionResponse.AuthenticatorData); err != nil {
-		return nil, ErrParsingData.WithDetails("Error unmarshalling auth data")
+		return nil, ErrParsingData.WithDetails("Error unmarshalling auth data").WithError(err)
 	}
 
 	return par, nil
@@ -141,11 +141,11 @@ func (car CredentialAssertionResponse) Parse() (par *ParsedCredentialAssertionDa
 // Specification: §7.2 Verifying an Authentication Assertion (https://www.w3.org/TR/webauthn/#sctn-verifying-assertion)
 func (p *ParsedCredentialAssertionData) Verify(storedChallenge string, relyingPartyID string, rpOrigins, rpTopOrigins []string, rpTopOriginsVerify TopOriginVerificationMode, appID string, verifyUser bool, credentialBytes []byte) error {
 	// Steps 4 through 6 in verifying the assertion data (https://www.w3.org/TR/webauthn/#verifying-assertion) are
-	// "assertive" steps, i.e "Let JSONtext be the result of running UTF-8 decode on the value of cData."
+	// "assertive" steps, i.e. "Let JSONtext be the result of running UTF-8 decode on the value of cData."
 	// We handle these steps in part as we verify but also beforehand
-
+	//
 	// Handle steps 7 through 10 of assertion by verifying stored data against the Collected Client Data
-	// returned by the authenticator
+	// returned by the authenticator.
 	validError := p.Response.CollectedClientData.Verify(storedChallenge, AssertCeremony, rpOrigins, rpTopOrigins, rpTopOriginsVerify)
 	if validError != nil {
 		return validError
@@ -189,12 +189,12 @@ func (p *ParsedCredentialAssertionData) Verify(storedChallenge string, relyingPa
 	}
 
 	if err != nil {
-		return ErrAssertionSignature.WithDetails(fmt.Sprintf("Error parsing the assertion public key: %+v", err))
+		return ErrAssertionSignature.WithDetails(fmt.Sprintf("Error parsing the assertion public key: %+v", err)).WithError(err)
 	}
 
 	valid, err := webauthncose.VerifySignature(key, sigData, p.Response.Signature)
 	if !valid || err != nil {
-		return ErrAssertionSignature.WithDetails(fmt.Sprintf("Error validating the assertion signature: %+v", err))
+		return ErrAssertionSignature.WithDetails(fmt.Sprintf("Error validating the assertion signature: %+v", err)).WithError(err)
 	}
 
 	return nil

@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -304,7 +303,7 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 
 			//nolint:exhaustruct
 			resp := assertRequest(
-				context.Background(), t, c.PostToken, tc.request, tc.expectedResponse,
+				t.Context(), t, c.PostToken, tc.request, tc.expectedResponse,
 				cmpopts.IgnoreFields(api.PostToken200JSONResponse{}, "RefreshToken", "AccessToken"),
 			)
 

@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -194,7 +193,7 @@ func TestPostSigninOTPEmailVerify(t *testing.T) {
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			resp := assertRequest(
-				context.Background(),
+				t.Context(),
 				t,
 				c.PostSigninOtpEmailVerify,
 				tc.request,

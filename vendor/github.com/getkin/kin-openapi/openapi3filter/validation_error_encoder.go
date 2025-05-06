@@ -160,13 +160,13 @@ func convertSchemaError(e *RequestError, innerErr *openapi3.SchemaError) *Valida
 	if innerErr.SchemaField == "enum" {
 		enums := make([]string, 0, len(innerErr.Schema.Enum))
 		for _, enum := range innerErr.Schema.Enum {
-			enums = append(enums, fmt.Sprintf("%v", enum))
+			enums = append(enums, fmt.Sprint(enum))
 		}
 		cErr.Detail = fmt.Sprintf("value %v at %s must be one of: %s",
 			innerErr.Value,
 			toJSONPointer(innerErr.JSONPointer()),
 			strings.Join(enums, ", "))
-		value := fmt.Sprintf("%v", innerErr.Value)
+		value := fmt.Sprint(innerErr.Value)
 		if e.Parameter != nil &&
 			(e.Parameter.Explode == nil || *e.Parameter.Explode) &&
 			(e.Parameter.Style == "" || e.Parameter.Style == "form") &&

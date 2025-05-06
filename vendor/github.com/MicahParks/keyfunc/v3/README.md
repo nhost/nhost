@@ -79,15 +79,3 @@ provides the below features, and more:
 ### [`github.com/MicahParks/jwkset`](https://github.com/MicahParks/jwkset):
 
 A JWK Set implementation. The `keyfunc` project is a wrapper around this project.
-
-### [`github.com/MicahParks/jcp`](https://github.com/MicahParks/jcp):
-
-A JWK Set client proxy. JCP for short. This project is a standalone service that uses `keyfunc` under the hood. It
-primarily exists for these use cases:
-
-1. The language or shell a program is written in does not have an adequate JWK Set client. Validate JWTs with `curl`?
-   Why not?
-2. Restrictive networking policies prevent a program from accessing the remote JWK Set directly.
-3. Many co-located services need to validate JWTs that were signed by a key that lives in a remote JWK Set.
-
-If you can integrate `keyfunc` directly into your program, you likely don't need JCP.

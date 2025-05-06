@@ -239,7 +239,7 @@ func TestGetJWTFunc(t *testing.T) {
 			}
 
 			accessToken, _, err := jwtGetter.GetToken(
-				context.Background(),
+				t.Context(),
 				tc.userID,
 				false,
 				tc.allowedRoles,

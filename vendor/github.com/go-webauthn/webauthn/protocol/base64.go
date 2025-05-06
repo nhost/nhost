@@ -22,9 +22,8 @@ func (e *URLEncodedBase64) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	// TODO: Investigate this line. It is commented as trimming the leading spaces but appears to trim the leading and trailing double quotes instead.
-	// Trim the leading spaces.
-	data = bytes.Trim(data, "\"")
+	// Trim the leading and trailing quotes from raw JSON data (the whole value part)
+	data = bytes.Trim(data, `"`)
 
 	// Trim the trailing equal characters.
 	data = bytes.TrimRight(data, "=")

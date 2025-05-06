@@ -85,18 +85,19 @@ func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte, mds met
 		}
 
 		cert, err := x509.ParseCertificate(o[:n])
+
 		return cert.PublicKey, err
 	})
 
 	if err != nil {
-		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error finding cert issued to correct hostname: %+v", err))
+		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error finding cert issued to correct hostname: %+v", err)).WithError(err)
 	}
 
 	// marshall the JWT payload into the safetynet response json
 	var safetyNetResponse SafetyNetResponse
 
 	if err = mapstructure.Decode(token.Claims, &safetyNetResponse); err != nil {
-		return "", nil, ErrAttestationFormat.WithDetails(fmt.Sprintf("Error parsing the SafetyNet response: %+v", err))
+		return "", nil, ErrAttestationFormat.WithDetails(fmt.Sprintf("Error parsing the SafetyNet response: %+v", err)).WithError(err)
 	}
 
 	// §8.5.3 Verify that the nonce in the response is identical to the Base64 encoding of the SHA-256 hash of the concatenation
@@ -105,7 +106,7 @@ func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte, mds met
 
 	nonceBytes, err := base64.StdEncoding.DecodeString(safetyNetResponse.Nonce)
 	if !bytes.Equal(nonceBuffer[:], nonceBytes) || err != nil {
-		return "", nil, ErrInvalidAttestation.WithDetails("Invalid nonce for in SafetyNet response")
+		return "", nil, ErrInvalidAttestation.WithDetails("Invalid nonce for in SafetyNet response").WithError(err)
 	}
 
 	// §8.5.4 Let attestationCert be the attestation certificate (https://www.w3.org/TR/webauthn/#attestation-certificate)
@@ -114,18 +115,18 @@ func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte, mds met
 
 	n, err := base64.StdEncoding.Decode(l, []byte(certChain[0].(string)))
 	if err != nil {
-		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error finding cert issued to correct hostname: %+v", err))
+		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error finding cert issued to correct hostname: %+v", err)).WithError(err)
 	}
 
 	attestationCert, err := x509.ParseCertificate(l[:n])
 	if err != nil {
-		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error finding cert issued to correct hostname: %+v", err))
+		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error finding cert issued to correct hostname: %+v", err)).WithError(err)
 	}
 
 	// §8.5.5 Verify that attestationCert is issued to the hostname "attest.android.com"
 	err = attestationCert.VerifyHostname("attest.android.com")
 	if err != nil {
-		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error finding cert issued to correct hostname: %+v", err))
+		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error finding cert issued to correct hostname: %+v", err)).WithError(err)
 	}
 
 	// §8.5.6 Verify that the ctsProfileMatch attribute in the payload of response is true.

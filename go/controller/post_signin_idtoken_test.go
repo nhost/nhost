@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -23,7 +22,7 @@ func getTestIDTokenValidatorProviders() func(t *testing.T) *oidc.IDTokenValidato
 	return func(t *testing.T) *oidc.IDTokenValidatorProviders {
 		t.Helper()
 		idtokenValidators, err := oidc.NewIDTokenValidatorProviders(
-			context.Background(),
+			t.Context(),
 			"appleid",
 			"googleid",
 			"myapp.local",
@@ -787,7 +786,7 @@ func TestPostSigninIdToken(t *testing.T) { //nolint:maintidx
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			resp := assertRequest(
-				context.Background(),
+				t.Context(),
 				t,
 				c.PostSigninIdtoken,
 				tc.request,

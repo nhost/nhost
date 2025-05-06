@@ -1,7 +1,6 @@
 package oidc_test
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -21,7 +20,7 @@ func testProviderValidator(
 	t.Helper()
 
 	v, err := oidc.NewIDTokenValidator(
-		context.Background(),
+		t.Context(),
 		api.FakeProvider,
 		audience,
 		jwt.WithTimeFunc(func() time.Time {

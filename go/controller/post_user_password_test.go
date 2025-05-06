@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -423,9 +422,9 @@ func TestPostUserdReset(t *testing.T) { //nolint:maintidx
 
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			ctx := context.Background()
+			ctx := t.Context()
 			if tc.jwtTokenFn != nil {
-				ctx = jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
+				ctx = jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			}
 			assertRequest(
 				ctx, t, c.PostUserPassword, tc.request, tc.expectedResponse,

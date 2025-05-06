@@ -31,6 +31,16 @@ type DiscoverableUserHandler func(rawID, userHandle []byte) (user User, err erro
 //
 // Specification: §5.5. Options for Assertion Generation (https://www.w3.org/TR/webauthn/#dictionary-assertion-options)
 func (webauthn *WebAuthn) BeginLogin(user User, opts ...LoginOption) (*protocol.CredentialAssertion, *SessionData, error) {
+	return webauthn.BeginMediatedLogin(user, "", opts...)
+}
+
+// BeginDiscoverableLogin begins a client-side discoverable login, previously known as Resident Key logins.
+func (webauthn *WebAuthn) BeginDiscoverableLogin(opts ...LoginOption) (*protocol.CredentialAssertion, *SessionData, error) {
+	return webauthn.beginLogin(nil, nil, "", opts...)
+}
+
+// BeginMediatedLogin is similar to BeginLogin however it also allows specifying a credential mediation requirement.
+func (webauthn *WebAuthn) BeginMediatedLogin(user User, mediation protocol.CredentialMediationRequirement, opts ...LoginOption) (*protocol.CredentialAssertion, *SessionData, error) {
 	credentials := user.WebAuthnCredentials()
 
 	if len(credentials) == 0 { // If the user does not have any credentials, we cannot perform an assertion.
@@ -43,35 +53,43 @@ func (webauthn *WebAuthn) BeginLogin(user User, opts ...LoginOption) (*protocol.
 		allowedCredentials[i] = credential.Descriptor()
 	}
 
-	return webauthn.beginLogin(user.WebAuthnID(), allowedCredentials, opts...)
+	return webauthn.beginLogin(user.WebAuthnID(), allowedCredentials, mediation, opts...)
 }
 
-// BeginDiscoverableLogin begins a client-side discoverable login, previously known as Resident Key logins.
-func (webauthn *WebAuthn) BeginDiscoverableLogin(opts ...LoginOption) (*protocol.CredentialAssertion, *SessionData, error) {
-	return webauthn.beginLogin(nil, nil, opts...)
+// BeginDiscoverableMediatedLogin begins a client-side discoverable login with a mediation requirement, previously known
+// as Resident Key logins.
+func (webauthn *WebAuthn) BeginDiscoverableMediatedLogin(mediation protocol.CredentialMediationRequirement, opts ...LoginOption) (*protocol.CredentialAssertion, *SessionData, error) {
+	return webauthn.beginLogin(nil, nil, mediation, opts...)
 }
 
-func (webauthn *WebAuthn) beginLogin(userID []byte, allowedCredentials []protocol.CredentialDescriptor, opts ...LoginOption) (assertion *protocol.CredentialAssertion, session *SessionData, err error) {
+func (webauthn *WebAuthn) beginLogin(userID []byte, allowedCredentials []protocol.CredentialDescriptor, mediation protocol.CredentialMediationRequirement, opts ...LoginOption) (assertion *protocol.CredentialAssertion, session *SessionData, err error) {
 	if err = webauthn.Config.validate(); err != nil {
 		return nil, nil, fmt.Errorf(errFmtConfigValidate, err)
 	}
 
-	challenge, err := protocol.CreateChallenge()
-	if err != nil {
-		return nil, nil, err
-	}
-
 	assertion = &protocol.CredentialAssertion{
 		Response: protocol.PublicKeyCredentialRequestOptions{
-			Challenge:          challenge,
 			RelyingPartyID:     webauthn.Config.RPID,
 			UserVerification:   webauthn.Config.AuthenticatorSelection.UserVerification,
 			AllowedCredentials: allowedCredentials,
 		},
+		Mediation: mediation,
 	}
 
 	for _, opt := range opts {
 		opt(&assertion.Response)
+	}
+
+	if len(assertion.Response.Challenge) == 0 {
+		challenge, err := protocol.CreateChallenge()
+		if err != nil {
+			return nil, nil, err
+		}
+		assertion.Response.Challenge = challenge
+	}
+
+	if len(assertion.Response.Challenge) < 16 {
+		return nil, nil, fmt.Errorf("error generating assertion: the challenge must be at least 16 bytes")
 	}
 
 	if len(assertion.Response.RelyingPartyID) == 0 {
@@ -90,7 +108,7 @@ func (webauthn *WebAuthn) beginLogin(userID []byte, allowedCredentials []protoco
 	}
 
 	session = &SessionData{
-		Challenge:            challenge.String(),
+		Challenge:            assertion.Response.Challenge.String(),
 		RelyingPartyID:       assertion.Response.RelyingPartyID,
 		UserID:               userID,
 		AllowedCredentialIDs: assertion.Response.GetAllowedCredentialIDs(),
@@ -165,6 +183,18 @@ func WithLoginRelyingPartyID(id string) LoginOption {
 	}
 }
 
+// WithChallenge overrides the default random challenge with a user supplied value.
+// In order to prevent replay attacks, the challenges MUST contain enough entropy to make guessing them infeasible.
+// Challenges SHOULD therefore be at least 16 bytes long.
+// This function is EXPERIMENTAL and can be removed without warning.
+//
+// Specification: §13.4.3. Cryptographic Challenges (https://www.w3.org/TR/webauthn/#sctn-cryptographic-challenges)
+func WithChallenge(challenge []byte) LoginOption {
+	return func(cco *protocol.PublicKeyCredentialRequestOptions) {
+		cco.Challenge = challenge
+	}
+}
+
 // FinishLogin takes the response from the client and validate it against the user credentials and stored session data.
 func (webauthn *WebAuthn) FinishLogin(user User, session SessionData, response *http.Request) (*Credential, error) {
 	parsedResponse, err := protocol.ParseCredentialRequestResponse(response)
@@ -211,16 +241,16 @@ func (webauthn *WebAuthn) ValidateDiscoverableLogin(handler DiscoverableUserHand
 
 // ValidatePasskeyLogin is an overloaded version of ValidateLogin that allows for passkey credentials.
 func (webauthn *WebAuthn) ValidatePasskeyLogin(handler DiscoverableUserHandler, session SessionData, parsedResponse *protocol.ParsedCredentialAssertionData) (user User, credential *Credential, err error) {
-	if session.UserID != nil {
+	if len(session.UserID) != 0 {
 		return nil, nil, protocol.ErrBadRequest.WithDetails("Session was not initiated as a client-side discoverable login")
 	}
 
-	if parsedResponse.Response.UserHandle == nil {
+	if len(parsedResponse.Response.UserHandle) == 0 {
 		return nil, nil, protocol.ErrBadRequest.WithDetails("Client-side Discoverable Assertion was attempted with a blank User Handle")
 	}
 
 	if user, err = handler(parsedResponse.RawID, parsedResponse.Response.UserHandle); err != nil {
-		return nil, nil, protocol.ErrBadRequest.WithDetails(fmt.Sprintf("Failed to lookup Client-side Discoverable Credential: %s", err))
+		return nil, nil, protocol.ErrBadRequest.WithDetails(fmt.Sprintf("Failed to lookup Client-side Discoverable Credential: %s", err)).WithError(err)
 	}
 
 	if credential, err = webauthn.validateLogin(user, session, parsedResponse); err != nil {
@@ -313,12 +343,16 @@ func (webauthn *WebAuthn) validateLogin(user User, session SessionData, parsedRe
 	if webauthn.Config.MDS != nil {
 		var aaguid uuid.UUID
 
-		if aaguid, err = uuid.FromBytes(credential.Authenticator.AAGUID); err != nil {
-			return nil, protocol.ErrBadRequest.WithDetails("Failed to decode AAGUID").WithInfo(fmt.Sprintf("Error occurred decoding AAGUID from the credential record: %s", err))
+		if len(credential.Authenticator.AAGUID) == 0 {
+			aaguid = uuid.Nil
+		} else if aaguid, err = uuid.FromBytes(credential.Authenticator.AAGUID); err != nil {
+			return nil, protocol.ErrBadRequest.WithDetails("Failed to decode AAGUID").WithInfo(fmt.Sprintf("Error occurred decoding AAGUID from the credential record: %s", err)).WithError(err)
 		}
 
-		if err = protocol.ValidateMetadata(context.Background(), aaguid, webauthn.Config.MDS); err != nil {
-			return nil, protocol.ErrBadRequest.WithDetails("Failed to validate credential record metadata").WithInfo(fmt.Sprintf("Error occurred validating authenticator metadata from the credential record: %s", err))
+		var protoErr *protocol.Error
+
+		if protoErr = protocol.ValidateMetadata(context.Background(), webauthn.Config.MDS, aaguid, "", nil); protoErr != nil {
+			return nil, protocol.ErrBadRequest.WithDetails("Failed to validate credential record metadata").WithInfo(protoErr.DevInfo).WithError(protoErr)
 		}
 	}
 

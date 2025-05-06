@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -496,7 +495,7 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
+			ctx := jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			assertRequest(
 				ctx, t, c.PostUserDeanonymize, tc.request, tc.expectedResponse,
 			)

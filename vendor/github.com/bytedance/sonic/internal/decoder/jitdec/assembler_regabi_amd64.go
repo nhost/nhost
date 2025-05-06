@@ -1,5 +1,5 @@
-//go:build go1.17 && !go1.24
-// +build go1.17,!go1.24
+//go:build go1.17 && !go1.25
+// +build go1.17,!go1.25
 
 /*
  * Copyright 2021 ByteDance Inc.
@@ -271,6 +271,7 @@ var _OpFuncTab = [256]func(*_Assembler, *_Instr) {
     _OP_nil_1            : (*_Assembler)._asm_OP_nil_1,
     _OP_nil_2            : (*_Assembler)._asm_OP_nil_2,
     _OP_nil_3            : (*_Assembler)._asm_OP_nil_3,
+    _OP_empty_bytes      : (*_Assembler)._asm_OP_empty_bytes,
     _OP_deref            : (*_Assembler)._asm_OP_deref,
     _OP_index            : (*_Assembler)._asm_OP_index,
     _OP_is_null          : (*_Assembler)._asm_OP_is_null,
@@ -313,9 +314,10 @@ var _OpFuncTab = [256]func(*_Assembler, *_Instr) {
     _OP_check_char_0     : (*_Assembler)._asm_OP_check_char_0,
     _OP_dismatch_err     : (*_Assembler)._asm_OP_dismatch_err,
     _OP_go_skip          : (*_Assembler)._asm_OP_go_skip,
-    _OP_skip_emtpy         : (*_Assembler)._asm_OP_skip_empty,
+    _OP_skip_emtpy       : (*_Assembler)._asm_OP_skip_empty,
     _OP_add              : (*_Assembler)._asm_OP_add,
     _OP_check_empty      : (*_Assembler)._asm_OP_check_empty,
+    _OP_unsupported      : (*_Assembler)._asm_OP_unsupported,
     _OP_debug            : (*_Assembler)._asm_OP_debug,
 }
 
@@ -456,7 +458,7 @@ func (self *_Assembler) call_vf(fn obj.Addr) {
 /** Assembler Error Handlers **/
 
 var (
-    _F_convT64        = jit.Func(convT64)
+    _F_convT64        = jit.Func(rt.ConvT64)
     _F_error_wrap     = jit.Func(error_wrap)
     _F_error_type     = jit.Func(error_type)
     _F_error_field    = jit.Func(error_field)
@@ -598,7 +600,6 @@ func (self *_Assembler) _asm_OP_dismatch_err(p *_Instr) {
 func (self *_Assembler) _asm_OP_go_skip(p *_Instr) {
     self.Byte(0x4c, 0x8d, 0x0d)         // LEAQ (PC), R9
     self.Xref(p.vi(), 4)
-    // self.Byte(0xcc)
     self.Emit("MOVQ", _R9, _VAR_pc)
     self.Sjmp("JMP"  , _LB_skip_one)            // JMP     _skip_one
 }
@@ -606,9 +607,7 @@ func (self *_Assembler) _asm_OP_go_skip(p *_Instr) {
 var _F_IndexByte = jit.Func(strings.IndexByte)
 
 func (self *_Assembler) _asm_OP_skip_empty(p *_Instr) {
-    // self.Byte(0xcc)
     self.call_sf(_F_skip_one)                   // CALL_SF skip_one
-    // self.Byte(0xcc)
     self.Emit("TESTQ", _AX, _AX)                // TESTQ   AX, AX
     self.Sjmp("JS"   , _LB_parsing_error_v)     // JS      _parse_error_v
     self.Emit("BTQ", jit.Imm(_F_disable_unknown), _ARG_fv) 
@@ -619,7 +618,6 @@ func (self *_Assembler) _asm_OP_skip_empty(p *_Instr) {
     self.Emit("MOVQ", _AX, _ARG_sv_p)
     self.Emit("MOVQ", jit.Imm(':'), _CX)
     self.call_go(_F_IndexByte)
-    // self.Byte(0xcc)
     self.Emit("TESTQ", _AX, _AX)
     // disallow unknown field
     self.Sjmp("JNS", _LB_field_error)
@@ -662,7 +660,7 @@ func (self *_Assembler) skip_key_value() {
 
 var (
     _T_byte     = jit.Type(byteType)
-    _F_mallocgc = jit.Func(mallocgc)
+    _F_mallocgc = jit.Func(rt.Mallocgc)
 )
 
 func (self *_Assembler) malloc_AX(nb obj.Addr, ret obj.Addr) {
@@ -964,8 +962,8 @@ func (self *_Assembler) unquote_twice(p obj.Addr, n obj.Addr, stack bool) {
 /** Memory Clearing Routines **/
 
 var (
-    _F_memclrHasPointers    = jit.Func(memclrHasPointers)
-    _F_memclrNoHeapPointers = jit.Func(memclrNoHeapPointers)
+    _F_memclrHasPointers    = jit.Func(rt.MemclrHasPointers)
+    _F_memclrNoHeapPointers = jit.Func(rt.MemclrNoHeapPointers)
 )
 
 func (self *_Assembler) mem_clear_fn(ptrfree bool) {
@@ -989,10 +987,10 @@ func (self *_Assembler) mem_clear_rem(size int64, ptrfree bool) {
 /** Map Assigning Routines **/
 
 var (
-    _F_mapassign           = jit.Func(mapassign)
-    _F_mapassign_fast32    = jit.Func(mapassign_fast32)
-    _F_mapassign_faststr   = jit.Func(mapassign_faststr)
-    _F_mapassign_fast64ptr = jit.Func(mapassign_fast64ptr)
+    _F_mapassign           = jit.Func(rt.Mapassign)
+    _F_mapassign_fast32    = jit.Func(rt.Mapassign_fast32)
+    _F_mapassign_faststr   = jit.Func(rt.Mapassign_faststr)
+    _F_mapassign_fast64ptr = jit.Func(rt.Mapassign_fast64ptr)
 )
 
 var (
@@ -1183,12 +1181,12 @@ func (self *_Assembler) decode_dynamic(vt obj.Addr, vp obj.Addr) {
 /** OpCode Assembler Functions **/
 
 var (
-    _F_memequal         = jit.Func(memequal)
-    _F_memmove          = jit.Func(memmove)
+    _F_memequal         = jit.Func(rt.MemEqual)
+    _F_memmove          = jit.Func(rt.Memmove)
     _F_growslice        = jit.Func(rt.GrowSlice)
-    _F_makeslice        = jit.Func(makeslice)
-    _F_makemap_small    = jit.Func(makemap_small)
-    _F_mapassign_fast64 = jit.Func(mapassign_fast64)
+    _F_makeslice        = jit.Func(rt.MakeSliceStd)
+    _F_makemap_small    = jit.Func(rt.MakemapSmall)
+    _F_mapassign_fast64 = jit.Func(rt.Mapassign_fast64)
 )
 
 var (
@@ -1197,7 +1195,7 @@ var (
 )
 
 var (
-    _F_b64decode   = jit.Imm(int64(_subr__b64decode))
+    _F_b64decode   = jit.Imm(int64(rt.SubrB64Decode))
     _F_decodeValue = jit.Imm(int64(_subr_decode_value))
 )
 
@@ -1253,16 +1251,40 @@ func (self *_Assembler) _asm_OP_any(_ *_Instr) {
 func (self *_Assembler) _asm_OP_dyn(p *_Instr) {
     self.Emit("MOVQ"   , jit.Type(p.vt()), _ET)             // MOVQ    ${p.vt()}, ET
     self.Emit("CMPQ"   , jit.Ptr(_VP, 8), jit.Imm(0))       // CMPQ    8(VP), $0
-    self.Sjmp("JE"     , _LB_type_error)                    // JE      _type_error
+    self.Sjmp("JNE"     , "_decode_dyn_non_nil_{n}")                    // JE      _type_error
+
+    /* if nil iface, call skip one */
+    self.Emit("MOVQ", _IC, _VAR_ic)
+    self.Emit("MOVQ", _ET, _VAR_et)
+    self.Byte(0x4c, 0x8d, 0x0d)       
+    self.Sref("_decode_end_{n}", 4)
+    self.Emit("MOVQ", _R9, _VAR_pc)
+    self.Sjmp("JMP"  , _LB_skip_one)
+
+    self.Link("_decode_dyn_non_nil_{n}")                    // _decode_dyn_non_nil_{n}:
     self.Emit("MOVQ"   , jit.Ptr(_VP, 0), _CX)              // MOVQ    (VP), CX
     self.Emit("MOVQ"   , jit.Ptr(_CX, 8), _CX)              // MOVQ    8(CX), CX
     self.Emit("MOVBLZX", jit.Ptr(_CX, _Gt_KindFlags), _DX)  // MOVBLZX _Gt_KindFlags(CX), DX
     self.Emit("ANDL"   , jit.Imm(rt.F_kind_mask), _DX)      // ANDL    ${F_kind_mask}, DX
     self.Emit("CMPL"   , _DX, jit.Imm(_Vk_Ptr))             // CMPL    DX, ${reflect.Ptr}
-    self.Sjmp("JNE"    , _LB_type_error)                    // JNE     _type_error
+    self.Sjmp("JE"    , "_decode_dyn_ptr_{n}")              // JNE     _type_error
+
+    self.Emit("MOVQ", _IC, _VAR_ic)
+    self.Emit("MOVQ", _ET, _VAR_et)
+    self.Byte(0x4c, 0x8d, 0x0d)       
+    self.Sref("_decode_end_{n}", 4)
+    self.Emit("MOVQ", _R9, _VAR_pc)
+    self.Sjmp("JMP"  , _LB_skip_one)
+
+    self.Link("_decode_dyn_ptr_{n}")                        // _decode_dyn_ptr_{n}:
     self.Emit("LEAQ"   , jit.Ptr(_VP, 8), _DI)              // LEAQ    8(VP), DI
     self.decode_dynamic(_CX, _DI)                           // DECODE  CX, DI
     self.Link("_decode_end_{n}")                            // _decode_end_{n}:
+}
+
+func (self *_Assembler) _asm_OP_unsupported(p *_Instr) {
+    self.Emit("MOVQ", jit.Type(p.vt()), _ET)               // MOVQ    ${p.vt()}, ET
+    self.Sjmp("JMP" , _LB_type_error)                      // JMP     _LB_type_error
 }
 
 func (self *_Assembler) _asm_OP_str(_ *_Instr) {
@@ -1488,6 +1510,19 @@ func (self *_Assembler) _asm_OP_nil_3(_ *_Instr) {
     self.Emit("MOVQ" , _AX, jit.Ptr(_VP, 16))   // MOVOU AX, 16(VP)
 }
 
+var (
+    bytes []byte = make([]byte, 0)
+    zerobytes = (*rt.GoSlice)(unsafe.Pointer(&bytes)).Ptr
+    _ZERO_PTR = jit.Imm(int64(uintptr(zerobytes)))
+)
+
+func (self *_Assembler) _asm_OP_empty_bytes(_ *_Instr) {
+    self.Emit("MOVQ", _ZERO_PTR, _AX)
+    self.Emit("PXOR" , _X0, _X0)
+    self.Emit("MOVQ", _AX,  jit.Ptr(_VP, 0))
+    self.Emit("MOVOU", _X0, jit.Ptr(_VP, 8))
+}
+
 func (self *_Assembler) _asm_OP_deref(p *_Instr) {
     self.vfollow(p.vt())
 }
@@ -1547,7 +1582,7 @@ func (self *_Assembler) _asm_OP_map_key_i32(p *_Instr) {
     self.parse_signed(int32Type, "", p.vi())                                                     // PARSE     int32
     self.range_signed_CX(_I_int32, _T_int32, math.MinInt32, math.MaxInt32)     // RANGE     int32
     self.match_char('"')
-    if vt := p.vt(); !mapfast(vt) {
+    if vt := p.vt(); !rt.IsMapfast(vt) {
         self.mapassign_std(vt, _VAR_st_Iv)                                  // MAPASSIGN int32, mapassign, st.Iv
     } else {
         self.Emit("MOVQ", _CX, _AX)                                         // MOVQ CX, AX
@@ -1558,7 +1593,7 @@ func (self *_Assembler) _asm_OP_map_key_i32(p *_Instr) {
 func (self *_Assembler) _asm_OP_map_key_i64(p *_Instr) {
     self.parse_signed(int64Type, "", p.vi())                                 // PARSE     int64
     self.match_char('"')
-    if vt := p.vt(); !mapfast(vt) {
+    if vt := p.vt(); !rt.IsMapfast(vt) {
         self.mapassign_std(vt, _VAR_st_Iv)              // MAPASSIGN int64, mapassign, st.Iv
     } else {
         self.Emit("MOVQ", _VAR_st_Iv, _AX)              // MOVQ      st.Iv, AX
@@ -1584,7 +1619,7 @@ func (self *_Assembler) _asm_OP_map_key_u32(p *_Instr) {
     self.parse_unsigned(uint32Type, "", p.vi())                                       // PARSE     uint32
     self.range_unsigned_CX(_I_uint32, _T_uint32, math.MaxUint32)   // RANGE     uint32
     self.match_char('"')
-    if vt := p.vt(); !mapfast(vt) {
+    if vt := p.vt(); !rt.IsMapfast(vt) {
         self.mapassign_std(vt, _VAR_st_Iv)                      // MAPASSIGN uint32, vt.Iv
     } else {
         self.Emit("MOVQ", _CX, _AX)                             // MOVQ CX, AX
@@ -1595,7 +1630,7 @@ func (self *_Assembler) _asm_OP_map_key_u32(p *_Instr) {
 func (self *_Assembler) _asm_OP_map_key_u64(p *_Instr) {
     self.parse_unsigned(uint64Type, "", p.vi())                                       // PARSE     uint64
     self.match_char('"')
-    if vt := p.vt(); !mapfast(vt) {
+    if vt := p.vt(); !rt.IsMapfast(vt) {
         self.mapassign_std(vt, _VAR_st_Iv)                      // MAPASSIGN uint64, vt.Iv
     } else {
         self.Emit("MOVQ", _VAR_st_Iv, _AX)                      // MOVQ      st.Iv, AX
@@ -1620,7 +1655,7 @@ func (self *_Assembler) _asm_OP_map_key_f64(p *_Instr) {
 func (self *_Assembler) _asm_OP_map_key_str(p *_Instr) {
     self.parse_string()                          // PARSE     STRING
     self.unquote_once(_ARG_sv_p, _ARG_sv_n, true, true)      // UNQUOTE   once, sv.p, sv.n
-    if vt := p.vt(); !mapfast(vt) {
+    if vt := p.vt(); !rt.IsMapfast(vt) {
         self.valloc(vt.Key(), _DI)
         self.Emit("MOVOU", _ARG_sv, _X0)
         self.Emit("MOVOU", _X0, jit.Ptr(_DI, 0))

@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -585,7 +584,7 @@ func TestPostSigninOTPEmail(t *testing.T) { //nolint:maintidx
 			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			assertRequest(
-				context.Background(),
+				t.Context(),
 				t,
 				c.PostSigninOtpEmail,
 				tc.request,

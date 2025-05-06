@@ -35,6 +35,19 @@ type Credential struct {
 	Attestation CredentialAttestation `json:"attestation"`
 }
 
+// NewCredentialFlags is a utility function that is used to derive the Credential's Flags field. This allows
+// implementers to solely save the Raw field of the CredentialFlags to restore them appropriately for appropriate
+// processing without concern that changes forced upon implementers by the W3C will introduce breaking changes.
+func NewCredentialFlags(flags protocol.AuthenticatorFlags) CredentialFlags {
+	return CredentialFlags{
+		UserPresent:    flags.HasUserPresent(),
+		UserVerified:   flags.HasUserVerified(),
+		BackupEligible: flags.HasBackupEligible(),
+		BackupState:    flags.HasBackupState(),
+		raw:            flags,
+	}
+}
+
 type CredentialFlags struct {
 	// Flag UP indicates the users presence.
 	UserPresent bool `json:"userPresent"`
@@ -48,6 +61,14 @@ type CredentialFlags struct {
 	// Flag BS indicates the credential has been backed up and/or sync'd. This value can change but it's recommended
 	// that RP's keep track of this value.
 	BackupState bool `json:"backupState"`
+
+	raw protocol.AuthenticatorFlags
+}
+
+// ProtocolValue returns the underlying protocol.AuthenticatorFlags provided this CredentialFlags was created using
+// NewCredentialFlags.
+func (f CredentialFlags) ProtocolValue() protocol.AuthenticatorFlags {
+	return f.raw
 }
 
 type CredentialAttestation struct {
@@ -75,12 +96,7 @@ func NewCredential(clientDataHash []byte, c *protocol.ParsedCredentialCreationDa
 		PublicKey:       c.Response.AttestationObject.AuthData.AttData.CredentialPublicKey,
 		AttestationType: c.Response.AttestationObject.Format,
 		Transport:       c.Response.Transports,
-		Flags: CredentialFlags{
-			UserPresent:    c.Response.AttestationObject.AuthData.Flags.HasUserPresent(),
-			UserVerified:   c.Response.AttestationObject.AuthData.Flags.HasUserVerified(),
-			BackupEligible: c.Response.AttestationObject.AuthData.Flags.HasBackupEligible(),
-			BackupState:    c.Response.AttestationObject.AuthData.Flags.HasBackupState(),
-		},
+		Flags:           NewCredentialFlags(c.Response.AttestationObject.AuthData.Flags),
 		Authenticator: Authenticator{
 			AAGUID:     c.Response.AttestationObject.AuthData.AttData.AAGUID,
 			SignCount:  c.Response.AttestationObject.AuthData.Counter,

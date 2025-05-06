@@ -79,7 +79,7 @@ func ParseCredentialCreationResponseBody(body io.Reader) (pcc *ParsedCredentialC
 	var ccr CredentialCreationResponse
 
 	if err = decodeBody(body, &ccr); err != nil {
-		return nil, ErrBadRequest.WithDetails("Parse error for Registration").WithInfo(err.Error())
+		return nil, ErrBadRequest.WithDetails("Parse error for Registration").WithInfo(err.Error()).WithError(err)
 	}
 
 	return ccr.Parse()
@@ -91,7 +91,7 @@ func ParseCredentialCreationResponseBytes(data []byte) (pcc *ParsedCredentialCre
 	var ccr CredentialCreationResponse
 
 	if err = decodeBytes(data, &ccr); err != nil {
-		return nil, ErrBadRequest.WithDetails("Parse error for Registration").WithInfo(err.Error())
+		return nil, ErrBadRequest.WithDetails("Parse error for Registration").WithInfo(err.Error()).WithError(err)
 	}
 
 	return ccr.Parse()
@@ -115,7 +115,7 @@ func (ccr CredentialCreationResponse) Parse() (pcc *ParsedCredentialCreationData
 		return nil, ErrBadRequest.WithDetails("Parse error for Registration").WithInfo("Missing type")
 	}
 
-	if ccr.PublicKeyCredential.Credential.Type != "public-key" {
+	if ccr.PublicKeyCredential.Credential.Type != string(PublicKeyCredentialType) {
 		return nil, ErrBadRequest.WithDetails("Parse error for Registration").WithInfo("Type not public-key")
 	}
 

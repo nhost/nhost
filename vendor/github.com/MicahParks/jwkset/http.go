@@ -213,6 +213,20 @@ func (c httpClient) KeyReadAll(ctx context.Context) ([]JWK, error) {
 	}
 	return jwks, nil
 }
+func (c httpClient) KeyReplaceAll(ctx context.Context, given []JWK) error {
+	err := c.given.KeyReplaceAll(ctx, given)
+	if err != nil {
+		return fmt.Errorf("failed to delete all keys from given storage due to error: %w", err)
+	}
+	var returnErr error
+	for _, store := range c.httpURLs {
+		err = store.KeyReplaceAll(ctx, make([]JWK, 0))
+		if err != nil {
+			returnErr = errors.Join(returnErr, fmt.Errorf("failed to delete all keys: %w", err))
+		}
+	}
+	return returnErr
+}
 func (c httpClient) KeyWrite(ctx context.Context, jwk JWK) error {
 	return c.given.KeyWrite(ctx, jwk)
 }

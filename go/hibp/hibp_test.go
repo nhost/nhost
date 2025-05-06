@@ -1,7 +1,6 @@
 package hibp_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/nhost/hasura-auth/go/hibp"
@@ -32,7 +31,7 @@ func TestIsPasswordPwned(t *testing.T) {
 			t.Parallel()
 
 			client := hibp.NewClient()
-			pwned, err := client.IsPasswordPwned(context.Background(), tc.password)
+			pwned, err := client.IsPasswordPwned(t.Context(), tc.password)
 			if err != nil {
 				t.Errorf("error checking password: %v", err)
 			}

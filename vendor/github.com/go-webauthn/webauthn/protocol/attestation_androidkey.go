@@ -65,27 +65,25 @@ func verifyAndroidKeyFormat(att AttestationObject, clientDataHash []byte, _ meta
 
 	attCert, err := x509.ParseCertificate(attCertBytes)
 	if err != nil {
-		return "", nil, ErrAttestationFormat.WithDetails(fmt.Sprintf("Error parsing certificate from ASN.1 data: %+v", err))
+		return "", nil, ErrAttestationFormat.WithDetails(fmt.Sprintf("Error parsing certificate from ASN.1 data: %+v", err)).WithError(err)
 	}
 
 	coseAlg := webauthncose.COSEAlgorithmIdentifier(alg)
-	sigAlg := webauthncose.SigAlgFromCOSEAlg(coseAlg)
-
-	if err = attCert.CheckSignature(x509.SignatureAlgorithm(sigAlg), signatureData, sig); err != nil {
-		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Signature validation error: %+v\n", err))
+	if err = attCert.CheckSignature(webauthncose.SigAlgFromCOSEAlg(coseAlg), signatureData, sig); err != nil {
+		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Signature validation error: %+v\n", err)).WithError(err)
 	}
 
 	// Verify that the public key in the first certificate in x5c matches the credentialPublicKey in the attestedCredentialData in authenticatorData.
 	pubKey, err := webauthncose.ParsePublicKey(att.AuthData.AttData.CredentialPublicKey)
 	if err != nil {
-		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error parsing public key: %+v\n", err))
+		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error parsing public key: %+v\n", err)).WithError(err)
 	}
 
 	e := pubKey.(webauthncose.EC2PublicKeyData)
 
 	valid, err = e.Verify(signatureData, sig)
 	if err != nil || !valid {
-		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error parsing public key: %+v\n", err))
+		return "", nil, ErrInvalidAttestation.WithDetails(fmt.Sprintf("Error parsing public key: %+v\n", err)).WithError(err)
 	}
 
 	// §8.4.3. Verify that the attestationChallenge field in the attestation certificate extension data is identical to clientDataHash.
@@ -107,11 +105,11 @@ func verifyAndroidKeyFormat(att AttestationObject, clientDataHash []byte, _ meta
 	decoded := keyDescription{}
 
 	if _, err = asn1.Unmarshal(attExtBytes, &decoded); err != nil {
-		return "", nil, ErrAttestationFormat.WithDetails("Unable to parse Android key attestation certificate extensions")
+		return "", nil, ErrAttestationFormat.WithDetails("Unable to parse Android key attestation certificate extensions").WithError(err)
 	}
 
 	// Verify that the attestationChallenge field in the attestation certificate extension data is identical to clientDataHash.
-	if 0 != bytes.Compare(decoded.AttestationChallenge, clientDataHash) {
+	if bytes.Compare(decoded.AttestationChallenge, clientDataHash) != 0 {
 		return "", nil, ErrAttestationFormat.WithDetails("Attestation challenge not equal to clientDataHash")
 	}
 

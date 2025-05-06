@@ -299,7 +299,7 @@ const (
 	ALG_KEY_COSE PublicKeyAlgAndEncoding = "cose"
 )
 
-type MetadataError struct {
+type Error struct {
 	// Short name for the type of error that has occurred.
 	Type string `json:"type"`
 
@@ -310,8 +310,8 @@ type MetadataError struct {
 	DevInfo string `json:"debug"`
 }
 
-func (err *MetadataError) Error() string {
-	return err.Details
+func (e *Error) Error() string {
+	return e.Details
 }
 
 // Clock is an interface used to implement clock functionality in various metadata areas.

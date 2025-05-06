@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -403,7 +402,7 @@ func TestPostLinkIdToken(t *testing.T) { //nolint:maintidx
 
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
+			ctx := jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			assertRequest(
 				ctx,
 				t,

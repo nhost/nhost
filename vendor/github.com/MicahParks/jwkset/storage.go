@@ -29,6 +29,8 @@ type Storage interface {
 	// KeyReadAll reads a snapshot of all keys from storage. As with ReadKey, any pointers returned should be
 	// considered read-only.
 	KeyReadAll(ctx context.Context) ([]JWK, error)
+	// KeyReplaceAll replaces all the keys in storage. All existing keys will be deleted and replaced with the given.
+	KeyReplaceAll(ctx context.Context, given []JWK) error
 	// KeyWrite writes a key to the storage. If the key already exists, it will be overwritten. After writing a key,
 	// any pointers written should be considered owned by the underlying storage.
 	KeyWrite(ctx context.Context, jwk JWK) error
@@ -86,6 +88,12 @@ func (m *MemoryJWKSet) KeyReadAll(_ context.Context) ([]JWK, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	return slices.Clone(m.set), nil
+}
+func (m *MemoryJWKSet) KeyReplaceAll(_ context.Context, given []JWK) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	m.set = given
+	return nil
 }
 func (m *MemoryJWKSet) KeyWrite(_ context.Context, jwk JWK) error {
 	m.mux.Lock()
@@ -196,6 +204,11 @@ type HTTPClientStorageOptions struct {
 	// Provide the Ctx option to end the goroutine when it's no longer needed.
 	RefreshInterval time.Duration
 
+	// Storage is the underlying storage implementation to use.
+	//
+	// This defaults to NewMemoryStorage().
+	Storage Storage
+
 	// ValidateOptions are the options to use when validating the JWKs.
 	ValidateOptions JWKValidateOptions
 }
@@ -226,7 +239,10 @@ func NewStorageFromHTTP(remoteJWKSetURL string, options HTTPClientStorageOptions
 	if options.HTTPMethod == "" {
 		options.HTTPMethod = http.MethodGet
 	}
-	store := NewMemoryStorage()
+	store := options.Storage
+	if store == nil {
+		store = NewMemoryStorage()
+	}
 	_, err := url.ParseRequestURI(remoteJWKSetURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse given URL %q: %w", remoteJWKSetURL, err)
@@ -251,9 +267,7 @@ func NewStorageFromHTTP(remoteJWKSetURL string, options HTTPClientStorageOptions
 		if err != nil {
 			return fmt.Errorf("failed to decode JWK Set response: %w", err)
 		}
-		store.mux.Lock()
-		defer store.mux.Unlock()
-		store.set = make([]JWK, len(jwks.Keys)) // Clear local cache in case of key revocation.
+		newSet := make([]JWK, len(jwks.Keys))
 		for i, marshal := range jwks.Keys {
 			marshalOptions := JWKMarshalOptions{
 				Private: true,
@@ -262,7 +276,11 @@ func NewStorageFromHTTP(remoteJWKSetURL string, options HTTPClientStorageOptions
 			if err != nil {
 				return fmt.Errorf("failed to create JWK from JWK Marshal: %w", err)
 			}
-			store.set[i] = jwk
+			newSet[i] = jwk
+		}
+		err = store.KeyReplaceAll(ctx, newSet) // Clear local cache in case of key revocation.
+		if err != nil {
+			return fmt.Errorf("failed to delete all keys from storage: %w", err)
 		}
 		return nil
 	}

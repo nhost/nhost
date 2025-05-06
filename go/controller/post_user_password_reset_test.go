@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -342,7 +341,7 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			assertRequest(
-				context.Background(), t, c.PostUserPasswordReset, tc.request, tc.expectedResponse,
+				t.Context(), t, c.PostUserPasswordReset, tc.request, tc.expectedResponse,
 			)
 		})
 	}

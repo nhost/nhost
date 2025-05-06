@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -405,7 +404,7 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 
 			//nolint:exhaustruct
 			_ = assertRequest(
-				context.Background(), t, c.PostSignupWebauthn, tc.request, tc.expectedResponse,
+				t.Context(), t, c.PostSignupWebauthn, tc.request, tc.expectedResponse,
 				cmpopts.IgnoreFields(api.PostSignupWebauthn200JSONResponse{}, "Challenge"),
 				cmpopts.IgnoreFields(protocol.UserEntity{}, "ID"),
 			)

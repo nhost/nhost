@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -207,7 +206,7 @@ func TestPostPat(t *testing.T) {
 
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db)
 
-			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
+			ctx := jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 
 			cmpopts := []cmp.Option{
 				cmpopts.IgnoreFields(

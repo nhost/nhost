@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -260,7 +259,7 @@ func TestPostSigninWebauthn(t *testing.T) {
 			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			assertRequest(
-				context.Background(),
+				t.Context(),
 				t,
 				c.PostSigninWebauthn,
 				tc.request,

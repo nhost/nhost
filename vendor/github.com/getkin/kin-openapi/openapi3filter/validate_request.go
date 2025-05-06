@@ -108,14 +108,14 @@ func ValidateRequest(ctx context.Context, input *RequestValidationInput) error {
 // appendToQueryValues adds to query parameters each value in the provided slice
 func appendToQueryValues[T any](q url.Values, parameterName string, v []T) {
 	for _, i := range v {
-		q.Add(parameterName, fmt.Sprintf("%v", i))
+		q.Add(parameterName, fmt.Sprint(i))
 	}
 }
 
 func joinValues(values []any, sep string) string {
 	strValues := make([]string, 0, len(values))
 	for _, v := range values {
-		strValues = append(strValues, fmt.Sprintf("%v", v))
+		strValues = append(strValues, fmt.Sprint(v))
 	}
 	return strings.Join(strValues, sep)
 }
@@ -130,7 +130,7 @@ func populateDefaultQueryParameters(q url.Values, parameterName string, value an
 			q.Add(parameterName, joinValues(t, ","))
 		}
 	default:
-		q.Add(parameterName, fmt.Sprintf("%v", value))
+		q.Add(parameterName, fmt.Sprint(value))
 	}
 }
 
@@ -191,11 +191,11 @@ func ValidateParameter(ctx context.Context, input *RequestValidationInput, param
 				populateDefaultQueryParameters(q, parameter.Name, value, explode)
 				req.URL.RawQuery = q.Encode()
 			case openapi3.ParameterInHeader:
-				req.Header.Add(parameter.Name, fmt.Sprintf("%v", value))
+				req.Header.Add(parameter.Name, fmt.Sprint(value))
 			case openapi3.ParameterInCookie:
 				req.AddCookie(&http.Cookie{
 					Name:  parameter.Name,
-					Value: fmt.Sprintf("%v", value),
+					Value: fmt.Sprint(value),
 				})
 			}
 		}
@@ -416,6 +416,23 @@ func validateSecurityRequirement(ctx context.Context, input *RequestValidationIn
 		securitySchemes = components.SecuritySchemes
 	}
 
+	// NOTE that because we could have an `AuthenticationFunc` that reads the request body, we need to provide a fresh `io.Reader` to each iteration of the loop. To make this more performant, we can read the request body once into memory (which may be costly) and then create a fresh `io.Reader` for each `AuthenticationFunc`
+	var data []byte
+
+	if input.Request != nil && input.Request.Body != http.NoBody && input.Request.Body != nil {
+		defer input.Request.Body.Close()
+
+		var err error
+		data, err = io.ReadAll(input.Request.Body)
+		if err != nil {
+			return &RequestError{
+				Input:  input,
+				Reason: "reading failed",
+				Err:    err,
+			}
+		}
+	}
+
 	// For each scheme for the requirement
 	for _, name := range names {
 		var securityScheme *openapi3.SecurityScheme
@@ -431,6 +448,26 @@ func validateSecurityRequirement(ctx context.Context, input *RequestValidationIn
 			}
 		}
 		scopes := securityRequirement[name]
+
+		// if there was a request body, then make sure we provide a new copy of the body in the `input`
+		if data != nil {
+			var err error
+			// Put the data back into the input
+			input.Request.Body = nil
+			if input.Request.GetBody != nil {
+				if input.Request.Body, err = input.Request.GetBody(); err != nil {
+					input.Request.Body = nil
+				}
+			}
+			if input.Request.Body == nil {
+				input.Request.ContentLength = int64(len(data))
+				input.Request.GetBody = func() (io.ReadCloser, error) {
+					return io.NopCloser(bytes.NewReader(data)), nil
+				}
+				input.Request.Body, _ = input.Request.GetBody() // no error return
+			}
+		}
+
 		if err := f(ctx, &AuthenticationInput{
 			RequestValidationInput: input,
 			SecuritySchemeName:     name,
@@ -438,6 +475,25 @@ func validateSecurityRequirement(ctx context.Context, input *RequestValidationIn
 			Scopes:                 scopes,
 		}); err != nil {
 			return err
+		}
+	}
+
+	// if there was a request body, then make sure we put it back into the `input`
+	if data != nil {
+		var err error
+		// Put the data back into the input
+		input.Request.Body = nil
+		if input.Request.GetBody != nil {
+			if input.Request.Body, err = input.Request.GetBody(); err != nil {
+				input.Request.Body = nil
+			}
+		}
+		if input.Request.Body == nil {
+			input.Request.ContentLength = int64(len(data))
+			input.Request.GetBody = func() (io.ReadCloser, error) {
+				return io.NopCloser(bytes.NewReader(data)), nil
+			}
+			input.Request.Body, _ = input.Request.GetBody() // no error return
 		}
 	}
 	return nil

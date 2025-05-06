@@ -9,6 +9,38 @@ type Error struct {
 
 	// Information to help debug the error.
 	DevInfo string `json:"debug"`
+
+	// Inner error.
+	Err error `json:"-"`
+}
+
+func (e *Error) Error() string {
+	return e.Details
+}
+
+func (e *Error) Unwrap() error {
+	return e.Err
+}
+
+func (e *Error) WithDetails(details string) *Error {
+	err := *e
+	err.Details = details
+
+	return &err
+}
+
+func (e *Error) WithInfo(info string) *Error {
+	err := *e
+	err.DevInfo = info
+
+	return &err
+}
+
+func (e *Error) WithError(err error) *Error {
+	errCopy := *e
+	errCopy.Err = err
+
+	return &errCopy
 }
 
 var (
@@ -40,6 +72,10 @@ var (
 		Type:    "invalid_attestation",
 		Details: "Invalid attestation data",
 	}
+	ErrMetadata = &Error{
+		Type:    "invalid_metadata",
+		Details: "",
+	}
 	ErrAttestationFormat = &Error{
 		Type:    "invalid_attestation",
 		Details: "Invalid attestation format",
@@ -69,21 +105,3 @@ var (
 		Details: "This field is not yet supported by this library",
 	}
 )
-
-func (e *Error) Error() string {
-	return e.Details
-}
-
-func (e *Error) WithDetails(details string) *Error {
-	err := *e
-	err.Details = details
-
-	return &err
-}
-
-func (e *Error) WithInfo(info string) *Error {
-	err := *e
-	err.DevInfo = info
-
-	return &err
-}

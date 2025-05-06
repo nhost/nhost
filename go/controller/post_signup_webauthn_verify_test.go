@@ -1,7 +1,6 @@
 package controller_test
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"testing"
@@ -620,7 +619,7 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			c.Webauthn.Storage["zv9lPTJpOlgxzlrKWl-tG7AdxeUIbCwxqV8MFZZNRdA"] = windowsHelloWebauthnChallenge
 
 			resp := assertRequest(
-				context.Background(),
+				t.Context(),
 				t,
 				c.PostSignupWebauthnVerify,
 				tc.request,

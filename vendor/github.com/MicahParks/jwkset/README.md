@@ -35,18 +35,18 @@ the [website](https://github.com/MicahParks/jwkset/tree/master/website) director
 
 ## Command line
 
-Gather your PEM encoded keys or certificates and use the `cmd/jwksetinfer` command line tool to generate a JWK Set.
+Gather your PEM encoded keys or certificates and use the `cmd/jwkset` command line tool to generate a JWK Set.
 
 **Install**
 
 ```
-go install github.com/MicahParks/jwkset/cmd/jwksetinfer@latest
+go install github.com/MicahParks/jwkset/cmd/jwkset@latest
 ```
 
 **Usage**
 
 ```
-jwksetinfer mykey.pem mycert.crt
+jwkset mykey.pem mycert.crt
 ```
 
 ## Custom server
@@ -120,14 +120,3 @@ not implement any cryptographic algorithms itself.
 ## [`github.com/MicahParks/keyfunc`](https://github.com/MicahParks/keyfunc)
 
 A JWK Set client for the [`github.com/golang-jwt/jwt/v5`](https://github.com/golang-jwt/jwt) project.
-
-## [`github.com/MicahParks/jcp`](https://github.com/MicahParks/jcp)
-
-A JWK Set client proxy. JCP for short. This project is a standalone service that uses keyfunc under the hood. It
-primarily exists for these use cases:
-
-The language or shell a program is written in does not have an adequate JWK Set client. Validate JWTs with curl? Why
-not?
-Restrictive networking policies prevent a program from accessing the remote JWK Set directly.
-Many co-located services need to validate JWTs that were signed by a key that lives in a remote JWK Set.
-If you can integrate keyfunc directly into your program, you likely don't need JCP.
