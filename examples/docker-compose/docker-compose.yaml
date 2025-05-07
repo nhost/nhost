@@ -297,7 +297,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - curl http://localhost:8081/healthz > /dev/null 2>&1
+        - curl http://localhost:8082/healthz > /dev/null 2>&1
       timeout: 60s
       interval: 5s
       start_period: 60s
