@@ -61,7 +61,7 @@ services:
       AUTH_USER_DEFAULT_ROLE: user
       HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
-      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8080/v1/graphql
+      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8081/v1/graphql
       HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
       POSTGRES_MIGRATIONS_CONNECTION: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
     extra_hosts:
@@ -105,10 +105,10 @@ services:
     command:
       - console
       - --no-browser
-      - --endpoint=http://graphql:8080
+      - --endpoint=http://graphql:8081
       - --address=0.0.0.0
       - --console-port=9695
-      - --api-port=8080
+      - --api-port=8081
       - --api-host=http://${GRAPHQL_URL}
       - --console-hge-endpoint=http://${GRAPHQL_URL}
     environment:
@@ -164,7 +164,7 @@ services:
       'traefik.http.routers.migrate.service': 'migrate'
       'traefik.http.routers.migrate.tls': 'false'
       'traefik.http.services.console.loadbalancer.server.port': '9695'
-      'traefik.http.services.migrate.loadbalancer.server.port': '8080'
+      'traefik.http.services.migrate.loadbalancer.server.port': '8081'
     restart: always
     volumes:
       - type: bind
@@ -210,7 +210,7 @@ services:
       GRAPHITE_WEBHOOK_SECRET: ''
       HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
-      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8080/v1/graphql
+      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8081/v1/graphql
       HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -297,7 +297,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - curl http://localhost:8080/healthz > /dev/null 2>&1
+        - curl http://localhost:8081/healthz > /dev/null 2>&1
       timeout: 60s
       interval: 5s
       start_period: 60s
@@ -309,8 +309,8 @@ services:
       'traefik.http.routers.hasura.rule': Host(`${GRAPHQL_URL}`) && ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )
       'traefik.http.routers.hasura.service': 'hasura'
       'traefik.http.routers.hasura.tls': 'false'
-      'traefik.http.services.graphql.loadbalancer.server.port': '8080'
-      'traefik.http.services.hasura.loadbalancer.server.port': '8080'
+      'traefik.http.services.graphql.loadbalancer.server.port': '8081'
+      'traefik.http.services.hasura.loadbalancer.server.port': '8081'
     restart: always
 
   mailhog:
@@ -418,7 +418,7 @@ services:
       - serve
     environment:
       BIND: :5000
-      HASURA_ENDPOINT: http://graphql:8080/v1
+      HASURA_ENDPOINT: http://graphql:8081/v1
       HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
       HASURA_METADATA: '1'
       POSTGRES_MIGRATIONS: '1'
@@ -455,7 +455,7 @@ services:
       - --providers.file.watch=true
       - --providers.docker.exposedbydefault=false
       - --providers.docker.constraints=Label(`com.docker.compose.project`,`docker-compose`)
-      - --entrypoints.web.address=:8080
+      - --entrypoints.web.address=:8081
     extra_hosts:
       - host.docker.internal:host-gateway
       - ${AUTH_URL}:host-gateway
@@ -466,7 +466,7 @@ services:
     ports:
       - mode: ingress
         target: 80
-        published: 8080
+        published: 8081
         protocol: tcp
     restart: always
     volumes:
