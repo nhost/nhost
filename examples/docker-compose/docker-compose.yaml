@@ -330,7 +330,7 @@ services:
       - ${GRAPHQL_URL}:host-gateway
       - ${STORAGE_URL}:host-gateway
     labels:
-      'traefik.enable': 'true'
+      'traefik.enable=true'
       'traefik.http.routers.mailhog.entrypoints': 'web'
       'traefik.http.routers.mailhog.rule': Host(`${MAILHOG_URL}`)
       'traefik.http.routers.mailhog.service': 'mailhog'
