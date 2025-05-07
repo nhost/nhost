@@ -391,7 +391,7 @@ services:
       start_period: 60s
     ports:
       - mode: ingress
-        target: 5432
+        target: '5433'
         published: '5433'
         protocol: tcp
     restart: always
