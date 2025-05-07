@@ -154,7 +154,7 @@ services:
       interval: 5s
       start_period: 60s
     labels:
-      'traefik.enable': 'true'
+      'traefik.enable=true'
       'traefik.http.routers.console.entrypoints': 'web'
       'traefik.http.routers.console.rule': Host(`${GRAPHQL_URL}`)
       'traefik.http.routers.console.service': 'console'
@@ -195,7 +195,7 @@ services:
       - ${GRAPHQL_URL}:host-gateway
       - ${STORAGE_URL}:host-gateway
     labels:
-      'traefik.enable': 'true'
+      'traefik.enable=true'
       'traefik.http.routers.dashboard.entrypoints': 'web'
       'traefik.http.routers.dashboard.rule': Host(`${DASHBOARD_URL}`)
       'traefik.http.routers.dashboard.service': 'dashboard'
@@ -230,7 +230,7 @@ services:
       interval: 5s
       start_period: 600s
     labels:
-      'traefik.enable': 'true'
+      'traefik.enable=true'
       'traefik.http.middlewares.replace-functions.replacepathregex.regex': /v1(/|$$)(.*)
       'traefik.http.middlewares.replace-functions.replacepathregex.replacement': /$$2
       'traefik.http.routers.functions.entrypoints': 'web'
@@ -302,7 +302,7 @@ services:
       interval: 5s
       start_period: 60s
     labels:
-      'traefik.enable': 'true'
+      'traefik.enable=true'
       'traefik.http.middlewares.replace-graphql.replacepathregex.regex': /v1(/|$$)(.*)
       'traefik.http.middlewares.replace-graphql.replacepathregex.replacement': /v1/graphql$$2
       'traefik.http.routers.hasura.entrypoints': 'web'
@@ -438,7 +438,7 @@ services:
       - ${GRAPHQL_URL}:host-gateway
       - ${STORAGE_URL}:host-gateway
     labels:
-      'traefik.enable': 'true'
+      'traefik.enable=true'
       'traefik.http.routers.storage.entrypoints': 'web'
       'traefik.http.routers.storage.rule': Host(`${STORAGE_URL}`) && PathPrefix(`/v1`)
       'traefik.http.routers.storage.service': 'storage'
