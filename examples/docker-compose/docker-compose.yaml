@@ -157,11 +157,11 @@ services:
       'traefik.enable': 'true'
       'traefik.http.routers.console.entrypoints': 'web'
       'traefik.http.routers.console.rule': Host(`${GRAPHQL_URL}`)
-      'traefik.http.routers.console.service': console
+      'traefik.http.routers.console.service': 'console'
       'traefik.http.routers.console.tls': 'false'
       'traefik.http.routers.migrate.entrypoints': 'web'
       'traefik.http.routers.migrate.rule': Host(`${GRAPHQL_URL}`) && PathPrefix(`/apis/`)
-      'traefik.http.routers.migrate.service': migrate
+      'traefik.http.routers.migrate.service': 'migrate'
       'traefik.http.routers.migrate.tls': 'false'
       'traefik.http.services.console.loadbalancer.server.port': '9695'
       'traefik.http.services.migrate.loadbalancer.server.port': '8080'
@@ -234,7 +234,7 @@ services:
       'traefik.http.middlewares.replace-functions.replacepathregex.regex': /v1(/|$$)(.*)
       'traefik.http.middlewares.replace-functions.replacepathregex.replacement': /$$2
       'traefik.http.routers.functions.entrypoints': 'web'
-      'traefik.http.routers.functions.middlewares': replace-functions
+      'traefik.http.routers.functions.middlewares': 'replace-functions'
       'traefik.http.routers.functions.rule': Host(`${FUNCTIONS_URL}`) && PathPrefix(`/v1`)
       'traefik.http.routers.functions.service': 'functions'
       'traefik.http.routers.functions.tls': 'false'
