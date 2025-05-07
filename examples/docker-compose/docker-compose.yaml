@@ -61,7 +61,7 @@ services:
       AUTH_USER_DEFAULT_ROLE: user
       HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5433/postgres
-      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8081/v1/graphql
+      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8082/v1/graphql
       HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
       POSTGRES_MIGRATIONS_CONNECTION: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5433/postgres
     extra_hosts:
@@ -108,7 +108,7 @@ services:
       - --endpoint=http://graphql:8081
       - --address=0.0.0.0
       - --console-port=9695
-      - --api-port=8081
+      - --api-port=8082
       - --api-host=http://${GRAPHQL_URL}
       - --console-hge-endpoint=http://${GRAPHQL_URL}
     environment:
@@ -297,7 +297,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - curl http://localhost:8081/healthz > /dev/null 2>&1
+        - curl http://localhost:8082/healthz > /dev/null 2>&1
       timeout: 60s
       interval: 5s
       start_period: 60s
@@ -309,8 +309,8 @@ services:
       'traefik.http.routers.hasura.rule': Host(`${GRAPHQL_URL}`) && ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )
       'traefik.http.routers.hasura.service': 'hasura'
       'traefik.http.routers.hasura.tls': 'false'
-      'traefik.http.services.graphql.loadbalancer.server.port': '8081'
-      'traefik.http.services.hasura.loadbalancer.server.port': '8081'
+      'traefik.http.services.graphql.loadbalancer.server.port': '8082'
+      'traefik.http.services.hasura.loadbalancer.server.port': '8082'
     restart: always
 
   mailhog:
@@ -348,7 +348,7 @@ services:
       - /bin/sh
     command:
       - -c
-      - mkdir -p /data/nhost && /usr/bin/minio server --address :9000 /data
+      - mkdir -p /data/nhost && /usr/bin/minio server --address :9001 /data
     environment:
       MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY}
@@ -418,7 +418,7 @@ services:
       - serve
     environment:
       BIND: :5000
-      HASURA_ENDPOINT: http://graphql:8081/v1
+      HASURA_ENDPOINT: http://graphql:8082/v1
       HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
       HASURA_METADATA: '1'
       POSTGRES_MIGRATIONS: '1'
@@ -426,7 +426,7 @@ services:
       PUBLIC_URL: http://${STORAGE_URL}
       S3_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
       S3_BUCKET: nhost
-      S3_ENDPOINT: http://minio:9000
+      S3_ENDPOINT: http://minio:9001
       S3_REGION: ''
       S3_ROOT_FOLDER: ''
       S3_SECRET_KEY: ${STORAGE_SECRET_KEY}
@@ -465,8 +465,8 @@ services:
       - ${STORAGE_URL}:host-gateway
     ports:
       - mode: ingress
-        target: 80
-        published: 8081
+        target: 8081
+        published: 8082
         protocol: tcp
     restart: always
     volumes:
