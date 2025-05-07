@@ -3,10 +3,12 @@ on:
   - pull_request_target
 
 jobs:
-  triage:
+  labeler:
     permissions:
       contents: read
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GH_PAT }}
