@@ -1,3 +1,4 @@
+import { SquareArrowUpRightIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { PropsWithChildren } from 'react';
 
@@ -5,7 +6,8 @@ function TextLink({
   href,
   children,
   target = '_blank',
-}: PropsWithChildren<{ href: string; target?: string }>) {
+  withIcon = false,
+}: PropsWithChildren<{ href: string; target?: string; withIcon?: boolean }>) {
   return (
     <Link
       href={href}
@@ -14,6 +16,7 @@ function TextLink({
       rel="noopener noreferrer"
     >
       {children}
+      {withIcon && <SquareArrowUpRightIcon className="h-4 w-4" />}
     </Link>
   );
 }
