@@ -1,9 +1,10 @@
+/* eslint-disable no-console */
 import { TEST_PROJECT_ADMIN_SECRET, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { test as setup } from '@playwright/test';
 
 setup('refresh metadata', async () => {
   try {
-    await fetch(
+    const response = await fetch(
       `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
       {
         method: 'POST',
@@ -29,6 +30,14 @@ setup('refresh metadata', async () => {
         }),
       },
     );
+    const body = await response.json();
+    if (!response.ok) {
+      const message = `[${body.code}]:${body.error}`;
+      console.log(message);
+      throw new Error(message);
+    } else {
+      console.log('Metadata is consistent.');
+    }
   } catch (error) {
     // Log safe error information
     console.error(
