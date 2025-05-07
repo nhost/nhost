@@ -91,6 +91,8 @@ export default function LogsHeader({
       interval: null,
     },
     resolver: yupResolver(validationSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onSubmit',
   });
 
   const { register, watch, getValues, setValue } = form;

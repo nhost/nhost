@@ -36,6 +36,11 @@ function LogsToDatePickerLiveButton() {
     setValue('interval', null);
   }
 
+  function handleChangeToDate(date: Date) {
+    setValue('to', date);
+    setValue('interval', null);
+  }
+
   useInterval(() => setCurrentTime(new Date()), isLive ? 1000 : 0);
 
   return (
@@ -45,7 +50,7 @@ function LogsToDatePickerLiveButton() {
           label="To"
           value={!isLive ? to : currentTime}
           disabled={isLive}
-          onChange={(date: Date) => setValue('to', date)}
+          onChange={handleChangeToDate}
           minDate={from}
           maxDate={new Date()}
           componentsProps={{
@@ -106,13 +111,18 @@ function LogsRangeSelectorIntervalPickers({
     setValue('interval', minutesToDecreaseFromCurrentDate);
   }
 
+  function handleChangeFromDate(date: Date) {
+    setValue('from', date);
+    setValue('interval', null);
+  }
+
   return (
     <Box className="flex flex-col space-y-4">
       <div className="flex flex-col space-y-4">
         <LogsDatePicker
           label="From"
           value={from}
-          onChange={(date) => setValue('from', date)}
+          onChange={handleChangeFromDate}
           minDate={applicationCreationDate}
           maxDate={new Date()}
         />
@@ -124,12 +134,12 @@ function LogsRangeSelectorIntervalPickers({
         {LOGS_AVAILABLE_INTERVALS.map((logInterval) => (
           <Button
             key={logInterval.label}
-            variant={
+            variant="outlined"
+            color={
               interval === logInterval.minutesToDecreaseFromCurrentDate
-                ? 'contained'
-                : 'outlined'
+                ? 'primary'
+                : 'secondary'
             }
-            color="secondary"
             className="self-center"
             onClick={() => handleIntervalChange(logInterval)}
           >
