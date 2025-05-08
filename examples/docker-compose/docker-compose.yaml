@@ -1,8 +1,8 @@
 services:
-	auth:
-		image: nhost/hasura-auth:0.37.1
-		depends_on:
-			graphql:
+  auth:
+	  image: nhost/hasura-auth:0.37.1
+	  depends_on:
+		  graphql:
 				condition: service_healthy
 			postgres:
 				condition: service_healthy
