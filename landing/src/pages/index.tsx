@@ -81,15 +81,15 @@ export default function IndexPage() {
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         heading={
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
-            <div className="gradient-background rounded-full p-px">
+            <div className="gradient-background rounded-full p-px mb-2">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
                 100% Open Source
               </p>
             </div>
 
             <SectionHeading
-              title="Backend without limits"
-              subtitle="Get a database and backend configured and ready-to-use in minutes so you can focus on your app and your users."
+              title="Stop Juggling, Start Building"
+              subtitle="Get a complete, production-ready backend in minutes. No more stitching together separate services or managing complex infrastructure."
             />
           </div>
         }
@@ -102,8 +102,8 @@ export default function IndexPage() {
       >
         <div className="grid grid-flow-row justify-center gap-10">
           <SectionHeading
-            title="Ship faster with Nhost"
-            subtitle="What used to take months, now takes minutes."
+            title="Trusted by Developers Worldwide"
+            subtitle="From startups to enterprises, see how teams ship faster and scale confidently with Nhost."
           />
 
           <Button className="justify-self-center text-base" href="/customers">
@@ -122,7 +122,7 @@ export default function IndexPage() {
               />
             }
             title="Midnight Society"
-            description="Successful launch of community-driven game by Midnight Society and Boom.tv with Nhost's efficient backend platform"
+            description="Midnight Society launched their game to 400,000+ users in just 6 weeks using Nhost. Their team saved months of development time with our end-to-end backend solution."
             href="/customers/midnight-society"
           />
 
@@ -136,7 +136,7 @@ export default function IndexPage() {
               />
             }
             title="React Flow"
-            description="React Flow streamlines auth and builds a successful subscription platform in 2 months with the help of Nhost's integrated solution."
+            description="React Flow implemented a complete subscription platform in just 2 months with Nhost. Their small team was able to focus on product features instead of backend infrastructure."
             href="/customers/react-flow"
           />
 
@@ -150,7 +150,7 @@ export default function IndexPage() {
               />
             }
             title="Revtron"
-            description="RevTron uses Nhost for successful revenue growth and streamlined customer onboarding."
+            description="RevTron achieved triple-digit growth using Nhost to power their analytics platform. They reduced onboarding time by 80% and could rapidly adapt to customer needs."
             href="/customers/revtron"
           />
         </div>

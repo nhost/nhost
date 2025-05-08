@@ -17,18 +17,18 @@ export default function HeroSection() {
           <SectionHeading
             title={
               <>
-                Build apps users{' '}
+                Build. Deploy. Scale.{' '}
+                <br />
                 <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
-                  love
+                  Without limits.
                 </span>
               </>
             }
             subtitle={
               <>
-                Nhost is an open-source backend and development platform that
-                enables <strong>developers</strong> to <strong>build</strong>{' '}
-                and <strong>scale</strong> their web and mobile{' '}
-                <strong>apps</strong>.
+                Backend with GraphQL, Authentication, Storage, and Serverless Functions.{' '}
+                Build <strong>faster</strong>, deploy <strong>instantly</strong>, and{' '}
+                <strong>scale</strong> with confidence. All <strong>100% open source</strong>.
               </>
             }
             slotProps={{
@@ -39,14 +39,23 @@ export default function HeroSection() {
             }}
           />
 
-          <Button
-            className="justify-self-center text-center text-base"
-            href="https://app.nhost.io"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Start building <ArrowRightIcon />
-          </Button>
+          <div className="flex gap-4 justify-self-center">
+            <Button
+              className="text-center text-base"
+              href="https://app.nhost.io"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get Started for Free <ArrowRightIcon />
+            </Button>
+            <Button
+              variant="outlined"
+              className="text-center text-base"
+              href="/product"
+            >
+              Explore Features
+            </Button>
+          </div>
         </div>
       </Container>
 

@@ -49,26 +49,49 @@ export default function StoragePage() {
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}
       >
-        <SectionHeading
-          title="Add storage in minutes"
-          subtitle="Rapidly build production-ready file management for web and mobile apps."
-          className="max-w-xl"
-          slotProps={{
-            subtitle: {
-              className: 'max-w-lg mx-auto',
-            },
-          }}
-        />
+        <div className="grid grid-flow-row justify-items-center gap-8">
+          <div className="gradient-background rounded-full p-px mb-2">
+            <p className="rounded-full bg-paper px-4.5 py-1.5">
+              Simple Integration
+            </p>
+          </div>
+          
+          <SectionHeading
+            title={
+              <>
+                Add Storage in <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Minutes</span>
+              </>
+            }
+            subtitle="Rapidly build production-ready file management for web and mobile apps. Just a few lines of code to handle uploads, downloads, and transformations."
+            className="max-w-2xl"
+            slotProps={{
+              subtitle: {
+                className: 'max-w-lg mx-auto',
+              },
+            }}
+          />
+        </div>
 
-        <div className="grid grid-cols-1 items-start justify-items-center gap-0 pb-12 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
+        <div className="grid grid-cols-1 items-start justify-items-center gap-8 pb-12 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language="typescript"
               customStyle={{ minHeight: 220 }}
-              slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
+              slotProps={{ root: { className: 'mx-auto md:max-w-xl shadow-lg animate-fade-in-delay' } }}
             >
               {codeSnippets[selectedExample].trim()}
             </CodeSnippet>
+            
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 max-w-xl mx-auto">
+              <div className="p-4 rounded-md bg-paper border border-divider bg-opacity-50">
+                <h3 className="text-sm font-bold">Type-Safe SDK</h3>
+                <p className="text-xs text-white text-opacity-65 mt-1">Full TypeScript support for a better developer experience</p>
+              </div>
+              <div className="p-4 rounded-md bg-paper border border-divider bg-opacity-50">
+                <h3 className="text-sm font-bold">Works Everywhere</h3>
+                <p className="text-xs text-white text-opacity-65 mt-1">Seamless integration with React, Vue, Next.js, Flutter, and more</p>
+              </div>
+            </div>
           </div>
 
           <div className="relative order-1 w-full max-w-3xl xl:order-2">
@@ -115,37 +138,115 @@ export default function StoragePage() {
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block"
+              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block animate-pulse"
             />
           </div>
         </div>
       </Container>
 
-      <Container component="section" className="mt-24 hidden lg:mt-40">
-        <SectionHeading
-          title="Powerful permissions, made simple"
-          subtitle="Storage permissions work like any other data in your database. Use Buckets to segment files."
-          className="max-w-2xl"
-          slotProps={{
-            subtitle: {
-              className: 'max-w-lg mx-auto',
-            },
-          }}
-        />
+      <Container component="section" className="mt-24 lg:mt-40">
+        <div className="grid grid-flow-row justify-items-center gap-8">
+          <div className="gradient-background rounded-full p-px mb-2">
+            <p className="rounded-full bg-paper px-4.5 py-1.5">
+              Enterprise-Grade Security
+            </p>
+          </div>
+          
+          <SectionHeading
+            title={
+              <>
+                Powerful <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Permissions</span>, Made Simple
+              </>
+            }
+            subtitle="Storage permissions work like any other data in your database. Use Buckets to segment files and fine-grained permissions to control access."
+            className="max-w-2xl"
+            slotProps={{
+              subtitle: {
+                className: 'max-w-lg mx-auto',
+              },
+            }}
+          />
+        </div>
 
-        <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
-          Video Placeholder
+        <div className="mx-auto mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl">
+          <div className="p-6 bg-paper rounded-lg border border-divider shadow-md flex flex-col gap-6">
+            <div className="p-4 rounded-lg bg-black bg-opacity-30 border border-divider">
+              <CodeSnippet
+                language="graphql"
+                disableGlow
+                disableLineGrid
+                className="shadow-lg"
+              >
+                {`# Storage permissions example
+{
+  file: {
+    id: {_eq: X-Hasura-File-Id},
+    bucket: {
+      id: {_eq: "avatars"},
+      userId: {_eq: X-Hasura-User-Id}
+    }
+  }
+}`}
+              </CodeSnippet>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-bold mb-2">Granular Access Control</h3>
+              <p className="text-sm text-white text-opacity-80">
+                Define fine-grained permissions for your files using the same powerful permission system as your database. Control who can upload, view, and modify files based on user roles and data relationships.
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 content-start">
+            <div className="p-5 bg-paper rounded-lg border border-divider shadow-md">
+              <h3 className="text-base font-bold mb-2">User-Specific Files</h3>
+              <p className="text-sm text-white text-opacity-65">
+                Ensure users can only access their own files. Perfect for profile pictures, private documents, and user-generated content.
+              </p>
+            </div>
+            
+            <div className="p-5 bg-paper rounded-lg border border-divider shadow-md">
+              <h3 className="text-base font-bold mb-2">Organization Buckets</h3>
+              <p className="text-sm text-white text-opacity-65">
+                Segment files by organization or team, allowing collaborative access while maintaining proper isolation between different groups.
+              </p>
+            </div>
+            
+            <div className="p-5 bg-paper rounded-lg border border-divider shadow-md">
+              <h3 className="text-base font-bold mb-2">Public vs. Private Files</h3>
+              <p className="text-sm text-white text-opacity-65">
+                Easily distinguish between public assets (like website images) and private files that require authentication to access.
+              </p>
+            </div>
+          </div>
         </div>
       </Container>
 
-      <Container component="section" className="mt-24">
-        <SectionHeading title="And more..." className="max-w-lg" />
+      <Container component="section" className="mt-24 lg:mt-40">
+        <div className="grid grid-flow-row justify-items-center gap-8">
+          <div className="gradient-background rounded-full p-px mb-2">
+            <p className="rounded-full bg-paper px-4.5 py-1.5">
+              Performance Features
+            </p>
+          </div>
+          
+          <SectionHeading
+            title={
+              <>
+                Global <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">CDN</span> & Image Transformations
+              </>
+            }
+            subtitle="Deliver content blazing fast anywhere in the world while optimizing images on-the-fly for the perfect balance of quality and performance."
+            className="max-w-2xl"
+          />
+        </div>
 
-        <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
-          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15">
+        <div className="mx-auto mt-12 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
+          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15 shadow-lg transition-all duration-300 hover:shadow-xl">
             <div className="relative">
               <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-y-1/2 -translate-x-1/2" />
-              <Glow />
+              <Glow className="animate-pulse" />
               <Image
                 src="/common/logo-circle.svg"
                 width={100}
@@ -165,7 +266,8 @@ export default function StoragePage() {
               Start building <ArrowRightIcon />
             </Button>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
+          
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 shadow-lg transition-all duration-300 hover:shadow-xl">
             <Image
               src="/products/globe.svg"
               width={24}
@@ -175,15 +277,15 @@ export default function StoragePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">CDN</h3>
+              <h3 className="text-base font-bold">Global CDN</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Files are served from a global CDN, caching your files at the
-                edge.
+                Files are automatically distributed to 80+ locations worldwide, ensuring low-latency access for users anywhere on the planet.
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
+          
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7 shadow-lg transition-all duration-300 hover:shadow-xl">
             <Image
               src="/products/resize.svg"
               width={24}
@@ -192,14 +294,15 @@ export default function StoragePage() {
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Image Transformation</h3>
+              <h3 className="text-base font-bold">Image Transformations</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Transform images, on the fly, with query parameters.
+                Resize, crop, convert formats, and adjust quality on-the-fly with simple URL parameters. No need for pre-processing or multiple image versions.
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
+          
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 shadow-lg transition-all duration-300 hover:shadow-xl">
             <Image
               src="/products/maximize.svg"
               width={24}
@@ -212,11 +315,12 @@ export default function StoragePage() {
               <h3 className="text-base font-bold">High Scalability</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Upload and download files at scale.
+                Handle millions of uploads and downloads without breaking a sweat. Designed to scale effortlessly as your user base grows.
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
+          
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7 shadow-lg transition-all duration-300 hover:shadow-xl">
             <Image
               src="/products/box.svg"
               width={24}
@@ -226,10 +330,28 @@ export default function StoragePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Buckets</h3>
+              <h3 className="text-base font-bold">Storage Buckets</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Segment files into buckets, and control access with permissions.
+                Organize files into logical buckets for different purposes - public assets, user uploads, backups, and more - each with its own permission rules.
+              </p>
+            </div>
+          </Card>
+          
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7 shadow-lg transition-all duration-300 hover:shadow-xl">
+            <Image
+              src="/products/egress.svg"
+              width={24}
+              height={24}
+              alt="A download icon"
+              className="mx-auto"
+            />
+
+            <div className="grid grid-flow-row gap-2.5">
+              <h3 className="text-base font-bold">Presigned URLs</h3>
+
+              <p className="text-base text-white text-opacity-65">
+                Generate temporary access links for private files, perfect for secure file sharing with time-limited access that automatically expires.
               </p>
             </div>
           </Card>
@@ -239,14 +361,17 @@ export default function StoragePage() {
       <ProductSection
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         heading={
-          <div className="grid grid-flow-row items-center justify-items-center gap-4">
+          <div className="grid grid-flow-row items-center justify-items-center gap-8">
             <div className="gradient-background rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                There is more
+                Complete Backend Platform
               </p>
             </div>
 
-            <SectionHeading title="Other features" />
+            <SectionHeading 
+              title="Explore the Nhost Ecosystem" 
+              subtitle="Storage is just one part of our complete backend platform. Discover how all our services work together to power your applications."
+            />
           </div>
         }
         disabledLink="storage"

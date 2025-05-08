@@ -213,7 +213,7 @@ export default function WorkflowSection() {
     >
       <SectionHeading
         title="Develop Locally. Ship Globally."
-        subtitle="Launch something amazing without painful devops."
+        subtitle="From local development to global deployment in minutes. No DevOps expertise required."
       />
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
@@ -267,8 +267,7 @@ export default function WorkflowSection() {
                 </div>
 
                 <span>
-                  Run the entire Nhost stack directly from the terminal during
-                  development.
+                  Run the entire Nhost stack locally with a single command. Instant setup with all services connected and ready to use.
                 </span>
               </div>
 
@@ -322,7 +321,7 @@ export default function WorkflowSection() {
                 </div>
 
                 <span>
-                  Use Git to push and deploy your changes with effortless CI/CD.
+                  Simple Git-based deployments with built-in CI/CD. Push your code and Nhost automatically builds, tests, and deploys your backend.
                 </span>
               </div>
 
@@ -370,8 +369,7 @@ export default function WorkflowSection() {
                 </div>
 
                 <span>
-                  Your project is deployed on infrastructure configured for
-                  maximum scalability and security.
+                  Production-ready infrastructure in 6 regions across 4 continents. Enterprise-grade security, autoscaling, and 80+ CDN locations for maximum performance.
                 </span>
               </div>
 

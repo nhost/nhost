@@ -78,8 +78,8 @@ export default function ExamplesSection() {
       className="mt-24 grid grid-flow-row gap-12 pb-12 lg:mt-28 lg:gap-28"
     >
       <SectionHeading
-        title="For Developers - By Developers"
-        subtitle="Build products faster using our SDKs"
+        title="For Developers, By Developers"
+        subtitle="Type-safe SDKs for your favorite frameworks. Production-ready code in minutes, not months."
       />
 
       <div className="z-0 grid items-start gap-14 xl:grid-cols-2 xl:gap-6">
@@ -110,28 +110,28 @@ export default function ExamplesSection() {
               active={activeExample === 'signUp'}
               onClick={() => setActiveExample('signUp')}
             >
-              Sign Up
+              Auth & Sign Up
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'query'}
               onClick={() => setActiveExample('query')}
             >
-              GraphQL Query
+              Realtime Queries
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'mutation'}
               onClick={() => setActiveExample('mutation')}
             >
-              GraphQL Mutation
+              Data Mutations
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'fileUpload'}
               onClick={() => setActiveExample('fileUpload')}
             >
-              File Upload
+              Storage & Files
             </ExampleSelectorButton>
           </div>
 
