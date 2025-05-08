@@ -128,7 +128,7 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log
       HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
       HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS: "true"
-      HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"olFl2WMM++Tx0I/FPn8sYr0i9b1TPSj8r2+T5Fbs96DXXAczyHr8vCzoitmrxxm6fgjegYLZ2PbYRuVHudQytQ==,"issuer":"hasura-auth"}' #${JWT_SECRET}
+      HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"olFl2WMM++Tx0I/FPn8sYr0i9b1TPSj8r2+T5Fbs96DXXAczyHr8vCzoitmrxxm6fgjegYLZ2PbYRuVHudQytQ=="","issuer":"hasura-auth"}' #${JWT_SECRET}
       HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
       HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
       HASURA_GRAPHQL_LOG_LEVEL: warn
@@ -155,16 +155,16 @@ services:
       start_period: 60s
     labels:
       "traefik.enable": "true"
-      traefik.http.routers.console.entrypoints: web
-      traefik.http.routers.console.rule: Host(`${GRAPHQL_URL}`)
-      traefik.http.routers.console.service: console
-      traefik.http.routers.console.tls: "false"
-      traefik.http.routers.migrate.entrypoints: web
-      traefik.http.routers.migrate.rule: Host(`${GRAPHQL_URL}`) && PathPrefix(`/apis/`)
-      traefik.http.routers.migrate.service: migrate
-      traefik.http.routers.migrate.tls: "false"
-      traefik.http.services.console.loadbalancer.server.port: "9695"
-      traefik.http.services.migrate.loadbalancer.server.port: "80"
+      "traefik.http.routers.console.entrypoints": web
+      "traefik.http.routers.console.rule": Host(`${GRAPHQL_URL}`)
+      "traefik.http.routers.console.service": console
+      "traefik.http.routers.console.tls": "false"
+      "traefik.http.routers.migrate.entrypoints": web
+      "traefik.http.routers.migrate.rule": Host(`${GRAPHQL_URL}`) && PathPrefix(`/apis/`)
+      "traefik.http.routers.migrate.service": migrate
+      "traefik.http.routers.migrate.tls": "false"
+      "traefik.http.services.console.loadbalancer.server.port": "9695"
+      "traefik.http.services.migrate.loadbalancer.server.port": "80"
     restart: always
     volumes:
     - type: bind
@@ -196,11 +196,11 @@ services:
     - ${STORAGE_URL}:host-gateway
     labels:
       "traefik.enable": "true"
-      traefik.http.routers.dashboard.entrypoints: web
-      traefik.http.routers.dashboard.rule: Host(`${DASHBOARD_URL}`)
-      traefik.http.routers.dashboard.service: dashboard
-      traefik.http.routers.dashboard.tls: "false"
-      traefik.http.services.dashboard.loadbalancer.server.port: "3000"
+      "traefik.http.routers.dashboard.entrypoints": web
+      "traefik.http.routers.dashboard.rule": Host(`${DASHBOARD_URL}`)
+      "traefik.http.routers.dashboard.service": dashboard
+      "traefik.http.routers.dashboard.tls": "false"
+      "traefik.http.services.dashboard.loadbalancer.server.port": "3000"
     restart: ""
     working_dir: ""
 
@@ -230,15 +230,15 @@ services:
       interval: 5s
       start_period: 600s
     labels:
-      traefik.enable: "true"
-      traefik.http.middlewares.replace-functions.replacepathregex.regex: /v1(/|$$)(.*)
-      traefik.http.middlewares.replace-functions.replacepathregex.replacement: /$$2
-      traefik.http.routers.functions.entrypoints: web
-      traefik.http.routers.functions.middlewares: replace-functions
-      traefik.http.routers.functions.rule: Host(`${FUNCTIONS_URL}`) && PathPrefix(`/v1`)
-      traefik.http.routers.functions.service: functions
-      traefik.http.routers.functions.tls: "false"
-      traefik.http.services.functions.loadbalancer.server.port: "3000"
+      "traefik.enable": "true"
+      "traefik.http.middlewares.replace-functions.replacepathregex.regex": /v1(/|$$)(.*)
+      "traefik.http.middlewares.replace-functions.replacepathregex.replacement": /$$2
+      "traefik.http.routers.functions.entrypoints": web
+      "traefik.http.routers.functions.middlewares": replace-functions
+      "traefik.http.routers.functions.rule": Host(`${FUNCTIONS_URL}`) && PathPrefix(`/v1`)
+      "traefik.http.routers.functions.service": functions
+      "traefik.http.routers.functions.tls": "false"
+      "traefik.http.services.functions.loadbalancer.server.port": "3000"
     restart: always
     volumes:
     - type: bind
@@ -277,8 +277,6 @@ services:
       HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
       HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS: "true"
       HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"olFl2WMM++Tx0I/FPn8sYr0i9b1TPSj8r2+T5Fbs96DXXAczyHr8vCzoitmrxxm6fgjegYLZ2PbYRuVHudQytQ==","issuer":"hasura-auth"}' #${JWT_SECRET}
-      # HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
-      # HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"wnpflTY9MSnGq6UzV9w6kXSVkBlowJwd2ODSFzyOsTnpXn78fIBUIs3HQjgR1f8BX8geOKNY/PL4tRL0TD21yQ=="}'
       HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
       HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
       HASURA_GRAPHQL_LOG_LEVEL: warn
@@ -305,14 +303,14 @@ services:
       start_period: 60s
     labels:
       "traefik.enable": "true"
-      traefik.http.middlewares.replace-graphql.replacepathregex.regex: /v1(/|$$)(.*)
-      traefik.http.middlewares.replace-graphql.replacepathregex.replacement: /v1/graphql$$2
-      traefik.http.routers.hasura.entrypoints: web
-      traefik.http.routers.hasura.rule: Host(`${GRAPHQL_URL}`) && ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )
-      traefik.http.routers.hasura.service: hasura
-      traefik.http.routers.hasura.tls: "false"
-      traefik.http.services.graphql.loadbalancer.server.port: "8081"
-      traefik.http.services.hasura.loadbalancer.server.port: "8081"
+      "traefik.http.middlewares.replace-graphql.replacepathregex.regex": /v1(/|$$)(.*)
+      "traefik.http.middlewares.replace-graphql.replacepathregex.replacement": /v1/graphql$$2
+      "traefik.http.routers.hasura.entrypoints": web
+      "traefik.http.routers.hasura.rule": Host(`${GRAPHQL_URL}`) && ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )
+      "traefik.http.routers.hasura.service": hasura
+      "traefik.http.routers.hasura.tls": "false"
+      "traefik.http.services.graphql.loadbalancer.server.port": "8081"
+      "traefik.http.services.hasura.loadbalancer.server.port": "8081"
     restart: always
 
   mailhog:
@@ -333,11 +331,11 @@ services:
     - ${STORAGE_URL}:host-gateway
     labels:
       "traefik.enable": "true"
-      traefik.http.routers.mailhog.entrypoints: web
-      traefik.http.routers.mailhog.rule: Host(`${MAILHOG_URL}`)
-      traefik.http.routers.mailhog.service: mailhog
-      traefik.http.routers.mailhog.tls: "false"
-      traefik.http.services.mailhog.loadbalancer.server.port: "8025"
+      "traefik.http.routers.mailhog.entrypoints": web
+      "traefik.http.routers.mailhog.rule": Host(`${MAILHOG_URL}`)
+      "traefik.http.routers.mailhog.service": mailhog
+      "traefik.http.routers.mailhog.tls": "false"
+      "traefik.http.services.mailhog.loadbalancer.server.port": "8025"
     restart: always
     volumes:
     - type: volume
@@ -441,11 +439,11 @@ services:
     - ${STORAGE_URL}:host-gateway
     labels:
       "traefik.enable": "true"
-      traefik.http.routers.storage.entrypoints: web
-      traefik.http.routers.storage.rule: Host(`${STORAGE_URL}`) && PathPrefix(`/v1`)
-      traefik.http.routers.storage.service: storage
-      traefik.http.routers.storage.tls: "false"
-      traefik.http.services.storage.loadbalancer.server.port: "5000"
+      "traefik.http.routers.storage.entrypoints": web
+      "traefik.http.routers.storage.rule": Host(`${STORAGE_URL}`) && PathPrefix(`/v1`)
+      "traefik.http.routers.storage.service": storage
+      "traefik.http.routers.storage.tls": "false"
+      "traefik.http.services.storage.loadbalancer.server.port": "5000"
     restart: always
 
   traefik:
