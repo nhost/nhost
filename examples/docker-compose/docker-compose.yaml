@@ -83,11 +83,11 @@ services:
       start_period: 60s
     labels:
       "traefik.enable": "true"
-      traefik.http.routers.auth.entrypoints: web
-      traefik.http.routers.auth.rule: Host(`${AUTH_URL}`)
-      traefik.http.routers.auth.service: auth
-      traefik.http.routers.auth.tls: "false"
-      traefik.http.services.auth.loadbalancer.server.port: "4000"
+      "traefik.http.routers.auth.entrypoints": "web"
+      "traefik.http.routers.auth.rule": Host(`${AUTH_URL}`)
+      "traefik.http.routers.auth.service": auth
+      "traefik.http.routers.auth.tls": "false"
+      "traefik.http.services.auth.loadbalancer.server.port": "4000"
     restart: always
     volumes:
     - type: bind
