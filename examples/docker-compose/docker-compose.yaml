@@ -1,4 +1,3 @@
-
 services:
   auth:
     image: nhost/hasura-auth:0.37.1
