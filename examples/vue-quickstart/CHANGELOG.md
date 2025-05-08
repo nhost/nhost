@@ -1,5 +1,11 @@
 # @nhost-examples/vue-quickstart
 
+## 0.6.0
+
+### Minor Changes
+
+- c97b43f: fix: update vite to address vulnerability audit
+
 ## 0.5.1
 
 ### Patch Changes

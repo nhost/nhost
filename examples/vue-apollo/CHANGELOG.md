@@ -1,5 +1,11 @@
 # @nhost-examples/vue-apollo
 
+## 0.12.0
+
+### Minor Changes
+
+- c97b43f: fix: update vite to address vulnerability audit
+
 ## 0.11.1
 
 ### Patch Changes
