@@ -83,11 +83,11 @@ services:
             start_period: 60s
         labels:
             "traefik.enable=true"
-            traefik.http.routers.auth.entrypoints: web
-            traefik.http.routers.auth.rule: Host(`${AUTH_URL}`)
-            traefik.http.routers.auth.service: auth
-            traefik.http.routers.auth.tls: "false"
-            traefik.http.services.auth.loadbalancer.server.port: "4000"
+            "traefik.http.routers.auth.entrypoints": web
+            "traefik.http.routers.auth.rule": Host(`${AUTH_URL}`)
+            "traefik.http.routers.auth.service": auth
+            "traefik.http.routers.auth.tls": "false"
+            "traefik.http.services.auth.loadbalancer.server.port": "4000"
         restart: always
         volumes:
             - type: bind
@@ -155,16 +155,16 @@ services:
             start_period: 60s
         labels:
             "traefik.enable=true"
-            traefik.http.routers.console.entrypoints: web
-            traefik.http.routers.console.rule: Host(`${GRAPHQL_URL}`)
-            traefik.http.routers.console.service: console
-            traefik.http.routers.console.tls: "false"
-            traefik.http.routers.migrate.entrypoints: web
-            traefik.http.routers.migrate.rule: Host(`${GRAPHQL_URL}`) && PathPrefix(`/apis/`)
-            traefik.http.routers.migrate.service: migrate
-            traefik.http.routers.migrate.tls: "false"
-            traefik.http.services.console.loadbalancer.server.port: "9695"
-            traefik.http.services.migrate.loadbalancer.server.port: "80"
+            "traefik.http.routers.console.entrypoints": web
+            "traefik.http.routers.console.rule": Host(`${GRAPHQL_URL}`)
+            "traefik.http.routers.console.service": console
+            "traefik.http.routers.console.tls": "false"
+            "traefik.http.routers.migrate.entrypoints": web
+            "traefik.http.routers.migrate.rule": Host(`${GRAPHQL_URL}`) && PathPrefix(`/apis/`)
+            "traefik.http.routers.migrate.service": migrate
+            "traefik.http.routers.migrate.tls": "false"
+            "traefik.http.services.console.loadbalancer.server.port": "9695"
+            "traefik.http.services.migrate.loadbalancer.server.port": "80"
         restart: always
         volumes:
             - type: bind
@@ -196,11 +196,11 @@ services:
             - ${STORAGE_URL}:host-gateway
         labels:
             "traefik.enable=true"
-            traefik.http.routers.dashboard.entrypoints: web
-            traefik.http.routers.dashboard.rule: Host(`${DASHBOARD_URL}`)
-            traefik.http.routers.dashboard.service: dashboard
-            traefik.http.routers.dashboard.tls: "false"
-            traefik.http.services.dashboard.loadbalancer.server.port: "3000"
+            "traefik.http.routers.dashboard.entrypoints": web
+            "traefik.http.routers.dashboard.rule": Host(`${DASHBOARD_URL}`)
+            "traefik.http.routers.dashboard.service": dashboard
+            "traefik.http.routers.dashboard.tls": "false"
+            "traefik.http.services.dashboard.loadbalancer.server.port": "3000"
         restart: ""
         working_dir: ""
 
@@ -231,14 +231,14 @@ services:
             start_period: 600s
         labels:
             "traefik.enable=true"
-            traefik.http.middlewares.replace-functions.replacepathregex.regex: /v1(/|$$)(.*)
-            traefik.http.middlewares.replace-functions.replacepathregex.replacement: /$$2
-            traefik.http.routers.functions.entrypoints: web
-            traefik.http.routers.functions.middlewares: replace-functions
-            traefik.http.routers.functions.rule: Host(`${FUNCTIONS_URL}`) && PathPrefix(`/v1`)
-            traefik.http.routers.functions.service: functions
-            traefik.http.routers.functions.tls: "false"
-            traefik.http.services.functions.loadbalancer.server.port: "3000"
+            "traefik.http.middlewares.replace-functions.replacepathregex.regex": /v1(/|$$)(.*)
+            "traefik.http.middlewares.replace-functions.replacepathregex.replacement": /$$2
+            "traefik.http.routers.functions.entrypoints": web
+            "traefik.http.routers.functions.middlewares": replace-functions
+            "traefik.http.routers.functions.rule": Host(`${FUNCTIONS_URL}`) && PathPrefix(`/v1`)
+            "traefik.http.routers.functions.service": functions
+            "traefik.http.routers.functions.tls": "false"
+            "traefik.http.services.functions.loadbalancer.server.port": "3000"
         restart: always
         volumes:
             - type: bind
@@ -440,11 +440,11 @@ services:
             - ${STORAGE_URL}:host-gateway
         labels:
             "traefik.enable=true"
-            traefik.http.routers.storage.entrypoints: web
-            traefik.http.routers.storage.rule: Host(`${STORAGE_URL}`) && PathPrefix(`/v1`)
-            traefik.http.routers.storage.service: storage
-            traefik.http.routers.storage.tls: "false"
-            traefik.http.services.storage.loadbalancer.server.port: "5000"
+            "traefik.http.routers.storage.entrypoints": web
+            "traefik.http.routers.storage.rule": Host(`${STORAGE_URL}`) && PathPrefix(`/v1`)
+            "traefik.http.routers.storage.service": storage
+            "traefik.http.routers.storage.tls": "false"
+            "traefik.http.services.storage.loadbalancer.server.port": "5000"
         restart: always
 
     traefik:
