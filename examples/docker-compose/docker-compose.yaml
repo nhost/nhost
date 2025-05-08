@@ -82,7 +82,7 @@ services:
       interval: 5s
       start_period: 60s
     labels:
-      "traefik.enable": "true"
+      "traefik.enable=true"
       "traefik.http.routers.auth.entrypoints": "web"
       "traefik.http.routers.auth.rule": Host(`${AUTH_URL}`)
       "traefik.http.routers.auth.service": auth
