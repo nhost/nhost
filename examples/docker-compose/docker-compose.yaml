@@ -128,7 +128,7 @@ services:
             HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log
             HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
             HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS: "true"
-            HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"olFl2WMM++Tx0I/FPn8sYr0i9b1TPSj8r2+T5Fbs96DXXAczyHr8vCzoitmrxxm6fgjegYLZ2PbYRuVHudQytQ==","issuer":"hasura-auth"}' #${JWT_SECRET}
+            HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"olFl2WMM++Tx0I/FPn8sYr0i9b1TPSj8r2+T5Fbs96DXXAczyHr8vCzoitmrxxm6fgjegYLZ2PbYRuVHudQytQ=="}' #${JWT_SECRET}
             HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
             HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
             HASURA_GRAPHQL_LOG_LEVEL: warn
@@ -277,7 +277,7 @@ services:
             HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
             HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS: "true"
             # HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
-            HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"olFl2WMM++Tx0I/FPn8sYr0i9b1TPSj8r2+T5Fbs96DXXAczyHr8vCzoitmrxxm6fgjegYLZ2PbYRuVHudQytQ==","issuer":"hasura-auth"}'
+            HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"olFl2WMM++Tx0I/FPn8sYr0i9b1TPSj8r2+T5Fbs96DXXAczyHr8vCzoitmrxxm6fgjegYLZ2PbYRuVHudQytQ=="}'
             HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
             HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
             HASURA_GRAPHQL_LOG_LEVEL: warn
@@ -349,7 +349,7 @@ services:
             - /bin/sh
         command:
             - -c
-            - mkdir -p /data/nhost && /usr/bin/minio server --address :9000 /data
+            - mkdir -p /data/nhost && /usr/bin/minio server --address :9001 /data
         environment:
             MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY}
             MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY}
@@ -427,7 +427,7 @@ services:
             PUBLIC_URL: http://${STORAGE_URL}
             S3_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
             S3_BUCKET: nhost
-            S3_ENDPOINT: http://minio:9000
+            S3_ENDPOINT: http://minio:9001
             S3_REGION: ""
             S3_ROOT_FOLDER: ""
             S3_SECRET_KEY: ${STORAGE_SECRET_KEY}
