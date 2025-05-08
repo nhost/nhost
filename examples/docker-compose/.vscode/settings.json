@@ -1,5 +1,7 @@
 {
     "files.autoSave": "afterDelay",
     "editor.fontSize": 12,
-    "editor.fontFamily": "\"Fira Code Light\""
+    "editor.fontFamily": "\"Fira Code Light\"",
+    "editor.tabSize": 2,
+    "editor.renderWhitespace": "boundary"
 }
