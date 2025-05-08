@@ -60,10 +60,10 @@ services:
             AUTH_USER_DEFAULT_ALLOWED_ROLES: user,me
             AUTH_USER_DEFAULT_ROLE: user
             HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
-            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5433/postgres
             HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8081/v1/graphql
             HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256","key":"olFl2WMM++Tx0I/FPn8sYr0i9b1TPSj8r2+T5Fbs96DXXAczyHr8vCzoitmrxxm6fgjegYLZ2PbYRuVHudQytQ=="}' #${JWT_SECRET}
-            POSTGRES_MIGRATIONS_CONNECTION: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+            POSTGRES_MIGRATIONS_CONNECTION: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5433/postgres
         extra_hosts:
             - host.docker.internal:host-gateway
             - ${AUTH_URL}:host-gateway
@@ -117,7 +117,7 @@ services:
             HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
             HASURA_GRAPHQL_CORS_DOMAIN: '*'
-            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5433/postgres
             HASURA_GRAPHQL_DEV_MODE: "true"
             HASURA_GRAPHQL_DISABLE_CORS: "false"
             HASURA_GRAPHQL_ENABLE_ALLOWLIST: "false"
@@ -209,7 +209,7 @@ services:
         environment:
             GRAPHITE_WEBHOOK_SECRET: ""
             HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
-            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5433/postgres
             HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8081/v1/graphql
             HASURA_GRAPHQL_JWT_SECRET: ${JWT_SECRET}
         extra_hosts:
@@ -265,7 +265,7 @@ services:
             HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
             HASURA_GRAPHQL_CORS_DOMAIN: '*'
-            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5433/postgres
             HASURA_GRAPHQL_DEV_MODE: "true"
             HASURA_GRAPHQL_DISABLE_CORS: "false"
             HASURA_GRAPHQL_ENABLE_ALLOWLIST: "false"
@@ -392,7 +392,7 @@ services:
             start_period: 60s
         ports:
             - mode: ingress
-              target: 5432
+              target: 5433
               published: "5433"
               protocol: tcp
         restart: always
@@ -423,7 +423,7 @@ services:
             HASURA_GRAPHQL_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             HASURA_METADATA: "1"
             POSTGRES_MIGRATIONS: "1"
-            POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable
+            POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5433/postgres?sslmode=disable
             PUBLIC_URL: http://${STORAGE_URL}
             S3_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
             S3_BUCKET: nhost
