@@ -21,6 +21,7 @@ import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { isEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo } from 'react';
@@ -46,7 +47,9 @@ export default function DatabaseStorageCapacity() {
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
-  const isFreeProject = !!org?.plan?.isFree;
+  const isFreeProject = isEmptyValue(org) ? false : org.plan.isFree;
+
+  const shouldShowUpdateCapacityWarning = !isFreeProject && isPlatform;
 
   const {
     data,
@@ -98,6 +101,10 @@ export default function DatabaseStorageCapacity() {
       return true;
     }
 
+    if (!isPlatform) {
+      return false;
+    }
+
     if (maintenanceActive) {
       return true;
     }
@@ -107,7 +114,13 @@ export default function DatabaseStorageCapacity() {
     }
 
     return false;
-  }, [isDirty, maintenanceActive, decreasingSize, applicationPause]);
+  }, [
+    isDirty,
+    maintenanceActive,
+    decreasingSize,
+    applicationPause,
+    isPlatform,
+  ]);
 
   useEffect(() => {
     if (data && !loading) {
@@ -195,7 +208,7 @@ export default function DatabaseStorageCapacity() {
               helperText={formState.errors.capacity?.message}
             />
           </Box>
-          {!isFreeProject && (
+          {shouldShowUpdateCapacityWarning && (
             <DatabaseStorageCapacityWarning
               state={state}
               decreasingSize={decreasingSize}
