@@ -1,5 +1,5 @@
 services:
-  auth:
+	auth:
     image: nhost/hasura-auth:0.37.1
     depends_on:
       graphql:
