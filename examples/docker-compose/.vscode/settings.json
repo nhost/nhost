@@ -3,5 +3,6 @@
     "editor.fontSize": 12,
     "editor.fontFamily": "\"Fira Code Light\"",
     "editor.tabSize": 2,
-    "editor.renderWhitespace": "boundary"
+    "editor.renderWhitespace": "boundary",
+    "editor.insertSpaces": true
 }
