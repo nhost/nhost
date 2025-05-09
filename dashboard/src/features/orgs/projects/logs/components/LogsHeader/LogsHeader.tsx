@@ -17,7 +17,7 @@ import {
 } from '@/features/orgs/projects/logs/utils/constants/services';
 import { isEmptyValue } from '@/lib/utils';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
-import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
+import { DEFAULT_LOG_INTERVAL } from '@/utils/constants/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
 import { useEffect, useMemo } from 'react';
@@ -84,16 +84,19 @@ export default function LogsHeader({
 
   const form = useForm<LogsFilterFormValues>({
     defaultValues: {
-      from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
+      from: subMinutes(new Date(), DEFAULT_LOG_INTERVAL),
       to: new Date(),
       regexFilter: '',
       service: AvailableLogsService.ALL,
-      interval: null,
+      interval: DEFAULT_LOG_INTERVAL,
     },
     resolver: yupResolver(validationSchema),
     mode: 'onSubmit',
     reValidateMode: 'onSubmit',
   });
+  const { formState } = form;
+
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const { register, watch, getValues, setValue } = form;
 
@@ -104,6 +107,7 @@ export default function LogsHeader({
   }, [service, getValues, onSubmitFilterValues]);
 
   const handleSubmit = (values: LogsFilterFormValues) => {
+    console.log('handleSubmit', values);
     const currentValues = getValues();
 
     // If there's an interval set, recalculate the dates
@@ -123,6 +127,10 @@ export default function LogsHeader({
 
       onSubmitFilterValues(newValues);
       return;
+    }
+
+    if (!isDirty) {
+      console.log('not dirty');
     }
 
     onSubmitFilterValues(values);
@@ -223,11 +231,13 @@ export default function LogsHeader({
             type="submit"
             className="h-10"
             startIcon={
-              loading ? (
-                <ActivityIndicator className="h-4 w-4" />
-              ) : (
-                <SearchIcon />
-              )
+              <div className="flex h-5 w-5 items-center justify-center">
+                {loading ? (
+                  <ActivityIndicator className="h-5 w-5" />
+                ) : (
+                  <SearchIcon className="h-5 w-5" />
+                )}
+              </div>
             }
             disabled={loading}
           >
