@@ -45,11 +45,17 @@ interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
    * Function to be called when the user submits the filters form
    */
   onSubmitFilterValues: (value: LogsFilterFormValues) => void;
+  /**
+   *
+   * Function to be called to force a refetch of the logs when the form is not dirty and the user submits the form
+   */
+  onRefetch: () => void;
 }
 
 export default function LogsHeader({
   loading,
   onSubmitFilterValues,
+  onRefetch,
   ...props
 }: LogsHeaderProps) {
   const { project } = useProject();
@@ -91,7 +97,6 @@ export default function LogsHeader({
       interval: DEFAULT_LOG_INTERVAL,
     },
     resolver: yupResolver(validationSchema),
-    mode: 'onSubmit',
     reValidateMode: 'onSubmit',
   });
   const { formState } = form;
@@ -107,7 +112,6 @@ export default function LogsHeader({
   }, [service, getValues, onSubmitFilterValues]);
 
   const handleSubmit = (values: LogsFilterFormValues) => {
-    console.log('handleSubmit', values);
     const currentValues = getValues();
 
     // If there's an interval set, recalculate the dates
@@ -129,8 +133,9 @@ export default function LogsHeader({
       return;
     }
 
+    // If the form is not dirty, force a refetch of the logs
     if (!isDirty) {
-      console.log('not dirty');
+      onRefetch();
     }
 
     onSubmitFilterValues(values);

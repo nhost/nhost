@@ -48,6 +48,7 @@ export default function LogsPage() {
     error,
     subscribeToMore,
     client,
+    refetch,
     loading: loadingLogs,
   } = useGetProjectLogsQuery({
     variables: { appID: project?.id, ...filters },
@@ -147,6 +148,7 @@ export default function LogsPage() {
         <LogsHeader
           loading={loading}
           onSubmitFilterValues={onSubmitFilterValues}
+          onRefetch={refetch}
         />
         <LogsBody error={error} loading={loading} logsData={data} />
       </RetryableErrorBoundary>
