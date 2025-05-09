@@ -27,11 +27,18 @@ function LogsToDatePickerLiveButton() {
     if (isLive) {
       setValue('from', subMinutes(new Date(), 20));
       setValue('to', new Date());
+      setValue('interval', null);
       return;
     }
 
     setValue('to', null);
     setCurrentTime(new Date());
+    setValue('interval', null);
+  }
+
+  function handleChangeToDate(date: Date) {
+    setValue('to', date);
+    setValue('interval', null);
   }
 
   useInterval(() => setCurrentTime(new Date()), isLive ? 1000 : 0);
@@ -43,7 +50,7 @@ function LogsToDatePickerLiveButton() {
           label="To"
           value={!isLive ? to : currentTime}
           disabled={isLive}
-          onChange={(date: Date) => setValue('to', date)}
+          onChange={handleChangeToDate}
           minDate={from}
           maxDate={new Date()}
           componentsProps={{
@@ -84,7 +91,7 @@ function LogsRangeSelectorIntervalPickers({
   const applicationCreationDate = new Date(project.createdAt);
 
   const { setValue, getValues } = useFormContext<LogsFilterFormValues>();
-  const { from } = useWatch<LogsFilterFormValues>();
+  const { from, interval } = useWatch<LogsFilterFormValues>();
 
   const { handleClose } = useDropdown();
 
@@ -101,6 +108,12 @@ function LogsRangeSelectorIntervalPickers({
   }: LogsCustomInterval) {
     setValue('from', subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
     setValue('to', new Date());
+    setValue('interval', minutesToDecreaseFromCurrentDate);
+  }
+
+  function handleChangeFromDate(date: Date) {
+    setValue('from', date);
+    setValue('interval', null);
   }
 
   return (
@@ -109,7 +122,7 @@ function LogsRangeSelectorIntervalPickers({
         <LogsDatePicker
           label="From"
           value={from}
-          onChange={(date) => setValue('from', date)}
+          onChange={handleChangeFromDate}
           minDate={applicationCreationDate}
           maxDate={new Date()}
         />
@@ -122,7 +135,11 @@ function LogsRangeSelectorIntervalPickers({
           <Button
             key={logInterval.label}
             variant="outlined"
-            color="secondary"
+            color={
+              interval === logInterval.minutesToDecreaseFromCurrentDate
+                ? 'primary'
+                : 'secondary'
+            }
             className="self-center"
             onClick={() => handleIntervalChange(logInterval)}
           >

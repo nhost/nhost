@@ -67,4 +67,4 @@ export const MAX_FREE_PROJECTS = 1;
 /**
  * Default value in minutes to use for querying the logs
  */
-export const MINUTES_TO_DECREASE_FROM_CURRENT_DATE = 20;
+export const DEFAULT_LOG_INTERVAL = 15;
