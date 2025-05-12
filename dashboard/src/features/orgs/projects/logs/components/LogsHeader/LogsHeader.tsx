@@ -17,7 +17,7 @@ import {
 } from '@/features/orgs/projects/logs/utils/constants/services';
 import { isEmptyValue } from '@/lib/utils';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
-import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
+import { DEFAULT_LOG_INTERVAL } from '@/utils/constants/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
 import { useEffect, useMemo } from 'react';
@@ -28,6 +28,7 @@ import LogsServiceFilter from './LogsServiceFilter';
 export const validationSchema = Yup.object({
   from: Yup.date(),
   to: Yup.date().nullable(),
+  interval: Yup.number().nullable(), // in minutes
   service: Yup.string().oneOf(Object.values(AvailableLogsService)),
   regexFilter: Yup.string(),
 });
@@ -44,11 +45,17 @@ interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
    * Function to be called when the user submits the filters form
    */
   onSubmitFilterValues: (value: LogsFilterFormValues) => void;
+  /**
+   *
+   * Function to be called to force a refetch of the logs when the form is not dirty and the user submits the form
+   */
+  onRefetch: () => void;
 }
 
 export default function LogsHeader({
   loading,
   onSubmitFilterValues,
+  onRefetch,
   ...props
 }: LogsHeaderProps) {
   const { project } = useProject();
@@ -83,16 +90,20 @@ export default function LogsHeader({
 
   const form = useForm<LogsFilterFormValues>({
     defaultValues: {
-      from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
+      from: subMinutes(new Date(), DEFAULT_LOG_INTERVAL),
       to: new Date(),
       regexFilter: '',
       service: AvailableLogsService.ALL,
+      interval: DEFAULT_LOG_INTERVAL,
     },
-    reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
+    reValidateMode: 'onSubmit',
   });
+  const { formState } = form;
 
-  const { register, watch, getValues } = form;
+  const isNotDirty = Object.keys(formState.dirtyFields).length === 0;
+
+  const { register, watch, getValues, setValue } = form;
 
   const service = watch('service');
 
@@ -100,8 +111,33 @@ export default function LogsHeader({
     onSubmitFilterValues(getValues());
   }, [service, getValues, onSubmitFilterValues]);
 
-  const handleSubmit = (values: LogsFilterFormValues) =>
+  const handleSubmit = (values: LogsFilterFormValues) => {
+    // If there's an interval set, recalculate the dates
+    if (values.interval) {
+      const now = new Date();
+      const newValues = {
+        ...values,
+        from: subMinutes(now, values.interval),
+        to: now,
+        interval: values.interval,
+      };
+
+      // Update form values before submitting, to ensure the dates have the current date if selected an interval
+      setValue('from', newValues.from);
+      setValue('to', newValues.to);
+      setValue('interval', newValues.interval);
+
+      onSubmitFilterValues(newValues);
+      return;
+    }
+
+    // If the form is not dirty, force a refetch of the logs
+    if (isNotDirty) {
+      onRefetch();
+    }
+
     onSubmitFilterValues(values);
+  };
 
   return (
     <Box
@@ -198,11 +234,13 @@ export default function LogsHeader({
             type="submit"
             className="h-10"
             startIcon={
-              loading ? (
-                <ActivityIndicator className="h-4 w-4" />
-              ) : (
-                <SearchIcon />
-              )
+              <div className="flex h-5 w-5 items-center justify-center">
+                {loading ? (
+                  <ActivityIndicator className="h-5 w-5" />
+                ) : (
+                  <SearchIcon className="h-5 w-5" />
+                )}
+              </div>
             }
             disabled={loading}
           >
