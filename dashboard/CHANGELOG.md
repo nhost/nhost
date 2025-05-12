@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 2.29.0
+
+### Minor Changes
+
+- c97b43f: fix: update vite to address vulnerability audit
+- a0931e2: fix: improve logs time range and filter selection
+- c0635ae: feat (dashboard): Add information about that free organization cannot be upgraded.
+- e87505c: fix: can downsize postgres storage capacity using local dashboard
+
 ## 2.28.0
 
 ### Minor Changes
