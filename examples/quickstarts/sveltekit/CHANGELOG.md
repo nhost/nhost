@@ -1,5 +1,10 @@
 ---
 
+## 0.8.0
+### Minor Changes
+
+- c97b43f: fix: update vite to address vulnerability audit
+
 ## 0.7.1
 ### Patch Changes
 

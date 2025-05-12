@@ -1,5 +1,15 @@
 # @nhost-examples/react-apollo
 
+## 1.6.0
+
+### Minor Changes
+
+- c97b43f: fix: update vite to address vulnerability audit
+
+### Patch Changes
+
+- 97db637: fix: fix settings
+
 ## 1.5.1
 
 ### Patch Changes
