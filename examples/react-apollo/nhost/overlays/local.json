@@ -41,6 +41,10 @@
         "interval": "5m",
         "limit": 100
       },
+      "emails": {
+        "interval": "1h",
+        "limit": 100
+      },
       "global": {
         "interval": "1m",
         "limit": 1000
@@ -99,5 +103,18 @@
     "value": "http://localhost:3000",
     "op": "replace",
     "path": "/auth/redirections/clientUrl"
+  },
+  {
+    "value": {
+      "host": "smtp.test.com",
+      "method": "LOGIN",
+      "password": "test123123",
+      "port": 587,
+      "secure": false,
+      "sender": "test@nhost.io",
+      "user": "test"
+    },
+    "op": "add",
+    "path": "/provider/smtp"
   }
 ]
