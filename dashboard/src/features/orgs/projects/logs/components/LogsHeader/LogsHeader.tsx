@@ -101,7 +101,7 @@ export default function LogsHeader({
   });
   const { formState } = form;
 
-  const isDirty = Object.keys(formState.dirtyFields).length > 0;
+  const isNotDirty = Object.keys(formState.dirtyFields).length === 0;
 
   const { register, watch, getValues, setValue } = form;
 
@@ -134,7 +134,7 @@ export default function LogsHeader({
     }
 
     // If the form is not dirty, force a refetch of the logs
-    if (!isDirty) {
+    if (isNotDirty) {
       onRefetch();
     }
 
