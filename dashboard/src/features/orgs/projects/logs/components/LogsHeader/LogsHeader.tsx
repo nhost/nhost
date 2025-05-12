@@ -112,16 +112,14 @@ export default function LogsHeader({
   }, [service, getValues, onSubmitFilterValues]);
 
   const handleSubmit = (values: LogsFilterFormValues) => {
-    const currentValues = getValues();
-
     // If there's an interval set, recalculate the dates
-    if (currentValues.interval) {
+    if (values.interval) {
       const now = new Date();
       const newValues = {
-        ...currentValues,
-        from: subMinutes(now, currentValues.interval),
+        ...values,
+        from: subMinutes(now, values.interval),
         to: now,
-        interval: currentValues.interval,
+        interval: values.interval,
       };
 
       // Update form values before submitting, to ensure the dates have the current date if selected an interval
