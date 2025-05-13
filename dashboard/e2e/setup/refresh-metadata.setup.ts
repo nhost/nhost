@@ -16,8 +16,7 @@ setup('refresh metadata', async () => {
             {
               type: 'reload_metadata',
               args: {
-                reload_remote_schemas: [],
-                reload_sources: [],
+                reload_sources: false,
               },
             },
             {
@@ -31,12 +30,18 @@ setup('refresh metadata', async () => {
       },
     );
     const body = await response.json();
+
     if (!response.ok) {
       const message = `[${body.code}]:${body.error}`;
-      console.log(message);
       throw new Error(message);
     } else {
-      console.log('Metadata is consistent.');
+      const isConsistent = body[0].is_consistent;
+      if (isConsistent) {
+        console.log('Metadata is consistent.');
+      } else {
+        console.log('Metadata is not consistent.');
+        console.log(body[0].inconsistent_objects);
+      }
     }
   } catch (error) {
     // Log safe error information
