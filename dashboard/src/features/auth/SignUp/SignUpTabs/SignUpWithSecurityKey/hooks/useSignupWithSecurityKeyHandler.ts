@@ -2,24 +2,12 @@ import { getAnonId } from '@/lib/segment';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { useSignUpEmailSecurityKeyEmail } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
-import { useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import type { SignUpWithSecurityKeyFormValues } from './useSignupWithSecurityKeyForm';
 
 function useOnSignUpWithSecurityKeyHandler() {
-  const { signUpEmailSecurityKey, error } = useSignUpEmailSecurityKeyEmail();
+  const { signUpEmailSecurityKey } = useSignUpEmailSecurityKeyEmail();
   const router = useRouter();
-  const hasFormBeenSubmitted = useRef(false);
-
-  useEffect(() => {
-    if (hasFormBeenSubmitted.current && error) {
-      toast.error(
-        error?.message ||
-          'An error occurred while signing up. Please try again.',
-        getToastStyleProps(),
-      );
-    }
-  }, [error]);
 
   async function onSignUpWithSecurityKey({
     email,
@@ -27,7 +15,7 @@ function useOnSignUpWithSecurityKeyHandler() {
     turnstileToken,
   }: SignUpWithSecurityKeyFormValues) {
     try {
-      const { needsEmailVerification } = await signUpEmailSecurityKey(
+      const { needsEmailVerification, error } = await signUpEmailSecurityKey(
         email,
         {
           displayName,
@@ -40,6 +28,15 @@ function useOnSignUpWithSecurityKeyHandler() {
         },
       );
 
+      if (error) {
+        toast.error(
+          error.message ||
+            'An error occurred while signing up. Please try again.',
+          getToastStyleProps(),
+        );
+        return;
+      }
+
       if (needsEmailVerification) {
         router.push(`/email/verify?email=${encodeURIComponent(email)}`);
       }
@@ -48,8 +45,6 @@ function useOnSignUpWithSecurityKeyHandler() {
         'An error occurred while signing up. Please try again.',
         getToastStyleProps(),
       );
-    } finally {
-      hasFormBeenSubmitted.current = true;
     }
   }
 

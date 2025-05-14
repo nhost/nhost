@@ -3,6 +3,8 @@ import {
   activateMfaPromise,
   ActivateMfaState,
   createEnableMfaMachine,
+  DisableMfaHandlerResult,
+  disableMfaPromise,
   GenerateQrCodeHandlerResult,
   generateQrCodePromise,
   GenerateQrCodeState
@@ -14,6 +16,8 @@ import { useNhostClient } from './useNhostClient'
 interface ConfigMfaState extends ActivateMfaState, GenerateQrCodeState {
   generateQrCode: () => Promise<GenerateQrCodeHandlerResult>
   activateMfa: (code: string) => Promise<ActivateMfaHandlerResult>
+  disableMfa: (code: string) => Promise<DisableMfaHandlerResult>
+  isDisabling: boolean
 }
 
 // TODO documentation when available in Nhost Cloud - see changelog
@@ -31,12 +35,15 @@ export const useConfigMfa = (): ConfigMfaState => {
   const isGenerated = useSelector(service, (state) => state.matches('generated'))
   const isActivating = useSelector(service, (state) => state.matches({ generated: 'activating' }))
   const isActivated = useSelector(service, (state) => state.matches({ generated: 'activated' }))
+  const isDisabling = useSelector(service, (state) => state.matches('disabling'))
   const error = useSelector(service, (state) => state.context.error)
   const qrCodeDataUrl = useSelector(service, (state) => state.context.imageUrl || '')
+  const totpSecret = useSelector(service, (state) => state.context.secret || '')
 
   const generateQrCode = () => generateQrCodePromise(service)
 
   const activateMfa = (code: string) => activateMfaPromise(service, code)
+  const disableMfa = (code: string) => disableMfaPromise(service, code)
 
   return {
     generateQrCode,
@@ -46,7 +53,10 @@ export const useConfigMfa = (): ConfigMfaState => {
     activateMfa,
     isActivating,
     isActivated,
+    isDisabling,
     isError,
-    error
+    error,
+    disableMfa,
+    totpSecret
   }
 }
