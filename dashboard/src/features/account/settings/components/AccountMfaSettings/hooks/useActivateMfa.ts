@@ -1,18 +1,16 @@
 import useElevatedPermissions from '@/features/account/settings/hooks/useElevatedPermissions';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
-import { useAddSecurityKey } from '@nhost/nextjs';
+import type { ActivateMfaHandlerResult } from '@nhost/nextjs';
 import { toast } from 'react-hot-toast';
-import { type NewSecurityKeyFormValues } from './useNewSecurityKeyForm';
 
 interface Props {
+  activateMfaFn: (code: string) => Promise<ActivateMfaHandlerResult>;
   onSuccess: () => void;
 }
 
-function useOnAddNewSecurityKeyHandler({ onSuccess }: Props) {
-  const { data, refetch } = useGetSecurityKeys();
-  const { add } = useAddSecurityKey();
-
+function useActivateMfa({ activateMfaFn, onSuccess }: Props) {
   const { elevated, elevatePermissions } = useElevatedPermissions();
+  const { data } = useGetSecurityKeys();
 
   async function requestPermissions() {
     if (elevated || data?.authUserSecurityKeys.length === 0) {
@@ -22,22 +20,27 @@ function useOnAddNewSecurityKeyHandler({ onSuccess }: Props) {
     return isPermissionsElevated;
   }
 
-  async function onSubmit(values: NewSecurityKeyFormValues) {
+  async function activateMfa(code: string) {
+    let isSuccess = false;
     const permissionGranted = await requestPermissions();
+
     if (!permissionGranted) {
-      return;
+      return isSuccess;
     }
-    const { nickname } = values;
 
-    const { isError, error } = await add(nickname);
+    const { error, isError } = await activateMfaFn(code);
+
     if (isError) {
-      toast.error(error?.message);
+      toast.error(error?.message || 'Something went wrong.');
+    } else {
+      toast.success('Multi-factor authentication has been enabled');
+      onSuccess();
+      isSuccess = true;
     }
-    await refetch();
-    onSuccess();
-  }
 
-  return onSubmit;
+    return isSuccess;
+  }
+  return activateMfa;
 }
 
-export default useOnAddNewSecurityKeyHandler;
+export default useActivateMfa;

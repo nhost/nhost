@@ -19,6 +19,7 @@ export type EnableMfaEvents =
       code?: string
       activeMfaType: 'totp'
     }
+  | { type: 'DISABLE'; code: string }
   | { type: 'GENERATED' }
   | { type: 'GENERATED_ERROR'; error: AuthErrorPayload | null }
   | { type: 'SUCCESS' }
@@ -42,11 +43,13 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
         idle: {
           initial: 'initial',
           on: {
-            GENERATE: 'generating'
+            GENERATE: 'generating',
+            DISABLE: 'disabling'
           },
           states: {
             initial: {},
-            error: {}
+            error: {},
+            disabled: {}
           }
         },
         generating: {
@@ -77,7 +80,8 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
                   {
                     target: 'activating'
                   }
-                ]
+                ],
+                DISABLE: '#enableMfa.disabling'
               },
               states: { idle: {}, error: {} }
             },
@@ -90,6 +94,14 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
               }
             },
             activated: { type: 'final' }
+          }
+        },
+        disabling: {
+          invoke: {
+            src: 'disable',
+            id: 'disable',
+            onDone: { target: 'idle.disabled', actions: 'reportSuccess' },
+            onError: { actions: ['saveError', 'reportError'], target: 'idle.error' }
           }
         }
       }
@@ -105,10 +117,7 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
           imageUrl: (_, { data: { imageUrl } }: any) => imageUrl,
           secret: (_, { data: { totpSecret } }: any) => totpSecret
         }),
-        reportError: send((ctx, event) => {
-          console.log('REPORT', ctx, event)
-          return { type: 'ERROR', error: ctx.error }
-        }),
+        reportError: send((ctx, event) => ({ type: 'ERROR', error: ctx.error })),
         reportSuccess: send('SUCCESS'),
         reportGeneratedSuccess: send('GENERATED'),
         reportGeneratedError: send((ctx) => ({ type: 'GENERATED_ERROR', error: ctx.error }))
@@ -129,6 +138,12 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
           postFetch(
             `${backendUrl}/user/mfa`,
             { code, activeMfaType },
+            interpreter?.getSnapshot().context.accessToken.value
+          ),
+        disable: (_, { code }) =>
+          postFetch(
+            `${backendUrl}/user/mfa`,
+            { code, activeMfaType: '' },
             interpreter?.getSnapshot().context.accessToken.value
           )
       }
