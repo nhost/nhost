@@ -1,4 +1,12 @@
-export type { ErrorPayload, NhostSession, Subdomain, User } from '@nhost/nhost-js'
+export type {
+  ErrorPayload,
+  NhostSession,
+  Subdomain,
+  User,
+  ActivateMfaHandlerResult,
+  DisableMfaHandlerResult,
+  AuthErrorPayload
+} from '@nhost/nhost-js'
 export * from './client'
 export * from './components'
 export * from './provider'

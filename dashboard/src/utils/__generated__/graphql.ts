@@ -27707,19 +27707,19 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
-export type RemoveSecurityKeyMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type RemoveSecurityKeyMutation = { __typename?: 'mutation_root', deleteAuthUserSecurityKey?: { __typename?: 'authUserSecurityKeys', id: any } | null };
-
 export type DeleteUserAccountMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
 export type DeleteUserAccountMutation = { __typename?: 'mutation_root', deleteUser?: { __typename: 'users' } | null };
+
+export type GetActiveMfaTypeQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type GetActiveMfaTypeQuery = { __typename?: 'query_root', user?: { __typename?: 'users', activeMfaType?: string | null } | null };
 
 export type GetAuthUserProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -27737,6 +27737,13 @@ export type SecurityKeysQueryVariables = Exact<{
 
 
 export type SecurityKeysQuery = { __typename?: 'query_root', authUserSecurityKeys: Array<{ __typename?: 'authUserSecurityKeys', id: any, nickname?: string | null }> };
+
+export type RemoveSecurityKeyMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type RemoveSecurityKeyMutation = { __typename?: 'mutation_root', deleteAuthUserSecurityKey?: { __typename?: 'authUserSecurityKeys', id: any } | null };
 
 export type DeletePersonalAccessTokenMutationVariables = Exact<{
   patId: Scalars['uuid'];
@@ -28978,39 +28985,6 @@ export const RunServiceRateLimitFragmentDoc = gql`
   }
 }
     `;
-export const RemoveSecurityKeyDocument = gql`
-    mutation removeSecurityKey($id: uuid!) {
-  deleteAuthUserSecurityKey(id: $id) {
-    id
-  }
-}
-    `;
-export type RemoveSecurityKeyMutationFn = Apollo.MutationFunction<RemoveSecurityKeyMutation, RemoveSecurityKeyMutationVariables>;
-
-/**
- * __useRemoveSecurityKeyMutation__
- *
- * To run a mutation, you first call `useRemoveSecurityKeyMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRemoveSecurityKeyMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [removeSecurityKeyMutation, { data, loading, error }] = useRemoveSecurityKeyMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useRemoveSecurityKeyMutation(baseOptions?: Apollo.MutationHookOptions<RemoveSecurityKeyMutation, RemoveSecurityKeyMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RemoveSecurityKeyMutation, RemoveSecurityKeyMutationVariables>(RemoveSecurityKeyDocument, options);
-      }
-export type RemoveSecurityKeyMutationHookResult = ReturnType<typeof useRemoveSecurityKeyMutation>;
-export type RemoveSecurityKeyMutationResult = Apollo.MutationResult<RemoveSecurityKeyMutation>;
-export type RemoveSecurityKeyMutationOptions = Apollo.BaseMutationOptions<RemoveSecurityKeyMutation, RemoveSecurityKeyMutationVariables>;
 export const DeleteUserAccountDocument = gql`
     mutation deleteUserAccount($id: uuid!) {
   deleteUser(id: $id) {
@@ -29044,6 +29018,44 @@ export function useDeleteUserAccountMutation(baseOptions?: Apollo.MutationHookOp
 export type DeleteUserAccountMutationHookResult = ReturnType<typeof useDeleteUserAccountMutation>;
 export type DeleteUserAccountMutationResult = Apollo.MutationResult<DeleteUserAccountMutation>;
 export type DeleteUserAccountMutationOptions = Apollo.BaseMutationOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
+export const GetActiveMfaTypeDocument = gql`
+    query getActiveMfaType($id: uuid!) {
+  user(id: $id) {
+    activeMfaType
+  }
+}
+    `;
+
+/**
+ * __useGetActiveMfaTypeQuery__
+ *
+ * To run a query within a React component, call `useGetActiveMfaTypeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetActiveMfaTypeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetActiveMfaTypeQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetActiveMfaTypeQuery(baseOptions: Apollo.QueryHookOptions<GetActiveMfaTypeQuery, GetActiveMfaTypeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetActiveMfaTypeQuery, GetActiveMfaTypeQueryVariables>(GetActiveMfaTypeDocument, options);
+      }
+export function useGetActiveMfaTypeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetActiveMfaTypeQuery, GetActiveMfaTypeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetActiveMfaTypeQuery, GetActiveMfaTypeQueryVariables>(GetActiveMfaTypeDocument, options);
+        }
+export type GetActiveMfaTypeQueryHookResult = ReturnType<typeof useGetActiveMfaTypeQuery>;
+export type GetActiveMfaTypeLazyQueryHookResult = ReturnType<typeof useGetActiveMfaTypeLazyQuery>;
+export type GetActiveMfaTypeQueryResult = Apollo.QueryResult<GetActiveMfaTypeQuery, GetActiveMfaTypeQueryVariables>;
+export function refetchGetActiveMfaTypeQuery(variables: GetActiveMfaTypeQueryVariables) {
+      return { query: GetActiveMfaTypeDocument, variables: variables }
+    }
 export const GetAuthUserProvidersDocument = gql`
     query getAuthUserProviders {
   authUserProviders {
@@ -29164,6 +29176,39 @@ export type SecurityKeysQueryResult = Apollo.QueryResult<SecurityKeysQuery, Secu
 export function refetchSecurityKeysQuery(variables: SecurityKeysQueryVariables) {
       return { query: SecurityKeysDocument, variables: variables }
     }
+export const RemoveSecurityKeyDocument = gql`
+    mutation removeSecurityKey($id: uuid!) {
+  deleteAuthUserSecurityKey(id: $id) {
+    id
+  }
+}
+    `;
+export type RemoveSecurityKeyMutationFn = Apollo.MutationFunction<RemoveSecurityKeyMutation, RemoveSecurityKeyMutationVariables>;
+
+/**
+ * __useRemoveSecurityKeyMutation__
+ *
+ * To run a mutation, you first call `useRemoveSecurityKeyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveSecurityKeyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeSecurityKeyMutation, { data, loading, error }] = useRemoveSecurityKeyMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRemoveSecurityKeyMutation(baseOptions?: Apollo.MutationHookOptions<RemoveSecurityKeyMutation, RemoveSecurityKeyMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveSecurityKeyMutation, RemoveSecurityKeyMutationVariables>(RemoveSecurityKeyDocument, options);
+      }
+export type RemoveSecurityKeyMutationHookResult = ReturnType<typeof useRemoveSecurityKeyMutation>;
+export type RemoveSecurityKeyMutationResult = Apollo.MutationResult<RemoveSecurityKeyMutation>;
+export type RemoveSecurityKeyMutationOptions = Apollo.BaseMutationOptions<RemoveSecurityKeyMutation, RemoveSecurityKeyMutationVariables>;
 export const DeletePersonalAccessTokenDocument = gql`
     mutation DeletePersonalAccessToken($patId: uuid!) {
   deletePersonalAccessToken: deleteAuthRefreshToken(id: $patId) {

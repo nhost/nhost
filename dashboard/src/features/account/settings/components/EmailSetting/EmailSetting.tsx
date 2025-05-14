@@ -15,7 +15,7 @@ export type EmailSettingFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function EmailSetting() {
   const nhost = useNhostClient();
-  const { email } = useUserData();
+  const { email } = useUserData() || {};
 
   const form = useForm<EmailSettingFormValues>({
     reValidateMode: 'onSubmit',

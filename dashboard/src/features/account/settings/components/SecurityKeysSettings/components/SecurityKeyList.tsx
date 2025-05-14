@@ -1,5 +1,5 @@
 import { Spinner } from '@/components/ui/v3/spinner';
-import useGetSecurityKeys from '@/features/account/settings/components/SecurityKeysSettings/hooks/useGetSecurityKeys';
+import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { Fingerprint } from 'lucide-react';
 import { memo } from 'react';

@@ -12,13 +12,13 @@ interface SignInEmailPasswordHandler {
   (email: string, password: string): Promise<SignInEmailPasswordHandlerResult>
 }
 
-interface SendMfaOtpHander {
+export interface SendMfaOtpHandler {
   (otp: string): Promise<SignInMfaTotpHandlerResult>
 }
 
 export interface SignInEmailPasswordHookResult extends SignInEmailPasswordState {
   signInEmailPassword: SignInEmailPasswordHandler
-  sendMfaOtp: SendMfaOtpHander
+  sendMfaOtp: SendMfaOtpHandler
 }
 
 interface SignInEmailPasswordHook {
@@ -49,7 +49,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = () => {
   const signInEmailPassword: SignInEmailPasswordHandler = (email, password) =>
     signInEmailPasswordPromise(service, email, password)
 
-  const sendMfaOtp: SendMfaOtpHander = (otp) => signInMfaTotpPromise(service, otp)
+  const sendMfaOtp: SendMfaOtpHandler = (otp) => signInMfaTotpPromise(service, otp)
 
   const user = useSelector(
     service,
@@ -84,11 +84,9 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = () => {
       }),
     (a, b) => a === b
   )
-  const needsMfaOtp = useSelector(
-    service,
-    (state) => state.matches({ authentication: { signedOut: 'needsMfa' } }),
-    (a, b) => a === b
-  )
+
+  const needsMfaOtp = useSelector(service, (state) => state.context.mfa !== null)
+
   const isError = useSelector(
     service,
     (state) => state.matches({ authentication: { signedOut: 'failed' } }),
