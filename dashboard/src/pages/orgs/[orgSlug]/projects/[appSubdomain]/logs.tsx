@@ -64,7 +64,10 @@ export default function LogsPage() {
         document: GetLogsSubscriptionDocument,
         variables: {
           appID: project?.id,
-          service: filters.service,
+          service:
+            filters.service === AvailableLogsService.JOB_BACKUP
+              ? 'job-backup.+' // Use regex pattern to match any job-backup services
+              : filters.service,
           from: filters.from,
           regexFilter: filters.regexFilter,
         },
