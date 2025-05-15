@@ -16,6 +16,7 @@ setup('refresh metadata', async () => {
             {
               type: 'reload_metadata',
               args: {
+                reload_remote_schemas: ['graphite'],
                 reload_sources: false,
               },
             },
