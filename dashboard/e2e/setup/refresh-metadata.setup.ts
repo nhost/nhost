@@ -39,8 +39,9 @@ setup('refresh metadata', async () => {
       if (isConsistent) {
         console.log('Metadata is consistent.');
       } else {
-        console.log('Metadata is not consistent.');
-        console.log(body[0].inconsistent_objects);
+        console.error('Metadata is not consistent.');
+        console.error(body[0].inconsistent_objects);
+        throw new Error('Metadata is not consistent');
       }
     }
   } catch (error) {
