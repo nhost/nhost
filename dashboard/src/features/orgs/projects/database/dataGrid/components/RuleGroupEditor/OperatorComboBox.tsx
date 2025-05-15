@@ -54,6 +54,14 @@ const textSpecificOperators: typeof commonOperators = [
   { value: '_niregex', helperText: `doesn't match case-insensitive regex` },
 ];
 
+const jsonbSpecificOperators: typeof commonOperators = [
+  { value: '_contains', helperText: 'contains' },
+  { value: '_contained_in', helperText: 'contains' },
+  { value: '_has_key', helperText: 'contains' },
+  { value: '_has_keys_any', helperText: 'contains' },
+  { value: '_has_keys_all', helperText: 'contains' },
+]
+
 interface OperatorComboBoxProps {
   name: string;
   disabled?: boolean;
