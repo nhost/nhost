@@ -112,7 +112,7 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.spotify]
-enabled = false
+enabled = true
 
 [auth.method.oauth.strava]
 enabled = false
