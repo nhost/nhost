@@ -187,7 +187,7 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   await expect(page.getByText(/No operator found/i)).not.toBeVisible();
 
-  await columnSelector.press('Enter');
+  await operatorSelector.press('Enter');
 
     await page.getByText('Select variable...', { exact: true }).click();
 
