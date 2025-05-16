@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.32.0
+
+### Minor Changes
+
+- df51c3e: fix: added installation instructions for the CLI
+
 ## 2.31.0
 
 ### Minor Changes
