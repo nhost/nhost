@@ -2149,6 +2149,78 @@ type AuthUserProvidersStreamCursorValueInput struct {
 	ProviderID *string `json:"providerId,omitempty"`
 }
 
+// User webauthn security keys. Don't modify its structure as Hasura Auth relies on it to function properly.
+type AuthUserSecurityKeys struct {
+	ID       string  `json:"id"`
+	Nickname *string `json:"nickname,omitempty"`
+	// An object relationship
+	User   *Users `json:"user"`
+	UserID string `json:"userId"`
+}
+
+// order by aggregate values of table "auth.user_security_keys"
+type AuthUserSecurityKeysAggregateOrderBy struct {
+	Count *OrderBy                        `json:"count,omitempty"`
+	Max   *AuthUserSecurityKeysMaxOrderBy `json:"max,omitempty"`
+	Min   *AuthUserSecurityKeysMinOrderBy `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "auth.user_security_keys". All fields are combined with a logical 'AND'.
+type AuthUserSecurityKeysBoolExp struct {
+	And      []*AuthUserSecurityKeysBoolExp `json:"_and,omitempty"`
+	Not      *AuthUserSecurityKeysBoolExp   `json:"_not,omitempty"`
+	Or       []*AuthUserSecurityKeysBoolExp `json:"_or,omitempty"`
+	ID       *UUIDComparisonExp             `json:"id,omitempty"`
+	Nickname *StringComparisonExp           `json:"nickname,omitempty"`
+	User     *UsersBoolExp                  `json:"user,omitempty"`
+	UserID   *UUIDComparisonExp             `json:"userId,omitempty"`
+}
+
+// order by max() on columns of table "auth.user_security_keys"
+type AuthUserSecurityKeysMaxOrderBy struct {
+	ID       *OrderBy `json:"id,omitempty"`
+	Nickname *OrderBy `json:"nickname,omitempty"`
+	UserID   *OrderBy `json:"userId,omitempty"`
+}
+
+// order by min() on columns of table "auth.user_security_keys"
+type AuthUserSecurityKeysMinOrderBy struct {
+	ID       *OrderBy `json:"id,omitempty"`
+	Nickname *OrderBy `json:"nickname,omitempty"`
+	UserID   *OrderBy `json:"userId,omitempty"`
+}
+
+// response of any mutation on the table "auth.user_security_keys"
+type AuthUserSecurityKeysMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AuthUserSecurityKeys `json:"returning"`
+}
+
+// Ordering options when selecting data from "auth.user_security_keys".
+type AuthUserSecurityKeysOrderBy struct {
+	ID       *OrderBy      `json:"id,omitempty"`
+	Nickname *OrderBy      `json:"nickname,omitempty"`
+	User     *UsersOrderBy `json:"user,omitempty"`
+	UserID   *OrderBy      `json:"userId,omitempty"`
+}
+
+// Streaming cursor of the table "authUserSecurityKeys"
+type AuthUserSecurityKeysStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *AuthUserSecurityKeysStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AuthUserSecurityKeysStreamCursorValueInput struct {
+	ID       *string `json:"id,omitempty"`
+	Nickname *string `json:"nickname,omitempty"`
+	UserID   *string `json:"userId,omitempty"`
+}
+
 // columns and relationships of "backups"
 type Backups struct {
 	// An object relationship
@@ -4503,6 +4575,12 @@ type SubscriptionRoot struct {
 	AuthUserProviders []*AuthUserProviders `json:"authUserProviders"`
 	// fetch data from the table in a streaming manner: "auth.user_providers"
 	AuthUserProvidersStream []*AuthUserProviders `json:"authUserProviders_stream"`
+	// fetch data from the table: "auth.user_security_keys" using primary key columns
+	AuthUserSecurityKey *AuthUserSecurityKeys `json:"authUserSecurityKey,omitempty"`
+	// fetch data from the table: "auth.user_security_keys"
+	AuthUserSecurityKeys []*AuthUserSecurityKeys `json:"authUserSecurityKeys"`
+	// fetch data from the table in a streaming manner: "auth.user_security_keys"
+	AuthUserSecurityKeysStream []*AuthUserSecurityKeys `json:"authUserSecurityKeys_stream"`
 	// fetch data from the table: "backups" using primary key columns
 	Backup *Backups `json:"backup,omitempty"`
 	// An array relationship
@@ -4685,6 +4763,8 @@ type Users struct {
 	// An array relationship
 	RefreshTokens []*AuthRefreshTokens `json:"refreshTokens"`
 	// An array relationship
+	SecurityKeys []*AuthUserSecurityKeys `json:"securityKeys"`
+	// An array relationship
 	UserProviders []*AuthUserProviders `json:"userProviders"`
 	// An array relationship
 	WorkspaceMemberInvitesByInvitedByUserID []*WorkspaceMemberInvites `json:"workspaceMemberInvitesByInvitedByUserId"`
@@ -4710,6 +4790,7 @@ type UsersBoolExp struct {
 	OrganizationMembership                  *OrganizationMembersBoolExp    `json:"organizationMembership,omitempty"`
 	PaymentMethods                          *PaymentMethodsBoolExp         `json:"payment_methods,omitempty"`
 	RefreshTokens                           *AuthRefreshTokensBoolExp      `json:"refreshTokens,omitempty"`
+	SecurityKeys                            *AuthUserSecurityKeysBoolExp   `json:"securityKeys,omitempty"`
 	UserProviders                           *AuthUserProvidersBoolExp      `json:"userProviders,omitempty"`
 	WorkspaceMemberInvitesByInvitedByUserID *WorkspaceMemberInvitesBoolExp `json:"workspaceMemberInvitesByInvitedByUserId,omitempty"`
 	WorkspaceMembers                        *WorkspaceMembersBoolExp       `json:"workspaceMembers,omitempty"`
@@ -4737,6 +4818,7 @@ type UsersOrderBy struct {
 	OrganizationMembershipAggregate                  *OrganizationMembersAggregateOrderBy    `json:"organizationMembership_aggregate,omitempty"`
 	PaymentMethodsAggregate                          *PaymentMethodsAggregateOrderBy         `json:"payment_methods_aggregate,omitempty"`
 	RefreshTokensAggregate                           *AuthRefreshTokensAggregateOrderBy      `json:"refreshTokens_aggregate,omitempty"`
+	SecurityKeysAggregate                            *AuthUserSecurityKeysAggregateOrderBy   `json:"securityKeys_aggregate,omitempty"`
 	UserProvidersAggregate                           *AuthUserProvidersAggregateOrderBy      `json:"userProviders_aggregate,omitempty"`
 	WorkspaceMemberInvitesByInvitedByUserIDAggregate *WorkspaceMemberInvitesAggregateOrderBy `json:"workspaceMemberInvitesByInvitedByUserId_aggregate,omitempty"`
 	WorkspaceMembersAggregate                        *WorkspaceMembersAggregateOrderBy       `json:"workspaceMembers_aggregate,omitempty"`
@@ -6013,6 +6095,53 @@ func (e *AuthUserProvidersSelectColumn) UnmarshalGQL(v any) error {
 }
 
 func (e AuthUserProvidersSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "auth.user_security_keys"
+type AuthUserSecurityKeysSelectColumn string
+
+const (
+	// column name
+	AuthUserSecurityKeysSelectColumnID AuthUserSecurityKeysSelectColumn = "id"
+	// column name
+	AuthUserSecurityKeysSelectColumnNickname AuthUserSecurityKeysSelectColumn = "nickname"
+	// column name
+	AuthUserSecurityKeysSelectColumnUserID AuthUserSecurityKeysSelectColumn = "userId"
+)
+
+var AllAuthUserSecurityKeysSelectColumn = []AuthUserSecurityKeysSelectColumn{
+	AuthUserSecurityKeysSelectColumnID,
+	AuthUserSecurityKeysSelectColumnNickname,
+	AuthUserSecurityKeysSelectColumnUserID,
+}
+
+func (e AuthUserSecurityKeysSelectColumn) IsValid() bool {
+	switch e {
+	case AuthUserSecurityKeysSelectColumnID, AuthUserSecurityKeysSelectColumnNickname, AuthUserSecurityKeysSelectColumnUserID:
+		return true
+	}
+	return false
+}
+
+func (e AuthUserSecurityKeysSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AuthUserSecurityKeysSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthUserSecurityKeysSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid authUserSecurityKeys_select_column", str)
+	}
+	return nil
+}
+
+func (e AuthUserSecurityKeysSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
