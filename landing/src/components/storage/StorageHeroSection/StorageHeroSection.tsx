@@ -42,12 +42,18 @@ export default function StorageHeroSection() {
         <SectionHeading
           title={
             <>
-              High-Performance <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Storage</span>
+              High-Performance{' '}
+              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
+                Storage
+              </span>
             </>
           }
           subtitle={
             <>
-              Store, transform, and deliver files at blazing speed with our global CDN. <strong>Upload files</strong> with just a few lines of code, <strong>resize images</strong> on-the-fly, and <strong>control access</strong> with granular permissions.
+              Store, transform, and deliver files at blazing speed with our
+              global CDN. <strong>Upload files</strong> with just a few lines of
+              code, <strong>resize images</strong> on-the-fly, and{' '}
+              <strong>control access</strong> with granular permissions.
             </>
           }
           className="text-left"
@@ -61,7 +67,7 @@ export default function StorageHeroSection() {
             },
           }}
         />
-        
+
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
@@ -74,7 +80,7 @@ export default function StorageHeroSection() {
           <Button
             variant="outlined"
             className="text-center text-base"
-            href="https://docs.nhost.io/storage"
+            href="https://docs.nhost.io/products/storage"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -86,14 +92,14 @@ export default function StorageHeroSection() {
       <div className="relative sm:pt-6 md:pt-24">
         <LineGrid className="md:-translate-x-11 md:-translate-y-11" priority />
 
-        <Glow className="mx-auto h-[75%] w-[90%] opacity-40 blur-3xl animate-pulse" />
+        <Glow className="mx-auto h-[75%] w-[90%] animate-pulse opacity-40 blur-3xl" />
 
         <Image
           src="/products/storage-hero.png"
           width={1920}
           height={991}
           alt="The Nhost Dashboard's storage page"
-          className="relative z-10 mx-auto h-auto w-full object-contain animate-slide-middle-up"
+          className="relative z-10 mx-auto h-auto w-full animate-slide-middle-up object-contain"
           priority
           sizes="(max-width: 1024px) 50vw, 60vw"
         />
@@ -102,7 +108,7 @@ export default function StorageHeroSection() {
           language="typescript"
           disableGlow
           disableLineGrid
-          className="absolute -right-3 -bottom-6 z-20 max-w-sm shadow-lg xl:-right-5 xl:-bottom-12 animate-fade-in-delay"
+          className="absolute -right-3 -bottom-6 z-20 max-w-sm animate-fade-in-delay shadow-lg xl:-right-5 xl:-bottom-12"
         >
           {heroExample}
         </CodeSnippet>

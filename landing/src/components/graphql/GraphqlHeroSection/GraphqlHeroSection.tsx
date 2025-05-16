@@ -41,12 +41,19 @@ export default function GraphqlHeroSection() {
         <SectionHeading
           title={
             <>
-              Instant <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">GraphQL API</span>
+              Instant{' '}
+              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
+                GraphQL API
+              </span>
             </>
           }
           subtitle={
             <>
-              Get a powerful GraphQL API generated automatically from your database schema. <strong>Queries</strong>, <strong>mutations</strong>, and <strong>realtime subscriptions</strong> with granular permissions, all without writing backend code.
+              Get a powerful GraphQL API generated automatically from your
+              database schema. <strong>Queries</strong>,{' '}
+              <strong>mutations</strong>, and{' '}
+              <strong>realtime subscriptions</strong> with granular permissions,
+              all without writing backend code.
             </>
           }
           className="text-left"
@@ -58,7 +65,7 @@ export default function GraphqlHeroSection() {
             subtitle: { className: 'text-base !leading-normal' },
           }}
         />
-        
+
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
@@ -71,7 +78,7 @@ export default function GraphqlHeroSection() {
           <Button
             variant="outlined"
             className="text-center text-base"
-            href="https://docs.nhost.io/graphql"
+            href="https://docs.nhost.io/products/graphql"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -81,22 +88,22 @@ export default function GraphqlHeroSection() {
       </div>
 
       <div className="relative md:pt-20 lg:pt-0">
-        <Glow className="absolute h-full w-full opacity-30 blur-3xl animate-pulse" />
+        <Glow className="absolute h-full w-full animate-pulse opacity-30 blur-3xl" />
         <div className="relative">
           <Image
             src="/products/graphql-hero.svg"
             width={608}
             height={608}
             alt="GraphQL logo"
-            className="mx-auto h-full max-h-[400px] w-full object-none md:max-h-[none] md:object-none xl:-translate-y-4 animate-pulse"
+            className="mx-auto h-full max-h-[400px] w-full animate-pulse object-none md:max-h-[none] md:object-none xl:-translate-y-4"
             priority
           />
-          
+
           <CodeSnippet
             language="graphql"
             disableGlow
             disableLineGrid
-            className="absolute -right-3 -bottom-20 z-20 max-w-sm shadow-lg xl:-right-5 xl:-bottom-12 animate-fade-in-delay"
+            className="absolute -right-3 -bottom-20 z-20 max-w-sm animate-fade-in-delay shadow-lg xl:-right-5 xl:-bottom-12"
           >
             {heroExample}
           </CodeSnippet>

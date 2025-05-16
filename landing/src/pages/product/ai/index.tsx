@@ -84,17 +84,13 @@ export default function AIPage() {
         }}
       >
         <div className="grid grid-flow-row justify-items-center gap-8">
-          <div className="gradient-background rounded-full p-px mb-6 animate-fade-in">
+          <div className="gradient-background mb-6 animate-fade-in rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
               AI-powered backend
             </p>
           </div>
           <SectionHeading
-            title={
-              <>
-                Enhance your backend with <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">AI integration</span>
-              </>
-            }
+            title="Enhance your backend with AI integration"
             subtitle="Create and deploy AI-powered applications with a few lines of configuration"
             className="max-w-xl"
             slotProps={{
@@ -106,7 +102,7 @@ export default function AIPage() {
 
           <Button
             variant="borderless"
-            className="text-base font-bold animate-fade-in"
+            className="animate-fade-in text-base font-bold"
             size="sm"
             href="https://docs.nhost.io/products/ai/overview"
             rel="noopener noreferrer"
@@ -121,7 +117,9 @@ export default function AIPage() {
             <CodeSnippet
               language={codeSnippets[selectedExample].lang}
               customStyle={{ minHeight: 220 }}
-              slotProps={{ root: { className: 'mx-auto md:max-w-xl animate-fade-in' } }}
+              slotProps={{
+                root: { className: 'mx-auto md:max-w-xl animate-fade-in' },
+              }}
             >
               {codeSnippets[selectedExample].snippet}
             </CodeSnippet>
@@ -164,24 +162,20 @@ export default function AIPage() {
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block animate-pulse"
+              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
             />
           </div>
         </div>
       </Container>
 
       <Container component="section" className="mt-24 lg:mt-40">
-        <div className="gradient-background rounded-full p-px mb-6 mx-auto w-fit animate-fade-in">
+        <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
           <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
             AI for everyone
           </p>
         </div>
         <SectionHeading
-          title={
-            <>
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Use cases</span> for every application
-            </>
-          }
+          title="Use cases for every application"
           subtitle="The AI Toolkit extends the Nhost stack providing AI super-powers to your application."
           className="max-w-xl"
           slotProps={{
@@ -192,7 +186,7 @@ export default function AIPage() {
         />
 
         <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm">
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/auto-embeddings.svg"
               width={24}
@@ -200,16 +194,14 @@ export default function AIPage() {
               alt="Auto-Embeddings icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Auto</span>-Embeddings
-            </h3>
+            <h3 className="text-base font-bold">Auto-Embeddings</h3>
             <p className="text-base text-white text-opacity-65">
               Generate embeddings for your data automatically as it is inserted
               or modified, enabling powerful semantic search capabilities.
             </p>
           </Card>
 
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm">
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/ai-assistants.svg"
               width={24}
@@ -217,16 +209,14 @@ export default function AIPage() {
               alt="AI Assistants icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">AI</span> Assistants
-            </h3>
+            <h3 className="text-base font-bold">AI Agents</h3>
             <p className="text-base text-white text-opacity-65">
-              Create customized AI assistants so your users can interact with your data
-              using natural language and get intelligent responses.
+              Create customized AI assistants so your users can interact with
+              your data using natural language and get intelligent responses.
             </p>
           </Card>
 
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm">
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/graphite-logo.svg"
               width={24}
@@ -234,29 +224,24 @@ export default function AIPage() {
               alt="Developer Assistant icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Developer</span> Assistant
-            </h3>
+            <h3 className="text-base font-bold">Developer Assistant</h3>
             <p className="text-base text-white text-opacity-65">
-              Boost your development speed with a custom AI assistant that has access to your 
-              project's information like database and GraphQL schema.
+              Boost your development speed with a custom AI assistant that has
+              access to your project's information like database and GraphQL
+              schema.
             </p>
           </Card>
         </div>
       </Container>
 
       <Container component="section" className="mt-24 lg:mt-40">
-        <div className="gradient-background rounded-full p-px mb-6 mx-auto w-fit animate-fade-in">
+        <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
           <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
             Smart integration
           </p>
         </div>
         <SectionHeading
-          title={
-            <>
-              Key <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">advantages</span> of our AI toolkit
-            </>
-          }
+          title="Key advantages of our AI toolkit"
           subtitle="Graphite offers several key advantages by running alongside your Nhost stack"
           className="max-w-xl"
           slotProps={{
@@ -267,7 +252,7 @@ export default function AIPage() {
         />
 
         <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="flex flex-row items-start space-x-4 group hover:transform hover:translate-y-[-4px] transition-all">
+          <div className="group flex flex-row items-start space-x-4 transition-all hover:translate-y-[-4px] hover:transform">
             <Image
               src="/products/tick.svg"
               width={32}
@@ -276,17 +261,15 @@ export default function AIPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">
-                <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Integrated</span> permissions
-              </h3>
+              <h3 className="text-base font-bold">Integrated permissions</h3>
               <p className="text-base text-white text-opacity-65">
-                AI features are fully integrated with your project's permissions scheme,
-                ensuring secure access control across your application.
+                AI features are fully integrated with your project's permissions
+                scheme, ensuring secure access control across your application.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-row items-start space-x-4 group hover:transform hover:translate-y-[-4px] transition-all">
+          <div className="group flex flex-row items-start space-x-4 transition-all hover:translate-y-[-4px] hover:transform">
             <Image
               src="/products/tick.svg"
               width={32}
@@ -295,17 +278,16 @@ export default function AIPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">
-                <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Automatic</span> embeddings
-              </h3>
+              <h3 className="text-base font-bold">Automatic embeddings</h3>
               <p className="text-base text-white text-opacity-65">
-                Vector embeddings are generated and kept up to date automatically,
-                with no manual intervention required as your data changes.
+                Vector embeddings are generated and kept up to date
+                automatically, with no manual intervention required as your data
+                changes.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-row items-start space-x-4 group hover:transform hover:translate-y-[-4px] transition-all">
+          <div className="group flex flex-row items-start space-x-4 transition-all hover:translate-y-[-4px] hover:transform">
             <Image
               src="/products/tick.svg"
               width={32}
@@ -314,17 +296,16 @@ export default function AIPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">
-                <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Seamless</span> workflows
-              </h3>
+              <h3 className="text-base font-bold">Seamless workflows</h3>
               <p className="text-base text-white text-opacity-65">
-                Implement AI-powered workflows with no hassle, leveraging GraphQL
-                to access all AI features directly from your frontend applications.
+                Implement AI-powered workflows with no hassle, leveraging
+                GraphQL to access all AI features directly from your frontend
+                applications.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-row items-start space-x-4 group hover:transform hover:translate-y-[-4px] transition-all">
+          <div className="group flex flex-row items-start space-x-4 transition-all hover:translate-y-[-4px] hover:transform">
             <Image
               src="/products/tick.svg"
               width={32}
@@ -333,12 +314,11 @@ export default function AIPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">
-                <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Enhanced</span> development
-              </h3>
+              <h3 className="text-base font-bold">Enhanced development</h3>
               <p className="text-base text-white text-opacity-65">
                 Accelerate your development process with AI-powered developer
-                assistants that understand your specific project structure and requirements.
+                assistants that understand your specific project structure and
+                requirements.
               </p>
             </div>
           </div>
@@ -346,17 +326,13 @@ export default function AIPage() {
       </Container>
 
       <Container component="section" className="mt-24 lg:mt-40">
-        <div className="gradient-background rounded-full p-px mb-6 mx-auto w-fit animate-fade-in">
+        <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
           <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
             Simple to implement
           </p>
         </div>
         <SectionHeading
-          title={
-            <>
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Build AI</span> features in minutes
-            </>
-          }
+          title="Build AI features in minutes"
           subtitle="Adding AI capabilities to your application has never been easier"
           className="max-w-2xl"
           slotProps={{
@@ -366,14 +342,16 @@ export default function AIPage() {
           }}
         />
 
-        <div className="mx-auto mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl">
-          <div className="rounded-xl border border-divider bg-paper p-6 animate-fade-in">
-            <h3 className="text-xl font-bold mb-4">Enable <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">auto-embeddings</span> with one query</h3>
-            <p className="text-base text-white text-opacity-65 mb-6">
+        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="animate-fade-in rounded-xl border border-divider bg-paper p-6">
+            <h3 className="mb-4 text-xl font-bold">
+              Enable auto-embeddings with one query
+            </h3>
+            <p className="mb-6 text-base text-white text-opacity-65">
               Start using semantic search with just a few lines of GraphQL:
             </p>
             <CodeSnippet language="graphql" disableGlow>
-{`mutation {
+              {`mutation {
   graphite {
     enableAutoEmbeddingsForTable(
       tableName: "movies",
@@ -387,19 +365,21 @@ export default function AIPage() {
 }`}
             </CodeSnippet>
           </div>
-          
-          <div className="rounded-xl border border-divider bg-paper p-6 animate-fade-in-delay">
-            <h3 className="text-xl font-bold mb-4">Create an <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">AI assistant</span> in seconds</h3>
-            <p className="text-base text-white text-opacity-65 mb-6">
+
+          <div className="animate-fade-in-delay rounded-xl border border-divider bg-paper p-6">
+            <h3 className="mb-4 text-xl font-bold">
+              Create an AI assistant in seconds
+            </h3>
+            <p className="mb-6 text-base text-white text-opacity-65">
               Build assistants that can access your application data:
             </p>
             <CodeSnippet language="javascript" disableGlow>
-{`// Create a custom assistant with knowledge of your data
+              {`// Create a custom assistant with knowledge of your data
 const assistant = await nhost.graphite.createAssistant({
   name: "Movie Expert",
   instructions: "Help users find movies they'll enjoy",
   tools: [
-    { type: "knowledge_retrieval" }, 
+    { type: "knowledge_retrieval" },
     { type: "function", function: { name: "getMovieDetails" } }
   ],
   knowledgeRetrieval: {
@@ -412,114 +392,106 @@ const assistant = await nhost.graphite.createAssistant({
       </Container>
 
       <Container component="section" className="mt-24">
-        <div className="gradient-background rounded-full p-px mb-6 mx-auto w-fit animate-fade-in">
+        <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
           <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
             Complete AI solution
           </p>
         </div>
-        <SectionHeading 
-          title={
-            <>
-              Advanced <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">features</span>
-            </>
-          } 
-          className="max-w-lg" 
-        />
+        <SectionHeading title="Advanced features" className="max-w-lg" />
 
         <div className="mx-auto mt-16 grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm group">
+          <Card className="hover:shadow-glow-sm group flex flex-col space-y-3 transition-all">
             <Image
               src="/products/search.svg"
               width={24}
               height={24}
               alt="Search icon"
-              className="group-hover:scale-110 transition-all"
+              className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Semantic</span> Search
-            </h3>
+            <h3 className="text-base font-bold">Semantic Search</h3>
             <p className="text-base text-white text-opacity-65">
-              Find information based on meaning, not just keywords, with powerful vector-based search capabilities
+              Find information based on meaning, not just keywords, with
+              powerful vector-based search capabilities
             </p>
           </Card>
-          
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm group">
+
+          <Card className="hover:shadow-glow-sm group flex flex-col space-y-3 transition-all">
             <Image
               src="/products/data-federation.svg"
               width={24}
               height={24}
               alt="Data Federation icon"
-              className="group-hover:scale-110 transition-all"
+              className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Document</span> Processing
-            </h3>
+            <h3 className="text-base font-bold">Document Processing</h3>
             <p className="text-base text-white text-opacity-65">
-              Add documents to your AI knowledge base for assistants to reference when answering questions
+              Add documents to your AI knowledge base for assistants to
+              reference when answering questions
             </p>
           </Card>
-          
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm group">
+
+          <Card className="hover:shadow-glow-sm group flex flex-col space-y-3 transition-all">
             <Image
               src="/products/bulls-eye.svg"
               width={24}
               height={24}
               alt="Bullseye icon"
-              className="group-hover:scale-110 transition-all"
+              className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Function</span> Calling
-            </h3>
+            <h3 className="text-base font-bold">Function Calling</h3>
             <p className="text-base text-white text-opacity-65">
-              Allow AI assistants to execute functions in your backend code to retrieve data or perform actions
+              Allow AI assistants to execute functions in your backend code to
+              retrieve data or perform actions
             </p>
           </Card>
-          
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm group">
+
+          <Card className="hover:shadow-glow-sm group flex flex-col space-y-3 transition-all">
             <Image
               src="/products/tool.svg"
               width={24}
               height={24}
               alt="Tool icon"
-              className="group-hover:scale-110 transition-all"
+              className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">GraphQL</span> Integration
-            </h3>
+            <h3 className="text-base font-bold">GraphQL Integration</h3>
             <p className="text-base text-white text-opacity-65">
-              Access all AI features through your familiar GraphQL API, keeping your tech stack unified
+              Access all AI features through your familiar GraphQL API, keeping
+              your tech stack unified
             </p>
           </Card>
-          
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm group">
+
+          {/* <Card className="hover:shadow-glow-sm group flex flex-col space-y-3 transition-all">
             <Image
               src="/products/typescript.svg"
               width={24}
               height={24}
               alt="TypeScript icon"
-              className="group-hover:scale-110 transition-all"
+              className="transition-all group-hover:scale-110"
             />
             <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">TypeScript</span> SDK
+              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
+                TypeScript
+              </span>{' '}
+              SDK
             </h3>
             <p className="text-base text-white text-opacity-65">
-              Build AI features with full type safety and autocompletion using our TypeScript SDK
+              Build AI features with full type safety and autocompletion using
+              our TypeScript SDK
             </p>
-          </Card>
-          
-          <Card className="flex flex-col space-y-3 transition-all hover:shadow-glow-sm group">
+          </Card> */}
+
+          <Card className="hover:shadow-glow-sm group flex flex-col space-y-3 transition-all">
             <Image
               src="/products/secure.svg"
               width={24}
               height={24}
               alt="Security icon"
-              className="group-hover:scale-110 transition-all"
+              className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Security</span> Controls
-            </h3>
+            <h3 className="text-base font-bold">Security Controls</h3>
             <p className="text-base text-white text-opacity-65">
-              Full control over which data can be accessed by AI features with granular permission settings
+              Full control over which data can be accessed by AI features with
+              granular permission settings
             </p>
           </Card>
         </div>
@@ -529,19 +501,13 @@ const assistant = await nhost.graphite.createAssistant({
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         heading={
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
-            <div className="gradient-background rounded-full p-px animate-fade-in">
+            <div className="gradient-background animate-fade-in rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
                 Explore the Nhost Ecosystem
               </p>
             </div>
 
-            <SectionHeading 
-              title={
-                <>
-                  Complete your <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">backend stack</span>
-                </>
-              } 
-            />
+            <SectionHeading title="Complete your backend stack" />
           </div>
         }
         disabledLink="ai"

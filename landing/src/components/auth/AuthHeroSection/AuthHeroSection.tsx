@@ -34,12 +34,16 @@ export default function AuthHeroSection() {
         <SectionHeading
           title={
             <>
-              Secure <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Authentication</span>
+              Secure{' '}
+              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
+                Authentication
+              </span>
             </>
           }
           subtitle={
             <>
-              Everything you need to authenticate and manage users. <strong>Sign up, sign in, reset passwords</strong>, and more with just a few lines of code. Support for <strong>social providers</strong>, <strong>passwordless</strong>, and <strong>WebAuthn</strong>.
+              A comprehensive authentication solution to implement secure user
+              management effortlessly.
             </>
           }
           className="text-left"
@@ -53,7 +57,7 @@ export default function AuthHeroSection() {
             },
           }}
         />
-        
+
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
@@ -66,7 +70,7 @@ export default function AuthHeroSection() {
           <Button
             variant="outlined"
             className="text-center text-base"
-            href="https://docs.nhost.io/auth"
+            href="https://docs.nhost.io/products/auth"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -78,7 +82,7 @@ export default function AuthHeroSection() {
       <div className="relative sm:pt-6 md:-translate-x-1 md:pt-24">
         <LineGrid className="md:-translate-x-11 md:-translate-y-11" priority />
 
-        <Glow className="h-[75%] w-full opacity-40 blur-3xl animate-pulse" />
+        <Glow className="h-[75%] w-full animate-pulse opacity-40 blur-3xl" />
 
         <Image
           src="/products/auth-hero.png"
@@ -94,7 +98,7 @@ export default function AuthHeroSection() {
           language="typescript"
           disableGlow
           disableLineGrid
-          className="absolute -right-3 -bottom-6 z-20 max-w-sm shadow-lg xl:-right-5 xl:-bottom-12 animate-fade-in-delay"
+          className="absolute -right-3 -bottom-6 z-20 max-w-sm animate-fade-in-delay shadow-lg xl:-right-5 xl:-bottom-12"
         >
           {heroExample}
         </CodeSnippet>

@@ -20,132 +20,68 @@ import { ReactElement, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
-  insertData: `import { nhost } from './nhost'
-
-const createNewUser = async () => {
-  // Insert data with GraphQL mutation
-  const { data, error } = await nhost.graphql.request(\`
-    mutation InsertUser($user: users_insert_input!) {
-      insert_users_one(object: $user) {
-        id
-        name
-        email
-        created_at
-      }
+  insertData: `// Available remote schema
+{
+  "remote_schemas": [
+    {
+      "name": "weather_api",
+      "definition": {
+        "url": "https://api.weather.com/graphql",
+        "timeout_seconds": 60,
+        "forward_client_headers": true
+      },
+      "comment": "Weather API remote schema"
     }
-  \`, {
-    variables: {
-      user: {
-        name: "John Doe",
-        email: "john@example.com",
-        profile: {
-          data: {
-            bio: "Software developer",
-            avatar_url: "https://example.com/avatar.jpg"
-          }
-        }
-      }
-    }
-  })
-  
-  if (error) {
-    console.error("Error inserting user:", error)
-    return
-  }
-  
-  console.log("New user created:", data.insert_users_one)
-}`,
-  readData: `import { nhost } from './nhost'
+  ]
+}
 
-const fetchUsers = async () => {
-  // Fetch data with GraphQL query
+// Query weather API
+const getWeatherForLocation = async () => {
   const { data, error } = await nhost.graphql.request(\`
-    query GetUsers {
-      users(
-        order_by: { created_at: desc }
-        where: { is_active: { _eq: true } }
-        limit: 10
-      ) {
-        id
-        name
-        email
-        profile {
-          bio
-          avatar_url
-        }
-        posts {
-          id
-          title
-        }
-      }
-    }
-  \`)
-  
-  if (error) {
-    console.error("Error fetching users:", error)
-    return
-  }
-  
-  return data.users
-}`,
-  updateData: `import { nhost } from './nhost'
-
-const updateUserProfile = async (userId, newBio) => {
-  // Update data with GraphQL mutation
-  const { data, error } = await nhost.graphql.request(\`
-    mutation UpdateProfile($userId: uuid!, $bio: String!) {
-      update_profiles(
-        where: { user_id: { _eq: $userId } },
-        _set: { bio: $bio }
-      ) {
-        affected_rows
-        returning {
-          id
-          bio
-          updated_at
+    query GetWeather($city: String!) {
+      weather_api {
+        getWeather(city: $city) {
+          temperature
+          conditions
         }
       }
     }
   \`, {
     variables: {
-      userId,
-      bio: newBio
+      city: "Stockholm"
     }
   })
-  
-  if (error) {
-    console.error("Error updating profile:", error)
-    return
-  }
-  
-  console.log("Profile updated:", data.update_profiles.returning[0])
 }`,
-  deleteData: `import { nhost } from './nhost'
+  readData: `// Event trigger configuration
+{
+  "name": "send_welcome_email",
+  "type": "create",
+  "table": {
+    "schema": "public",
+    "name": "users"
+  },
+  "webhook": "https://your-service.com/api/welcome-email"
+}
 
-const deleteUser = async (userId) => {
-  // Delete data with GraphQL mutation
-  const { data, error } = await nhost.graphql.request(\`
-    mutation DeleteUser($userId: uuid!) {
-      delete_users(where: { id: { _eq: $userId } }) {
-        affected_rows
+// Webhook implementation
+const welcomeEmailHandler = async (req, res) => {
+  const { event } = req.body;
+  const userData = event.data.new;
+
+  try {
+    await emailService.send({
+      to: userData.email,
+      templateId: "welcome_template",
+      dynamicData: {
+        name: userData.name,
+        activationLink: \`https://app.example.com/activate/\${userData.id}\`
       }
-      # Cascading delete due to foreign key relationships
-      delete_profiles(where: { user_id: { _eq: $userId } }) {
-        affected_rows
-      }
-    }
-  \`, {
-    variables: {
-      userId
-    }
-  })
-  
-  if (error) {
-    console.error("Error deleting user:", error)
-    return
+    });
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Failed to send welcome email:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
-  
-  console.log("User deleted, rows affected:", data.delete_users.affected_rows)
 }`,
 }
 
@@ -208,31 +144,27 @@ export default function GraphqlPage() {
 
       <Container
         component="section"
-        className="grid grid-flow-row gap-16 md:gap-24 mt-16"
+        className="mt-16 grid grid-flow-row gap-16 md:gap-24"
         slotProps={{
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}
       >
         <div className="grid grid-flow-row justify-items-center gap-8">
-          <div className="gradient-background rounded-full p-px mb-2">
+          <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Developer Experience
+              GraphQL Extensibility
             </p>
           </div>
-          
+
           <SectionHeading
-            title={
-              <>
-                Type-safe <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">GraphQL API</span>
-              </>
-            }
-            subtitle="Nhost GraphQL Client is tailored to your GraphQL API. The auto-completion helps you build queries faster with fewer errors and without constantly checking documentation."
+            title="Powerful remote schemas & triggers"
+            subtitle="Extend your GraphQL API with remote schemas to integrate external services and event triggers to automate workflows. Connect and automate your backend with ease."
           />
 
           <Button
             variant="outlined"
             className="text-base font-bold"
-            href="https://docs.nhost.io/graphql/client"
+            href="https://docs.nhost.io/hasura/remote-schemas"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -245,19 +177,27 @@ export default function GraphqlPage() {
             <CodeSnippet
               language="typescript"
               className="min-h-[330px] shadow-lg"
-              slotProps={{ root: { className: 'mx-auto md:max-w-xl animate-fade-in-delay' } }}
+              slotProps={{
+                root: {
+                  className: 'mx-auto md:max-w-xl animate-fade-in-delay',
+                },
+              }}
             >
               {codeSnippets[selectedExample]}
             </CodeSnippet>
-            
-            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 max-w-xl mx-auto">
-              <div className="p-4 rounded-md bg-paper border border-divider bg-opacity-50">
-                <h3 className="text-sm font-bold">Type Safe</h3>
-                <p className="text-xs text-white text-opacity-65 mt-1">Full TypeScript support for a better development experience</p>
+
+            <div className="mx-auto mt-6 grid max-w-xl grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
+                <h3 className="text-sm font-bold">Seamless Integration</h3>
+                <p className="mt-1 text-xs text-white text-opacity-65">
+                  Connect external APIs and services to your GraphQL API
+                </p>
               </div>
-              <div className="p-4 rounded-md bg-paper border border-divider bg-opacity-50">
-                <h3 className="text-sm font-bold">Auto-generated SDK</h3>
-                <p className="text-xs text-white text-opacity-65 mt-1">SDK generated from your GraphQL schema for perfect type safety</p>
+              <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
+                <h3 className="text-sm font-bold">Automated Workflows</h3>
+                <p className="mt-1 text-xs text-white text-opacity-65">
+                  Create event-driven applications with database change triggers
+                </p>
               </div>
             </div>
           </div>
@@ -268,28 +208,14 @@ export default function GraphqlPage() {
                 active={selectedExample === 'insertData'}
                 onClick={() => setSelectedExample('insertData')}
               >
-                Insert Data
+                Remote Schema
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'readData'}
                 onClick={() => setSelectedExample('readData')}
               >
-                Read Data
-              </ExampleSelectorButton>
-
-              <ExampleSelectorButton
-                active={selectedExample === 'updateData'}
-                onClick={() => setSelectedExample('updateData')}
-              >
-                Update Data
-              </ExampleSelectorButton>
-
-              <ExampleSelectorButton
-                active={selectedExample === 'deleteData'}
-                onClick={() => setSelectedExample('deleteData')}
-              >
-                Delete Data
+                Event Trigger
               </ExampleSelectorButton>
             </div>
 
@@ -306,26 +232,22 @@ export default function GraphqlPage() {
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none xl:block animate-pulse"
+              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] animate-pulse object-none xl:block"
             />
           </div>
         </div>
       </Container>
 
-      <Container component="section" className="pt-28 mt-8">
+      <Container component="section" className="mt-8 pt-28">
         <div className="grid grid-flow-row justify-items-center gap-8">
-          <div className="gradient-background rounded-full p-px mb-2">
+          <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
               Enterprise-Grade Security
             </p>
           </div>
-          
+
           <SectionHeading
-            title={
-              <>
-                Powerful <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Permissions</span>, Made Simple
-              </>
-            }
+            title="Powerful permissions, made simple"
             subtitle="Row and column level permissions to safely expose your GraphQL API to the world. Control exactly what data users can access without writing complex authorization code."
             className="max-w-2xl"
             slotProps={{ subtitle: { className: 'max-w-lg mx-auto' } }}
@@ -337,16 +259,24 @@ export default function GraphqlPage() {
             <source src={`/videos/graphql/permissions.mp4`} type="video/mp4" />
           </video>
         </div>
-        
-        <div className="mt-12 grid grid-cols-2 gap-6 max-w-5xl mx-auto">
-          <div className="p-6 rounded-lg bg-paper border border-divider shadow-md">
-            <h3 className="text-lg font-bold mb-3">Row-Level Security</h3>
-            <p className="text-base text-white text-opacity-65">Control which rows users can access based on their identity or role. Ensure users only see their own data or data specifically shared with them.</p>
+
+        <div className="mx-auto mt-12 grid max-w-5xl grid-cols-2 gap-6">
+          <div className="rounded-lg border border-divider bg-paper p-6 shadow-md">
+            <h3 className="mb-3 text-lg font-bold">Row-Level Security</h3>
+            <p className="text-base text-white text-opacity-65">
+              Control which rows users can access based on their identity or
+              role. Ensure users only see their own data or data specifically
+              shared with them.
+            </p>
           </div>
-          
-          <div className="p-6 rounded-lg bg-paper border border-divider shadow-md">
-            <h3 className="text-lg font-bold mb-3">Column-Level Security</h3>
-            <p className="text-base text-white text-opacity-65">Hide sensitive fields from unauthorized users. Protect personal information while still allowing access to other data in the same table.</p>
+
+          <div className="rounded-lg border border-divider bg-paper p-6 shadow-md">
+            <h3 className="mb-3 text-lg font-bold">Column-Level Security</h3>
+            <p className="text-base text-white text-opacity-65">
+              Hide sensitive fields from unauthorized users. Protect personal
+              information while still allowing access to other data in the same
+              table.
+            </p>
           </div>
         </div>
       </Container>
@@ -357,18 +287,14 @@ export default function GraphqlPage() {
         slotProps={{ root: { className: 'overflow-hidden' } }}
       >
         <div className="grid grid-flow-row justify-items-center gap-8">
-          <div className="gradient-background rounded-full p-px mb-2">
+          <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
               Build Collaborative Apps
             </p>
           </div>
-          
+
           <SectionHeading
-            title={
-              <>
-                Realtime <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Subscriptions</span>
-              </>
-            }
+            title="Realtime subscriptions"
             subtitle="Create modern, collaborative applications with GraphQL subscriptions. Get live data updates pushed to your client in real-time without complex WebSocket setup."
           />
         </div>
@@ -377,8 +303,10 @@ export default function GraphqlPage() {
           <ul className="grid grid-flow-row gap-6 md:max-w-sm">
             <li
               className={twMerge(
-                'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors p-4 rounded-lg border border-transparent',
-                selectedRealtimeExample === 'avatars' ? 'border-brand-main bg-paper bg-opacity-40' : 'text-opacity-65 hover:text-opacity-100',
+                'grid grid-flow-row items-start justify-start rounded-lg border border-transparent p-4 text-white text-opacity-100 motion-safe:transition-colors',
+                selectedRealtimeExample === 'avatars'
+                  ? 'border-brand-main bg-paper bg-opacity-40'
+                  : 'text-opacity-65 hover:text-opacity-100',
               )}
               role="button"
               tabIndex={0}
@@ -400,14 +328,18 @@ export default function GraphqlPage() {
               </div>
 
               <p className="ml-8 mt-2 text-sm">
-                Show online status and user presence in real-time across multiple clients. Perfect for chat applications and collaborative workspaces.
+                Show online status and user presence in real-time across
+                multiple clients. Perfect for chat applications and
+                collaborative workspaces.
               </p>
             </li>
 
             <li
               className={twMerge(
-                'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors p-4 rounded-lg border border-transparent',
-                selectedRealtimeExample === 'cursors' ? 'border-brand-main bg-paper bg-opacity-40' : 'text-opacity-65 hover:text-opacity-100',
+                'grid grid-flow-row items-start justify-start rounded-lg border border-transparent p-4 text-white text-opacity-100 motion-safe:transition-colors',
+                selectedRealtimeExample === 'cursors'
+                  ? 'border-brand-main bg-paper bg-opacity-40'
+                  : 'text-opacity-65 hover:text-opacity-100',
               )}
               role="button"
               tabIndex={0}
@@ -429,14 +361,18 @@ export default function GraphqlPage() {
               </div>
 
               <p className="ml-8 mt-2 text-sm">
-                Create Google Docs-like experiences with multi-user cursor positions updated in real-time. Enable truly collaborative document editing.
+                Create Google Docs-like experiences with multi-user cursor
+                positions updated in real-time. Enable truly collaborative
+                document editing.
               </p>
             </li>
 
             <li
               className={twMerge(
-                'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors p-4 rounded-lg border border-transparent',
-                selectedRealtimeExample === 'location' ? 'border-brand-main bg-paper bg-opacity-40' : 'text-opacity-65 hover:text-opacity-100',
+                'grid grid-flow-row items-start justify-start rounded-lg border border-transparent p-4 text-white text-opacity-100 motion-safe:transition-colors',
+                selectedRealtimeExample === 'location'
+                  ? 'border-brand-main bg-paper bg-opacity-40'
+                  : 'text-opacity-65 hover:text-opacity-100',
               )}
               role="button"
               tabIndex={0}
@@ -458,14 +394,18 @@ export default function GraphqlPage() {
               </div>
 
               <p className="ml-8 mt-2 text-sm">
-                Build location-tracking applications with real-time updates. Perfect for delivery tracking, ride-sharing, or fleet management apps.
+                Build location-tracking applications with real-time updates.
+                Perfect for delivery tracking, ride-sharing, or fleet management
+                apps.
               </p>
             </li>
 
             <li
               className={twMerge(
-                'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors p-4 rounded-lg border border-transparent',
-                selectedRealtimeExample === 'charts' ? 'border-brand-main bg-paper bg-opacity-40' : 'text-opacity-65 hover:text-opacity-100',
+                'grid grid-flow-row items-start justify-start rounded-lg border border-transparent p-4 text-white text-opacity-100 motion-safe:transition-colors',
+                selectedRealtimeExample === 'charts'
+                  ? 'border-brand-main bg-paper bg-opacity-40'
+                  : 'text-opacity-65 hover:text-opacity-100',
               )}
               role="button"
               tabIndex={0}
@@ -487,24 +427,31 @@ export default function GraphqlPage() {
               </div>
 
               <p className="ml-8 mt-2 text-sm">
-                Create dashboards with real-time data visualization. Get instant updates without polling, perfect for analytics, monitoring, and IoT applications.
+                Create dashboards with real-time data visualization. Get instant
+                updates without polling, perfect for analytics, monitoring, and
+                IoT applications.
               </p>
             </li>
           </ul>
 
           <div className="flex flex-col gap-4">
-            <CodeSnippet 
-              language="graphql" 
+            <CodeSnippet
+              language="graphql"
               customStyle={{ minHeight: 300 }}
               className="shadow-lg"
             >
               {realtimeCodeSnippets[selectedRealtimeExample]}
             </CodeSnippet>
-            
-            <div className="bg-paper p-4 rounded-lg border border-divider">
-              <h4 className="font-bold mb-2 text-sm">Why Subscriptions Matter</h4>
+
+            <div className="rounded-lg border border-divider bg-paper p-4">
+              <h4 className="mb-2 text-sm font-bold">
+                Why Subscriptions Matter
+              </h4>
               <p className="text-sm text-white text-opacity-65">
-                Unlike traditional REST APIs that require polling, GraphQL subscriptions push data to clients only when changes occur, reducing server load and improving user experience with real-time updates.
+                Unlike traditional REST APIs that require polling, GraphQL
+                subscriptions push data to clients only when changes occur,
+                reducing server load and improving user experience with
+                real-time updates.
               </p>
             </div>
           </div>
@@ -517,73 +464,74 @@ export default function GraphqlPage() {
         slotProps={{ root: { className: 'overflow-hidden' } }}
       >
         <div className="grid grid-flow-row justify-items-center gap-8">
-          <div className="gradient-background rounded-full p-px mb-2">
+          <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
               Unified Data Access
             </p>
           </div>
-          
+
           <SectionHeading
-            title={
-              <>
-                Data <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Federation</span>
-              </>
-            }
+            title="Data federation"
             subtitle="Connect multiple data sources into a single, unified GraphQL API. Combine your database with third-party services, microservices, and legacy systems - all through one powerful API."
           />
         </div>
 
         <div className="relative mt-16">
-          <Glow className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-1/2 w-1/2 opacity-40 blur-3xl animate-pulse" />
-          
+          <Glow className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse opacity-40 blur-3xl" />
+
           <Image
             src="/products/data-federation.svg"
             alt="Nhost being connected to data sources"
             width={1110}
             height={1110}
-            className="mx-auto h-auto w-full max-w-2xl relative z-10 animate-fade-in-delay"
+            className="relative z-10 mx-auto h-auto w-full max-w-2xl animate-fade-in-delay"
           />
         </div>
-        
-        <div className="mt-12 grid grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <div className="p-6 rounded-lg bg-paper border border-divider shadow-md">
-            <h3 className="text-lg font-bold mb-3">Single API</h3>
-            <p className="text-sm text-white text-opacity-65">Access all your data through a single, consistent GraphQL API, eliminating the need to manage multiple endpoints.</p>
+
+        <div className="mx-auto mt-12 grid max-w-5xl grid-cols-3 gap-6">
+          <div className="rounded-lg border border-divider bg-paper p-6 shadow-md">
+            <h3 className="mb-3 text-lg font-bold">Single API</h3>
+            <p className="text-sm text-white text-opacity-65">
+              Access all your data through a single, consistent GraphQL API,
+              eliminating the need to manage multiple endpoints.
+            </p>
           </div>
-          
-          <div className="p-6 rounded-lg bg-paper border border-divider shadow-md">
-            <h3 className="text-lg font-bold mb-3">Remote Schemas</h3>
-            <p className="text-sm text-white text-opacity-65">Connect third-party REST APIs and other GraphQL services directly into your main API with remote schemas.</p>
+
+          <div className="rounded-lg border border-divider bg-paper p-6 shadow-md">
+            <h3 className="mb-3 text-lg font-bold">Remote Schemas</h3>
+            <p className="text-sm text-white text-opacity-65">
+              Connect third-party REST APIs and other GraphQL services directly
+              into your main API with remote schemas.
+            </p>
           </div>
-          
-          <div className="p-6 rounded-lg bg-paper border border-divider shadow-md">
-            <h3 className="text-lg font-bold mb-3">Cross-Source Joins</h3>
-            <p className="text-sm text-white text-opacity-65">Join data across different sources in a single query, combining information from your database with external services.</p>
+
+          <div className="rounded-lg border border-divider bg-paper p-6 shadow-md">
+            <h3 className="mb-3 text-lg font-bold">Cross-Source Joins</h3>
+            <p className="text-sm text-white text-opacity-65">
+              Join data across different sources in a single query, combining
+              information from your database with external services.
+            </p>
           </div>
         </div>
       </Container>
 
       <Container component="section" className="mt-24 lg:mt-40">
         <div className="grid grid-flow-row justify-items-center gap-8">
-          <div className="gradient-background rounded-full p-px mb-2">
+          <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
               More Capabilities
             </p>
           </div>
-          
+
           <SectionHeading
-            title={
-              <>
-                Advanced <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">GraphQL</span> Features
-              </>
-            }
+            title="Advanced GraphQL features"
             subtitle="Everything you need for modern, high-performance APIs all in one platform."
             className="max-w-2xl"
           />
         </div>
 
         <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
-          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15 shadow-lg transition-all duration-300 hover:shadow-xl">
+          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-15">
             <div className="relative">
               <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-y-1/2 -translate-x-1/2" />
               <Glow className="animate-pulse" />
@@ -606,8 +554,8 @@ export default function GraphqlPage() {
               Start building <ArrowRightIcon />
             </Button>
           </Card>
-          
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 shadow-lg transition-all duration-300 hover:shadow-xl">
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-8">
             <Image
               src="/products/database.svg"
               width={24}
@@ -620,12 +568,14 @@ export default function GraphqlPage() {
               <h3 className="text-base font-bold">Advanced Querying</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Filter, sort, order by, group, aggregate, limit, and offset. Express complex queries with a clean, type-safe GraphQL API without writing any backend code.
+                Filter, sort, order by, group, aggregate, limit, and offset.
+                Express complex queries with a clean, type-safe GraphQL API
+                without writing any backend code.
               </p>
             </div>
           </Card>
-          
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7 shadow-lg transition-all duration-300 hover:shadow-xl">
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-7">
             <Image
               src="/products/search.svg"
               width={24}
@@ -637,12 +587,14 @@ export default function GraphqlPage() {
               <h3 className="text-base font-bold">Full-Text Search</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Powerful full-text search capabilities built right into your GraphQL API. No need to set up and manage a separate search engine.
+                Powerful full-text search capabilities built right into your
+                GraphQL API. No need to set up and manage a separate search
+                engine.
               </p>
             </div>
           </Card>
-          
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 shadow-lg transition-all duration-300 hover:shadow-xl">
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-8">
             <Image
               src="/products/hasura.svg"
               width={24}
@@ -655,12 +607,14 @@ export default function GraphqlPage() {
               <h3 className="text-base font-bold">Hasura GraphQL Engine</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Enterprise-grade GraphQL engine with support for Event Triggers, Actions, Remote Schemas and more. Mature, battle-tested technology powering thousands of production apps.
+                Enterprise-grade GraphQL engine with support for Event Triggers,
+                Actions, Remote Schemas and more. Mature, battle-tested
+                technology powering thousands of production apps.
               </p>
             </div>
           </Card>
-          
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7 shadow-lg transition-all duration-300 hover:shadow-xl">
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-8 lg:row-span-7">
             <Image
               src="/products/checkmark.svg"
               width={24}
@@ -673,7 +627,9 @@ export default function GraphqlPage() {
               <h3 className="text-base font-bold">N+1 Problem Solved</h3>
 
               <p className="text-base text-white text-opacity-65">
-                All your GraphQL queries are intelligently compiled into optimized SQL queries, solving the common N+1 performance problem that plagues many GraphQL implementations.
+                All your GraphQL queries are intelligently compiled into
+                optimized SQL queries, solving the common N+1 performance
+                problem that plagues many GraphQL implementations.
               </p>
             </div>
           </Card>
@@ -690,8 +646,8 @@ export default function GraphqlPage() {
               </p>
             </div>
 
-            <SectionHeading 
-              title="Explore the Nhost Ecosystem" 
+            <SectionHeading
+              title="Explore the Nhost Ecosystem"
               subtitle="GraphQL is just one part of our complete backend platform. Discover how all our services work together to power your applications."
             />
           </div>

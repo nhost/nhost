@@ -17,11 +17,10 @@ export default (req: Request, res: Response) => {
   }
 
   try {
-    // Connect to Stripe or other services
     const { amount, currency, customerEmail } = req.body
-    
+
     // Process payment logic here
-    
+
     res.status(200).json({
       success: true,
       message: 'Payment processed successfully'
@@ -55,12 +54,18 @@ export default function FunctionsHeroSection() {
         <SectionHeading
           title={
             <>
-              Serverless <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Functions</span>
+              Serverless{' '}
+              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
+                Functions
+              </span>
             </>
           }
           subtitle={
             <>
-              Deploy server-side code without managing infrastructure. <strong>API endpoints</strong> that scale automatically, <strong>integrate with third-party services</strong>, and run globally with <strong>zero maintenance</strong>.
+              Deploy server-side code without managing infrastructure.{' '}
+              <strong>API endpoints</strong> that scale automatically,{' '}
+              <strong>integrate with third-party services</strong>, and run
+              globally with <strong>zero maintenance</strong>.
             </>
           }
           className="text-left"
@@ -74,7 +79,7 @@ export default function FunctionsHeroSection() {
             },
           }}
         />
-        
+
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
@@ -87,7 +92,7 @@ export default function FunctionsHeroSection() {
           <Button
             variant="outlined"
             className="text-center text-base"
-            href="https://docs.nhost.io/functions"
+            href="https://docs.nhost.io/products/functions"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -98,9 +103,9 @@ export default function FunctionsHeroSection() {
 
       <div className="relative">
         <Glow className="absolute h-full w-full opacity-20 blur-3xl" />
-        <CodeSnippet 
+        <CodeSnippet
           language="typescript"
-          className="shadow-lg animate-fade-in-delay"
+          className="animate-fade-in-delay shadow-lg"
         >
           {heroExample}
         </CodeSnippet>

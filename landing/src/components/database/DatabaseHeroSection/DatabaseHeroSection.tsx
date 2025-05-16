@@ -8,7 +8,7 @@ import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import Image from 'next/image'
 
-const heroExample = `SELECT * FROM customers 
+const heroExample = `SELECT * FROM customers
 WHERE country = 'USA'
 AND last_purchase > '2023-01-01';`
 
@@ -33,12 +33,18 @@ export default function DatabaseHeroSection() {
         <SectionHeading
           title={
             <>
-              Enterprise-Grade <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">PostgreSQL</span>
+              Enterprise-Grade{' '}
+              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
+                PostgreSQL
+              </span>
             </>
           }
           subtitle={
             <>
-              Fully-managed PostgreSQL database with a user-friendly interface. <strong>Create tables</strong>, <strong>edit data</strong>, and <strong>manage permissions</strong> with ease, or connect directly with <strong>psql</strong> as a root user.
+              Fully-managed PostgreSQL database with a user-friendly interface.{' '}
+              <strong>Create tables</strong>, <strong>edit data</strong>, and{' '}
+              <strong>manage permissions</strong> with ease, or connect directly
+              with <strong>psql</strong> as a root user.
             </>
           }
           className="text-left"
@@ -50,7 +56,7 @@ export default function DatabaseHeroSection() {
             subtitle: { className: 'text-base !leading-normal' },
           }}
         />
-        
+
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
@@ -63,7 +69,7 @@ export default function DatabaseHeroSection() {
           <Button
             variant="outlined"
             className="text-center text-base"
-            href="https://docs.nhost.io/database"
+            href="https://docs.nhost.io/products/database"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -78,22 +84,22 @@ export default function DatabaseHeroSection() {
           priority
         />
 
-        <Glow className="h-[55%] w-1/2 opacity-40 blur-3xl animate-pulse md:h-1/2 md:w-[75%] md:-translate-x-18" />
+        <Glow className="h-[55%] w-1/2 animate-pulse opacity-40 blur-3xl md:h-1/2 md:w-[75%] md:-translate-x-18" />
 
         <Image
           src="/products/database-hero.svg"
           width={619}
           height={464}
           alt="A table with three columns"
-          className="relative z-10 mx-auto h-auto w-full object-contain animate-slide-middle-up"
+          className="relative z-10 mx-auto h-auto w-full animate-slide-middle-up object-contain"
           priority
         />
-        
+
         <CodeSnippet
           language="sql"
           disableGlow
           disableLineGrid
-          className="absolute -right-3 -bottom-6 z-20 max-w-sm shadow-lg xl:-right-5 xl:-bottom-12 animate-fade-in-delay"
+          className="absolute -right-3 -bottom-6 z-20 max-w-sm animate-fade-in-delay shadow-lg xl:-right-5 xl:-bottom-12"
         >
           {heroExample}
         </CodeSnippet>

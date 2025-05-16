@@ -68,7 +68,7 @@ const PostgresElephantIcon: React.FC<NhostElephantIconProps> = ({
 
 const DatabaseVisualClean = () => (
   <div className="flex h-full w-full items-center justify-center p-4">
-    <div className="flex h-60 w-60 items-center justify-center rounded-lg border border-divider bg-paper text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50 md:h-32 md:w-32 lg:h-60 lg:w-60">
+    <div className="flex h-60 w-60 items-center justify-center rounded-lg text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50 md:h-32 md:w-32 ">
       <PostgresElephantIcon className="h-24 w-24 md:h-24 md:w-24 lg:h-60 lg:w-60" />
     </div>
   </div>
@@ -129,27 +129,37 @@ const AuthVisualClean = () => (
 
 const GraphQLVisualClean = () => (
   <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-2">
-    {' '}
-    {/* flex-col and h-full */}
-    {/* Icon 1: Graph/Network representation */}
+    {/* Icon 1: Simplified GraphQL Logo */}
     <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-divider bg-paper text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50">
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
+        fill="none" // Or fill with a color if it's a solid version
+        viewBox="0 0 24 24" // Adjust viewBox if using a specific GraphQL logo SVG
         strokeWidth={1.5}
         stroke="currentColor"
         className="h-7 w-7"
       >
-        {/* Heroicon: share (can represent connected nodes) */}
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M7.217 10.907a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zm0 0l-.11.06a2.25 2.25 0 01-2.128 0l-.11-.06a2.25 2.25 0 01-2.128 0l-.11.06a2.25 2.25 0 000 4.5l.11.06a2.25 2.25 0 002.128 0l.11-.06a2.25 2.25 0 002.128 0l.11.06a2.25 2.25 0 000-4.5l-.11-.06a2.25 2.25 0 00-2.128 0z"
-        />
+        {/* Placeholder for a SIMPLIFIED GraphQL Hexagon Logo */}
+        {/* This is a very rough approximation. A proper SVG would be needed. */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L5 6v12l7 4 7-4V6L12 2z" /> {/* Outer Hexagon */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v6" /> {/* Line to center */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 6l3.5 2" /> {/* Lines from corners to inner points (approx) */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 6l-3.5 2" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 18l3.5-2" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 18l-3.5-2" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 22v-6" />
+        {/* Center dot */}
+        <circle cx="12" cy="12" r="1" fill="currentColor" />
       </svg>
+      {/*
+        Best option: Use an actual SVG of a simplified GraphQL logo.
+        Many design systems have iconic versions of popular tech logos.
+        Example: <img src="/path-to-graphql-icon.svg" alt="GraphQL" className="h-7 w-7" />
+                 or import as React component if using SVGR.
+      */}
     </div>
-    {/* Icon 2: Query/Code representation */}
+
+    {/* Icon 2: API / Network Connection or Query Braces */}
     <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-divider bg-paper text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -159,16 +169,18 @@ const GraphQLVisualClean = () => (
         stroke="currentColor"
         className="h-7 w-7"
       >
-        {/* Heroicon: code-bracket */}
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
-        />
+        {/* Option A: API/Network (Heroicon: globe-alt or cloud) */}
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121.75 12H17.25" />
+
+        {/* Option B: Simple Query Braces (if preferred for directness to syntax) */}
+        {/* <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h7.5M8.25 17.25h7.5M9.75 3.75L6 12l3.75 8.25M14.25 3.75L18 12l-3.75 8.25" />  (Stylized Braces - would need better custom path) */}
+        {/* Or even simpler, just the code-bracket icon if it feels API-like enough */}
+        {/* <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /> */}
       </svg>
     </div>
   </div>
-)
+);
+
 
 const StorageVisualClean = () => (
   <div className="flex h-24 w-full items-center justify-center gap-2 overflow-hidden rounded-md p-2">
@@ -356,7 +368,7 @@ const nhostServicesData: NhostServiceDisplayInfo[] = [
     href: '/product/database',
     visualElement: <DatabaseVisualClean />,
     gridClasses:
-      'sm:col-span-2 md:col-span-2 lg:col-span-2 sm:row-span-2 md:row-span-2 lg:row-span-2',
+      'sm:col-span-2 md:col-span-2 lg:col-span-2 sm:row-span-2 md:row-span-2 lg:row-span-2 bg-paper/20',
     group: 'Core',
   },
   {
@@ -366,7 +378,7 @@ const nhostServicesData: NhostServiceDisplayInfo[] = [
     href: '/product/graphql',
     visualElement: <GraphQLVisualClean />,
     gridClasses:
-      'sm:col-span-1 md:col-span-1 lg:col-span-1 sm:row-span-2 md:row-span-2 lg:row-span-2',
+      'sm:col-span-1 md:col-span-1 lg:col-span-1 sm:row-span-2 md:row-span-2 lg:row-span-2 bg-paper/20',
     group: 'Core',
   },
   {
@@ -375,7 +387,7 @@ const nhostServicesData: NhostServiceDisplayInfo[] = [
     description: 'Secure user sign-up, sign-in, & management.',
     href: '/product/auth',
     visualElement: <AuthVisualClean />,
-    gridClasses: 'sm:col-span-1 md:col-span-1 lg:col-span-1',
+    gridClasses: 'sm:col-span-1 md:col-span-1 lg:col-span-1 bg-paper/20',
     group: 'Core',
   },
   {
@@ -384,7 +396,7 @@ const nhostServicesData: NhostServiceDisplayInfo[] = [
     description: 'File uploads, downloads, & CDN.',
     href: '/product/storage',
     visualElement: <StorageVisualClean />,
-    gridClasses: 'sm:col-span-1 md:col-span-1 lg:col-span-1',
+    gridClasses: 'sm:col-span-1 md:col-span-1 lg:col-span-1 bg-paper/20',
     group: 'Core',
   },
   {
@@ -393,7 +405,7 @@ const nhostServicesData: NhostServiceDisplayInfo[] = [
     description: 'Scalable JS/TS backend logic. No servers.',
     href: '/product/functions',
     visualElement: <FunctionsVisualClean />,
-    gridClasses: 'sm:col-span-1 md:col-span-1 lg:col-span-1',
+    gridClasses: 'sm:col-span-1 md:col-span-1 lg:col-span-1 bg-paper/40',
     group: 'Extend',
   },
   {
@@ -402,7 +414,7 @@ const nhostServicesData: NhostServiceDisplayInfo[] = [
     description: 'Deploy your services written in any language.',
     href: '/product/run',
     visualElement: <RunVisualClean />,
-    gridClasses: 'sm:col-span-1 md:col-span-1 lg:col-span-1',
+    gridClasses: 'sm:col-span-1 md:col-span-1 lg:col-span-1 bg-paper/40',
     group: 'Extend',
   },
   {
@@ -411,7 +423,7 @@ const nhostServicesData: NhostServiceDisplayInfo[] = [
     description: 'Embeddings, vector search, AI models. (Opt-in)',
     href: '/product/ai',
     visualElement: <AIVisualClean />,
-    gridClasses: 'sm:col-span-2 md:col-span-2 lg:col-span-2',
+    gridClasses: 'sm:col-span-2 md:col-span-2 lg:col-span-2 bg-paper/40',
     group: 'Enhance',
   },
 ]
@@ -433,17 +445,7 @@ export default function ProductSection({
       className={twMerge('space-y-10 py-12 md:space-y-16 md:py-20', className)}
       {...props}
     >
-      {heading && (
-        <div className="text-center">
-          <h2 className="font-mona text-3xl font-semibold tracking-tight text-default dark:text-white sm:text-4.5xl">
-            Everything You Need to Build & Scale.
-          </h2>
-          <p className="mt-4 text-lg leading-8 text-gray-600 dark:text-gray-300 sm:text-xl">
-            Nhost provides a complete, open-source backend, from foundational
-            services to advanced AI capabilities.
-          </p>
-        </div>
-      )}
+      {heading}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
         {nhostServicesData.map((service) => (
@@ -452,10 +454,9 @@ export default function ProductSection({
             href={service.href}
             className={twMerge(
               'group relative flex flex-col justify-between overflow-hidden rounded-xl p-4 transition-all duration-300 ease-in-out focus:outline-none md:p-5',
-              'bg-paper dark:bg-default/40',
-              'border border-divider dark:border-divider/75',
+              'border border-divider',
               'hover:shadow-xl dark:hover:shadow-brand-dark/30',
-              'hover:border-brand-main dark:hover:border-brand-light',
+              'hover:border-brand-main/20',
               'shadow-md',
               service.gridClasses,
               disabledLink === service.id && 'pointer-events-none opacity-65',
