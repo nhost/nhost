@@ -54,11 +54,11 @@ const textSpecificOperators: typeof commonOperators = [
 ];
 
 const jsonbSpecificOperators: typeof commonOperators = [
-  { value: '_contains', helperText: 'contains' },
-  { value: '_contained_in', helperText: 'contains' },
-  { value: '_has_key', helperText: 'contains' },
-  { value: '_has_keys_any', helperText: 'contains' },
-  { value: '_has_keys_all', helperText: 'contains' },
+  { value: '_contains', helperText: 'contains the specified value' },
+  { value: '_contained_in', helperText: 'is contained in the specified value' },
+  { value: '_has_key', helperText: 'has the specified key' },
+  { value: '_has_keys_any', helperText: 'has any of the specified keys' },
+  { value: '_has_keys_all', helperText: 'has all of the specified keys' },
 ]
 
 interface OperatorComboBoxProps {
