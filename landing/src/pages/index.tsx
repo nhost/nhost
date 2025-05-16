@@ -82,7 +82,6 @@ export default function IndexPage() {
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         heading={
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
-
             <SectionHeading
               // title="Stop juggling, start building"
               // title="Everything you need to build & scale."
@@ -190,7 +189,8 @@ export default function IndexPage() {
               <h3 className="text-base font-bold">Built-in observability</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Monitor your app's performance and get insights into your users.
+                Monitor your app&apos;s performance and get insights into your
+                users.
               </p>
             </div>
           </Card>

@@ -216,7 +216,7 @@ export default function DatabasePage() {
               </h3>
               <p className="text-sm text-white text-opacity-65">
                 Connect using pgAdmin, DBeaver, DataGrip, or any other
-                PostgreSQL client. Work with the tools you're already
+                PostgreSQL client. Work with the tools you&apos;re already
                 comfortable with.
               </p>
             </div>
@@ -237,7 +237,8 @@ export default function DatabasePage() {
               </h3>
               <p className="text-sm text-white text-opacity-65">
                 Write and execute complex SQL queries, create stored procedures,
-                and leverage the full power of PostgreSQL's advanced features.
+                and leverage the full power of PostgreSQL&apos;s advanced
+                features.
               </p>
             </div>
           </div>
@@ -377,7 +378,7 @@ export default function DatabasePage() {
 
               <p className="text-base text-white text-opacity-65">
                 Start small and scale as you grow. Easily upgrade your database
-                resources as your application's needs increase.
+                resources as your application&apos;s needs increase.
               </p>
             </div>
           </Card>

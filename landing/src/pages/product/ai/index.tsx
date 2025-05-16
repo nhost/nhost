@@ -227,8 +227,8 @@ export default function AIPage() {
             <h3 className="text-base font-bold">Developer Assistant</h3>
             <p className="text-base text-white text-opacity-65">
               Boost your development speed with a custom AI assistant that has
-              access to your project's information like database and GraphQL
-              schema.
+              access to your project&apos;s information like database and
+              GraphQL schema.
             </p>
           </Card>
         </div>
@@ -263,8 +263,9 @@ export default function AIPage() {
             <div className="flex flex-col space-y-2">
               <h3 className="text-base font-bold">Integrated permissions</h3>
               <p className="text-base text-white text-opacity-65">
-                AI features are fully integrated with your project's permissions
-                scheme, ensuring secure access control across your application.
+                AI features are fully integrated with your project&apos;s
+                permissions scheme, ensuring secure access control across your
+                application.
               </p>
             </div>
           </div>
