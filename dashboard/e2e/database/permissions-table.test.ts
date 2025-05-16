@@ -183,7 +183,7 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   await operatorSelector.press('Enter');
 
-    await page.getByText('Select variable...', { exact: true }).click();
+  await page.getByText('Select variable...', { exact: true }).click();
 
   const variableSelector = await page.locator('input[role="combobox"]');
 
