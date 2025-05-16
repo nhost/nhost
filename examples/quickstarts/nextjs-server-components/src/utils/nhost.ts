@@ -37,8 +37,8 @@ export const manageAuthSession = async (
   if (accessTokenExpired || refreshToken) {
     const { session: newSession, error } = await nhost.auth.refreshSession(refreshToken)
 
-    if (error) {
-      onError?.(error)
+    if (error && onError) {
+      return onError(error)
     }
 
     // remove the refreshToken from the url
