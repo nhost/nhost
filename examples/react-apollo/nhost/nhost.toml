@@ -122,7 +122,9 @@ clientId='{{ secrets.LINKEDIN_CLIENT_ID }}'
 clientSecret='{{ secrets.LINKEDIN_CLIENT_SECRET }}'
 
 [auth.method.oauth.spotify]
-enabled = false
+enabled = true
+clientId = '{{ secrets.SPOTIFY_CLIENT_ID }}'
+clientSecret = '{{ secrets.SPOTIFY_CLIENT_SECRET }}'
 
 [auth.method.oauth.strava]
 enabled = false

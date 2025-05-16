@@ -1,11 +1,11 @@
-import { SiApple, SiGithub, SiGoogle, SiLinkedin } from '@icons-pack/react-simple-icons'
+import { SiApple, SiGithub, SiGoogle, SiLinkedin, SiSpotify } from '@icons-pack/react-simple-icons'
 import { Link } from 'react-router-dom'
 import { useProviderLink } from '@nhost/react'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 
 export default function OAuthLinks() {
-  const { github, apple, google, linkedin } = useProviderLink({
+  const { github, apple, google, linkedin, spotify } = useProviderLink({
     redirectTo: window.location.origin
   })
 
@@ -53,6 +53,18 @@ export default function OAuthLinks() {
         <SiLinkedin className="w-4 h-4" />
         <span className="flex-1 text-center">Continue with LinkedIn</span>
       </Link>
+
+      <Link
+        to={spotify}
+        className={cn(
+          buttonVariants({ variant: 'link' }),
+          'bg-[#1DB954] text-white hover:opacity-90 hover:no-underline'
+        )}
+      >
+        <SiSpotify className="w-4 h-4" />
+        <span className="flex-1 text-center">Continue with Spotify</span>
+      </Link>
+
     </div>
   )
 }
