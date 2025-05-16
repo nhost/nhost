@@ -80,6 +80,7 @@ export default function OperatorComboBox({
   const availableOperators = [
     ...commonOperators,
     ...(selectedColumnType === 'text' ? textSpecificOperators : []),
+    ...(selectedColumnType === 'jsonb' ? jsonbSpecificOperators : []),
   ];
 
   const handleSelect = (value: string) => {
