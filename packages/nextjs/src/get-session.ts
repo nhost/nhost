@@ -1,56 +1,47 @@
 import { NhostSession } from '@nhost/react'
-import { GetServerSidePropsContext } from 'next'
+import { SearchParams } from 'next/dist/server/request/search-params';
 import { createServerSideClient, CreateServerSideClientParams } from './create-server-side-client'
 
 /**
  * Refreshes the access token if there is any and returns the Nhost session.
  *
  * @example
- * ### Using an arrow function
+ * ### In a Next.js App Router Page Server Component (e.g., app/some-page/page.tsx)
  *
  * ```js
- * export const getServerSideProps: GetServerSideProps = async (context) => {
- *   const nhostSession = await getNhostSession(
- *     { subdomain: '<project_subdomain>', region: '<project_region>' },
- *     context
- *   )
+ * import { getNhostSession } from '@nhost/nextjs';
  *
- *   return {
- *     props: {
- *       nhostSession
- *     }
+ * export default async function SomePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+ *   const nhostSession = await getNhostSession(
+ *     { subdomain: '<project_subdomain>', region: '<project_region>' }, // Your Nhost params
+ *     await searchParams // Pass the searchParams from the page props
+ *   );
+ *
+ *   if (nhostSession) {
+ *     console.log('User is authenticated:', nhostSession.user.displayName);
+ *   } else {
+ *     console.log('User is not authenticated.');
+ *     // Potentially redirect here using next/navigation redirect()
  *   }
+ *
+ *   return (
+ *     <div>
+ *       {nhostSession ? <p>Welcome, {nhostSession.user.displayName}</p> : <p>Please log in.</p>}
+ *     </div>
+ *   );
  * }
  * ```
  *
- * @example
- * ### Using a regular function
- *
- * ```js
- * export async function getServerSideProps(context: GetServerSidePropsContext) { // or NextPageContext
- *   const nhostSession = await getNhostSession(
- *     { subdomain: '<project_subdomain>', region: '<project_region>' },
- *     context
- *   )
- *
- *   return {
- *     props: {
- *       nhostSession
- *     }
- *   }
- * }
- * ```
- *
- * @param subdomain - URL of your Nhost application
- * @param region - Region of your Nhost application
- * @param context - Next.js context
- * @returns Nhost session
+ * @param params - Nhost connection parameters (e.g., subdomain, region, or specific URLs).
+ * @param searchParams - URL search parameters object, typically available in Next.js App Router Page Server Components.
+ *                     This will be used by the underlying `createServerSideClient` to look for `refreshToken` in the URL
+ * @returns A Promise that resolves to the NhostSession object if the user is authenticated, or null otherwise.
  */
 export const getNhostSession = async (
   params: CreateServerSideClientParams,
-  context: GetServerSidePropsContext
+  searchParams: SearchParams,
 ): Promise<NhostSession | null> => {
-  const nhost = await createServerSideClient(params, context)
+  const nhost = await createServerSideClient(params, searchParams)
   const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.getSnapshot().context
   return nhost.auth.isAuthenticated()
     ? {
