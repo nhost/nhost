@@ -1,6 +1,18 @@
-import { NhostSession } from '@nhost/react'
+import { NhostClient, NhostSession } from '@nhost/react'
 import { SearchParams } from 'next/dist/server/request/search-params';
 import { createServerSideClient, CreateServerSideClientParams } from './create-server-side-client'
+
+export const getNhostSessionFromNhostClient = (nhost: NhostClient): NhostSession | null => {
+  const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.getSnapshot().context
+  return nhost.auth.isAuthenticated()
+    ? {
+        accessToken: accessToken.value!,
+        accessTokenExpiresIn: (accessToken.expiresAt!.getTime() - Date.now()) / 1_000,
+        refreshToken: refreshToken.value!,
+        user: user!
+      }
+    : null
+}
 
 /**
  * Refreshes the access token if there is any and returns the Nhost session.
@@ -42,13 +54,5 @@ export const getNhostSession = async (
   searchParams: SearchParams,
 ): Promise<NhostSession | null> => {
   const nhost = await createServerSideClient(params, searchParams)
-  const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.getSnapshot().context
-  return nhost.auth.isAuthenticated()
-    ? {
-        accessToken: accessToken.value!,
-        accessTokenExpiresIn: (accessToken.expiresAt!.getTime() - Date.now()) / 1_000,
-        refreshToken: refreshToken.value!,
-        user: user!
-      }
-    : null
+  return getNhostSessionFromNhostClient(nhost)
 }
