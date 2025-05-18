@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -36,5 +36,11 @@
     "incremental": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", ".nhost", "nhost", "functions", "playwright.config.ts"]
+  "exclude": [
+    "node_modules",
+    ".nhost",
+    "nhost",
+    "functions",
+    "playwright.config.ts"
+  ]
 }

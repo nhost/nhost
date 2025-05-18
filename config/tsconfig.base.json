@@ -6,18 +6,19 @@
     "declaration": true,
     "declarationMap": true,
     "strict": true,
+    "strictNullChecks": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "target": "ES6",
-    "module": "CommonJS",
+    "target": "ESnext",
+    "module": "ES2020",
     "lib": [
-      "es5",
+      "esnext",
       "dom",
-      "es2015.promise",
-      "es2015.symbol",
+      "esnext.promise",
+      "esnext.symbol",
       "es2015.iterable",
       "es2015.collection",
       "es2015.symbol.wellknown",
@@ -28,11 +29,11 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "types": [
-      "node"
-    ],
+    // "types": [
+    //   "node"
+    // ],
     "typeRoots": [
-      "./node_modules/@types",
+      "./node_modules/@types", // NOTE: after update tsc thinks I ask relative to THIS file
       "**/*/dist",
       "**/*/build",
       "**/*/.next",

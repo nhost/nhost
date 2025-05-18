@@ -18,8 +18,8 @@ interface AddSecurityKeyHandler {
 
 export interface AddSecuritKeyComposableResult
   extends ToRefs<ActionErrorState>,
-    ToRefs<ActionSuccessState>,
-    ToRefs<ActionLoadingState> {
+  ToRefs<ActionSuccessState>,
+  ToRefs<ActionLoadingState> {
   /** Add a security key to the current user with the WebAuthn API */
   add: AddSecurityKeyHandler
 }
@@ -43,8 +43,8 @@ export interface AddSecuritKeyComposableResult
 export const useAddSecurityKey = (): AddSecuritKeyComposableResult => {
   const { nhost } = useNhostClient()
   const error = ref<ErrorPayload | null>(null)
-  const isSuccess = computed(() => !error)
-  const isError = computed(() => !!error)
+  const isSuccess = computed(() => !error.value)
+  const isError = computed(() => !!error.value)
   const isLoading = ref<boolean>(false)
 
   const add: AddSecurityKeyHandler = async (nickname) => {
@@ -54,7 +54,7 @@ export const useAddSecurityKey = (): AddSecuritKeyComposableResult => {
 
     const { error: addSecurityKeyError } = result
 
-    if (error) {
+    if (error.value) {
       error.value = addSecurityKeyError
     }
 

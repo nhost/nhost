@@ -78,7 +78,7 @@ test(`should fail if server returns an error`, async () => {
 test(`should fail if email is invalid`, async () => {
   resetPasswordService.send({
     type: 'REQUEST',
-    email: faker.internet.userName()
+    email: faker.internet.username()
   })
 
   const state = await waitFor(resetPasswordService, (state) => state.matches({ idle: 'error' }))

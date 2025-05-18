@@ -1,19 +1,25 @@
 import replace from '@rollup/plugin-replace'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import util from 'node:util'
 
 const PWD = process.env.PWD
-const pkg = require(path.join(PWD, 'package.json'))
+const pkg = JSON.parse(fs.readFileSync(path.join(PWD, 'package.json'), 'utf-8'))
 
 const tsEntry = path.resolve(PWD, 'src/index.ts')
 const entry = fs.existsSync(tsEntry) ? tsEntry : tsEntry.replace('.ts', '.tsx')
 
 const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))]
 
-export default defineConfig({
+const spy = (x) => {
+  console.log(util.inspect(x, { showHidden: true, depth: null, colors: true }))
+  return x
+}
+
+export default defineConfig(spy({
   plugins: [
     tsconfigPaths(),
     dts({
@@ -36,7 +42,9 @@ export default defineConfig({
     }
   },
   build: {
-    target: 'es2019',
+    // target: 'es2019',
+    target: 'modules',
+    // target: 'es2020',
     sourcemap: true,
     lib: {
       entry,
@@ -45,6 +53,8 @@ export default defineConfig({
       formats: ['cjs', 'es']
     },
     rollupOptions: {
+      // input: entry,
+      // external: (id) => deps.some((dep) => id === dep || id.startsWith(`${dep}/`)),
       external: (id) => deps.some((dep) => id.startsWith(dep)),
       plugins: [
         replace({
@@ -53,6 +63,10 @@ export default defineConfig({
         })
       ],
       output: {
+        // format: 'es',
+        // preserveModules: true,
+        // preserveModulesRoot: 'src',
+        // entryFileNames: '[name].js',
         globals: {
           graphql: 'graphql',
           '@apollo/client': '@apollo/client',
@@ -74,4 +88,4 @@ export default defineConfig({
       }
     }
   }
-})
+}))

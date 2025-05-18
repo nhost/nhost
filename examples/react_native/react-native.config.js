@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   dependencies: {
     'react-native-vector-icons': {
       platforms: {

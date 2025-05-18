@@ -82,7 +82,7 @@ test(`should fail if server returns an error`, async () => {
 test(`should fail if email is invalid`, async () => {
   sendVerificationEmailService.send({
     type: 'REQUEST',
-    email: faker.internet.userName()
+    email: faker.internet.username()
   })
 
   const state = await waitFor(sendVerificationEmailService, (state) =>

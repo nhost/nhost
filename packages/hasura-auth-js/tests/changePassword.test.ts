@@ -76,7 +76,7 @@ test(`should fail if server returns an error`, async () => {
 
   changePasswordService.send({
     type: 'REQUEST',
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(changePasswordService, (state) => state.matches({ idle: 'error' }))
@@ -93,7 +93,7 @@ test(`should fail if server returns an error`, async () => {
 test(`should fail if password is invalid`, async () => {
   changePasswordService.send({
     type: 'REQUEST',
-    password: faker.internet.password(2)
+    password: faker.internet.password({ length: 2 })
   })
 
   const state = await waitFor(changePasswordService, (state) => state.matches({ idle: 'error' }))
@@ -104,7 +104,7 @@ test(`should fail if password is invalid`, async () => {
 test(`should succeed if password is valid`, async () => {
   changePasswordService.send({
     type: 'REQUEST',
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(changePasswordService, (state) => state.matches({ idle: 'success' }))

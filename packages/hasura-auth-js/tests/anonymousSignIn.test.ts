@@ -86,7 +86,7 @@ describe('Anonymous Sign-in', () => {
     authService.send({
       type: 'SIGNUP_EMAIL_PASSWORD',
       email: faker.internet.email(),
-      password: faker.internet.password(15)
+      password: faker.internet.password({ length: 15 })
     })
 
     const state = await waitFor(authService, (state) =>

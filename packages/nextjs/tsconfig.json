@@ -1,4 +1,23 @@
 {
   "extends": "../../config/react-library.tsconfig.json",
-  "include": ["src"]
+  "include": [
+    "src"
+  ],
+  "compilerOptions": {
+    // "outDir": "dist",
+    // // "declaration": true,
+    // // "declarationMap": true,
+    // // "emitDeclarationOnly": false,
+    // // "sourceMap": true,
+    // "rootDir": "src",
+    // // "composite": false,
+    // // "module": "ESNext", // or "ES2020"
+    // // "target": "ES2019", // match your target
+    // // "moduleResolution": "Node",
+    // // "isolatedModules": false,
+    // // "noEmit": false,
+    "typeRoots": [
+      "./node_modules/@types",
+    ],
+  }
 }

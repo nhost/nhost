@@ -22,10 +22,11 @@
     "type": "git",
     "url": "git+https://github.com/nhost/nhost.git"
   },
-  "main": "dist/index.cjs.js",
+  "TODO main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
+  "type": "module",
   "files": [
     "dist",
     "umd",
@@ -36,7 +37,7 @@
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
-        "node": "./dist/index.cjs.js",
+        "TODO node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"
       },
       "require": "./dist/index.cjs.js"
@@ -46,6 +47,7 @@
     "access": "public"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "vite build --config ../../config/vite.react.dev.config.js",
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build --config ../../config/vite.react.config.js",
@@ -71,11 +73,11 @@
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.9.9",
+    "@apollo/client": "^3.13.8",
     "@nhost/react": "workspace:*",
-    "@types/react": "^18.2.73",
-    "graphql": "16.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@types/react": "^19.1.2",
+    "graphql": "16.11.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }

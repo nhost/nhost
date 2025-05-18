@@ -23,12 +23,12 @@ export type FileUploadEventPayload = {}
 export type FileUploadEvents =
   | { type: 'ADD'; file: File; id?: string; bucketId?: string; name?: string }
   | ({
-      type: 'UPLOAD'
-      file?: File
-      id?: string
-      name?: string
-      bucketId?: string
-    } & FileUploadConfig)
+    type: 'UPLOAD'
+    file?: File
+    id?: string
+    name?: string
+    bucketId?: string
+  } & FileUploadConfig)
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
   | { type: 'UPLOAD_DONE'; id: string; bucketId: string }
   | { type: 'UPLOAD_ERROR'; error: StorageErrorPayload }
@@ -109,10 +109,10 @@ export const createFileUploadMachine = () =>
           progress: (_) => 100
         }),
         setError: assign({ error: (_, { error }) => error }),
-        sendProgress: () => {},
-        sendError: () => {},
-        sendDestroy: () => {},
-        sendDone: () => {},
+        sendProgress: () => { },
+        sendError: () => { },
+        sendDestroy: () => { },
+        sendDone: () => { },
         resetProgress: assign({ progress: (_) => null, loaded: (_) => 0 }),
         resetContext: assign((_) => INITIAL_FILE_CONTEXT),
         addFile: assign({
@@ -162,7 +162,7 @@ export const createFileUploadMachine = () =>
             }
           })
 
-          return () => {}
+          return () => { }
         }
       }
     }

@@ -45,7 +45,7 @@ test('should not accept an invalid email', async ({ page }) => {
   const newPage = await verifyEmail({ page, email, context: page.context() })
   await newPage.getByRole('link', { name: /profile/i }).click()
 
-  const newPassword = faker.internet.password(2)
+  const newPassword = faker.internet.password({ length: 2 })
 
   await newPage.getByPlaceholder(/new password/i).fill(newPassword)
   // await newPage.locator('h1:has-text("Change password") + div button:has-text("Change")').click()

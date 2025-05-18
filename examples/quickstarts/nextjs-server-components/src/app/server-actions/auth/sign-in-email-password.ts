@@ -12,8 +12,10 @@ export const signIn = async (formData: FormData) => {
 
   const { session, error } = await nhost.auth.signIn({ email, password })
 
+  const cookieStore = await cookies()
+
   if (session) {
-    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
+    cookieStore.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
     redirect('/protected/todos')
   }
 

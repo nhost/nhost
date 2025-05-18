@@ -15,8 +15,8 @@ export const createPATSuccessHandler = rest.post(`${BASE_URL}/pat`, (_req, res, 
       personalAccessToken: string | null
     }>({
       error: null,
-      id: faker.datatype.uuid(),
-      personalAccessToken: faker.datatype.uuid()
+      id: faker.string.uuid(),
+      personalAccessToken: faker.string.uuid()
     })
   )
 })

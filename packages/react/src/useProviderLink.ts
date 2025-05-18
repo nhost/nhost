@@ -1,3 +1,4 @@
+"use client";
 import {
   encodeQueryParameters,
   Provider,
@@ -58,7 +59,7 @@ export const useProviderLink = (options?: ProviderOptions): Record<Provider, str
 
   return new Proxy({} as Record<Provider, string>, {
     get(_, provider: string) {
-      let providerLink = `${nhost.auth.client.backendUrl}/signin/provider/${provider}`
+      const providerLink = `${nhost.auth.client.backendUrl}/signin/provider/${provider}`
 
       const connectOptions = options?.connect ? { connect: accessToken } : {}
 
@@ -67,7 +68,7 @@ export const useProviderLink = (options?: ProviderOptions): Record<Provider, str
         rewriteRedirectTo(isSSR ? undefined : nhost.auth.client.clientUrl, {
           ...options,
           ...connectOptions
-        } as any)
+        } as Record<string, unknown>)
       )
     }
   })

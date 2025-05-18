@@ -16,7 +16,7 @@ export class CodifiedError extends Error {
   constructor(original: Error | AuthErrorPayload) {
     super(original.message)
 
-    if (Error.captureStackTrace) Error.captureStackTrace(this, this.constructor)
+    if ((Error as any).captureStackTrace) (Error as any).captureStackTrace(this, this.constructor)
 
     if (original instanceof Error) {
       this.name = original.name

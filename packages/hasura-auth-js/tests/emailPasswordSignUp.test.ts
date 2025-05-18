@@ -44,7 +44,7 @@ test(`should fail if network is unavailable`, async () => {
   authService.send({
     type: 'SIGNUP_EMAIL_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>
@@ -68,7 +68,7 @@ test(`should fail if server returns an error`, async () => {
   authService.send({
     type: 'SIGNUP_EMAIL_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>
@@ -90,8 +90,8 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   // Scenario 1: Providing an invalid email address with a valid password
   authService.send({
     type: 'SIGNUP_EMAIL_PASSWORD',
-    email: faker.internet.userName(),
-    password: faker.internet.password(15)
+    email: faker.internet.username(),
+    password: faker.internet.password({ length: 15 })
   })
 
   const emailErrorSignInState = await waitFor(authService, (state) =>
@@ -112,7 +112,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   authService.send({
     type: 'SIGNUP_EMAIL_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(2)
+    password: faker.internet.password({ length: 2 })
   })
 
   const passwordErrorSignInState = await waitFor(authService, (state) =>
@@ -136,7 +136,7 @@ test(`should fail if email has already been taken`, async () => {
   authService.send({
     type: 'SIGNUP_EMAIL_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>
@@ -158,7 +158,7 @@ test(`should succeed if email and password are correctly formatted`, async () =>
   authService.send({
     type: 'SIGNUP_EMAIL_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>
@@ -178,7 +178,7 @@ test(`should succeed if email and password are correctly formatted and user is a
   authService.send({
     type: 'SIGNUP_EMAIL_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>

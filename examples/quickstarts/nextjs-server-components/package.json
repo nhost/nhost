@@ -2,34 +2,37 @@
   "name": "@nhost-examples/nextjs-server-components",
   "version": "0.5.6",
   "private": true,
+  "type": "module",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.9",
+    "@apollo/client": "^3.13.8",
+    "@nhost/hasura-auth-js": "workspace:^",
     "@nhost/nhost-js": "workspace:^",
-    "autoprefixer": "10.4.15",
-    "cookies-next": "^3.0.0",
-    "eslint": "8.48.0",
-    "eslint-config-next": "13.4.19",
-    "form-data": "^4.0.0",
-    "graphql": "16.8.1",
+    "autoprefixer": "10.4.21",
+    "cookies-next": "^5.1.0",
+    "eslint": "9.25.1",
+    "eslint-config-next": "15.3.1",
+    "form-data": "^4.0.2",
+    "graphql": "16.11.0",
     "js-cookie": "^3.0.5",
-    "next": "^14.2.26",
-    "postcss": "^8.4.38",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "next": "^15.3.1",
+    "postcss": "^8.5.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "3.3.3",
-    "typescript": "5.2.2"
+    "typescript": "5.8.3"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
-    "@types/node": "20.5.6",
-    "@types/react": "^18.2.73",
-    "@types/react-dom": "^18.2.23"
+    "@types/node": "22.15.2",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2"
   }
 }

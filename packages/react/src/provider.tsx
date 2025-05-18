@@ -1,3 +1,4 @@
+"use client";
 import { NhostSession } from '@nhost/nhost-js'
 import { useInterpret } from '@xstate/react'
 import React, { createContext, PropsWithChildren, useEffect, useRef } from 'react'

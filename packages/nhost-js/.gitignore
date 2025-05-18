@@ -1,1 +1,3 @@
 .secrets
+src/**/*.js
+src/**/*.d.ts

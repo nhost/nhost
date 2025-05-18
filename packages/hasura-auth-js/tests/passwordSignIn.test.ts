@@ -71,7 +71,7 @@ test(`should fail if server returns an error`, async () => {
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>
@@ -93,8 +93,8 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   // Scenario 1: Providing an invalid email address with a valid password
   authService.send({
     type: 'SIGNIN_PASSWORD',
-    email: faker.internet.userName(),
-    password: faker.internet.password(15)
+    email: faker.internet.username(),
+    password: faker.internet.password({ length: 15 })
   })
 
   const emailErrorSignInState = await waitFor(authService, (state) =>
@@ -114,7 +114,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(2)
+    password: faker.internet.password({ length: 2 })
   })
 
   const passwordErrorSignInState = await waitFor(authService, (state) =>
@@ -138,7 +138,7 @@ test(`should fail if incorrect credentials are provided`, async () => {
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>
@@ -162,7 +162,7 @@ test(`should fail if user email needs verification`, async () => {
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>
@@ -186,7 +186,7 @@ test(`should save MFA ticket if MFA is set up for the account`, async () => {
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const signInPasswordState = await waitFor(authService, (state) =>
@@ -198,7 +198,7 @@ test(`should save MFA ticket if MFA is set up for the account`, async () => {
   // Note: MFA ticket is already in context
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
-    otp: faker.random.numeric(6)
+    otp: faker.number.int({ min: 100_000, max: 999_999 })
   })
 
   const mfaTotpState = await waitFor(authService, (state) =>
@@ -212,7 +212,7 @@ test(`should succeed if correct credentials are provided`, async () => {
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
-    password: faker.internet.password(15)
+    password: faker.internet.password({ length: 15 })
   })
 
   const state = await waitFor(authService, (state) =>

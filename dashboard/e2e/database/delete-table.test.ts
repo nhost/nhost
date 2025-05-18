@@ -3,7 +3,7 @@ import { deleteTable, prepareTable } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 
 import { expect, test } from '@/e2e/fixtures/auth-hook';
-import { snakeCase } from 'snake-case';
+import { snakeCase } from 'change-case';
 
 test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const databaseRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default`;

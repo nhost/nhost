@@ -1,6 +1,12 @@
 import { NhostClient, NhostSession } from '@nhost/react'
-import fetch from 'isomorphic-unfetch'
+import fetchPonyfill from 'fetch-ponyfill'
 import Cookies from 'js-cookie'
+
+let fetch: any
+
+if (typeof fetch === 'undefined') {
+  fetch = fetchPonyfill().fetch
+}
 
 export const refresh = async (nhostUrl: string, refreshToken: string): Promise<NhostSession> => {
   const result = await fetch(`${nhostUrl}/v1/auth/token`, {

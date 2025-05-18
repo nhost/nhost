@@ -1,9 +1,8 @@
-import { createClient as createWSClient } from 'graphql-ws'
+import { createClient as createWSClient, SubscribePayload } from 'graphql-ws'
 import React, { PropsWithChildren } from 'react'
 import {
   cacheExchange,
   createClient as createUrqlClient,
-  dedupExchange,
   Exchange,
   fetchExchange,
   Provider as UrqlProvider,
@@ -60,7 +59,6 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
 
   let urqlExchanges: Exchange[] = [
     devtoolsExchange,
-    dedupExchange,
     refocusExchange(),
     cacheExchange,
     fetchExchange
@@ -98,11 +96,20 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
     urqlExchanges = [
       ...urqlExchanges,
       subscriptionExchange({
-        forwardSubscription: (operation) => ({
-          subscribe: (sink) => ({
-            unsubscribe: wsClient.subscribe(operation, sink)
-          })
-        })
+        forwardSubscription: (request, _operation) => {
+          const subscribePayload: SubscribePayload = {
+            operationName: request.operationName,
+            query: request.query || '', // TODO(srghma): is this correct?
+            variables: request.variables,
+            extensions: request.extensions
+          }
+
+          return {
+            subscribe: (sink) => ({
+              unsubscribe: wsClient.subscribe(subscribePayload, sink)
+            })
+          }
+        }
       })
     ]
   }

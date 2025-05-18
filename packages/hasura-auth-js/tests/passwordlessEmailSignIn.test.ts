@@ -85,7 +85,7 @@ test(`should fail if server returns an error`, async () => {
 test(`should fail if the provided email address was invalid`, async () => {
   authService.send({
     type: 'PASSWORDLESS_EMAIL',
-    email: faker.internet.userName()
+    email: faker.internet.username()
   })
 
   const state = await waitFor(authService, (state) =>

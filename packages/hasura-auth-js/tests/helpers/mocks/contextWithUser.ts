@@ -5,12 +5,12 @@ import fakeUser from './user'
 export const contextWithUser: AuthContext = {
   ...INITIAL_MACHINE_CONTEXT,
   accessToken: {
-    value: faker.datatype.string(40),
+    value: faker.string.sample(40),
     expiresAt: faker.date.future(),
     expiresInSeconds: 15
   },
   refreshToken: {
-    value: faker.datatype.uuid()
+    value: faker.string.uuid()
   },
   user: fakeUser
 }

@@ -25,6 +25,7 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
+  "type": "module",
   "files": [
     "dist",
     "umd",
@@ -45,6 +46,7 @@
     "access": "public"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "dev": "vite build --config ../../config/vite.vue.dev.config.js",
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build --config ../../config/vite.vue.config.js",
@@ -66,17 +68,22 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
-    "@vueuse/core": "^10.9.0",
+    "@vueuse/core": "^13.1.0",
     "@xstate/vue": "^2.0.0",
     "jwt-decode": "^4.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.25.1",
     "@nhost/docgen": "workspace:*",
-    "@vitejs/plugin-vue": "^4.6.2",
+    "@vitejs/plugin-vue": "^5.2.3",
     "@xstate/inspect": "^0.8.0",
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0",
-    "ws": "^8.16.0",
+    "eslint": "^9.25.1",
+    "eslint-plugin-vue": "^10.0.0",
+    "globals": "^16.0.0",
+    "typescript-eslint": "^8.31.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1",
+    "ws": "^8.18.1",
     "xstate": "^4.38.3"
   }
 }

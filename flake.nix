@@ -130,10 +130,10 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               nhost-cli
-              nodejs
-              pnpm_10
-              go
-              golangci-lint
+              # nodejs
+              # pnpm_10
+              # go
+              # golangci-lint
             ] ++ buildInputs ++ nativeBuildInputs;
 
             # shellHook = ''

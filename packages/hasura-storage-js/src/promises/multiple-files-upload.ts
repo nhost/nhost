@@ -31,7 +31,7 @@ export interface MultipleFilesHandlerResult {
 
 export interface MultipleFilesUploadState
   extends MultipleFilesHandlerResult,
-    MultipleUploadProgressState {
+  MultipleUploadProgressState {
   /**
    * Returns `true` when all the files have been successfully uploaded.
    */

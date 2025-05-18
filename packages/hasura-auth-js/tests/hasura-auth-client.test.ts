@@ -28,7 +28,7 @@ const customStorage = new CustomClientStorage(new Map())
 let hasuraClient: HasuraAuthClient
 
 const EMAIL = faker.internet.email()
-const PASSWORD = faker.internet.password(15)
+const PASSWORD = faker.internet.password({ length: 15 })
 const CUSTOM_HEADERS = { headers: { 'custom-header': 'custom-header-value' } }
 
 beforeEach(() => {

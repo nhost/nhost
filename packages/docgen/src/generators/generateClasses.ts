@@ -23,25 +23,27 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
     index: string
     subPages: Array<Signature>
     slug?: string
-  }> = (parsedContent || [])
-    .filter((document) => document.kindString === 'Class')
-    .map((props: ClassSignature) => {
-      const alias = props.comment?.tags?.find(({ tag }) => tag === 'alias')?.text?.toLowerCase()
-      const slugEnding = kebabCase(alias || props.name).replace(/\n/gi, '')
-      const slugRegExp = new RegExp(`/${slugEnding}$`, 'gi')
-      const slug = baseSlug
-        ? slugRegExp.test(baseSlug)
-          ? baseSlug
-          : `${baseSlug}/${slugEnding}`
-        : undefined
+  }> = await Promise.all(
+    (parsedContent || [])
+      .filter((document) => document.kindString === 'Class')
+      .map(async (props: ClassSignature) => {
+        const alias = props.comment?.tags?.find(({ tag }) => tag === 'alias')?.text?.toLowerCase()
+        const slugEnding = kebabCase(alias || props.name).replace(/\n/gi, '')
+        const slugRegExp = new RegExp(`/${slugEnding}$`, 'gi')
+        const slug = baseSlug
+          ? slugRegExp.test(baseSlug)
+            ? baseSlug
+            : `${baseSlug}/${slugEnding}`
+          : undefined
 
-      return {
-        name: props.name,
-        index: ClassTemplate(props, parsedContent as Array<Signature>),
-        subPages: props.children || [],
-        slug
-      }
-    })
+        return {
+          name: props.name,
+          index: await ClassTemplate(props, parsedContent as Array<Signature>),
+          subPages: props.children || [],
+          slug
+        }
+      })
+  )
 
   const results = await Promise.allSettled(
     classesAndSubpages.map(async ({ name, index, subPages, slug }) => {

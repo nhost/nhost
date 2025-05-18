@@ -2,6 +2,7 @@
   "name": "@nhost-examples/seed-data-storage",
   "private": true,
   "version": "0.0.5",
+  "type": "module",
   "scripts": {
     "seed-storage": "./seed-storage.sh"
   }

@@ -471,12 +471,17 @@ services:
         restart: always
         volumes:
             - type: bind
+              source: traefik_file_dir
+              target: /opt/traefik
+              read_only: true
+            - type: bind
               source: /var/run/docker.sock
               target: /var/run/docker.sock
               read_only: true
 
 volumes:
     functions_node_modules: {}
+    traefik_file_dir: {}
     root_node_modules: {}
     pgdata: {}
     mailhog: {}

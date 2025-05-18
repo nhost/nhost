@@ -27,12 +27,14 @@ export async function generateTypes(
   const { TypeTemplate } = await import('../templates')
   const finalOutputPath = sameLevel ? outputPath : `${outputPath}/types`
 
-  const types: Array<{ name: string; content: string }> = (parsedContent || [])
-    .filter((document) => ['Type alias', 'Interface'].includes(document.kindString))
-    .map((props) => ({
-      name: props.name,
-      content: TypeTemplate(props as Parameter, originalDocument || parsedContent)
-    }))
+  const types: Array<{ name: string; content: string }> = await Promise.all(
+    (parsedContent || [])
+      .filter((document) => ['Type alias', 'Interface'].includes(document.kindString))
+      .map(async (props) => ({
+        name: props.name,
+        content: await TypeTemplate(props as Parameter, originalDocument || parsedContent)
+      }))
+  )
 
   const results = await Promise.allSettled(
     types.map(async ({ name, content }) => {

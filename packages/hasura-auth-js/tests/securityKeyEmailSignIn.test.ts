@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
+import { AuthenticationResponseJSON } from '@simplewebauthn/types'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
@@ -31,14 +31,14 @@ const mockAuthenticator = () => {
   vi.mock('@simplewebauthn/browser', () => {
     return {
       default: {},
-      startAuthentication: vi.fn(async (): Promise<AuthenticationCredentialJSON> => {
+      startAuthentication: vi.fn(async (): Promise<AuthenticationResponseJSON> => {
         return {
-          id: faker.datatype.uuid(),
-          rawId: faker.datatype.uuid(),
+          id: faker.string.uuid(),
+          rawId: faker.string.uuid(),
           response: {
-            authenticatorData: faker.datatype.string(30),
-            clientDataJSON: faker.datatype.string(30),
-            signature: faker.datatype.string(30)
+            authenticatorData: faker.string.sample(30),
+            clientDataJSON: faker.string.sample(30),
+            signature: faker.string.sample(30)
           },
           type: 'public-key',
           clientExtensionResults: {}
@@ -108,7 +108,7 @@ test(`should fail if server returns an error`, async () => {
 test(`should fail if email is incorrectly formatted`, async () => {
   authService.send({
     type: 'SIGNIN_SECURITY_KEY_EMAIL',
-    email: faker.internet.userName()
+    email: faker.internet.username()
   })
 
   const emailErrorSignInState = await waitFor(authService, (s) =>
