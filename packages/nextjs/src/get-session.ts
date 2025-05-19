@@ -1,6 +1,6 @@
-import { NhostClient, NhostSession } from '@nhost/react'
-import { SearchParams } from 'next/dist/server/request/search-params';
-import { createServerSideClient, CreateServerSideClientParams } from './create-server-side-client'
+import { type NhostClient, type NhostSession } from '@nhost/react/server'
+import { type SearchParams } from 'next/dist/server/request/search-params';
+import { createServerSideClient, type CreateServerSideClientParams } from './create-server-side-client'
 
 export const getNhostSessionFromNhostClient = (nhost: NhostClient): NhostSession | null => {
   const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.getSnapshot().context

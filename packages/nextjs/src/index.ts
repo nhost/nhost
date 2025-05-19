@@ -1,13 +1,12 @@
 import {
   NhostClient as ReactNhostClient,
   NhostProvider,
-  NhostReactClientConstructorParams
+  type NhostReactClientConstructorParams
 } from '@nhost/react'
 import { setNhostSessionInCookie } from './utils'
 
+export * from './constants'
 export * from '@nhost/react'
-export * from './create-server-side-client'
-export * from './get-session'
 /**
  * @deprecated use `NhostProvider` instead
  */
@@ -19,7 +18,7 @@ export interface NhostNextClientConstructorParams
   extends Omit<
     NhostReactClientConstructorParams,
     'clientStorage' | 'clientStorageType' | 'clientStorageGetter' | 'clientStorageSetter'
-  > { }
+  > {}
 
 export class NhostClient extends ReactNhostClient {
   constructor(params: NhostNextClientConstructorParams) {
