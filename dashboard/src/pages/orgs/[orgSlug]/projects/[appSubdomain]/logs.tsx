@@ -12,7 +12,7 @@ import {
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
-import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
+import { DEFAULT_LOG_INTERVAL } from '@/utils/constants/common';
 import { subMinutes } from 'date-fns';
 import {
   useCallback,
@@ -37,7 +37,7 @@ export default function LogsPage() {
   const subscriptionReturn = useRef(null);
 
   const [filters, setFilters] = useState<LogsFilters>({
-    from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
+    from: subMinutes(new Date(), DEFAULT_LOG_INTERVAL),
     to: new Date(),
     regexFilter: '',
     service: AvailableLogsService.ALL,
@@ -48,6 +48,7 @@ export default function LogsPage() {
     error,
     subscribeToMore,
     client,
+    refetch,
     loading: loadingLogs,
   } = useGetProjectLogsQuery({
     variables: { appID: project?.id, ...filters },
@@ -63,7 +64,10 @@ export default function LogsPage() {
         document: GetLogsSubscriptionDocument,
         variables: {
           appID: project?.id,
-          service: filters.service,
+          service:
+            filters.service === AvailableLogsService.JOB_BACKUP
+              ? 'job-backup.+' // Use regex pattern to match any job-backup services
+              : filters.service,
           from: filters.from,
           regexFilter: filters.regexFilter,
         },
@@ -147,6 +151,7 @@ export default function LogsPage() {
         <LogsHeader
           loading={loading}
           onSubmitFilterValues={onSubmitFilterValues}
+          onRefetch={refetch}
         />
         <LogsBody error={error} loading={loading} logsData={data} />
       </RetryableErrorBoundary>

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "2.28.0",
+  "version": "2.29.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -16,7 +16,7 @@
     "storybook": "start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook",
     "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
-    "e2e:tests": "pnpm install-browsers && pnpm playwright test --config=playwright.config.ts",
+    "e2e:tests": "pnpm install-browsers && pnpm playwright test --config=playwright.config.ts -x",
     "e2e": "pnpm e2e:tests --project=main",
     "e2e:local": "pnpm e2e:tests --project=local",
     "e2e:upgrade-project": "pnpm e2e:tests --project=upgrade-project"

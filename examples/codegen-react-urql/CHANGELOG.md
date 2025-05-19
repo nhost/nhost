@@ -1,5 +1,11 @@
 # @nhost-examples/react-urql
 
+## 0.7.0
+
+### Minor Changes
+
+- c97b43f: fix: update vite to address vulnerability audit
+
 ## 0.6.1
 
 ### Patch Changes

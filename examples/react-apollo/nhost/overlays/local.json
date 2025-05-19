@@ -36,6 +36,32 @@
     "path": "/auth/method/webauthn/relyingParty/origins/0"
   },
   {
+    "value": {
+      "bruteForce": {
+        "interval": "5m",
+        "limit": 100
+      },
+      "emails": {
+        "interval": "1h",
+        "limit": 100
+      },
+      "global": {
+        "interval": "1m",
+        "limit": 1000
+      },
+      "signups": {
+        "interval": "5m",
+        "limit": 100
+      },
+      "sms": {
+        "interval": "1h",
+        "limit": 100
+      }
+    },
+    "op": "add",
+    "path": "/auth/rateLimit"
+  },
+  {
     "value": "http://localhost:3000",
     "op": "replace",
     "path": "/auth/redirections/allowedUrls/0"
@@ -77,5 +103,18 @@
     "value": "http://localhost:3000",
     "op": "replace",
     "path": "/auth/redirections/clientUrl"
+  },
+  {
+    "value": {
+      "host": "smtp.test.com",
+      "method": "LOGIN",
+      "password": "test123123",
+      "port": 587,
+      "secure": false,
+      "sender": "test@nhost.io",
+      "user": "test"
+    },
+    "op": "add",
+    "path": "/provider/smtp"
   }
 ]

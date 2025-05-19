@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/codegen-react-apollo",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "private": true,
   "scripts": {
     "codegen": "graphql-codegen",
