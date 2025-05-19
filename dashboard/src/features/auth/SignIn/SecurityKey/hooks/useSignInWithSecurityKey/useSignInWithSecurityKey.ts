@@ -1,0 +1,36 @@
+import { useSignInSecurityKey } from '@nhost/nextjs';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+
+function useSignInWithSecurityKey() {
+  const { signInSecurityKey } = useSignInSecurityKey();
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const { replace } = useRouter();
+
+  async function signInWithSecurityKey() {
+    try {
+      setDisabled(true);
+      const {
+        isError,
+        isSuccess,
+        needsEmailVerification: _needsEmailVerification,
+        error,
+      } = await signInSecurityKey();
+      if (isError) {
+        toast.error(error?.message);
+      } else if (_needsEmailVerification) {
+        setNeedsEmailVerification(true);
+      } else if (isSuccess) {
+        replace('/');
+      }
+    } finally {
+      setDisabled(false);
+    }
+  }
+
+  return { disabled, signInWithSecurityKey, needsEmailVerification };
+}
+
+export default useSignInWithSecurityKey;
