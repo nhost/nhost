@@ -130,7 +130,9 @@ clientSecret = '{{ secrets.SPOTIFY_CLIENT_SECRET }}'
 enabled = false
 
 [auth.method.oauth.twitch]
-enabled = false
+enabled = true
+clientId = '{{ secrets.TWITCH_CLIENT_ID }}'
+clientSecret = '{{ secrets.TWITCH_CLIENT_SECRET }}'
 
 [auth.method.oauth.twitter]
 enabled = false
