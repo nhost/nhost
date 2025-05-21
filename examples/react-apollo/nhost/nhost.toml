@@ -109,7 +109,9 @@ clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
 clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
 [auth.method.oauth.gitlab]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GITLAB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITLAB_CLIENT_SECRET }}'
 
 [auth.method.oauth.google]
 enabled = true
