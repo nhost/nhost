@@ -1,6 +1,6 @@
+import useElevatedPermissions from '@/features/account/settings/hooks/useElevatedPermissions';
+import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 import { useRemoveSecurityKeyMutation } from '@/utils/__generated__/graphql';
-import useElevatedPermissions from './useElevatedPermissions';
-import useGetSecurityKeys from './useGetSecurityKeys';
 
 function useRemoveSecurityKey() {
   const [removeSecurityKeyMutation] = useRemoveSecurityKeyMutation();

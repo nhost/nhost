@@ -41,6 +41,7 @@ export const useConfigMfa = (): ConfigMfaComposableState => {
   const isActivated = useSelector(service, (state) => state.matches({ generated: 'activated' }))
   const error = useSelector(service, (state) => state.context.error)
   const qrCodeDataUrl = useSelector(service, (state) => state.context.imageUrl || '')
+  const totpSecret = useSelector(service, (state) => state.context.secret || '')
 
   const generateQrCode = () => generateQrCodePromise(service)
 
@@ -55,6 +56,7 @@ export const useConfigMfa = (): ConfigMfaComposableState => {
     isActivating,
     isActivated,
     isError,
-    error
+    error,
+    totpSecret
   }
 }

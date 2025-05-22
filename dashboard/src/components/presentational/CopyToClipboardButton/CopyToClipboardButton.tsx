@@ -1,14 +1,11 @@
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
+import { isNotEmptyValue } from '@/lib/utils';
+import { copy } from '@/utils/copy';
 import { clsx } from 'clsx';
+import { Copy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import {
-  IconButton,
-  type IconButtonProps,
-} from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { copy } from '@/utils/copy';
-
-export function CopyToClipboardButton({
+function CopyToClipboardButton({
   textToCopy,
   className,
   title,
@@ -16,7 +13,7 @@ export function CopyToClipboardButton({
 }: {
   textToCopy: string;
   title: string;
-} & IconButtonProps) {
+} & ButtonProps) {
   const [disabled, setDisabled] = useState(true);
 
   useEffect(() => {
@@ -35,12 +32,18 @@ export function CopyToClipboardButton({
   if (!textToCopy || disabled) {
     return null;
   }
+  const hasChildren = isNotEmptyValue(props.children);
 
   return (
-    <IconButton
-      variant="borderless"
-      color="secondary"
-      className={clsx('group', className)}
+    <Button
+      type="button"
+      size="icon"
+      variant="outline"
+      className={clsx(
+        'group h-fit w-fit border-0 bg-transparent p-[2px] hover:bg-[#d6eefb] dark:hover:bg-[#1e2942]',
+        className,
+        { 'gap-3': hasChildren },
+      )}
       onClick={(event) => {
         event.stopPropagation();
 
@@ -49,7 +52,9 @@ export function CopyToClipboardButton({
       aria-label={textToCopy}
       {...props}
     >
-      <CopyIcon className="top-5 h-4 w-4" />
-    </IconButton>
+      {props.children}
+      <Copy className="top-5 h-4 w-4" />
+    </Button>
   );
 }
+export default CopyToClipboardButton;

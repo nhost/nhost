@@ -1,5 +1,6 @@
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { AccountMfaSettings } from '@/features/account/settings/components/AccountMfaSettings';
 import { AccountSettingsLayout } from '@/features/account/settings/components/AccountSettingsLayout';
 import { DeleteAccount } from '@/features/account/settings/components/DeleteAccount';
 import { DisplayNameSetting } from '@/features/account/settings/components/DisplayNameSetting';
@@ -26,6 +27,9 @@ export default function AccountSettingsPage() {
 
       <RetryableErrorBoundary>
         <PasswordSettings />
+      </RetryableErrorBoundary>
+      <RetryableErrorBoundary>
+        <AccountMfaSettings />
       </RetryableErrorBoundary>
       <RetryableErrorBoundary>
         <SecurityKeysSettings />
