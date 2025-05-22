@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.32.0
+
+### Minor Changes
+
+- df51c3e: fix: added installation instructions for the CLI
+
+### Patch Changes
+
+- 4d835c4: fix: remove nodejs18
+
 ## 2.31.0
 
 ### Minor Changes

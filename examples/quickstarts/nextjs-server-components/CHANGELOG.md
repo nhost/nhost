@@ -1,5 +1,11 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.6.0
+
+### Minor Changes
+
+- 6ee2d1f: fix: proper use of onError in middleware
+
 ## 0.5.6
 
 ### Patch Changes
