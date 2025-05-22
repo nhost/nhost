@@ -1,13 +1,12 @@
 import {
   NhostClient as ReactNhostClient,
   NhostProvider,
-  NhostReactClientConstructorParams
+  type NhostReactClientConstructorParams
 } from '@nhost/react'
 import { setNhostSessionInCookie } from './utils'
 
+export * from './constants'
 export * from '@nhost/react'
-export * from './create-server-side-client'
-export * from './get-session'
 /**
  * @deprecated use `NhostProvider` instead
  */
@@ -27,7 +26,7 @@ export class NhostClient extends ReactNhostClient {
       ...params,
       autoSignIn: isBrowser && params.autoSignIn,
       autoRefreshToken: isBrowser && params.autoRefreshToken,
-      clientStorageType: 'cookie'
+      clientStorageType: 'cookie' // will use js-cookie library, which is designed to work in browser only, not on server
     })
 
     this.auth.onAuthStateChanged(() => {
