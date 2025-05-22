@@ -2,9 +2,7 @@
 
 ## Requirements
 
-### Node.js v18
-
-_⚠️ Node.js v16 is also supported for the time being but support will be dropped in the near future_.
+### Node.js v20 or later
 
 ### [pnpm](https://pnpm.io/) package manager
 
