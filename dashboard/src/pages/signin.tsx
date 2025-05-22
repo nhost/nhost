@@ -1,106 +1,68 @@
-import { NavLink } from '@/components/common/NavLink';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
-import { Text } from '@/components/ui/v2/Text';
-import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { nhost } from '@/utils/nhost';
+import { Button } from '@/components/ui/v3/button';
+import NextLink from 'next/link';
 import type { ReactElement } from 'react';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 
-export default function SignUpPage() {
-  const [loading, setLoading] = useState(false);
+import { SignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey';
+import { SignInWithGithub } from '@/features/auth/SignIn/SignInWithGithub';
 
-  const redirectTo = useHostName();
-
+export default function SigninPage() {
   return (
-    <>
-      <Text
-        variant="h2"
-        component="h1"
-        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
-      >
+    <div className="grid gap-12 font-[Inter]">
+      <h2 className="text-center text-3.5xl font-semibold lg:text-4.5xl">
         It&apos;s time to build
-      </Text>
+      </h2>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+      <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+        <SignInWithGithub />
+        <SignInWithSecurityKey />
+
+        <div className="relative py-2">
+          <p className="absolute left-0 right-0 top-1/2 mx-auto w-12 -translate-y-1/2 bg-black px-2 text-center text-sm text-[#68717A]">
+            OR
+          </p>
+
+          <Divider className="!my-2" />
+        </div>
         <Button
-          className="!bg-white !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
-          startIcon={<GitHubIcon />}
-          size="large"
-          disabled={loading}
-          loading={loading}
-          onClick={async () => {
-            setLoading(true);
-
-            try {
-              await nhost.auth.signIn({
-                provider: 'github',
-                options: { redirectTo },
-              });
-            } catch {
-              toast.error(
-                `An error occurred while trying to sign in using GitHub. Please try again later.`,
-                getToastStyleProps(),
-              );
-            } finally {
-              setLoading(false);
-            }
-          }}
-        >
-          Continue with GitHub
-        </Button>
-
-        <Button
-          variant="borderless"
+          variant="ghost"
           className="!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10"
-          size="large"
-          href="/signin/email"
-          LinkComponent={NavLink}
         >
-          Continue with Email
+          <NextLink href="/signin/email">Continue with Email</NextLink>
         </Button>
-
-        <Divider className="!my-2" />
-
-        <Text color="secondary" className="text-center text-sm">
+        <p className="text-center text-sm">
           By clicking continue, you agree to our{' '}
-          <NavLink
+          <NextLink
             href="https://nhost.io/legal/terms-of-service"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold"
-            color="white"
+            className="font-semibold text-white"
           >
             Terms of Service
-          </NavLink>{' '}
+          </NextLink>{' '}
           and{' '}
-          <NavLink
+          <NextLink
             href="https://nhost.io/legal/privacy-policy"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold"
-            color="white"
+            className="font-semibold text-white"
           >
             Privacy Policy
-          </NavLink>
-        </Text>
-      </Box>
+          </NextLink>
+        </p>
+      </div>
 
-      <Text color="secondary" className="text-center lg:text-lg">
+      <p className="text-center lg:text-lg">
         Don&apos;t have an account?{' '}
-        <NavLink href="/signup" color="white" className="font-medium">
+        <NextLink href="/signup" className="font-medium text-white">
           Sign Up
-        </NavLink>
-      </Text>
-    </>
+        </NextLink>
+      </p>
+    </div>
   );
 }
 
-SignUpPage.getLayout = function getLayout(page: ReactElement) {
+SigninPage.getLayout = function getLayout(page: ReactElement) {
   return <UnauthenticatedLayout title="Sign In">{page}</UnauthenticatedLayout>;
 };
