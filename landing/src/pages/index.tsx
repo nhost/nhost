@@ -8,7 +8,7 @@ import TrustedBySection from '@/components/home/TrustedBySection/TrustedBySectio
 import { WorkflowSection } from '@/components/home/WorkflowSection'
 import { ProductSection } from '@/components/product/ProductSection'
 import { ReactElement } from 'react'
-import LovedBySection from '@/components/home/LovedBySection/LovelBySection'
+import { LovedBySection } from '@/components/home/LovedBySection'
 
 export default function IndexPage() {
   return (
