@@ -65,7 +65,7 @@ export default function AuthHeroSection() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Get Started <ArrowRightIcon />
+            Get started <ArrowRightIcon />
           </Button>
           <Button
             variant="outlined"
@@ -74,7 +74,7 @@ export default function AuthHeroSection() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            View Documentation
+            View documentation
           </Button>
         </div>
       </div>

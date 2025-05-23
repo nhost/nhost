@@ -52,13 +52,14 @@ export default function StoragePage() {
         <div className="grid grid-flow-row justify-items-center gap-8">
           <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Simple Integration
+              Simple integration
             </p>
           </div>
 
           <SectionHeading
             title="Add storage in minutes"
-            subtitle="Rapidly build production-ready file management for web and mobile apps. Just a few lines of code to handle uploads, downloads, and transformations."
+            subtitle="Rapidly build production-ready file management for web and mobile apps."
+            // Just a few lines of code to handle uploads, downloads, and transformations."
             className="max-w-2xl"
             slotProps={{
               subtitle: {
@@ -85,13 +86,13 @@ export default function StoragePage() {
 
             <div className="mx-auto mt-6 grid max-w-xl grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
-                <h3 className="text-sm font-bold">Type-Safe SDK</h3>
+                <h3 className="text-sm font-bold">Type-safe SDK</h3>
                 <p className="mt-1 text-xs text-white text-opacity-65">
                   Full TypeScript support for a better developer experience
                 </p>
               </div>
               <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
-                <h3 className="text-sm font-bold">Works Everywhere</h3>
+                <h3 className="text-sm font-bold">Works everywhere</h3>
                 <p className="mt-1 text-xs text-white text-opacity-65">
                   Seamless integration with React, Vue, Next.js, Flutter, and
                   more
@@ -106,28 +107,28 @@ export default function StoragePage() {
                 active={selectedExample === 'uploadFile'}
                 onClick={() => setSelectedExample('uploadFile')}
               >
-                Upload File
+                Upload file
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'getPublicUrl'}
                 onClick={() => setSelectedExample('getPublicUrl')}
               >
-                Get Public URL
+                Get public URL
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'getPresignedUrl'}
                 onClick={() => setSelectedExample('getPresignedUrl')}
               >
-                Get Presigned URL
+                Get presigned URL
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'transformImage'}
                 onClick={() => setSelectedExample('transformImage')}
               >
-                Transform Image
+                Transform image
               </ExampleSelectorButton>
             </div>
 
@@ -154,93 +155,7 @@ export default function StoragePage() {
         <div className="grid grid-flow-row justify-items-center gap-8">
           <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Enterprise-Grade Security
-            </p>
-          </div>
-
-          <SectionHeading
-            title="Powerful permissions, made simple"
-            subtitle="Storage permissions work like any other data in your database. Use Buckets to segment files and fine-grained permissions to control access."
-            className="max-w-2xl"
-            slotProps={{
-              subtitle: {
-                className: 'max-w-lg mx-auto',
-              },
-            }}
-          />
-        </div>
-
-        <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="flex flex-col gap-6 rounded-lg border border-divider bg-paper p-6 shadow-md">
-            <div className="rounded-lg border border-divider bg-black bg-opacity-30 p-4">
-              <CodeSnippet
-                language="graphql"
-                disableGlow
-                disableLineGrid
-                className="shadow-lg"
-              >
-                {`# Storage permissions example
-{
-  file: {
-    id: {_eq: X-Hasura-File-Id},
-    bucket: {
-      id: {_eq: "avatars"},
-      userId: {_eq: X-Hasura-User-Id}
-    }
-  }
-}`}
-              </CodeSnippet>
-            </div>
-
-            <div>
-              <h3 className="mb-2 text-lg font-bold">
-                Granular Access Control
-              </h3>
-              <p className="text-sm text-white text-opacity-80">
-                Define fine-grained permissions for your files using the same
-                powerful permission system as your database. Control who can
-                upload, view, and modify files based on user roles and data
-                relationships.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 content-start gap-4">
-            <div className="rounded-lg border border-divider bg-paper p-5 shadow-md">
-              <h3 className="mb-2 text-base font-bold">User-Specific Files</h3>
-              <p className="text-sm text-white text-opacity-65">
-                Ensure users can only access their own files. Perfect for
-                profile pictures, private documents, and user-generated content.
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-divider bg-paper p-5 shadow-md">
-              <h3 className="mb-2 text-base font-bold">Organization Buckets</h3>
-              <p className="text-sm text-white text-opacity-65">
-                Segment files by organization or team, allowing collaborative
-                access while maintaining proper isolation between different
-                groups.
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-divider bg-paper p-5 shadow-md">
-              <h3 className="mb-2 text-base font-bold">
-                Public vs. Private Files
-              </h3>
-              <p className="text-sm text-white text-opacity-65">
-                Easily distinguish between public assets (like website images)
-                and private files that require authentication to access.
-              </p>
-            </div>
-          </div>
-        </div>
-      </Container>
-
-      <Container component="section" className="mt-24 lg:mt-40">
-        <div className="grid grid-flow-row justify-items-center gap-8">
-          <div className="gradient-background mb-2 rounded-full p-px">
-            <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Performance Features
+              Performance features
             </p>
           </div>
 
@@ -304,7 +219,7 @@ export default function StoragePage() {
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Image Transformations</h3>
+              <h3 className="text-base font-bold">Image transformations</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Resize, crop, convert formats, and adjust quality on-the-fly
@@ -324,7 +239,7 @@ export default function StoragePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">High Scalability</h3>
+              <h3 className="text-base font-bold">High scalability</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Handle millions of uploads and downloads without breaking a
@@ -343,7 +258,7 @@ export default function StoragePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Storage Buckets</h3>
+              <h3 className="text-base font-bold">Storage buckets</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Organize files into logical buckets for different purposes -
@@ -381,13 +296,13 @@ export default function StoragePage() {
           <div className="grid grid-flow-row items-center justify-items-center gap-8">
             <div className="gradient-background rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Complete Backend Platform
+                Your backend platform
               </p>
             </div>
 
             <SectionHeading
-              title="Explore the Nhost Ecosystem"
-              subtitle="Storage is just one part of our complete backend platform. Discover how all our services work together to power your applications."
+              title="Explore the Nhost ecosystem"
+              subtitle="Storage is just one part of our backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }

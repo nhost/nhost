@@ -57,7 +57,7 @@ export default function AuthPage() {
         <div className="grid grid-flow-row gap-8">
           <div className="gradient-background mb-2 justify-self-center rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Simple to Implement
+              Simple to implement
             </p>
           </div>
 
@@ -126,28 +126,28 @@ export default function AuthPage() {
                 active={selectedExample === 'signUp'}
                 onClick={() => setSelectedExample('signUp')}
               >
-                Sign Up
+                Sign up
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'signIn'}
                 onClick={() => setSelectedExample('signIn')}
               >
-                Sign In
+                Sign in
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'resetPassword'}
                 onClick={() => setSelectedExample('resetPassword')}
               >
-                Reset Password
+                Reset password
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'oauthSignIn'}
                 onClick={() => setSelectedExample('oauthSignIn')}
               >
-                OAuth Sign In
+                OAuth sign in
               </ExampleSelectorButton>
             </div>
 
@@ -173,7 +173,7 @@ export default function AuthPage() {
       <Container component="section" className="mt-24 lg:mt-40">
         <div className="grid grid-flow-row gap-8">
           <div className="gradient-background mb-2 justify-self-center rounded-full p-px">
-            <p className="rounded-full bg-paper px-4.5 py-1.5">Full Control</p>
+            <p className="rounded-full bg-paper px-4.5 py-1.5">Full control</p>
           </div>
 
           <SectionHeading
@@ -222,7 +222,7 @@ export default function AuthPage() {
         <div className="grid grid-flow-row gap-8">
           <div className="gradient-background mb-2 justify-self-center rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Enterprise-Grade Security
+              Enterprise-grade security
             </p>
           </div>
 
@@ -266,7 +266,7 @@ export default function AuthPage() {
         <div className="grid grid-flow-row gap-8">
           <div className="gradient-background mb-2 justify-self-center rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              More Capabilities
+              More capabilities
             </p>
           </div>
 
@@ -313,7 +313,7 @@ export default function AuthPage() {
 
             <div className="grid grid-flow-row gap-2.5">
               <h3 className="text-base font-bold">
-                Multi-Factor Authentication
+                Multi-factor authentication
               </h3>
 
               <p className="text-base text-white text-opacity-65">
@@ -332,7 +332,7 @@ export default function AuthPage() {
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Social Providers</h3>
+              <h3 className="text-base font-bold">Social providers</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Simplify sign-up with social logins. Increase conversion rates
@@ -351,7 +351,7 @@ export default function AuthPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">WebAuthn Integration</h3>
+              <h3 className="text-base font-bold">WebAuthn integration</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Enable passwordless login with fingerprints, face recognition,
@@ -387,13 +387,13 @@ export default function AuthPage() {
           <div className="grid grid-flow-row items-center justify-items-center gap-8">
             <div className="gradient-background rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Complete Backend Platform
+                Your backend platform
               </p>
             </div>
 
             <SectionHeading
               title="Explore the Nhost ecosystem"
-              subtitle="Auth is just one part of our complete backend platform. Discover how all our services work together to power your applications."
+              subtitle="Auth is just one part of our backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }

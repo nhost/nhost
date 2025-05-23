@@ -28,19 +28,26 @@ export default function CTASection({ className, ...props }: CTASectionProps) {
 
       <div className="z-10 mx-auto -mt-24 grid grid-flow-row content-start justify-items-center gap-4 lg:-mt-32">
         <h2 className="text-center font-mona text-3.5xl font-semibold md:text-4.5xl">
-          Start Building <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">Your Next Big Thing</span>
+          Start building{' '}
+          <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
+            your next big thing
+          </span>
         </h2>
-        
-        <p className="text-center text-white text-opacity-80 max-w-lg mx-auto mb-6">
-          Get a complete backend up and running in minutes. Focus on building features your users will love, not wrestling with infrastructure. No credit card required for the free tier.
+
+        <p className="mx-auto mb-6 max-w-lg text-center text-white text-opacity-80">
+          Get a complete backend up and running in minutes. Focus on building
+          features your users will love, not wrestling with infrastructure. No
+          credit card required for the free tier.
         </p>
 
-        <div className="grid grid-flow-row gap-6 bg-paper border border-divider rounded-lg p-8 max-w-2xl w-full">
-          <p className="text-base font-medium text-center">Join thousands of developers shipping faster with Nhost</p>
-          
+        <div className="grid w-full max-w-2xl grid-flow-row gap-6 rounded-lg border border-divider bg-paper p-8">
+          <p className="text-center text-base font-medium">
+            Join thousands of developers shipping faster with Nhost
+          </p>
+
           <div className="grid grid-flow-row items-center gap-4 pt-2 md:grid-flow-col md:gap-6">
             <Button
-              className="text-base shadow-lg hover:shadow-xl transition-all duration-300"
+              className="text-base shadow-lg transition-all duration-300 hover:shadow-xl"
               href="https://app.nhost.io"
               target="_blank"
               rel="noopener noreferrer"

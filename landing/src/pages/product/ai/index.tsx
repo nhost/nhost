@@ -4,10 +4,8 @@ import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
 import { CTASection } from '@/components/common/CTASection'
 import { ExampleSelectorButton } from '@/components/common/ExampleSelectorButton'
-import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
-import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { AIHeroSection } from '@/components/ai/AIHeroSection'
 import { ProductSection } from '@/components/product/ProductSection'
@@ -194,7 +192,7 @@ export default function AIPage() {
               alt="Auto-Embeddings icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">Auto-Embeddings</h3>
+            <h3 className="text-base font-bold">Automatic embeddings</h3>
             <p className="text-base text-white text-opacity-65">
               Generate embeddings for your data automatically as it is inserted
               or modified, enabling powerful semantic search capabilities.
@@ -209,7 +207,7 @@ export default function AIPage() {
               alt="AI Assistants icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">AI Agents</h3>
+            <h3 className="text-base font-bold">AI assistants</h3>
             <p className="text-base text-white text-opacity-65">
               Create customized AI assistants so your users can interact with
               your data using natural language and get intelligent responses.
@@ -224,7 +222,7 @@ export default function AIPage() {
               alt="Developer Assistant icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">Developer Assistant</h3>
+            <h3 className="text-base font-bold">Developer assistant</h3>
             <p className="text-base text-white text-opacity-65">
               Boost your development speed with a custom AI assistant that has
               access to your project&apos;s information like database and
@@ -329,12 +327,12 @@ export default function AIPage() {
       <Container component="section" className="mt-24 lg:mt-40">
         <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
           <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
-            Simple to implement
+            File stores
           </p>
         </div>
         <SectionHeading
-          title="Build AI features in minutes"
-          subtitle="Adding AI capabilities to your application has never been easier"
+          title="Agents that talk to your data"
+          subtitle="Files automatically uploaded to Nhost Storage are embedded and available to your agents"
           className="max-w-2xl"
           slotProps={{
             subtitle: {
@@ -343,52 +341,16 @@ export default function AIPage() {
           }}
         />
 
-        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2">
-          <div className="animate-fade-in rounded-xl border border-divider bg-paper p-6">
-            <h3 className="mb-4 text-xl font-bold">
-              Enable auto-embeddings with one query
-            </h3>
-            <p className="mb-6 text-base text-white text-opacity-65">
-              Start using semantic search with just a few lines of GraphQL:
-            </p>
-            <CodeSnippet language="graphql" disableGlow>
-              {`mutation {
-  graphite {
-    enableAutoEmbeddingsForTable(
-      tableName: "movies",
-      schemaName: "public",
-      vectorize: ["title", "overview", "genre"]
-    ) {
-      id
-      status
-    }
-  }
-}`}
-            </CodeSnippet>
-          </div>
-
-          <div className="animate-fade-in-delay rounded-xl border border-divider bg-paper p-6">
-            <h3 className="mb-4 text-xl font-bold">
-              Create an AI assistant in seconds
-            </h3>
-            <p className="mb-6 text-base text-white text-opacity-65">
-              Build assistants that can access your application data:
-            </p>
-            <CodeSnippet language="javascript" disableGlow>
-              {`// Create a custom assistant with knowledge of your data
-const assistant = await nhost.graphite.createAssistant({
-  name: "Movie Expert",
-  instructions: "Help users find movies they'll enjoy",
-  tools: [
-    { type: "knowledge_retrieval" },
-    { type: "function", function: { name: "getMovieDetails" } }
-  ],
-  knowledgeRetrieval: {
-    tables: ["public.movies"]
-  }
-});`}
-            </CodeSnippet>
-          </div>
+        <div className="mx-auto mt-16 flex max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2">
+          <iframe
+            width="560"
+            height="315"
+            src="https://www.youtube.com/embed/J4dUO6YwOsk?si=WCPJHaVzRfYfdjrW"
+            title="Assistants & File Stores"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
         </div>
       </Container>
 
@@ -409,7 +371,7 @@ const assistant = await nhost.graphite.createAssistant({
               alt="Search icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">Semantic Search</h3>
+            <h3 className="text-base font-bold">Semantic search</h3>
             <p className="text-base text-white text-opacity-65">
               Find information based on meaning, not just keywords, with
               powerful vector-based search capabilities
@@ -424,7 +386,7 @@ const assistant = await nhost.graphite.createAssistant({
               alt="Data Federation icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">Document Processing</h3>
+            <h3 className="text-base font-bold">Document processing</h3>
             <p className="text-base text-white text-opacity-65">
               Add documents to your AI knowledge base for assistants to
               reference when answering questions
@@ -439,7 +401,7 @@ const assistant = await nhost.graphite.createAssistant({
               alt="Bullseye icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">Function Calling</h3>
+            <h3 className="text-base font-bold">Function calling</h3>
             <p className="text-base text-white text-opacity-65">
               Allow AI assistants to execute functions in your backend code to
               retrieve data or perform actions
@@ -454,32 +416,12 @@ const assistant = await nhost.graphite.createAssistant({
               alt="Tool icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">GraphQL Integration</h3>
+            <h3 className="text-base font-bold">GraphQL integration</h3>
             <p className="text-base text-white text-opacity-65">
               Access all AI features through your familiar GraphQL API, keeping
               your tech stack unified
             </p>
           </Card>
-
-          {/* <Card className="hover:shadow-glow-sm group flex flex-col space-y-3 transition-all">
-            <Image
-              src="/products/typescript.svg"
-              width={24}
-              height={24}
-              alt="TypeScript icon"
-              className="transition-all group-hover:scale-110"
-            />
-            <h3 className="text-base font-bold">
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
-                TypeScript
-              </span>{' '}
-              SDK
-            </h3>
-            <p className="text-base text-white text-opacity-65">
-              Build AI features with full type safety and autocompletion using
-              our TypeScript SDK
-            </p>
-          </Card> */}
 
           <Card className="hover:shadow-glow-sm group flex flex-col space-y-3 transition-all">
             <Image
@@ -489,7 +431,7 @@ const assistant = await nhost.graphite.createAssistant({
               alt="Security icon"
               className="transition-all group-hover:scale-110"
             />
-            <h3 className="text-base font-bold">Security Controls</h3>
+            <h3 className="text-base font-bold">Security controls</h3>
             <p className="text-base text-white text-opacity-65">
               Full control over which data can be accessed by AI features with
               granular permission settings
@@ -504,7 +446,7 @@ const assistant = await nhost.graphite.createAssistant({
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
             <div className="gradient-background animate-fade-in rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Explore the Nhost Ecosystem
+                Explore the Nhost ecosystem
               </p>
             </div>
 

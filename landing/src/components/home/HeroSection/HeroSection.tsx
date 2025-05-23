@@ -46,7 +46,7 @@ export default function HeroSection() {
           <div className="flex gap-4 justify-self-center">
             <Button
               className="text-center text-base"
-              href="https://app.nhost.io"
+              href="https://app.nhost.io/signup"
               target="_blank"
               rel="noopener noreferrer"
             >

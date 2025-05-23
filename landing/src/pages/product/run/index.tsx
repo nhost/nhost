@@ -12,7 +12,6 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { ProductSection } from '@/components/product/ProductSection'
 import { RunHeroSection } from '@/components/run/RunHeroSection'
 import Image from 'next/image'
-import Link from 'next/link'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
@@ -106,7 +105,7 @@ export default function NhostRunPage() {
           </div>
           <SectionHeading
             title="Extend your backend seamlessly"
-            subtitle="Build and Run services written in your favourite language with almost no configuration"
+            subtitle="Build and run services written in your favourite language with almost no configuration"
             className="max-w-xl"
             slotProps={{
               subtitle: {
@@ -464,7 +463,7 @@ nhost run config-deploy
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Private Registry</h3>
+              <h3 className="text-base font-bold">Private registry</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Push your service images to our private registry with
@@ -481,7 +480,7 @@ nhost run config-deploy
               className="mx-auto transition-all group-hover:scale-110"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Polyglot Development</h3>
+              <h3 className="text-base font-bold">Polyglot development</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Run services written in JavaScript/TypeScript, Go, Python, Rust,
@@ -499,7 +498,7 @@ nhost run config-deploy
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">High Scalability</h3>
+              <h3 className="text-base font-bold">High scalability</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Use Dedicated Compute and Service Replicas to scale your custom
@@ -534,7 +533,7 @@ nhost run config-deploy
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
             <div className="gradient-background animate-fade-in rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Explore the Nhost Ecosystem
+                Explore the Nhost ecosystem
               </p>
             </div>
 

@@ -47,10 +47,10 @@ export default function AIHeroSection() {
               <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
                 AI
               </span>{' '}
-              Toolkit
+              toolkit
             </>
           }
-          subtitle="Vector search, embeddings generation, AI agents, and more - integrate advanced AI features with just a few simple configurations."
+          subtitle="Vector search, embeddings generation, AI assistants, and more - integrate advanced AI features with just a few simple configurations."
           className="text-left"
           slotProps={{
             title: {
@@ -70,7 +70,7 @@ export default function AIHeroSection() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Get Started <ArrowRightIcon />
+            Get started <ArrowRightIcon />
           </Button>
           <Button
             variant="outlined"
@@ -79,7 +79,7 @@ export default function AIHeroSection() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            View Documentation
+            View documentation
           </Button>
         </div>
       </div>

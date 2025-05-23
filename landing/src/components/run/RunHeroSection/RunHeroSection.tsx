@@ -50,7 +50,7 @@ export default function RunHeroSection() {
           }
           subtitle={
             <>
-              Deploy any Docker container alongside your Nhost stack.{' '}
+              Deploy any docker container alongside your Nhost stack.{' '}
               <strong>Build</strong>, <strong>push</strong>, and{' '}
               <strong>run</strong> custom microservices in any language with
               automatic scaling and global deployments.
@@ -75,7 +75,7 @@ export default function RunHeroSection() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Get Started <ArrowRightIcon />
+            Get started <ArrowRightIcon />
           </Button>
           <Button
             variant="outlined"
@@ -84,7 +84,7 @@ export default function RunHeroSection() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            View Documentation
+            View documentation
           </Button>
         </div>
       </div>

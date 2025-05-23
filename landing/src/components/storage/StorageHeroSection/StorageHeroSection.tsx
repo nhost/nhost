@@ -8,10 +8,9 @@ import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import Image from 'next/image'
 
-const heroExample = `// Upload a file
+const heroExample = `
 const { fileMetadata } = await nhost.storage.upload({ file })
 
-// Transform an image on-the-fly
 const url = nhost.storage.getPublicUrl({
   fileId: fileMetadata.id,
   transformation: {
@@ -75,7 +74,7 @@ export default function StorageHeroSection() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Get Started <ArrowRightIcon />
+            Get started <ArrowRightIcon />
           </Button>
           <Button
             variant="outlined"
@@ -84,7 +83,7 @@ export default function StorageHeroSection() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            View Documentation
+            View documentation
           </Button>
         </div>
       </div>

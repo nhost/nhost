@@ -75,11 +75,11 @@ export default function ExamplesSection() {
       ref={ref}
       component="section"
       slotProps={{ root: { className: 'overflow-hidden xl:overflow-visible' } }}
-      className="mt-24 grid grid-flow-row gap-12 pb-12 lg:mt-28 lg:gap-28"
+      className="mt-32 grid grid-flow-row gap-12 pb-12 lg:mt-36 lg:gap-28"
     >
       <SectionHeading
-        title="For Developers, By Developers"
-        subtitle="Type-safe SDKs for your favorite frameworks. Production-ready code in minutes, not months."
+        title="Build faster with our SDKs"
+        // subtitle="Build products faster using our SDKs"
       />
 
       <div className="z-0 grid items-start gap-14 xl:grid-cols-2 xl:gap-6">
@@ -110,28 +110,28 @@ export default function ExamplesSection() {
               active={activeExample === 'signUp'}
               onClick={() => setActiveExample('signUp')}
             >
-              Auth & Sign Up
+              Sign Up
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'query'}
               onClick={() => setActiveExample('query')}
             >
-              Realtime Queries
+              GraphQL Query
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'mutation'}
               onClick={() => setActiveExample('mutation')}
             >
-              Data Mutations
+              GraphQL Mutation
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'fileUpload'}
               onClick={() => setActiveExample('fileUpload')}
             >
-              Storage & Files
+              File Upload
             </ExampleSelectorButton>
           </div>
 

@@ -123,12 +123,12 @@ export default function FunctionsPage() {
         <div className="grid grid-flow-row justify-items-center gap-8">
           <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Scale Automatically
+              Scale automatically
             </p>
           </div>
 
           <SectionHeading
-            title="Serverless functions at scale"
+            title="Functions at scale"
             subtitle="Deploy server-side logic without managing infrastructure. Handle custom business logic, integrate with third-party services, and build webhooks with JavaScript or TypeScript."
             className="max-w-2xl"
             slotProps={{
@@ -167,14 +167,14 @@ export default function FunctionsPage() {
 
             <div className="mx-auto mt-6 grid max-w-xl grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
-                <h3 className="text-sm font-bold">Automatic Scaling</h3>
+                <h3 className="text-sm font-bold">Automatic scaling</h3>
                 <p className="mt-1 text-xs text-white text-opacity-65">
                   Functions scale automatically based on demand, no
                   infrastructure management needed
                 </p>
               </div>
               <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
-                <h3 className="text-sm font-bold">TypeScript Support</h3>
+                <h3 className="text-sm font-bold">TypeScript support</h3>
                 <p className="mt-1 text-xs text-white text-opacity-65">
                   Write functions in TypeScript with full type safety and modern
                   JavaScript features
@@ -189,7 +189,7 @@ export default function FunctionsPage() {
                 active={selectedExample === 'sendEmail'}
                 onClick={() => setSelectedExample('sendEmail')}
               >
-                Send Email
+                Send email
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
@@ -203,14 +203,14 @@ export default function FunctionsPage() {
                 active={selectedExample === 'stripe'}
                 onClick={() => setSelectedExample('stripe')}
               >
-                Stripe Webhooks
+                Stripe webhooks
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'helloWorld'}
                 onClick={() => setSelectedExample('helloWorld')}
               >
-                Hello World
+                Hello world
               </ExampleSelectorButton>
             </div>
 
@@ -237,7 +237,7 @@ export default function FunctionsPage() {
         <div className="grid grid-flow-row justify-items-center gap-8">
           <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Advanced Features
+              Advanced features
             </p>
           </div>
 
@@ -283,7 +283,7 @@ export default function FunctionsPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Environment Variables</h3>
+              <h3 className="text-base font-bold">Environment variables</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Securely store and access configuration values and secrets. Full
@@ -302,7 +302,7 @@ export default function FunctionsPage() {
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">TypeScript Support</h3>
+              <h3 className="text-base font-bold">TypeScript support</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Write functions in TypeScript with full type checking and modern
@@ -322,7 +322,7 @@ export default function FunctionsPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Event Triggers</h3>
+              <h3 className="text-base font-bold">Event triggers</h3>
 
               <p className="text-base text-white text-opacity-65">
                 React to database changes automatically by consuming event
@@ -342,7 +342,7 @@ export default function FunctionsPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Zero Maintenance</h3>
+              <h3 className="text-base font-bold">Zero maintenance</h3>
 
               <p className="text-base text-white text-opacity-65">
                 No servers to manage, no scaling to configure, no OS updates to
@@ -362,7 +362,7 @@ export default function FunctionsPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Comprehensive Logging</h3>
+              <h3 className="text-base font-bold">Comprehensive logging</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Monitor function performance and troubleshoot issues with
@@ -380,13 +380,13 @@ export default function FunctionsPage() {
           <div className="grid grid-flow-row items-center justify-items-center gap-8">
             <div className="gradient-background rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Complete Backend Platform
+                Your backend platform
               </p>
             </div>
 
             <SectionHeading
-              title="Explore the Nhost Ecosystem"
-              subtitle="Serverless Functions are just one part of our complete backend platform. Discover how all our services work together to power your applications."
+              title="Explore the Nhost ecosystem"
+              subtitle="Serverless Functions are just one part of our backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }

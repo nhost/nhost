@@ -53,7 +53,7 @@ export default function DatabasePage() {
         <div className="grid grid-flow-row justify-items-center gap-8">
           <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              User-Friendly Interface
+              User-friendly interface
             </p>
           </div>
 
@@ -84,28 +84,28 @@ export default function DatabasePage() {
                 active={selectedExample === 'insertData'}
                 onClick={() => setSelectedExample('insertData')}
               >
-                Insert Data
+                Insert data
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'editData'}
                 onClick={() => setSelectedExample('editData')}
               >
-                Edit Data
+                Edit data
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'createTable'}
                 onClick={() => setSelectedExample('createTable')}
               >
-                Create Table
+                Create table
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'editTable'}
                 onClick={() => setSelectedExample('editTable')}
               >
-                Edit Table
+                Edit table
               </ExampleSelectorButton>
             </div>
 
@@ -177,7 +177,7 @@ export default function DatabasePage() {
       >
         <div className="grid grid-flow-row justify-items-center gap-8">
           <div className="gradient-background mb-2 rounded-full p-px">
-            <p className="rounded-full bg-paper px-4.5 py-1.5">Full Control</p>
+            <p className="rounded-full bg-paper px-4.5 py-1.5">Full control</p>
           </div>
 
           <SectionHeading
@@ -212,7 +212,7 @@ export default function DatabasePage() {
           <div className="grid grid-cols-1 content-start gap-4">
             <div className="rounded-lg border border-divider bg-paper p-5 shadow-md">
               <h3 className="mb-2 text-base font-bold">
-                Use Your Favorite Tools
+                Use your favorite tools
               </h3>
               <p className="text-sm text-white text-opacity-65">
                 Connect using pgAdmin, DBeaver, DataGrip, or any other
@@ -223,7 +223,7 @@ export default function DatabasePage() {
 
             <div className="rounded-lg border border-divider bg-paper p-5 shadow-md">
               <h3 className="mb-2 text-base font-bold">
-                Custom PostgreSQL Extensions
+                Custom PostgreSQL extensions
               </h3>
               <p className="text-sm text-white text-opacity-65">
                 Install and configure any PostgreSQL extension you need, from
@@ -233,7 +233,7 @@ export default function DatabasePage() {
 
             <div className="rounded-lg border border-divider bg-paper p-5 shadow-md">
               <h3 className="mb-2 text-base font-bold">
-                Complex Queries and Procedures
+                Complex Queries and procedures
               </h3>
               <p className="text-sm text-white text-opacity-65">
                 Write and execute complex SQL queries, create stored procedures,
@@ -249,7 +249,7 @@ export default function DatabasePage() {
         <div className="grid grid-flow-row justify-items-center gap-8">
           <div className="gradient-background mb-2 rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
-              Enterprise-Ready
+              Enterprise-ready
             </p>
           </div>
 
@@ -295,7 +295,7 @@ export default function DatabasePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">PostgreSQL Extensions</h3>
+              <h3 className="text-base font-bold">PostgreSQL extensions</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Access a comprehensive library of PostgreSQL extensions for
@@ -314,7 +314,7 @@ export default function DatabasePage() {
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Automatic Backups</h3>
+              <h3 className="text-base font-bold">Automatic backups</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Daily automated backups and point-in-time recovery capabilities.
@@ -334,7 +334,7 @@ export default function DatabasePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">High-Performance Storage</h3>
+              <h3 className="text-base font-bold">High-performance storage</h3>
 
               <p className="text-base text-white text-opacity-65">
                 All databases run on enterprise-grade NVMe SSDs for
@@ -354,7 +354,7 @@ export default function DatabasePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Comprehensive Logging</h3>
+              <h3 className="text-base font-bold">Comprehensive logging</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Access detailed database logs for monitoring, troubleshooting,
@@ -374,7 +374,7 @@ export default function DatabasePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Seamless Scaling</h3>
+              <h3 className="text-base font-bold">Seamless scaling</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Start small and scale as you grow. Easily upgrade your database
@@ -391,13 +391,13 @@ export default function DatabasePage() {
           <div className="grid grid-flow-row items-center justify-items-center gap-8">
             <div className="gradient-background rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Complete Backend Platform
+                Your backend platform
               </p>
             </div>
 
             <SectionHeading
               title="Explore the Nhost ecosystem"
-              subtitle="PostgreSQL Database is just one part of our complete backend platform. Discover how all our services work together to power your applications."
+              subtitle="A Postgres database is just one part of our backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }
