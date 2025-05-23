@@ -95,7 +95,9 @@ tenant = 'common'
 enabled = false
 
 [auth.method.oauth.bitbucket]
-enabled = false
+enabled = true
+clientId = '{{ secrets.BITBUCKET_CLIENT_ID }}'
+clientSecret = '{{ secrets.BITBUCKET_CLIENT_SECRET }}'
 
 [auth.method.oauth.discord]
 enabled = false
@@ -109,7 +111,9 @@ clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
 clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
 [auth.method.oauth.gitlab]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GITLAB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITLAB_CLIENT_SECRET }}'
 
 [auth.method.oauth.google]
 enabled = true
@@ -122,13 +126,17 @@ clientId='{{ secrets.LINKEDIN_CLIENT_ID }}'
 clientSecret='{{ secrets.LINKEDIN_CLIENT_SECRET }}'
 
 [auth.method.oauth.spotify]
-enabled = false
+enabled = true
+clientId = '{{ secrets.SPOTIFY_CLIENT_ID }}'
+clientSecret = '{{ secrets.SPOTIFY_CLIENT_SECRET }}'
 
 [auth.method.oauth.strava]
 enabled = false
 
 [auth.method.oauth.twitch]
-enabled = false
+enabled = true
+clientId = '{{ secrets.TWITCH_CLIENT_ID }}'
+clientSecret = '{{ secrets.TWITCH_CLIENT_SECRET }}'
 
 [auth.method.oauth.twitter]
 enabled = false
