@@ -95,7 +95,9 @@ tenant = 'common'
 enabled = false
 
 [auth.method.oauth.bitbucket]
-enabled = false
+enabled = true
+clientId = '{{ secrets.BITBUCKET_CLIENT_ID }}'
+clientSecret = '{{ secrets.BITBUCKET_CLIENT_SECRET }}'
 
 [auth.method.oauth.discord]
 enabled = false
