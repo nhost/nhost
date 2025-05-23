@@ -1,11 +1,11 @@
-import { SiApple, SiGithub, SiGoogle, SiLinkedin, SiSpotify, SiTwitch, SiGitlab } from '@icons-pack/react-simple-icons'
+import { SiApple, SiGithub, SiGoogle, SiLinkedin, SiSpotify, SiTwitch, SiGitlab, SiBitbucket } from '@icons-pack/react-simple-icons'
 import { Link } from 'react-router-dom'
 import { useProviderLink } from '@nhost/react'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 
 export default function OAuthLinks() {
-  const { github, apple, google, linkedin, spotify, twitch, gitlab } = useProviderLink({
+  const { github, apple, google, linkedin, spotify, twitch, gitlab, bitbucket } = useProviderLink({
     redirectTo: window.location.origin
   })
 
@@ -85,6 +85,17 @@ export default function OAuthLinks() {
       >
         <SiGitlab className="w-4 h-4" />
         <span className="flex-1 text-center">Continue with Gitlab</span>
+      </Link>
+
+      <Link
+        to={bitbucket}
+        className={cn(
+          buttonVariants({ variant: 'link' }),
+          'bg-[#FCA326] text-white hover:opacity-90 hover:no-underline'
+        )}
+      >
+        <SiBitbucket className="w-4 h-4" />
+        <span className="flex-1 text-center">Continue with Bitbucket</span>
       </Link>
 
     </div>
