@@ -398,7 +398,7 @@ services:
         volumes:
             - type: volume
               source: pgdata
-              target: /var/lib/postgresql/
+              target: /var/lib/postgresql/data/
               read_only: false
             - type: bind
               source: ./initdb.d
