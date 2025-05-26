@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/smtp"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -50,6 +51,17 @@ func sanitize(s string) string {
 	}, s)
 }
 
+// ExtractEmail returns the email address from a string that may be formatted
+// as "Display Name <email@example.com>" or just "email@example.com".
+func ExtractEmail(address string) string {
+	re := regexp.MustCompile(`<?(\w+(\W\w+)*@.\w+(\.\w+)*)>?`)
+	if match := re.FindStringSubmatch(address); len(match) > 1 {
+		return match[1]
+	}
+
+	return address
+}
+
 func (sm *Email) Send(to, subject, contents string, headers map[string]string) error {
 	buf := new(bytes.Buffer)
 	for k, v := range sm.extraHeaders {
@@ -66,13 +78,17 @@ func (sm *Email) Send(to, subject, contents string, headers map[string]string) e
 	buf.WriteString("\r\n")
 	buf.WriteString(contents + "\r\n")
 
+	// Extract plain email addresses for SMTP envelope
+	fromEmail := ExtractEmail(sm.from)
+	toEmail := ExtractEmail(to)
+
 	if err := sendMail(
 		sm.host,
 		sm.port,
 		sm.useTLSConnection,
 		sm.auth,
-		sm.from,
-		[]string{to},
+		fromEmail,
+		[]string{toEmail},
 		buf.Bytes(),
 	); err != nil {
 		return fmt.Errorf("error sending email: %w", err)
