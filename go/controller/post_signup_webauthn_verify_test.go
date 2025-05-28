@@ -23,7 +23,7 @@ import (
 
 func webAuthnTouchID(
 	t *testing.T,
-) (*protocol.CredentialCreationResponse, controller.WebauthnChallenge) {
+) (protocol.CredentialCreationResponse, controller.WebauthnChallenge) {
 	t.Helper()
 
 	//nolint:lll
@@ -45,7 +45,7 @@ func webAuthnTouchID(
         "authenticatorAttachment": "platform"
     }`)
 
-	var resp *protocol.CredentialCreationResponse
+	var resp protocol.CredentialCreationResponse
 	if err := json.Unmarshal(rawCredResp, &resp); err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func webAuthnTouchID(
 
 func webAuthnWindowsHello(
 	t *testing.T,
-) (*protocol.CredentialCreationResponse, controller.WebauthnChallenge) {
+) (protocol.CredentialCreationResponse, controller.WebauthnChallenge) {
 	t.Helper()
 
 	//nolint:lll
@@ -110,7 +110,7 @@ func webAuthnWindowsHello(
         "authenticatorAttachment": "platform"
     }`)
 
-	var resp *protocol.CredentialCreationResponse
+	var resp protocol.CredentialCreationResponse
 	if err := json.Unmarshal(rawCredResp, &resp); err != nil {
 		t.Fatal(err)
 	}
@@ -199,9 +199,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
-					Credential:           touchIDRequest,
-					Options:              nil,
-					AdditionalProperties: nil,
+					Credential: touchIDRequest,
+					Options:    nil,
 				},
 			},
 			expectedResponse: api.PostSignupWebauthnVerify200JSONResponse{
@@ -287,9 +286,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
-					Credential:           windowsHelloRequest,
-					Options:              nil,
-					AdditionalProperties: nil,
+					Credential: windowsHelloRequest,
+					Options:    nil,
 				},
 			},
 			expectedResponse: api.PostSignupWebauthnVerify200JSONResponse{
@@ -377,9 +375,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
-					Credential:           touchIDRequest,
-					Options:              nil,
-					AdditionalProperties: nil,
+					Credential: touchIDRequest,
+					Options:    nil,
 				},
 			},
 			expectedResponse: api.PostSignupWebauthnVerify200JSONResponse{
@@ -434,9 +431,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
-					Credential:           touchIDRequest,
-					Options:              nil,
-					AdditionalProperties: nil,
+					Credential: touchIDRequest,
+					Options:    nil,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -486,9 +482,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
-					Credential:           touchIDRequest,
-					Options:              nil,
-					AdditionalProperties: nil,
+					Credential: touchIDRequest,
+					Options:    nil,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -515,9 +510,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
-					Credential:           touchIDRequest,
-					Options:              nil,
-					AdditionalProperties: nil,
+					Credential: touchIDRequest,
+					Options:    nil,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -567,9 +561,8 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			request: api.PostSignupWebauthnVerifyRequestObject{
 				Body: &api.SignUpWebauthnVerifyRequest{
-					Credential:           touchIDRequest,
-					Options:              nil,
-					AdditionalProperties: nil,
+					Credential: touchIDRequest,
+					Options:    nil,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{

@@ -322,7 +322,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SignInWebauthnRequest'
-        required: true
+        required: false
       responses:
         '200':
           content:
@@ -1112,7 +1112,7 @@ components:
     SignUpOptions:
       type: object
       additionalProperties: false
-      properties:
+      properties: &signUpOptionsProperties
         allowedRoles:
           example:
             - me
@@ -1188,7 +1188,7 @@ components:
 
     SignInWebauthnVerifyRequest:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
         email:
           description: A valid email. Deprecated, no longer used
@@ -1208,7 +1208,7 @@ components:
 
     SignUpWebauthnVerifyRequest:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
         credential:
           type: object
@@ -1220,13 +1220,13 @@ components:
         options:
           type: object
           additionalProperties: false
-          allOf:
-            - $ref: "#/components/schemas/SignUpOptions"
-            - type: object
-              additionalProperties: false
-              properties:
-                nickname:
-                  type: string
+          properties:
+            <<: *signUpOptionsProperties
+            nickname:
+              description: Nickname for the security key
+              type: string
+      required:
+        - credential
 
     SignInIdTokenRequest:
       type: object
