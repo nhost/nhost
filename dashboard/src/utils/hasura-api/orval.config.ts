@@ -9,28 +9,18 @@ export default defineConfig({
       mode: 'tags-split',
       target: 'generated',
       schemas: 'generated/schemas',
-      client: 'fetch',
+      client: 'react-query',
+      prettier: true,
       override: {
         mutator: {
-          path: 'custom-fetch.ts',
-          name: 'customFetch',
+          path: './hasura-mutator.ts',
+          name: 'hasuraMutator',
         },
         query: {
           useQuery: true,
           useMutation: true,
+          signal: false,
         },
-        operations: {
-          metadataOperation: {
-            // Handle the remote schemas operation
-            operationName: () => 'executeMetadataOperation',
-          },
-        },
-      },
-      prettier: true,
-    },
-    hooks: {
-      afterAllFilesWrite: {
-        command: 'npx prettier --write "./src/utils/hasura-api/generated/**/*.ts"',
       },
     },
   },

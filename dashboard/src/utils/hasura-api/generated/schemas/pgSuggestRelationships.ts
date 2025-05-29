@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { PgSuggestRelationshipsType } from './pgSuggestRelationshipsType';
 import type { PgSuggestRelationshipsArgs } from './pgSuggestRelationshipsArgs';
+import type { PgSuggestRelationshipsType } from './pgSuggestRelationshipsType';
 
 export interface PgSuggestRelationships {
   /** Type of operation to suggest relationships based on foreign key constraints */

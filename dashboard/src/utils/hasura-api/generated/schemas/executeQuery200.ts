@@ -5,7 +5,7 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { TuplesOkResponse } from './tuplesOkResponse';
 import type { CommandOkResponse } from './commandOkResponse';
+import type { TuplesOkResponse } from './tuplesOkResponse';
 
 export type ExecuteQuery200 = TuplesOkResponse | CommandOkResponse;

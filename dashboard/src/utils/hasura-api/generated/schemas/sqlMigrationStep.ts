@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { SqlMigrationStepType } from './sqlMigrationStepType';
 import type { SqlMigrationArgs } from './sqlMigrationArgs';
+import type { SqlMigrationStepType } from './sqlMigrationStepType';
 
 export interface SqlMigrationStep {
   /** Use to run SQL against the database behind the GraphQL service */

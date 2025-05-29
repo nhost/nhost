@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { TrackTableStepType } from './trackTableStepType';
 import type { TrackTableArgs } from './trackTableArgs';
+import type { TrackTableStepType } from './trackTableStepType';
 
 export interface TrackTableStep {
   /** Use after creating a table with run_sql to track it. You can provide this in the same query as the run_sql step */

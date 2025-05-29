@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { RemoveRemoteSchemaOperationType } from './removeRemoteSchemaOperationType';
 import type { RemoveRemoteSchemaArgs } from './removeRemoteSchemaArgs';
+import type { RemoveRemoteSchemaOperationType } from './removeRemoteSchemaOperationType';
 
 export interface RemoveRemoteSchemaOperation {
   /** Type of operation to remove a remote schema */

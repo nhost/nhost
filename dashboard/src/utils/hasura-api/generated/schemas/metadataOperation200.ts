@@ -6,6 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type ExecuteMetadataOperation200 = {
+export type MetadataOperation200 = {
   message?: string;
 };

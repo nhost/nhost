@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { PgSuggestRelationshipsResponseObjectRelationshipsItem } from './pgSuggestRelationshipsResponseObjectRelationshipsItem';
 import type { PgSuggestRelationshipsResponseArrayRelationshipsItem } from './pgSuggestRelationshipsResponseArrayRelationshipsItem';
+import type { PgSuggestRelationshipsResponseObjectRelationshipsItem } from './pgSuggestRelationshipsResponseObjectRelationshipsItem';
 
 export interface PgSuggestRelationshipsResponse {
   object_relationships?: PgSuggestRelationshipsResponseObjectRelationshipsItem[];

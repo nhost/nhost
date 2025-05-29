@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { RunSqlRequestType } from './runSqlRequestType';
 import type { RunSqlRequestArgs } from './runSqlRequestArgs';
+import type { RunSqlRequestType } from './runSqlRequestType';
 
 export interface RunSqlRequest {
   /** Type of operation to execute SQL queries */

@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { BulkRunSqlOperationType } from './bulkRunSqlOperationType';
 import type { BulkRunSqlOperationArgs } from './bulkRunSqlOperationArgs';
+import type { BulkRunSqlOperationType } from './bulkRunSqlOperationType';
 
 export interface BulkRunSqlOperation {
   /** Type of operation to execute SQL queries */
