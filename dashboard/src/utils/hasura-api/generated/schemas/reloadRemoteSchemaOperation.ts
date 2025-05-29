@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { ReloadRemoteSchemaOperationType } from './reloadRemoteSchemaOperationType';
 import type { ReloadRemoteSchemaArgs } from './reloadRemoteSchemaArgs';
+import type { ReloadRemoteSchemaOperationType } from './reloadRemoteSchemaOperationType';
 
 export interface ReloadRemoteSchemaOperation {
   /** Type of operation to reload a remote schema */
