@@ -69,8 +69,7 @@ const EditPermissionsForm = dynamic(
   },
 );
 
-export interface RemoteSchemaBrowserSidebarProps
-  extends Omit<BoxProps, 'children'> {
+export interface RemoteSchemaBrowserSidebarProps extends Omit<BoxProps, 'children'> {
   /**
    * Function to be called when a sidebar item is clicked.
    */
@@ -104,9 +103,6 @@ function RemoteSchemaBrowserSidebarContent({
   const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
     useState<string>();
 
-  const [selectedSchema, setSelectedSchema] = useState<string>('');
-  const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
-
   /**
    * Table for which the table management dropdown was opened.
    */
@@ -114,30 +110,11 @@ function RemoteSchemaBrowserSidebarContent({
 
   const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/editor`;
 
-  useEffect(() => {
-    if (selectedSchema) {
-      return;
-    }
-
-    if (schemaSlug) {
-      setSelectedSchema(schemaSlug as string);
-      return;
-    }
-
-    if (schemas && schemas.length > 0) {
-      const publicSchemaIndex = schemas.findIndex(
-        ({ schema_name: schemaName }) => schemaName === 'public',
-      );
-      const index = Math.max(0, publicSchemaIndex);
-      setSelectedSchema(schemas[index].schema_name);
-    }
-  }, [schemaSlug, schemas, selectedSchema]);
-
   if (status === 'loading') {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading schemas and tables..."
+        label="Loading remote schemas..."
         className="justify-center"
       />
     );
@@ -150,13 +127,6 @@ function RemoteSchemaBrowserSidebarContent({
   if (metadata?.databaseNotFound) {
     return null;
   }
-
-  const tablesInSelectedSchema = tables
-    .filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
-    .filter(
-      ({ table_schema: tableSchema, table_name: tableName }) =>
-        `${tableSchema}.${tableName}` !== optimisticlyRemovedTable,
-    );
 
   async function handleDeleteTableConfirmation(schema: string, table: string) {
     const tablePath = `${schema}.${table}`;
@@ -315,7 +285,6 @@ function RemoteSchemaBrowserSidebarContent({
             </Text>
           </Box>
         )}
-        {!isSelectedSchemaLocked && (
           <Button
             variant="borderless"
             endIcon={<PlusIcon />}
@@ -331,9 +300,8 @@ function RemoteSchemaBrowserSidebarContent({
             }}
             disabled={isGitHubConnected}
           >
-            New Table
+            New Remote Schema
           </Button>
-        )}
         {schemas &&
           schemas.length > 0 &&
           tablesInSelectedSchema.length === 0 && (
