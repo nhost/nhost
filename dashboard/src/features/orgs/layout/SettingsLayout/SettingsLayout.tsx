@@ -47,7 +47,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                         >
                           nhost config pull
                         </code>
-                        {' '}to sync your changes.
+                        {' '}to sync your changes
                         <br />
                         <br />
                         If you want to connect multiple projects to the same
@@ -59,7 +59,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                         >
                           configuration overlays
                         </a>
-                        .
+                       
                       </span>
                     </Text>
                   </div>
