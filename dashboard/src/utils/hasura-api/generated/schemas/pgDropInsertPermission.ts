@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { PgDropInsertPermissionType } from './pgDropInsertPermissionType';
 import type { DropPermissionArgs } from './dropPermissionArgs';
+import type { PgDropInsertPermissionType } from './pgDropInsertPermissionType';
 
 export interface PgDropInsertPermission {
   /** Type of operation */

@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { TableIdentifier } from './tableIdentifier';
 import type { CreateArrayRelationshipArgsUsing } from './createArrayRelationshipArgsUsing';
+import type { TableIdentifier } from './tableIdentifier';
 
 export interface CreateArrayRelationshipArgs {
   table: TableIdentifier;

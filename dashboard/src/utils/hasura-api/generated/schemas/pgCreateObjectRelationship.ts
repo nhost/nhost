@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { PgCreateObjectRelationshipType } from './pgCreateObjectRelationshipType';
 import type { CreateObjectRelationshipArgs } from './createObjectRelationshipArgs';
+import type { PgCreateObjectRelationshipType } from './pgCreateObjectRelationshipType';
 
 export interface PgCreateObjectRelationship {
   /** Type of operation to create an object relationship */
