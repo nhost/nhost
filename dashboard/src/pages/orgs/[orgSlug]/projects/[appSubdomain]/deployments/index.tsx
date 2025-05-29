@@ -1,8 +1,8 @@
 import { useUI } from '@/components/common/UIProvider';
-import { Container } from '@/components/layout/Container';
+import { ContainerV2 } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Heading } from '@/components/ui/v3/heading';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -18,7 +18,7 @@ export default function DeploymentsPage() {
 
   if (!project?.githubRepository) {
     return (
-      <Container className="mt-12 grid max-w-3xl grid-flow-row gap-4 text-center antialiased">
+      <ContainerV2 className="mt-12 grid max-w-3xl grid-flow-row gap-4 text-center font-[Inter] antialiased">
         <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
             src="/assets/githubRepo.svg"
@@ -28,13 +28,11 @@ export default function DeploymentsPage() {
           />
         </div>
         <div className="grid grid-flow-row gap-2">
-          <Text variant="h3" component="h1">
-            Deployments
-          </Text>
-          <Text>
+          <Heading variant="h4">Deployments</Heading>
+          <p>
             Once you connect this app to version control, all changes will be
             deployed automatically.
-          </Text>
+          </p>
         </div>
 
         <NavLink
@@ -43,29 +41,24 @@ export default function DeploymentsPage() {
           legacyBehavior
         >
           <Button
-            variant="borderless"
-            className="mx-auto font-medium"
+            variant="ghost"
+            className="mx-auto text-base font-medium text-[#3888FF] hover:bg-[#1B2534] hover:text-[#3888FF]"
             disabled={maintenanceActive}
           >
             Connect your Project to GitHub
           </Button>
         </NavLink>
-      </Container>
+      </ContainerV2>
     );
   }
 
   return (
-    <Container className="mx-auto flex max-w-5xl flex-col space-y-2">
-      <div className="mt-4 flex flex-row place-content-between">
-        <Text variant="h2" component="h1">
-          Deployments
-        </Text>
-      </div>
-
+    <ContainerV2 className="mx-auto flex max-w-5xl flex-col space-y-2 pt-8 font-[Inter]">
+      <Heading variant="h3">Deployments</Heading>
       <RetryableErrorBoundary>
         <AppDeployments appId={project?.id} />
       </RetryableErrorBoundary>
-    </Container>
+    </ContainerV2>
   );
 }
 

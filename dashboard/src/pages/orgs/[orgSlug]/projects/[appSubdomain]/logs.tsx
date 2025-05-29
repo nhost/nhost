@@ -58,6 +58,8 @@ export default function LogsPage() {
     skip: !project,
   });
 
+  console.log({ data });
+
   const subscribeToMoreLogs = useCallback(
     () =>
       subscribeToMore({
@@ -72,6 +74,7 @@ export default function LogsPage() {
           regexFilter: filters.regexFilter,
         },
         updateQuery: (prev, { subscriptionData }) => {
+          console.log({ prev, subscriptionData });
           // if there is no new data, just return the previous data
           if (!subscriptionData.data) {
             return prev;

@@ -1,16 +1,15 @@
-import { Container } from '@/components/layout/Container';
+import { ContainerV2 } from '@/components/layout/Container';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
-import { Avatar } from '@/components/ui/v1/Avatar';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
+import { Avatar, AvatarImage } from '@/components/ui/v3/avatar';
+import { Heading } from '@/components/ui/v3/heading';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 
@@ -29,9 +28,9 @@ export default function DeploymentDetailsPage() {
 
   if (loading) {
     return (
-      <Container>
-        <ActivityIndicator delay={500} label="Loading deployment..." />
-      </Container>
+      <ContainerV2 className="flex h-full w-full items-center justify-center">
+        <Spinner>Loading deployment...</Spinner>
+      </ContainerV2>
     );
   }
 
@@ -43,14 +42,17 @@ export default function DeploymentDetailsPage() {
 
   if (!deployment) {
     return (
-      <Container>
-        <Text variant="h1" className="text text-4xl font-semibold">
+      <ContainerV2 className="py-5">
+        <Heading variant="h2" className="text-4xl font-semibold">
           Not found
-        </Text>
-        <Text className="text-sm" color="disabled">
+        </Heading>
+        <p
+          className="text-disabled text-sm text-[#9CA7B7] dark:text-[#68717A]"
+          color="disabled"
+        >
           This deployment does not exist.
-        </Text>
-      </Container>
+        </p>
+      </ContainerV2>
     );
   }
 
@@ -61,12 +63,13 @@ export default function DeploymentDetailsPage() {
     : '';
 
   return (
-    <Container>
+    <ContainerV2
+      variant="fullMobileBreakpointPadded"
+      className="py-5 font-[Inter]"
+    >
       <div className="flex justify-between">
         <div>
-          <Text variant="h2" component="h1">
-            Deployment Details
-          </Text>
+          <Heading variant="h2">Deployment Details</Heading>
         </div>
         <div className="flex space-x-8">
           <div className="flex items-center space-x-2">
@@ -74,44 +77,40 @@ export default function DeploymentDetailsPage() {
               status={deployment.migrationsStatus as DeploymentStatus}
             />
 
-            <Text>Database Migrations</Text>
+            <p>Database Migrations</p>
           </div>
           <div className="flex items-center space-x-2">
             <StatusCircle
               status={deployment.metadataStatus as DeploymentStatus}
             />
 
-            <Text>Hasura Metadata</Text>
+            <p>Hasura Metadata</p>
           </div>
           <div className="flex items-center space-x-2">
             <StatusCircle
               status={deployment.functionsStatus as DeploymentStatus}
             />
 
-            <Text>Serverless Functions</Text>
+            <p>Serverless Functions</p>
           </div>
         </div>
       </div>
       <div className="my-8 flex justify-between">
         <div className="grid grid-flow-col items-center gap-4">
-          <Avatar
-            name={deployment.commitUserName}
-            avatarUrl={deployment.commitUserAvatarUrl}
-            className="h-8 w-8"
-          />
-
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={deployment.commitUserAvatarUrl} />
+          </Avatar>
           <div>
-            <Text>{deployment.commitMessage}</Text>
-            <Text color="secondary">{relativeDateOfDeployment}</Text>
+            <p>{deployment.commitMessage}</p>
+            <p className="text-[#A2B3BE]">{relativeDateOfDeployment}</p>
           </div>
         </div>
         <div className="flex items-center">
           <Link
-            className="self-center font-mono font-medium"
+            className="self-center font-mono text-[0.9375rem] font-medium leading-[1.375rem] text-[#0052cd] hover:underline dark:text-[#3888ff]"
             target="_blank"
             rel="noreferrer"
             href={`https://github.com/${project?.githubRepository?.fullName}/commit/${deployment?.commitSHA}`}
-            underline="hover"
           >
             {deployment.commitSHA.substring(0, 7)}
           </Link>
@@ -125,14 +124,7 @@ export default function DeploymentDetailsPage() {
         </div>
       </div>
       <div>
-        <Box
-          className="rounded-lg p-4 text-sm-"
-          sx={{
-            color: 'common.white',
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.100' : 'grey.800',
-          }}
-        >
+        <div className="rounded-lg bg-[#10151E] p-4 text-sm- text-white">
           {deployment.deploymentLogs.length === 0 && (
             <span className="font-mono">No message.</span>
           )}
@@ -145,9 +137,9 @@ export default function DeploymentDetailsPage() {
               <div className="break-all">{log.message}</div>
             </div>
           ))}
-        </Box>
+        </div>
       </div>
-    </Container>
+    </ContainerV2>
   );
 }
 
