@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { PgDropRelationshipType } from './pgDropRelationshipType';
 import type { DropRelationshipArgs } from './dropRelationshipArgs';
+import type { PgDropRelationshipType } from './pgDropRelationshipType';
 
 export interface PgDropRelationship {
   /** Type of operation to drop a relationship (both object and array) */
