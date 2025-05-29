@@ -8,16 +8,6 @@ module.exports = {
   overrides: [
     {
       files: ['*.ts'],
-      rules: {
-        'prettier/prettier': [
-          'error',
-          {
-            singleQuote: true,
-            semi: true,
-            trailingComma: 'all',
-          },
-        ],
-      },
     },
   ],
 };
