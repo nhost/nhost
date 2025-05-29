@@ -5,24 +5,24 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { PgCreateInsertPermission } from './pgCreateInsertPermission';
-import type { PgDropInsertPermission } from './pgDropInsertPermission';
-import type { PgCreateSelectPermission } from './pgCreateSelectPermission';
-import type { PgDropSelectPermission } from './pgDropSelectPermission';
-import type { PgCreateUpdatePermission } from './pgCreateUpdatePermission';
-import type { PgDropUpdatePermission } from './pgDropUpdatePermission';
-import type { PgCreateDeletePermission } from './pgCreateDeletePermission';
-import type { PgDropDeletePermission } from './pgDropDeletePermission';
-import type { PgCreateObjectRelationship } from './pgCreateObjectRelationship';
-import type { PgCreateArrayRelationship } from './pgCreateArrayRelationship';
-import type { PgDropRelationship } from './pgDropRelationship';
-import type { PgSuggestRelationships } from './pgSuggestRelationships';
 import type { ExportMetadata } from './exportMetadata';
+import type { PgCreateArrayRelationship } from './pgCreateArrayRelationship';
+import type { PgCreateDeletePermission } from './pgCreateDeletePermission';
+import type { PgCreateInsertPermission } from './pgCreateInsertPermission';
+import type { PgCreateObjectRelationship } from './pgCreateObjectRelationship';
+import type { PgCreateSelectPermission } from './pgCreateSelectPermission';
+import type { PgCreateUpdatePermission } from './pgCreateUpdatePermission';
+import type { PgDropDeletePermission } from './pgDropDeletePermission';
+import type { PgDropInsertPermission } from './pgDropInsertPermission';
+import type { PgDropRelationship } from './pgDropRelationship';
+import type { PgDropSelectPermission } from './pgDropSelectPermission';
+import type { PgDropUpdatePermission } from './pgDropUpdatePermission';
+import type { PgSuggestRelationships } from './pgSuggestRelationships';
+import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation';
 import type { RemoteSchemaOperation } from './remoteSchemaOperation';
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
-import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation';
 
-export type ExecuteMetadataOperationBody =
+export type MetadataOperationBody =
   | PgCreateInsertPermission
   | PgDropInsertPermission
   | PgCreateSelectPermission
