@@ -145,7 +145,11 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.workos]
-enabled = false
+enabled = true
+clientId = '{{ secrets.WORKOS_CLIENT_ID }}'
+clientSecret = '{{ secrets.WORKOS_CLIENT_SECRET }}'
+organization = '{{ secrets.WORKOS_DEFAULT_ORGANIZATION }}'
+connection = '{{ secrets.WORKOS_DEFAULT_CONNECTION }}'
 
 [auth.method.webauthn]
 enabled = true

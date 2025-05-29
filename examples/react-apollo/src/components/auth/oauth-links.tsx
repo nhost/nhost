@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { useProviderLink } from '@nhost/react'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
+import { WorkOSIcon } from '../ui/workosicon'
 
 export default function OAuthLinks() {
-  const { github, apple, google, linkedin, spotify, twitch, gitlab, bitbucket } = useProviderLink({
+  const { github, apple, google, linkedin, spotify, twitch, gitlab, bitbucket, workos } = useProviderLink({
     redirectTo: window.location.origin
   })
 
@@ -91,11 +92,22 @@ export default function OAuthLinks() {
         to={bitbucket}
         className={cn(
           buttonVariants({ variant: 'link' }),
-          'bg-[#FCA326] text-white hover:opacity-90 hover:no-underline'
+          'bg-[#253858] text-white hover:opacity-90 hover:no-underline'
         )}
       >
         <SiBitbucket className="w-4 h-4" />
         <span className="flex-1 text-center">Continue with Bitbucket</span>
+      </Link>
+
+      <Link
+        to={workos}
+        className={cn(
+          buttonVariants({ variant: 'link' }),
+          'bg-[#4F46E5] text-white hover:opacity-90 hover:no-underline'
+        )}
+      >
+        <WorkOSIcon />
+        <span className="flex-1 text-center">Continue with WorkOS</span>
       </Link>
 
     </div>
