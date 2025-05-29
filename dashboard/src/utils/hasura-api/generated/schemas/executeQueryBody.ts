@@ -5,7 +5,7 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { RunSqlRequest } from './runSqlRequest';
 import type { BulkRequest } from './bulkRequest';
+import type { RunSqlRequest } from './runSqlRequest';
 
 export type ExecuteQueryBody = RunSqlRequest | BulkRequest;

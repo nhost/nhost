@@ -5,8 +5,8 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { PgCreateArrayRelationshipType } from './pgCreateArrayRelationshipType';
 import type { CreateArrayRelationshipArgs } from './createArrayRelationshipArgs';
+import type { PgCreateArrayRelationshipType } from './pgCreateArrayRelationshipType';
 
 export interface PgCreateArrayRelationship {
   /** Type of operation to create an array relationship */
