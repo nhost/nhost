@@ -6307,9 +6307,7 @@ export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
   /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
-  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
-  /** unique or primary key constraint on columns "user_id", "provider_id" */
-  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
+  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key'
 }
 
 /** input type for inserting data into table "auth.user_providers" */
@@ -21937,7 +21935,7 @@ export type Regions_Allowed_Organization_Bool_Exp = {
 export enum Regions_Allowed_Organization_Constraint {
   /** unique or primary key constraint on columns "id" */
   RegionsAllowedOrganizationPkey = 'regions_allowed_organization_pkey',
-  /** unique or primary key constraint on columns "region_id", "organization_id" */
+  /** unique or primary key constraint on columns "organization_id", "region_id" */
   RegionsAllowedOrganizationRegionIdOrganizationIdKey = 'regions_allowed_organization_region_id_organization_id_key'
 }
 
@@ -26663,7 +26661,7 @@ export type WorkspaceMemberInvites_Bool_Exp = {
 
 /** unique or primary key constraints on table "workspace_member_invites" */
 export enum WorkspaceMemberInvites_Constraint {
-  /** unique or primary key constraint on columns "workspace_id", "email" */
+  /** unique or primary key constraint on columns "email", "workspace_id" */
   WorkspaceMemberInvitesEmailWorkspaceIdKey = 'workspace_member_invites_email_workspace_id_key',
   /** unique or primary key constraint on columns "id" */
   WorkspaceMemberInvitesPkey = 'workspace_member_invites_pkey'
@@ -26946,7 +26944,7 @@ export type WorkspaceMembers_Bool_Exp = {
 export enum WorkspaceMembers_Constraint {
   /** unique or primary key constraint on columns "id" */
   WorkspaceMembersPkey = 'workspace_members_pkey',
-  /** unique or primary key constraint on columns "workspace_id", "user_id" */
+  /** unique or primary key constraint on columns "user_id", "workspace_id" */
   WorkspaceMembersUserIdWorkspaceIdKey = 'workspace_members_user_id_workspace_id_key'
 }
 
@@ -28080,6 +28078,8 @@ export type GetCountriesQuery = { __typename?: 'query_root', countries: Array<{ 
 
 export type DeploymentRowFragment = { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null };
 
+export type DeploymentFragment = { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> };
+
 export type ScheduledOrPendingDeploymentsSubSubscriptionVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -28116,6 +28116,13 @@ export type DeploymentSubSubscriptionVariables = Exact<{
 
 
 export type DeploymentSubSubscription = { __typename?: 'subscription_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+
+export type GetDeploymentQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type GetDeploymentQuery = { __typename?: 'query_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
 
 export type GetBucketsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -28779,6 +28786,32 @@ export const DeploymentRowFragmentDoc = gql`
   commitUserName
   commitUserAvatarUrl
   commitMessage
+}
+    `;
+export const DeploymentFragmentDoc = gql`
+    fragment Deployment on deployments {
+  id
+  commitMessage
+  commitSHA
+  commitUserName
+  commitUserAvatarUrl
+  deploymentStartedAt
+  deploymentEndedAt
+  deploymentStatus
+  metadataStartedAt
+  metadataEndedAt
+  metadataStatus
+  migrationsStartedAt
+  migrationsEndedAt
+  migrationsStatus
+  functionsStartedAt
+  functionsEndedAt
+  functionsStatus
+  deploymentLogs(order_by: {createdAt: asc}) {
+    id
+    createdAt
+    message
+  }
 }
     `;
 export const AppStateHistoryFragmentDoc = gql`
@@ -31484,31 +31517,10 @@ export type GetDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetD
 export const DeploymentSubDocument = gql`
     subscription deploymentSub($id: uuid!) {
   deployment(id: $id) {
-    id
-    commitMessage
-    commitSHA
-    commitUserName
-    commitUserAvatarUrl
-    deploymentStartedAt
-    deploymentEndedAt
-    deploymentStatus
-    metadataStartedAt
-    metadataEndedAt
-    metadataStatus
-    migrationsStartedAt
-    migrationsEndedAt
-    migrationsStatus
-    functionsStartedAt
-    functionsEndedAt
-    functionsStatus
-    deploymentLogs(order_by: {createdAt: asc}) {
-      id
-      createdAt
-      message
-    }
+    ...Deployment
   }
 }
-    `;
+    ${DeploymentFragmentDoc}`;
 
 /**
  * __useDeploymentSubSubscription__
@@ -31532,6 +31544,44 @@ export function useDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHoo
       }
 export type DeploymentSubSubscriptionHookResult = ReturnType<typeof useDeploymentSubSubscription>;
 export type DeploymentSubSubscriptionResult = Apollo.SubscriptionResult<DeploymentSubSubscription>;
+export const GetDeploymentDocument = gql`
+    query getDeployment($id: uuid!) {
+  deployment(id: $id) {
+    ...Deployment
+  }
+}
+    ${DeploymentFragmentDoc}`;
+
+/**
+ * __useGetDeploymentQuery__
+ *
+ * To run a query within a React component, call `useGetDeploymentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeploymentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeploymentQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetDeploymentQuery(baseOptions: Apollo.QueryHookOptions<GetDeploymentQuery, GetDeploymentQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetDeploymentQuery, GetDeploymentQueryVariables>(GetDeploymentDocument, options);
+      }
+export function useGetDeploymentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDeploymentQuery, GetDeploymentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetDeploymentQuery, GetDeploymentQueryVariables>(GetDeploymentDocument, options);
+        }
+export type GetDeploymentQueryHookResult = ReturnType<typeof useGetDeploymentQuery>;
+export type GetDeploymentLazyQueryHookResult = ReturnType<typeof useGetDeploymentLazyQuery>;
+export type GetDeploymentQueryResult = Apollo.QueryResult<GetDeploymentQuery, GetDeploymentQueryVariables>;
+export function refetchGetDeploymentQuery(variables: GetDeploymentQueryVariables) {
+      return { query: GetDeploymentDocument, variables: variables }
+    }
 export const GetBucketsDocument = gql`
     query getBuckets {
   buckets {

@@ -6,10 +6,12 @@ import { TableContainer } from '@/components/ui/v2/TableContainer';
 import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
+import { LOGS_SERVICE_TO_LABEL } from '@/features/orgs/projects/logs/utils/constants/services';
 import type {
   GetLogsSubscriptionSubscription,
   GetProjectLogsQuery,
 } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 import type { QueryResult, SubscriptionResult } from '@apollo/client';
 import {
   flexRender,
@@ -36,6 +38,7 @@ export interface LogsBodyProps {
    * Optional error message
    */
   error?: Error;
+  tableContainerClasses?: string;
 }
 
 export function LogsBodyCustomMessage({
@@ -73,37 +76,47 @@ function TextCell({ getValue }: { getValue: () => string }) {
   return <Text className="font-mono text-xs-">{getValue()}</Text>;
 }
 
-export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
-  const tableRef = useRef<HTMLTableElement>(null);
-
-  const columns = useMemo(
-    () => [
-      {
-        id: 'timestamp',
-        accessorKey: 'timestamp',
-        cell: DateCell,
-        size: 140,
-        header: () => 'Timestamp',
-      },
-      {
-        id: 'service',
-        accessorKey: 'service',
-        cell: TextCell,
-        size: 80,
-        header: () => 'Service',
-      },
-      {
-        id: 'log',
-        accessorKey: 'log',
-        cell: TextCell,
-        header: () => 'Log',
-        minSize: 300,
-        maxSize: 0,
-        size: 0,
-      },
-    ],
-    [],
+function ServiceCell({ getValue }: { getValue: () => string }) {
+  return (
+    <Text className="font-mono text-xs-">
+      {LOGS_SERVICE_TO_LABEL[getValue()]}
+    </Text>
   );
+}
+
+const columns = [
+  {
+    id: 'timestamp',
+    accessorKey: 'timestamp',
+    cell: DateCell,
+    size: 140,
+    header: () => 'Timestamp',
+  },
+  {
+    id: 'service',
+    accessorKey: 'service',
+    cell: ServiceCell,
+    size: 100,
+    header: () => 'Service',
+  },
+  {
+    id: 'log',
+    accessorKey: 'log',
+    cell: TextCell,
+    header: () => 'Log',
+    minSize: 300,
+    maxSize: 0,
+    size: 0,
+  },
+];
+
+export default function LogsBody({
+  logsData,
+  error,
+  loading,
+  tableContainerClasses,
+}: LogsBodyProps) {
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const data = useMemo(
     () =>
@@ -169,7 +182,12 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
   }
 
   return (
-    <TableContainer className="flex h-full w-full flex-col overflow-auto">
+    <TableContainer
+      className={cn([
+        'flex h-full w-full flex-col overflow-auto',
+        tableContainerClasses,
+      ])}
+    >
       <Table ref={tableRef} stickyHeader className="w-full table-fixed">
         <TableHead>
           {table.getHeaderGroups().map((headerGroup) => (

@@ -8,6 +8,30 @@ fragment DeploymentRow on deployments {
   commitUserAvatarUrl
   commitMessage
 }
+fragment Deployment on deployments {
+  id
+  commitMessage
+  commitSHA
+  commitUserName
+  commitUserAvatarUrl
+  deploymentStartedAt
+  deploymentEndedAt
+  deploymentStatus
+  metadataStartedAt
+  metadataEndedAt
+  metadataStatus
+  migrationsStartedAt
+  migrationsEndedAt
+  migrationsStatus
+  functionsStartedAt
+  functionsEndedAt
+  functionsStatus
+  deploymentLogs(order_by: { createdAt: asc }) {
+    id
+    createdAt
+    message
+  }
+}
 
 subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
   deployments(
@@ -47,27 +71,12 @@ subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
 
 subscription deploymentSub($id: uuid!) {
   deployment(id: $id) {
-    id
-    commitMessage
-    commitSHA
-    commitUserName
-    commitUserAvatarUrl
-    deploymentStartedAt
-    deploymentEndedAt
-    deploymentStatus
-    metadataStartedAt
-    metadataEndedAt
-    metadataStatus
-    migrationsStartedAt
-    migrationsEndedAt
-    migrationsStatus
-    functionsStartedAt
-    functionsEndedAt
-    functionsStatus
-    deploymentLogs(order_by: { createdAt: asc }) {
-      id
-      createdAt
-      message
-    }
+    ...Deployment
+  }
+}
+
+query getDeployment($id: uuid!) {
+  deployment(id: $id) {
+    ...Deployment
   }
 }

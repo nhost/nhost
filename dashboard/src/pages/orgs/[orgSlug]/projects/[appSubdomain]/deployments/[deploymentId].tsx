@@ -8,24 +8,25 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import { DeploymentServiceLogs } from '@/features/orgs/projects/deployments/components/DeploymentServiceLogs';
+import { useDeployment } from '@/features/orgs/projects/deployments/hooks/useDeployment';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useDeploymentSubSubscription } from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
+import { type ReactElement } from 'react';
 
-export default function DeploymentDetailsPage() {
-  const {
-    query: { deploymentId },
-  } = useRouter();
-
-  const { data, error, loading } = useDeploymentSubSubscription({
-    variables: {
-      id: deploymentId,
-    },
-  });
-
+function DeploymentDetails() {
   const { project } = useProject();
+
+  const { data, error, loading } = useDeployment();
+
+  const deploymentLogsFrom = data?.deployment.deploymentLogs[0]?.createdAt;
+  const deploymentLogsTo =
+    data?.deployment.deploymentEndedAt &&
+    isNotEmptyValue(data?.deployment.deploymentLogs)
+      ? data?.deployment.deploymentLogs.slice(-1)[0]?.createdAt
+      : null;
 
   if (loading) {
     return (
@@ -59,6 +60,9 @@ export default function DeploymentDetailsPage() {
         addSuffix: true,
       })
     : '';
+
+  const showLogs =
+    project?.id && deployment && isNotEmptyValue(deployment.deploymentLogs);
 
   return (
     <Container>
@@ -147,8 +151,21 @@ export default function DeploymentDetailsPage() {
           ))}
         </Box>
       </div>
+      {showLogs && (
+        <DeploymentServiceLogs
+          from={deploymentLogsFrom}
+          to={deploymentLogsTo}
+        />
+      )}
     </Container>
   );
+}
+
+export default function DeploymentDetailsPage() {
+  const {
+    query: { deploymentId },
+  } = useRouter();
+  return deploymentId && <DeploymentDetails />;
 }
 
 DeploymentDetailsPage.getLayout = function getLayout(page: ReactElement) {
