@@ -10,6 +10,7 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/ssl"
+	"net/url"
 )
 
 const (
@@ -208,6 +209,18 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 	if err := trafikFiles(dotnhostfolder); err != nil {
 		return nil, fmt.Errorf("failed to create traefik files: %w", err)
 	}
+	path := "/var/run/docker.sock"
+	socket, ok := os.LookupEnv("DOCKER_HOST")
+	if ok {
+		u, err := url.Parse(socket)
+		if err != nil {
+		   return nil, fmt.Errorf("failed to parse DOCKER_HOST: %w", err)
+		}
+		if u.Scheme != "unix" {
+			return nil, fmt.Errorf("unsupported scheme %s in DOCKER_HOST, only unix supported", u.Scheme)
+		}
+		path = u.Path
+	}
 
 	return &Service{
 		Image:      "traefik:v3.1",
@@ -241,7 +254,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		Volumes: []Volume{
 			{
 				Type:     "bind",
-				Source:   "/var/run/docker.sock",
+				Source:   path,
 				Target:   "/var/run/docker.sock",
 				ReadOnly: ptr(true),
 			},
