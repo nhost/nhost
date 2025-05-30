@@ -2,6 +2,7 @@ package dockercompose
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/ssl"
-	"net/url"
 )
 
 const (
@@ -205,21 +205,32 @@ func trafikFiles(dotnhostfolder string) error {
 	return nil
 }
 
+func getDockerHost() (string, error) {
+	socket, ok := os.LookupEnv("DOCKER_HOST")
+	if !ok {
+		return "/var/run/docker.sock", nil
+	}
+
+	u, err := url.Parse(socket)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse DOCKER_HOST: %w", err)
+	}
+	if u.Scheme != "unix" {
+		return "", fmt.Errorf( //nolint:err113
+			"unsupported scheme %s in DOCKER_HOST, only unix supported",
+			u.Scheme,
+		)
+	}
+	return u.Path, nil
+}
+
 func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*Service, error) {
 	if err := trafikFiles(dotnhostfolder); err != nil {
 		return nil, fmt.Errorf("failed to create traefik files: %w", err)
 	}
-	path := "/var/run/docker.sock"
-	socket, ok := os.LookupEnv("DOCKER_HOST")
-	if ok {
-		u, err := url.Parse(socket)
-		if err != nil {
-		   return nil, fmt.Errorf("failed to parse DOCKER_HOST: %w", err)
-		}
-		if u.Scheme != "unix" {
-			return nil, fmt.Errorf("unsupported scheme %s in DOCKER_HOST, only unix supported", u.Scheme)
-		}
-		path = u.Path
+	path, err := getDockerHost()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get docker host: %w", err)
 	}
 
 	return &Service{
