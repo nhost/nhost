@@ -104,11 +104,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: success
+                oneOf:
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: success
+                  - $ref: '#/components/schemas/ExportMetadataResponse'
         '400':
           description: Bad request
           content:
@@ -954,24 +956,69 @@ components:
           type: string
           enum: [export_metadata]
           description: Type of operation to export the current metadata from the server
+        version:
+          type: integer
+          description: Version of the metadata to export
+          example: 2
 
     ExportMetadataResponse:
       type: object
       description: The complete Hasura metadata as JSON
       properties:
-        version:
+        resource_version:
           type: integer
-          description: Metadata version
-          example: 3
-        sources:
-          type: array
-          description: List of data sources
-          items:
-            type: object
+          description: Resource version number
+          example: 161
         metadata:
           type: object
           description: Complete metadata configuration
+          properties:
+            version:
+              type: integer
+              description: Metadata version
+              example: 3
+            sources:
+              type: array
+              description: List of data sources
+              items:
+                type: object
+                additionalProperties: true
+            remote_schemas:
+              type: array
+              description: List of remote GraphQL schemas
+              items:
+                $ref: '#/components/schemas/RemoteSchemaInfo'
           additionalProperties: true
+
+    RemoteSchemaInfo:
+      type: object
+      description: Information about a remote schema
+      required:
+        - name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the remote schema
+          example: asdf2
+        definition:
+          type: object
+          description: Remote schema definition
+          required:
+            - url
+          properties:
+            url:
+              type: string
+              description: URL of the GraphQL server
+              example: https://sharp-glowing-muskmelon.glitch.me/
+            timeout_seconds:
+              type: integer
+              description: Timeout in seconds
+              example: 60
+        comment:
+          type: string
+          description: Comment for the remote schema
+          example: asd2
 
     AddRemoteSchemaArgs:
       type: object
