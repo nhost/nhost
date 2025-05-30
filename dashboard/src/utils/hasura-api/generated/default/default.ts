@@ -6,13 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
-  MutationFunction,
-  UseMutationOptions,
-  UseMutationResult,
-} from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
-
-import type {
   ErrorResponse,
   MetadataOperation200,
   MetadataOperationBody,
@@ -67,79 +60,33 @@ export const metadataOperation = async (
   });
 };
 
-export const getExecuteQueryMutationOptions = <
-  TError = PostgresErrorResponse | ErrorResponse,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof executeQuery>>,
-    TError,
-    { data: ExecuteQueryBody },
-    TContext
-  >;
-  request?: SecondParameter<typeof hasuraMutator>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof executeQuery>>,
-  TError,
-  { data: ExecuteQueryBody },
-  TContext
-> => {
-  const mutationKey = ['executeQuery'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof executeQuery>>,
-    { data: ExecuteQueryBody }
-  > = (props) => {
-    const { data } = props ?? {};
-
-    return executeQuery(data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type ExecuteQueryMutationResult = NonNullable<
-  Awaited<ReturnType<typeof executeQuery>>
->;
-export type ExecuteQueryMutationBody = ExecuteQueryBody;
-export type ExecuteQueryMutationError = PostgresErrorResponse | ErrorResponse;
-
-/**
- * @summary Execute database operations. Do not use to modify the database schema, use /v1/migrate instead
- */
-export const useExecuteQuery = <
-  TError = PostgresErrorResponse | ErrorResponse,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof executeQuery>>,
-    TError,
-    { data: ExecuteQueryBody },
-    TContext
-  >;
-  request?: SecondParameter<typeof hasuraMutator>;
-}): UseMutationResult<
-  Awaited<ReturnType<typeof executeQuery>>,
-  TError,
-  { data: ExecuteQueryBody },
-  TContext
-> => {
-  const mutationOptions = getExecuteQueryMutationOptions(options);
-
-  return useMutation(mutationOptions);
-};
 /**
  * Executes a migration with the provided up and down steps
  * @summary Execute a migration
  */
-export const executeMigration = (
+export type executeMigrationResponse200 = {
+  data: SuccessResponse;
+  status: 200;
+};
+
+export type executeMigrationResponse500 = {
+  data: ErrorResponse;
+  status: 500;
+};
+
+export type executeMigrationResponseComposite =
+  | executeMigrationResponse200
+  | executeMigrationResponse500;
+
+export type executeMigrationResponse = executeMigrationResponseComposite & {
+  headers: Headers;
+};
+
+export const getExecuteMigrationUrl = () => {
+  return `/apis/migrate`;
+};
+
+export const executeMigration = async (
   migrationRequest: MigrationRequest,
   options?: CustomFetchOptions,
 ): Promise<executeMigrationResponse> => {

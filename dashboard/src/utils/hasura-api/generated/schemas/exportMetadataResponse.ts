@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ExportMetadataResponseMetadata } from './exportMetadataResponseMetadata';
-import type { ExportMetadataResponseSourcesItem } from './exportMetadataResponseSourcesItem';
 
 /**
  * The complete Hasura metadata as JSON
