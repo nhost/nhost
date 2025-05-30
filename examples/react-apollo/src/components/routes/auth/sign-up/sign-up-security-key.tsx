@@ -33,12 +33,10 @@ export default function SignUpSecurityKey() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const { email } = values
 
-    const { isError, isSuccess, needsEmailVerification, error } = await signUpEmailSecurityKey(
-      email
-    )
+    const { isError, isSuccess, needsEmailVerification, error } =
+      await signUpEmailSecurityKey(email)
 
     if (isError) {
-      console.log({ error })
       toast.error(error?.message)
     } else if (needsEmailVerification) {
       setShowEmailVerificationDialog(true)

@@ -1115,7 +1115,9 @@ export const createAuthMachine = ({
             credential,
             options: {
               redirectTo: options?.redirectTo,
-              nickname
+              nickname,
+              displayName: options?.displayName,
+              ...(options?.metadata && { metadata: options?.metadata })
             }
           })
         },

@@ -28,7 +28,7 @@ test('should create a new project', async () => {
     page,
     `/orgs/${getFreeUserStarterOrgSlug()}/projects/new`,
   );
-  const projectName = faker.lorem.words(3);
+  const projectName = faker.lorem.words(3).slice(0, 32);
 
   await page.getByLabel('Project Name').fill(projectName);
   await page.getByText('Create Project').click();
