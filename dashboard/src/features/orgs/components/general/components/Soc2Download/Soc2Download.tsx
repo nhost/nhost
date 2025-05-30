@@ -29,19 +29,25 @@ export default function Soc2Download() {
           throw new Error('SOC2 report file ID not configured');
         }
 
-        const { presignedUrl, error } = await nhost.storage.getPresignedUrl({
+        const { file, error } = await nhost.storage.download({
           fileId,
         });
 
         if (error) {
-          throw new Error(error.message || 'Failed to get download URL');
+          throw new Error(error.message || 'Failed to download SOC2 report');
         }
 
-        if (!presignedUrl?.url) {
-          throw new Error('No download URL available');
+        if (!file) {
+          throw new Error('No file data available');
         }
 
-        window.open(presignedUrl.url, '_blank');
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = "Nhost-SOC2-Report.pdf";
+        link.click();
+        
+        URL.revokeObjectURL(url);
       },
       {
         loadingMessage: 'Downloading SOC2 report...',
