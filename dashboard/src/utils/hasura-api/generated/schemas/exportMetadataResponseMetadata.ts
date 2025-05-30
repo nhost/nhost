@@ -5,8 +5,18 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
+import type { ExportMetadataResponseMetadataSourcesItem } from './exportMetadataResponseMetadataSourcesItem';
+import type { RemoteSchemaInfo } from './remoteSchemaInfo';
 
 /**
  * Complete metadata configuration
  */
-export type ExportMetadataResponseMetadata = { [key: string]: unknown };
+export type ExportMetadataResponseMetadata = {
+  /** Metadata version */
+  version?: number;
+  /** List of data sources */
+  sources?: ExportMetadataResponseMetadataSourcesItem[];
+  /** List of remote GraphQL schemas */
+  remote_schemas?: RemoteSchemaInfo[];
+  [key: string]: unknown;
+};
