@@ -2,27 +2,30 @@ import { InlineCode } from '@/components/presentational/InlineCode';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
+import useCreateRemoteSchemaMutation from '@/features/orgs/projects/remote-schemas/hooks/useCreateRemoteSchemaMutation/useCreateRemoteSchemaMutation';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { useHasuraMetadataOperation } from '@/utils/hasura-api/hooks/useHasuraMetadataOperation';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 
 export default function RemoteSchemasPage() {
   const {
     query: { dataSourceSlug },
   } = useRouter();
 
-  const { mutate: createRemoteSchema } = useHasuraMetadataOperation();
+  const { mutate: createRemoteSchema } = useCreateRemoteSchemaMutation();
 
   const handleAddRemoteSchema = () => {
     createRemoteSchema({
-      data: {
-        type: 'add_remote_schema',
-        args: {
-          name: 'asdf',
-          definition: { url: '' },
+      args: {
+        name: 'asdf2',
+        comment: 'asd2',
+        definition: {
+          url: 'https://sharp-glowing-muskmelon.glitch.me/',
+          forward_client_headers: false,
+          headers: [],
+          timeout_seconds: 60,
         },
       },
     });

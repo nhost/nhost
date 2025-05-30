@@ -10,4 +10,6 @@ import type { ExportMetadataType } from './exportMetadataType';
 export interface ExportMetadata {
   /** Type of operation to export the current metadata from the server */
   type: ExportMetadataType;
+  /** Version of the metadata to export */
+  version?: number;
 }
