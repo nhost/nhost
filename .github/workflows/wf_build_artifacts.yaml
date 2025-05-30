@@ -15,20 +15,23 @@ on:
         type: string
         default: "."
         required: false
-      DOCKER:
-        type: boolean
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
         required: true
 
 jobs:
   artifacts:
-    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
     permissions:
       id-token: write
       contents: write
 
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-arm64-22.04-2cores]
+        os: [blacksmith-2vcpu-ubuntu-2404-arm, blacksmith-2vcpu-ubuntu-2404]
       fail-fast: true
 
     runs-on: ${{ matrix.os }}
@@ -41,6 +44,12 @@ jobs:
         fetch-depth: 0
         ref: ${{ inputs.GIT_REF }}
 
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
     - uses: cachix/install-nix-action@v31
       with:
         install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
@@ -49,20 +58,15 @@ jobs:
           experimental-features = nix-command flakes
           sandbox = false
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-
-    - uses: DeterminateSystems/magic-nix-cache-action@v9
-      with:
-        diagnostic-endpoint: ""
-        use-flakehub: false
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
 
     - name: Compute common env vars
       id: vars
       run: |
         echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
-        echo "ARCHITECTURE=$(uname -m)" >> $GITHUB_OUTPUT
-
+        ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
+        echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
     - name: "Build artifact"
       run: |
         make build
@@ -71,24 +75,26 @@ jobs:
     - name: "Push artifact to artifact repository"
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.NAME }}-artifact-${{ steps.vars.outputs.ARCHITECTURE }}-${{ steps.vars.outputs.VERSION }}
-        path: result/bin/hasura-storage
+        name: ${{ inputs.NAME }}-artifact-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+        path: result.zip
         retention-days: 7
 
     - name: "Build docker image"
       run: |
+        sudo chmod 755 /run/containers
+        sudo mkdir -p "/run/containers/$(id -u runner)"
+        sudo chown runner: "/run/containers/$(id -u runner)"
         make build-docker-image
-      if: ${{ ( inputs.DOCKER ) }}
 
     - name: "Push docker image to artifact repository"
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.NAME }}-docker-image-${{ steps.vars.outputs.ARCHITECTURE }}-${{ steps.vars.outputs.VERSION }}
+        name: ${{ inputs.NAME }}-docker-image-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
         path: result
         retention-days: 7
-      if: ${{ ( inputs.DOCKER ) }}
 
-    # - name: "Cache build environment"
-    #   run: |
-    #    # DEPENDENCIES=($(nix-store --query --requisites --include-outputs ${{ steps.verify-build.outputs.DERIVATION_PATH }}))
-    #    nix copy --to http://127.0.0.1:37515 "${DEPENDENCIES[@]}" || exit 0
+    - name: "Cache build"
+      run: |
+        nix store sign --key-file <(echo "${{ secrets.NIX_CACHE_PRIV_KEY }}") --all
+        find /nix/store -maxdepth 1 -name "*-*" -type d -exec nix copy --to s3://nhost-nix-cache\?region=eu-central-1 {} \;
+      if: always()

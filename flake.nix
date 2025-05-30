@@ -104,6 +104,8 @@
               ccls
             ] ++ buildInputs ++ nativeBuildInputs ++ checkDeps;
           };
+
+          hasura-storage = default;
         };
 
         packages = flake-utils.lib.flattenTree rec {
