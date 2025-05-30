@@ -8,6 +8,9 @@ function useElevatedPermissions() {
   const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail();
 
   async function elevatePermissions(shouldThrowError = false) {
+    if (elevated) {
+      return true;
+    }
     try {
       const response = await elevateEmailSecurityKey(user.email);
       if (response.isError) {

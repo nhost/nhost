@@ -1,8 +1,6 @@
-import useGetSecurityKeys from '@/features/account/settings/components/SecurityKeysSettings/hooks/useGetSecurityKeys';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
+import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 import { useAddSecurityKey } from '@nhost/nextjs';
-import { toast } from 'react-hot-toast';
-import useElevatedPermissions from './useElevatedPermissions';
 import { type NewSecurityKeyFormValues } from './useNewSecurityKeyForm';
 
 interface Props {
@@ -10,32 +8,20 @@ interface Props {
 }
 
 function useOnAddNewSecurityKeyHandler({ onSuccess }: Props) {
-  const { data, refetch } = useGetSecurityKeys();
-  const { add } = useAddSecurityKey();
-
-  const { elevated, elevatePermissions } = useElevatedPermissions();
-
-  async function requestPermissions() {
-    if (elevated || data?.authUserSecurityKeys.length === 0) {
-      return true;
-    }
-    const isPermissionsElevated = await elevatePermissions();
-    return isPermissionsElevated;
-  }
+  const { refetch } = useGetSecurityKeys();
+  const { add: actionFn } = useAddSecurityKey();
+  const addSecurityKey = useActionWithElevatedPermissions({
+    actionFn,
+    onSuccess: async () => {
+      await refetch();
+      onSuccess();
+    },
+    successMessage: 'Security key has been added.',
+  });
 
   async function onSubmit(values: NewSecurityKeyFormValues) {
-    const permissionGranted = await requestPermissions();
-    if (!permissionGranted) {
-      return;
-    }
     const { nickname } = values;
-
-    const { isError, error } = await add(nickname);
-    if (isError) {
-      toast.error(error?.message, getToastStyleProps());
-    }
-    await refetch();
-    onSuccess();
+    await addSecurityKey(nickname);
   }
 
   return onSubmit;

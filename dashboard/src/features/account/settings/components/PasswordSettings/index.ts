@@ -1,2 +1,1 @@
-export * from './PasswordSettings';
-export { default as PasswordSettings } from './PasswordSettings';
+export { default as PasswordSettings } from './components/PasswordSettings';

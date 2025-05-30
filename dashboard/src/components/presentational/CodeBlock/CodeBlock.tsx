@@ -6,8 +6,8 @@ import {
   type ReactElement,
 } from 'react';
 
+import { CopyToClipboardButton as CopyToClipboardButtonOriginal } from '@/components/presentational/CopyToClipboardButton';
 import { Box } from '@/components/ui/v2/Box';
-import { CopyToClipboardButton as CopyToClipboardButtonOriginal } from './CopyToClipboardButton';
 import { getNodeText } from './getNodeText';
 
 export interface CodeBlockPropsBase {
