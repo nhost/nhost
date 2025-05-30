@@ -1112,7 +1112,7 @@ components:
     SignUpOptions:
       type: object
       additionalProperties: false
-      properties: &signUpOptionsProperties
+      properties:
         allowedRoles:
           example:
             - me
@@ -1218,13 +1218,10 @@ components:
             path: github.com/go-webauthn/webauthn/protocol
           x-go-type: protocol.CredentialCreationResponse
         options:
-          type: object
-          additionalProperties: false
-          properties:
-            <<: *signUpOptionsProperties
-            nickname:
-              description: Nickname for the security key
-              type: string
+          $ref: "#/components/schemas/SignUpOptions"
+        nickname:
+          description: Nickname for the security key
+          type: string
       required:
         - credential
 

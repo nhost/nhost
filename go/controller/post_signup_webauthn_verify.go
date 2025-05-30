@@ -16,7 +16,7 @@ import (
 	"github.com/nhost/hasura-auth/go/sql"
 )
 
-func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest( //nolint:cyclop,funlen
+func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest( //nolint:cyclop
 	request api.PostSignupWebauthnVerifyRequestObject,
 	logger *slog.Logger,
 ) (*protocol.ParsedCredentialCreationData, *api.SignUpOptions, string, *APIError) {
@@ -75,12 +75,7 @@ func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest( //nolint:cyclop
 		}
 	}
 
-	nickname := ""
-	if request.Body.Options != nil && request.Body.Options.Nickname != nil {
-		nickname = *request.Body.Options.Nickname
-	}
-
-	return credData, options, nickname, nil
+	return credData, options, deptr(request.Body.Nickname), nil
 }
 
 func (ctrl *Controller) PostSignupWebauthnVerify( //nolint:ireturn

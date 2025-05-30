@@ -301,19 +301,10 @@ type SignUpWebauthnResponse = protocol.PublicKeyCredentialCreationOptions
 // SignUpWebauthnVerifyRequest defines model for SignUpWebauthnVerifyRequest.
 type SignUpWebauthnVerifyRequest struct {
 	Credential protocol.CredentialCreationResponse `json:"credential"`
-	Options    *struct {
-		AllowedRoles *[]string `json:"allowedRoles,omitempty"`
-		DefaultRole  *string   `json:"defaultRole,omitempty"`
-		DisplayName  *string   `json:"displayName,omitempty"`
 
-		// Locale A two-characters locale
-		Locale   *string                 `json:"locale,omitempty"`
-		Metadata *map[string]interface{} `json:"metadata,omitempty"`
-
-		// Nickname Nickname for the security key
-		Nickname   *string `json:"nickname,omitempty"`
-		RedirectTo *string `json:"redirectTo,omitempty"`
-	} `json:"options,omitempty"`
+	// Nickname Nickname for the security key
+	Nickname *string        `json:"nickname,omitempty"`
+	Options  *SignUpOptions `json:"options,omitempty"`
 }
 
 // SigninAnonymousRequest defines model for SigninAnonymousRequest.
