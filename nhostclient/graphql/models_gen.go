@@ -4744,6 +4744,7 @@ type TimestamptzComparisonExp struct {
 
 // User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
 type Users struct {
+	ActiveMfaType *string `json:"activeMfaType,omitempty"`
 	// An array relationship
 	Apps      []*Apps `json:"apps"`
 	AvatarURL string  `json:"avatarUrl"`
@@ -4779,6 +4780,7 @@ type UsersBoolExp struct {
 	And                                     []*UsersBoolExp                `json:"_and,omitempty"`
 	Not                                     *UsersBoolExp                  `json:"_not,omitempty"`
 	Or                                      []*UsersBoolExp                `json:"_or,omitempty"`
+	ActiveMfaType                           *StringComparisonExp           `json:"activeMfaType,omitempty"`
 	Apps                                    *AppsBoolExp                   `json:"apps,omitempty"`
 	AvatarURL                               *StringComparisonExp           `json:"avatarUrl,omitempty"`
 	CliTokens                               *CliTokensBoolExp              `json:"cliTokens,omitempty"`
@@ -4807,6 +4809,7 @@ type UsersMutationResponse struct {
 
 // Ordering options when selecting data from "auth.users".
 type UsersOrderBy struct {
+	ActiveMfaType                                    *OrderBy                                `json:"activeMfaType,omitempty"`
 	AppsAggregate                                    *AppsAggregateOrderBy                   `json:"apps_aggregate,omitempty"`
 	AvatarURL                                        *OrderBy                                `json:"avatarUrl,omitempty"`
 	CliTokensAggregate                               *CliTokensAggregateOrderBy              `json:"cliTokens_aggregate,omitempty"`
@@ -4845,10 +4848,11 @@ type UsersStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type UsersStreamCursorValueInput struct {
-	AvatarURL   *string `json:"avatarUrl,omitempty"`
-	DisplayName *string `json:"displayName,omitempty"`
-	Email       *string `json:"email,omitempty"`
-	ID          *string `json:"id,omitempty"`
+	ActiveMfaType *string `json:"activeMfaType,omitempty"`
+	AvatarURL     *string `json:"avatarUrl,omitempty"`
+	DisplayName   *string `json:"displayName,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	ID            *string `json:"id,omitempty"`
 }
 
 type UsersUpdates struct {
@@ -8070,6 +8074,8 @@ type UsersSelectColumn string
 
 const (
 	// column name
+	UsersSelectColumnActiveMfaType UsersSelectColumn = "activeMfaType"
+	// column name
 	UsersSelectColumnAvatarURL UsersSelectColumn = "avatarUrl"
 	// column name
 	UsersSelectColumnDisplayName UsersSelectColumn = "displayName"
@@ -8080,6 +8086,7 @@ const (
 )
 
 var AllUsersSelectColumn = []UsersSelectColumn{
+	UsersSelectColumnActiveMfaType,
 	UsersSelectColumnAvatarURL,
 	UsersSelectColumnDisplayName,
 	UsersSelectColumnEmail,
@@ -8088,7 +8095,7 @@ var AllUsersSelectColumn = []UsersSelectColumn{
 
 func (e UsersSelectColumn) IsValid() bool {
 	switch e {
-	case UsersSelectColumnAvatarURL, UsersSelectColumnDisplayName, UsersSelectColumnEmail, UsersSelectColumnID:
+	case UsersSelectColumnActiveMfaType, UsersSelectColumnAvatarURL, UsersSelectColumnDisplayName, UsersSelectColumnEmail, UsersSelectColumnID:
 		return true
 	}
 	return false

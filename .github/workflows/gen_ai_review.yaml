@@ -16,12 +16,12 @@ jobs:
     steps:
       - name: PR Agent action step
         id: pragent
-        uses: Codium-ai/pr-agent@v0.26
+        uses: Codium-ai/pr-agent@v0.29
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           config.max_model_tokens: 100000
-          config.model: "anthropic/claude-3-5-sonnet-20240620"
-          config.model_turbo: "anthropic/claude-3-5-sonnet-20240620"
+          config.model: "anthropic/claude-sonnet-4-20250514"
+          config.model_turbo: "anthropic/claude-sonnet-4-20250514"
           ignore.glob: "['vendor/**','**/client_gen.go','**/models_gen.go','**/generated.go','**/*.gen.go']"
