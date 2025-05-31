@@ -1,49 +1,72 @@
-import { InlineCode } from '@/components/presentational/InlineCode';
 import { Box } from '@/components/ui/v2/Box';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
-import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
+import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
+import useCreateRemoteSchemaMutation from '@/features/orgs/projects/remote-schemas/hooks/useCreateRemoteSchemaMutation/useCreateRemoteSchemaMutation';
+import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 
-export default function DataBrowserDatabaseDetailsPage() {
+export default function RemoteSchemasPage() {
+  const { project } = useProject();
+
   const {
-    query: { dataSourceSlug },
+    query: { remoteSchemaSlug },
   } = useRouter();
 
-  if (dataSourceSlug !== 'default') {
+  const { mutate: createRemoteSchema } = useCreateRemoteSchemaMutation();
+
+  const { data: remoteSchemas, isLoading } = useGetRemoteSchemasQuery([
+    `remote_schemas`,
+    project?.subdomain,
+  ]);
+
+  console.log('loading:', isLoading);
+
+  console.log(remoteSchemas);
+
+  const handleAddRemoteSchema = () => {
+    createRemoteSchema({
+      args: {
+        name: 'asdf2',
+        comment: 'asd2',
+        definition: {
+          url: 'https://sharp-glowing-muskmelon.glitch.me/',
+          forward_client_headers: false,
+          headers: [],
+          timeout_seconds: 60,
+        },
+      },
+    });
+    console.log('add remote schema');
+  };
+
+  if (remoteSchemas && remoteSchemas.length === 0) {
     return (
-      <DataBrowserEmptyState
-        title="Database not found"
-        description={
-          <span>
-            Database{' '}
-            <InlineCode className="px-1.5 text-sm">{dataSourceSlug}</InlineCode>{' '}
-            does not exist.
-          </span>
-        }
+      <RemoteSchemaEmptyState
+        title="Remote Schema not found"
+        description={<span>No remote schemas found.</span>}
       />
     );
   }
 
   return (
-    <DataBrowserEmptyState
-      title="Database"
-      description="Select a table from the sidebar to get started."
+    <RemoteSchemaEmptyState
+      title="Remote Schemas"
+      description="Select a remote schema from the sidebar to get started."
     />
   );
 }
 
-DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
-  page: ReactElement,
-) {
+RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
     >
-      <DataBrowserSidebar className="w-full max-w-sidebar" />
+      <RemoteSchemaBrowserSidebar className="w-full max-w-sidebar" />
 
       <Box
         className="flex w-full flex-auto flex-col overflow-x-hidden"

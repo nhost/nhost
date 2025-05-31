@@ -31,6 +31,7 @@ export * from './errorResponse';
 export * from './executeQuery200';
 export * from './executeQueryBody';
 export * from './exportMetadata';
+export * from './exportMetadataArgs';
 export * from './exportMetadataResponse';
 export * from './exportMetadataResponseMetadata';
 export * from './exportMetadataResponseMetadataSourcesItem';

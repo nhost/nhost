@@ -951,6 +951,8 @@ components:
       type: object
       required:
         - type
+        - version
+        - args
       properties:
         type:
           type: string
@@ -960,6 +962,10 @@ components:
           type: integer
           description: Version of the metadata to export
           example: 2
+        args:
+          type: object
+          description: Arguments for the export metadata operation (usually empty object)
+          default: {}
 
     ExportMetadataResponse:
       type: object
