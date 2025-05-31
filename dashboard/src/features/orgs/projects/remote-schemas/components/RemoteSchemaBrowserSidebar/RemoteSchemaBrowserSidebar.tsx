@@ -33,6 +33,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+import useGetRemoteSchemasQuery from '../../hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
 
 const CreateRemoteSchemaForm = dynamic(
   () =>

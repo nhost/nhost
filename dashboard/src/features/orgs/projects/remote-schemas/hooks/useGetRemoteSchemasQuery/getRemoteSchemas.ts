@@ -65,7 +65,7 @@ export default async function getRemoteSchemas({
       {
         type: 'export_metadata',
         version: 2,
-        // args empty object {}
+        args: {},
       },
       {
         baseUrl: appUrl,
