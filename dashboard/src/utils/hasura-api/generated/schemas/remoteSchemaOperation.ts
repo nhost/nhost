@@ -5,11 +5,11 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { AddRemoteSchemaArgs } from './addRemoteSchemaArgs';
+import type { RemoteSchemaOperationArgs } from './remoteSchemaOperationArgs';
 import type { RemoteSchemaOperationType } from './remoteSchemaOperationType';
 
 export interface RemoteSchemaOperation {
-  /** Type of operation to add a remote schema */
+  /** Type of operation to add or update a remote schema */
   type: RemoteSchemaOperationType;
-  args: AddRemoteSchemaArgs;
+  args: RemoteSchemaOperationArgs;
 }
