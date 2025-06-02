@@ -26,17 +26,7 @@ export type EnvOrValueHeader =
       value_from_env: string;
     };
 
-export interface MutationOrQueryBaseOptions {
-  /**
-   * Remote Schema name.
-   */
-  name: string;
-  /**
-   * Custom app URL.
-   */
+export interface MetadataOperationOptions {
   appUrl: string;
-  /**
-   * Custom admin secret.
-   */
   adminSecret: string;
 }
