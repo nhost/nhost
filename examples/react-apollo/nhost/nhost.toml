@@ -92,7 +92,10 @@ privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
 
 [auth.method.oauth.azuread]
 tenant = 'common'
-enabled = false
+enabled = true
+clientId = '{{ secrets.AZUREAD_CLIENT_ID }}'
+clientSecret = '{{ secrets.AZUREAD_CLIENT_SECRET }}'
+tenant = '{{ secrets.AZUREAD_TENANT }}'
 
 [auth.method.oauth.bitbucket]
 enabled = true
