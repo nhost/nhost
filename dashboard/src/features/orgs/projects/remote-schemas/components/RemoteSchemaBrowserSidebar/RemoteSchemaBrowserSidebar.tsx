@@ -31,10 +31,10 @@ import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import useGetRemoteSchemasQuery from '../../hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
 
-const CreateTableForm = dynamic(
+const CreateRemoteSchemaForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/CreateTableForm/CreateTableForm'
+      '@/features/orgs/projects/remote-schemas/components/CreateRemoteSchemaForm/CreateRemoteSchemaForm'
     ),
   {
     ssr: false,
@@ -170,16 +170,19 @@ function RemoteSchemaBrowserSidebarContent({
         className="mt-1 w-full justify-between px-2"
         onClick={() => {
           openDrawer({
-            title: 'Create a New Table',
+            title: 'Create a New Remote Schema',
             component: (
-              <CreateTableForm onSubmit={refetch} schema={selectedSchema} />
+              <CreateRemoteSchemaForm
+                onSubmit={refetch}
+                schema={selectedSchema}
+              />
             ),
           });
           onSidebarItemClick();
         }}
         disabled={isGitHubConnected}
       >
-        New Remote Schema
+        Add Remote Schema
       </Button>
       {remoteSchemas && remoteSchemas.length === 0 && (
         <Text className="px-2 py-1.5 text-xs" color="disabled">
