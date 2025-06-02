@@ -18,8 +18,6 @@ export default function RemoteSchemaDetailsPage() {
 
   const { remoteSchemaSlug } = router.query;
 
-  console.log('router.query', router.query);
-
   const { data: remoteSchemas, status } = useGetRemoteSchemasQuery([
     `remote_schemas`,
     project?.subdomain,

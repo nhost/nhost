@@ -517,6 +517,36 @@ components:
           description: Environment variable name to get the value from
           example: HASURA_USER_ID
 
+    RemoteSchemaHeaderWithValue:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+          description: Name of the header
+          example: X-Hasura-User-Id
+        value:
+          type: string
+          description: Value of the header
+          example: 123e4567-e89b-12d3-a456-426614174000
+    
+    RemoteSchemaHeaderWithEnv:
+      type: object
+      required:
+        - name
+        - value_from_env
+      properties:
+        name:
+          type: string
+          description: Name of the header
+          example: X-Hasura-User-Id
+        value_from_env:
+          type: string
+          description: Environment variable name to get the value from
+          example: HASURA_USER_ID
+
     AddRemoteSchemaArgs:
       type: object
       required:
@@ -542,10 +572,15 @@ components:
       properties:
         type:
           type: string
-          enum: [add_remote_schema]
-          description: Type of operation to add a remote schema
+          enum: [add_remote_schema, update_remote_schema]
+          description: Type of operation to add or update a remote schema
         args:
-          $ref: '#/components/schemas/AddRemoteSchemaArgs'
+          oneOf:
+            - $ref: '#/components/schemas/AddRemoteSchemaArgs'
+            - $ref: '#/components/schemas/UpdateRemoteSchemaArgs'
+
+    UpdateRemoteSchemaArgs:
+      $ref: '#/components/schemas/AddRemoteSchemaArgs'
 
     UpdateRemoteSchemaBulkOperation:
       type: object
