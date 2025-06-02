@@ -100,7 +100,9 @@ clientId = '{{ secrets.BITBUCKET_CLIENT_ID }}'
 clientSecret = '{{ secrets.BITBUCKET_CLIENT_SECRET }}'
 
 [auth.method.oauth.discord]
-enabled = false
+enabled = true
+clientId = '{{ secrets.DISCORD_CLIENT_ID }}'
+clientSecret = '{{ secrets.DISCORD_CLIENT_SECRET }}'
 
 [auth.method.oauth.facebook]
 enabled = false
