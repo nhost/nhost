@@ -7,7 +7,7 @@
  */
 
 /**
- * Type of operation to add a remote schema
+ * Type of operation to add or update a remote schema
  */
 export type RemoteSchemaOperationType =
   (typeof RemoteSchemaOperationType)[keyof typeof RemoteSchemaOperationType];
@@ -15,4 +15,5 @@ export type RemoteSchemaOperationType =
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RemoteSchemaOperationType = {
   add_remote_schema: 'add_remote_schema',
+  update_remote_schema: 'update_remote_schema',
 } as const;

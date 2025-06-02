@@ -8,6 +8,6 @@
 import type { RemoteSchemaHeaderWithEnv } from './remoteSchemaHeaderWithEnv';
 import type { RemoteSchemaHeaderWithValue } from './remoteSchemaHeaderWithValue';
 
-export type AddRemoteSchemaArgsDefinitionHeadersItem =
+export type RemoteSchemaInfoDefinitionHeadersItem =
   | RemoteSchemaHeaderWithValue
   | RemoteSchemaHeaderWithEnv;

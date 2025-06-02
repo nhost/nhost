@@ -5,6 +5,7 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
+import type { RemoteSchemaInfoDefinitionHeadersItem } from './remoteSchemaInfoDefinitionHeadersItem';
 
 /**
  * Remote schema definition
@@ -14,4 +15,6 @@ export type RemoteSchemaInfoDefinition = {
   url: string;
   /** Timeout in seconds */
   timeout_seconds?: number;
+  /** Headers to be sent with the request */
+  headers?: RemoteSchemaInfoDefinitionHeadersItem[];
 };
