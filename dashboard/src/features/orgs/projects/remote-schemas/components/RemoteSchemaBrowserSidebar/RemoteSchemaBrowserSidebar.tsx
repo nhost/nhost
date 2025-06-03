@@ -13,6 +13,7 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
+import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
@@ -21,15 +22,16 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
+import { useRemoveRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaMutation';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import useGetRemoteSchemasQuery from '../../hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
 
 const CreateRemoteSchemaForm = dynamic(
   () =>
@@ -42,10 +44,10 @@ const CreateRemoteSchemaForm = dynamic(
   },
 );
 
-const EditTableForm = dynamic(
+const EditRemoteSchemaForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/EditTableForm/EditTableForm'
+      '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaForm/EditRemoteSchemaForm'
     ),
   {
     ssr: false,
@@ -53,10 +55,10 @@ const EditTableForm = dynamic(
   },
 );
 
-const EditPermissionsForm = dynamic(
+const EditRemoteSchemaPermissionsForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/EditPermissionsForm'
+      '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaPermissionsForm/EditRemoteSchemaPermissionsForm'
     ),
   {
     ssr: false,
@@ -83,11 +85,8 @@ function RemoteSchemaBrowserSidebarContent({
   const router = useRouter();
 
   const {
-    asPath,
     query: { orgSlug, appSubdomain, remoteSchemaSlug },
   } = router;
-
-  const [selectedSchema, setSelectedSchema] = useState<string>('');
 
   const {
     data: remoteSchemas,
@@ -96,14 +95,10 @@ function RemoteSchemaBrowserSidebarContent({
     error,
   } = useGetRemoteSchemasQuery([`remote_schemas`, project?.subdomain]);
 
-  const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
+  const { mutateAsync: deleteRemoteSchema } = useRemoveRemoteSchemaMutation();
 
-  const [removableRemoteSchema, setRemovableRemoteSchema] = useState<string>();
-
-  /**
-   * Table for which the table management dropdown was opened.
-   */
-  const [sidebarMenuTable, setSidebarMenuTable] = useState<string>();
+  const [sidebarMenuRemoteSchema, setSidebarMenuRemoteSchema] =
+    useState<string>();
 
   if (status === 'loading') {
     return (
@@ -119,8 +114,21 @@ function RemoteSchemaBrowserSidebarContent({
     throw error || new Error('Unknown error occurred. Please try again later.');
   }
 
-  const handleDeleteRemoteSchema = (schema: string) => {
-    // TODO: Implement this
+  const handleDeleteRemoteSchema = async (schema: string) => {
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteRemoteSchema({
+          args: {
+            name: schema,
+          },
+        });
+      },
+      {
+        loadingMessage: 'Deleting remote schema...',
+        successMessage: 'Remote schema deleted successfully!',
+        errorMessage: 'Failed to delete remote schema',
+      },
+    );
   };
 
   function handleDeleteRemoteSchemaClick(schema: string) {
@@ -140,11 +148,7 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditPermissionClick(
-    schema: string,
-    table: string,
-    disabled?: boolean,
-  ) {
+  function handleEditPermissionClick(schema: string, table: string) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
@@ -153,7 +157,7 @@ function RemoteSchemaBrowserSidebarContent({
           <Chip label="Preview" size="small" color="info" component="span" />
         </span>
       ),
-      component: <EditPermissionsForm disabled={disabled} />,
+      component: <EditRemoteSchemaPermissionsForm schema={schema} />,
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
@@ -171,12 +175,7 @@ function RemoteSchemaBrowserSidebarContent({
         onClick={() => {
           openDrawer({
             title: 'Create a New Remote Schema',
-            component: (
-              <CreateRemoteSchemaForm
-                onSubmit={refetch}
-                schema={selectedSchema}
-              />
-            ),
+            component: <CreateRemoteSchemaForm onSubmit={refetch} />,
           });
           onSidebarItemClick();
         }}
@@ -194,7 +193,8 @@ function RemoteSchemaBrowserSidebarContent({
           <List className="grid gap-1 pb-6">
             {remoteSchemas.map((remoteSchema) => {
               const isSelected = remoteSchemaSlug === remoteSchema.name;
-              const isSidebarMenuOpen = sidebarMenuTable === remoteSchema.name;
+              const isSidebarMenuOpen =
+                sidebarMenuRemoteSchema === remoteSchema.name;
               return (
                 <ListItem.Root
                   className="group"
@@ -202,14 +202,12 @@ function RemoteSchemaBrowserSidebarContent({
                   secondaryAction={
                     <Dropdown.Root
                       id="table-management-menu"
-                      onOpen={() => setSidebarMenuTable(remoteSchema.name)}
-                      onClose={() => setSidebarMenuTable(undefined)}
+                      onOpen={() =>
+                        setSidebarMenuRemoteSchema(remoteSchema.name)
+                      }
+                      onClose={() => setSidebarMenuRemoteSchema(undefined)}
                     >
-                      <Dropdown.Trigger
-                        asChild
-                        hideChevron
-                        disabled={remoteSchema.name === removableRemoteSchema}
-                      >
+                      <Dropdown.Trigger asChild hideChevron>
                         <IconButton
                           variant="borderless"
                           color={isSelected ? 'primary' : 'secondary'}
@@ -229,7 +227,6 @@ function RemoteSchemaBrowserSidebarContent({
                               handleEditPermissionClick(
                                 remoteSchema.name,
                                 remoteSchema.name,
-                                true,
                               )
                             }
                           >
@@ -248,15 +245,15 @@ function RemoteSchemaBrowserSidebarContent({
                                 openDrawer({
                                   title: 'Edit Table',
                                   component: (
-                                    <EditTableForm
+                                    <EditRemoteSchemaForm
+                                      originalSchema={remoteSchema}
                                       onSubmit={async () => {
                                         await queryClient.refetchQueries([
-                                          `${remoteSchema.name}`,
+                                          `remote_schemas`,
+                                          project?.subdomain,
                                         ]);
                                         await refetch();
                                       }}
-                                      schema={remoteSchema.name}
-                                      table={remoteSchema.name}
                                     />
                                   ),
                                 })
@@ -266,7 +263,7 @@ function RemoteSchemaBrowserSidebarContent({
                                 className="h-4 w-4"
                                 sx={{ color: 'text.secondary' }}
                               />
-                              <span>Edit Table</span>
+                              <span>Edit Remote Schema</span>
                             </Dropdown.Item>
                             <Divider
                               key="edit-table-separator"
@@ -288,13 +285,32 @@ function RemoteSchemaBrowserSidebarContent({
                               />
                               <span>Edit Permissions</span>
                             </Dropdown.Item>
-                            ,
                             <Divider
                               key="edit-permissions-separator"
                               component="li"
                             />
                             <Dropdown.Item
-                              key="delete-table"
+                              key="edit-relationships"
+                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                              onClick={() =>
+                                handleEditPermissionClick(
+                                  remoteSchema.name,
+                                  remoteSchema.name,
+                                )
+                              }
+                            >
+                              <LinkIcon
+                                className="h-4 w-4"
+                                sx={{ color: 'text.secondary' }}
+                              />
+                              <span>Edit Relationships</span>
+                            </Dropdown.Item>
+                            <Divider
+                              key="edit-relationships-separator"
+                              component="li"
+                            />
+                            <Dropdown.Item
+                              key="delete-remote-schema"
                               className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                               sx={{ color: 'error.main' }}
                               onClick={() =>
@@ -305,7 +321,7 @@ function RemoteSchemaBrowserSidebarContent({
                                 className="h-4 w-4"
                                 sx={{ color: 'error.main' }}
                               />
-                              <span>Delete Table</span>
+                              <span>Delete Remote Schema</span>
                             </Dropdown.Item>
                           </>
                         )}
@@ -316,7 +332,6 @@ function RemoteSchemaBrowserSidebarContent({
                   <ListItem.Button
                     dense
                     selected={isSelected}
-                    disabled={remoteSchema.name === removableRemoteSchema}
                     className="group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
                     sx={{
                       paddingRight:
