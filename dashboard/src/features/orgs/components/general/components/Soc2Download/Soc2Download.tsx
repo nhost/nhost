@@ -11,7 +11,7 @@ export default function Soc2Download() {
   const [downloading, setDownloading] = useState(false);
 
   const showSoc2Download =
-    (org?.plan?.name === 'Team' || org?.plan?.name === 'Enterprise') &&
+    (org?.plan?.name === 'Team' || org?.plan?.name?.startsWith('Enterprise')) &&
     org?.status === Organization_Status_Enum.Ok;
 
   const handleDownload = async () => {
