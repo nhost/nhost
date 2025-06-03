@@ -98,6 +98,7 @@ paths:
                 - $ref: '#/components/schemas/RemoteSchemaOperation'
                 - $ref: '#/components/schemas/RemoveRemoteSchemaOperation'
                 - $ref: '#/components/schemas/ReloadRemoteSchemaOperation'
+                - $ref: '#/components/schemas/IntrospectRemoteSchemaOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -111,6 +112,7 @@ paths:
                         type: string
                         example: success
                   - $ref: '#/components/schemas/ExportMetadataResponse'
+                  - $ref: '#/components/schemas/IntrospectRemoteSchemaResponse'
         '400':
           description: Bad request
           content:
@@ -220,7 +222,6 @@ components:
               type: boolean
               description: Whether the operation is read-only
               default: false
-
 
     TuplesOkResponse:
       type: object
@@ -1022,6 +1023,10 @@ components:
               type: integer
               description: Timeout in seconds
               example: 60
+            forward_client_headers:
+              type: boolean
+              description: Forward client headers to the remote schema
+              default: false
             headers:
               type: array
               description: Headers to be sent with the request
@@ -1048,7 +1053,7 @@ components:
           type: string
           description: Value of the header
           example: 123e4567-e89b-12d3-a456-426614174000
-    
+
     RemoteSchemaHeaderWithEnv:
       type: object
       required:
@@ -1167,3 +1172,154 @@ components:
           description: Type of operation to reload a remote schema
         args:
           $ref: '#/components/schemas/ReloadRemoteSchemaArgs'
+
+    IntrospectRemoteSchemaArgs:
+      $ref: '#/components/schemas/ReloadRemoteSchemaArgs'
+
+    IntrospectRemoteSchemaOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [introspect_remote_schema]
+          description: Type of operation to introspect a remote schema
+        args:
+          $ref: '#/components/schemas/IntrospectRemoteSchemaArgs'
+
+    IntrospectRemoteSchemaResponse:
+      type: object
+      description: GraphQL schema introspection response for tree visualization
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - __schema
+          properties:
+            __schema:
+              type: object
+              description: GraphQL schema introspection data
+              required:
+                - types
+              properties:
+                queryType:
+                  type: object
+                  nullable: true
+                  properties:
+                    name:
+                      type: string
+                      example: Query
+                  additionalProperties: true
+                mutationType:
+                  type: object
+                  nullable: true
+                  properties:
+                    name:
+                      type: string
+                      example: Mutation
+                  additionalProperties: true
+                subscriptionType:
+                  type: object
+                  nullable: true
+                  properties:
+                    name:
+                      type: string
+                      example: Subscription
+                  additionalProperties: true
+                types:
+                  type: array
+                  description: All types in the GraphQL schema
+                  items:
+                    $ref: '#/components/schemas/GraphQLTypeForVisualization'
+              additionalProperties: true
+          additionalProperties: true
+      additionalProperties: true
+
+    GraphQLTypeForVisualization:
+      type: object
+      description: GraphQL type definition for tree visualization
+      required:
+        - kind
+        - name
+      properties:
+        kind:
+          type: string
+          enum:
+            [
+              SCALAR,
+              OBJECT,
+              INTERFACE,
+              UNION,
+              ENUM,
+              INPUT_OBJECT,
+              LIST,
+              NON_NULL,
+            ]
+          description: The kind of GraphQL type
+        name:
+          type: string
+          nullable: true
+          description: Name of the type (null for wrapper types like LIST/NON_NULL)
+        description:
+          type: string
+          nullable: true
+          description: Description of the type
+        fields:
+          type: array
+          nullable: true
+          description: Fields for OBJECT and INTERFACE types (basic info for tree visualization)
+          items:
+            type: object
+            required:
+              - name
+              - type
+            properties:
+              name:
+                type: string
+                description: Name of the field
+              description:
+                type: string
+                nullable: true
+                description: Description of the field
+              type:
+                $ref: '#/components/schemas/GraphQLTypeForVisualization'
+                description: Return type of the field
+            additionalProperties: true
+        interfaces:
+          type: array
+          nullable: true
+          description: Interfaces implemented by OBJECT types
+          items:
+            $ref: '#/components/schemas/GraphQLTypeForVisualization'
+        enumValues:
+          type: array
+          nullable: true
+          description: Values for ENUM types
+          items:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                description: Name of the enum value
+              description:
+                type: string
+                nullable: true
+                description: Description of the enum value
+            additionalProperties: true
+        possibleTypes:
+          type: array
+          nullable: true
+          description: Possible types for UNION and INTERFACE types
+          items:
+            $ref: '#/components/schemas/GraphQLTypeForVisualization'
+        ofType:
+          $ref: '#/components/schemas/GraphQLTypeForVisualization'
+          nullable: true
+          description: Wrapped type for LIST and NON_NULL types
+      additionalProperties: true
