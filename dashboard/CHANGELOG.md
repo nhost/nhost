@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 2.30.0
+
+### Minor Changes
+
+- f6947a2: fix: fetch job-backup services logs using Live filter
+- 44a3e6b: fix: collapsed main navigation sidebar overlaps mobile navbar
+- 99b78f1: feat: dashboard: add download button for soc2 report
+- 9acae7d: fix: e2e tests, stop on error when refreshing metadata
+
+### Patch Changes
+
+- 31e636a: fix (dashboard): Use the correct payload to reset metadata before the e2e tests
+
 ## 2.29.0
 
 ### Minor Changes
