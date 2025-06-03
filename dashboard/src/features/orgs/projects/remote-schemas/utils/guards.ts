@@ -38,8 +38,17 @@ export function isRemoteSchemaInfo(obj: unknown): obj is RemoteSchemaInfo {
 
   const definition = schema.definition as Record<string, unknown>;
 
-  // Check required definition fields
-  if (typeof definition.url !== 'string') {
+  // Check that either url or url_from_env is present (but not both)
+  const hasUrl = typeof definition.url === 'string';
+  const hasUrlFromEnv = typeof definition.url_from_env === 'string';
+
+  if (!hasUrl && !hasUrlFromEnv) {
+    // Neither url nor url_from_env is present
+    return false;
+  }
+
+  if (hasUrl && hasUrlFromEnv) {
+    // Both url and url_from_env are present (not allowed)
     return false;
   }
 

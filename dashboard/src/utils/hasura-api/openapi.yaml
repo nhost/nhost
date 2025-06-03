@@ -1012,28 +1012,55 @@ components:
         definition:
           type: object
           description: Remote schema definition
-          required:
-            - url
-          properties:
-            url:
-              type: string
-              description: URL of the GraphQL server
-              example: https://sharp-glowing-muskmelon.glitch.me/
-            timeout_seconds:
-              type: integer
-              description: Timeout in seconds
-              example: 60
-            forward_client_headers:
-              type: boolean
-              description: Forward client headers to the remote schema
-              default: false
-            headers:
-              type: array
-              description: Headers to be sent with the request
-              items:
-                oneOf:
-                  - $ref: '#/components/schemas/RemoteSchemaHeaderWithValue'
-                  - $ref: '#/components/schemas/RemoteSchemaHeaderWithEnv'
+          oneOf:
+            # Using url
+            - type: object
+              required:
+                - url
+              properties:
+                url:
+                  type: string
+                  description: URL of the GraphQL server
+                  example: https://sharp-glowing-muskmelon.glitch.me/
+                timeout_seconds:
+                  type: integer
+                  description: Timeout in seconds
+                  example: 60
+                forward_client_headers:
+                  type: boolean
+                  description: Forward client headers to the remote schema
+                  default: false
+                headers:
+                  type: array
+                  description: Headers to be sent with the request
+                  items:
+                    oneOf:
+                      - $ref: '#/components/schemas/RemoteSchemaHeaderWithValue'
+                      - $ref: '#/components/schemas/RemoteSchemaHeaderWithEnv'
+            # Using url_from_env
+            - type: object
+              required:
+                - url_from_env
+              properties:
+                url_from_env:
+                  type: string
+                  description: Environment variable name containing the GraphQL server URL
+                  example: REMOTE_SCHEMA_URL
+                timeout_seconds:
+                  type: integer
+                  description: Timeout in seconds
+                  example: 60
+                forward_client_headers:
+                  type: boolean
+                  description: Forward client headers to the remote schema
+                  default: false
+                headers:
+                  type: array
+                  description: Headers to be sent with the request
+                  items:
+                    oneOf:
+                      - $ref: '#/components/schemas/RemoteSchemaHeaderWithValue'
+                      - $ref: '#/components/schemas/RemoteSchemaHeaderWithEnv'
         comment:
           type: string
           description: Comment for the remote schema
