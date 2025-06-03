@@ -15,6 +15,8 @@ export type RemoteSchemaInfoDefinition = {
   url: string;
   /** Timeout in seconds */
   timeout_seconds?: number;
+  /** Forward client headers to the remote schema */
+  forward_client_headers?: boolean;
   /** Headers to be sent with the request */
   headers?: RemoteSchemaInfoDefinitionHeadersItem[];
 };
