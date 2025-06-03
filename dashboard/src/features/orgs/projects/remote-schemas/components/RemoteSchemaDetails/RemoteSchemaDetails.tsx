@@ -4,16 +4,8 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/v3/table';
+import { RemoteSchemaHeadersTable } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaHeadersTable';
 import { useReloadRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useReloadRemoteSchemaMutation';
-import { isHeaderWithEnvValue } from '@/features/orgs/projects/remote-schemas/utils/guards';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
@@ -86,39 +78,9 @@ export default function RemoteSchemaDetails({
             </Button>
           </div>
         </Box>
-        <Text variant="h3" className="pb-2">
-          Headers
-        </Text>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Value</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {remoteSchema.definition.headers.map((header) => {
-              if (isHeaderWithEnvValue(header)) {
-                return (
-                  <TableRow key={header.name}>
-                    <TableCell className="font-medium">{header.name}</TableCell>
-                    <TableCell>From env var</TableCell>
-                    <TableCell>{header.value_from_env}</TableCell>
-                  </TableRow>
-                );
-              }
-
-              return (
-                <TableRow key={header.name}>
-                  <TableCell className="font-medium">{header.name}</TableCell>
-                  <TableCell>Value</TableCell>
-                  <TableCell>{header.value}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        {remoteSchema.definition.headers?.length > 0 && (
+          <RemoteSchemaHeadersTable headers={remoteSchema.definition.headers} />
+        )}
         <pre>{JSON.stringify(remoteSchema, null, 2)}</pre>
       </Box>
     </div>

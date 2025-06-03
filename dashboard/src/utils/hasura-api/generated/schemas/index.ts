@@ -6,6 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './_introspectRemoteSchemaResponseDataSchema';
+export * from './_introspectRemoteSchemaResponseDataSchemaMutationType';
+export * from './_introspectRemoteSchemaResponseDataSchemaQueryType';
+export * from './_introspectRemoteSchemaResponseDataSchemaSubscriptionType';
 export * from './addRemoteSchemaArgs';
 export * from './addRemoteSchemaArgsDefinition';
 export * from './addRemoteSchemaArgsDefinitionHeadersItem';
@@ -37,8 +41,17 @@ export * from './exportMetadataResponseMetadata';
 export * from './exportMetadataResponseMetadataSourcesItem';
 export * from './exportMetadataResponseSourcesItem';
 export * from './exportMetadataType';
+export * from './graphQLTypeForVisualization';
+export * from './graphQLTypeForVisualizationEnumValuesItem';
+export * from './graphQLTypeForVisualizationFieldsItem';
+export * from './graphQLTypeForVisualizationKind';
 export * from './insertPermissionArgs';
 export * from './insertPermissionArgsPermission';
+export * from './introspectRemoteSchemaArgs';
+export * from './introspectRemoteSchemaOperation';
+export * from './introspectRemoteSchemaOperationType';
+export * from './introspectRemoteSchemaResponse';
+export * from './introspectRemoteSchemaResponseData';
 export * from './metadataOperation200';
 export * from './metadataOperation200OneOf';
 export * from './metadataOperationBody';

@@ -1,230 +1,130 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
+import BaseRemoteSchemaForm, {
+  type BaseRemoteSchemaFormProps,
+  type BaseRemoteSchemaFormValues,
+  baseRemoteSchemaValidationSchema,
+} from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaForm/BaseRemoteSchemaForm';
 import type {
-  BaseTableFormProps,
-  BaseTableFormValues,
-} from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
-import {
-  BaseTableForm,
-  baseTableValidationSchema,
-} from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
-import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
-import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
-import type {
-  DatabaseTable,
-  NormalizedQueryDataRow,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
+  AddRemoteSchemaArgsDefinitionHeadersItem,
+  RemoteSchemaInfo,
+  UpdateRemoteSchemaArgs,
+} from '@/utils/hasura-api/generated/schemas';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
+import { useUpdateRemoteSchemaMutation } from '../../hooks/useUpdateRemoteSchemaMutation';
+import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '../../utils/constants';
 
-export interface EditTableFormProps
-  extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
+export interface EditRemoteSchemaFormProps
+  extends Pick<BaseRemoteSchemaFormProps, 'onCancel' | 'location'> {
   /**
-   * Schema where the table is located.
+   * Remote schema to be edited.
    */
-  schema: string;
-  /**
-   * Table to be edited.
-   */
-  table: NormalizedQueryDataRow;
+  originalSchema: RemoteSchemaInfo;
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: (args?: any) => Promise<any>;
 }
 
-export default function EditTableForm({
+export default function EditRemoteSchemaForm({
+  originalSchema,
   onSubmit,
-  schema,
-  table: originalTable,
   ...props
-}: EditTableFormProps) {
-  const [formInitialized, setFormInitialized] = useState(false);
+}: EditRemoteSchemaFormProps) {
   const router = useRouter();
 
   const {
-    data,
-    status: columnsStatus,
-    error: columnsError,
-  } = useTableQuery([`default.${schema}.${originalTable.table_name}`], {
-    schema,
-    table: originalTable.table_name,
-  });
-
-  const { columns, foreignKeyRelations } = data || {
-    columns: [],
-    foreignKeyRelations: [],
-  };
-
-  const dataGridColumns = (columns || []).map((column) =>
-    normalizeDatabaseColumn(column),
-  );
-
-  const {
-    mutateAsync: trackForeignKeyRelations,
-    error: foreignKeyError,
-    reset: resetForeignKeyError,
-  } = useTrackForeignKeyRelationsMutation();
-
-  const {
-    mutateAsync: updateTable,
-    error: updateError,
-    reset: resetUpdateError,
-  } = useUpdateTableMutation({ schema });
-
-  const error = columnsError || updateError || foreignKeyError;
-
-  function resetError() {
-    resetForeignKeyError();
-    resetUpdateError();
-  }
+    mutateAsync: updateRemoteSchema,
+    error: updateRemoteSchemaError,
+    reset: resetUpdateRemoteSchemaError,
+  } = useUpdateRemoteSchemaMutation();
 
   const form = useForm<
-    BaseTableFormValues | Yup.InferType<typeof baseTableValidationSchema>
+    | BaseRemoteSchemaFormValues
+    | Yup.InferType<typeof baseRemoteSchemaValidationSchema>
   >({
     defaultValues: {
-      name: originalTable.table_name,
-      columns: [],
-      primaryKeyIndex: null,
-      identityColumnIndex: null,
-      foreignKeyRelations: [],
+      name: originalSchema.name,
+      comment: originalSchema.comment,
+      definition: {
+        url: originalSchema.definition.url,
+        forward_client_headers:
+          originalSchema.definition.forward_client_headers ?? false,
+        headers: originalSchema.definition.headers ?? [],
+        timeout_seconds:
+          originalSchema.definition.timeout_seconds ??
+          DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS,
+      },
     },
+    shouldUnregister: true,
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(baseTableValidationSchema),
+    resolver: yupResolver(baseRemoteSchemaValidationSchema),
   });
 
-  // We are initializing the form values lazily, because columns are not
-  // necessarily available immediately when the form is mounted.
-  useEffect(() => {
-    if (
-      columnsStatus === 'success' &&
-      dataGridColumns.length > 0 &&
-      !formInitialized
-    ) {
-      const primaryColumnIndex = dataGridColumns.findIndex(
-        (column) => column.isPrimary,
-      );
-      const identityColumnIndex = dataGridColumns.findIndex(
-        (column) => column.isIdentity,
-      );
-
-      form.reset({
-        name: originalTable.table_name,
-        columns: dataGridColumns.map((column) => ({
-          // ID can't be changed through the form, so we can use it to
-          // identify the column in the original array.
-          id: column.id,
-          name: column.id,
-          type: column.type,
-          defaultValue: column.defaultValue,
-          isNullable: column.isNullable,
-          isUnique: column.isUnique,
-        })),
-        primaryKeyIndex: primaryColumnIndex > -1 ? primaryColumnIndex : null,
-        identityColumnIndex:
-          identityColumnIndex > -1 ? identityColumnIndex : null,
-        foreignKeyRelations,
-      });
-
-      setFormInitialized(true);
-    }
-  }, [
-    form,
-    originalTable,
-    columnsStatus,
-    foreignKeyRelations,
-    dataGridColumns,
-    formInitialized,
-  ]);
-
-  async function handleSubmit(values: BaseTableFormValues) {
+  async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
-      const updatedTable: DatabaseTable = {
-        ...values,
-        primaryKey: values.columns[values.primaryKeyIndex]?.name,
-        identityColumn:
-          values.identityColumnIndex !== null &&
-          typeof values.identityColumnIndex !== 'undefined'
-            ? values.columns[values.identityColumnIndex]?.name
-            : undefined,
+      const headers: AddRemoteSchemaArgsDefinitionHeadersItem[] =
+        values.definition.headers.map((header) => {
+          if (header.value_from_env) {
+            return {
+              name: header.name,
+              value_from_env: header.value_from_env,
+            };
+          }
+          return {
+            name: header.name,
+            value: header.value,
+          };
+        });
+
+      const remoteSchema: UpdateRemoteSchemaArgs = {
+        name: values.name,
+        comment: values.comment,
+        definition: {
+          ...values.definition,
+          headers,
+        },
       };
 
-      await updateTable({
-        originalTable,
-        originalColumns: dataGridColumns,
-        originalForeignKeyRelations: foreignKeyRelations,
-        updatedTable,
-      });
-
-      if (updatedTable.foreignKeyRelations?.length > 0) {
-        await trackForeignKeyRelations({
-          foreignKeyRelations: updatedTable.foreignKeyRelations,
-          schema,
-          table: updatedTable.name,
-        });
-      }
+      await updateRemoteSchema({ args: remoteSchema });
 
       if (onSubmit) {
         await onSubmit();
       }
 
-      if (originalTable.table_name !== updatedTable.name) {
-        await router.push(
-          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/${updatedTable.name}`,
-        );
-      }
+      triggerToast('The remote schema has been updated successfully.');
 
-      triggerToast('The table has been updated successfully.');
+      await router.push(
+        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/remote-schemas/${values.name}`,
+      );
     } catch {
-      // Errors are already handled by hooks.
+      // This error is handled by the useUpdateRemoteSchemaMutation hook.
     }
-  }
-
-  if (columnsStatus === 'loading') {
-    return (
-      <div className="px-6">
-        <ActivityIndicator label="Loading columns..." delay={1000} />
-      </div>
-    );
-  }
-
-  if (columnsStatus === 'error') {
-    return (
-      <div className="-mt-3 px-6">
-        <Alert severity="error" className="text-left">
-          <strong>Error:</strong>{' '}
-          {columnsError && columnsError instanceof Error
-            ? columnsError?.message
-            : 'An error occurred while loading the columns. Please try again.'}
-        </Alert>
-      </div>
-    );
   }
 
   return (
     <FormProvider {...form}>
-      {error && error instanceof Error && (
+      {updateRemoteSchemaError && updateRemoteSchemaError instanceof Error && (
         <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
             className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
-              <strong>Error:</strong> {error.message}
+              <strong>Error:</strong> {updateRemoteSchemaError.message}
             </span>
 
             <Button
               variant="borderless"
-              color="error"
-              size="small"
-              onClick={resetError}
+              color="secondary"
+              className="p-1"
+              onClick={() => {
+                resetUpdateRemoteSchemaError();
+              }}
             >
               Clear
             </Button>
@@ -232,8 +132,8 @@ export default function EditTableForm({
         </div>
       )}
 
-      <BaseTableForm
-        submitButtonText="Save"
+      <BaseRemoteSchemaForm
+        submitButtonText="Update"
         onSubmit={handleSubmit}
         {...props}
       />

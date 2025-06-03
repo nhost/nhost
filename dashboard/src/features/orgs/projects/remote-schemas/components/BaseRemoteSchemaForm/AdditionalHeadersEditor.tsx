@@ -9,7 +9,7 @@ import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { inputBaseClasses } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
@@ -23,11 +23,34 @@ export default function AdditionalHeadersEditor() {
     register,
     setValue,
     formState: { errors },
+    watch,
   } = form;
 
   const { fields, append, remove } = useFieldArray({
     name: 'definition.headers',
   });
+
+  // Initialize headerTypes based on existing form values
+  useEffect(() => {
+    const currentHeaders = watch('definition.headers') || [];
+    const initialHeaderTypes: Record<string, 'value' | 'value_from_env'> = {};
+
+    fields.forEach((field, index) => {
+      const header = currentHeaders[index];
+      if (header) {
+        // Check if header has value_from_env and no value (indicating it's an env var type)
+        if (header.value_from_env && !header.value) {
+          initialHeaderTypes[field.id] = 'value_from_env';
+        } else {
+          initialHeaderTypes[field.id] = 'value';
+        }
+      } else {
+        initialHeaderTypes[field.id] = 'value';
+      }
+    });
+
+    setHeaderTypes(initialHeaderTypes);
+  }, [fields, watch]);
 
   const onChangeHeaderValueType = (
     valueType: 'value' | 'value_from_env',
@@ -45,9 +68,8 @@ export default function AdditionalHeadersEditor() {
     }));
   };
 
-  const getHeaderValueType = (fieldId: string): 'value' | 'value_from_env' => {
-    return headerTypes[fieldId] || 'value';
-  };
+  const getHeaderValueType = (fieldId: string): 'value' | 'value_from_env' =>
+    headerTypes[fieldId] || 'value';
 
   const handleRemoveHeader = (index: number, fieldId: string) => {
     // Clean up the state when removing a header

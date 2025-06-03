@@ -6,6 +6,7 @@ import BaseRemoteSchemaForm, {
   baseRemoteSchemaValidationSchema,
 } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaForm/BaseRemoteSchemaForm';
 import { useCreateRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useCreateRemoteSchemaMutation';
+import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import type {
   AddRemoteSchemaArgs,
   AddRemoteSchemaArgsDefinitionHeadersItem,
@@ -47,7 +48,7 @@ export default function CreateRemoteSchemaForm({
         url: '',
         forward_client_headers: false,
         headers: [],
-        timeout_seconds: 60,
+        timeout_seconds: DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS,
       },
     },
     shouldUnregister: true,

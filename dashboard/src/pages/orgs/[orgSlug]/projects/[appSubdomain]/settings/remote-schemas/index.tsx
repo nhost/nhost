@@ -1,46 +1,29 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
-import useCreateRemoteSchemaMutation from '@/features/orgs/projects/remote-schemas/hooks/useCreateRemoteSchemaMutation/useCreateRemoteSchemaMutation';
 import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
-import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 
 export default function RemoteSchemasPage() {
   const { project } = useProject();
-
-  const {
-    query: { remoteSchemaSlug },
-  } = useRouter();
-
-  const { mutate: createRemoteSchema } = useCreateRemoteSchemaMutation();
 
   const { data: remoteSchemas, isLoading } = useGetRemoteSchemasQuery([
     `remote_schemas`,
     project?.subdomain,
   ]);
 
-  console.log('loading:', isLoading);
-
-  console.log(remoteSchemas);
-
-  const handleAddRemoteSchema = () => {
-    createRemoteSchema({
-      args: {
-        name: 'asdf2',
-        comment: 'asd2',
-        definition: {
-          url: 'https://sharp-glowing-muskmelon.glitch.me/',
-          forward_client_headers: false,
-          headers: [],
-          timeout_seconds: 60,
-        },
-      },
-    });
-    console.log('add remote schema');
-  };
+  if (isLoading) {
+    return (
+      <ActivityIndicator
+        delay={1000}
+        label="Loading remote schemas..."
+        className="justify-center"
+      />
+    );
+  }
 
   if (remoteSchemas && remoteSchemas.length === 0) {
     return (
