@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ExportMetadata } from './exportMetadata';
+import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
 import type { PgCreateArrayRelationship } from './pgCreateArrayRelationship';
 import type { PgCreateDeletePermission } from './pgCreateDeletePermission';
 import type { PgCreateInsertPermission } from './pgCreateInsertPermission';
@@ -38,4 +39,5 @@ export type MetadataOperationBody =
   | ExportMetadata
   | RemoteSchemaOperation
   | RemoveRemoteSchemaOperation
-  | ReloadRemoteSchemaOperation;
+  | ReloadRemoteSchemaOperation
+  | IntrospectRemoteSchemaOperation;
