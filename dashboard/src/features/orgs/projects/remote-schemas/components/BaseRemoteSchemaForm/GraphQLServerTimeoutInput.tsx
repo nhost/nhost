@@ -3,6 +3,7 @@ import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import { useFormContext, useFormState } from 'react-hook-form';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
@@ -22,7 +23,7 @@ export default function GraphQLServerTimeoutInput() {
         {...register('definition.timeout_seconds')}
         id="definition.timeout_seconds"
         name="definition.timeout_seconds"
-        placeholder="60"
+        placeholder={DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS.toString()}
         className=""
         hideEmptyHelperText
         error={Boolean(errors['definition.timeout_seconds'])}
