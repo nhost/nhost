@@ -24,9 +24,9 @@ We're excited to release our brand new MCP server to help you manage and acceler
 
 ## What's an MCP server?
 
-MCP (Model Context Protocol) is a new standard for connecting your favorite AI tools like editors, LLMs or agents to external services and data.
+MCP (Model Context Protocol) is a new open protocol for connecting your favorite AI tools like editors, LLMs or agents to external services and data.
 
-It works with a simple client-server setup: the AI tool (the "host") talks to one or more MCP servers. Each MCP server exposes things like APIs, permissions, config, or database access. 
+The model context protocol follows a client-server architecture, allowing AI tools to connect to one or multiple MCP servers that provide diverse functionalities, such as working with files and interacting with APIs and databases.
 
 Think of the MCP server as the bridge between your AI tools and your actual app or infrastructure.
 
@@ -106,13 +106,13 @@ Every interaction respects your project's security boundaries, so you can confid
 
 ## Local development and Cloud environments
 
-Nhost's MCP server works across your entire development to production workflow:
+Nhost's MCP server works throughout your project's lifecycle, from development to production.
 
 ### Local development
 - Retrieve local project GraphQL schemas during development
 - Execute queries and mutations against your local Nhost instance
-- Manage local project configurations
-- Run migrations and set permissions
+- Manage local project's configuration
+- Create migrations, manage permissions, relationships, etc
 - Prototype new features with AI assistance
 
 The MCP server uses all the same APIs the local Dashboard does, so your configuration file, migrations, and permissions are updated locally. 
