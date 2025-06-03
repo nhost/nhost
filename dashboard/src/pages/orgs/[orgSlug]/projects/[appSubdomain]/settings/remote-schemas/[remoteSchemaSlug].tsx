@@ -23,16 +23,17 @@ export default function RemoteSchemaDetailsPage() {
     project?.subdomain,
   ]);
 
-  if (
-    isPlatform &&
-    (!project?.config?.hasura.adminSecret || status === 'loading')
-  ) {
-    return <LoadingScreen />;
-  }
-
   const remoteSchema = remoteSchemas?.find(
     (schema) => schema.name === remoteSchemaSlug,
   );
+
+  if (
+    // isPlatform &&
+    // (!project?.config?.hasura.adminSecret || status === 'loading')
+    status === 'loading'
+  ) {
+    return <LoadingScreen />;
+  }
 
   return (
     <RetryableErrorBoundary>
