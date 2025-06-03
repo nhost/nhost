@@ -5,18 +5,12 @@
  * API for managing database operations, migrations, and metadata permissions
  * OpenAPI spec version: 1.0.0
  */
-import type { RemoteSchemaInfoDefinitionHeadersItem } from './remoteSchemaInfoDefinitionHeadersItem';
+import type { RemoteSchemaInfoDefinitionOneOf } from './remoteSchemaInfoDefinitionOneOf';
+import type { RemoteSchemaInfoDefinitionOneOfThree } from './remoteSchemaInfoDefinitionOneOfThree';
 
 /**
  * Remote schema definition
  */
-export type RemoteSchemaInfoDefinition = {
-  /** URL of the GraphQL server */
-  url: string;
-  /** Timeout in seconds */
-  timeout_seconds?: number;
-  /** Forward client headers to the remote schema */
-  forward_client_headers?: boolean;
-  /** Headers to be sent with the request */
-  headers?: RemoteSchemaInfoDefinitionHeadersItem[];
-};
+export type RemoteSchemaInfoDefinition =
+  | RemoteSchemaInfoDefinitionOneOf
+  | RemoteSchemaInfoDefinitionOneOfThree;
