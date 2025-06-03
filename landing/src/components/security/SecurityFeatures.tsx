@@ -4,6 +4,7 @@ import { ServiceCard } from '@/components/common/ServiceCard'
 import { CreditCard, Database, Cloud } from "lucide-react"
 import { Button } from "@/components/common/Button"
 import { Mail } from "lucide-react"
+import Image from "next/image"
 
 export function SecurityFeatures() {
   return (
@@ -14,8 +15,19 @@ export function SecurityFeatures() {
     >
         <ServiceCard
           icon={<ShieldCheck size={24} />}
-          title="SOC 2 Type II (coming soon)"
-          description="Nhost is working towards SOC 2 Type II compliance, a comprehensive audit that verifies our security controls and data handling practices meet industry standards. Once certified, Team & Enterprise customers will have access to our SOC 2 report directly through the dashboard."
+          title="SOC 2 Type II Compliant"
+          description={
+            <div className="space-y-4">
+              <p>Nhost is SOC 2 Type II compliant. This comprehensive audit verifies our security controls and data handling practices meet industry standards. Team & Enterprise customers have access to our SOC 2 report directly through the <a href="https://app.nhost.io/orgs/_/settings" target="_blank" rel="noopener noreferrer" className="text-white underline">Nhost Dashboard</a>.</p>
+              <Image
+                src="/images/soc2-logo.jpg"
+                alt="SOC 2 Type II"
+                width={32}
+                height={32}
+                className="rounded"
+              />
+            </div>
+          }
         />
         <ServiceCard
           icon={<ActivitySquare size={24} />}
