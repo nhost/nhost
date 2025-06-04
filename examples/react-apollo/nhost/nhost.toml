@@ -95,7 +95,6 @@ tenant = 'common'
 enabled = true
 clientId = '{{ secrets.AZUREAD_CLIENT_ID }}'
 clientSecret = '{{ secrets.AZUREAD_CLIENT_SECRET }}'
-tenant = '{{ secrets.AZUREAD_TENANT }}'
 
 [auth.method.oauth.bitbucket]
 enabled = true
