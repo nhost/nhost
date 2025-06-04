@@ -28,12 +28,14 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
             {hasGitRepo && (
               <Alert
                 severity="info"
-                className="mb-4 rounded-lg border border-primary/20 bg-primary/8"
+                className="bg-primary/8 mb-4 rounded-lg border border-primary/20"
               >
                 <div className="flex flex-col gap-2">
                   <div>
                     <Text className="text-sm">
-                      <span className="font-medium text-primary">GitHub Repository Connected</span>
+                      <span className="font-medium text-primary">
+                        GitHub Repository Connected
+                      </span>
                       <br />
                       <span className="mt-1.5 block text-xs text-gray-600 dark:text-gray-400">
                         Make sure to run{' '}
@@ -46,12 +48,12 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                           )}
                         >
                           nhost config pull
-                        </code>
-                        {' '}to sync your changes
+                        </code>{' '}
+                        to sync your changes
                         <br />
                         <br />
                         If you want to connect multiple projects to the same
-                        repository, you can use {' '}
+                        repository, you can use{' '}
                         <a
                           href="https://docs.nhost.io/platform/cli/configuration-overlays"
                           target="_blank"
@@ -59,7 +61,6 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                         >
                           configuration overlays
                         </a>
-                       
                       </span>
                     </Text>
                   </div>
