@@ -1,5 +1,16 @@
 # @nhost/react
 
+## 3.11.0
+
+### Minor Changes
+
+- 39b10a2: feat (dashboard): Add multi-factor authentication
+- 4b84780: feat (dashboard): Add Webauthn to dashboard
+
+### Patch Changes
+
+- @nhost/nhost-js@3.2.9
+
 ## 3.10.4
 
 ### Patch Changes
