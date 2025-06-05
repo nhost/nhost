@@ -8,7 +8,7 @@ export const INSUFFICIENT_PERMISSIONS_MESSAGE =
 /**
  * A list of database schemas that are not editable.
  */
-export const READ_ONLY_SCHEMAS = ['auth', 'storage'];
+export const READ_ONLY_SCHEMAS = ['auth', 'storage', 'graphite'];
 
 /**
  * Key used to store the color preference in local storage.

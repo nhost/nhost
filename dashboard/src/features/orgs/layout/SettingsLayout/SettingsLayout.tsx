@@ -27,37 +27,45 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
           <div className="flex flex-col space-y-2">
             {hasGitRepo && (
               <Alert
-                severity="warning"
-                className="grid grid-flow-row place-content-center gap-2"
+                severity="info"
+                className="bg-primary/8 mb-4 rounded-lg border border-primary/20"
               >
-                <Text color="warning" className="text-sm">
-                  As you have a connected repository, make sure to synchronize
-                  your changes with{' '}
-                  <code
-                    className={twMerge(
-                      'rounded-md px-2 py-px',
-                      theme.palette.mode === 'dark'
-                        ? 'bg-brown text-copper'
-                        : 'bg-slate-200 text-slate-700',
-                    )}
-                  >
-                    nhost config pull
-                  </code>{' '}
-                  or they may be reverted with the next push.
-                  <br />
-                  If there are multiple projects linked to the same repository
-                  and you only want these changes to apply to a subset of them,
-                  please check out{' '}
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                    href="https://docs.nhost.io/platform/cli/configuration-overlays"
-                  >
-                    Configuration Overlays
-                  </a>{' '}
-                  for guidance.
-                </Text>
+                <div className="flex flex-col gap-2">
+                  <div>
+                    <Text className="text-sm">
+                      <span className="font-medium text-primary">
+                        GitHub Repository Connected
+                      </span>
+                      <br />
+                      <span className="mt-1.5 block text-xs text-gray-600 dark:text-gray-400">
+                        Make sure to run{' '}
+                        <code
+                          className={twMerge(
+                            'rounded bg-primary/10 px-1.5 py-0.5 font-mono text-xs',
+                            theme.palette.mode === 'dark'
+                              ? 'text-primary'
+                              : 'text-primary-dark',
+                          )}
+                        >
+                          nhost config pull
+                        </code>{' '}
+                        to sync your changes
+                        <br />
+                        <br />
+                        If you want to connect multiple projects to the same
+                        repository, you can use{' '}
+                        <a
+                          href="https://docs.nhost.io/platform/cli/configuration-overlays"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-primary hover:text-primary-dark"
+                        >
+                          configuration overlays
+                        </a>
+                      </span>
+                    </Text>
+                  </div>
+                </div>
               </Alert>
             )}
           </div>
