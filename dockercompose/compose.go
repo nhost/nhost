@@ -394,7 +394,7 @@ func functions( //nolint:funlen
 	}
 
 	return &Service{
-		Image:       fmt.Sprintf("nhost/functions:%d-1.4.0", *cfg.GetFunctions().GetNode().Version),
+		Image:       fmt.Sprintf("nhost/functions:%d-1.5.0", *cfg.GetFunctions().GetNode().Version),
 		DependsOn:   nil,
 		EntryPoint:  nil,
 		Command:     nil,

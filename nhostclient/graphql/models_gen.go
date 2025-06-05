@@ -2993,6 +2993,77 @@ type FeatureFlagsStreamCursorValueInput struct {
 	Value       *string `json:"value,omitempty"`
 }
 
+// columns and relationships of "storage.files"
+type Files struct {
+	BucketID         string         `json:"bucketId"`
+	CreatedAt        time.Time      `json:"createdAt"`
+	Etag             *string        `json:"etag,omitempty"`
+	ID               string         `json:"id"`
+	IsUploaded       *bool          `json:"isUploaded,omitempty"`
+	Metadata         map[string]any `json:"metadata,omitempty"`
+	MimeType         *string        `json:"mimeType,omitempty"`
+	Name             *string        `json:"name,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	UpdatedAt        time.Time      `json:"updatedAt"`
+	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "storage.files". All fields are combined with a logical 'AND'.
+type FilesBoolExp struct {
+	And              []*FilesBoolExp           `json:"_and,omitempty"`
+	Not              *FilesBoolExp             `json:"_not,omitempty"`
+	Or               []*FilesBoolExp           `json:"_or,omitempty"`
+	BucketID         *StringComparisonExp      `json:"bucketId,omitempty"`
+	CreatedAt        *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	Etag             *StringComparisonExp      `json:"etag,omitempty"`
+	ID               *UUIDComparisonExp        `json:"id,omitempty"`
+	IsUploaded       *BooleanComparisonExp     `json:"isUploaded,omitempty"`
+	Metadata         *JsonbComparisonExp       `json:"metadata,omitempty"`
+	MimeType         *StringComparisonExp      `json:"mimeType,omitempty"`
+	Name             *StringComparisonExp      `json:"name,omitempty"`
+	Size             *IntComparisonExp         `json:"size,omitempty"`
+	UpdatedAt        *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
+	UploadedByUserID *UUIDComparisonExp        `json:"uploadedByUserId,omitempty"`
+}
+
+// Ordering options when selecting data from "storage.files".
+type FilesOrderBy struct {
+	BucketID         *OrderBy `json:"bucketId,omitempty"`
+	CreatedAt        *OrderBy `json:"createdAt,omitempty"`
+	Etag             *OrderBy `json:"etag,omitempty"`
+	ID               *OrderBy `json:"id,omitempty"`
+	IsUploaded       *OrderBy `json:"isUploaded,omitempty"`
+	Metadata         *OrderBy `json:"metadata,omitempty"`
+	MimeType         *OrderBy `json:"mimeType,omitempty"`
+	Name             *OrderBy `json:"name,omitempty"`
+	Size             *OrderBy `json:"size,omitempty"`
+	UpdatedAt        *OrderBy `json:"updatedAt,omitempty"`
+	UploadedByUserID *OrderBy `json:"uploadedByUserId,omitempty"`
+}
+
+// Streaming cursor of the table "files"
+type FilesStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *FilesStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type FilesStreamCursorValueInput struct {
+	BucketID         *string        `json:"bucketId,omitempty"`
+	CreatedAt        *time.Time     `json:"createdAt,omitempty"`
+	Etag             *string        `json:"etag,omitempty"`
+	ID               *string        `json:"id,omitempty"`
+	IsUploaded       *bool          `json:"isUploaded,omitempty"`
+	Metadata         map[string]any `json:"metadata,omitempty"`
+	MimeType         *string        `json:"mimeType,omitempty"`
+	Name             *string        `json:"name,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	UpdatedAt        *time.Time     `json:"updatedAt,omitempty"`
+	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
+}
+
 // columns and relationships of "github_app_installations"
 type GithubAppInstallations struct {
 	AccountAvatarURL *string   `json:"accountAvatarUrl,omitempty"`
@@ -4623,6 +4694,12 @@ type SubscriptionRoot struct {
 	FeatureFlags []*FeatureFlags `json:"featureFlags"`
 	// fetch data from the table in a streaming manner: "feature_flags"
 	FeatureFlagsStream []*FeatureFlags `json:"featureFlags_stream"`
+	// fetch data from the table: "storage.files" using primary key columns
+	File *Files `json:"file,omitempty"`
+	// fetch data from the table: "storage.files"
+	Files []*Files `json:"files"`
+	// fetch data from the table in a streaming manner: "storage.files"
+	FilesStream []*Files `json:"files_stream"`
 	// fetch data from the table: "github_app_installations" using primary key columns
 	GithubAppInstallation *GithubAppInstallations `json:"githubAppInstallation,omitempty"`
 	// fetch data from the table: "github_app_installations"
@@ -6743,6 +6820,77 @@ func (e *FeatureFlagsUpdateColumn) UnmarshalGQL(v any) error {
 }
 
 func (e FeatureFlagsUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "storage.files"
+type FilesSelectColumn string
+
+const (
+	// column name
+	FilesSelectColumnBucketID FilesSelectColumn = "bucketId"
+	// column name
+	FilesSelectColumnCreatedAt FilesSelectColumn = "createdAt"
+	// column name
+	FilesSelectColumnEtag FilesSelectColumn = "etag"
+	// column name
+	FilesSelectColumnID FilesSelectColumn = "id"
+	// column name
+	FilesSelectColumnIsUploaded FilesSelectColumn = "isUploaded"
+	// column name
+	FilesSelectColumnMetadata FilesSelectColumn = "metadata"
+	// column name
+	FilesSelectColumnMimeType FilesSelectColumn = "mimeType"
+	// column name
+	FilesSelectColumnName FilesSelectColumn = "name"
+	// column name
+	FilesSelectColumnSize FilesSelectColumn = "size"
+	// column name
+	FilesSelectColumnUpdatedAt FilesSelectColumn = "updatedAt"
+	// column name
+	FilesSelectColumnUploadedByUserID FilesSelectColumn = "uploadedByUserId"
+)
+
+var AllFilesSelectColumn = []FilesSelectColumn{
+	FilesSelectColumnBucketID,
+	FilesSelectColumnCreatedAt,
+	FilesSelectColumnEtag,
+	FilesSelectColumnID,
+	FilesSelectColumnIsUploaded,
+	FilesSelectColumnMetadata,
+	FilesSelectColumnMimeType,
+	FilesSelectColumnName,
+	FilesSelectColumnSize,
+	FilesSelectColumnUpdatedAt,
+	FilesSelectColumnUploadedByUserID,
+}
+
+func (e FilesSelectColumn) IsValid() bool {
+	switch e {
+	case FilesSelectColumnBucketID, FilesSelectColumnCreatedAt, FilesSelectColumnEtag, FilesSelectColumnID, FilesSelectColumnIsUploaded, FilesSelectColumnMetadata, FilesSelectColumnMimeType, FilesSelectColumnName, FilesSelectColumnSize, FilesSelectColumnUpdatedAt, FilesSelectColumnUploadedByUserID:
+		return true
+	}
+	return false
+}
+
+func (e FilesSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *FilesSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FilesSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid files_select_column", str)
+	}
+	return nil
+}
+
+func (e FilesSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
