@@ -10,7 +10,11 @@ import { useAuthInterpreter } from './useAuthInterpreter'
 type SignUpSecurityKeyHandlerResult = Omit<SignUpSecurityKeyState, 'isLoading'>
 
 interface SignUpSecurityKeyHandler {
-  (email: string, options?: SignUpSecurityKeyOptions): Promise<SignUpSecurityKeyHandlerResult>
+  (
+    email: string,
+    options?: SignUpSecurityKeyOptions,
+    requestOptions?: RequestOptions
+  ): Promise<SignUpSecurityKeyHandlerResult>
 }
 
 export interface SignUpSecurityKeyHookResult extends SignUpSecurityKeyState {

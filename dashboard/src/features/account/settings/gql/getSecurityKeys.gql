@@ -1,0 +1,6 @@
+query securityKeys($userId: uuid!) {
+  authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
+    id
+    nickname
+  }
+}
