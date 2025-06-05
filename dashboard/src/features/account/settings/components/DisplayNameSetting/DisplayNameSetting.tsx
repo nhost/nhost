@@ -19,7 +19,7 @@ export type DisplayNameSettingFormValues = Yup.InferType<
 >;
 
 export default function DisplayNameSetting() {
-  const { id: userID, displayName } = useUserData();
+  const { id: userID, displayName } = useUserData() || {};
 
   const [updateUserDisplayName] = useUpdateUserDisplayNameMutation();
 

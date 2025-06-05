@@ -1,0 +1,5 @@
+query getActiveMfaType($id: uuid!) {
+  user(id: $id) {
+    activeMfaType
+  }
+}
