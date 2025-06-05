@@ -1,0 +1,151 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Meet the MCP server that knows your backend',
+  description:
+    'Native support for permissions, migrations, and config - built for secure AI integration',
+  image: '/images/blog/og-mcp-server.png',
+  date: '2025-06-04',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'AI', 'MCP'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We're excited to release our brand new MCP server to help you manage and accelerate the development of your Nhost projects.
+
+## What's an MCP server?
+
+MCP (Model Context Protocol) is a new open protocol for connecting your favorite AI tools like editors, LLMs or agents to external services and data.
+
+The model context protocol follows a client-server architecture, allowing AI tools to connect to one or multiple MCP servers that provide diverse functionalities, such as working with files and interacting with APIs and databases.
+
+Think of the MCP server as the bridge between your AI tools and your actual app or infrastructure.
+
+### What does the Nhost MCP server provide?
+
+Our MCP server provides a unified interface for your favourite AI tools to interact with your backend infrastructure. Think of it as additional superpowers to understand, query, and manage your entire Nhost stack. From local development to your production environment.
+
+Whether you're using Cursor, Claude Code, GPT-4, or any other MCP-compatible tool, you can now do things like:
+
+- Get your project's GraphQL schema
+- Execute GraphQL queries and mutations against your projects
+- Manage project configurations
+- Create database migrations
+- Manage permissions
+- Search through Nhost documentation
+
+## Getting started is simple
+
+Installation takes just one command:
+
+```bash
+sudo curl -L https://raw.githubusercontent.com/nhost/mcp-nhost/main/get.sh | bash
+```
+
+After installation, configure the Nhost MCP server with:
+
+```bash
+mcp-nhost config
+```
+
+This will start a configuration wizard to help you add access to your cloud and local environments. The artifact produced after running `config` is a TOML file with the following structure:
+
+```toml
+[cloud]
+pat = 'my-pat'
+enable_mutations = true
+
+[local]
+admin_secret = 'my-admin-secret'
+
+[[projects]]
+subdomain = 'my-subdomain'
+region = 'eu-central-1'
+admin_secret = 'my-cloud-admin-secret'
+allow_queries = ['*']
+allow_mutations = ['*']
+```
+
+Notice that you can specify exactly which queries and mutations from your GraphQL schema are available to your tools through the `allow_queries` and `allow_mutations` configuration. 
+
+For example, if you're using Cursor, configure the MCP server with the following settings:
+
+```json
+{
+  "mcpServers": {
+    "mcp-nhost": {
+      "command": "/usr/local/bin/mcp-nhost",
+      "args": [
+        "start"
+      ]
+    }
+  }
+}
+```
+
+That's it! Your tools have now secure, granular access to your Nhost projects.
+
+## A note on security
+
+We understand that giving AI tools access to your backend infrastructure requires the highest security standards. Our MCP server includes:
+
+- Strict authentication for every request
+- Full support for your existing roles and permission rules
+- Additional query and mutation filtering to block unauthorized actions even from authenticated users
+
+Every interaction respects your project's security boundaries, so you can confidently leverage AI assistance without compromising safety.
+
+## Local development and Cloud environments
+
+Nhost's MCP server works throughout your project's lifecycle, from development to production.
+
+### Local development
+- Retrieve local project GraphQL schemas during development
+- Execute queries and mutations against your local Nhost instance
+- Manage local project's configuration
+- Create migrations, manage permissions, relationships, etc
+- Prototype new features with AI assistance
+
+The MCP server uses all the same APIs the local Dashboard does, so your configuration file, migrations, and permissions are updated locally. 
+
+One push is everything you need to get your changes to production.
+
+### Cloud environment
+- Admin features to manage projects and organizations
+- Query live schemas and configurations
+- Manage cloud project configurations
+- Access to cloud projects (MCP support coming soon to Graphite, can be used to build agents for your application)
+
+
+## Real-world applications
+
+Imagine asking your code editor:
+
+> "Enable passwordless email and add the right form to the login page"
+
+Your editor can now directly query your Nhost configuration, enable passwordless email, and add the right form to your login page. Or:
+
+> "Help me optimize this GraphQL query for better performance"
+
+With access to your schema and understanding of your data relationships, your AI tools can suggest specific optimizations for your exact setup.
+
+## Try it today
+
+The Nhost MCP server is available now and works with any MCP-compatible AI tool. 
+
+Ready to give your AI tools superpowers? Install it today and let us know what you think!
+
+```bash
+mcp-nhost --help
+```
+
+The MCP server is open source and you can find the complete source code and documentation in our <a href="https://github.com/nhost/mcp-nhost" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
