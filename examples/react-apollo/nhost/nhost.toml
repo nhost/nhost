@@ -107,7 +107,9 @@ clientId = '{{ secrets.DISCORD_CLIENT_ID }}'
 clientSecret = '{{ secrets.DISCORD_CLIENT_SECRET }}'
 
 [auth.method.oauth.facebook]
-enabled = false
+enabled = true
+clientId = '{{ secrets.FACEBOOK_CLIENT_ID }}'
+clientSecret = '{{ secrets.FACEBOOK_CLIENT_SECRET }}'
 
 [auth.method.oauth.github]
 enabled = true

@@ -1,4 +1,4 @@
-import { SiApple, SiGithub, SiGoogle, SiLinkedin, SiDiscord, SiSpotify, SiTwitch, SiGitlab, SiBitbucket, SiMicrosoftazure } from '@icons-pack/react-simple-icons'
+import { SiApple, SiGithub, SiGoogle, SiLinkedin, SiDiscord, SiSpotify, SiTwitch, SiGitlab, SiBitbucket, SiMicrosoftazure, SiFacebook } from '@icons-pack/react-simple-icons'
 import { Link } from 'react-router-dom'
 import { useProviderLink } from '@nhost/react'
 import { cn } from '@/lib/utils'
@@ -6,7 +6,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { WorkOSIcon } from '../ui/workosicon'
 
 export default function OAuthLinks() {
-  const { github, apple, google, linkedin, discord, spotify, twitch, gitlab, bitbucket, workos, azuread } = useProviderLink({
+  const { github, apple, google, linkedin, discord, spotify, twitch, gitlab, bitbucket, workos, azuread, facebook } = useProviderLink({
     redirectTo: window.location.origin
   })
 
@@ -130,6 +130,17 @@ export default function OAuthLinks() {
       >
         <SiMicrosoftazure className="w-4 h-4" />
         <span className="flex-1 text-center">Continue with Azure AD</span>
+      </Link>
+
+      <Link
+        to={facebook}
+        className={cn(
+          buttonVariants({ variant: 'link' }),
+          'bg-[#3b5998] text-white hover:opacity-90 hover:no-underline'
+        )}
+      >
+        <SiFacebook className="w-4 h-4" />
+        <span className="flex-1 text-center">Continue with Facebook</span>
       </Link>
 
     </div>
