@@ -1,4 +1,4 @@
-import { SiApple, SiGithub, SiGoogle, SiLinkedin, SiDiscord, SiSpotify, SiTwitch, SiGitlab, SiBitbucket, SiMicrosoftazure, SiFacebook } from '@icons-pack/react-simple-icons'
+import { SiApple, SiGithub, SiGoogle, SiLinkedin, SiDiscord, SiSpotify, SiTwitch, SiGitlab, SiBitbucket, SiMicrosoftazure, SiFacebook, SiStrava } from '@icons-pack/react-simple-icons'
 import { Link } from 'react-router-dom'
 import { useProviderLink } from '@nhost/react'
 import { cn } from '@/lib/utils'
@@ -6,7 +6,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { WorkOSIcon } from '../ui/workosicon'
 
 export default function OAuthLinks() {
-  const { github, apple, google, linkedin, discord, spotify, twitch, gitlab, bitbucket, workos, azuread, facebook } = useProviderLink({
+  const { github, apple, google, linkedin, discord, spotify, twitch, gitlab, bitbucket, workos, azuread, facebook, strava } = useProviderLink({
     redirectTo: window.location.origin
   })
 
@@ -141,6 +141,17 @@ export default function OAuthLinks() {
       >
         <SiFacebook className="w-4 h-4" />
         <span className="flex-1 text-center">Continue with Facebook</span>
+      </Link>
+
+      <Link
+        to={strava}
+        className={cn(
+          buttonVariants({ variant: 'link' }),
+          'bg-[#FC5200] text-white hover:opacity-90 hover:no-underline'
+        )}
+      >
+        <SiStrava className="w-4 h-4" />
+        <span className="flex-1 text-center">Continue with Strava</span>
       </Link>
 
     </div>

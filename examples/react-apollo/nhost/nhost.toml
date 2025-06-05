@@ -137,7 +137,9 @@ clientId = '{{ secrets.SPOTIFY_CLIENT_ID }}'
 clientSecret = '{{ secrets.SPOTIFY_CLIENT_SECRET }}'
 
 [auth.method.oauth.strava]
-enabled = false
+enabled = true
+clientId = '{{ secrets.STRAVA_CLIENT_ID }}'
+clientSecret = '{{ secrets.STRAVA_CLIENT_SECRET }}'
 
 [auth.method.oauth.twitch]
 enabled = true
