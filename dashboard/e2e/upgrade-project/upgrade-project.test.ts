@@ -24,23 +24,20 @@ test.beforeAll(async ({ browser }) => {
 });
 
 test('should create a new project', async () => {
-  await await gotoUrl(
-    page,
-    `/orgs/${getFreeUserStarterOrgSlug()}/projects/new`,
-  );
+  await gotoUrl(page, `/orgs/${getFreeUserStarterOrgSlug()}/projects/new`);
   const projectName = faker.lorem.words(3);
 
   await page.getByLabel('Project Name').fill(projectName);
   await page.getByText('Create Project').click();
 
-  expect(await page.getByText('Creating the project...')).toBeVisible();
-  expect(await page.getByText('Internal info')).toBeVisible();
+  expect(page.getByText('Creating the project...')).toBeVisible();
+  expect(page.getByText('Internal info')).toBeVisible();
 
   await page.waitForSelector('button:has-text("Upgrade project")', {
     timeout: 120000,
   });
 
-  const newProjectSlug = getProjectSlugFromUrl(await page.url());
+  const newProjectSlug = getProjectSlugFromUrl(page.url());
   setNewProjectSlug(newProjectSlug);
   setNewProjectName(projectName);
 });
@@ -50,7 +47,7 @@ test('should upgrade the project', async () => {
     page,
     `/orgs/${getFreeUserStarterOrgSlug()}/projects/${getNewProjectSlug()}`,
   );
-  const upgradeProject = await page.getByText('Upgrade project');
+  const upgradeProject = page.getByText('Upgrade project');
   expect(upgradeProject).toBeVisible();
 
   await upgradeProject.click();
@@ -67,10 +64,10 @@ test('should upgrade the project', async () => {
   await page.waitForSelector('button:has-text("Create organization")', {
     state: 'hidden',
   });
-  const stripeFrame = await page
+  const stripeFrame = page
     .frameLocator('iframe[name="embedded-checkout"]')
     .first();
-  await stripeFrame.getByText('Subscribe to Nhost');
+  stripeFrame.getByText('Subscribe to Nhost');
   await stripeFrame.getByLabel('Email').fill(faker.internet.email());
 
   await stripeFrame
@@ -85,7 +82,7 @@ test('should upgrade the project', async () => {
   await stripeFrame.locator('#billingCountry').scrollIntoViewIfNeeded();
   // Need to comment out for local testing START
   await stripeFrame.getByPlaceholder('Address', { exact: true }).click();
-  await stripeFrame.locator('span:has-text("Enter address manually")');
+  stripeFrame.locator('span:has-text("Enter address manually")');
   await stripeFrame.getByText('Enter address manually').click();
   await stripeFrame
     .getByPlaceholder('Address line 1', { exact: true })
@@ -94,6 +91,7 @@ test('should upgrade the project', async () => {
     .getByPlaceholder('City', { exact: true })
     .fill('Springfield');
   await stripeFrame.getByPlaceholder('ZIP', { exact: true }).fill('62701');
+  await stripeFrame.locator('#enableStripePass').click({ force: true });
   // local Comment end
   await stripeFrame
     .getByTestId('hosted-payment-submit-button')
@@ -110,12 +108,12 @@ test('should upgrade the project', async () => {
     'div:has-text("Project has been upgraded successfully!")',
   );
 
-  await page.getByRole('button', { name: 'Create project' });
+  page.getByRole('button', { name: 'Create project' });
 
   await page.waitForSelector(`div:has-text("${newOrgName}")`);
   await page.waitForSelector(`p:has-text("${getNewProjectName()}")`);
 
-  setNewOrgSlug(getOrgSlugFromUrl(await page.url()));
+  setNewOrgSlug(getOrgSlugFromUrl(page.url()));
 });
 
 test('should delete the new organization', async () => {
@@ -126,12 +124,12 @@ test('should delete the new organization', async () => {
   await page.getByRole('button', { name: 'Delete' }).click();
 
   await page.waitForSelector('h2:has-text("Delete Organization")');
-  expect(await page.getByTestId('deleteOrgButton')).toBeDisabled();
+  expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
 
   await page.getByLabel("I'm sure I want to delete this Organization").click();
-  expect(await page.getByTestId('deleteOrgButton')).toBeDisabled();
+  expect(page.getByTestId('deleteOrgButton')).toBeDisabled();
   await page.getByLabel('I understand this action cannot be undone').click();
-  expect(await page.getByTestId('deleteOrgButton')).not.toBeDisabled();
+  expect(page.getByTestId('deleteOrgButton')).not.toBeDisabled();
 
   await page.getByTestId('deleteOrgButton').click();
 
