@@ -57,6 +57,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                         <a
                           href="https://docs.nhost.io/platform/cli/configuration-overlays"
                           target="_blank"
+                          rel="noreferrer"
                           className="text-xs text-primary hover:text-primary-dark"
                         >
                           configuration overlays
