@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.12.0
+
+### Minor Changes
+
+- 39b10a2: feat (dashboard): Add multi-factor authentication
+
 ## 2.11.1
 
 ### Patch Changes

@@ -10,9 +10,9 @@ import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import type { DialogFormProps } from '@/types/common';
 import { GetPersonalAccessTokensDocument } from '@/utils/__generated__/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 import { getDateComponents } from '@/utils/getDateComponents';
 import { useApolloClient } from '@apollo/client';
@@ -20,7 +20,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useNhostClient } from '@nhost/nextjs';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export const createPATFormValidationSchema = Yup.object({
@@ -84,6 +83,25 @@ export default function CreatePATForm({
     resolver: yupResolver(createPATFormValidationSchema),
   });
 
+  const createPAT = useActionWithElevatedPermissions({
+    actionFn: async (
+      expiresAt: Date,
+      metadata?: Record<string, string | number>,
+    ) => {
+      const result = await nhostClient.auth.createPAT(expiresAt, metadata);
+      return result;
+    },
+    successMessage: 'The personal access token has been created successfully.',
+    onSuccess: ({ data }) => {
+      setPersonalAccessToken(data?.personalAccessToken);
+      apolloClient.refetchQueries({
+        include: [GetPersonalAccessTokensDocument],
+      });
+
+      form.reset();
+    },
+  });
+
   const { register, formState } = form;
 
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
@@ -93,44 +111,11 @@ export default function CreatePATForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(formValues: CreatePATFormValues) {
-    try {
-      const { error, data } = await nhostClient.auth.createPAT(
-        new Date(formValues.expiresAt),
-        {
-          name: formValues.name,
-          application: 'dashboard',
-          userAgent: window.navigator.userAgent,
-        },
-      );
-
-      const toastStyle = getToastStyleProps();
-
-      if (error) {
-        toast.error(error.message, {
-          style: toastStyle.style,
-          ...toastStyle.error,
-        });
-        return;
-      }
-
-      toast.success(
-        'The personal access token has been created successfully.',
-        {
-          style: toastStyle.style,
-          ...toastStyle.success,
-        },
-      );
-
-      setPersonalAccessToken(data?.personalAccessToken);
-
-      apolloClient.refetchQueries({
-        include: [GetPersonalAccessTokensDocument],
-      });
-
-      form.reset();
-    } catch {
-      // Note: This error is handled by the toast.
-    }
+    await createPAT(new Date(formValues.expiresAt), {
+      name: formValues.name,
+      application: 'dashboard',
+      userAgent: window.navigator.userAgent,
+    });
   }
 
   if (personalAccessToken) {

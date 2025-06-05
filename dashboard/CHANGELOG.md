@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 2.31.0
+
+### Minor Changes
+
+- 39b10a2: feat (dashboard): Add multi-factor authentication
+- 4b84780: feat (dashboard): Add Webauthn to dashboard
+
+### Patch Changes
+
+- 61eb6cd: fix (dashboard): Fix update project e2e test
+  - @nhost/react-apollo@18.0.0
+  - @nhost/nextjs@2.2.8
+
 ## 2.30.0
 
 ### Minor Changes
