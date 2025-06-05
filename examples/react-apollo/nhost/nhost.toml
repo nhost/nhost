@@ -150,7 +150,9 @@ clientSecret = '{{ secrets.TWITCH_CLIENT_SECRET }}'
 enabled = false
 
 [auth.method.oauth.windowslive]
-enabled = false
+enabled = true
+clientId = '{{ secrets.WINDOWSLIVE_CLIENT_ID }}'
+clientSecret = '{{ secrets.WINDOWSLIVE_CLIENT_SECRET }}'
 
 [auth.method.oauth.workos]
 enabled = true
