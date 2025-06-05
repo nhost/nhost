@@ -1,5 +1,11 @@
 # @nhost/apollo
 
+## 8.0.9
+
+### Patch Changes
+
+- @nhost/nhost-js@3.2.9
+
 ## 8.0.8
 
 ### Patch Changes
