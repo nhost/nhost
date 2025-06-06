@@ -445,6 +445,9 @@ export default function PricingPage() {
               <PricingFeature
                 subFeatures={[
                   {
+                    title: 'SOC 2 Type II',
+                  },
+                  {
                     title: 'Email support SLA',
                   },
                   {
@@ -457,7 +460,7 @@ export default function PricingPage() {
                     title: 'Advanced GraphQL features',
                   },
                   {
-                    title: 'SOC2 (coming soon)',
+                    title: 'HIPAA (coming soon)',
                   },
                 ]}
               />
