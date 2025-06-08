@@ -48,7 +48,7 @@ export default function CTASection({ className, ...props }: CTASectionProps) {
           <div className="grid grid-flow-row items-center gap-4 pt-2 md:grid-flow-col md:gap-6">
             <Button
               className="text-base shadow-lg transition-all duration-300 hover:shadow-xl"
-              href="https://app.nhost.io"
+              href="https://app.nhost.io/signup"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -57,7 +57,7 @@ export default function CTASection({ className, ...props }: CTASectionProps) {
             <Button
               variant="outlined"
               className="text-base"
-              href="https://calendly.com/nhost/demo"
+              href="https://cal.com/nunopato"
               target="_blank"
               rel="noopener noreferrer"
             >

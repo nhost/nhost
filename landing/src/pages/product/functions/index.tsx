@@ -386,7 +386,7 @@ export default function FunctionsPage() {
 
             <SectionHeading
               title="Explore the Nhost ecosystem"
-              subtitle="Serverless Functions are just one part of our backend stack. Discover how all our services work together to power your applications."
+              subtitle="Serverless Functions are just one part of your backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }

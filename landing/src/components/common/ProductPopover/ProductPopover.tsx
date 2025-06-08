@@ -126,7 +126,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                   href="/product/storage"
                   icon="/products/storage.svg"
                   title="Storage"
-                  description=""
+                  description="File storage"
                   onClick={handleLinkClick}
                   isVisible={isVisible}
                   animationDelay="150ms"
@@ -162,7 +162,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                   href="/product/ai"
                   icon="/products/ai-assistants.svg"
                   title="AI"
-                  description="AI assistants and embeddings"
+                  description="AI Agents"
                   onClick={handleLinkClick}
                   isVisible={isVisible}
                   animationDelay="250ms"
@@ -173,7 +173,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                   href="/product/run"
                   icon="/products/run-cloud.svg"
                   title="Run"
-                  description="Deploy custom services"
+                  description="Custom services"
                   onClick={handleLinkClick}
                   isVisible={isVisible}
                   animationDelay="300ms"

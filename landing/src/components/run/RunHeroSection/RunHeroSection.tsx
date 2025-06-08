@@ -45,15 +45,15 @@ export default function RunHeroSection() {
               <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
                 Run
               </span>{' '}
-              Custom Services
+              custom services
             </>
           }
           subtitle={
             <>
               Deploy any docker container alongside your Nhost stack.{' '}
               <strong>Build</strong>, <strong>push</strong>, and{' '}
-              <strong>run</strong> custom microservices in any language with
-              automatic scaling and global deployments.
+              <strong>run</strong> custom services in any language with
+              full control over your infrastructure.
             </>
           }
           className="text-left"
@@ -71,7 +71,7 @@ export default function RunHeroSection() {
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
-            href="https://app.nhost.io"
+            href="https://app.nhost.io/signup"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -80,7 +80,7 @@ export default function RunHeroSection() {
           <Button
             variant="outlined"
             className="text-center text-base"
-            href="https://docs.nhost.io/run"
+            href="https://docs.nhost.io/products/run"
             target="_blank"
             rel="noopener noreferrer"
           >

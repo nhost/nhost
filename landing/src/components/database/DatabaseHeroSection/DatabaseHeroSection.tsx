@@ -33,7 +33,7 @@ export default function DatabaseHeroSection() {
         <SectionHeading
           title={
             <>
-              Enterprise-Grade{' '}
+              Enterprise-grade{' '}
               <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
                 PostgreSQL
               </span>
@@ -60,7 +60,7 @@ export default function DatabaseHeroSection() {
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
-            href="https://app.nhost.io"
+            href="https://app.nhost.io/signup"
             target="_blank"
             rel="noopener noreferrer"
           >

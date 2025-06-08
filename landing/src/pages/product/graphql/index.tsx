@@ -3,7 +3,6 @@ import { Card } from '@/components/common/Card'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
 import { CTASection } from '@/components/common/CTASection'
-import { ExampleSelectorButton } from '@/components/common/ExampleSelectorButton'
 import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { BarChartIcon } from '@/components/common/icons/BarChartIcon'
@@ -18,72 +17,6 @@ import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-
-const codeSnippets = {
-  insertData: `// Available remote schema
-{
-  "remote_schemas": [
-    {
-      "name": "weather_api",
-      "definition": {
-        "url": "https://api.weather.com/graphql",
-        "timeout_seconds": 60,
-        "forward_client_headers": true
-      },
-      "comment": "Weather API remote schema"
-    }
-  ]
-}
-
-// Query weather API
-const getWeatherForLocation = async () => {
-  const { data, error } = await nhost.graphql.request(\`
-    query GetWeather($city: String!) {
-      weather_api {
-        getWeather(city: $city) {
-          temperature
-          conditions
-        }
-      }
-    }
-  \`, {
-    variables: {
-      city: "Stockholm"
-    }
-  })
-}`,
-  readData: `// Event trigger configuration
-{
-  "name": "send_welcome_email",
-  "type": "create",
-  "table": {
-    "schema": "public",
-    "name": "users"
-  },
-  "webhook": "https://your-service.com/api/welcome-email"
-}
-
-// Webhook implementation
-const welcomeEmailHandler = async (req, res) => {
-  const { event } = req.body;
-  const userData = event.data.new;
-
-  try {
-    await emailService.send({
-      to: userData.email,
-      templateId: "welcome_template",
-      dynamicData: {
-        name: userData.name,
-        activationLink: \`https://app.example.com/activate/\${userData.id}\`
-      }
-    });
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("Failed to send welcome email:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-}`,
-}
 
 const realtimeCodeSnippets = {
   avatars: `subscription {
@@ -132,9 +65,6 @@ const realtimeCodeSnippets = {
 }
 
 export default function GraphqlPage() {
-  const [selectedExample, setSelectedExample] =
-    useState<keyof typeof codeSnippets>('insertData')
-
   const [selectedRealtimeExample, setSelectedRealtimeExample] =
     useState<keyof typeof realtimeCodeSnippets>('avatars')
 
@@ -542,13 +472,13 @@ export default function GraphqlPage() {
           <div className="grid grid-flow-row items-center justify-items-center gap-8">
             <div className="gradient-background rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Complete backend platform
+                Your backend platform
               </p>
             </div>
 
             <SectionHeading
               title="Explore the Nhost ecosystem"
-              subtitle="GraphQL is just one part of our complete backend platform. Discover how all our services work together to power your applications."
+              subtitle="An auto-generated GraphQL API is just one part of your backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }

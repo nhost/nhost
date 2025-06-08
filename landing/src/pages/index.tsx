@@ -21,7 +21,9 @@ export default function IndexPage() {
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
             <SectionHeading
               title="Build. Deploy. Scale."
-              subtitle="Nhost provides a complete backend with PostgreSQL, GraphQL, authentication, storage, functions, custom services, and AI features."
+              // subtitle="Nhost provides a complete backend with PostgreSQL, GraphQL, authentication, storage, functions, custom services, and AI features."
+              // subtitle="Nhost provides a ready-to-use stack with PostgreSQL, GraphQL, Auth, Storage, plus tools to extend it like Functions, Run, and an AI toolkit."
+              subtitle="A complete backend stack, ready to use and easy to extend."
             />
           </div>
         }

@@ -50,7 +50,8 @@ export default function AIHeroSection() {
               toolkit
             </>
           }
-          subtitle="Vector search, embeddings generation, AI assistants, and more - integrate advanced AI features with just a few simple configurations."
+          // subtitle="Vector search, embeddings generation, AI assistants, and more - integrate advanced AI features with just a few simple configurations."
+          subtitle="Build AI agents and useful tools that have access to all of your Nhost data and services."
           className="text-left"
           slotProps={{
             title: {
@@ -66,7 +67,7 @@ export default function AIHeroSection() {
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
-            href="https://app.nhost.io"
+            href="https://app.nhost.io/signup"
             target="_blank"
             rel="noopener noreferrer"
           >

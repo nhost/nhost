@@ -88,7 +88,7 @@ export default function AIPage() {
             </p>
           </div>
           <SectionHeading
-            title="Enhance your backend with AI integration"
+            title="Enhance your backend with AI tools"
             subtitle="Create and deploy AI-powered applications with a few lines of configuration"
             className="max-w-xl"
             slotProps={{
@@ -174,7 +174,7 @@ export default function AIPage() {
         </div>
         <SectionHeading
           title="Use cases for every application"
-          subtitle="The AI Toolkit extends the Nhost stack providing AI super-powers to your application."
+          subtitle="The AI toolkit extends the Nhost stack providing AI super-powers to your application."
           className="max-w-xl"
           slotProps={{
             subtitle: {
@@ -183,7 +183,21 @@ export default function AIPage() {
           }}
         />
 
-        <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
+            <Image
+              src="/products/ai-assistants.svg"
+              width={24}
+              height={24}
+              alt="AI Assistants icon"
+              className="transition-all group-hover:scale-110"
+            />
+            <h3 className="text-base font-bold">AI agents</h3>
+            <p className="text-base text-white text-opacity-65">
+              Create customized AI agents so your users can interact with
+              your data using natural language and get intelligent responses.
+            </p>
+          </Card>
           <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/auto-embeddings.svg"
@@ -199,20 +213,6 @@ export default function AIPage() {
             </p>
           </Card>
 
-          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
-            <Image
-              src="/products/ai-assistants.svg"
-              width={24}
-              height={24}
-              alt="AI Assistants icon"
-              className="transition-all group-hover:scale-110"
-            />
-            <h3 className="text-base font-bold">AI assistants</h3>
-            <p className="text-base text-white text-opacity-65">
-              Create customized AI assistants so your users can interact with
-              your data using natural language and get intelligent responses.
-            </p>
-          </Card>
 
           <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
@@ -225,8 +225,22 @@ export default function AIPage() {
             <h3 className="text-base font-bold">Developer assistant</h3>
             <p className="text-base text-white text-opacity-65">
               Boost your development speed with a custom AI assistant that has
-              access to your project&apos;s information like database and
+              access to your project&apos;s database and
               GraphQL schema.
+            </p>
+          </Card>
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
+            <Image
+              src="/products/graphite-logo.svg"
+              width={24}
+              height={24}
+              alt="Developer Assistant icon"
+              className="transition-all group-hover:scale-110"
+            />
+            <h3 className="text-base font-bold">Talk with your files</h3>
+            <p className="text-base text-white text-opacity-65">
+              Upload files to Nhost Storage and let your AI agents interact with
+              them.
             </p>
           </Card>
         </div>
@@ -240,7 +254,7 @@ export default function AIPage() {
         </div>
         <SectionHeading
           title="Key advantages of our AI toolkit"
-          subtitle="Graphite offers several key advantages by running alongside your Nhost stack"
+          subtitle="Key advantages by running alongside your Nhost stack"
           className="max-w-xl"
           slotProps={{
             subtitle: {
@@ -341,7 +355,7 @@ export default function AIPage() {
           }}
         />
 
-        <div className="mx-auto mt-16 flex max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="mx-auto mt-16 flex max-w-5xl justify-center">
           <iframe
             width="560"
             height="315"
@@ -446,11 +460,14 @@ export default function AIPage() {
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
             <div className="gradient-background animate-fade-in rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Explore the Nhost ecosystem
+                Your backend platform
               </p>
             </div>
 
-            <SectionHeading title="Complete your backend stack" />
+            <SectionHeading
+              title="Explore the Nhost ecosystem"
+              subtitle="AI tools is just one part of your backend stack. Discover how all our services work together to power your applications."
+            />
           </div>
         }
         disabledLink="ai"

@@ -141,7 +141,7 @@ export default function DatabasePage() {
             </p>
           </div>
         </div> */}
-        <div className="mx-auto mt-4 grid max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="mx-auto mt-4 grid max-w-5xl grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
             <h3 className="text-sm font-bold">Fast setup</h3>
             <p className="mt-1 text-xs text-white text-opacity-65">
@@ -195,7 +195,7 @@ export default function DatabasePage() {
 
             <div className="rounded-lg border border-divider bg-paper p-5">
               <h3 className="mb-2 text-lg font-bold">
-                Direct Database Connection
+                Direct database connection
               </h3>
               <p className="text-sm text-white text-opacity-80">
                 Connect using the standard{' '}
@@ -233,7 +233,7 @@ export default function DatabasePage() {
 
             <div className="rounded-lg border border-divider bg-paper p-5 shadow-md">
               <h3 className="mb-2 text-base font-bold">
-                Complex Queries and procedures
+                Complex queries and procedures
               </h3>
               <p className="text-sm text-white text-opacity-65">
                 Write and execute complex SQL queries, create stored procedures,
@@ -397,7 +397,7 @@ export default function DatabasePage() {
 
             <SectionHeading
               title="Explore the Nhost ecosystem"
-              subtitle="A Postgres database is just one part of our backend stack. Discover how all our services work together to power your applications."
+              subtitle="A Postgres database is just one part of your backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }

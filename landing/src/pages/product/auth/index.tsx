@@ -107,8 +107,8 @@ export default function AuthPage() {
                   Integration with other services
                 </h3>
                 <p className="mt-1 text-xs text-white text-opacity-65">
-                  Seamlessly integrates with other Nhost services like Storage
-                  and Database.
+                  Seamlessly integrates with other Nhost services like GraphQL
+                  and Storage.
                 </p>
               </div>
               <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
@@ -393,7 +393,7 @@ export default function AuthPage() {
 
             <SectionHeading
               title="Explore the Nhost ecosystem"
-              subtitle="Auth is just one part of our backend stack. Discover how all our services work together to power your applications."
+              subtitle="Auth is just one part of your backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }

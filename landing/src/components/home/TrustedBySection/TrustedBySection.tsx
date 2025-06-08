@@ -1,15 +1,7 @@
 import { Container } from '@/components/common/Container'
 import Image from 'next/image'
-import { SectionHeading } from '@/components/common/SectionHeading'
-import { Glow } from '@/components/common/Glow'
-import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
-import { Button } from '@/components/common/Button'
-import { useState } from 'react'
-import { twMerge } from 'tailwind-merge'
 
 export default function TrustedBySection() {
-  const [imageLoaded, setImageLoaded] = useState(false)
-
   return (
     <>
       <Container

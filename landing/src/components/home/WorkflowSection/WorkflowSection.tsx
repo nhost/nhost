@@ -208,11 +208,11 @@ export default function WorkflowSection() {
   return (
     <Container
       component="section"
-      slotProps={{ root: { className: 'mt-24 lg:mt-28 overflow-hidden' } }}
+      slotProps={{ root: { className: 'mt-24 lg:mt-40 overflow-hidden' } }}
       className="grid grid-flow-row gap-12 pb-24 lg:gap-28"
     >
       <SectionHeading
-        title="Develop Locally. Ship Globally."
+        title="Develop locally. Ship globally."
         subtitle="From local development to global deployment in minutes. No DevOps expertise required."
       />
 

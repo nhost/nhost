@@ -207,7 +207,7 @@ export default function NhostRunPage() {
               height={24}
               alt="Globe"
             />
-            <h3 className="text-base font-bold">Custom Backend</h3>
+            <h3 className="text-base font-bold">Custom backend</h3>
             <p className="text-base text-white text-opacity-65">
               Deploy and execute your custom backend services within your
               project environment with almost no configuration.
@@ -221,7 +221,7 @@ export default function NhostRunPage() {
               height={24}
               alt="Globe"
             />
-            <h3 className="text-base font-bold">Data-Processing Workloads</h3>
+            <h3 className="text-base font-bold">Data-processing workloads</h3>
             <p className="text-base text-white text-opacity-65">
               Execute data-processing tasks in close proximity to your database
               for enhanced efficiency and minimal latency.
@@ -235,7 +235,7 @@ export default function NhostRunPage() {
               height={24}
               alt="Globe"
             />
-            <h3 className="text-base font-bold">GraphQL API Extensions</h3>
+            <h3 className="text-base font-bold">GraphQL API extensions</h3>
             <p className="text-base text-white text-opacity-65">
               Extend your GraphQL API by incorporating remote schemas or actions
               that seamlessly integrate with your existing API.
@@ -287,7 +287,7 @@ export default function NhostRunPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Minimal Latency</h3>
+              <h3 className="text-base font-bold">Minimal latency</h3>
               <p className="text-base text-white text-opacity-65">
                 Communication and data exchange between different components of
                 your project occur quickly and efficiently, providing a seamless
@@ -305,7 +305,7 @@ export default function NhostRunPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">No Egress Costs</h3>
+              <h3 className="text-base font-bold">No egress costs</h3>
               <p className="text-base text-white text-opacity-65">
                 No additional egress costs for transferring data between
                 different components of your project, saving you money as your
@@ -323,7 +323,7 @@ export default function NhostRunPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Improved Reliability</h3>
+              <h3 className="text-base font-bold">Improved reliability</h3>
               <p className="text-base text-white text-opacity-65">
                 Your workloads continue to function even in scenarios where
                 internet access may be limited or disrupted, enhancing overall
@@ -341,7 +341,7 @@ export default function NhostRunPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Integrated Operations</h3>
+              <h3 className="text-base font-bold">Integrated operations</h3>
               <p className="text-base text-white text-opacity-65">
                 Develop, build, manage, and scale your own workloads the same
                 way that you manage your Nhost Project, providing a unified
@@ -359,7 +359,7 @@ export default function NhostRunPage() {
           </p>
         </div>
         <SectionHeading
-          title="Simple configuration, powerful results"
+          title="Simple config, powerful results"
           subtitle="Deploy your containerized applications in minutes with a straightforward configuration file"
           className="max-w-2xl"
           slotProps={{
@@ -533,11 +533,14 @@ nhost run config-deploy
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
             <div className="gradient-background animate-fade-in rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                Explore the Nhost ecosystem
+                Your backend platform
               </p>
             </div>
 
-            <SectionHeading title="Complete your backend stack" />
+            <SectionHeading
+              title="Explore the Nhost ecosystem"
+              subtitle="Run is just one part of your backend stack. Discover how all our services work together to power your applications."
+            />
           </div>
         }
         disabledLink="run"

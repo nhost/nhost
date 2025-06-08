@@ -10,7 +10,6 @@ import Image from 'next/image'
 const heroExample = `import express from 'express'
 import { Request, Response } from 'express'
 
-// Create a payment with Stripe
 export default (req: Request, res: Response) => {
   if (req.method !== 'POST') {
     return res.status(405).send('Method not allowed')
@@ -18,7 +17,6 @@ export default (req: Request, res: Response) => {
 
   try {
     const { amount, currency, customerEmail } = req.body
-
     // Process payment logic here
 
     res.status(200).json({
@@ -56,7 +54,7 @@ export default function FunctionsHeroSection() {
             <>
               Serverless{' '}
               <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
-                Functions
+                functions
               </span>
             </>
           }
@@ -83,7 +81,7 @@ export default function FunctionsHeroSection() {
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
-            href="https://app.nhost.io"
+            href="https://app.nhost.io/signup"
             target="_blank"
             rel="noopener noreferrer"
           >

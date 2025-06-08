@@ -302,7 +302,7 @@ export default function StoragePage() {
 
             <SectionHeading
               title="Explore the Nhost ecosystem"
-              subtitle="Storage is just one part of our backend stack. Discover how all our services work together to power your applications."
+              subtitle="Storage is just one part of your backend stack. Discover how all our services work together to power your applications."
             />
           </div>
         }

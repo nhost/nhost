@@ -69,7 +69,7 @@ export default function GraphqlHeroSection() {
         <div className="flex gap-4 pt-2">
           <Button
             className="text-center text-base"
-            href="https://app.nhost.io"
+            href="https://app.nhost.io/signup"
             target="_blank"
             rel="noopener noreferrer"
           >
