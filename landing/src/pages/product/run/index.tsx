@@ -12,8 +12,9 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { ProductSection } from '@/components/product/ProductSection'
 import { RunHeroSection } from '@/components/run/RunHeroSection'
 import Image from 'next/image'
-import Link from 'next/link'
 import { ReactElement, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
+import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
   'nhost-service.toml': {
@@ -83,9 +84,18 @@ if __name__ == '__main__':
   },
 }
 
+const runExampleNumberMap: Record<keyof typeof codeSnippets, number> = {
+  'nhost-service.toml': 1,
+  'Dockerfile': 2,
+  'cat-generator.py': 3,
+}
+
 export default function NhostRunPage() {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 })
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('nhost-service.toml')
+
+  const activeExampleNumber = runExampleNumberMap[selectedExample]
 
   return (
     <>
@@ -99,9 +109,14 @@ export default function NhostRunPage() {
         }}
       >
         <div className="grid grid-flow-row justify-items-center gap-8">
+          <div className="gradient-background mb-6 animate-fade-in rounded-full p-px">
+            <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
+              Any container, any language
+            </p>
+          </div>
           <SectionHeading
             title="Extend your backend seamlessly"
-            subtitle="Build and Run services written in your favourite language"
+            subtitle="Build and run services written in your favourite language with almost no configuration"
             className="max-w-xl"
             slotProps={{
               subtitle: {
@@ -112,7 +127,7 @@ export default function NhostRunPage() {
 
           <Button
             variant="borderless"
-            className="text-base font-bold"
+            className="animate-fade-in text-base font-bold"
             size="sm"
             href="https://docs.nhost.io/products/run/overview"
             rel="noopener noreferrer"
@@ -127,14 +142,19 @@ export default function NhostRunPage() {
             <CodeSnippet
               language={codeSnippets[selectedExample].lang}
               customStyle={{ minHeight: 220 }}
-              slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
+              slotProps={{
+                root: { className: 'mx-auto md:max-w-xl animate-fade-in' },
+              }}
             >
               {codeSnippets[selectedExample].snippet}
             </CodeSnippet>
           </div>
 
-          <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid grid-flow-col justify-around xl:justify-evenly">
+          <div
+            ref={ref}
+            className="relative order-1 w-full max-w-3xl xl:order-2"
+          >
+            <div className="relative z-20 grid grid-flow-col justify-around xl:justify-evenly">
               <ExampleSelectorButton
                 active={selectedExample === 'nhost-service.toml'}
                 onClick={() => setSelectedExample('nhost-service.toml')}
@@ -157,28 +177,52 @@ export default function NhostRunPage() {
               </ExampleSelectorButton>
             </div>
 
-            <Image
-              src="/common/connectors/run-example-connectors.svg"
-              alt="Dashed lines"
-              width={608}
-              height={97}
-              className="h-auto w-full"
-            />
+            <div className="relative">
+              <div
+                className={twMerge(
+                  'absolute z-10 h-full w-full',
+                  inView &&
+                    `run-example-connectors-${activeExampleNumber}`,
+                )}
+              >
+                <div
+                  key={selectedExample}
+                  className={twMerge(
+                    'bg-pipe-gradient absolute h-full w-full',
+                    inView &&
+                      `run-example-connectors-${activeExampleNumber}-animation`,
+                  )}
+                />
+              </div>
 
-            <Image
-              src="/common/logo-glow.svg"
-              width={1220}
-              height={1220}
-              alt="Nhost Logo in a dark circle"
-              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block"
-            />
+              <Image
+                src="/common/connectors/run-example-connectors.svg"
+                alt="Dashed lines"
+                width={555}
+                height={92}
+                className="z-0 mx-auto h-auto w-full"
+              />
+
+              <Image
+                src="/common/logo-glow.svg"
+                width={1220}
+                height={1220}
+                alt="Nhost Logo in a dark circle"
+                className="absolute -top-40 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
+              />
+            </div>
           </div>
         </div>
       </Container>
 
       <Container component="section" className="mt-24 lg:mt-40">
+        <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
+          <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
+            Endless possibilities
+          </p>
+        </div>
         <SectionHeading
-          title="Use cases"
+          title="Use cases for every need"
           subtitle="Nhost Run allows you to expand and truly customize your backend in multiple ways"
           className="max-w-xl"
           slotProps={{
@@ -189,49 +233,49 @@ export default function NhostRunPage() {
         />
 
         <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
-          <Card className="flex flex-col space-y-3">
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/run-cloud.svg"
               width={24}
               height={24}
               alt="Globe"
             />
-            <h3 className="text-base font-bold">Custom Backend</h3>
+            <h3 className="text-base font-bold">Custom backend</h3>
             <p className="text-base text-white text-opacity-65">
               Deploy and execute your custom backend services within your
-              project environment.
+              project environment with almost no configuration.
             </p>
           </Card>
 
-          <Card className="flex flex-col space-y-3">
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/run-workloads.svg"
               width={24}
               height={24}
               alt="Globe"
             />
-            <h3 className="text-base font-bold">Data-Processing Workloads</h3>
+            <h3 className="text-base font-bold">Data-processing workloads</h3>
             <p className="text-base text-white text-opacity-65">
               Execute data-processing tasks in close proximity to your database
-              for enhanced efficiency.
+              for enhanced efficiency and minimal latency.
             </p>
           </Card>
 
-          <Card className="flex flex-col space-y-3">
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/run-graphql.svg"
               width={24}
               height={24}
               alt="Globe"
             />
-            <h3 className="text-base font-bold">GraphQL API Extensions</h3>
+            <h3 className="text-base font-bold">GraphQL API extensions</h3>
             <p className="text-base text-white text-opacity-65">
-              Extend your GraphQL API by incorporating remote schemas or
-              actions.
+              Extend your GraphQL API by incorporating remote schemas or actions
+              that seamlessly integrate with your existing API.
             </p>
           </Card>
 
-          <Card className="flex flex-col space-y-3">
+          <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/run-oss.svg"
               width={24}
@@ -242,15 +286,21 @@ export default function NhostRunPage() {
               OSS and third-party software
             </h3>
             <p className="text-base text-white text-opacity-65">
-              Run services like Redis, Memcached, Datadog Agents and MongoDB.
+              Run services like Redis, Memcached, Datadog Agents and MongoDB
+              alongside your Nhost stack for a complete backend solution.
             </p>
           </Card>
         </div>
       </Container>
 
       <Container component="section" className="mt-24 lg:mt-40">
+        <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
+          <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
+            Built for performance
+          </p>
+        </div>
         <SectionHeading
-          title="Advantages"
+          title="Key advantages of Run"
           subtitle="Nhost Run offers several key advantages by running workloads alongside your project"
           className="max-w-xl"
           slotProps={{
@@ -261,80 +311,89 @@ export default function NhostRunPage() {
         />
 
         <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="flex flex-row items-start space-x-4">
+          <div className="group flex flex-row items-start space-x-4 transition-all hover:translate-y-[-4px] hover:transform">
             <Image
               src="/products/tick.svg"
               width={32}
               height={32}
-              className="-mt-1"
+              className="-mt-1 transition-all group-hover:scale-110"
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Minimal Latency</h3>
+              <h3 className="text-base font-bold">Minimal latency</h3>
               <p className="text-base text-white text-opacity-65">
                 Communication and data exchange between different components of
-                your project occur quickly and efficiently.
+                your project occur quickly and efficiently, providing a seamless
+                user experience.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-row items-start space-x-4">
+          <div className="group flex flex-row items-start space-x-4 transition-all hover:translate-y-[-4px] hover:transform">
             <Image
               src="/products/tick.svg"
               width={32}
               height={32}
-              className="-mt-1"
+              className="-mt-1 transition-all group-hover:scale-110"
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">No Egress Costs</h3>
+              <h3 className="text-base font-bold">No egress costs</h3>
               <p className="text-base text-white text-opacity-65">
                 No additional egress costs for transferring data between
-                different components of your project.
+                different components of your project, saving you money as your
+                application scales.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-row items-start space-x-4">
+          <div className="group flex flex-row items-start space-x-4 transition-all hover:translate-y-[-4px] hover:transform">
             <Image
               src="/products/tick.svg"
               width={32}
               height={32}
-              className="-mt-1"
+              className="-mt-1 transition-all group-hover:scale-110"
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Improved Reliability</h3>
+              <h3 className="text-base font-bold">Improved reliability</h3>
               <p className="text-base text-white text-opacity-65">
                 Your workloads continue to function even in scenarios where
-                internet access may be limited or disrupted.
+                internet access may be limited or disrupted, enhancing overall
+                system resilience.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-row items-start space-x-4">
+          <div className="group flex flex-row items-start space-x-4 transition-all hover:translate-y-[-4px] hover:transform">
             <Image
               src="/products/tick.svg"
               width={32}
               height={32}
-              className="-mt-1"
+              className="-mt-1 transition-all group-hover:scale-110"
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Integrated Operations</h3>
+              <h3 className="text-base font-bold">Integrated operations</h3>
               <p className="text-base text-white text-opacity-65">
                 Develop, build, manage, and scale your own workloads the same
-                way that you manage your Nhost Project.
+                way that you manage your Nhost Project, providing a unified
+                workflow.
               </p>
             </div>
           </div>
         </div>
       </Container>
 
-      <Container component="section" className="mt-24 hidden lg:mt-40">
+      <Container component="section" className="mt-24 lg:mt-40">
+        <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
+          <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
+            Easy deployment
+          </p>
+        </div>
         <SectionHeading
-          title="Powerful permissions, made simple"
-          subtitle="Storage permissions work like any other data in your database. Use Buckets to segment files."
+          title="Simple config, powerful results"
+          subtitle="Deploy your containerized applications in minutes with a straightforward configuration file"
           className="max-w-2xl"
           slotProps={{
             subtitle: {
@@ -343,19 +402,53 @@ export default function NhostRunPage() {
           }}
         />
 
-        <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
-          Video Placeholder
+        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="animate-fade-in rounded-xl border border-divider bg-paper p-6">
+            <h3 className="mb-4 text-xl font-bold">
+              Define your service with nhost-service.toml
+            </h3>
+            <p className="mb-6 text-base text-white text-opacity-65">
+              Create a simple configuration file to define your service
+              requirements:
+            </p>
+            <CodeSnippet language="javascript">
+              {codeSnippets['nhost-service.toml'].snippet}
+            </CodeSnippet>
+          </div>
+
+          <div className="animate-fade-in-delay rounded-xl border border-divider bg-paper p-6">
+            <h3 className="mb-4 text-xl font-bold">
+              Deploy with the Nhost CLI
+            </h3>
+            <p className="mb-6 text-base text-white text-opacity-65">
+              Push your service directly from your local environment:
+            </p>
+            <CodeSnippet language="bash">
+              {`
+# Deploy to Nhost Run
+nhost run config-deploy
+`}
+            </CodeSnippet>
+            <p className="mt-6 text-base text-white text-opacity-65">
+              Your service is now running alongside your Nhost stack!
+            </p>
+          </div>
         </div>
       </Container>
 
       <Container component="section" className="mt-24">
+        <div className="gradient-background mx-auto mb-6 w-fit animate-fade-in rounded-full p-px">
+          <p className="rounded-full bg-paper px-4.5 py-1.5 text-sm">
+            Comprehensive features
+          </p>
+        </div>
         <SectionHeading title="And more..." className="max-w-lg" />
 
         <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
-          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15">
+          <Card className="hover:shadow-glow-sm relative grid grid-flow-row place-content-center place-items-center gap-4 transition-all sm:row-span-15">
             <div className="relative">
               <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-x-1/2 -translate-y-1/2" />
-              <Glow />
+              <Glow className="animate-pulse" />
               <Image
                 src="/common/logo-circle.svg"
                 width={100}
@@ -371,76 +464,81 @@ export default function NhostRunPage() {
               slotProps={{ title: { component: 'h3' } }}
             />
 
-            <Button href="https://app.nhost.io" className="mt-6">
+            <Button
+              href="https://app.nhost.io"
+              className="mt-6 animate-fade-in"
+            >
               Start building <ArrowRightIcon />
             </Button>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
+          <Card className="hover:shadow-glow-sm group grid grid-flow-row place-content-center place-items-center gap-4 text-center transition-all sm:row-span-8">
             <Image
               src="/products/globe.svg"
               width={24}
               height={24}
               alt="Globe"
-              className="mx-auto"
+              className="mx-auto transition-all group-hover:scale-110"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Private Registry</h3>
+              <h3 className="text-base font-bold">Private registry</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Push your service images to our private registry with
-                deployments or using our CLI
+                deployments or using our CLI for a streamlined workflow
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
+          <Card className="hover:shadow-glow-sm group grid grid-flow-row place-content-center place-items-center gap-4 text-center transition-all sm:row-span-7">
             <Image
               src="/products/code.svg"
               width={24}
               height={24}
               alt="Resize icon"
-              className="mx-auto"
+              className="mx-auto transition-all group-hover:scale-110"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Your Favourite Languages</h3>
+              <h3 className="text-base font-bold">Polyglot development</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Run services written in JS/TS, Go, Python, etc
+                Run services written in JavaScript/TypeScript, Go, Python, Rust,
+                or any other language that can be containerized
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
+          <Card className="hover:shadow-glow-sm group grid grid-flow-row place-content-center place-items-center gap-4 text-center transition-all sm:row-span-8">
             <Image
               src="/products/maximize.svg"
               width={24}
               height={24}
               alt="Full screen icon"
-              className="mx-auto"
+              className="mx-auto transition-all group-hover:scale-110"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">High Scalability</h3>
+              <h3 className="text-base font-bold">High scalability</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Use Dedicated Compute and Service Replicas to scale your custom
-                Services.
+                Services for handling increased load with ease
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
+          <Card className="hover:shadow-glow-sm group grid grid-flow-row place-content-center place-items-center gap-4 text-center transition-all sm:row-span-8 lg:row-span-7">
             <Image
               src="/products/arrows-clockwise.svg"
               width={24}
               height={24}
               alt="A box"
-              className="mx-auto"
+              className="mx-auto transition-all group-hover:scale-110"
             />
 
             <div className="grid grid-flow-row gap-2.5">
               <h3 className="text-base font-bold">Integrated CI</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Coming soon
+                Streamlined continuous integration coming soon to make your
+                deployment workflow even more efficient
               </p>
             </div>
           </Card>
@@ -451,13 +549,16 @@ export default function NhostRunPage() {
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         heading={
           <div className="grid grid-flow-row items-center justify-items-center gap-4">
-            <div className="gradient-background rounded-full p-px">
+            <div className="gradient-background animate-fade-in rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                There is more
+                Your backend platform
               </p>
             </div>
 
-            <SectionHeading title="Other features" />
+            <SectionHeading
+              title="Explore the Nhost ecosystem"
+              subtitle="Run is just one part of your backend stack. Discover how all our services work together to power your applications."
+            />
           </div>
         }
         disabledLink="run"

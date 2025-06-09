@@ -13,6 +13,8 @@ import { FunctionsHeroSection } from '@/components/functions/FunctionsHeroSectio
 import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
+import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
   sendEmail: `import nodemailer from 'nodemailer'
@@ -105,9 +107,19 @@ export default async function handler(req: NhostRequest, res: NhostResponse) {
 }`,
 }
 
+const functionsExampleNumberMap: Record<keyof typeof codeSnippets, number> = {
+  sendEmail: 1,
+  query: 2,
+  stripe: 3,
+  helloWorld: 4,
+}
+
 export default function FunctionsPage() {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 })
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('sendEmail')
+
+  const activeExampleNumber = functionsExampleNumberMap[selectedExample]
 
   return (
     <>
@@ -121,9 +133,15 @@ export default function FunctionsPage() {
         }}
       >
         <div className="grid grid-flow-row justify-items-center gap-8">
+          <div className="gradient-background mb-2 rounded-full p-px">
+            <p className="rounded-full bg-paper px-4.5 py-1.5">
+              Scale automatically
+            </p>
+          </div>
+
           <SectionHeading
-            title="Serverless Functions at Scale"
-            subtitle="Handle custom logic, specific business requirements, and custom integrations using Nhost Functions."
+            title="Functions at scale"
+            subtitle="Deploy server-side logic without managing infrastructure. Handle custom business logic, integrate with third-party services, and build webhooks with JavaScript or TypeScript."
             className="max-w-2xl"
             slotProps={{
               subtitle: {
@@ -133,7 +151,7 @@ export default function FunctionsPage() {
           />
 
           <Button
-            variant="borderless"
+            variant="outlined"
             className="text-base font-bold"
             size="sm"
             href="https://docs.nhost.io/products/functions/overview"
@@ -144,24 +162,49 @@ export default function FunctionsPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 items-start justify-items-center gap-0 pb-12 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
+        <div className="grid grid-cols-1 items-start justify-items-center gap-8 pb-12 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language="typescript"
               customStyle={{ minHeight: 330 }}
-              slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
+              slotProps={{
+                root: {
+                  className:
+                    'mx-auto md:max-w-xl shadow-lg animate-fade-in-delay',
+                },
+              }}
             >
               {codeSnippets[selectedExample]}
             </CodeSnippet>
+
+            <div className="mx-auto mt-6 grid max-w-xl grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
+                <h3 className="text-sm font-bold">Automatic scaling</h3>
+                <p className="mt-1 text-xs text-white text-opacity-65">
+                  Functions scale automatically based on demand, no
+                  infrastructure management needed
+                </p>
+              </div>
+              <div className="rounded-md border border-divider bg-paper bg-opacity-50 p-4">
+                <h3 className="text-sm font-bold">TypeScript support</h3>
+                <p className="mt-1 text-xs text-white text-opacity-65">
+                  Write functions in TypeScript with full type safety and modern
+                  JavaScript features
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid grid-flow-col justify-evenly xl:justify-center">
+          <div
+            ref={ref}
+            className="relative order-1 w-full max-w-3xl xl:order-2"
+          >
+            <div className="relative z-20 grid grid-flow-col justify-evenly xl:justify-center">
               <ExampleSelectorButton
                 active={selectedExample === 'sendEmail'}
                 onClick={() => setSelectedExample('sendEmail')}
               >
-                Send Email
+                Send email
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
@@ -175,44 +218,75 @@ export default function FunctionsPage() {
                 active={selectedExample === 'stripe'}
                 onClick={() => setSelectedExample('stripe')}
               >
-                Receive Stripe Webhooks
+                Stripe webhooks
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
                 active={selectedExample === 'helloWorld'}
                 onClick={() => setSelectedExample('helloWorld')}
               >
-                Hello World
+                Hello world
               </ExampleSelectorButton>
             </div>
 
-            <Image
-              src="/common/connectors/functions-example-connectors.svg"
-              alt="Dashed lines"
-              width={608}
-              height={97}
-              className="h-auto w-full"
-            />
+            <div className="relative">
+              <div
+                className={twMerge(
+                  'absolute z-10 h-full w-full',
+                  inView &&
+                    `functions-example-connectors-${activeExampleNumber}`,
+                )}
+              >
+                <div
+                  key={selectedExample}
+                  className={twMerge(
+                    'bg-pipe-gradient absolute h-full w-full',
+                    inView &&
+                      `functions-example-connectors-${activeExampleNumber}-animation`,
+                  )}
+                />
+              </div>
 
-            <Image
-              src="/common/logo-glow.svg"
-              width={1220}
-              height={1220}
-              alt="Nhost Logo in a dark circle"
-              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block"
-            />
+              <Image
+                src="/common/connectors/functions-example-connectors.svg"
+                alt="Dashed lines"
+                width={608}
+                height={97}
+                className="z-0 mx-auto h-auto w-full"
+              />
+
+              <Image
+                src="/common/logo-glow.svg"
+                width={1220}
+                height={1220}
+                alt="Nhost Logo in a dark circle"
+                className="absolute -top-40 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
+              />
+            </div>
           </div>
         </div>
       </Container>
 
-      <Container component="section" className="mt-24">
-        <SectionHeading title="And more..." className="max-w-lg" />
+      <Container component="section" className="mt-24 lg:mt-40">
+        <div className="grid grid-flow-row justify-items-center gap-8">
+          <div className="gradient-background mb-2 rounded-full p-px">
+            <p className="rounded-full bg-paper px-4.5 py-1.5">
+              Advanced features
+            </p>
+          </div>
 
-        <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
-          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15">
+          <SectionHeading
+            title="Powerful backend logic, zero complexity"
+            subtitle="Create server-side functionality for your applications without the complexity of managing servers, libraries, or runtime environments."
+            className="max-w-2xl"
+          />
+        </div>
+
+        <div className="mx-auto mt-12 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
+          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-15">
             <div className="relative">
               <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-y-1/2 -translate-x-1/2" />
-              <Glow />
+              <Glow className="animate-pulse" />
               <Image
                 src="/common/logo-circle.svg"
                 width={100}
@@ -232,7 +306,8 @@ export default function FunctionsPage() {
               Start building <ArrowRightIcon />
             </Button>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-8">
             <Image
               src="/products/code.svg"
               width={24}
@@ -242,61 +317,91 @@ export default function FunctionsPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Environment Variables</h3>
+              <h3 className="text-base font-bold">Environment variables</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Full access to system and manually defined environment
-                variables.
+                Securely store and access configuration values and secrets. Full
+                access to both system and custom environment variables for safe
+                credential management.
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-7">
             <Image
               src="/products/typescript.svg"
               width={24}
               height={24}
-              alt="TypScript"
+              alt="TypeScript"
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">TypeScript-Ready</h3>
+              <h3 className="text-base font-bold">TypeScript support</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Deploy your TypeScript functions with ease.
+                Write functions in TypeScript with full type checking and modern
+                JavaScript features. Get increased productivity with better IDE
+                support and fewer runtime errors.
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-8">
             <Image
               src="/products/backups.svg"
               width={24}
               height={24}
-              alt="A paper"
+              alt="Event triggers icon"
               className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Event Triggers</h3>
+              <h3 className="text-base font-bold">Event triggers</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Use Functions to consume event triggers.
+                React to database changes automatically by consuming event
+                triggers. Perfect for notifications, data processing, and
+                maintaining data consistency across systems.
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-8 lg:row-span-7">
             <Image
               src="/products/tool.svg"
               width={24}
               height={24}
-              alt="Tool"
+              alt="Zero maintenance icon"
               className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Zero Maintenance</h3>
+              <h3 className="text-base font-bold">Zero maintenance</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Functions are automatically scaled and maintained.
+                No servers to manage, no scaling to configure, no OS updates to
+                apply. Functions are automatically scaled, secured, and
+                maintained for you, so you can focus on your code.
+              </p>
+            </div>
+          </Card>
+
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:row-span-8 lg:row-span-7">
+            <Image
+              src="/products/logs.svg"
+              width={24}
+              height={24}
+              alt="Logs icon"
+              className="mx-auto"
+            />
+
+            <div className="grid grid-flow-row gap-2.5">
+              <h3 className="text-base font-bold">Comprehensive logging</h3>
+
+              <p className="text-base text-white text-opacity-65">
+                Monitor function performance and troubleshoot issues with
+                detailed execution logs. Get insights into function execution
+                time, memory usage, and errors.
               </p>
             </div>
           </Card>
@@ -306,14 +411,17 @@ export default function FunctionsPage() {
       <ProductSection
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         heading={
-          <div className="grid grid-flow-row items-center justify-items-center gap-4">
+          <div className="grid grid-flow-row items-center justify-items-center gap-8">
             <div className="gradient-background rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
-                There is more
+                Your backend platform
               </p>
             </div>
 
-            <SectionHeading title="Other features" />
+            <SectionHeading
+              title="Explore the Nhost ecosystem"
+              subtitle="Serverless Functions are just one part of your backend stack. Discover how all our services work together to power your applications."
+            />
           </div>
         }
         disabledLink="functions"

@@ -22,6 +22,7 @@ module.exports = {
         divider: '#262626',
         default: '#080808',
         paper: '#111111',
+        some: '#0052CD',
         'brand-light': '#8cc1f2',
         'brand-main': '#0066ff',
         'brand-dark': '#00398e',

@@ -74,12 +74,13 @@ export default function ExamplesSection() {
     <Container
       ref={ref}
       component="section"
-      slotProps={{ root: { className: 'overflow-hidden xl:overflow-visible' } }}
-      className="mt-24 grid grid-flow-row gap-12 pb-12 lg:mt-28 lg:gap-28"
+      // slotProps={{ root: { className: 'mt-24 lg:mt-40 overflow-hidden xl:overflow-visible' } }}
+        slotProps={{ root: { className: 'pt-14 z-30 relative' } }}
+      className="grid grid-flow-row gap-12 pb-12 lg:gap-28"
     >
       <SectionHeading
-        title="For Developers - By Developers"
-        subtitle="Build products faster using our SDKs"
+        title="Build faster with our SDKs"
+        // subtitle="Build products faster using our SDKs"
       />
 
       <div className="z-0 grid items-start gap-14 xl:grid-cols-2 xl:gap-6">
@@ -110,28 +111,28 @@ export default function ExamplesSection() {
               active={activeExample === 'signUp'}
               onClick={() => setActiveExample('signUp')}
             >
-              Sign Up
+              Sign up
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'query'}
               onClick={() => setActiveExample('query')}
             >
-              GraphQL Query
+              GraphQL query
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'mutation'}
               onClick={() => setActiveExample('mutation')}
             >
-              GraphQL Mutation
+              GraphQL mutation
             </ExampleSelectorButton>
 
             <ExampleSelectorButton
               active={activeExample === 'fileUpload'}
               onClick={() => setActiveExample('fileUpload')}
             >
-              File Upload
+              File upload
             </ExampleSelectorButton>
           </div>
 

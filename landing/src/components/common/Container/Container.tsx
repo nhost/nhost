@@ -48,7 +48,7 @@ function Container(
       ...props,
       ...(slotProps?.root || {}),
       ref,
-      className: twMerge('w-full overflow-hidden', slotProps?.root?.className),
+      className: twMerge('w-full', slotProps?.root?.className),
     },
     <div
       {...(slotProps?.content || {})}

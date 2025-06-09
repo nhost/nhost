@@ -32,17 +32,11 @@ export default function Layout({
   return (
     <div
       className={twMerge(
-        'flex min-h-screen flex-col p-4 pb-0',
+        'flex min-h-screen flex-col p-4 pb-0 pt-20',
         inter.className,
       )}
     >
-      <Header
-        slotProps={{
-          root: {
-            className: 'sticky top-0 left-0 right-0 transform-cpu w-full',
-          },
-        }}
-      />
+      <Header />
 
       <main className={twMerge('flex-auto', className)} {...props}>
         {children}

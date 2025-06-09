@@ -160,7 +160,7 @@ function CloudWorkflow({
   ...props
 }: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>) {
   return (
-    <div className={twMerge('lg:-mt-16', className)} {...props}>
+    <div className={twMerge('overflow-hidden lg:-mt-16', className)} {...props}>
       <div className="relative z-0 h-60 w-full md:h-80">
         <ErrorBoundary
           FallbackComponent={() => (
@@ -208,15 +208,15 @@ export default function WorkflowSection() {
   return (
     <Container
       component="section"
-      slotProps={{ root: { className: 'mt-24 lg:mt-28' } }}
-      className="grid grid-flow-row gap-12 pb-12 lg:gap-28"
+      slotProps={{ root: { className: 'mt-24 lg:mt-40 overflow-hidden' } }}
+      className="grid grid-flow-row gap-12 pb-24 lg:gap-28"
     >
       <SectionHeading
-        title="Develop Locally. Ship Globally."
-        subtitle="Launch something amazing without painful devops."
+        title="Develop locally. Ship globally."
+        subtitle="From local development to global deployment in minutes. No DevOps expertise required."
       />
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-6 overflow-hidden lg:grid-cols-12">
         <div className="relative z-20 lg:col-span-5">
           <div className="absolute left-[3px] top-1/2 hidden -translate-y-1/2 lg:block">
             <Image
@@ -267,8 +267,8 @@ export default function WorkflowSection() {
                 </div>
 
                 <span>
-                  Run the entire Nhost stack directly from the terminal during
-                  development.
+                  Run the entire Nhost stack locally with a single command.
+                  Instant setup with all services connected and ready to use.
                 </span>
               </div>
 
@@ -322,7 +322,8 @@ export default function WorkflowSection() {
                 </div>
 
                 <span>
-                  Use Git to push and deploy your changes with effortless CI/CD.
+                  Simple Git-based deployments with built-in CI/CD. Push your
+                  code and Nhost automatically deploys your backend.
                 </span>
               </div>
 
@@ -370,8 +371,8 @@ export default function WorkflowSection() {
                 </div>
 
                 <span>
-                  Your project is deployed on infrastructure configured for
-                  maximum scalability and security.
+                  Production-ready infrastructure and security. Autoscaling and
+                  load balancing. Scalability and reliability.
                 </span>
               </div>
 
@@ -383,7 +384,7 @@ export default function WorkflowSection() {
           </ul>
         </div>
 
-        <div className="relative hidden min-h-[381px] lg:col-span-6 lg:col-start-7 lg:block">
+        <div className="relative hidden max-h-[500px] min-h-[381px] overflow-hidden lg:col-span-6 lg:col-start-7 lg:block">
           {activeStep !== 0 && <LineGrid className="scale-110" />}
 
           <div className="relative z-10">
