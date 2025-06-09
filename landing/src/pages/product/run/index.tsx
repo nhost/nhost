@@ -411,23 +411,8 @@ export default function NhostRunPage() {
               Create a simple configuration file to define your service
               requirements:
             </p>
-            <CodeSnippet language="toml">
-              {`name = 'my-custom-service'
-
-[image]
-image = 'my-org/my-service:latest'
-
-[[ports]]
-port = 8080
-type = 'http'
-publish = true
-
-[resources]
-replicas = 2
-
-[resources.compute]
-cpu = 1000
-memory = 2048`}
+            <CodeSnippet language="javascript">
+              {codeSnippets['nhost-service.toml'].snippet}
             </CodeSnippet>
           </div>
 
