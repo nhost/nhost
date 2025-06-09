@@ -13,6 +13,8 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
+import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
   signUp: `
@@ -39,9 +41,19 @@ await nhost.auth.signIn({
 `,
 }
 
+const authExampleNumberMap: Record<keyof typeof codeSnippets, number> = {
+  signUp: 1,
+  signIn: 2,
+  resetPassword: 3,
+  oauthSignIn: 4,
+}
+
 export default function AuthPage() {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 })
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('signUp')
+
+  const activeExampleNumber = authExampleNumberMap[selectedExample]
 
   return (
     <>
@@ -120,8 +132,11 @@ export default function AuthPage() {
             </div>
           </div>
 
-          <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid grid-flow-col justify-around xl:justify-evenly">
+          <div
+            ref={ref}
+            className="relative order-1 w-full max-w-3xl xl:order-2"
+          >
+            <div className="relative z-20 grid grid-flow-col justify-around xl:justify-evenly">
               <ExampleSelectorButton
                 active={selectedExample === 'signUp'}
                 onClick={() => setSelectedExample('signUp')}
@@ -151,21 +166,39 @@ export default function AuthPage() {
               </ExampleSelectorButton>
             </div>
 
-            <Image
-              src="/common/connectors/auth-example-connectors.svg"
-              alt="Dashed lines"
-              width={608}
-              height={97}
-              className="h-auto w-full"
-            />
+            <div className="relative">
+              <div
+                className={twMerge(
+                  'absolute z-10 h-full w-full',
+                  inView &&
+                    `auth-example-connectors-${activeExampleNumber}`,
+                )}
+              >
+                <div
+                  key={selectedExample}
+                  className={twMerge(
+                    'bg-pipe-gradient absolute h-full w-full',
+                    inView &&
+                      `auth-example-connectors-${activeExampleNumber}-animation`,
+                  )}
+                />
+              </div>
 
-            <Image
-              src="/common/logo-glow.svg"
-              width={1220}
-              height={1220}
-              alt="Nhost Logo in a dark circle"
-              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
-            />
+              <Image
+                src="/common/connectors/auth-example-connectors.svg"
+                alt="Dashed lines"
+                width={608}
+                height={97}
+                className="z-0 mx-auto h-auto w-full"
+              />
+              <Image
+                src="/common/logo-glow.svg"
+                width={1220}
+                height={1220}
+                alt="Nhost Logo in a dark circle"
+                className="absolute -top-40 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
+              />
+            </div>
           </div>
         </div>
       </Container>

@@ -13,6 +13,8 @@ import { ProductSection } from '@/components/product/ProductSection'
 import { RunHeroSection } from '@/components/run/RunHeroSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
+import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
   'nhost-service.toml': {
@@ -82,9 +84,18 @@ if __name__ == '__main__':
   },
 }
 
+const runExampleNumberMap: Record<keyof typeof codeSnippets, number> = {
+  'nhost-service.toml': 1,
+  'Dockerfile': 2,
+  'cat-generator.py': 3,
+}
+
 export default function NhostRunPage() {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 })
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('nhost-service.toml')
+
+  const activeExampleNumber = runExampleNumberMap[selectedExample]
 
   return (
     <>
@@ -139,8 +150,11 @@ export default function NhostRunPage() {
             </CodeSnippet>
           </div>
 
-          <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid grid-flow-col justify-around xl:justify-evenly">
+          <div
+            ref={ref}
+            className="relative order-1 w-full max-w-3xl xl:order-2"
+          >
+            <div className="relative z-20 grid grid-flow-col justify-around xl:justify-evenly">
               <ExampleSelectorButton
                 active={selectedExample === 'nhost-service.toml'}
                 onClick={() => setSelectedExample('nhost-service.toml')}
@@ -163,21 +177,40 @@ export default function NhostRunPage() {
               </ExampleSelectorButton>
             </div>
 
-            <Image
-              src="/common/connectors/run-example-connectors.svg"
-              alt="Dashed lines"
-              width={608}
-              height={97}
-              className="h-auto w-full animate-fade-in"
-            />
+            <div className="relative">
+              <div
+                className={twMerge(
+                  'absolute z-10 h-full w-full',
+                  inView &&
+                    `run-example-connectors-${activeExampleNumber}`,
+                )}
+              >
+                <div
+                  key={selectedExample}
+                  className={twMerge(
+                    'bg-pipe-gradient absolute h-full w-full',
+                    inView &&
+                      `run-example-connectors-${activeExampleNumber}-animation`,
+                  )}
+                />
+              </div>
 
-            <Image
-              src="/common/logo-glow.svg"
-              width={1220}
-              height={1220}
-              alt="Nhost Logo in a dark circle"
-              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
-            />
+              <Image
+                src="/common/connectors/run-example-connectors.svg"
+                alt="Dashed lines"
+                width={555}
+                height={92}
+                className="z-0 mx-auto h-auto w-full"
+              />
+
+              <Image
+                src="/common/logo-glow.svg"
+                width={1220}
+                height={1220}
+                alt="Nhost Logo in a dark circle"
+                className="absolute -top-40 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
+              />
+            </div>
           </div>
         </div>
       </Container>

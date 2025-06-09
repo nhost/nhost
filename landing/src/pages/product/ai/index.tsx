@@ -11,6 +11,8 @@ import { AIHeroSection } from '@/components/ai/AIHeroSection'
 import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
+import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
   'nhost.toml': {
@@ -66,9 +68,18 @@ mutation {
   },
 }
 
+const aiExampleNumberMap: Record<keyof typeof codeSnippets, number> = {
+  'nhost.toml': 1,
+  'auto-embeddings.gql': 2,
+  'assistant.gql': 3,
+}
+
 export default function AIPage() {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 })
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('nhost.toml')
+
+  const activeExampleNumber = aiExampleNumberMap[selectedExample]
 
   return (
     <>
@@ -123,8 +134,11 @@ export default function AIPage() {
             </CodeSnippet>
           </div>
 
-          <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid grid-flow-col justify-around xl:justify-evenly">
+          <div
+            ref={ref}
+            className="relative order-1 w-full max-w-3xl xl:order-2"
+          >
+            <div className="relative z-20 grid grid-flow-col justify-around xl:justify-evenly">
               <ExampleSelectorButton
                 active={selectedExample === 'nhost.toml'}
                 onClick={() => setSelectedExample('nhost.toml')}
@@ -147,21 +161,40 @@ export default function AIPage() {
               </ExampleSelectorButton>
             </div>
 
-            <Image
-              src="/common/connectors/run-example-connectors.svg"
-              alt="Dashed lines"
-              width={608}
-              height={97}
-              className="h-auto w-full animate-fade-in"
-            />
+            <div className="relative">
+              <div
+                className={twMerge(
+                  'absolute z-10 h-full w-full',
+                  inView &&
+                    `ai-example-connectors-${activeExampleNumber}`,
+                )}
+              >
+                <div
+                  key={selectedExample}
+                  className={twMerge(
+                    'bg-pipe-gradient absolute h-full w-full',
+                    inView &&
+                      `ai-example-connectors-${activeExampleNumber}-animation`,
+                  )}
+                />
+              </div>
 
-            <Image
-              src="/common/logo-glow.svg"
-              width={1220}
-              height={1220}
-              alt="Nhost Logo in a dark circle"
-              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
-            />
+              <Image
+                src="/common/connectors/run-example-connectors.svg"
+                alt="Dashed lines"
+                width={555}
+                height={92}
+                className="z-0 mx-auto h-auto w-full"
+              />
+
+              <Image
+                src="/common/logo-glow.svg"
+                width={1220}
+                height={1220}
+                alt="Nhost Logo in a dark circle"
+                className="absolute -top-40 left-0 right-0 z-0 mx-auto hidden h-auto w-full animate-pulse object-none xl:block"
+              />
+            </div>
           </div>
         </div>
       </Container>
