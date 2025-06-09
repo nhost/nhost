@@ -15,7 +15,6 @@ const (
 	flagBranch         = "branch"
 	flagProjectName    = "project-name"
 	flagRootFolder     = "root-folder"
-	flagDataFolder     = "data-folder"
 	flagNhostFolder    = "nhost-folder"
 	flagDotNhostFolder = "dot-nhost-folder"
 	flagLocalSubdomain = "local-subdomain"
@@ -38,7 +37,7 @@ func getGitBranchName() string {
 	return head.Name().Short()
 }
 
-func Flags() ([]cli.Flag, error) { //nolint:funlen
+func Flags() ([]cli.Flag, error) {
 	fullWorkingDir, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get working directory: %w", err)
@@ -48,7 +47,6 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 
 	workingDir := "."
 	dotNhostFolder := filepath.Join(workingDir, ".nhost")
-	dataFolder := filepath.Join(dotNhostFolder, "data", branch)
 	nhostFolder := filepath.Join(workingDir, "nhost")
 
 	return []cli.Flag{
@@ -68,10 +66,10 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagBranch,
-			Usage:   "Git branch name",
+			Usage:   "Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value.", //nolint:lll
 			EnvVars: []string{"BRANCH"},
 			Value:   branch,
-			Hidden:  true,
+			Hidden:  false,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagRootFolder,
@@ -85,13 +83,6 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 			Usage:    "Path to .nhost folder\n\t",
 			EnvVars:  []string{"NHOST_DOT_NHOST_FOLDER"},
 			Value:    dotNhostFolder,
-			Category: "Project structure",
-		},
-		&cli.StringFlag{ //nolint:exhaustruct
-			Name:     flagDataFolder,
-			Usage:    "Data folder to persist data\n\t",
-			EnvVars:  []string{"NHOST_DATA_FOLDER"},
-			Value:    dataFolder,
 			Category: "Project structure",
 		},
 		&cli.StringFlag{ //nolint:exhaustruct

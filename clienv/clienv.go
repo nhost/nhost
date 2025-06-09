@@ -67,7 +67,6 @@ func FromCLI(cCtx *cli.Context) *CliEnv {
 			cwd,
 			cCtx.String(flagRootFolder),
 			cCtx.String(flagDotNhostFolder),
-			cCtx.String(flagDataFolder),
 			cCtx.String(flagNhostFolder),
 		),
 		authURL:        cCtx.String(flagAuthURL),

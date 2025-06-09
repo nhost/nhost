@@ -363,7 +363,6 @@ func up( //nolint:funlen,cyclop
 		httpPort,
 		useTLS,
 		postgresPort,
-		ce.Path.DataFolder(),
 		ce.Path.NhostFolder(),
 		ce.Path.DotNhostFolder(),
 		ce.Path.Root(),

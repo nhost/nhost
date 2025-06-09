@@ -9,18 +9,16 @@ type PathStructure struct {
 	workingDir     string
 	root           string
 	dotNhostFolder string
-	dataFolder     string
 	nhostFolder    string
 }
 
 func NewPathStructure(
-	workingDir, root, dotNhostFolder, dataFolder, nhostFolder string,
+	workingDir, root, dotNhostFolder, nhostFolder string,
 ) *PathStructure {
 	return &PathStructure{
 		workingDir:     workingDir,
 		root:           root,
 		dotNhostFolder: dotNhostFolder,
-		dataFolder:     dataFolder,
 		nhostFolder:    nhostFolder,
 	}
 }
@@ -35,10 +33,6 @@ func (p PathStructure) Root() string {
 
 func (p PathStructure) DotNhostFolder() string {
 	return p.dotNhostFolder
-}
-
-func (p PathStructure) DataFolder() string {
-	return p.dataFolder
 }
 
 func (p PathStructure) NhostFolder() string {

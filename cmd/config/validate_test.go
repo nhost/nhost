@@ -254,7 +254,6 @@ func TestValidate(t *testing.T) {
 					".",
 					filepath.Join("testdata", "validate", tc.path),
 					filepath.Join("testdata", "validate", tc.path, ".nhost"),
-					filepath.Join("testdata", "validate", tc.path, ".nhost", "data"),
 					filepath.Join("testdata", "validate", tc.path, "nhost"),
 				),
 				"fakeauthurl",
