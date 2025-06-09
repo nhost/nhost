@@ -2,14 +2,14 @@ import { FC } from 'react'
 
 const RunVisualClean: FC = () => (
   <div className="flex h-24 w-full items-center justify-center gap-2 overflow-hidden rounded-md p-2">
-    <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-divider bg-paper text-sm text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50">
+    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-divider bg-paper text-sm text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50">
       <svg
         viewBox="0 0 16 16"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         strokeWidth={0.5}
         stroke="currentColor"
-        className="h-8 w-8"
+        className="h-5 w-5"
       >
         <path
           strokeLinecap="round"
@@ -18,14 +18,14 @@ const RunVisualClean: FC = () => (
         />
       </svg>
     </div>
-    <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-divider bg-paper text-sm text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50">
+    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-divider bg-paper text-sm text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 16 16"
         fill="none"
         stroke="currentColor"
         strokeWidth={0.4}
-        className="h-8 w-8"
+        className="h-5 w-5"
       >
         <g clip-path="url(#clip0_945_172)">
           <path
@@ -36,14 +36,14 @@ const RunVisualClean: FC = () => (
         </g>
       </svg>
     </div>
-    <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-divider bg-paper text-sm text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50">
+    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-divider bg-paper text-sm text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 16 16"
         fill="none"
         stroke="currentColor"
         strokeWidth={0.5}
-        className="h-8 w-8"
+        className="h-5 w-5"
       >
         <path
           strokeLinecap="round"
@@ -51,7 +51,6 @@ const RunVisualClean: FC = () => (
           d="M14.9927 4.45523C14.9966 4.59619 14.9982 4.73692 14.999 4.87772C15 5.03829 15 5.19891 15 5.35947L15 5.37934V10.6206L15 10.6578C15 10.8127 15 10.9674 14.999 11.1223C14.9981 11.2632 14.9966 11.4039 14.9927 11.5446C14.9845 11.8514 14.9664 12.1609 14.9119 12.4641C14.8566 12.7721 14.7662 13.0588 14.6237 13.3386C14.4839 13.6135 14.301 13.8649 14.0829 14.0829C13.8649 14.3011 13.6134 14.4839 13.3384 14.6239C13.0588 14.7662 12.7723 14.8565 12.4645 14.9118C12.161 14.9664 11.8516 14.9845 11.5447 14.9927C11.4038 14.9965 11.2631 14.9982 11.1222 14.999C10.9732 15 10.824 15 10.6749 15L10.6207 15H5.37938L5.3251 15C5.17594 15 5.0269 15 4.87785 14.999C4.73695 14.9982 4.59604 14.9965 4.45535 14.9927C4.14856 14.9845 3.83891 14.9664 3.53557 14.9118C3.22772 14.8565 2.94124 14.7662 2.6616 14.6239C2.38662 14.4839 2.13505 14.3011 1.91708 14.0829C1.69894 13.8649 1.51611 13.6135 1.37625 13.3386C1.23378 13.0588 1.1435 12.7721 1.08815 12.4641C1.03367 12.1609 1.01559 11.8514 1.00734 11.5446C1.00347 11.4039 1.00185 11.2631 1.00093 11.1223C0.99997 10.9745 0.999987 10.8269 1 10.6791C1.00001 10.6596 1.00001 10.6401 1.00001 10.6206V7.66162V5.37934C1.00001 5.36175 1.00001 5.34415 1.00001 5.32655C0.999993 5.17696 0.999979 5.02732 1.00093 4.8777C1.00185 4.7369 1.00347 4.59617 1.00734 4.4552C1.01559 4.14857 1.03369 3.83916 1.08815 3.5358C1.1435 3.22773 1.23378 2.94128 1.37625 2.66142C1.51611 2.38659 1.69894 2.13509 1.91708 1.917C1.97158 1.86248 2.02818 1.81017 2.08671 1.76017C2.2623 1.6102 2.45536 1.48114 2.66157 1.3762C2.73149 1.34062 2.80183 1.30828 2.87281 1.27896C3.08576 1.19091 3.30466 1.12972 3.5355 1.08823C3.76303 1.04724 3.99411 1.02685 4.22484 1.01572C4.30176 1.01202 4.37863 1.00933 4.45533 1.00726C4.59601 1.00344 4.73693 1.00184 4.87782 1.00097C5.04495 1 5.21206 1 5.37935 1H6.91466H10.6207C10.7878 1 10.9551 1 11.1223 1.00094C11.2631 1.00182 11.4039 1.00342 11.5448 1.00724C11.8516 1.01553 12.161 1.03354 12.4646 1.08821C12.7723 1.14351 13.0588 1.23389 13.3385 1.3762C13.6134 1.51612 13.8649 1.69893 14.083 1.91702C14.301 2.13512 14.4839 2.38661 14.6237 2.66145C14.7662 2.9413 14.8566 3.22775 14.9119 3.53582C14.9664 3.83918 14.9845 4.14859 14.9927 4.45523ZM12.0923 9.6408L12.0933 9.64193C13.2962 11.122 12.969 12.7085 12.815 12.4092C12.1863 11.1859 11.015 11.4982 10.422 11.806C10.3728 11.8353 10.3225 11.863 10.2718 11.8903C10.2691 11.892 10.2661 11.8937 10.2631 11.8954C10.2596 11.8974 10.2562 11.8994 10.2531 11.9013L10.2541 11.8999C9.01985 12.5558 7.36267 12.6043 5.6962 11.8882C4.29879 11.2876 3.15064 10.2588 2.40516 9.06636C2.78423 9.34621 3.19373 9.59252 3.62933 9.79666C5.39047 10.6215 7.15929 10.5619 8.41109 9.79586C6.62944 8.4257 5.14232 6.64137 4.00199 5.19521C3.78265 4.93584 3.58311 4.66643 3.41534 4.38665C4.78085 5.63645 6.93784 7.20584 7.71183 7.64021C6.06903 5.90459 4.62148 3.76718 4.68937 3.83562C7.27668 6.44263 9.66385 7.91655 9.66385 7.91655C9.75376 7.96613 9.8207 8.00575 9.87384 8.04067C9.9228 7.91502 9.96709 7.78575 10.0039 7.65106C10.4171 6.14095 9.95208 4.41416 8.90043 2.98851C11.3002 4.42962 12.7184 7.16664 12.1373 9.48168C12.1261 9.52658 12.1131 9.57034 12.1002 9.6141C12.0976 9.623 12.0949 9.63189 12.0923 9.6408Z"
         />
       </svg>
-      {/* <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-divider bg-paper text-sm text-brand-light transition-colors group-hover:border-brand-main dark:bg-default/50"></div> */}
     </div>
   </div>
 )
