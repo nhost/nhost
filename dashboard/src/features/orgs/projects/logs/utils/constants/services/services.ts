@@ -13,6 +13,7 @@ export enum AvailableLogsService {
   GRAFANA = 'grafana',
   JOB_BACKUP = 'job-backup',
   AI = 'ai',
+  CUSTOM_TEMPLATES_FETCHER = 'custom-templates-fetcher',
 }
 
 export const LOGS_SERVICE_TO_LABEL: Required<
@@ -27,4 +28,5 @@ export const LOGS_SERVICE_TO_LABEL: Required<
   [AvailableLogsService.GRAFANA]: 'Grafana',
   [AvailableLogsService.JOB_BACKUP]: 'Backup Jobs',
   [AvailableLogsService.AI]: 'AI',
+  [AvailableLogsService.CUSTOM_TEMPLATES_FETCHER]: 'Custom Templates Fetcher',
 };

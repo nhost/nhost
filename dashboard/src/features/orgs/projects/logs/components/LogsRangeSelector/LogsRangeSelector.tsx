@@ -11,7 +11,7 @@ import {
 } from '@/features/orgs/projects/logs/utils/constants/intervals';
 import { useInterval } from '@/hooks/useInterval';
 import { ChevronDownIcon } from '@graphiql/react';
-import { formatDistance, subMinutes } from 'date-fns';
+import { formatDistance, parseISO, subMinutes } from 'date-fns';
 import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -25,8 +25,8 @@ function LogsToDatePickerLiveButton() {
 
   function handleLiveButtonClick() {
     if (isLive) {
-      setValue('from', subMinutes(new Date(), 20));
-      setValue('to', new Date());
+      setValue('from', subMinutes(new Date(), 20).toISOString());
+      setValue('to', new Date().toISOString());
       setValue('interval', null);
       return;
     }
@@ -37,7 +37,7 @@ function LogsToDatePickerLiveButton() {
   }
 
   function handleChangeToDate(date: Date) {
-    setValue('to', date);
+    setValue('to', date.toISOString());
     setValue('interval', null);
   }
 
@@ -48,10 +48,10 @@ function LogsToDatePickerLiveButton() {
       {!isLive && (
         <LogsDatePicker
           label="To"
-          value={!isLive ? to : currentTime}
+          value={!isLive ? parseISO(to) : currentTime}
           disabled={isLive}
           onChange={handleChangeToDate}
-          minDate={from}
+          minDate={parseISO(from)}
           maxDate={new Date()}
           componentsProps={{
             button: {
@@ -106,13 +106,16 @@ function LogsRangeSelectorIntervalPickers({
   function handleIntervalChange({
     minutesToDecreaseFromCurrentDate,
   }: LogsCustomInterval) {
-    setValue('from', subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
-    setValue('to', new Date());
+    setValue(
+      'from',
+      subMinutes(new Date(), minutesToDecreaseFromCurrentDate).toISOString(),
+    );
+    setValue('to', new Date().toISOString());
     setValue('interval', minutesToDecreaseFromCurrentDate);
   }
 
   function handleChangeFromDate(date: Date) {
-    setValue('from', date);
+    setValue('from', date.toISOString());
     setValue('interval', null);
   }
 
@@ -121,7 +124,7 @@ function LogsRangeSelectorIntervalPickers({
       <div className="flex flex-col space-y-4">
         <LogsDatePicker
           label="From"
-          value={from}
+          value={parseISO(from)}
           onChange={handleChangeFromDate}
           minDate={applicationCreationDate}
           maxDate={new Date()}
@@ -171,7 +174,7 @@ export default function LogsRangeSelector({
           <span>
             {to === null
               ? 'Live'
-              : `${formatDistance(to.getTime(), from.getTime())}`}
+              : `${formatDistance(parseISO(to).getTime(), parseISO(from).getTime())}`}
           </span>
           <ChevronDownIcon className="h-3 w-3" />
         </Button>
