@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 2.32.0
+
+### Minor Changes
+
+- 736862c: fix: update link to base directory docs in git settings
+- ea99fb3: chore: dashboard: improve messaging when git connected
+
+### Patch Changes
+
+- d738884: chore (dashboard): Add link about antivirus integration
+
 ## 2.31.0
 
 ### Minor Changes
