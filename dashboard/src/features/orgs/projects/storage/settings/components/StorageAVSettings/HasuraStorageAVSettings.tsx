@@ -132,6 +132,7 @@ export default function HasuraStorageAVSettings() {
           }}
           switchId="enabled"
           docsTitle="enabling or disabling Antivirus"
+          docsLink="https://docs.nhost.io/products/storage/antivirus#antivirus"
           showSwitch
           className="hidden"
         />
