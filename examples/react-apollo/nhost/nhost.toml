@@ -147,7 +147,9 @@ clientId = '{{ secrets.TWITCH_CLIENT_ID }}'
 clientSecret = '{{ secrets.TWITCH_CLIENT_SECRET }}'
 
 [auth.method.oauth.twitter]
-enabled = false
+enabled = true
+consumerKey = '{{ secrets.TWITTER_CONSUMER_KEY }}'
+consumerSecret = '{{ secrets.TWITTER_CONSUMER_SECRET }}'
 
 [auth.method.oauth.windowslive]
 enabled = true
