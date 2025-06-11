@@ -54,6 +54,10 @@ var (
 	ErrInvalidTotp                     = &APIError{api.InvalidTotp}
 	ErrMfaTypeNotFound                 = &APIError{api.MfaTypeNotFound}
 	ErrTotpAlreadyActive               = &APIError{api.TotpAlreadyActive}
+	ErrInvalidState                    = &APIError{api.InvalidState}
+	ErrOauthTokenExchangeFailed        = &APIError{api.OauthTokenEchangeFailed}
+	ErrOauthProfileFetchFailed         = &APIError{api.OauthProfileFetchFailed}
+	ErrOauthProviderError              = &APIError{api.OauthProviderError}
 )
 
 func logError(err error) slog.Attr {
@@ -99,6 +103,16 @@ func (response ErrorResponse) VisitPostSigninPasswordlessEmailResponse(
 }
 
 func (response ErrorResponse) VisitPostSigninPatResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitGetSigninProviderProviderResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitGetSigninProviderProviderCallbackResponse(
+	w http.ResponseWriter,
+) error {
 	return response.visit(w)
 }
 
@@ -197,13 +211,17 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.RedirectToNotAllowed,
 		api.UserNotAnonymous,
 		api.MfaTypeNotFound,
-		api.TotpAlreadyActive:
+		api.TotpAlreadyActive,
+		api.InvalidState,
+		api.OauthTokenEchangeFailed,
+		api.OauthProfileFetchFailed,
+		api.OauthProviderError:
 		return false
 	}
 	return false
 }
 
-func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:cyclop,funlen
+func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:gocyclo,cyclop,funlen
 	invalidRequest := ErrorResponse{
 		Status:  http.StatusBadRequest,
 		Error:   api.InvalidRequest,
@@ -360,6 +378,30 @@ func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:cyclop,
 			Error:   err.t,
 			Message: "TOTP MFA is already active",
 		}
+	case api.InvalidState:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "Invalid state",
+		}
+	case api.OauthTokenEchangeFailed:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "Failed to exchange token",
+		}
+	case api.OauthProfileFetchFailed:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "Failed to get user profile",
+		}
+	case api.OauthProviderError:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "Provider returned an error",
+		}
 	}
 
 	return invalidRequest
@@ -384,6 +426,24 @@ func (response ErrorRedirectResponse) visit(w http.ResponseWriter) error {
 }
 
 func (response ErrorRedirectResponse) VisitGetVerifyResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorRedirectResponse) VisitGetSigninProviderProviderResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+func (response ErrorRedirectResponse) VisitGetSigninProviderProviderCallbackResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
+func (response ErrorRedirectResponse) VisitPostSigninProviderProviderCallbackResponse(
+	w http.ResponseWriter,
+) error {
 	return response.visit(w)
 }
 

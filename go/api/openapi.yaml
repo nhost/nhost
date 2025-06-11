@@ -185,6 +185,204 @@ paths:
               schema:
                 $ref: '#/components/schemas/OKResponse'
 
+  /signin/provider/{provider}:
+    get:
+      summary: Sign in with an oauth2 provider
+      tags:
+        - signin
+        - signup
+        - link
+        - social
+        - github
+        - google
+      parameters:
+        - $ref: '#/components/parameters/SigninProvider'
+        - name: allowedRoles
+          in: query
+          required: false
+          description: Array of allowed roles for the user
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - me
+              - user
+        - name: defaultRole
+          in: query
+          required: false
+          description: Default role for the user
+          schema:
+            type: string
+            example: user
+        - name: displayName
+          in: query
+          required: false
+          description: Display name for the user
+          schema:
+            type: string
+            pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
+            maxLength: 32
+            example: John Smith
+        - name: locale
+          in: query
+          required: false
+          description: A two-characters locale
+          schema:
+            type: string
+            maxLength: 2
+            minLength: 2
+            example: en
+        - name: metadata
+          in: query
+          required: false
+          description: Additional metadata for the user
+          schema:
+            type: object
+            additionalProperties: true
+            example:
+              firstName: John
+              lastName: Smith
+        - name: redirectTo
+          in: query
+          required: false
+          description: URI to redirect to
+          schema:
+            type: string
+            format: uri
+            example: https://my-app.com/catch-redirection
+        - name: connect
+          in: query
+          required: false
+          description: >-
+            If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
+          schema:
+            type: string
+
+      responses:
+        '302':
+          description: Redirect to GitHub
+          headers:
+            Location:
+              $ref: '#/components/headers/RedirectLocation'
+          content: {}
+
+  /signin/provider/{provider}/callback:
+    get:
+      summary: Callback for oauth2 provider
+      tags:
+        - signin
+        - signup
+        - social
+      parameters:
+        - $ref: '#/components/parameters/SigninProvider'
+        - name: code
+          in: query
+          description: Authorization code provided by the authentication provider
+          schema:
+            type: string
+        - name: id_token
+          in: query
+          description: ID token provided by the authentication provider
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          description: State parameter to avoid CSRF attacks
+          schema:
+            type: string
+        - name: oauth_token
+          in: query
+          required: false
+          description: OAuth token for the provider (e.g., X)
+          schema:
+            type: string
+        - name: oauth_verifier
+          in: query
+          required: false
+          description: OAuth verifier for the provider (e.g., X)
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          description: Error message if authentication failed
+          schema:
+            type: string
+        - name: error_description
+          in: query
+          required: false
+          description: Detailed error description if authentication failed
+          schema:
+            type: string
+        - name: error_uri
+          in: query
+          required: false
+          description: URI with more information about the error
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to client application after successful authentication
+          headers:
+            Location:
+              $ref: '#/components/headers/RedirectLocation'
+          content: {}
+
+    post:
+      summary: Callback for oauth2 provider using form_post response mode
+      tags:
+        - signin
+        - signup
+        - social
+      parameters:
+        - $ref: '#/components/parameters/SigninProvider'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  nullable: true
+                  description: Authorization code provided by the authentication provider
+                id_token:
+                  type: string
+                  nullable: true
+                  description: ID token provided by the authentication provider
+                state:
+                  type: string
+                  description: State parameter to avoid CSRF attacks
+                user:
+                  type: string
+                  nullable: true
+                  description: JSON string containing user information (only provided on first authentication with Apple)
+                error:
+                  type: string
+                  nullable: true
+                  description: Error message if authentication failed
+                error_description:
+                  type: string
+                  nullable: true
+                  description: Detailed error description if authentication failed
+                error_uri:
+                  type: string
+                  nullable: true
+                  description: URI with more information about the error
+              required:
+                - state
+              additionalProperties: true
+      responses:
+        '302':
+          description: Redirect to client application after successful authentication
+          headers:
+            Location:
+              $ref: '#/components/headers/RedirectLocation'
+          content: {}
+
   /signin/otp/email:
     post:
       summary: >-
@@ -757,6 +955,10 @@ components:
             - invalid-totp
             - mfa-type-not-found
             - totp-already-active
+            - invalid-state
+            - oauth-token-echange-failed
+            - oauth-profile-fetch-failed
+            - oauth-provider-error
       required:
         - status
         - message
@@ -1230,7 +1432,7 @@ components:
       additionalProperties: false
       properties:
         provider:
-          $ref: "#/components/schemas/Provider"
+          $ref: "#/components/schemas/IdTokenProvider"
         idToken:
           type: string
           description: Apple ID token
@@ -1258,7 +1460,7 @@ components:
         - ticket
         - otp
 
-    Provider:
+    IdTokenProvider:
       type: string
       additionalProperties: false
       enum:
@@ -1270,7 +1472,7 @@ components:
       additionalProperties: false
       properties:
         provider:
-          $ref: "#/components/schemas/Provider"
+          $ref: "#/components/schemas/IdTokenProvider"
         idToken:
           type: string
           description: Apple ID token
@@ -1310,6 +1512,31 @@ components:
         - totpSecret
 
   parameters:
+    SigninProvider:
+      in: path
+      name: provider
+      required: true
+      description: The name of the social provider
+      schema:
+        type: string
+        enum:
+          - apple
+          - github
+          - google
+          - linkedin
+          - discord
+          - spotify
+          - twitch
+          - gitlab
+          - bitbucket
+          - workos
+          - azuread
+          - strava
+          - facebook
+          - windowslive
+          - twitter
+      deprecated: true
+
     TicketQuery:
       in: query
       name: ticket

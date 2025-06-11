@@ -117,6 +117,13 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 		options = &api.SignUpOptions{} //nolint:exhaustruct
 	}
 
+	if options.RedirectTo == nil {
+		options.RedirectTo = ptr(wf.config.ClientURL.String())
+	} else if !wf.redirectURLValidator(deptr(options.RedirectTo)) {
+		logger.Warn("redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
+		return nil, ErrRedirecToNotAllowed
+	}
+
 	if options.DefaultRole == nil {
 		options.DefaultRole = ptr(wf.config.DefaultRole)
 	}
@@ -127,14 +134,14 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 		for _, role := range deptr(options.AllowedRoles) {
 			if !slices.Contains(wf.config.DefaultAllowedRoles, role) {
 				logger.Warn("role not allowed", slog.String("role", role))
-				return nil, ErrRoleNotAllowed
+				return options, ErrRoleNotAllowed
 			}
 		}
 	}
 
 	if !slices.Contains(deptr(options.AllowedRoles), deptr(options.DefaultRole)) {
 		logger.Warn("default role not in allowed roles")
-		return nil, ErrDefaultRoleMustBeInAllowedRoles
+		return options, ErrDefaultRoleMustBeInAllowedRoles
 	}
 
 	if options.DisplayName == nil {
@@ -150,13 +157,6 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 			slog.String("locale", deptr(options.Locale)),
 		)
 		options.Locale = ptr(wf.config.DefaultLocale)
-	}
-
-	if options.RedirectTo == nil {
-		options.RedirectTo = ptr(wf.config.ClientURL.String())
-	} else if !wf.redirectURLValidator(deptr(options.RedirectTo)) {
-		logger.Warn("redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
-		return nil, ErrRedirecToNotAllowed
 	}
 
 	return options, nil
@@ -177,6 +177,33 @@ func (wf *Workflows) ValidateUser(
 	}
 
 	if !user.EmailVerified && wf.config.RequireEmailVerification {
+		logger.Warn("user is unverified")
+		return ErrUnverifiedUser
+	}
+
+	if user.IsAnonymous {
+		logger.Warn("user is anonymous")
+		return ErrForbiddenAnonymous
+	}
+
+	return nil
+}
+
+func (wf *Workflows) ValidateUserEmailOptional(
+	user sql.AuthUser,
+	logger *slog.Logger,
+) *APIError {
+	if user.Email.Valid && !user.IsAnonymous && !wf.ValidateEmail(user.Email.String) {
+		logger.Warn("email didn't pass access control checks")
+		return ErrInvalidEmailPassword
+	}
+
+	if user.Disabled {
+		logger.Warn("user is disabled")
+		return ErrDisabledUser
+	}
+
+	if user.Email.Valid && !user.EmailVerified && wf.config.RequireEmailVerification {
 		logger.Warn("user is unverified")
 		return ErrUnverifiedUser
 	}
@@ -291,7 +318,7 @@ func (wf *Workflows) GetUserByProviderUserID(
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
-	if err := wf.ValidateUser(user, logger); err != nil {
+	if err := wf.ValidateUserEmailOptional(user, logger); err != nil {
 		return user, err
 	}
 
@@ -727,7 +754,7 @@ func (wf *Workflows) SignupUserWithFn(
 	databaseWithoutSession databaseWithoutSessionFn,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
-	if wf.config.RequireEmailVerification || wf.config.DisableNewUsers {
+	if (sendConfirmationEmail && wf.config.RequireEmailVerification) || wf.config.DisableNewUsers {
 		return nil, wf.SignupUserWithouthSession(
 			ctx, email, options, sendConfirmationEmail, databaseWithoutSession, logger,
 		)
@@ -1004,7 +1031,7 @@ func (wf *Workflows) DeanonymizeUser(
 }
 
 func (wf *Workflows) GetOIDCProfileFromIDToken(
-	providerID api.Provider,
+	providerID api.IdTokenProvider,
 	idToken string,
 	pnonce *string,
 	logger *slog.Logger,
@@ -1036,15 +1063,15 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 }
 
 func (wf *Workflows) getIDTokenValidator(
-	provider api.Provider,
+	provider api.IdTokenProvider,
 ) (*oidc.IDTokenValidator, *APIError) {
 	var validator *oidc.IDTokenValidator
 	switch provider {
-	case api.Apple:
+	case api.IdTokenProviderApple:
 		validator = wf.idTokenValidator.AppleID
-	case api.Google:
+	case api.IdTokenProviderGoogle:
 		validator = wf.idTokenValidator.Google
-	case api.FakeProvider:
+	case api.IdTokenProviderFake:
 		validator = wf.idTokenValidator.FakeProvider
 	default:
 		return nil, ErrInvalidRequest

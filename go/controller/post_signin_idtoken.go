@@ -16,38 +16,6 @@ import (
 	"github.com/oapi-codegen/runtime/types"
 )
 
-func (ctrl *Controller) postSigninIdtokenValidateRequest(
-	req api.PostSigninIdtokenRequestObject, profile oidc.Profile, logger *slog.Logger,
-) (api.PostSigninIdtokenRequestObject, *APIError) {
-	if ctrl.config.DisableSignup {
-		logger.Warn("signup disabled")
-		return api.PostSigninIdtokenRequestObject{}, ErrSignupDisabled
-	}
-
-	if err := ctrl.wf.ValidateSignupEmail(types.Email(profile.Email), logger); err != nil {
-		return api.PostSigninIdtokenRequestObject{}, err
-	}
-
-	if req.Body.Options == nil {
-		req.Body.Options = &api.SignUpOptions{} //nolint:exhaustruct
-	}
-
-	if req.Body.Options.DisplayName == nil && profile.Name != "" {
-		req.Body.Options.DisplayName = &profile.Name
-	}
-
-	options, err := ctrl.wf.ValidateSignUpOptions(
-		req.Body.Options, profile.Email, logger,
-	)
-	if err != nil {
-		return api.PostSigninIdtokenRequestObject{}, err
-	}
-
-	req.Body.Options = options
-
-	return req, nil
-}
-
 func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 	ctx context.Context, email, providerID, providerUserID string, logger *slog.Logger,
 ) (sql.AuthUser, bool, bool, *APIError) {
@@ -94,59 +62,109 @@ func (ctrl *Controller) PostSigninIdtoken( //nolint:ireturn
 		return ctrl.respondWithError(ErrInvalidEmailPassword), nil
 	}
 
+	session, apiErr := ctrl.providerSignInFlow(
+		ctx, profile, string(req.Body.Provider), req.Body.Options, logger,
+	)
+	if apiErr != nil {
+		return ctrl.respondWithError(apiErr), nil
+	}
+
+	return api.PostSigninIdtoken200JSONResponse{
+		Session: session,
+	}, nil
+}
+
+func (ctrl *Controller) providerSignInFlow(
+	ctx context.Context,
+	profile oidc.Profile,
+	provider string,
+	options *api.SignUpOptions,
+	logger *slog.Logger,
+) (*api.Session, *APIError) {
 	user, userFound, providerFound, apiError := ctrl.postSigninIdtokenCheckUserExists(
-		ctx, profile.Email, string(req.Body.Provider), profile.ProviderUserID, logger,
+		ctx, profile.Email, provider, profile.ProviderUserID, logger,
 	)
 	if apiError != nil {
-		return ctrl.respondWithError(apiError), nil
+		return nil, apiError
 	}
 
 	if userFound {
-		return ctrl.postSigninIdtokenSignin(
-			ctx, user, providerFound, req.Body.Provider, profile.ProviderUserID, logger,
+		return ctrl.providerFlowSignIn(
+			ctx, user, providerFound, provider, profile.ProviderUserID, logger,
 		)
 	}
 
-	return ctrl.postSigninIdtokenSignup(ctx, req, profile, logger)
+	return ctrl.providerFlowSignUp(ctx, provider, profile, options, logger)
 }
 
-func (ctrl *Controller) postSigninIdtokenSignup( //nolint:ireturn
+func (ctrl *Controller) providerFlowSignUpValidateOptions(
+	options *api.SignUpOptions, profile oidc.Profile, logger *slog.Logger,
+) (*api.SignUpOptions, *APIError) {
+	if ctrl.config.DisableSignup {
+		logger.Warn("signup disabled")
+		return nil, ErrSignupDisabled
+	}
+
+	if profile.Email != "" {
+		if err := ctrl.wf.ValidateSignupEmail(types.Email(profile.Email), logger); err != nil {
+			return nil, err
+		}
+	}
+
+	if options == nil {
+		options = &api.SignUpOptions{} //nolint:exhaustruct
+	}
+
+	if options.DisplayName == nil && profile.Name != "" {
+		options.DisplayName = &profile.Name
+	}
+
+	options, err := ctrl.wf.ValidateSignUpOptions(
+		options, profile.ProviderUserID, logger,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return options, nil
+}
+
+func (ctrl *Controller) providerFlowSignUp(
 	ctx context.Context,
-	req api.PostSigninIdtokenRequestObject,
+	provider string,
 	profile oidc.Profile,
+	options *api.SignUpOptions,
 	logger *slog.Logger,
-) (api.PostSigninIdtokenResponseObject, error) {
+) (*api.Session, *APIError) {
 	logger.Info("user doesn't exist, signing up")
 
-	req, apiError := ctrl.postSigninIdtokenValidateRequest(req, profile, logger)
+	options, apiError := ctrl.providerFlowSignUpValidateOptions(options, profile, logger)
 	if apiError != nil {
-		return ctrl.respondWithError(apiError), nil
+		return nil, apiError
 	}
 
 	session, apiErr := ctrl.wf.SignupUserWithFn(
 		ctx,
 		profile.Email,
-		req.Body.Options,
-		false,
-		ctrl.postSigninIdtokenSignupWithSession(
-			ctx, profile, string(req.Body.Provider), req.Body.Options,
-		),
-		ctrl.postSigninIdtokenSignupWithoutSession(
-			ctx, profile, string(req.Body.Provider), req.Body.Options,
-		),
+		options,
+		profile.Email != "" && !profile.EmailVerified,
+		ctrl.providerFlowSignupWithSession(ctx, profile, provider, options),
+		ctrl.providerFlowSignupWithoutSession(ctx, profile, provider, options),
 		logger,
 	)
 	if apiErr != nil {
-		return ctrl.sendError(apiErr), nil
+		return nil, apiErr
 	}
 
-	session.User.AvatarUrl = profile.Picture
-	session.User.EmailVerified = profile.EmailVerified
+	if session != nil {
+		session.User.AvatarUrl = profile.Picture
+		session.User.EmailVerified = profile.EmailVerified
+	}
 
-	return api.PostSigninIdtoken200JSONResponse{Session: session}, nil
+	return session, nil
 }
 
-func (ctrl *Controller) postSigninIdtokenSignupWithSession(
+func (ctrl *Controller) providerFlowSignupWithSession(
 	ctx context.Context,
 	profile oidc.Profile,
 	providerID string,
@@ -163,13 +181,18 @@ func (ctrl *Controller) postSigninIdtokenSignupWithSession(
 			avatarURL = profile.Picture
 		}
 
+		var email pgtype.Text
+		if profile.Email != "" {
+			email = sql.Text(profile.Email)
+		}
+
 		resp, err := ctrl.wf.db.InsertUserWithUserProviderAndRefreshToken(
 			ctx, sql.InsertUserWithUserProviderAndRefreshTokenParams{
 				ID:                    uuid.New(),
 				Disabled:              ctrl.config.DisableNewUsers,
 				DisplayName:           deptr(options.DisplayName),
 				AvatarUrl:             avatarURL,
-				Email:                 sql.Text(profile.Email),
+				Email:                 email,
 				Ticket:                pgtype.Text{}, //nolint:exhaustruct
 				TicketExpiresAt:       sql.TimestampTz(time.Now()),
 				EmailVerified:         profile.EmailVerified,
@@ -192,7 +215,7 @@ func (ctrl *Controller) postSigninIdtokenSignupWithSession(
 	}
 }
 
-func (ctrl *Controller) postSigninIdtokenSignupWithoutSession(
+func (ctrl *Controller) providerFlowSignupWithoutSession(
 	ctx context.Context,
 	profile oidc.Profile,
 	providerID string,
@@ -209,12 +232,17 @@ func (ctrl *Controller) postSigninIdtokenSignupWithoutSession(
 			avatarURL = profile.Picture
 		}
 
+		var email pgtype.Text
+		if profile.Email != "" {
+			email = sql.Text(profile.Email)
+		}
+
 		_, err := ctrl.wf.db.InsertUserWithUserProvider(ctx, sql.InsertUserWithUserProviderParams{
 			ID:              uuid.New(),
 			Disabled:        ctrl.config.DisableNewUsers,
 			DisplayName:     deptr(options.DisplayName),
 			AvatarUrl:       avatarURL,
-			Email:           sql.Text(profile.Email),
+			Email:           email,
 			Ticket:          ticket,
 			TicketExpiresAt: ticketExpiresAt,
 			EmailVerified:   profile.EmailVerified,
@@ -232,35 +260,33 @@ func (ctrl *Controller) postSigninIdtokenSignupWithoutSession(
 	}
 }
 
-func (ctrl *Controller) postSigninIdtokenSignin( //nolint:ireturn
+func (ctrl *Controller) providerFlowSignIn(
 	ctx context.Context,
 	user sql.AuthUser,
 	providerFound bool,
-	provider api.Provider,
+	provider string,
 	providerUserID string,
 	logger *slog.Logger,
-) (api.PostSigninIdtokenResponseObject, error) {
+) (*api.Session, *APIError) {
 	logger.Info("user found, signing in")
 
 	if !providerFound {
 		if _, apiErr := ctrl.wf.InsertUserProvider(
 			ctx,
 			user.ID,
-			string(provider),
+			provider,
 			providerUserID,
 			logger,
 		); apiErr != nil {
-			return ctrl.respondWithError(apiErr), nil
+			return nil, apiErr
 		}
 	}
 
 	session, err := ctrl.wf.NewSession(ctx, user, logger)
 	if err != nil {
 		logger.Error("error getting new session", logError(err))
-		return ctrl.sendError(ErrInternalServerError), nil
+		return nil, ErrInternalServerError
 	}
 
-	return api.PostSigninIdtoken200JSONResponse{
-		Session: session,
-	}, nil
+	return session, nil
 }

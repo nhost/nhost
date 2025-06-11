@@ -253,10 +253,33 @@ func (j *JWTGetter) GetToken(
 	return ss, int64(j.accessTokenExpiresIn.Seconds()), nil
 }
 
+func (j *JWTGetter) SignTokenWithClaims(
+	claims jwt.MapClaims,
+	exp time.Time,
+) (string, error) {
+	now := time.Now()
+	iat := now.Unix()
+
+	claims["iss"] = j.issuer
+	claims["iat"] = iat
+	claims["exp"] = exp.Unix()
+
+	token := jwt.NewWithClaims(j.method, &claims)
+	if j.kid != "" {
+		token.Header["kid"] = j.kid
+	}
+	ss, err := token.SignedString(j.signingKey)
+	if err != nil {
+		return "", fmt.Errorf("error signing token: %w", err)
+	}
+
+	return ss, nil
+}
+
 func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 	jwtToken, err := jwt.Parse(
 		accessToken,
-		func(_ *jwt.Token) (interface{}, error) {
+		func(_ *jwt.Token) (any, error) {
 			return j.validatingKey, nil
 		},
 		jwt.WithValidMethods([]string{j.method.Alg()}),

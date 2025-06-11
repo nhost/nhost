@@ -39,27 +39,27 @@ func (g *Google) GetProfile(token *jwt.Token) (Profile, error) {
 }
 
 func getProfile(token *jwt.Token) (Profile, error) {
-	sub, err := getClaim[string](token, "sub")
+	sub, err := GetClaim[string](token, "sub")
 	if err != nil {
 		return Profile{}, fmt.Errorf("failed to get sub claim from token: %w", err)
 	}
 
-	email, err := getClaim[string](token, "email")
+	email, err := GetClaim[string](token, "email")
 	if err != nil {
 		return Profile{}, fmt.Errorf("failed to get email claim from token: %w", err)
 	}
 
-	emailVerified, err := getClaim[bool](token, "email_verified")
+	emailVerified, err := GetClaim[bool](token, "email_verified")
 	if err != nil && !errors.Is(err, ErrClaimNotFound) {
 		return Profile{}, fmt.Errorf("failed to get email_verified claim from token: %w", err)
 	}
 
-	name, err := getClaim[string](token, "name")
+	name, err := GetClaim[string](token, "name")
 	if err != nil && !errors.Is(err, ErrClaimNotFound) {
 		return Profile{}, fmt.Errorf("failed to get name claim from token: %w", err)
 	}
 
-	picture, err := getClaim[string](token, "picture")
+	picture, err := GetClaim[string](token, "picture")
 	if err != nil && !errors.Is(err, ErrClaimNotFound) {
 		return Profile{}, fmt.Errorf("failed to get picture claim from token: %w", err)
 	}

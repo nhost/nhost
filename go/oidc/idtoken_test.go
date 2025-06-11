@@ -21,7 +21,7 @@ func testProviderValidator(
 
 	v, err := oidc.NewIDTokenValidator(
 		t.Context(),
-		api.FakeProvider,
+		api.IdTokenProviderFake,
 		audience,
 		jwt.WithTimeFunc(func() time.Time {
 			return datetime

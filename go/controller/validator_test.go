@@ -52,6 +52,7 @@ func getConfig() *controller.Config {
 		WebauhtnAttestationTimeout: time.Minute,
 		OTPEmailEnabled:            true,
 		MfaEnabled:                 true,
+		ServerPrefix:               "",
 	}
 }
 

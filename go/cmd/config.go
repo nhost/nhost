@@ -106,5 +106,6 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 		WebauhtnAttestationTimeout: cCtx.Duration(flagWebauthnAttestationTimeout),
 		OTPEmailEnabled:            cCtx.Bool(flagOTPEmailEnabled),
 		MfaEnabled:                 cCtx.Bool(flagMfaEnabled),
+		ServerPrefix:               cCtx.String(flagAPIPrefix),
 	}, nil
 }

@@ -50,7 +50,9 @@ func isSecret(name string) bool {
 		strings.Contains(name, "secret") ||
 		strings.Contains(name, "key") ||
 		strings.Contains(name, "license") ||
-		strings.Contains(name, "postgres")
+		strings.Contains(name, "postgres") ||
+		strings.Contains(name, "client-id") ||
+		strings.Contains(name, "client-secret")
 }
 
 func logFlags(logger *slog.Logger, cCtx *cli.Context) {

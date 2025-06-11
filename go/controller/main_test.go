@@ -16,6 +16,7 @@ import (
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/controller/mock"
 	"github.com/nhost/hasura-auth/go/oidc"
+	"github.com/nhost/hasura-auth/go/providers"
 	"github.com/nhost/hasura-auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
@@ -268,6 +269,14 @@ func getController(
 		jwtGetter,
 		emailer,
 		hibp,
+		providers.Map{
+			"fake": providers.NewFakeProvider(
+				"client-id",
+				"client-secret",
+				"https://auth.nhost.dev",
+				[]string{"openid", "email", "profile"},
+			),
+		},
 		idTokenValidator,
 		controllerOpts.totp,
 		"dev",

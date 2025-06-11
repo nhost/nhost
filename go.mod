@@ -23,6 +23,7 @@ require (
 	github.com/valyala/fasttemplate v1.2.2
 	go.uber.org/mock v0.5.2
 	golang.org/x/crypto v0.38.0
+	golang.org/x/oauth2 v0.27.0
 	k8s.io/client-go v0.33.0
 )
 

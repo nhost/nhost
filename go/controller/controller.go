@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/notifications"
 	"github.com/nhost/hasura-auth/go/oidc"
+	"github.com/nhost/hasura-auth/go/providers"
 	"github.com/nhost/hasura-auth/go/sql"
 )
 
@@ -125,6 +126,7 @@ type Controller struct {
 	wf               *Workflows
 	config           Config
 	Webauthn         *Webauthn
+	Providers        providers.Map
 	version          string
 }
 
@@ -134,6 +136,7 @@ func New(
 	jwtGetter *JWTGetter,
 	emailer Emailer,
 	hibp HIBPClient,
+	providers providers.Map,
 	idTokenValidator *oidc.IDTokenValidatorProviders,
 	totp *Totp,
 	version string,
@@ -168,5 +171,6 @@ func New(
 		idTokenValidator: idTokenValidator,
 		totp:             totp,
 		version:          version,
+		Providers:        providers,
 	}, nil
 }

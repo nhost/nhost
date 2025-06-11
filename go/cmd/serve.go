@@ -21,6 +21,7 @@ import (
 	"github.com/nhost/hasura-auth/go/middleware"
 	"github.com/nhost/hasura-auth/go/middleware/ratelimit"
 	"github.com/nhost/hasura-auth/go/oidc"
+	"github.com/nhost/hasura-auth/go/providers"
 	"github.com/nhost/hasura-auth/go/sql"
 	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 	"github.com/urfave/cli/v2"
@@ -99,6 +100,74 @@ const (
 	flagAnonymousUsersEnabled            = "enable-anonymous-users"
 	flagMfaEnabled                       = "mfa-enabled"
 	flagMfaTotpIssuer                    = "mfa-totp-issuer"
+	flagGithubEnabled                    = "github-enabled"
+	flagGithubClientID                   = "github-client-id"
+	flagGithubClientSecret               = "github-client-secret" //nolint:gosec
+	flagGithubAuthorizationURL           = "github-authorization-url"
+	flagGithubTokenURL                   = "github-token-url" //nolint:gosec
+	flagGithubUserProfileURL             = "github-user-profile-url"
+	flagGithubScope                      = "github-scope"
+	flagGoogleEnabled                    = "google-enabled"
+	flagGoogleClientID                   = "google-client-id"
+	flagGoogleClientSecret               = "google-client-secret"
+	flagGoogleScope                      = "google-scope"
+	flagAppleEnabled                     = "apple-enabled"
+	flagAppleClientID                    = "apple-client-id"
+	flagAppleTeamID                      = "apple-team-id"
+	flagAppleKeyID                       = "apple-key-id"
+	flagApplePrivateKey                  = "apple-private-key"
+	flagAppleScope                       = "apple-scope"
+	flagLinkedInEnabled                  = "linkedin-enabled"
+	flagLinkedInClientID                 = "linkedin-client-id"
+	flagLinkedInClientSecret             = "linkedin-client-secret"
+	flagLinkedInScope                    = "linkedin-scope"
+	flagDiscordEnabled                   = "discord-enabled"
+	flagDiscordClientID                  = "discord-client-id"
+	flagDiscordClientSecret              = "discord-client-secret"
+	flagDiscordScope                     = "discord-scope"
+	flagSpotifyEnabled                   = "spotify-enabled"
+	flagSpotifyClientID                  = "spotify-client-id"
+	flagSpotifyClientSecret              = "spotify-client-secret" //nolint:gosec
+	flagSpotifyScope                     = "spotify-scope"
+	flagTwitchEnabled                    = "twitch-enabled"
+	flagTwitchClientID                   = "twitch-client-id"
+	flagTwitchClientSecret               = "twitch-client-secret"
+	flagTwitchScope                      = "twitch-scope"
+	flagGitlabEnabled                    = "gitlab-enabled"
+	flagGitlabClientID                   = "gitlab-client-id"
+	flagGitlabClientSecret               = "gitlab-client-secret" //nolint:gosec
+	flagGitlabScope                      = "gitlab-scope"
+	flagBitbucketEnabled                 = "bitbucket-enabled"
+	flagBitbucketClientID                = "bitbucket-client-id"
+	flagBitbucketClientSecret            = "bitbucket-client-secret"
+	flagBitbucketScope                   = "bitbucket-scope"
+	flagWorkosEnabled                    = "workos-enabled"
+	flagWorkosClientID                   = "workos-client-id"
+	flagWorkosClientSecret               = "workos-client-secret" //nolint:gosec
+	flagWorkosDefaultOrganization        = "workos-default-organization"
+	flagWorkosDefaultConnection          = "workos-default-connection"
+	flagWorkosDefaultDomain              = "workos-default-domain"
+	flagWorkosScope                      = "workos-scope"
+	flagAzureadEnabled                   = "azuread-enabled"
+	flagAzureadClientID                  = "azuread-client-id"
+	flagAzureadClientSecret              = "azuread-client-secret" //nolint:gosec
+	flagAzureadTenant                    = "azuread-tenant"
+	flagAzureadScope                     = "azuread-scope"
+	flagFacebookEnabled                  = "facebook-enabled"
+	flagFacebookClientID                 = "facebook-client-id"
+	flagFacebookClientSecret             = "facebook-client-secret"
+	flagFacebookScope                    = "facebook-scope"
+	flagWindowsliveEnabled               = "windowslive-enabled"
+	flagWindowsliveClientID              = "windowslive-client-id"
+	flagWindowsliveClientSecret          = "windowslive-client-secret"
+	flagWindowsliveScope                 = "windowslive-scope"
+	flagStravaEnabled                    = "strava-enabled"
+	flagStravaClientID                   = "strava-client-id"
+	flagStravaClientSecret               = "strava-client-secret" //nolint:gosec
+	flagStravaScope                      = "strava-scope"
+	flagTwitterEnabled                   = "twitter-enabled"
+	flagTwitterConsumerKey               = "twitter-consumer-key"
+	flagTwitterConsumerSecret            = "twitter-consumer-secret"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -341,7 +410,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagServerURL,
-				Usage:    "Server URL of where Hasura Backend Plus is running. This value is to used as a callback in email templates and for the OAuth authentication process",
+				Usage:    "Server URL of where Auth service is running. This value is to used as a callback in email templates and for the OAuth authentication process",
 				Category: "server",
 				EnvVars:  []string{"AUTH_SERVER_URL"},
 			},
@@ -607,6 +676,460 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Value:    "auth",
 				EnvVars:  []string{"AUTH_MFA_TOTP_ISSUER"},
 			},
+			// GitHub provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagGithubEnabled,
+				Usage:    "Enable GitHub OAuth provider",
+				Category: "oauth-github",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_GITHUB_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGithubClientID,
+				Usage:    "GitHub OAuth client ID",
+				Category: "oauth-github",
+				EnvVars:  []string{"AUTH_PROVIDER_GITHUB_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGithubClientSecret,
+				Usage:    "GitHub OAuth client secret",
+				Category: "oauth-github",
+				EnvVars:  []string{"AUTH_PROVIDER_GITHUB_CLIENT_SECRET"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGithubAuthorizationURL,
+				Usage:    "GitHub OAuth authorization URL",
+				Category: "oauth-github",
+				Value:    "https://github.com/login/oauth/authorize",
+				EnvVars:  []string{"AUTH_PROVIDER_GITHUB_AUTHORIZATION_URL"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGithubTokenURL,
+				Usage:    "GitHub OAuth token URL",
+				Category: "oauth-github",
+				Value:    "https://github.com/login/oauth/access_token",
+				EnvVars:  []string{"AUTH_PROVIDER_GITHUB_TOKEN_URL"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGithubUserProfileURL,
+				Usage:    "GitHub OAuth user profile URL",
+				Category: "oauth-github",
+				Value:    "https://api.github.com/user",
+				EnvVars:  []string{"AUTH_PROVIDER_GITHUB_USER_PROFILE_URL"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagGithubScope,
+				Usage:    "GitHub OAuth scope",
+				Category: "oauth-github",
+				Value:    cli.NewStringSlice(providers.DefaultGithubScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_GITHUB_SCOPE"},
+			},
+			// Google provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagGoogleEnabled,
+				Usage:    "Enable Google OAuth provider",
+				Category: "oauth-google",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_GOOGLE_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGoogleClientID,
+				Usage:    "Google OAuth client ID",
+				Category: "oauth-google",
+				EnvVars:  []string{"AUTH_PROVIDER_GOOGLE_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGoogleClientSecret,
+				Usage:    "Google OAuth client secret",
+				Category: "oauth-google",
+				EnvVars:  []string{"AUTH_PROVIDER_GOOGLE_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagGoogleScope,
+				Usage:    "Google OAuth scope",
+				Category: "oauth-google",
+				Value:    cli.NewStringSlice(providers.DefaultGoogleScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_GOOGLE_SCOPE"},
+			},
+			// Apple provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagAppleEnabled,
+				Usage:    "Enable Apple OAuth provider",
+				Category: "oauth-apple",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_APPLE_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagAppleClientID,
+				Usage:    "Apple OAuth client ID",
+				Category: "oauth-apple",
+				EnvVars:  []string{"AUTH_PROVIDER_APPLE_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagAppleTeamID,
+				Usage:    "Apple OAuth team ID",
+				Category: "oauth-apple",
+				EnvVars:  []string{"AUTH_PROVIDER_APPLE_TEAM_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagAppleKeyID,
+				Usage:    "Apple OAuth key ID",
+				Category: "oauth-apple",
+				EnvVars:  []string{"AUTH_PROVIDER_APPLE_KEY_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagApplePrivateKey,
+				Usage:    "Apple OAuth private key",
+				Category: "oauth-apple",
+				EnvVars:  []string{"AUTH_PROVIDER_APPLE_PRIVATE_KEY"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagAppleScope,
+				Usage:    "Apple OAuth scope",
+				Category: "oauth-apple",
+				Value:    cli.NewStringSlice(providers.DefaultAppleScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_APPLE_SCOPE"},
+			},
+			// LinkedIn provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagLinkedInEnabled,
+				Usage:    "Enable LinkedIn OAuth provider",
+				Category: "oauth-linkedin",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_LINKEDIN_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagLinkedInClientID,
+				Usage:    "LinkedIn OAuth client ID",
+				Category: "oauth-linkedin",
+				EnvVars:  []string{"AUTH_PROVIDER_LINKEDIN_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagLinkedInClientSecret,
+				Usage:    "LinkedIn OAuth client secret",
+				Category: "oauth-linkedin",
+				EnvVars:  []string{"AUTH_PROVIDER_LINKEDIN_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagLinkedInScope,
+				Usage:    "LinkedIn OAuth scope",
+				Category: "oauth-linkedin",
+				Value:    cli.NewStringSlice(providers.DefaultLinkedInScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_LINKEDIN_SCOPE"},
+			},
+			// Discord provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagDiscordEnabled,
+				Usage:    "Enable Discord OAuth provider",
+				Category: "oauth-discord",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_DISCORD_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagDiscordClientID,
+				Usage:    "Discord OAuth client ID",
+				Category: "oauth-discord",
+				EnvVars:  []string{"AUTH_PROVIDER_DISCORD_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagDiscordClientSecret,
+				Usage:    "Discord OAuth client secret",
+				Category: "oauth-discord",
+				EnvVars:  []string{"AUTH_PROVIDER_DISCORD_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagDiscordScope,
+				Usage:    "Discord OAuth scope",
+				Category: "oauth-discord",
+				Value:    cli.NewStringSlice(providers.DefaultDiscordScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_DISCORD_SCOPE"},
+			},
+			// Spotify provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagSpotifyEnabled,
+				Usage:    "Enable Spotify OAuth provider",
+				Category: "oauth-spotify",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_SPOTIFY_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSpotifyClientID,
+				Usage:    "Spotify OAuth client ID",
+				Category: "oauth-spotify",
+				EnvVars:  []string{"AUTH_PROVIDER_SPOTIFY_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSpotifyClientSecret,
+				Usage:    "Spotify OAuth client secret",
+				Category: "oauth-spotify",
+				EnvVars:  []string{"AUTH_PROVIDER_SPOTIFY_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagSpotifyScope,
+				Usage:    "Spotify OAuth scope",
+				Category: "oauth-spotify",
+				Value:    cli.NewStringSlice(providers.DefaultSpotifyScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_SPOTIFY_SCOPE"},
+			},
+
+			// Twitch provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagTwitchEnabled,
+				Usage:    "Enable Twitch OAuth provider",
+				Category: "oauth-twitch",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_TWITCH_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagTwitchClientID,
+				Usage:    "Twitch OAuth client ID",
+				Category: "oauth-twitch",
+				EnvVars:  []string{"AUTH_PROVIDER_TWITCH_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagTwitchClientSecret,
+				Usage:    "Twitch OAuth client secret",
+				Category: "oauth-twitch",
+				EnvVars:  []string{"AUTH_PROVIDER_TWITCH_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagTwitchScope,
+				Usage:    "Twitch OAuth scope",
+				Category: "oauth-twitch",
+				Value:    cli.NewStringSlice(providers.DefaultTwitchScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_TWITCH_SCOPE"},
+			},
+
+			// Gitlab provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagGitlabEnabled,
+				Usage:    "Enable Gitlab OAuth provider",
+				Category: "oauth-gitlab",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_GITLAB_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGitlabClientID,
+				Usage:    "Gitlab OAuth client ID",
+				Category: "oauth-gitlab",
+				EnvVars:  []string{"AUTH_PROVIDER_GITLAB_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGitlabClientSecret,
+				Usage:    "Gitlab OAuth client secret",
+				Category: "oauth-gitlab",
+				EnvVars:  []string{"AUTH_PROVIDER_GITLAB_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagGitlabScope,
+				Usage:    "Gitlab OAuth scope",
+				Category: "oauth-gitlab",
+				Value:    cli.NewStringSlice(providers.DefaultGitlabScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_GITLAB_SCOPE"},
+			},
+
+			// Bitbucket provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagBitbucketEnabled,
+				Usage:    "Enable Bitbucket OAuth provider",
+				Category: "oauth-bitbucket",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_BITBUCKET_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagBitbucketClientID,
+				Usage:    "Bitbucket OAuth client ID",
+				Category: "oauth-bitbucket",
+				EnvVars:  []string{"AUTH_PROVIDER_BITBUCKET_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagBitbucketClientSecret,
+				Usage:    "Bitbucket OAuth client secret",
+				Category: "oauth-bitbucket",
+				EnvVars:  []string{"AUTH_PROVIDER_BITBUCKET_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagBitbucketScope,
+				Usage:    "Bitbucket OAuth scope",
+				Category: "oauth-bitbucket",
+				Value:    cli.NewStringSlice(providers.DefaultBitbucketScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_BITBUCKET_SCOPE"},
+			},
+
+			// WorkOS provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagWorkosEnabled,
+				Usage:    "Enable WorkOS OAuth provider",
+				Category: "oauth-workos",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_WORKOS_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagWorkosClientID,
+				Usage:    "WorkOS OAuth client ID",
+				Category: "oauth-workos",
+				EnvVars:  []string{"AUTH_PROVIDER_WORKOS_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagWorkosClientSecret,
+				Usage:    "WorkOS OAuth client secret",
+				Category: "oauth-workos",
+				EnvVars:  []string{"AUTH_PROVIDER_WORKOS_CLIENT_SECRET"},
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagWorkosDefaultOrganization,
+				Usage:    "WorkOS OAuth default organization",
+				Category: "oauth-workos",
+				EnvVars:  []string{"AUTH_PROVIDER_WORKOS_DEFAULT_ORGANIZATION"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagWorkosDefaultConnection,
+				Usage:    "WorkOS OAuth default connection",
+				Category: "oauth-workos",
+				EnvVars:  []string{"AUTH_PROVIDER_WORKOS_DEFAULT_CONNECTION"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagWorkosDefaultDomain,
+				Usage:    "WorkOS OAuth default domain",
+				Category: "oauth-workos",
+				EnvVars:  []string{"AUTH_PROVIDER_WORKOS_DEFAULT_DOMAIN"},
+			},
+			// AzureAD provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagAzureadEnabled,
+				Usage:    "Enable Azuread OAuth provider",
+				Category: "oauth-azuread",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_AZUREAD_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagAzureadClientID,
+				Usage:    "AzureAD OAuth client ID",
+				Category: "oauth-azuread",
+				EnvVars:  []string{"AUTH_PROVIDER_AZUREAD_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagAzureadClientSecret,
+				Usage:    "Azuread OAuth client secret",
+				Category: "oauth-azuread",
+				EnvVars:  []string{"AUTH_PROVIDER_AZUREAD_CLIENT_SECRET"},
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagAzureadTenant,
+				Usage:    "Azuread Tenant",
+				Category: "oauth-azuread",
+				EnvVars:  []string{"AUTH_PROVIDER_AZUREAD_TENANT"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagAzureadScope,
+				Usage:    "Azuread OAuth scope",
+				Category: "oauth-azuread",
+				Value:    cli.NewStringSlice(providers.DefaultAzureadScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_AZUREAD_SCOPE"},
+			},
+			// Facebook provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagFacebookEnabled,
+				Usage:    "Enable Facebook OAuth provider",
+				Category: "oauth-facebook",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_FACEBOOK_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagFacebookClientID,
+				Usage:    "Facebook OAuth client ID",
+				Category: "oauth-facebook",
+				EnvVars:  []string{"AUTH_PROVIDER_FACEBOOK_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagFacebookClientSecret,
+				Usage:    "Facebook OAuth client secret",
+				Category: "oauth-facebook",
+				EnvVars:  []string{"AUTH_PROVIDER_FACEBOOK_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagFacebookScope,
+				Usage:    "Facebook OAuth scope",
+				Category: "oauth-facebook",
+				Value:    cli.NewStringSlice(providers.DefaultFacebookScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_FACEBOOK_SCOPE"},
+			},
+			// Windowslive provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagWindowsliveEnabled,
+				Usage:    "Enable Windowslive OAuth provider",
+				Category: "oauth-windowslive",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_WINDOWS_LIVE_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagWindowsliveClientID,
+				Usage:    "Windowslive OAuth client ID",
+				Category: "oauth-windowslive",
+				EnvVars:  []string{"AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagWindowsliveClientSecret,
+				Usage:    "Windows Live OAuth client secret",
+				Category: "oauth-windowslive",
+				EnvVars:  []string{"AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagWindowsliveScope,
+				Usage:    "Windows Live OAuth scope",
+				Category: "oauth-windowslive",
+				Value:    cli.NewStringSlice(providers.DefaultWindowsliveScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_WINDOWS_LIVE_SCOPE"},
+			},
+
+			// Strava provider flags
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagStravaEnabled,
+				Usage:    "Enable Strava OAuth provider",
+				Category: "oauth-strava",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_STRAVA_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagStravaClientID,
+				Usage:    "Strava OAuth client ID",
+				Category: "oauth-strava",
+				EnvVars:  []string{"AUTH_PROVIDER_STRAVA_CLIENT_ID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagStravaClientSecret,
+				Usage:    "Strava OAuth client secret",
+				Category: "oauth-strava",
+				EnvVars:  []string{"AUTH_PROVIDER_STRAVA_CLIENT_SECRET"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagStravaScope,
+				Usage:    "Strava OAuth scope",
+				Category: "oauth-strava",
+				Value:    cli.NewStringSlice(providers.DefaultStravaScopes...),
+				EnvVars:  []string{"AUTH_PROVIDER_STRAVA_SCOPE"},
+			},
+
+			// twitter
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagTwitterEnabled,
+				Usage:    "Enable Twitter OAuth provider",
+				Category: "oauth-twitter",
+				Value:    false,
+				EnvVars:  []string{"AUTH_PROVIDER_TWITTER_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagTwitterConsumerKey,
+				Usage:    "Twitter OAuth consumer key",
+				Category: "oauth-twitter",
+				EnvVars:  []string{"AUTH_PROVIDER_TWITTER_CONSUMER_KEY"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagTwitterConsumerSecret,
+				Usage:    "Twitter OAuth consumer secret",
+				Category: "oauth-twitter",
+				EnvVars:  []string{"AUTH_PROVIDER_TWITTER_CONSUMER_SECRET"},
+			},
 		},
 		Action: serve,
 	}
@@ -755,12 +1278,18 @@ func getGoServer( //nolint:funlen
 		return nil, err
 	}
 
+	oauthProviders, err := getOauth2Providers(cCtx)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating oauth providers: %w", err)
+	}
+
 	ctrl, err := controller.New(
 		db,
 		config,
 		jwtGetter,
 		emailer,
 		hibp.NewClient(),
+		oauthProviders,
 		idTokenValidator,
 		controller.NewTotp(cCtx.String(flagMfaTotpIssuer), time.Now),
 		cCtx.App.Version,

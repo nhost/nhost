@@ -15,14 +15,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func LocationRegexpComparer() cmp.Option {
-	return cmp.FilterPath(func(p cmp.Path) bool {
-		// Check if the path ends with a field named "Location"
-		if last := p.Last(); last != nil {
-			return last.String() == ".Location"
-		}
-		return false
-	}, cmp.Comparer(func(x, y interface{}) bool {
+func RegexpComparer() cmp.Option {
+	return cmp.Comparer(func(x, y any) bool {
 		// Convert both values to strings
 		xStr, ok1 := x.(string)
 		yStr, ok2 := y.(string)
@@ -35,22 +29,20 @@ func LocationRegexpComparer() cmp.Option {
 			return true
 		}
 
-		patternX, err := regexp.Compile(yStr)
-		if err != nil {
-			return false
-		}
-
-		if patternX.MatchString(xStr) {
+		// Try x as pattern, y as test string
+		patternX, err := regexp.Compile(xStr)
+		if err == nil && patternX.MatchString(yStr) {
 			return true
 		}
 
-		patternY, err := regexp.Compile(xStr)
-		if err != nil {
-			return false
+		// Try y as pattern, x as test string
+		patternY, err := regexp.Compile(yStr)
+		if err == nil && patternY.MatchString(xStr) {
+			return true
 		}
 
-		return patternY.MatchString(yStr)
-	}))
+		return false
+	})
 }
 
 func TestGetVerify(t *testing.T) { //nolint:maintidx
@@ -546,7 +538,12 @@ func TestGetVerify(t *testing.T) { //nolint:maintidx
 
 			assertRequest(
 				t.Context(), t, c.GetVerify, tc.request, tc.expectedResponse,
-				LocationRegexpComparer(),
+				cmp.FilterPath(func(p cmp.Path) bool {
+					if last := p.Last(); last != nil {
+						return last.String() == ".Location"
+					}
+					return false
+				}, RegexpComparer()),
 			)
 		})
 	}

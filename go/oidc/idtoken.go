@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/hasura-auth/go/api"
 )
 
-func getClaim[T any](token *jwt.Token, claim string) (T, error) { //nolint:ireturn
+func GetClaim[T any](token *jwt.Token, claim string) (T, error) { //nolint:ireturn
 	var claimValue T
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
@@ -40,7 +40,11 @@ func NewIDTokenValidatorProviders(
 	var appleID *IDTokenValidator
 	if appleClientID != "" {
 		var err error
-		appleID, err = NewIDTokenValidator(ctx, api.Apple, appleClientID, parserOptions...)
+		appleID, err = NewIDTokenValidator(
+			ctx,
+			api.IdTokenProviderApple,
+			appleClientID,
+			parserOptions...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Apple ID token validator: %w", err)
 		}
@@ -49,7 +53,11 @@ func NewIDTokenValidatorProviders(
 	var google *IDTokenValidator
 	if googleClientID != "" {
 		var err error
-		google, err = NewIDTokenValidator(ctx, api.Google, googleClientID, parserOptions...)
+		google, err = NewIDTokenValidator(
+			ctx,
+			api.IdTokenProviderGoogle,
+			googleClientID,
+			parserOptions...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Google ID token validator: %w", err)
 		}
@@ -59,7 +67,7 @@ func NewIDTokenValidatorProviders(
 	if fakeProviderAudience != "" {
 		var err error
 		fakeProvider, err = NewIDTokenValidator(
-			ctx, api.FakeProvider, fakeProviderAudience, parserOptions...,
+			ctx, api.IdTokenProviderFake, fakeProviderAudience, parserOptions...,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Fake ID token validator: %w", err)
@@ -88,17 +96,17 @@ type IDTokenValidator struct {
 
 func NewIDTokenValidator(
 	ctx context.Context,
-	providerName api.Provider,
+	providerName api.IdTokenProvider,
 	audience string,
 	options ...jwt.ParserOption,
 ) (*IDTokenValidator, error) {
 	var provider Provider
 	switch providerName {
-	case api.Apple:
+	case api.IdTokenProviderApple:
 		provider = &Apple{}
-	case api.Google:
+	case api.IdTokenProviderGoogle:
 		provider = &Google{}
-	case api.FakeProvider:
+	case api.IdTokenProviderFake:
 		provider = &FakeProvider{}
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedProvider, providerName)
@@ -145,7 +153,7 @@ func (a *IDTokenValidator) Validate(
 }
 
 func validateNonce(token *jwt.Token, nonce string) error {
-	gotNonce, err := getClaim[string](token, "nonce")
+	gotNonce, err := GetClaim[string](token, "nonce")
 	switch {
 	case errors.Is(err, ErrClaimNotFound):
 		// we don't have a nonce claim, so we don't have to validate it
