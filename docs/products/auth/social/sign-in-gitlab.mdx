@@ -10,16 +10,19 @@ icon: gitlab
 
 ## Create GitLab OAuth App
 
-- Create a new OAuth application [(direct link)](https://gitlab.com/settings/applications/new) by:
-   - Click on your avatar in the left sidebar.
-   - Select Edit Profile.
+- Create a new OAuth application [(direct link)](https://gitlab.com/oauth/applications) by:
    - On the left Sidebar, Select Applications.
-   - Select Add new application.
+   - Select Add new application on the right.
    
 ## GitLab OAuth App Information.
 
 - Enter a Name and a Redirect URI.
-- Select OAuth 2 Scopes as defined in [Authorized Applications](https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-applications).
+- Select OAuth 2 Scopes as defined in the [Authorized Applications documentation](https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-applications).
+  - Minimum required scope:
+    `read_user`
+  - OAuth 2.0 Application Type:
+    `confidential`
+
 - Fill in the **Redirect URI** with your OAuth Callback URL from Nhost.
 
 ## Configure Nhost
