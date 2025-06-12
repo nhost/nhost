@@ -262,8 +262,8 @@ export default function PricingPage() {
       <PricingTabs onTabChange={handleTabChange} />
 
       <Container className={`grid w-full grid-flow-row justify-items-center gap-4 pb-8 px-4 ${
-        activeTab === 'cloud' 
-          ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' 
+        activeTab === 'cloud'
+          ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
           : 'grid-cols-1 lg:grid-cols-2 lg:max-w-4xl lg:justify-center'
       }`}>
         {activeTab === 'cloud' ? (
@@ -952,8 +952,8 @@ export default function PricingPage() {
                 <PricingListItem
                   title="Execution Time"
                   starterContent="10 sec"
-                  proContent="60 sec"
-                  teamContent="10 min"
+                  proContent="180 sec"
+                  teamContent="600 sec"
                   enterpriseContent="Custom"
                 />
               </ul>
