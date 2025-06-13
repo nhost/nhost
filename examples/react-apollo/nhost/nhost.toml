@@ -29,7 +29,7 @@ httpPoolSize = 100
 version = 22
 
 [auth]
-version = '0.38.0'
+version = '0.39.0-beta6'
 
 [auth.elevatedPrivileges]
 mode = 'required'
@@ -92,16 +92,24 @@ privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
 
 [auth.method.oauth.azuread]
 tenant = 'common'
-enabled = false
+enabled = true
+clientId = '{{ secrets.AZUREAD_CLIENT_ID }}'
+clientSecret = '{{ secrets.AZUREAD_CLIENT_SECRET }}'
 
 [auth.method.oauth.bitbucket]
-enabled = false
+enabled = true
+clientId = '{{ secrets.BITBUCKET_CLIENT_ID }}'
+clientSecret = '{{ secrets.BITBUCKET_CLIENT_SECRET }}'
 
 [auth.method.oauth.discord]
-enabled = false
+enabled = true
+clientId = '{{ secrets.DISCORD_CLIENT_ID }}'
+clientSecret = '{{ secrets.DISCORD_CLIENT_SECRET }}'
 
 [auth.method.oauth.facebook]
-enabled = false
+enabled = true
+clientId = '{{ secrets.FACEBOOK_CLIENT_ID }}'
+clientSecret = '{{ secrets.FACEBOOK_CLIENT_SECRET }}'
 
 [auth.method.oauth.github]
 enabled = true
@@ -109,7 +117,9 @@ clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
 clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
 [auth.method.oauth.gitlab]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GITLAB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITLAB_CLIENT_SECRET }}'
 
 [auth.method.oauth.google]
 enabled = true
@@ -122,22 +132,36 @@ clientId='{{ secrets.LINKEDIN_CLIENT_ID }}'
 clientSecret='{{ secrets.LINKEDIN_CLIENT_SECRET }}'
 
 [auth.method.oauth.spotify]
-enabled = false
+enabled = true
+clientId = '{{ secrets.SPOTIFY_CLIENT_ID }}'
+clientSecret = '{{ secrets.SPOTIFY_CLIENT_SECRET }}'
 
 [auth.method.oauth.strava]
-enabled = false
+enabled = true
+clientId = '{{ secrets.STRAVA_CLIENT_ID }}'
+clientSecret = '{{ secrets.STRAVA_CLIENT_SECRET }}'
 
 [auth.method.oauth.twitch]
-enabled = false
+enabled = true
+clientId = '{{ secrets.TWITCH_CLIENT_ID }}'
+clientSecret = '{{ secrets.TWITCH_CLIENT_SECRET }}'
 
 [auth.method.oauth.twitter]
-enabled = false
+enabled = true
+consumerKey = '{{ secrets.TWITTER_CONSUMER_KEY }}'
+consumerSecret = '{{ secrets.TWITTER_CONSUMER_SECRET }}'
 
 [auth.method.oauth.windowslive]
-enabled = false
+enabled = true
+clientId = '{{ secrets.WINDOWSLIVE_CLIENT_ID }}'
+clientSecret = '{{ secrets.WINDOWSLIVE_CLIENT_SECRET }}'
 
 [auth.method.oauth.workos]
-enabled = false
+enabled = true
+clientId = '{{ secrets.WORKOS_CLIENT_ID }}'
+clientSecret = '{{ secrets.WORKOS_CLIENT_SECRET }}'
+organization = '{{ secrets.WORKOS_DEFAULT_ORGANIZATION }}'
+connection = '{{ secrets.WORKOS_DEFAULT_CONNECTION }}'
 
 [auth.method.webauthn]
 enabled = true

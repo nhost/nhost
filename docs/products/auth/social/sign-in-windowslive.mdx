@@ -1,0 +1,45 @@
+---
+title: Sign In with WindowsLive
+description: Follow this guide to sign in users with WindowsLive.
+icon: windowslive
+---
+
+## Create WindowsLive Account
+
+- Create a new [WindowsLive Account](https://portal.azure.com/) if you don't have one already.
+
+## Create WindowsLive OAuth App
+
+- Create a new OAuth application [(direct link)](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) by:
+   - Click on New Registration.
+   - Enter a Name.
+   - Select the supported account types.
+   - Select the supported platform which is **Web**.
+   - Select the Redirect URI.
+   
+## WindowsLive OAuth App Information.
+- Inside essentials dropdown, click on secret near the Client Credentials Field.
+- Click on new client secret.
+- Enter a Description.
+- Select the expiry date from the dropdown.
+
+## Configure Nhost
+
+- Click Generate a new client secret to generate an OAuth client secret.
+- Copy and paste the **Client ID** and **Client Secret** from WindowsLive to your Nhost OAuth settings for WindowsLive. Make sure the OAuth provider is enabled in Nhost.
+- Click the checkbox “**I have pasted the redirect URI into WindowsLive”**.
+- Click **Confirm settings**.
+
+## Sign In Users
+
+Use the [Nhost JavaScript client](/reference/javascript) to sign in users:
+
+```js
+nhost.auth.signIn({
+  provider: "windowslive",
+});
+```
+
+<Note>
+To use your own domain for the callback URL refer to the [custom domains](/platform/cloud/custom-domains) documentation.
+</Note>
