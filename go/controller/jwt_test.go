@@ -244,6 +244,7 @@ func TestGetJWTFunc(t *testing.T) {
 				false,
 				tc.allowedRoles,
 				tc.defaultRole,
+				nil,
 				slog.Default(),
 			)
 			if err != nil {

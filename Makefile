@@ -36,7 +36,8 @@ help: ## Show this help.
 
 .PHONY: get-version
 get-version:  ## Return version
-	@sed -i '/^\s*version = "0\.0\.0-dev";/s//version = "${VERSION}";/' flake.nix
+	@sed -i '/^\s*version = "0.0.0-dev";/s//version = "${VERSION}";/' flake.nix
+	@sed -i '/^\s*created = "1970-.*";/s//created = "${shell date --utc '+%Y-%m-%dT%H:%M:%SZ'}";/' flake.nix
 	@echo $(VERSION)
 
 
@@ -100,7 +101,8 @@ build-dry-run:  ## Run nix flake check
 .PHONY: build-docker-image
 build-docker-image:  ## Build docker container for native architecture
 	./build/nix-docker-image.sh
-	docker tag hasura-auth:$(VERSION) nhost/hasura-auth:0.0.0-dev
+	skopeo copy --insecure-policy dir:./result docker-daemon:hasura-auth:$(VERSION)
+	docker tag hasura-auth:$(VERSION) nhost/hasura-auth:$(VERSION)
 
 
 .PHONY: migrations-add

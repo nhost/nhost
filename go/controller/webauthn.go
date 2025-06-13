@@ -106,10 +106,11 @@ func (w *Webauthn) BeginRegistration(
 	user WebauthnUser,
 	options *api.SignUpOptions,
 	logger *slog.Logger,
+	opts ...webauthn.RegistrationOption,
 ) (*protocol.CredentialCreation, *APIError) {
 	w.cleanCache()
 
-	challenge, session, err := w.wa.BeginRegistration(user)
+	challenge, session, err := w.wa.BeginRegistration(user, opts...)
 	if err != nil {
 		logger.Info("failed to begin webauthn registration", logError(err))
 		return nil, ErrInternalServerError

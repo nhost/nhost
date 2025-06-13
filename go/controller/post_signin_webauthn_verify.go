@@ -101,7 +101,7 @@ func (ctrl *Controller) PostSigninWebauthnVerify( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	session, err := ctrl.wf.NewSession(ctx, user, logger)
+	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)
 	if err != nil {
 		logger.Error("failed to create session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil

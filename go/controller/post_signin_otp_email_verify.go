@@ -22,7 +22,7 @@ func (ctrl *Controller) PostSigninOtpEmailVerify( //nolint:ireturn
 		return ctrl.respondWithError(apiErr), nil
 	}
 
-	session, err := ctrl.wf.NewSession(ctx, user, logger)
+	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)
 	if err != nil {
 		logger.Error("error getting new session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil

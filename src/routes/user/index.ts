@@ -9,11 +9,6 @@ import {
   userProviderTokensHandler,
   userProviderTokensSchema,
 } from './provider-tokens';
-import {
-  addSecurityKeyHandler,
-  addSecurityKeyVerifyHandler,
-  userVerifyAddSecurityKeySchema,
-} from './webauthn';
 
 const router = Router();
 
@@ -45,38 +40,6 @@ router.post(
   '/user/provider/tokens',
   bodyValidator(userProviderTokensSchema),
   aw(userProviderTokensHandler)
-);
-
-// TODO add body validator
-// TODO add @return payload on success
-/**
- * POST /user/webauthn/add
- * @summary Initialize adding of a new webauthn security key (device, browser)
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags User management
- */
-router.post(
-  '/user/webauthn/add',
-  authenticationGate(true, true),
-  aw(addSecurityKeyHandler),
-);
-
-// TODO add @return payload on success
-/**
- * POST /user/webauthn/verify
- * @summary Verfiy adding of a new webauth security key (device, browser)
- * @param {VerifyAddSecurityKeySchema} request.body.required
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags User management
- */
-router.post(
-  '/user/webauthn/verify',
-  bodyValidator(userVerifyAddSecurityKeySchema),
-  aw(addSecurityKeyVerifyHandler)
 );
 
 const userRouter = router;

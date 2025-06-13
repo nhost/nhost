@@ -57,6 +57,9 @@ jobs:
         with:
           path: ~/artifacts
 
+      - name: "Inspect artifacts"
+        run: find ~/artifacts
+
       - name: "Push docker image to EKS"
         run: |
           export NAME=${{ inputs.NAME }}
@@ -65,8 +68,9 @@ jobs:
           export CONTAINER_NAME=$CONTAINER_REGISTRY/$NAME
 
           for ARCH in "x86_64" "aarch64"; do
-            docker load < ~/artifacts/${{ inputs.NAME }}-docker-image-$ARCH-$VERSION/result
-            docker tag $NAME:$VERSION $CONTAINER_NAME:$VERSION-$ARCH
+            skopeo copy --insecure-policy \
+              dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image-$ARCH-$VERSION \
+              docker-daemon:$CONTAINER_NAME:$VERSION-$ARCH
             docker push $CONTAINER_NAME:$VERSION-$ARCH
           done
 
@@ -91,8 +95,9 @@ jobs:
           export CONTAINER_NAME=$CONTAINER_REGISTRY/$NAME
 
           for ARCH in "x86_64" "aarch64"; do
-            docker load < ~/artifacts/${{ inputs.NAME }}-docker-image-$ARCH-$VERSION/result
-            docker tag $NAME:$VERSION $CONTAINER_NAME:$VERSION-$ARCH
+            skopeo copy --insecure-policy \
+              dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image-$ARCH-$VERSION \
+              docker-daemon:$CONTAINER_NAME:$VERSION-$ARCH
             docker push $CONTAINER_NAME:$VERSION-$ARCH
           done
 

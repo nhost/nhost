@@ -20,7 +20,7 @@ import (
 	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 )
 
-const jwtContextKey = "nhost/auth/jwt"
+const JWTContextKey = "nhost/auth/jwt"
 
 type JWTSecret struct {
 	KeyID           string `json:"kid"`
@@ -190,12 +190,42 @@ func pgEncode(v any) (string, error) {
 	}
 }
 
+func (j *JWTGetter) addClaimsToMap(
+	claims map[string]any,
+	newClaims map[string]any,
+	allowOverwrite bool,
+) error {
+	for k, v := range newClaims {
+		value, err := pgEncode(v)
+		if err != nil {
+			return fmt.Errorf("error encoding claim: %w", err)
+		}
+
+		// Don't prefix claims if they already have the x-hasura prefix
+		if !strings.HasPrefix(strings.ToLower(k), "x-hasura-") {
+			k = strings.ToLower("x-hasura-" + k)
+		}
+
+		// Check if we should allow overwriting existing claims
+		if !allowOverwrite {
+			if _, ok := claims[k]; ok {
+				// we do not allow these claims to overwrite the default claims
+				continue
+			}
+		}
+
+		claims[k] = value
+	}
+	return nil
+}
+
 func (j *JWTGetter) GetToken(
 	ctx context.Context,
 	userID uuid.UUID,
 	isAnonymous bool,
 	allowedRoles []string,
 	defaultRole string,
+	extraClaims map[string]any,
 	logger *slog.Logger,
 ) (string, int64, error) {
 	now := time.Now()
@@ -219,18 +249,12 @@ func (j *JWTGetter) GetToken(
 		"x-hasura-user-is-anonymous": strconv.FormatBool(isAnonymous),
 	}
 
-	for k, v := range customClaims {
-		value, err := pgEncode(v)
-		if err != nil {
-			return "", 0, fmt.Errorf("error encoding custom claim: %w", err)
-		}
+	if err := j.addClaimsToMap(c, customClaims, false); err != nil {
+		return "", 0, fmt.Errorf("error adding custom claims: %w", err)
+	}
 
-		k = strings.ToLower("x-hasura-" + k)
-		if _, ok := c[k]; ok {
-			// we do not allow custom claims to overwrite the default claims
-			continue
-		}
-		c[k] = value
+	if err := j.addClaimsToMap(c, extraClaims, true); err != nil {
+		return "", 0, fmt.Errorf("error adding extra claims: %w", err)
 	}
 
 	// Create the Claims
@@ -294,11 +318,11 @@ func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 }
 
 func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
-	token, ok := ctx.Value(jwtContextKey).(*jwt.Token)
+	token, ok := ctx.Value(JWTContextKey).(*jwt.Token)
 	if !ok { //nolint:nestif
 		c := ginmiddleware.GetGinContext(ctx)
 		if c != nil {
-			a, ok := c.Get(jwtContextKey)
+			a, ok := c.Get(JWTContextKey)
 			if !ok {
 				return nil, false
 			}
@@ -314,7 +338,7 @@ func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
 }
 
 func (j *JWTGetter) ToContext(ctx context.Context, jwtToken *jwt.Token) context.Context {
-	return context.WithValue(ctx, jwtContextKey, jwtToken) //nolint:revive,staticcheck
+	return context.WithValue(ctx, JWTContextKey, jwtToken) //nolint:revive,staticcheck
 }
 
 func (j *JWTGetter) verifyElevatedClaim(ctx context.Context, token *jwt.Token) (bool, error) {
@@ -376,7 +400,7 @@ func (j *JWTGetter) MiddlewareFunc(
 	}
 
 	c := ginmiddleware.GetGinContext(ctx)
-	c.Set(jwtContextKey, jwtToken)
+	c.Set(JWTContextKey, jwtToken)
 
 	return nil
 }

@@ -1,9 +1,7 @@
 import * as express from 'express';
 import nocache from 'nocache';
 import env from './env';
-import { oauthProviders } from './oauth';
 import { signInRouter } from './signin';
-import { elevateRouter } from './elevate';
 import { signOutRouter } from './signout';
 import { tokenRouter } from './token';
 import { userRouter } from './user';
@@ -25,13 +23,10 @@ router.get('/version', (_req, res) =>
 // auth routes
 router.use(signInRouter);
 router.use(signOutRouter);
-router.use(elevateRouter);
 router.use(userRouter);
 router.use(tokenRouter);
 
 // admin
 env(router);
-
-router.use(oauthProviders);
 
 export default router;

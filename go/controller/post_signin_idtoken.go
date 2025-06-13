@@ -282,7 +282,7 @@ func (ctrl *Controller) providerFlowSignIn(
 		}
 	}
 
-	session, err := ctrl.wf.NewSession(ctx, user, logger)
+	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)
 	if err != nil {
 		logger.Error("error getting new session", logError(err))
 		return nil, ErrInternalServerError

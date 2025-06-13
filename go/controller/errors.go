@@ -182,6 +182,22 @@ func (response ErrorResponse) VisitPostSigninOtpEmailVerifyResponse(w http.Respo
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostElevateWebauthnResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostElevateWebauthnVerifyResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostUserWebauthnAddResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostUserWebauthnVerifyResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case

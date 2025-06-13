@@ -424,6 +424,33 @@ func (q *Queries) InsertRefreshtoken(ctx context.Context, arg InsertRefreshtoken
 	return id, err
 }
 
+const insertSecurityKey = `-- name: InsertSecurityKey :one
+INSERT INTO auth.user_security_keys
+    (user_id, credential_id, credential_public_key, nickname)
+VALUES
+    ($1, $2, $3, $4)
+RETURNING id
+`
+
+type InsertSecurityKeyParams struct {
+	UserID              uuid.UUID
+	CredentialID        string
+	CredentialPublicKey []byte
+	Nickname            pgtype.Text
+}
+
+func (q *Queries) InsertSecurityKey(ctx context.Context, arg InsertSecurityKeyParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertSecurityKey,
+		arg.UserID,
+		arg.CredentialID,
+		arg.CredentialPublicKey,
+		arg.Nickname,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const insertUser = `-- name: InsertUser :one
 WITH inserted_user AS (
     INSERT INTO auth.users (

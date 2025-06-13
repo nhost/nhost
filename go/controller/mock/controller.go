@@ -250,6 +250,21 @@ func (m *MockDBClientUpdateUser) EXPECT() *MockDBClientUpdateUserMockRecorder {
 	return m.recorder
 }
 
+// InsertSecurityKey mocks base method.
+func (m *MockDBClientUpdateUser) InsertSecurityKey(ctx context.Context, arg sql.InsertSecurityKeyParams) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertSecurityKey", ctx, arg)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertSecurityKey indicates an expected call of InsertSecurityKey.
+func (mr *MockDBClientUpdateUserMockRecorder) InsertSecurityKey(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertSecurityKey", reflect.TypeOf((*MockDBClientUpdateUser)(nil).InsertSecurityKey), ctx, arg)
+}
+
 // InsertUserWithSecurityKey mocks base method.
 func (m *MockDBClientUpdateUser) InsertUserWithSecurityKey(ctx context.Context, arg sql.InsertUserWithSecurityKeyParams) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
@@ -711,6 +726,21 @@ func (m *MockDBClient) InsertRefreshtoken(ctx context.Context, arg sql.InsertRef
 func (mr *MockDBClientMockRecorder) InsertRefreshtoken(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertRefreshtoken", reflect.TypeOf((*MockDBClient)(nil).InsertRefreshtoken), ctx, arg)
+}
+
+// InsertSecurityKey mocks base method.
+func (m *MockDBClient) InsertSecurityKey(ctx context.Context, arg sql.InsertSecurityKeyParams) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertSecurityKey", ctx, arg)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertSecurityKey indicates an expected call of InsertSecurityKey.
+func (mr *MockDBClientMockRecorder) InsertSecurityKey(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertSecurityKey", reflect.TypeOf((*MockDBClient)(nil).InsertSecurityKey), ctx, arg)
 }
 
 // InsertUser mocks base method.

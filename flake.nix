@@ -6,9 +6,10 @@
     nixpkgs.follows = "nixops/nixpkgs";
     flake-utils.follows = "nixops/flake-utils";
     nix-filter.follows = "nixops/nix-filter";
+    nix2container.follows = "nixops/nix2container";
   };
 
-  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter }:
+  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter, nix2container }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [
@@ -112,6 +113,7 @@
         name = "hasura-auth";
         description = "Nhost's Auth Service";
         version = "0.0.0-dev";
+        created = "1970-01-01T00:00:00Z";
         module = "github.com/nhost/hasura-auth/go";
         submodule = ".";
 
@@ -136,8 +138,8 @@
         ];
 
 
-        nixops-lib = nixops.lib { inherit pkgs; };
-
+        nix2containerPkgs = nix2container.packages.${system};
+        nixops-lib = nixops.lib { inherit pkgs nix2containerPkgs; };
       in
       {
         checks = {
@@ -195,6 +197,7 @@
               go-migrate
               nodejs
               nodePackages.pnpm
+              skopeo
             ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
           };
         };
@@ -244,8 +247,9 @@
           };
 
           docker-image = nixops-lib.go.docker-image {
-            inherit name version buildInputs;
+            inherit name created version buildInputs;
 
+            maxLayers = 100;
             contents = with pkgs; [
               wget
             ];

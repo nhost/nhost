@@ -72,6 +72,13 @@ INSERT INTO auth.user_roles (user_id, role)
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role)
 RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id);
 
+-- name: InsertSecurityKey :one
+INSERT INTO auth.user_security_keys
+    (user_id, credential_id, credential_public_key, nickname)
+VALUES
+    ($1, @credential_id, @credential_public_key, @nickname)
+RETURNING id;
+
 -- name: InsertUserWithSecurityKeyAndRefreshToken :one
 WITH inserted_user AS (
     INSERT INTO auth.users (

@@ -430,6 +430,23 @@ type User struct {
 	Roles               []string               `json:"roles"`
 }
 
+// UserAddSecurityKeyVerifyRequest defines model for UserAddSecurityKeyVerifyRequest.
+type UserAddSecurityKeyVerifyRequest struct {
+	Credential protocol.CredentialCreationResponse `json:"credential"`
+
+	// Nickname Optional nickname for the security key
+	Nickname *string `json:"nickname,omitempty"`
+}
+
+// UserAddSecurityKeyVerifyResponse defines model for UserAddSecurityKeyVerifyResponse.
+type UserAddSecurityKeyVerifyResponse struct {
+	// Id ID of the newly added security key
+	Id string `json:"id"`
+
+	// Nickname Nickname of the security key
+	Nickname *string `json:"nickname,omitempty"`
+}
+
 // UserDeanonymizeRequest defines model for UserDeanonymizeRequest.
 type UserDeanonymizeRequest struct {
 	// Connection Deprecated, will be ignored
@@ -604,6 +621,9 @@ type GetVerifyParams struct {
 // GetVerifyParamsType defines parameters for GetVerify.
 type GetVerifyParamsType string
 
+// PostElevateWebauthnVerifyJSONRequestBody defines body for PostElevateWebauthnVerify for application/json ContentType.
+type PostElevateWebauthnVerifyJSONRequestBody = SignInWebauthnVerifyRequest
+
 // PostLinkIdtokenJSONRequestBody defines body for PostLinkIdtoken for application/json ContentType.
 type PostLinkIdtokenJSONRequestBody = LinkIdTokenRequest
 
@@ -672,6 +692,9 @@ type PostUserPasswordJSONRequestBody = UserPasswordRequest
 
 // PostUserPasswordResetJSONRequestBody defines body for PostUserPasswordReset for application/json ContentType.
 type PostUserPasswordResetJSONRequestBody = UserPasswordResetRequest
+
+// PostUserWebauthnVerifyJSONRequestBody defines body for PostUserWebauthnVerify for application/json ContentType.
+type PostUserWebauthnVerifyJSONRequestBody = UserAddSecurityKeyVerifyRequest
 
 // Getter for additional properties for PostSigninProviderProviderCallbackFormdataBody. Returns the specified
 // element and whether it was found

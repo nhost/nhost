@@ -33,18 +33,40 @@
         "type": "github"
       }
     },
+    "nix2container": {
+      "inputs": {
+        "nixpkgs": [
+          "nixops",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1749158376,
+        "narHash": "sha256-uirStFNxauh0lxzBowcp28X+Sq7JgsBIDnbwbAfZwf8=",
+        "owner": "nlewo",
+        "repo": "nix2container",
+        "rev": "0f8974c58755dba441df03598eefd1e1cd50e341",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nlewo",
+        "repo": "nix2container",
+        "type": "github"
+      }
+    },
     "nixops": {
       "inputs": {
         "flake-utils": "flake-utils",
         "nix-filter": "nix-filter",
+        "nix2container": "nix2container",
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1745925792,
-        "narHash": "sha256-tSN3G8dAm4cX6vG6Agm/jXGhBrsHgewHCHVF0LR52fQ=",
+        "lastModified": 1749810533,
+        "narHash": "sha256-VrH4a1M9Icoe7Zjt/Cp0ZwTg11dxgQpzRHOJK717oQQ=",
         "owner": "nhost",
         "repo": "nixops",
-        "rev": "555a2f79e2a0187c0e2f33d519c8e79041b681e1",
+        "rev": "6421c2f2ffb7da1246de344f5a63bc140ff4cefb",
         "type": "github"
       },
       "original": {
@@ -78,6 +100,10 @@
         "nix-filter": [
           "nixops",
           "nix-filter"
+        ],
+        "nix2container": [
+          "nixops",
+          "nix2container"
         ],
         "nixops": "nixops",
         "nixpkgs": [

@@ -134,9 +134,9 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 			},
 			request: api.GetMfaTotpGenerateRequestObject{},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "internal-server-error",
-				Message: "Internal server error",
-				Status:  http.StatusInternalServerError,
+				Error:   "invalid-request",
+				Message: "The request payload is incorrect",
+				Status:  http.StatusBadRequest,
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,
