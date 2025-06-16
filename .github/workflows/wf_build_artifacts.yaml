@@ -67,23 +67,10 @@ jobs:
         make build-docker-image ARCH=${{ inputs.GOARCH }}
       if: ${{ ( inputs.GOOS == 'linux' ) }}
 
-    - name: "Ammend manifest"
-      run: |
-          # hack that speeds up build a lot by crosscompiling with nix/go
-          # and avoiding to use qemu
-          mkdir tmp && cd tmp
-          tar xvzf ../result
-          sed -i 's/amd64/arm64/g' *.json
-          tar cvzf image *
-          rm ../result
-          cp image ../result
-      shell: bash
-      if: ${{ ( inputs.GOOS == 'linux' && inputs.GOARCH == 'arm64' ) }}
-
     - name: "Create a new project"
       run: |
         export NHOST_DOMAIN=staging.nhost.run
-        export NHOST_CONFIGSERVER_IMAGE=cli:${{ steps.vars.outputs.VERSION }}
+        export NHOST_CONFIGSERVER_IMAGE=nhost/cli:${{ steps.vars.outputs.VERSION }}
 
         mkdir new-project
         cd new-project

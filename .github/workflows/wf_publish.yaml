@@ -50,12 +50,14 @@ jobs:
           export VERSION=${{ steps.vars.outputs.VERSION }}
           export CONTAINER_NAME=nhost/cli
 
-          docker load < ~/artifacts/cli-docker-image-$VERSION-linux-amd64/result
-          docker tag cli:$VERSION $CONTAINER_NAME:$VERSION-amd64
+          skopeo copy --insecure-policy \
+            dir:/home/runner/artifacts/cli-docker-image-$VERSION-linux-amd64 \
+            docker-daemon:$CONTAINER_NAME:$VERSION-amd64
           docker push $CONTAINER_NAME:$VERSION-amd64
 
-          docker load < ~/artifacts/cli-docker-image-$VERSION-linux-arm64/result
-          docker tag cli:$VERSION $CONTAINER_NAME:$VERSION-arm64
+          skopeo copy --insecure-policy \
+            dir:/home/runner/artifacts/cli-docker-image-$VERSION-linux-arm64 \
+            docker-daemon:$CONTAINER_NAME:$VERSION-arm64
           docker push $CONTAINER_NAME:$VERSION-arm64
 
           docker manifest create \

@@ -12,7 +12,12 @@ else
   OS?=linux
 endif
 
-VER=$(shell echo $(VERSION) | sed -e 's/\//_/g')
+
+ifdef VER
+VERSION=$(shell echo $(VER) | sed -e 's/^v//g' -e 's/\//_/g')
+else
+VERSION=$(shell grep -oP 'version\s*=\s*"\K[^"]+' flake.nix | head -n 1)
+endif
 
 
 .PHONY: check
@@ -33,10 +38,13 @@ build-docker-image:  ## Build docker image
 	nix build $(docker-build-options) \
 		.\#packages.$(HOST_ARCH)-linux.docker-image-$(ARCH) \
 		--print-build-logs
-	docker load < result
+	skopeo copy --insecure-policy \
+		--override-arch $(ARCH) \
+		dir:./result docker-daemon:nhost/cli:$(VERSION)
 
 
 .PHONY: get-version
 get-version:  ## Return version
-	@echo $(VER) > VERSION
-	@echo $(VER)
+	@sed -i '/^\s*version = "0.0.0-dev";/s//version = "${VERSION}";/' flake.nix
+	@sed -i '/^\s*created = "1970-.*";/s//created = "${shell date --utc '+%Y-%m-%dT%H:%M:%SZ'}";/' flake.nix
+	@echo $(VERSION)
