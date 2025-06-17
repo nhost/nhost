@@ -23,7 +23,7 @@ function SigninPage() {
 }
 
 SigninPage.getLayout = function getLayout(page: ReactElement) {
-  return <UnauthenticatedLayout title="Sign Up">{page}</UnauthenticatedLayout>;
+  return <UnauthenticatedLayout title="Sign In">{page}</UnauthenticatedLayout>;
 };
 
 export default SigninPage;

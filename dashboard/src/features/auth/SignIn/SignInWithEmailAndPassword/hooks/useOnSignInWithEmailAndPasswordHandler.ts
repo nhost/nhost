@@ -4,17 +4,24 @@ import {
   useSignInEmailPassword,
 } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
+import { useRef } from 'react';
 import toast from 'react-hot-toast';
 import type { SignInWithEmailAndPasswordFormValues } from './useSignInWithEmailAndPasswordForm';
+
+type EmailPasswordRef = {
+  email: string;
+  password: string;
+} | null;
 
 function useOnSignInWithEmailAndPasswordHandler() {
   const router = useRouter();
   const { signInEmailPassword, needsMfaOtp, sendMfaOtp, isLoading } =
     useSignInEmailPassword();
+  const emailPasswordRef = useRef<EmailPasswordRef>(null);
 
   const { sendEmail } = useSendVerificationEmail();
 
-  async function onSignIWithEmailAndPassword({
+  async function onSignInWithEmailAndPassword({
     email,
     password,
   }: SignInWithEmailAndPasswordFormValues) {
@@ -23,6 +30,10 @@ function useOnSignInWithEmailAndPasswordHandler() {
         email,
         password,
       );
+      emailPasswordRef.current = {
+        email,
+        password,
+      };
       if (error) {
         toast.error(
           error?.message ||
@@ -44,7 +55,13 @@ function useOnSignInWithEmailAndPasswordHandler() {
     }
   }
 
-  return { onSignIWithEmailAndPassword, needsMfaOtp, sendMfaOtp, isLoading };
+  return {
+    onSignInWithEmailAndPassword,
+    needsMfaOtp,
+    sendMfaOtp,
+    isLoading,
+    emailPasswordRef,
+  };
 }
 
 export default useOnSignInWithEmailAndPasswordHandler;

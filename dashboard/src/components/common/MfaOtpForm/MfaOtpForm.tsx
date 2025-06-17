@@ -1,16 +1,26 @@
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
-import { type ChangeEvent, useEffect, useRef, useState } from 'react';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+} from 'react';
+import toast from 'react-hot-toast';
 
 interface Props {
   sendMfaOtp: (code: string) => Promise<any>;
   loading: boolean;
+  requestNewMfaTicket?: () => Promise<void>;
 }
 
-function MfaOtpForm({ sendMfaOtp, loading }: Props) {
+function MfaOtpForm({ sendMfaOtp, loading, requestNewMfaTicket }: Props) {
   const [otpValue, setOtpValue] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const isMfaTicketInvalid = useRef(false);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -18,11 +28,20 @@ function MfaOtpForm({ sendMfaOtp, loading }: Props) {
     }
   }, []);
 
-  async function sendMfa(code: string) {
-    if (code.length === 6 && !isSubmitting) {
+  async function submitTOTP() {
+    if (otpValue.length === 6 && !isSubmitting) {
       setIsSubmitting(true);
-      const result = await sendMfaOtp(code);
-      if (!result) {
+      if (requestNewMfaTicket && isMfaTicketInvalid.current) {
+        await requestNewMfaTicket();
+      }
+      const result = await sendMfaOtp(otpValue);
+      if (result?.error) {
+        isMfaTicketInvalid.current = true;
+        toast.error(
+          result.error?.message ||
+            'An error occurred while verifying TOTP. Please try again.',
+          getToastStyleProps(),
+        );
         setTimeout(() => {
           inputRef.current?.focus();
         }, 10);
@@ -32,10 +51,14 @@ function MfaOtpForm({ sendMfaOtp, loading }: Props) {
   }
 
   async function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    const code = event.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+    const code = event.target.value.replace(/[^0-9]/g, '');
     setOtpValue(code);
+  }
 
-    sendMfa(code);
+  async function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      submitTOTP();
+    }
   }
 
   const isInputDisabled = loading || isSubmitting;
@@ -50,8 +73,9 @@ function MfaOtpForm({ sendMfaOtp, loading }: Props) {
         className="!bg-transparent"
         disabled={isInputDisabled}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
       />
-      <Button disabled={isButtonDisabled}>
+      <Button disabled={isButtonDisabled} onClick={submitTOTP}>
         {loading ? 'Verifying...' : 'Verify'}
       </Button>
     </div>
