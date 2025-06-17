@@ -8,8 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"reflect"
+	"slices"
 	"sort"
 	"strings"
 
@@ -19,9 +21,7 @@ import (
 func mergeMaps(map1, map2 map[string]any) map[string]any {
 	result := make(map[string]any)
 
-	for key, val := range map1 {
-		result[key] = val
-	}
+	maps.Copy(result, map1)
 
 	for key, val := range map2 {
 		if v, ok := result[key]; ok {
@@ -44,6 +44,86 @@ func mergeMaps(map1, map2 map[string]any) map[string]any {
 	}
 
 	return result
+}
+
+func smartSplit(path string) []string {
+	var parts []string
+	var current strings.Builder
+	bracketDepth := 0
+
+	for _, char := range path {
+		switch char {
+		case '[':
+			bracketDepth++
+			current.WriteRune(char)
+		case ']':
+			bracketDepth--
+			current.WriteRune(char)
+		case '.':
+			if bracketDepth == 0 {
+				parts = append(parts, current.String())
+				current.Reset()
+			} else {
+				current.WriteRune(char)
+			}
+		default:
+			current.WriteRune(char)
+		}
+	}
+
+	if current.Len() > 0 {
+		parts = append(parts, current.String())
+	}
+
+	return parts
+}
+
+func extractFilterFields(filter string) []string { //nolint:cyclop,gocognit
+	var fields []string
+	// Extract fields from JSONPath filter expressions like [?(@.field == 'value')]
+	if strings.Contains(filter, "[?") { //nolint:nestif
+		// Find all @.fieldName patterns
+		start := strings.Index(filter, "[?")
+		if start != -1 {
+			end := strings.Index(filter[start:], "]")
+			if end != -1 {
+				filterExpr := filter[start+2 : start+end] // Extract the filter expression
+				// Look for @.fieldName patterns
+				for i := 0; i < len(filterExpr); {
+					atIndex := strings.Index(filterExpr[i:], "@.")
+					if atIndex == -1 {
+						break
+					}
+					atIndex += i
+					fieldStart := atIndex + 2 //nolint:mnd
+					fieldEnd := fieldStart
+					// Find the end of the field name (stop at space, ), ==, !=, etc.)
+					for fieldEnd < len(filterExpr) {
+						char := filterExpr[fieldEnd]
+						if char == ' ' || char == ')' || char == '=' || char == '!' ||
+							char == '<' ||
+							char == '>' {
+							break
+						}
+						fieldEnd++
+					}
+					if fieldEnd > fieldStart {
+						field := filterExpr[fieldStart:fieldEnd]
+						// Only add if not already present
+						found := false
+						if slices.Contains(fields, field) {
+							break
+						}
+						if !found {
+							fields = append(fields, field)
+						}
+					}
+					i = fieldEnd
+				}
+			}
+		}
+	}
+	return fields
 }
 
 func parseClaims(parts []string) map[string]any {
@@ -102,7 +182,8 @@ type jsonPath struct {
 }
 
 func (j jsonPath) IsArrary() bool {
-	return strings.Contains(j.path, "[]") || strings.Contains(j.path, "[*]")
+	return strings.Contains(j.path, "[]") || strings.Contains(j.path, "[*]") ||
+		strings.Contains(j.path, "[?")
 }
 
 type CustomClaims struct {
@@ -128,8 +209,35 @@ func NewCustomClaims(
 	claims := make(map[string]any)
 	jsonPaths := make(map[string]jsonPath)
 	for name, val := range rawClaims {
-		parts := strings.Split(val, ".")
+		parts := smartSplit(val)
 		claims = mergeMaps(claims, parseClaims(parts))
+
+		// Extract and add filter fields if this is a JSONPath filter expression
+		if strings.Contains(val, "[?") { //nolint:nestif
+			filterFields := extractFilterFields(val)
+			if len(filterFields) > 0 {
+				// Create a structure to add the filter fields to the appropriate location
+				filterParts := smartSplit(val)
+				if len(filterParts) > 0 {
+					// Find the part with the filter and remove everything after the base field name
+					baseParts := make([]string, 0, len(filterParts))
+					for _, part := range filterParts {
+						if strings.Contains(part, "[?") {
+							// Extract just the field name before the filter
+							basePart := strings.Split(part, "[")[0]
+							baseParts = append(baseParts, basePart)
+							break
+						}
+						baseParts = append(baseParts, part)
+					}
+
+					// Create claims for each filter field
+					for _, field := range filterFields {
+						claims = mergeMaps(claims, parseClaims(append(baseParts, field)))
+					}
+				}
+			}
+		}
 
 		j := jsonpath.New(name)
 		jpath := fmt.Sprintf("{ .%s }", strings.ReplaceAll(val, "[]", "[*]"))
@@ -218,9 +326,9 @@ func (c *CustomClaims) ExtractClaims(data any) (map[string]any, error) {
 
 func (c *CustomClaims) makeRequest(ctx context.Context, userID string) (map[string]any, error) {
 	buf := new(bytes.Buffer)
-	if err := json.NewEncoder(buf).Encode(map[string]interface{}{
+	if err := json.NewEncoder(buf).Encode(map[string]any{
 		"query": c.graphqlQuery,
-		"variables": map[string]interface{}{
+		"variables": map[string]any{
 			"id": userID,
 		},
 	}); err != nil {
