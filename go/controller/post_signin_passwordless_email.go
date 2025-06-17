@@ -146,19 +146,23 @@ func (ctrl *Controller) signinWithTicketSignUp(
 			gravatarURL string,
 		) error {
 			resp, err := ctrl.wf.db.InsertUser(ctx, sql.InsertUserParams{
-				ID:              uuid.New(),
-				Disabled:        ctrl.config.DisableNewUsers,
-				DisplayName:     deptr(options.DisplayName),
-				AvatarUrl:       gravatarURL,
-				Email:           sql.Text(email),
-				PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-				Ticket:          sql.Text(ticket),
-				TicketExpiresAt: sql.TimestampTz(ticketExpiresAt),
-				EmailVerified:   false,
-				Locale:          deptr(options.Locale),
-				DefaultRole:     deptr(options.DefaultRole),
-				Metadata:        metadata,
-				Roles:           deptr(options.AllowedRoles),
+				ID:                uuid.New(),
+				Disabled:          ctrl.config.DisableNewUsers,
+				DisplayName:       deptr(options.DisplayName),
+				AvatarUrl:         gravatarURL,
+				Email:             sql.Text(email),
+				PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+				Ticket:            sql.Text(ticket),
+				TicketExpiresAt:   sql.TimestampTz(ticketExpiresAt),
+				EmailVerified:     false,
+				Locale:            deptr(options.Locale),
+				DefaultRole:       deptr(options.DefaultRole),
+				Metadata:          metadata,
+				Roles:             deptr(options.AllowedRoles),
+				PhoneNumber:       pgtype.Text{},        //nolint:exhaustruct
+				OtpHash:           pgtype.Text{},        //nolint:exhaustruct
+				OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+				OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
 			})
 			if err != nil {
 				return fmt.Errorf("error inserting user: %w", err)

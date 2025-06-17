@@ -27,6 +27,8 @@ var (
 
 	ErrAnonymousUsersDisabled          = &APIError{api.DisabledEndpoint}
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
+	ErrUserPhoneNumberNotFound         = &APIError{api.InvalidRequest}
+	ErrInvalidOTP                      = &APIError{api.InvalidRequest}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
 	ErrUserProviderAlreadyLinked       = &APIError{api.InvalidRequest}
@@ -58,6 +60,7 @@ var (
 	ErrOauthTokenExchangeFailed        = &APIError{api.OauthTokenEchangeFailed}
 	ErrOauthProfileFetchFailed         = &APIError{api.OauthProfileFetchFailed}
 	ErrOauthProviderError              = &APIError{api.OauthProviderError}
+	ErrCannotSendSMS                   = &APIError{api.CannotSendSms}
 )
 
 func logError(err error) slog.Attr {
@@ -198,6 +201,16 @@ func (response ErrorResponse) VisitPostUserWebauthnVerifyResponse(w http.Respons
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostSigninPasswordlessSmsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostSigninPasswordlessSmsOtpResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
 func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case
@@ -214,6 +227,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.InvalidTicket,
 		api.DisabledMfaTotp,
 		api.InvalidTotp,
+		api.InvalidOtp,
 		api.NoTotpSecret:
 		return true
 	case
@@ -231,6 +245,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.InvalidState,
 		api.OauthTokenEchangeFailed,
 		api.OauthProfileFetchFailed,
+		api.CannotSendSms,
 		api.OauthProviderError:
 		return false
 	}
@@ -417,6 +432,18 @@ func (ctrl *Controller) getError(err *APIError) ErrorResponse { //nolint:gocyclo
 			Status:  http.StatusBadRequest,
 			Error:   err.t,
 			Message: "Provider returned an error",
+		}
+	case api.CannotSendSms:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "Cannot send SMS, check your phone number is correct",
+		}
+	case api.InvalidOtp:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "Invalid or expired OTP",
 		}
 	}
 

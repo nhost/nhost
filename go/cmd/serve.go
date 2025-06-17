@@ -97,6 +97,10 @@ const (
 	flagAppleAudience                    = "apple-audience"
 	flagGoogleAudience                   = "google-audience"
 	flagOTPEmailEnabled                  = "otp-email-enabled"
+	flagSMSPasswordlessEnabled           = "sms-passwordless-enabled"
+	flagSMSTwilioAccountSid              = "sms-twilio-account-sid"
+	flagSMSTwilioAuthToken               = "sms-twilio-auth-token" //nolint:gosec
+	flagSMSTwilioMessagingServiceID      = "sms-twilio-messaging-service-id"
 	flagAnonymousUsersEnabled            = "enable-anonymous-users"
 	flagMfaEnabled                       = "mfa-enabled"
 	flagMfaTotpIssuer                    = "mfa-totp-issuer"
@@ -656,6 +660,30 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				EnvVars:  []string{"AUTH_OTP_EMAIL_ENABLED"},
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagSMSPasswordlessEnabled,
+				Usage:    "Enable SMS passwordless authentication",
+				Category: "sms",
+				EnvVars:  []string{"AUTH_SMS_PASSWORDLESS_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSTwilioAccountSid,
+				Usage:    "Twilio Account SID for SMS",
+				Category: "sms",
+				EnvVars:  []string{"AUTH_SMS_TWILIO_ACCOUNT_SID"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSTwilioAuthToken,
+				Usage:    "Twilio Auth Token for SMS",
+				Category: "sms",
+				EnvVars:  []string{"AUTH_SMS_TWILIO_AUTH_TOKEN"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSTwilioMessagingServiceID,
+				Usage:    "Twilio Messaging Service ID for SMS",
+				Category: "sms",
+				EnvVars:  []string{"AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagAnonymousUsersEnabled,
 				Usage:    "Enable anonymous users",
 				Category: "signup",
@@ -1208,18 +1236,24 @@ func getDependencies( //nolint:ireturn
 	cCtx *cli.Context, db *sql.Queries, logger *slog.Logger,
 ) (
 	controller.Emailer,
+	controller.SMSer,
 	*controller.JWTGetter,
 	*oidc.IDTokenValidatorProviders,
 	error,
 ) {
-	emailer, err := getEmailer(cCtx, logger)
+	emailer, templates, err := getEmailer(cCtx, logger)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("problem creating emailer: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("problem creating emailer: %w", err)
+	}
+
+	sms, err := getSMS(cCtx, templates, db, logger)
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("problem creating SMS client: %w", err)
 	}
 
 	jwtGetter, err := getJWTGetter(cCtx, db)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("problem creating jwt getter: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("problem creating jwt getter: %w", err)
 	}
 
 	idTokenValidator, err := oidc.NewIDTokenValidatorProviders(
@@ -1229,10 +1263,10 @@ func getDependencies( //nolint:ireturn
 		"",
 	)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error creating id token validator: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("error creating id token validator: %w", err)
 	}
 
-	return emailer, jwtGetter, idTokenValidator, nil
+	return emailer, sms, jwtGetter, idTokenValidator, nil
 }
 
 func getGoServer( //nolint:funlen
@@ -1273,7 +1307,7 @@ func getGoServer( //nolint:funlen
 		return nil, fmt.Errorf("problem creating config: %w", err)
 	}
 
-	emailer, jwtGetter, idTokenValidator, err := getDependencies(cCtx, db, logger)
+	emailer, smsClient, jwtGetter, idTokenValidator, err := getDependencies(cCtx, db, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -1288,6 +1322,7 @@ func getGoServer( //nolint:funlen
 		config,
 		jwtGetter,
 		emailer,
+		smsClient,
 		hibp.NewClient(),
 		oauthProviders,
 		idTokenValidator,

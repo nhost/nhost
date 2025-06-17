@@ -29,13 +29,28 @@ func generateTicket(ticketType TicketType) string {
 	return fmt.Sprintf("%s:%s", ticketType, uuid.NewString())
 }
 
-func generateOTP() (string, error) {
+func GenerateOTP() (string, string, error) {
 	n, err := rand.Int(rand.Reader, big.NewInt(1000000)) //nolint:mnd
 	if err != nil {
-		return "", fmt.Errorf("error generating OTP: %w", err)
+		return "", "", fmt.Errorf("error generating OTP: %w", err)
 	}
 
-	return fmt.Sprintf("%06d", n), nil
+	otp := fmt.Sprintf("%06d", n)
+	hash, err := hashPassword(otp)
+	if err != nil {
+		return "", "", err
+	}
+
+	return otp, hash, nil
+}
+
+func HashOTP(otp string) (string, error) {
+	hash, err := hashPassword(otp)
+	if err != nil {
+		return "", fmt.Errorf("error hashing OTP: %w", err)
+	}
+
+	return hash, nil
 }
 
 func (wf *Workflows) SetTicket(

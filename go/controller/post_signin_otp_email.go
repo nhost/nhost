@@ -28,7 +28,7 @@ func (ctrl *Controller) PostSigninOtpEmail( //nolint:ireturn
 		return ctrl.respondWithError(apiErr), nil
 	}
 
-	otp, err := generateOTP()
+	otp, _, err := GenerateOTP()
 	if err != nil {
 		logger.Error("error generating OTP", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil

@@ -32,6 +32,7 @@ type Workflows struct {
 	db                   DBClient
 	hibp                 HIBPClient
 	email                Emailer
+	sms                  SMSer
 	idTokenValidator     *oidc.IDTokenValidatorProviders
 	redirectURLValidator func(redirectTo string) bool
 	ValidateEmail        func(email string) bool
@@ -44,6 +45,7 @@ func NewWorkflows(
 	db DBClient,
 	hibp HIBPClient,
 	email Emailer,
+	sms SMSer,
 	idTokenValidator *oidc.IDTokenValidatorProviders,
 	gravatarURL func(string) string,
 ) (*Workflows, error) {
@@ -71,6 +73,7 @@ func NewWorkflows(
 		db:                   db,
 		hibp:                 hibp,
 		email:                email,
+		sms:                  sms,
 		redirectURLValidator: redirectURLValidator,
 		ValidateEmail:        emailValidator,
 		idTokenValidator:     idTokenValidator,
@@ -1168,4 +1171,32 @@ func (wf *Workflows) GetUserSecurityKeys(
 	}
 
 	return keys, nil
+}
+
+func (wf *Workflows) GetUserByPhoneNumber(
+	ctx context.Context,
+	phoneNumber string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.GetUserByPhoneNumber(ctx, sql.Text(phoneNumber))
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.Warn("user not found by phone number")
+		return sql.AuthUser{}, ErrUserPhoneNumberNotFound
+	}
+	if err != nil {
+		logger.Error("error getting user by phone number", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	if user.Disabled {
+		logger.Warn("user is disabled")
+		return sql.AuthUser{}, ErrDisabledUser
+	}
+
+	if user.IsAnonymous {
+		logger.Warn("user is anonymous")
+		return sql.AuthUser{}, ErrForbiddenAnonymous
+	}
+
+	return user, nil
 }

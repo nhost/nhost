@@ -6,6 +6,10 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM auth.users
 WHERE email = $1 LIMIT 1;
 
+-- name: GetUserByPhoneNumber :one
+SELECT * FROM auth.users
+WHERE phone_number = $1 LIMIT 1;
+
 -- name: GetUserRoles :many
 SELECT * FROM auth.user_roles
 WHERE user_id = $1;
@@ -36,6 +40,12 @@ SET ticket = NULL, ticket_expires_at = now(), email_verified = true
 WHERE email = $1 AND ticket = $2 AND ticket_expires_at > now()
 RETURNING *;
 
+-- name: GetUserByPhoneNumberAndOTP :one
+UPDATE auth.users
+SET otp_hash = NULL, otp_hash_expires_at = now(), phone_number_verified = true
+WHERE phone_number = $1 AND otp_hash = $2 AND otp_hash_expires_at > now() AND otp_method_last_used = 'sms'
+RETURNING *;
+
 -- name: GetUserByProviderID :one
 WITH user_providers AS (
     SELECT * FROM auth.user_providers
@@ -54,6 +64,10 @@ WITH inserted_user AS (
         disabled,
         display_name,
         avatar_url,
+        phone_number,
+        otp_hash,
+        otp_hash_expires_at,
+        otp_method_last_used,
         email,
         password_hash,
         ticket,
@@ -63,7 +77,7 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+      $1, $2, $3, $4, $5, $6, COALESCE(@otp_hash_expires_at, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING *
 )
@@ -366,3 +380,9 @@ WHERE id = $1;
 UPDATE auth.users
 SET active_mfa_type = $2
 WHERE id = $1;
+
+-- name: UpdateUserOTPHash :one
+UPDATE auth.users
+SET (otp_hash, otp_hash_expires_at, otp_method_last_used) = ($2, $3, $4)
+WHERE id = $1
+RETURNING id;

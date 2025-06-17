@@ -431,6 +431,55 @@ paths:
               schema:
                 $ref: '#/components/schemas/SignInOTPEmailVerifyResponse'
 
+  /signin/passwordless/sms:
+    post:
+      summary: >-
+        Sign in with a one time password sent to user's phone number. If the user doesn't exist, it will be created.
+        The options object is optional and can be used to configure the user's when signing up a
+        new user. It is ignored if the user already exists.
+      tags:
+        - signin
+        - signup
+        - passwordless
+        - sms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInPasswordlessSmsRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            OTP sent to user's phone number successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /signin/passwordless/sms/otp:
+    post:
+      summary: >-
+        Verify SMS OTP and return a session if validation is successful
+      tags:
+        - signin
+        - signup
+        - passwordless
+        - sms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInPasswordlessSmsOtpRequest'
+        required: true
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInPasswordlessSmsOtpResponse'
+
   /signin/pat:
     post:
       summary: >-
@@ -919,7 +968,7 @@ components:
         keys:
           type: array
           items:
-            $ref: "#/components/schemas/JWK"
+            $ref: '#/components/schemas/JWK'
       required:
         - keys
 
@@ -1039,6 +1088,8 @@ components:
             - oauth-token-echange-failed
             - oauth-profile-fetch-failed
             - oauth-provider-error
+            - invalid-otp
+            - cannot-send-sms
       required:
         - status
         - message
@@ -1049,9 +1100,9 @@ components:
       additionalProperties: false
       properties:
         session:
-          $ref: "#/components/schemas/Session"
+          $ref: '#/components/schemas/Session'
         mfa:
-          $ref: "#/components/schemas/MFAChallengePayload"
+          $ref: '#/components/schemas/MFAChallengePayload'
 
     MFAChallengePayload:
       type: object
@@ -1067,7 +1118,7 @@ components:
       additionalProperties: false
       properties:
         session:
-          $ref: "#/components/schemas/Session"
+          $ref: '#/components/schemas/Session'
 
     Session:
       type: object
@@ -1200,7 +1251,7 @@ components:
           description: Deprecated, will be ignored
           type: string
         options:
-          $ref: "#/components/schemas/SignUpOptions"
+          $ref: '#/components/schemas/SignUpOptions'
       required:
         - signInMethod
         - email
@@ -1215,7 +1266,7 @@ components:
           format: email
           type: string
         options:
-          $ref: "#/components/schemas/OptionsRedirectTo"
+          $ref: '#/components/schemas/OptionsRedirectTo'
       required:
         - newEmail
 
@@ -1229,7 +1280,7 @@ components:
           format: email
           type: string
         options:
-          $ref: "#/components/schemas/OptionsRedirectTo"
+          $ref: '#/components/schemas/OptionsRedirectTo'
       required:
         - email
 
@@ -1243,7 +1294,7 @@ components:
           format: email
           type: string
         options:
-          $ref: "#/components/schemas/OptionsRedirectTo"
+          $ref: '#/components/schemas/OptionsRedirectTo'
       required:
         - email
 
@@ -1329,7 +1380,7 @@ components:
           format: email
           type: string
         options:
-          $ref: "#/components/schemas/SignUpOptions"
+          $ref: '#/components/schemas/SignUpOptions'
       required:
         - email
 
@@ -1343,7 +1394,7 @@ components:
           format: email
           type: string
         options:
-          $ref: "#/components/schemas/SignUpOptions"
+          $ref: '#/components/schemas/SignUpOptions'
       required:
         - email
 
@@ -1368,7 +1419,44 @@ components:
       additionalProperties: false
       properties:
         session:
-          $ref: "#/components/schemas/Session"
+          $ref: '#/components/schemas/Session'
+
+    SignInPasswordlessSmsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        phoneNumber:
+          description: Phone number of the user
+          example: '+123456789'
+          type: string
+        options:
+          $ref: '#/components/schemas/SignUpOptions'
+      required:
+        - phoneNumber
+
+    SignInPasswordlessSmsOtpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        phoneNumber:
+          description: Phone number of the user
+          example: '+123456789'
+          type: string
+        otp:
+          type: string
+          description: One-time password received by SMS
+      required:
+        - phoneNumber
+        - otp
+
+    SignInPasswordlessSmsOtpResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          $ref: '#/components/schemas/Session'
+        mfa:
+          $ref: '#/components/schemas/MFAChallengePayload'
 
     SignUpEmailPasswordRequest:
       type: object
@@ -1386,7 +1474,7 @@ components:
           maxLength: 50
           type: string
         options:
-          $ref: "#/components/schemas/SignUpOptions"
+          $ref: '#/components/schemas/SignUpOptions'
       required:
         - email
         - password
@@ -1450,7 +1538,7 @@ components:
           format: email
           type: string
         options:
-          $ref: "#/components/schemas/SignUpOptions"
+          $ref: '#/components/schemas/SignUpOptions'
       required:
         - email
 
@@ -1500,7 +1588,7 @@ components:
             path: github.com/go-webauthn/webauthn/protocol
           x-go-type: protocol.CredentialCreationResponse
         options:
-          $ref: "#/components/schemas/SignUpOptions"
+          $ref: '#/components/schemas/SignUpOptions'
         nickname:
           description: Nickname for the security key
           type: string
@@ -1512,7 +1600,7 @@ components:
       additionalProperties: false
       properties:
         provider:
-          $ref: "#/components/schemas/IdTokenProvider"
+          $ref: '#/components/schemas/IdTokenProvider'
         idToken:
           type: string
           description: Apple ID token
@@ -1520,7 +1608,7 @@ components:
           type: string
           description: Nonce used during sign in process
         options:
-          $ref: "#/components/schemas/SignUpOptions"
+          $ref: '#/components/schemas/SignUpOptions'
       required:
         - provider
         - idToken
@@ -1552,7 +1640,7 @@ components:
       additionalProperties: false
       properties:
         provider:
-          $ref: "#/components/schemas/IdTokenProvider"
+          $ref: '#/components/schemas/IdTokenProvider'
         idToken:
           type: string
           description: Apple ID token
@@ -1572,7 +1660,7 @@ components:
           description: MFA activation code
         activeMfaType:
           type: string
-          enum: [totp, ""]
+          enum: [totp, '']
           description: Type of MFA to activate. If not set or set to empty string, disable MFA
       required:
         - code

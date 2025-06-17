@@ -19,6 +19,7 @@ require (
 	github.com/oapi-codegen/gin-middleware v1.0.2
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/pquerna/otp v1.4.0
+	github.com/twilio/twilio-go v1.26.3
 	github.com/urfave/cli/v2 v2.27.6
 	github.com/valyala/fasttemplate v1.2.2
 	go.uber.org/mock v0.5.2
@@ -45,6 +46,7 @@ require (
 	github.com/go-playground/validator/v10 v10.26.0 // indirect
 	github.com/go-webauthn/x v0.1.20 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-tpm v0.9.4 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -64,6 +66,7 @@ require (
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect

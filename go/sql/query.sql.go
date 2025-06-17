@@ -225,6 +225,89 @@ func (q *Queries) GetUserByEmailAndTicket(ctx context.Context, arg GetUserByEmai
 	return i, err
 }
 
+const getUserByPhoneNumber = `-- name: GetUserByPhoneNumber :one
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge FROM auth.users
+WHERE phone_number = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getUserByPhoneNumber, phoneNumber)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+	)
+	return i, err
+}
+
+const getUserByPhoneNumberAndOTP = `-- name: GetUserByPhoneNumberAndOTP :one
+UPDATE auth.users
+SET otp_hash = NULL, otp_hash_expires_at = now(), phone_number_verified = true
+WHERE phone_number = $1 AND otp_hash = $2 AND otp_hash_expires_at > now() AND otp_method_last_used = 'sms'
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
+`
+
+type GetUserByPhoneNumberAndOTPParams struct {
+	PhoneNumber pgtype.Text
+	OtpHash     pgtype.Text
+}
+
+func (q *Queries) GetUserByPhoneNumberAndOTP(ctx context.Context, arg GetUserByPhoneNumberAndOTPParams) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getUserByPhoneNumberAndOTP, arg.PhoneNumber, arg.OtpHash)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+	)
+	return i, err
+}
+
 const getUserByProviderID = `-- name: GetUserByProviderID :one
 WITH user_providers AS (
     SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id FROM auth.user_providers
@@ -458,6 +541,10 @@ WITH inserted_user AS (
         disabled,
         display_name,
         avatar_url,
+        phone_number,
+        otp_hash,
+        otp_hash_expires_at,
+        otp_method_last_used,
         email,
         password_hash,
         ticket,
@@ -467,30 +554,34 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+      $1, $2, $3, $4, $5, $6, COALESCE($17, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
 )
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
-    FROM inserted_user, unnest($13::TEXT[]) AS roles(role)
+    FROM inserted_user, unnest($7::TEXT[]) AS roles(role)
 RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id)
 `
 
 type InsertUserParams struct {
-	ID              uuid.UUID
-	Disabled        bool
-	DisplayName     string
-	AvatarUrl       string
-	Email           pgtype.Text
-	PasswordHash    pgtype.Text
-	Ticket          pgtype.Text
-	TicketExpiresAt pgtype.Timestamptz
-	EmailVerified   bool
-	Locale          string
-	DefaultRole     string
-	Metadata        []byte
-	Roles           []string
+	ID                uuid.UUID
+	Disabled          bool
+	DisplayName       string
+	AvatarUrl         string
+	PhoneNumber       pgtype.Text
+	OtpHash           pgtype.Text
+	Roles             []string
+	OtpMethodLastUsed pgtype.Text
+	Email             pgtype.Text
+	PasswordHash      pgtype.Text
+	Ticket            pgtype.Text
+	TicketExpiresAt   pgtype.Timestamptz
+	EmailVerified     bool
+	Locale            string
+	DefaultRole       string
+	Metadata          []byte
+	OtpHashExpiresAt  pgtype.Timestamptz
 }
 
 type InsertUserRow struct {
@@ -504,6 +595,10 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertU
 		arg.Disabled,
 		arg.DisplayName,
 		arg.AvatarUrl,
+		arg.PhoneNumber,
+		arg.OtpHash,
+		arg.Roles,
+		arg.OtpMethodLastUsed,
 		arg.Email,
 		arg.PasswordHash,
 		arg.Ticket,
@@ -512,7 +607,7 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertU
 		arg.Locale,
 		arg.DefaultRole,
 		arg.Metadata,
-		arg.Roles,
+		arg.OtpHashExpiresAt,
 	)
 	var i InsertUserRow
 	err := row.Scan(&i.UserID, &i.CreatedAt)
@@ -1187,6 +1282,32 @@ func (q *Queries) UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.
 	var last_seen pgtype.Timestamptz
 	err := row.Scan(&last_seen)
 	return last_seen, err
+}
+
+const updateUserOTPHash = `-- name: UpdateUserOTPHash :one
+UPDATE auth.users
+SET (otp_hash, otp_hash_expires_at, otp_method_last_used) = ($2, $3, $4)
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateUserOTPHashParams struct {
+	ID                uuid.UUID
+	OtpHash           pgtype.Text
+	OtpHashExpiresAt  pgtype.Timestamptz
+	OtpMethodLastUsed pgtype.Text
+}
+
+func (q *Queries) UpdateUserOTPHash(ctx context.Context, arg UpdateUserOTPHashParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserOTPHash,
+		arg.ID,
+		arg.OtpHash,
+		arg.OtpHashExpiresAt,
+		arg.OtpMethodLastUsed,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateUserTicket = `-- name: UpdateUserTicket :one

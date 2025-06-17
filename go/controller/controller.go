@@ -41,15 +41,24 @@ type Emailer interface {
 	) error
 }
 
+type SMSer interface {
+	SendVerificationCode(to string, locale string) (string, time.Time, error)
+	CheckVerificationCode(ctx context.Context, to string, code string) (sql.AuthUser, error)
+}
+
 type DBClientGetUser interface {
 	GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (sql.AuthUser, error)
+	GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error)
 	GetUserByRefreshTokenHash(
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
 	GetUserByEmailAndTicket(
 		ctx context.Context, arg sql.GetUserByEmailAndTicketParams,
+	) (sql.AuthUser, error)
+	GetUserByPhoneNumberAndOTP(
+		ctx context.Context, arg sql.GetUserByPhoneNumberAndOTPParams,
 	) (sql.AuthUser, error)
 }
 
@@ -83,6 +92,7 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 	UpdateUserTotpSecret(ctx context.Context, arg sql.UpdateUserTotpSecretParams) error
 	UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error
 	InsertSecurityKey(ctx context.Context, arg sql.InsertSecurityKeyParams) (uuid.UUID, error)
+	UpdateUserOTPHash(ctx context.Context, arg sql.UpdateUserOTPHashParams) (uuid.UUID, error)
 }
 
 type DBClientUserProvider interface {
@@ -136,6 +146,7 @@ func New(
 	config Config,
 	jwtGetter *JWTGetter,
 	emailer Emailer,
+	sms SMSer,
 	hibp HIBPClient,
 	providers providers.Map,
 	idTokenValidator *oidc.IDTokenValidatorProviders,
@@ -148,6 +159,7 @@ func New(
 		db,
 		hibp,
 		emailer,
+		sms,
 		idTokenValidator,
 		GravatarURLFunc(
 			config.GravatarEnabled, config.GravatarDefault, config.GravatarRating,

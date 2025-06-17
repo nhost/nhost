@@ -12,7 +12,7 @@ type gomockCmpOpts[T any] struct {
 	diff string
 }
 
-func GomockCmpOpts[T any](w T, opts ...cmp.Option) *gomockCmpOpts[T] { //nolint:revive
+func GomockCmpOpts[T any](w T, opts ...cmp.Option) *gomockCmpOpts[T] { //nolint:revive,nolintlint
 	return &gomockCmpOpts[T]{
 		w:    w,
 		opts: opts,

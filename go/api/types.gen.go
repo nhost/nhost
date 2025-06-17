@@ -19,6 +19,7 @@ const (
 
 // Defines values for ErrorResponseError.
 const (
+	CannotSendSms                   ErrorResponseError = "cannot-send-sms"
 	DefaultRoleMustBeInAllowedRoles ErrorResponseError = "default-role-must-be-in-allowed-roles"
 	DisabledEndpoint                ErrorResponseError = "disabled-endpoint"
 	DisabledMfaTotp                 ErrorResponseError = "disabled-mfa-totp"
@@ -28,6 +29,7 @@ const (
 	ForbiddenAnonymous              ErrorResponseError = "forbidden-anonymous"
 	InternalServerError             ErrorResponseError = "internal-server-error"
 	InvalidEmailPassword            ErrorResponseError = "invalid-email-password"
+	InvalidOtp                      ErrorResponseError = "invalid-otp"
 	InvalidPat                      ErrorResponseError = "invalid-pat"
 	InvalidRefreshToken             ErrorResponseError = "invalid-refresh-token"
 	InvalidRequest                  ErrorResponseError = "invalid-request"
@@ -328,6 +330,29 @@ type SignInPasswordlessEmailRequest struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
+// SignInPasswordlessSmsOtpRequest defines model for SignInPasswordlessSmsOtpRequest.
+type SignInPasswordlessSmsOtpRequest struct {
+	// Otp One-time password received by SMS
+	Otp string `json:"otp"`
+
+	// PhoneNumber Phone number of the user
+	PhoneNumber string `json:"phoneNumber"`
+}
+
+// SignInPasswordlessSmsOtpResponse defines model for SignInPasswordlessSmsOtpResponse.
+type SignInPasswordlessSmsOtpResponse struct {
+	Mfa     *MFAChallengePayload `json:"mfa,omitempty"`
+	Session *Session             `json:"session,omitempty"`
+}
+
+// SignInPasswordlessSmsRequest defines model for SignInPasswordlessSmsRequest.
+type SignInPasswordlessSmsRequest struct {
+	Options *SignUpOptions `json:"options,omitempty"`
+
+	// PhoneNumber Phone number of the user
+	PhoneNumber string `json:"phoneNumber"`
 }
 
 // SignInWebauthnRequest defines model for SignInWebauthnRequest.
@@ -650,6 +675,12 @@ type PostSigninOtpEmailVerifyJSONRequestBody = SignInOTPEmailVerifyRequest
 
 // PostSigninPasswordlessEmailJSONRequestBody defines body for PostSigninPasswordlessEmail for application/json ContentType.
 type PostSigninPasswordlessEmailJSONRequestBody = SignInPasswordlessEmailRequest
+
+// PostSigninPasswordlessSmsJSONRequestBody defines body for PostSigninPasswordlessSms for application/json ContentType.
+type PostSigninPasswordlessSmsJSONRequestBody = SignInPasswordlessSmsRequest
+
+// PostSigninPasswordlessSmsOtpJSONRequestBody defines body for PostSigninPasswordlessSmsOtp for application/json ContentType.
+type PostSigninPasswordlessSmsOtpJSONRequestBody = SignInPasswordlessSmsOtpRequest
 
 // PostSigninPatJSONRequestBody defines body for PostSigninPat for application/json ContentType.
 type PostSigninPatJSONRequestBody = SignInPATRequest

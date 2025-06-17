@@ -1,7 +1,6 @@
 import * as express from 'express';
 import nocache from 'nocache';
 import env from './env';
-import { signInRouter } from './signin';
 import { signOutRouter } from './signout';
 import { tokenRouter } from './token';
 import { userRouter } from './user';
@@ -21,7 +20,6 @@ router.get('/version', (_req, res) =>
 );
 
 // auth routes
-router.use(signInRouter);
 router.use(signOutRouter);
 router.use(userRouter);
 router.use(tokenRouter);

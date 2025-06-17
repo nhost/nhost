@@ -173,6 +173,7 @@ type testRequest[T, U any] struct {
 type getControllerOpts struct {
 	customClaimer             func(*gomock.Controller) controller.CustomClaimer
 	emailer                   func(*gomock.Controller) *mock.MockEmailer
+	sms                       func(*gomock.Controller) *mock.MockSMSer
 	hibp                      func(*gomock.Controller) *mock.MockHIBPClient
 	idTokenValidatorProviders func(t *testing.T) *oidc.IDTokenValidatorProviders
 	totp                      *controller.Totp
@@ -189,6 +190,12 @@ func withCusomClaimer(cc func(*gomock.Controller) controller.CustomClaimer) getC
 func withEmailer(emailer func(*gomock.Controller) *mock.MockEmailer) getControllerOptsFunc {
 	return func(o *getControllerOpts) {
 		o.emailer = emailer
+	}
+}
+
+func withSMS(sms func(*gomock.Controller) *mock.MockSMSer) getControllerOptsFunc {
+	return func(o *getControllerOpts) {
+		o.sms = sms
 	}
 }
 
@@ -249,6 +256,11 @@ func getController(
 		emailer = controllerOpts.emailer(ctrl)
 	}
 
+	var sms *mock.MockSMSer
+	if controllerOpts.sms != nil {
+		sms = controllerOpts.sms(ctrl)
+	}
+
 	var hibp controller.HIBPClient
 	if controllerOpts.hibp != nil {
 		hibp = controllerOpts.hibp(ctrl)
@@ -268,6 +280,7 @@ func getController(
 		config,
 		jwtGetter,
 		emailer,
+		sms,
 		hibp,
 		providers.Map{
 			"fake": providers.NewFakeProvider(
