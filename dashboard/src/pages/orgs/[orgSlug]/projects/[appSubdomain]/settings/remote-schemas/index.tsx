@@ -1,49 +1,55 @@
-import { InlineCode } from '@/components/presentational/InlineCode';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
-import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
-import { useRouter } from 'next/router';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
+import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
+import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
 import type { ReactElement } from 'react';
 
-export default function DataBrowserDatabaseDetailsPage() {
-  const {
-    query: { dataSourceSlug },
-  } = useRouter();
+export default function RemoteSchemasPage() {
+  const { project } = useProject();
 
-  if (dataSourceSlug !== 'default') {
+  const { data: remoteSchemas, isLoading } = useGetRemoteSchemasQuery([
+    `remote_schemas`,
+    project?.subdomain,
+  ]);
+
+  if (isLoading) {
     return (
-      <DataBrowserEmptyState
-        title="Database not found"
-        description={
-          <span>
-            Database{' '}
-            <InlineCode className="px-1.5 text-sm">{dataSourceSlug}</InlineCode>{' '}
-            does not exist.
-          </span>
-        }
+      <ActivityIndicator
+        delay={1000}
+        label="Loading remote schemas..."
+        className="justify-center"
+      />
+    );
+  }
+
+  if (remoteSchemas && remoteSchemas.length === 0) {
+    return (
+      <RemoteSchemaEmptyState
+        title="Remote Schema not found"
+        description={<span>No remote schemas found.</span>}
       />
     );
   }
 
   return (
-    <DataBrowserEmptyState
-      title="Database"
-      description="Select a table from the sidebar to get started."
+    <RemoteSchemaEmptyState
+      title="Remote Schemas"
+      description="Select a remote schema from the sidebar to get started."
     />
   );
 }
 
-DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
-  page: ReactElement,
-) {
+RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
     >
-      <DataBrowserSidebar className="w-full max-w-sidebar" />
+      <RemoteSchemaBrowserSidebar className="w-full max-w-sidebar" />
 
       <Box
         className="flex w-full flex-auto flex-col overflow-x-hidden"
