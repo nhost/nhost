@@ -25,7 +25,7 @@ test.beforeAll(async ({ browser }) => {
 
 test('should create a new project', async () => {
   await gotoUrl(page, `/orgs/${getFreeUserStarterOrgSlug()}/projects/new`);
-  const projectName = faker.lorem.words(3);
+  const projectName = faker.lorem.words(3).slice(0, 32);
 
   await page.getByLabel('Project Name').fill(projectName);
   await page.getByText('Create Project').click();
