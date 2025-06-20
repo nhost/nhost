@@ -7,7 +7,6 @@ import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissionIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Table } from '@/components/ui/v2/Table';
-import { TableBody } from '@/components/ui/v2/TableBody';
 import { TableCell } from '@/components/ui/v2/TableCell';
 import { TableContainer } from '@/components/ui/v2/TableContainer';
 import { TableHead } from '@/components/ui/v2/TableHead';
@@ -17,8 +16,8 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DialogFormProps } from '@/types/common';
 import NavLink from 'next/link';
-import { twMerge } from 'tailwind-merge';
-import RolePermissionsRow from './RolePermissionsRow';
+import { useState } from 'react';
+import EmptyRemoteSchemaRelationships from './EmptyRemoteSchemaRelationships';
 
 export interface EditPermissionsFormProps extends DialogFormProps {
   /**
@@ -31,7 +30,7 @@ export interface EditPermissionsFormProps extends DialogFormProps {
   onCancel?: VoidFunction;
 }
 
-export default function EditPermissionsForm({
+export default function EditRelationshipsForm({
   schema,
   onCancel,
 }: EditPermissionsFormProps) {
@@ -39,8 +38,20 @@ export default function EditPermissionsForm({
   const { project } = useProject();
   const { org } = useCurrentOrg();
 
-  // Mock roles for presentational purposes
-  const mockRoles = ['public', 'user', 'moderator'];
+  // Tracks the current view shown in the form. If you click on the "Add Relationship" button, the view will be set to "add".
+  const [view, setView] = useState<'list' | 'add' | 'edit'>('list');
+
+  if (view === 'list') {
+    return (
+      <EmptyRemoteSchemaRelationships
+        onAddRelationship={() => setView('add')}
+      />
+    );
+  }
+
+  if (view === 'add') {
+
+  }
 
   return (
     <Box
@@ -94,38 +105,6 @@ export default function EditPermissionsForm({
                   </TableCell>
                 </TableRow>
               </TableHead>
-
-              <TableBody className="block rounded-sm+ border-1">
-                <RolePermissionsRow
-                  name="admin"
-                  disabled
-                  accessLevels={{
-                    insert: 'full',
-                    select: 'none',
-                    update: 'none',
-                    delete: 'none',
-                  }}
-                />
-
-                {mockRoles.map((currentRole, index) => (
-                  <RolePermissionsRow
-                    name={currentRole}
-                    key={currentRole}
-                    className={twMerge(
-                      index === mockRoles.length - 1 && 'border-b-0',
-                    )}
-                    onActionSelect={() => {
-                      // TODO: Add functionality when needed
-                    }}
-                    accessLevels={{
-                      insert: 'none',
-                      select: 'none',
-                      update: 'none',
-                      delete: 'none',
-                    }}
-                  />
-                ))}
-              </TableBody>
             </Table>
           </TableContainer>
 
