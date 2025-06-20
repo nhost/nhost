@@ -5,10 +5,10 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
-import { useChangePassword } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -36,7 +36,7 @@ const StyledInput = styled(Input)({
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const { changePassword } = useChangePassword();
+  const nhost = useNhostClient();
 
   const form = useForm<ResetPasswordFormValues>({
     reValidateMode: 'onSubmit',
@@ -51,24 +51,15 @@ export default function ResetPasswordPage() {
 
   async function handleSubmit({ newPassword }: ResetPasswordFormValues) {
     try {
-      const password = newPassword;
-
-      const { isError, error } = await changePassword(password);
-
-      if (isError) {
-        toast.error(
-          `An error occurred while changing your password: ${error.message}`,
-          getToastStyleProps(),
-        );
-
-        return;
-      }
+      await nhost.auth.changeUserPassword({
+        newPassword,
+      });
 
       toast.success('Password was updated successfully.');
       router.push('/');
-    } catch {
+    } catch (error) {
       toast.error(
-        'An error occurred while updating your password. Please try again.',
+        `An error occurred while changing your password: ${error?.message}`,
         getToastStyleProps(),
       );
     }

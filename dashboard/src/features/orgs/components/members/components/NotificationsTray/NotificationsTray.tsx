@@ -16,8 +16,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/v3/sheet';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUserData } from '@/hooks/useUserData';
 import { isEmptyValue } from '@/lib/utils';
 import {
   CheckoutStatus,
@@ -29,7 +31,6 @@ import {
   type OrganizationMemberInvitesQuery,
   type PostOrganizationRequestResponse,
 } from '@/utils/__generated__/graphql';
-import { useUserData } from '@nhost/nextjs';
 import { formatDistance } from 'date-fns';
 import { Bell } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -43,6 +44,7 @@ export default function NotificationsTray() {
   const { session_id } = query;
   const { refetch: refetchOrgs } = useOrgs();
   const [open, setOpen] = useState(false);
+  const isPlatForm = useIsPlatform();
 
   const [stripeFormDialogOpen, setStripeFormDialogOpen] = useState(false);
 
@@ -61,21 +63,21 @@ export default function NotificationsTray() {
   const [postOrganizationRequest] = usePostOrganizationRequestMutation();
 
   useEffect(() => {
-    if (userData) {
+    if (userData?.id) {
       getInvites({
         variables: {
-          userId: userData.id,
+          userId: userData?.id,
         },
       });
     }
-  }, [asPath, userData, getInvites]);
+  }, [asPath, userData?.id, getInvites]);
 
   useEffect(() => {
     const checkForPendingOrgRequests = async () => {
       const { data: { organizationNewRequests = [] } = {} } =
         await getOrganizationNewRequests({
           variables: {
-            userID: userData.id,
+            userID: userData?.id,
           },
         });
       if (organizationNewRequests.length > 0) {
@@ -111,6 +113,7 @@ export default function NotificationsTray() {
     };
 
     if (
+      isPlatForm &&
       userData &&
       !['/', '/orgs/verify'].includes(route) &&
       isRouterReady &&
@@ -125,6 +128,7 @@ export default function NotificationsTray() {
     getOrganizationNewRequests,
     postOrganizationRequest,
     session_id,
+    isPlatForm,
   ]);
 
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();

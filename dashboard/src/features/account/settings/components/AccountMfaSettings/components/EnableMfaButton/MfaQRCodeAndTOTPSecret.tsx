@@ -1,51 +1,52 @@
 /* eslint-disable @next/next/no-img-element */
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useConfigMfa } from '@nhost/nextjs';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import CopyMfaTOTPSecret from './CopyMfaTOTPSecret';
-
-const defaultErrorMessage =
-  'An error occurred while trying to enable multi-factor authentication. Please try again.';
 
 interface Props {
   onSuccess: () => void;
 }
 
 function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
-  const {
-    generateQrCode,
-    qrCodeDataUrl,
-    isGenerated,
-    isGenerating,
-    activateMfa,
-    isActivating,
-    totpSecret,
-  } = useConfigMfa();
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | undefined>();
+  const [totpSecret, setTotpSecret] = useState<string | undefined>();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
+  const nhost = useNhostClient();
 
   async function onSendMfaOtp(code: string) {
-    const result = await activateMfa(code);
-    if (result.error) {
-      toast.error(
-        result.error.message || defaultErrorMessage,
+    try {
+      setIsActivating(true);
+      await nhost.auth.verifyChangeUserMfa({
+        code,
+        activeMfaType: 'totp',
+      });
+      toast.success(
+        'Multi-factor authentication has been enabled.',
         getToastStyleProps(),
       );
-      return false;
+      onSuccess();
+      return true;
+    } finally {
+      setIsActivating(false);
     }
-    toast.success(
-      'Multi-factor authentication has been enabled.',
-      getToastStyleProps(),
-    );
-    onSuccess();
-    return true;
   }
+
   useEffect(() => {
     async function generate() {
-      const result = await generateQrCode();
-      if (result.error) {
-        toast.error(result.error.message, getToastStyleProps());
+      try {
+        setIsGenerating(true);
+        const response = await nhost.auth.changeUserMfa();
+        setQrCodeDataUrl(response.body.imageUrl);
+        setTotpSecret(response.body.totpSecret);
+      } catch (error) {
+        toast.error(error?.message, getToastStyleProps());
+      } finally {
+        setIsGenerating(false);
       }
     }
     generate();
@@ -55,7 +56,7 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4">
       {isGenerating && <Spinner />}
-      {isGenerated && qrCodeDataUrl && (
+      {qrCodeDataUrl && (
         <>
           <div className="flex flex-col justify-center gap-4">
             <p className="text-base">

@@ -3,8 +3,8 @@ import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useNhostClient } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect, useState, type ReactElement } from 'react';
 import { toast } from 'react-hot-toast';

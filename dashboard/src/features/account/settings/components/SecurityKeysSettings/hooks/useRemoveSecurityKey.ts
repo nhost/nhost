@@ -4,7 +4,7 @@ import { useRemoveSecurityKeyMutation } from '@/utils/__generated__/graphql';
 
 function useRemoveSecurityKey() {
   const [removeSecurityKeyMutation] = useRemoveSecurityKeyMutation();
-  const { elevatePermissions } = useElevatedPermissions();
+  const elevatePermissions = useElevatedPermissions();
   const { refetch: refetchSecurityKeys } = useGetSecurityKeys();
 
   async function removeSecurityKey(id: string) {

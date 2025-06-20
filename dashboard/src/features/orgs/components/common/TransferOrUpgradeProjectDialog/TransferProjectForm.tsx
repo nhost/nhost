@@ -18,13 +18,13 @@ import {
 import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUserData } from '@/hooks/useUserData';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import {
   Organization_Members_Role_Enum,
   useBillingTransferAppMutation,
 } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useUserId } from '@nhost/nextjs';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -53,7 +53,7 @@ function TransferProjectForm({
   const { push } = useRouter();
   const { orgs, currentOrg } = useOrgs();
   const { project } = useProject();
-  const currentUserId = useUserId();
+  const user = useUserData();
   const [transferProject] = useBillingTransferAppMutation();
 
   const form = useForm<z.infer<typeof transferProjectFormSchema>>({
@@ -133,7 +133,7 @@ function TransferProjectForm({
                       disabled={
                         org.plan.isFree || // disable the personal org
                         org.id === currentOrg.id || // disable the current org as it can't be a destination org
-                        !isUserAdminOfOrg(org, currentUserId) // disable orgs that the current user is not admin of
+                        !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
                       }
                     >
                       {org.name}

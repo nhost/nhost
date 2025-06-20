@@ -5,7 +5,8 @@ export default function useHostName() {
 
   useEffect(() => {
     const { port, hostname, protocol } = window.location;
-    setHostName(`${protocol}//${hostname}:${port}`);
+    const portSuffix = port ? `:${port}` : '';
+    setHostName(`${protocol}//${hostname}${portSuffix}`);
   }, []);
 
   return hostName;

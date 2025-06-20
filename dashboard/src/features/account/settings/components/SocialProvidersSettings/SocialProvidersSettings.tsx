@@ -4,20 +4,29 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { useAccessToken } from '@/hooks/useAccessToken';
+import { useNhostClient } from '@/providers/nhost';
 import { useGetAuthUserProvidersQuery } from '@/utils/__generated__/graphql';
-import { useProviderLink } from '@nhost/nextjs';
 import NavLink from 'next/link';
+import { useMemo } from 'react';
 
 export default function SocialProvidersSettings() {
+  const nhost = useNhostClient();
+  const token = useAccessToken();
   const { data, loading, error } = useGetAuthUserProvidersQuery();
   const isGithubConnected = data?.authUserProviders?.some(
     (item) => item.providerId === 'github',
   );
 
-  const { github } = useProviderLink({
-    connect: true,
-    redirectTo: `${window.location.origin}/account`,
-  });
+  const github = useMemo(
+    () =>
+      nhost.auth.signInProviderURL('github', {
+        connect: token,
+        redirectTo: `${window.location.origin}/account`,
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [token],
+  );
 
   if (!data && loading) {
     return (

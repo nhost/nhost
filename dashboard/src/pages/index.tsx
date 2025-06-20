@@ -51,7 +51,6 @@ IndexPage.getLayout = function getLayout(page: ReactElement) {
       <Container className="py-0">
         <MaintenanceAlert />
       </Container>
-
       {page}
     </AuthenticatedLayout>
   );

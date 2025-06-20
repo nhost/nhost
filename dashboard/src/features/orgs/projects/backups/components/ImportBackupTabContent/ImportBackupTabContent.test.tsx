@@ -3,7 +3,6 @@ import {
   mockApplication,
   mockMatchMediaValue,
 } from '@/tests/mocks';
-import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   mockPointerEvent,
   render,
@@ -41,7 +40,7 @@ Object.defineProperty(window, 'matchMedia', {
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-const server = setupServer(tokenQuery);
+const server = setupServer();
 
 const mocks = vi.hoisted(() => ({
   useGetPiTrBaseBackupsLazyQuery: vi.fn(),
@@ -85,6 +84,10 @@ describe('ImportBackupContent', () => {
     server.listen();
   });
 
+  afterEach(() => {
+    server.resetHandlers();
+  });
+
   afterAll(() => {
     server.close();
     vi.restoreAllMocks();
@@ -97,7 +100,7 @@ describe('ImportBackupContent', () => {
 
     render(<TestComponent />);
     expect(
-      await screen.getByText(
+      screen.getByText(
         `${mockApplication.name} (${mockApplication.region.name})`,
       ),
     ).toBeInTheDocument();
@@ -118,7 +121,7 @@ describe('ImportBackupContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('that warning is displayed if there are no other projects in the same organization', async () => {
+  test('that warning is displayed if there is no other project in the same organization', async () => {
     server.use(getOrganization);
     server.use(getEmptyProjectsQuery);
 
@@ -143,7 +146,7 @@ describe('ImportBackupContent', () => {
 
     render(<TestComponent />);
     expect(
-      await screen.getByText(
+      screen.getByText(
         `${mockApplication.name} (${mockApplication.region.name})`,
       ),
     ).toBeInTheDocument();
@@ -161,21 +164,21 @@ describe('ImportBackupContent', () => {
     });
 
     expect(
-      await screen.getByText('Import backup from pitr14 (us-east-1)'),
+      screen.getByText('Import backup from pitr14 (us-east-1)'),
     ).toBeInTheDocument();
 
-    const startImportButton = await screen.getByRole('button', {
+    const startImportButton = screen.getByRole('button', {
       name: 'Start import',
     });
     await user.click(startImportButton);
 
     await waitFor(async () =>
       expect(
-        await screen.getByRole('button', { name: 'Import backup' }),
+        screen.getByRole('button', { name: 'Import backup' }),
       ).toBeInTheDocument(),
     );
 
-    const dateTimePickerButton = await screen.getByRole('button', {
+    const dateTimePickerButton = screen.getByRole('button', {
       name: /UTC/i,
     });
 
@@ -183,27 +186,27 @@ describe('ImportBackupContent', () => {
 
     await waitFor(async () =>
       expect(
-        await screen.getByRole('button', { name: 'Select' }),
+        screen.getByRole('button', { name: 'Select' }),
       ).toBeInTheDocument(),
     );
 
-    await user.click(await screen.getByText('13'));
+    await user.click(screen.getByText('13'));
 
-    const hoursInput = await screen.getByLabelText('Hours');
+    const hoursInput = screen.getByLabelText('Hours');
     await waitFor(async () => {
       await user.type(hoursInput, '18');
     });
-    const updatedDateTimeButton = await screen.getByRole('button', {
+    const updatedDateTimeButton = screen.getByRole('button', {
       name: /UTC/i,
     });
     expect(updatedDateTimeButton).toHaveTextContent(
       '13 Mar 2025, 18:00:05 (UTC+02:00)',
     );
-    await user.click(await screen.getByRole('button', { name: 'Select' }));
+    await user.click(screen.getByRole('button', { name: 'Select' }));
 
     await waitFor(async () =>
       expect(
-        await screen.queryByRole('button', { name: 'Select' }),
+        screen.queryByRole('button', { name: 'Select' }),
       ).not.toBeInTheDocument(),
     );
 
@@ -214,22 +217,20 @@ describe('ImportBackupContent', () => {
     // check checkboxes
 
     await user.click(
-      await screen.getByLabelText(/I understand that restoring this backup/),
+      screen.getByLabelText(/I understand that restoring this backup/),
     );
 
     await user.click(
-      await screen.getByLabelText(/I understand this cannot be undone/),
+      screen.getByLabelText(/I understand this cannot be undone/),
     );
 
     await waitFor(async () =>
       expect(
-        await screen.getByRole('button', { name: 'Import backup' }),
+        screen.getByRole('button', { name: 'Import backup' }),
       ).not.toBeDisabled(),
     );
 
-    await user.click(
-      await screen.getByRole('button', { name: 'Import backup' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Import backup' }));
 
     expect(mocks.restoreApplicationDatabase.mock.calls[0][0].fromAppId).toBe(
       'pitr14-id',

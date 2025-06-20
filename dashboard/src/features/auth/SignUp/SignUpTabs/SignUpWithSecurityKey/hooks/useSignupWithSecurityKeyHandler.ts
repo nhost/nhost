@@ -1,25 +1,30 @@
 import { getAnonId } from '@/lib/segment';
+import { isEmptyValue } from '@/lib/utils';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useSignUpEmailSecurityKeyEmail } from '@nhost/nextjs';
+import { startRegistration } from '@simplewebauthn/browser';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import type { SignUpWithSecurityKeyFormValues } from './useSignupWithSecurityKeyForm';
 
 function useOnSignUpWithSecurityKeyHandler() {
-  const { signUpEmailSecurityKey } = useSignUpEmailSecurityKeyEmail();
   const router = useRouter();
+  const nhost = useNhostClient();
 
   async function onSignUpWithSecurityKey({
     email,
     displayName,
     turnstileToken,
   }: SignUpWithSecurityKeyFormValues) {
+    const metadata = { anonId: await getAnonId() };
     try {
-      const { needsEmailVerification, error } = await signUpEmailSecurityKey(
-        email,
+      const webAuthnResponse = await nhost.auth.signUpWebauthn(
         {
-          displayName,
-          metadata: { anonId: await getAnonId() },
+          email,
+          options: {
+            displayName,
+            metadata,
+          },
         },
         {
           headers: {
@@ -27,22 +32,24 @@ function useOnSignUpWithSecurityKeyHandler() {
           },
         },
       );
+      const { body: webAuthnOptions } = webAuthnResponse;
 
-      if (error) {
-        toast.error(
-          error.message ||
-            'An error occurred while signing up. Please try again.',
-          getToastStyleProps(),
-        );
-        return;
-      }
+      const credential = await startRegistration(webAuthnOptions);
 
-      if (needsEmailVerification) {
+      const verifyResponse = await nhost.auth.verifySignUpWebauthn({
+        credential,
+        options: {
+          displayName,
+          metadata,
+        },
+      });
+      if (verifyResponse.status === 200 && isEmptyValue(verifyResponse.body)) {
         router.push(`/email/verify?email=${encodeURIComponent(email)}`);
       }
-    } catch {
+    } catch (error) {
       toast.error(
-        'An error occurred while signing up. Please try again.',
+        error.message ||
+          'An error occurred while signing up. Please try again.',
         getToastStyleProps(),
       );
     }

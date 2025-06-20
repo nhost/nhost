@@ -2,22 +2,23 @@ import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
-import { MainNav } from '@/components/layout/MainNav';
-import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useAuthenticationStatus } from '@nhost/nextjs';
 
+import Analytics from '@/components/analytics/analytics';
 import { useMediaQuery } from '@/components/common/useMediaQuery';
+import { MainNav } from '@/components/layout/MainNav';
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
+import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useNotFoundRedirect } from '@/features/orgs/projects/common/hooks/useNotFoundRedirect';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/providers/Auth';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -32,7 +33,7 @@ export default function AuthenticatedLayout({
   const isPlatform = useIsPlatform();
   const isMdOrLarger = useMediaQuery('md');
 
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const { isAuthenticated, isLoading } = useAuth();
   const isHealthy = useIsHealthy();
   const [mainNavContainer, setMainNavContainer] = useState(null);
   const { mainNavPinned } = useTreeNavState();
@@ -43,7 +44,6 @@ export default function AuthenticatedLayout({
     if (!isPlatform || isLoading || isAuthenticated) {
       return;
     }
-
     router.push('/signin');
   }, [isLoading, isAuthenticated, router, isPlatform]);
 
@@ -65,10 +65,14 @@ export default function AuthenticatedLayout({
   if (isPlatform && isLoading) {
     return (
       <BaseLayout className="h-full" {...props}>
-        <Header className="flex max-h-[59px] flex-auto" />
+        <Header className="flex max-h-[59px] flex-auto py-1" />
       </BaseLayout>
     );
   }
+
+  // if (isPlatform && !isLoading && !isAuthenticated) {
+  //   return null;
+  // }
 
   if (!isPlatform && !isHealthy) {
     return (
@@ -142,6 +146,7 @@ export default function AuthenticatedLayout({
           >
             <div className="flex h-full w-full flex-col overflow-auto">
               <OrgStatus />
+              <Analytics />
               {children}
             </div>
           </RetryableErrorBoundary>

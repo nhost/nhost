@@ -1,11 +1,12 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
+import { useAuth } from '@/providers/Auth';
+import { useNhostClient } from '@/providers/nhost';
 import {
   GetProjectStateDocument,
   type GetProjectQuery,
   type ProjectFragment,
 } from '@/utils/__generated__/graphql';
-import { useAuthenticationStatus, useNhostClient } from '@nhost/nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
@@ -24,10 +25,9 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
     query: { appSubdomain },
     isReady: isRouterReady,
   } = useRouter();
-  const client = useNhostClient();
+  const nhost = useNhostClient();
   const isPlatform = useIsPlatform();
-  const { isAuthenticated, isLoading: isAuthLoading } =
-    useAuthenticationStatus();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const shouldFetchProject = useMemo(
     () =>
@@ -42,12 +42,12 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
   const { data, isLoading, refetch, error } = useQuery(
     ['projectWithState', appSubdomain as string],
     async () => {
-      const response = await client.graphql.request<{
+      const response = await nhost.graphql.post<{
         apps: ProjectFragment[];
       }>(GetProjectStateDocument, {
         subdomain: (appSubdomain as string) || '',
       });
-      return response;
+      return response?.body.data;
     },
     {
       enabled: shouldFetchProject,
@@ -61,7 +61,7 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
 
   if (isPlatform) {
     return {
-      project: data?.data?.apps?.[0] || null,
+      project: data?.apps?.[0] || null,
       loading: isLoading && shouldFetchProject,
       error: Array.isArray(error || {}) ? error[0] : error,
       refetch,

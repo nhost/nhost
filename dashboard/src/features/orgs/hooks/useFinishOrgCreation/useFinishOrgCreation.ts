@@ -1,10 +1,10 @@
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useAuth } from '@/providers/Auth';
 import {
   CheckoutStatus,
   type PostOrganizationRequestMutation,
   usePostOrganizationRequestMutation,
 } from '@/utils/__generated__/graphql';
-import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -24,7 +24,7 @@ function useFinishOrgCreation({
   const router = useRouter();
   const { session_id } = router.query;
 
-  const { isAuthenticated } = useAuthenticationStatus();
+  const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [postOrganizationRequest] = usePostOrganizationRequestMutation();
   const [status, setPostOrganizationRequestStatus] =

@@ -4,8 +4,8 @@ import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { FilesDataGrid } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGrid';
+import { NhostApolloProvider } from '@/providers/Apollo';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { NhostApolloProvider } from '@nhost/react-apollo';
 import type { ReactElement } from 'react';
 
 export default function StoragePage() {
@@ -23,7 +23,7 @@ export default function StoragePage() {
         'graphql',
       )}
       fetchPolicy="cache-first"
-      headers={{
+      globalHeaders={{
         'x-hasura-admin-secret':
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()

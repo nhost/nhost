@@ -1,7 +1,8 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { nhost } from '@/utils/nhost';
-import { useAuthenticationStatus } from '@nhost/nextjs';
+
+import { useAuth } from '@/providers/Auth';
 import { useRouter } from 'next/router';
 import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
@@ -9,7 +10,7 @@ import { useEffect, useState } from 'react';
 export function authProtected<P>(Comp: ComponentType<P>) {
   return function AuthProtected(props: P) {
     const router = useRouter();
-    const { isAuthenticated, isLoading } = useAuthenticationStatus();
+    const { isAuthenticated, isLoading } = useAuth();
 
     useEffect(() => {
       if (isLoading || isAuthenticated) {
@@ -39,8 +40,10 @@ function Page() {
   useEffect(() => {
     async function installGithubApp() {
       try {
-        await nhost.functions.call('/client/github-app-installation', {
-          installationId,
+        await nhost.functions.fetch('/client/github-app-installation', {
+          body: JSON.stringify({
+            installationId,
+          }),
         });
       } catch (error) {
         setState({
