@@ -66,6 +66,16 @@ const EditRemoteSchemaPermissionsForm = dynamic(
   },
 );
 
+const EditRemoteSchemaRelationships = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaRelationships/EditRemoteSchemaRelationships'
+    ),
+  {
+    ssr: false,
+  },
+);
+
 export interface RemoteSchemaBrowserSidebarProps
   extends Omit<BoxProps, 'children'> {
   /**
@@ -158,6 +168,24 @@ function RemoteSchemaBrowserSidebarContent({
         </span>
       ),
       component: <EditRemoteSchemaPermissionsForm schema={schema} />,
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+    });
+  }
+
+  function handleEditRelationshipsClick(schema: string) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Relationships
+          <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
+          <Chip label="Preview" size="small" color="info" component="span" />
+        </span>
+      ),
+      component: <EditRemoteSchemaRelationships schema={schema} />,
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
@@ -294,10 +322,7 @@ function RemoteSchemaBrowserSidebarContent({
                               key="edit-relationships"
                               className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                               onClick={() =>
-                                handleEditPermissionClick(
-                                  remoteSchema.name,
-                                  remoteSchema.name,
-                                )
+                                handleEditRelationshipsClick(remoteSchema.name)
                               }
                             >
                               <LinkIcon

@@ -24,6 +24,7 @@ paths:
                 - $ref: '#/components/schemas/RemoveRemoteSchemaOperation'
                 - $ref: '#/components/schemas/ReloadRemoteSchemaOperation'
                 - $ref: '#/components/schemas/IntrospectRemoteSchemaOperation'
+                - $ref: '#/components/schemas/RemoteSchemaRemoteRelationshipOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -185,7 +186,72 @@ components:
         comment:
           type: string
           description: Comment for the remote schema
-          example: asd2
+          example: External GraphQL service
+        remote_relationships:
+          type: array
+          description: Remote relationships for the remote schema
+          items:
+            type: object
+            required:
+              - type_name
+              - relationships
+            properties:
+              type_name:
+                type: string
+                description: Name of the type in the remote schema
+                example: User
+              relationships:
+                type: array
+                description: List of relationships for this type
+                items:
+                  type: object
+                  required:
+                    - name
+                    - definition
+                  properties:
+                    name:
+                      type: string
+                      description: Name of the relationship
+                      example: user
+                    definition:
+                      type: object
+                      description: Relationship definition
+                      oneOf:
+                        - type: object
+                          required:
+                            - to_remote_schema
+                          properties:
+                            to_remote_schema:
+                              $ref: '#/components/schemas/ToRemoteSchemaDefinition'
+                        - type: object
+                          required:
+                            - to_source
+                          properties:
+                            to_source:
+                              $ref: '#/components/schemas/ToSourceDefinition'
+        permissions:
+          type: array
+          description: Permissions for the remote schema
+          items:
+            type: object
+            required:
+              - role
+              - definition
+            properties:
+              role:
+                type: string
+                description: Role name for the permission
+                example: user
+              definition:
+                type: object
+                description: Permission definition
+                required:
+                  - schema
+                properties:
+                  schema:
+                    type: string
+                    description: GraphQL schema definition for this role
+                    example: 'schema { query: Query } type Query { hello: String }'
 
     RemoteSchemaHeaderWithValue:
       type: object
@@ -320,6 +386,143 @@ components:
           description: Type of operation to reload a remote schema
         args:
           $ref: '#/components/schemas/ReloadRemoteSchemaArgs'
+
+    CreateRemoteSchemaRemoteRelationshipArgs:
+      type: object
+      required:
+        - name
+        - remote_schema
+        - type_name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the relationship. This will be used as the field name in the source type
+          example: relationship_name
+        remote_schema:
+          type: string
+          description: Name of the source remote schema
+          example: order-remote-schema
+        type_name:
+          type: string
+          description: Name of the type in the remote schema
+          example: Order
+        definition:
+          type: object
+          description: Relationship definition
+          oneOf:
+            - type: object
+              required:
+                - to_remote_schema
+              properties:
+                to_remote_schema:
+                  $ref: '#/components/schemas/ToRemoteSchemaDefinition'
+            - type: object
+              required:
+                - to_source
+              properties:
+                to_source:
+                  $ref: '#/components/schemas/ToSourceDefinition'
+
+    ToRemoteSchemaDefinition:
+      type: object
+      description: Definition for relationship to another remote schema
+      required:
+        - remote_schema
+        - lhs_fields
+        - remote_field
+      properties:
+        remote_schema:
+          type: string
+          description: Name of the target remote schema
+          example: user-remote-schema
+        lhs_fields:
+          type: array
+          description: Fields from the source type to use in the relationship
+          items:
+            type: string
+          example: ['user_id']
+        remote_field:
+          type: object
+          description: Remote field configuration
+          additionalProperties:
+            type: object
+            properties:
+              arguments:
+                type: object
+                description: Arguments to pass to the remote field
+                additionalProperties:
+                  type: string
+                example:
+                  id: '$user_id'
+          example:
+            user:
+              arguments:
+                id: '$user_id'
+
+    ToSourceDefinition:
+      type: object
+      description: Definition for relationship to a database source
+      required:
+        - source
+        - table
+        - relationship_type
+        - field_mapping
+      properties:
+        source:
+          type: string
+          description: Name of the database source
+          example: default
+        table:
+          type: object
+          description: Target table information
+          required:
+            - name
+            - schema
+          properties:
+            name:
+              type: string
+              description: Name of the table
+              example: plans
+            schema:
+              type: string
+              description: Schema name of the table
+              example: public
+        relationship_type:
+          type: string
+          enum: [object, array]
+          description: Type of relationship - object for one-to-one, array for one-to-many
+          example: array
+        field_mapping:
+          type: object
+          description: Mapping from remote schema fields to database table columns
+          additionalProperties:
+            type: string
+          example:
+            Description: id
+            Amount: updated_at
+
+    UpdateRemoteSchemaRemoteRelationshipArgs:
+      $ref: '#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs'
+
+    RemoteSchemaRemoteRelationshipOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum:
+            [
+              create_remote_schema_remote_relationship,
+              update_remote_schema_remote_relationship,
+            ]
+          description: Type of operation to create a remote schema relationship
+        args:
+          oneOf:
+            - $ref: '#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs'
+            - $ref: '#/components/schemas/UpdateRemoteSchemaRemoteRelationshipArgs'
 
     IntrospectRemoteSchemaArgs:
       $ref: '#/components/schemas/ReloadRemoteSchemaArgs'

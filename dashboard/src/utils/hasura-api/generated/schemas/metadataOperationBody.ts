@@ -9,6 +9,7 @@ import type { ExportMetadata } from './exportMetadata';
 import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
 import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation';
 import type { RemoteSchemaOperation } from './remoteSchemaOperation';
+import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemoteRelationshipOperation';
 import type { RemoveRemoteSchemaOperation } from './removeRemoteSchemaOperation';
 
 export type MetadataOperationBody =
@@ -16,4 +17,5 @@ export type MetadataOperationBody =
   | RemoteSchemaOperation
   | RemoveRemoteSchemaOperation
   | ReloadRemoteSchemaOperation
-  | IntrospectRemoteSchemaOperation;
+  | IntrospectRemoteSchemaOperation
+  | RemoteSchemaRemoteRelationshipOperation;

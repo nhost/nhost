@@ -6,6 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { RemoteSchemaInfoDefinition } from './remoteSchemaInfoDefinition';
+import type { RemoteSchemaInfoPermissionsItem } from './remoteSchemaInfoPermissionsItem';
+import type { RemoteSchemaInfoRemoteRelationshipsItem } from './remoteSchemaInfoRemoteRelationshipsItem';
 
 /**
  * Information about a remote schema
@@ -17,4 +19,8 @@ export interface RemoteSchemaInfo {
   definition: RemoteSchemaInfoDefinition;
   /** Comment for the remote schema */
   comment?: string;
+  /** Remote relationships for the remote schema */
+  remote_relationships?: RemoteSchemaInfoRemoteRelationshipsItem[];
+  /** Permissions for the remote schema */
+  permissions?: RemoteSchemaInfoPermissionsItem[];
 }

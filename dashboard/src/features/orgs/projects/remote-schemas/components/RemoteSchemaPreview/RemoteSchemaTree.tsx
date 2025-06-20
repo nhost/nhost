@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql';
+import type { GraphQLSchema } from 'graphql';
 import React, {
   forwardRef,
   useImperativeHandle,
@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { ControlledTreeEnvironment, Tree } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
-import {
+import type {
   AllowedRootFields,
   ComplexTreeData,
   HasuraRsFields,
