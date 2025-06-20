@@ -1,11 +1,12 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localOrganization } from '@/features/orgs/utils/local-dashboard';
+import { useAuth } from '@/providers/Auth';
+
 import {
   useGetOrganizationsQuery,
   type Exact,
   type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
-import { useAuthenticationStatus, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 
 export type Org = GetOrganizationsQuery['organizations'][0];
@@ -27,15 +28,13 @@ export interface UseOrgsReturnType {
 export default function useOrgs(): UseOrgsReturnType {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const userData = useUserData();
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
-  const shouldFetchOrg =
-    isPlatform && isAuthenticated && !isLoading && userData;
+  const shouldFetchOrg = isPlatform && isAuthenticated && !isLoading && user;
 
   const { data, loading, error, refetch } = useGetOrganizationsQuery({
     variables: {
-      userId: userData?.id,
+      userId: user?.id,
     },
     fetchPolicy: 'cache-and-network',
     skip: !shouldFetchOrg,

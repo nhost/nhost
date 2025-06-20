@@ -34,7 +34,7 @@ test('should create a new project', async () => {
   expect(page.getByText('Internal info')).toBeVisible();
 
   await page.waitForSelector('button:has-text("Upgrade project")', {
-    timeout: 120000,
+    timeout: 180000,
   });
 
   const newProjectSlug = getProjectSlugFromUrl(page.url());

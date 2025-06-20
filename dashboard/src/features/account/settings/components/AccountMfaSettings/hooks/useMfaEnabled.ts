@@ -1,11 +1,11 @@
+import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useGetActiveMfaTypeQuery } from '@/utils/__generated__/graphql';
-import { useUserId } from '@nhost/nextjs';
 
 function useMfaEnabled() {
-  const userId = useUserId();
+  const userData = useUserData();
   const { data, loading, refetch } = useGetActiveMfaTypeQuery({
-    variables: { id: userId },
+    variables: { id: userData?.id },
     fetchPolicy: 'cache-first',
   });
 

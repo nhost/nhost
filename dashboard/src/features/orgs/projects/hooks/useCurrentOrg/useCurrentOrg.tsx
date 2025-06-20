@@ -1,10 +1,10 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useAuth } from '@/providers/Auth';
 import {
   useGetOrganizationQuery,
   type Exact,
   type GetOrganizationQuery,
 } from '@/utils/__generated__/graphql';
-import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 
 export type Org = GetOrganizationQuery['organizations'][0];
@@ -24,8 +24,7 @@ export interface UseCurrenOrgReturnType {
 
 export default function useCurrentOrg(): UseCurrenOrgReturnType {
   const isPlatform = useIsPlatform();
-  const { isAuthenticated, isLoading: isAuthLoading } =
-    useAuthenticationStatus();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const {
     query: { orgSlug },
@@ -41,12 +40,7 @@ export default function useCurrentOrg(): UseCurrenOrgReturnType {
     isAuthenticated &&
     !isAuthLoading;
 
-  const {
-    data: { organizations: [org] } = { organizations: [] },
-    loading,
-    error,
-    refetch,
-  } = useGetOrganizationQuery({
+  const { data, loading, error, refetch } = useGetOrganizationQuery({
     fetchPolicy: 'cache-and-network',
     skip: !shouldFetchOrg,
     variables: {
@@ -54,6 +48,9 @@ export default function useCurrentOrg(): UseCurrenOrgReturnType {
     },
   });
 
+  const {
+    organizations: [org],
+  } = data || { organizations: [] };
   return {
     org,
     loading: org ? false : loading || isAuthLoading,

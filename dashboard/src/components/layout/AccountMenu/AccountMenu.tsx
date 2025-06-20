@@ -6,18 +6,23 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
+import { useUserData } from '@/hooks/useUserData';
+import { useAuth } from '@/providers/Auth';
 import { useApolloClient } from '@apollo/client';
-import { useSignOut, useUserData } from '@nhost/nextjs';
 import getConfig from 'next/config';
-import { useRouter } from 'next/router';
 
 function AccountMenuContent() {
   const user = useUserData();
-  const { signOut } = useSignOut();
-  const router = useRouter();
+  const { signout } = useAuth();
   const apolloClient = useApolloClient();
   const { handleClose } = useDropdown();
   const { publicRuntimeConfig } = getConfig();
+
+  async function handleSignOut() {
+    handleClose();
+    await apolloClient.clearStore();
+    await signout();
+  }
 
   return (
     <Box className="grid grid-flow-row">
@@ -70,12 +75,7 @@ function AccountMenuContent() {
           color="error"
           variant="borderless"
           className="w-full justify-start"
-          onClick={async () => {
-            handleClose();
-            await apolloClient.clearStore();
-            await signOut();
-            await router.push('/signin');
-          }}
+          onClick={handleSignOut}
         >
           Sign out
         </Button>

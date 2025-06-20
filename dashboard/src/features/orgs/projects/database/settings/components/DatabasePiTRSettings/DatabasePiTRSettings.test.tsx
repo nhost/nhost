@@ -61,6 +61,19 @@ vi.mock('@/utils/__generated__/graphql', async () => {
   };
 });
 
+vi.mock(
+  '@/features/orgs/components/common/TransferOrUpgradeProjectDialog',
+  async () => {
+    const actual = await vi.importActual<any>(
+      '@/features/orgs/components/common/TransferOrUpgradeProjectDialog',
+    );
+    return {
+      ...actual,
+      TransferOrUpgradeProjectDialog: () => null,
+    };
+  },
+);
+
 afterEach(() => {
   mocks.useCurrentOrg.mockRestore();
   mocks.updateConfigMock.mockRestore();
@@ -83,7 +96,7 @@ test('If the org is free the switch should not be available and the save button 
 
   expect(saveButton).toBeDisabled();
 
-  expect(await screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 });
 
 test('the Save button is disabled until the switch in the header is not touched', async () => {

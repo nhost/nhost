@@ -89,7 +89,7 @@ export default function OrgsComboBox() {
         <Button
           size="sm"
           variant="ghost"
-          className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+          className="justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         >
           {selectedItem ? (
             <div className="flex flex-row items-center justify-center">

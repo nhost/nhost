@@ -9,37 +9,36 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useConfigMfa } from '@nhost/nextjs';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-const defaultErrorMessage =
-  'An error occurred while trying to enable multi-factor authentication. Please try again.';
-
 function DisableMfaButton() {
-  const { disableMfa, isDisabling } = useConfigMfa();
+  const nhost = useNhostClient();
   const [open, setOpen] = useState(false);
+  const [isDisabling, setIsDisabling] = useState(false);
   const { loading, refetch } = useMfaEnabled();
   const buttonDisabled = loading || isDisabling;
 
   async function onSendMfaOtp(code: string) {
-    const result = await disableMfa(code);
-    if (result.error) {
-      toast.error(
-        result.error.message || defaultErrorMessage,
+    try {
+      setIsDisabling(true);
+      await nhost.auth.verifyChangeUserMfa({
+        code,
+        activeMfaType: '',
+      });
+      toast.success(
+        'Multi-factor authentication has been disabled.',
         getToastStyleProps(),
       );
-      return false;
-    }
-    toast.success(
-      'Multi-factor authentication has been disabled.',
-      getToastStyleProps(),
-    );
-    await refetch();
-    setOpen(false);
+      await refetch();
+      setOpen(false);
 
-    return true;
+      return true;
+    } finally {
+      setIsDisabling(false);
+    }
   }
 
   return (

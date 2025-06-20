@@ -4,13 +4,20 @@ import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { createTheme } from '@/components/ui/v2/createTheme';
+import { AuthProvider } from '@/providers/Auth';
+import { NhostProvider } from '@/providers/nhost';
 import { mockRouter, mockSession } from '@/tests/mocks';
 import { createEmotionCache } from '@/utils/createEmotionCache';
-import { createHttpLink } from '@apollo/client';
+import { DummySessionStorage } from '@/utils/nhost';
+import {
+  ApolloClient,
+  ApolloProvider,
+  createHttpLink,
+  InMemoryCache,
+} from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
-import { NhostClient, NhostProvider } from '@nhost/nextjs';
-import { NhostApolloProvider } from '@nhost/react-apollo';
+import { createServerClient } from '@nhost/nhost-js-beta';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type {
   Queries,
@@ -69,8 +76,28 @@ export const queryClient = new QueryClient({
   },
 });
 
+const mockClient = new ApolloClient({
+  cache: new InMemoryCache(),
+  link: createHttpLink({
+    uri: 'https://local.graphql.local.nhost.run/v1',
+  }),
+  defaultOptions: {
+    query: {
+      fetchPolicy: 'no-cache',
+    },
+    watchQuery: {
+      fetchPolicy: 'no-cache',
+    },
+  },
+});
+const nhost = createServerClient({
+  subdomain: 'local',
+  region: 'local',
+  storage: new DummySessionStorage(),
+});
+nhost.sessionStorage.set(mockSession);
+
 function Providers({ children }: PropsWithChildren<{}>) {
-  const nhost = new NhostClient({ subdomain: 'local' });
   const theme = createTheme('light');
 
   return (
@@ -78,22 +105,17 @@ function Providers({ children }: PropsWithChildren<{}>) {
       <RetryableErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <CacheProvider value={emotionCache}>
-            <NhostProvider nhost={nhost} initial={mockSession}>
-              <NhostApolloProvider
-                nhost={nhost}
-                generateLinks={() => [
-                  createHttpLink({
-                    uri: 'https://local.graphql.local.nhost.run/v1',
-                  }),
-                ]}
-              >
-                <UIProvider>
-                  <Toaster position="bottom-center" />
-                  <ThemeProvider theme={theme}>
-                    <DialogProvider>{children}</DialogProvider>
-                  </ThemeProvider>
-                </UIProvider>
-              </NhostApolloProvider>
+            <NhostProvider nhost={nhost}>
+              <AuthProvider>
+                <ApolloProvider client={mockClient}>
+                  <UIProvider>
+                    <Toaster position="bottom-center" />
+                    <ThemeProvider theme={theme}>
+                      <DialogProvider>{children}</DialogProvider>
+                    </ThemeProvider>
+                  </UIProvider>
+                </ApolloProvider>
+              </AuthProvider>
             </NhostProvider>
           </CacheProvider>
         </QueryClientProvider>

@@ -5,12 +5,11 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
-import { useResetPassword } from '@nhost/nextjs';
-import type { ReactElement } from 'react';
-import { useEffect } from 'react';
+import { type ReactElement, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
@@ -29,7 +28,8 @@ const StyledInput = styled(Input)({
 });
 
 export default function NewPasswordPage() {
-  const { resetPassword, error, isSent } = useResetPassword();
+  const nhost = useNhostClient();
+  const [isSent, setIsSent] = useState(false);
 
   const form = useForm<NewPasswordFormValues>({
     reValidateMode: 'onSubmit',
@@ -41,25 +41,18 @@ export default function NewPasswordPage() {
 
   const { register, formState, getValues } = form;
 
-  useEffect(() => {
-    if (!error) {
-      return;
-    }
-
-    toast.error(
-      error?.message || 'An error occurred while signing in. Please try again.',
-      getToastStyleProps(),
-    );
-  }, [error]);
-
   async function handleSubmit({ email }: NewPasswordFormValues) {
     try {
-      await resetPassword(email, {
-        redirectTo: '/password/reset',
+      await nhost.auth.sendPasswordResetEmail({
+        email,
+        options: {
+          redirectTo: '/password/reset',
+        },
       });
+      setIsSent(true);
     } catch {
       toast.error(
-        'An error occurred while signing up. Please try again.',
+        'An error occurred while resetting password. Please try again.',
         getToastStyleProps(),
       );
     }
