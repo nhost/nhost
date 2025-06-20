@@ -13,7 +13,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@nhost/nextjs';
+import useUserData from '@/hooks/sdk/useUserData';
 
 export interface BaseDirectoryFormValues {
   /**

@@ -103,7 +103,7 @@ test('should render an empty state when GitHub is not connected', async () => {
   ).toBeInTheDocument();
 });
 
-test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
+test.only('should render an empty state when GitHub is connected, but there are no deployments', async () => {
   server.use(
     rest.post(
       'https://local.graphql.local.nhost.run/v1',

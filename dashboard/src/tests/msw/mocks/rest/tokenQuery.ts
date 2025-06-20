@@ -1,14 +1,15 @@
 import { faker } from '@faker-js/faker';
-import type { NhostSession } from '@nhost/nextjs';
+import type { Session } from '@nhost/nhost-js-beta/auth';
 import { rest } from 'msw';
 
 const tokenQuery = rest.post(
   `https://local.auth.local.nhost.run/v1/token`,
   (_req, res, ctx) =>
     res(
-      ctx.json<NhostSession>({
+      ctx.json<Session>({
         accessToken: faker.datatype.string(40),
         refreshToken: faker.datatype.uuid(),
+        refreshTokenId: faker.datatype.uuid(),
         accessTokenExpiresIn: 900,
         user: {
           id: faker.datatype.uuid(),
@@ -22,7 +23,6 @@ const tokenQuery = rest.post(
           roles: ['user', 'me'],
           phoneNumber: null,
           phoneNumberVerified: false,
-          activeMfaType: null,
           metadata: {},
         },
       }),

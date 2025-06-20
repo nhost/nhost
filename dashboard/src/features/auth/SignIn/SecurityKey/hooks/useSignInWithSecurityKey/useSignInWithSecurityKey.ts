@@ -1,34 +1,47 @@
+import { isNotEmptyValue } from '@/lib/utils';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useSignInSecurityKey } from '@nhost/nextjs';
-import { useRouter } from 'next/router';
+import { startAuthentication } from '@simplewebauthn/browser';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-function useSignInWithSecurityKey() {
-  const { signInSecurityKey } = useSignInSecurityKey();
-  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+interface Props {
+  onNeedsEmailVerification: () => void;
+}
+
+function useSignInWithSecurityKey({ onNeedsEmailVerification }: Props) {
+  const nhost = useNhostClient();
   const [disabled, setDisabled] = useState(false);
-  const { replace } = useRouter();
 
   async function signInWithSecurityKey() {
-    setDisabled(true);
-    const {
-      isError,
-      isSuccess,
-      needsEmailVerification: _needsEmailVerification,
-      error,
-    } = await signInSecurityKey();
-    if (isError) {
-      toast.error(error?.message, getToastStyleProps());
-    } else if (_needsEmailVerification) {
-      setNeedsEmailVerification(true);
-    } else if (isSuccess) {
-      replace('/');
+    try {
+      setDisabled(true);
+      const signInWebauthnResponse = await nhost.auth.signInWebauthn();
+      const { body: options } = signInWebauthnResponse;
+      const credential = await startAuthentication(options);
+      await nhost.auth.verifySignInWebauthn({
+        credential,
+      });
+    } catch (error) {
+      let errorMessage =
+        error?.message ||
+        'An error occurred while signing in. Please try again.';
+
+      if (isNotEmptyValue(error?.body)) {
+        const errorCode = error.body.error;
+        if (errorCode === 'unverified-user') {
+          onNeedsEmailVerification();
+          return;
+        }
+        errorMessage = error.body.message;
+      }
+      toast.error(errorMessage, getToastStyleProps());
+    } finally {
+      setDisabled(false);
     }
-    setDisabled(false);
   }
 
-  return { disabled, signInWithSecurityKey, needsEmailVerification };
+  return { disabled, signInWithSecurityKey };
 }
 
 export default useSignInWithSecurityKey;

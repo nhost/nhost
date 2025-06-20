@@ -1,6 +1,7 @@
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
-import { useAddSecurityKey } from '@nhost/nextjs';
+import { useNhostClient } from '@/providers/nhost';
+import { startRegistration } from '@simplewebauthn/browser';
 import { type NewSecurityKeyFormValues } from './useNewSecurityKeyForm';
 
 interface Props {
@@ -9,7 +10,14 @@ interface Props {
 
 function useOnAddNewSecurityKeyHandler({ onSuccess }: Props) {
   const { refetch } = useGetSecurityKeys();
-  const { add: actionFn } = useAddSecurityKey();
+  const nhost = useNhostClient();
+
+  async function actionFn(nickname: string) {
+    const webAuthnOptions = await nhost.auth.addSecurityKey();
+    const credential = await startRegistration(webAuthnOptions.body);
+    await nhost.auth.verifyAddSecurityKey({ credential, nickname });
+  }
+
   const addSecurityKey = useActionWithElevatedPermissions({
     actionFn,
     onSuccess: async () => {

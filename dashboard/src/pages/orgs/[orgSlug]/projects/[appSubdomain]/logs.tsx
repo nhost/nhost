@@ -38,6 +38,9 @@ export default function LogsPage() {
   return (
     <div className="flex h-full w-full flex-col">
       <RetryableErrorBoundary>
+        <button onClick={() => (document.cookie = 'myCookie=newValue')}>
+          Click me
+        </button>
         <LogsHeader
           loading={loading}
           onSubmitFilterValues={onSubmitFilterValues}

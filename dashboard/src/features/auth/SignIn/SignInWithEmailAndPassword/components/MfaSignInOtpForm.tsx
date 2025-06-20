@@ -1,9 +1,8 @@
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
-import type { SendMfaOtpHandler } from '@nhost/nextjs';
 import { Smartphone } from 'lucide-react';
 
 interface Props {
-  sendMfaOtp: SendMfaOtpHandler;
+  sendMfaOtp: (code: string) => Promise<any>;
   loading: boolean;
   requestNewMfaTicket: () => Promise<void>;
 }
