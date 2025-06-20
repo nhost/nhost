@@ -2,6 +2,7 @@ import { getAnonId } from '@/lib/segment';
 import { isNotEmptyValue } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
+import type { SignInProviderParams } from '@nhost/nhost-js-beta/auth';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
@@ -18,14 +19,21 @@ function useGithubAuthentication({
 }: UseGithubAuthenticationHookProps) {
   const githubAuthenticationMutation = useMutation(
     async () => {
-      const options = {
-        ...(isNotEmptyValue(redirectTo) && { redirectTo }),
-        ...(withAnonId && { metadata: { anonId: await getAnonId() } }),
-      };
-      return nhost.auth.signIn({
-        provider: 'github',
-        ...(isNotEmptyValue(options) && { options }),
-      });
+      let options: SignInProviderParams | undefined;
+      if (isNotEmptyValue(redirectTo)) {
+        options = {
+          redirectTo,
+        };
+      }
+      if (withAnonId) {
+        options = {
+          metadata: { anonId: await getAnonId() },
+          ...options,
+        };
+      }
+
+      const redirectURl = nhost.auth.signInProviderURL('github', options);
+      window.location.href = redirectURl;
     },
     {
       onError: () => {

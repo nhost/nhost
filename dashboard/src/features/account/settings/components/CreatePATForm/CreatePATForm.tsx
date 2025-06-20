@@ -11,13 +11,13 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
+import { useNhostClient } from '@/providers/nhost';
 import type { DialogFormProps } from '@/types/common';
 import { GetPersonalAccessTokensDocument } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
 import { getDateComponents } from '@/utils/getDateComponents';
 import { useApolloClient } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useNhostClient } from '@nhost/nextjs';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -85,15 +85,15 @@ export default function CreatePATForm({
 
   const createPAT = useActionWithElevatedPermissions({
     actionFn: async (
-      expiresAt: Date,
+      expiresAt: string,
       metadata?: Record<string, string | number>,
     ) => {
-      const result = await nhostClient.auth.createPAT(expiresAt, metadata);
+      const result = await nhostClient.auth.createPAT({ expiresAt, metadata });
       return result;
     },
     successMessage: 'The personal access token has been created successfully.',
-    onSuccess: ({ data }) => {
-      setPersonalAccessToken(data?.personalAccessToken);
+    onSuccess: ({ body }) => {
+      setPersonalAccessToken(body.personalAccessToken);
       apolloClient.refetchQueries({
         include: [GetPersonalAccessTokensDocument],
       });
@@ -111,7 +111,8 @@ export default function CreatePATForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(formValues: CreatePATFormValues) {
-    await createPAT(new Date(formValues.expiresAt), {
+    const expiresAt = new Date(formValues.expiresAt).toISOString();
+    await createPAT(expiresAt, {
       name: formValues.name,
       application: 'dashboard',
       userAgent: window.navigator.userAgent,

@@ -6,8 +6,8 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Box } from '@/components/ui/v2/Box';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useAuth } from '@/providers/Auth';
 import GlobalStyles from '@mui/material/GlobalStyles';
-import { useAuthenticationStatus } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -20,7 +20,7 @@ export default function UnauthenticatedLayout({
 }: UnauthenticatedLayoutProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const { isAuthenticated, isLoading } = useAuth();
   const isOnResetPassword = router.route === '/password/reset';
 
   useEffect(() => {

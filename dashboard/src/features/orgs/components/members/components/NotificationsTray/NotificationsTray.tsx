@@ -18,6 +18,7 @@ import {
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import useUserData from '@/hooks/sdk/useUserData';
 import { isEmptyValue } from '@/lib/utils';
 import {
   CheckoutStatus,
@@ -29,7 +30,6 @@ import {
   type OrganizationMemberInvitesQuery,
   type PostOrganizationRequestResponse,
 } from '@/utils/__generated__/graphql';
-import { useUserData } from '@nhost/nextjs';
 import { formatDistance } from 'date-fns';
 import { Bell } from 'lucide-react';
 import { useRouter } from 'next/router';

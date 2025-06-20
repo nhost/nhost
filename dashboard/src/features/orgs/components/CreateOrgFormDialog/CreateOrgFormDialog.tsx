@@ -27,6 +27,7 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import useUserData from '@/hooks/sdk/useUserData';
 import { cn } from '@/lib/utils';
 import {
   useCreateOrganizationRequestMutation,
@@ -34,7 +35,6 @@ import {
   type PrefetchNewAppPlansFragment,
 } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useUserData } from '@nhost/nextjs';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';

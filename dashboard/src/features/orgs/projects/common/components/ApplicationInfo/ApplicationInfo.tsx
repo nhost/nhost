@@ -9,9 +9,9 @@ import {
   GetOrganizationsDocument,
   useBillingDeleteAppMutation,
 } from '@/generated/graphql';
+import useUserData from '@/hooks/sdk/useUserData';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
-import { useUserData } from '@nhost/nextjs';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 

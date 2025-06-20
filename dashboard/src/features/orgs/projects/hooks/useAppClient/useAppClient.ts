@@ -7,12 +7,17 @@ import {
   getGraphqlServiceUrl,
   getStorageServiceUrl,
 } from '@/utils/env';
-import type { NhostNextClientConstructorParams } from '@nhost/nextjs';
-import { NhostClient } from '@nhost/nextjs';
+import { DummySessionStorage } from '@/utils/nhost';
+import {
+  createClient,
+  type NhostClient,
+  type NhostClientOptions,
+} from '@nhost/nhost-js-beta';
 
-export type UseAppClientOptions = NhostNextClientConstructorParams;
+export type UseAppClientOptions = NhostClientOptions;
 export type UseAppClientReturn = NhostClient;
 
+const storage = new DummySessionStorage();
 /**
  * This hook returns an application specific Nhost client instance that can be
  * used to interact with the client's backend.
@@ -27,7 +32,7 @@ export default function useAppClient(
   const { project } = useProject();
 
   if (!isPlatform) {
-    return new NhostClient({
+    return createClient({
       authUrl: getAuthServiceUrl(),
       graphqlUrl: getGraphqlServiceUrl(),
       storageUrl: getStorageServiceUrl(),
@@ -37,8 +42,9 @@ export default function useAppClient(
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev' || !project) {
-    return new NhostClient({
+    return createClient({
       subdomain: 'local',
+      region: 'local',
       ...options,
     });
   }
@@ -64,11 +70,12 @@ export default function useAppClient(
     'functions',
   );
 
-  return new NhostClient({
+  return createClient({
     authUrl,
     graphqlUrl,
     storageUrl,
     functionsUrl,
+    storage,
     ...options,
   });
 }

@@ -48,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import useUserData from '@/hooks/sdk/useUserData';
 import {
   Organization_Members_Role_Enum,
   useDeleteOrganizationMemberMutation,
@@ -55,7 +56,6 @@ import {
   type GetOrganizationQuery,
 } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useUserData } from '@nhost/nextjs';
 import { Ellipsis } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';

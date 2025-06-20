@@ -1,25 +1,26 @@
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useSignInEmailPassword } from '@nhost/nextjs';
 import toast from 'react-hot-toast';
 
 function useRequestNewMfaTicket() {
-  const { signInEmailPassword } = useSignInEmailPassword();
+  const nhost = useNhostClient();
   async function requestNewMfaTicket(email: string, password: string) {
+    let mfaTicket: string;
     try {
-      const { error } = await signInEmailPassword(email, password);
-      if (error) {
-        toast.error(
-          error?.message ||
-            'An error occurred while verifying TOTP. Please try again.',
-          getToastStyleProps(),
-        );
-      }
+      const response = await nhost.auth.signInEmailPassword({
+        email,
+        password,
+      });
+      mfaTicket = response.body?.mfa.ticket;
     } catch (error) {
       toast.error(
-        'An error occurred while trying to verify TOTP.',
+        error?.message ||
+          'An error occurred while verifying TOTP. Please try again.',
         getToastStyleProps(),
       );
     }
+
+    return mfaTicket;
   }
 
   return requestNewMfaTicket;

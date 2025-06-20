@@ -179,6 +179,9 @@ export default function DataGridPreviewCell<TData extends object>({
     blob,
     mimeType,
   });
+  // TODO REMOVE ME
+  // eslint-disable-next-line no-console
+  console.log({ project, appClient, id });
   const [showModal, setShowModal] = useState(false);
   const { previewEnabled } = usePreviewToggle();
 
@@ -215,9 +218,10 @@ export default function DataGridPreviewCell<TData extends object>({
       dispatch({ type: 'PREVIEW_LOADING' });
     }
 
-    const { presignedUrl } = await appClient.storage
-      .setAdminSecret(project?.config?.hasura.adminSecret)
-      .getPresignedUrl({ fileId: id });
+    // const { presignedUrl } = await appClient.storage.getFileMetadataHeaders(id);
+    const presignedUrl = { url: 'PLACEHOLDER' };
+    // .setAdminSecret(project?.config?.hasura.adminSecret)
+    // .getPresignedUrl({ fileId: id });
 
     if (!presignedUrl) {
       dispatch({

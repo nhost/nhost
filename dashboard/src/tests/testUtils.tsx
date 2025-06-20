@@ -4,13 +4,14 @@ import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { createTheme } from '@/components/ui/v2/createTheme';
+import { NhostApolloProvider } from '@/providers/Apollo';
+import { NhostProvider } from '@/providers/nhost';
 import { mockRouter, mockSession } from '@/tests/mocks';
 import { createEmotionCache } from '@/utils/createEmotionCache';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
-import { NhostClient, NhostProvider } from '@nhost/nextjs';
-import { NhostApolloProvider } from '@nhost/react-apollo';
+import { createClient } from '@nhost/nhost-js-beta';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type {
   Queries,
@@ -70,7 +71,8 @@ export const queryClient = new QueryClient({
 });
 
 function Providers({ children }: PropsWithChildren<{}>) {
-  const nhost = new NhostClient({ subdomain: 'local' });
+  const nhost = createClient({ subdomain: 'local' });
+  nhost.sessionStorage.set(mockSession);
   const theme = createTheme('light');
 
   return (
@@ -78,7 +80,7 @@ function Providers({ children }: PropsWithChildren<{}>) {
       <RetryableErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <CacheProvider value={emotionCache}>
-            <NhostProvider nhost={nhost} initial={mockSession}>
+            <NhostProvider nhost={nhost}>
               <NhostApolloProvider
                 nhost={nhost}
                 generateLinks={() => [

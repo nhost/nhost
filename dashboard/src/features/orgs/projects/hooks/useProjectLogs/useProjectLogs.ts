@@ -1,12 +1,12 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
-import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
 import { isNotEmptyValue } from '@/lib/utils';
 import {
   type GetProjectLogsQuery,
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
+import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 import { useCallback, useEffect, useRef } from 'react';
 
 export interface UseProjectLogsProps {
@@ -50,7 +50,6 @@ export function updateQuery(
 function useProjectLogs(props: UseProjectLogsProps) {
   const { project, loading: loadingProject } = useProject();
   // create a client that sends http requests to Hasura but websocket requests to Bragi
-  const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
   const subscriptionReturn = useRef(null);
 
   const {
@@ -59,7 +58,7 @@ function useProjectLogs(props: UseProjectLogsProps) {
     ...result
   } = useGetProjectLogsQuery({
     variables: { appID: project?.id, ...props },
-    client: clientWithSplit,
+    client: splitGraphqlClient,
     fetchPolicy: 'cache-and-network',
     notifyOnNetworkStatusChange: true,
     skip: !project,

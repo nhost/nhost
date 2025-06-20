@@ -1,5 +1,5 @@
 import { FormInput } from '@/components/form/FormInput';
-import { Button } from '@/components/ui/v3/button';
+import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import useSignInWithEmailAndPasswordForm, {
   type SignInWithEmailAndPasswordFormValues,
@@ -8,9 +8,10 @@ import NextLink from 'next/link';
 
 interface Props {
   onSubmit: (values: SignInWithEmailAndPasswordFormValues) => void;
+  isLoading: boolean;
 }
 
-function SignInWithEmailAndPassword({ onSubmit }: Props) {
+function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
   const form = useSignInWithEmailAndPasswordForm();
   return (
     <Form {...form}>
@@ -40,6 +41,8 @@ function SignInWithEmailAndPassword({ onSubmit }: Props) {
           type="submit"
           variant="outline"
           className="w-full !bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+          disabled={isLoading}
+          loading={isLoading}
         >
           Sign In
         </Button>

@@ -5,6 +5,7 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import useUserData from '@/hooks/sdk/useUserData';
 import { isEmptyValue } from '@/lib/utils';
 import {
   GetOrganizationsDocument,
@@ -12,7 +13,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-import { useUserData } from '@nhost/nextjs';
 import router from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';

@@ -4,9 +4,9 @@ import {
   useGetApplicationStateQuery,
   useGetOrganizationsLazyQuery,
 } from '@/generated/graphql';
+import useUserData from '@/hooks/sdk/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { useUserData } from '@nhost/nextjs';
 import { useCallback, useEffect, useState } from 'react';
 
 type ApplicationStateMetadata = {

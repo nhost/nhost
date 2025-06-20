@@ -258,26 +258,31 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     }, 250);
 
     try {
-      const { fileMetadata, error: fileError } = await appClient.storage
-        .setAdminSecret(
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret,
-        )
-        .upload({
-          file,
-          name: encodeURIComponent(file.name),
-          bucketId: defaultBucket.id,
-        });
+      const uploadResponse = await appClient.storage.uploadFiles(
+        {
+          'bucket-id': defaultBucket.id,
+          'file[]': [file],
+          'metadata[]': [
+            {
+              name: encodeURIComponent(file.name),
+            },
+          ],
+        },
+        {
+          headers: {
+            'x-hasura-admin-secret':
+              process.env.NEXT_PUBLIC_ENV === 'dev'
+                ? getHasuraAdminSecret()
+                : project?.config?.hasura.adminSecret,
+          },
+        },
+      );
+      const fileMetadata = uploadResponse.body.processedFiles[0];
 
       uploaded = true;
 
       if (toastId) {
         toast.remove(toastId);
-      }
-
-      if (fileError) {
-        throw new Error(fileError.message);
       }
 
       if (!fileMetadata) {
