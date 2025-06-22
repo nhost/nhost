@@ -199,7 +199,6 @@ function RemoteSchemaBrowserSidebarContent({
         <span className="inline-grid grid-flow-col items-center gap-2">
           Relationships
           <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
-          <Chip label="Preview" size="small" color="info" component="span" />
         </span>
       ),
       component: <EditRemoteSchemaRelationships schema={schema} />,

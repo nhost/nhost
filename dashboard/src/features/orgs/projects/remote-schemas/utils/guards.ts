@@ -45,3 +45,18 @@ export function isToSourceRelationshipDefinition(
 ): definition is { to_source: ToSourceRelationshipDefinition } {
   return 'to_source' in definition && !('to_remote_schema' in definition);
 }
+
+/**
+ * Type guard to validate if an object is a ToRemoteSchemaDefinition or a ToSourceDefinition
+ */
+export function isToRemoteSchemaDefinition(
+  definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
+): definition is { to_remote_schema: ToRemoteSchemaDefinition } {
+  return 'to_remote_schema' in definition && !('to_source' in definition);
+}
+
+export function isToSourceDefinition(
+  definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
+): definition is { to_source: ToSourceDefinition } {
+  return 'to_source' in definition && !('to_remote_schema' in definition);
+}
