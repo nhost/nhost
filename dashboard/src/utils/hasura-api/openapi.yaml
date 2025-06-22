@@ -25,6 +25,7 @@ paths:
                 - $ref: '#/components/schemas/ReloadRemoteSchemaOperation'
                 - $ref: '#/components/schemas/IntrospectRemoteSchemaOperation'
                 - $ref: '#/components/schemas/RemoteSchemaRemoteRelationshipOperation'
+                - $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -523,6 +524,39 @@ components:
           oneOf:
             - $ref: '#/components/schemas/CreateRemoteSchemaRemoteRelationshipArgs'
             - $ref: '#/components/schemas/UpdateRemoteSchemaRemoteRelationshipArgs'
+
+    DeleteRemoteSchemaRemoteRelationshipArgs:
+      type: object
+      required:
+        - name
+        - remote_schema
+        - type_name
+      properties:
+        name:
+          type: string
+          description: Name of the relationship to delete
+          example: relationship_name
+        remote_schema:
+          type: string
+          description: Name of the source remote schema
+          example: order-remote-schema
+        type_name:
+          type: string
+          description: Name of the type in the remote schema
+          example: Order
+
+    DeleteRemoteSchemaRemoteRelationshipOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [delete_remote_schema_remote_relationship]
+          description: Type of operation to delete a remote schema relationship
+        args:
+          $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipArgs'
 
     IntrospectRemoteSchemaArgs:
       $ref: '#/components/schemas/ReloadRemoteSchemaArgs'

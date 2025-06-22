@@ -1,29 +1,29 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
-import type { CreateRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+import type { DeleteRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 
-export interface CreateSchemaRelationshipOptions {
+export interface DeleteRemoteSchemaRelationshipOptions {
   appUrl: string;
   adminSecret: string;
 }
 
-export interface CreateSchemaRelationshipVariables {
-  args: CreateRemoteSchemaRemoteRelationshipArgs;
+export interface DeleteRemoteSchemaRelationshipVariables {
+  args: DeleteRemoteSchemaRemoteRelationshipArgs;
 }
 
-export default async function createSchemaRelationship({
+export default async function deleteRemoteSchemaRelationship({
   appUrl,
   adminSecret,
   args,
-}: CreateSchemaRelationshipOptions & CreateSchemaRelationshipVariables) {
+}: DeleteRemoteSchemaRelationshipOptions &
+  DeleteRemoteSchemaRelationshipVariables) {
   try {
     const response = await metadataOperation(
       {
-        type: 'create_remote_schema_remote_relationship',
+        type: 'delete_remote_schema_remote_relationship',
         args: {
           remote_schema: args.remote_schema,
           type_name: args.type_name,
           name: args.name,
-          definition: args.definition,
         },
       },
       {

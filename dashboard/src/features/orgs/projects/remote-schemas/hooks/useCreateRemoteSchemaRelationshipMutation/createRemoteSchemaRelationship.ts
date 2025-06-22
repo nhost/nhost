@@ -1,27 +1,21 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
-import type { ToSourceDefinition } from '@/utils/hasura-api/generated/schemas';
+import type { CreateRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 
-export interface CreateDatabaseRelationshipOptions {
+export interface CreateRemoteSchemaRelationshipOptions {
   appUrl: string;
   adminSecret: string;
 }
 
-export interface CreateDatabaseRelationshipVariables {
-  args: {
-    remote_schema: string;
-    type_name: string;
-    name: string;
-    definition: {
-      to_source: ToSourceDefinition;
-    };
-  };
+export interface CreateRemoteSchemaRelationshipVariables {
+  args: CreateRemoteSchemaRemoteRelationshipArgs;
 }
 
-export default async function createDatabaseRelationship({
+export default async function createRemoteSchemaRelationship({
   appUrl,
   adminSecret,
   args,
-}: CreateDatabaseRelationshipOptions & CreateDatabaseRelationshipVariables) {
+}: CreateRemoteSchemaRelationshipOptions &
+  CreateRemoteSchemaRelationshipVariables) {
   try {
     const response = await metadataOperation(
       {

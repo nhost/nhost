@@ -2,7 +2,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Button as ButtonV3 } from '@/components/ui/v3/button';
 import {
@@ -25,16 +24,58 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { convertIntrospectionToSchema } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview/utils';
+import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import { cn } from '@/lib/utils';
+import { isObjectType } from 'graphql';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 
-export default function FieldToColumnMapSelector() {
+export interface FieldToColumnMapSelectorProps {
+  sourceSchema: string;
+}
+
+export default function FieldToColumnMapSelector({
+  sourceSchema,
+}: FieldToColumnMapSelectorProps) {
   const form = useFormContext<DatabaseRelationshipFormValues>();
 
   const tableInfo = form.watch('table');
   const { schema, name: table } = tableInfo;
+
+  // Watch the selected source type to get its fields
+  const selectedSourceType = form.watch('sourceType');
+
+  // Introspect the source remote schema to get its types
+  const { data: introspectionData } = useIntrospectRemoteSchemaQuery(
+    sourceSchema,
+    {
+      queryOptions: {
+        enabled: !!sourceSchema,
+      },
+    },
+  );
+
+  // Extract fields from the selected source type
+  const sourceFields =
+    introspectionData && selectedSourceType
+      ? (() => {
+          const graphqlSchema = convertIntrospectionToSchema(introspectionData);
+          const type = graphqlSchema.getType(selectedSourceType);
+
+          if (isObjectType(type)) {
+            const fields = type.getFields();
+            return Object.keys(fields).map((fieldName) => ({
+              label: fieldName,
+              value: fieldName,
+              type: fields[fieldName].type.toString(), // For display purposes
+            }));
+          }
+
+          return [];
+        })()
+      : [];
 
   const { data } = useTableQuery([`default.${schema}.${table}`], {
     schema,
@@ -50,21 +91,27 @@ export default function FieldToColumnMapSelector() {
       .filter(Boolean) ?? [];
 
   console.log('columns', columns);
-
-  const {
-    register,
-    setValue,
-    formState: { errors },
-    watch,
-  } = form;
+  console.log('sourceFields', sourceFields);
 
   const { fields, append, remove } =
     useFieldArray<DatabaseRelationshipFormValues>({
       name: 'fieldMapping',
     });
 
-  const handleRemoveHeader = (index: number, fieldId: string) => {
-    remove(index);
+  // Get currently selected source fields to prevent duplicates
+  const fieldMappings = form.watch('fieldMapping');
+
+  // Function to get available source fields for a specific row index
+  const getAvailableSourceFields = (currentIndex: number) => {
+    const selectedFieldsInOtherRows = fieldMappings
+      .map((mapping, index) =>
+        index !== currentIndex ? mapping.sourceField : null,
+      )
+      .filter(Boolean);
+
+    return sourceFields.filter(
+      (field) => !selectedFieldsInOtherRows.includes(field.value),
+    );
   };
 
   return (
@@ -85,16 +132,77 @@ export default function FieldToColumnMapSelector() {
 
         {fields.map((field, index) => (
           <Box key={field.id} className="grid grid-cols-8 items-center gap-4">
-            <Input
-              {...register(`fieldMapping.${index}.sourceField`)}
-              id={`${field.id}-name`}
-              placeholder="Source field"
-              className="col-span-3"
-              hideEmptyHelperText
-              error={!!errors?.fieldMapping?.at(index)?.sourceField}
-              helperText={errors?.fieldMapping?.at(index)?.sourceField?.message}
-              fullWidth
-              autoComplete="off"
+            <FormField
+              control={form.control}
+              name={`fieldMapping.${index}.sourceField`}
+              render={({ field: sourceFieldControl }) => (
+                <FormItem className="col-span-3">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <ButtonV3
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            'w-full justify-between',
+                            !sourceFieldControl.value &&
+                              'text-muted-foreground',
+                          )}
+                        >
+                          {sourceFieldControl.value
+                            ? sourceFields.find(
+                                (sourceField) =>
+                                  sourceField.value ===
+                                  sourceFieldControl.value,
+                              )?.label
+                            : 'Select field'}
+                          <ChevronsUpDown className="opacity-50" />
+                        </ButtonV3>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search field..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>
+                            Select a source type first.
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {getAvailableSourceFields(index).map(
+                              (sourceField) => (
+                                <CommandItem
+                                  value={sourceField.value}
+                                  key={sourceField.value}
+                                  onSelect={() => {
+                                    sourceFieldControl.onChange(
+                                      sourceField.value,
+                                    );
+                                  }}
+                                >
+                                  {sourceField.label} ({sourceField.type})
+                                  <Check
+                                    className={cn(
+                                      'ml-auto',
+                                      sourceField.value ===
+                                        sourceFieldControl.value
+                                        ? 'opacity-100'
+                                        : 'opacity-0',
+                                    )}
+                                  />
+                                </CommandItem>
+                              ),
+                            )}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             <Text className="col-span-1 text-center">:</Text>
@@ -168,7 +276,7 @@ export default function FieldToColumnMapSelector() {
               variant="borderless"
               className="col-span-1"
               color="error"
-              onClick={() => handleRemoveHeader(index, field.id)}
+              onClick={() => remove(index)}
             >
               <TrashIcon className="h-4 w-4" />
             </Button>
