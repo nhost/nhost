@@ -4,29 +4,30 @@ import { getHasuraAdminSecret } from '@/utils/env';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import type { CreateSchemaRelationshipVariables } from './createSchemaRelationship';
-import createSchemaRelationship from './createSchemaRelationship';
+import updateRemoteSchemaRelationship, {
+  type UpdateRemoteSchemaRelationshipVariables,
+} from './updateRemoteSchemaRelationship';
 
-export interface UseCreateSchemaRelationshipMutationOptions {
+export interface UseUpdateRemoteSchemaRelationshipMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
     MetadataOperation200,
     unknown,
-    CreateSchemaRelationshipVariables
+    UpdateRemoteSchemaRelationshipVariables
   >;
 }
 
 /**
- * This hook is a wrapper around a fetch call that creates a remote schema relationship.
+ * This hook is a wrapper around a fetch call that updates a remote schema relationship.
  *
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.
  */
-export default function useCreateSchemaRelationshipMutation({
+export default function useUpdateRemoteSchemaRelationshipMutation({
   mutationOptions,
-}: UseCreateSchemaRelationshipMutationOptions = {}) {
+}: UseUpdateRemoteSchemaRelationshipMutationOptions = {}) {
   const { project } = useProject();
 
   const appUrl = generateAppServiceUrl(
@@ -34,7 +35,7 @@ export default function useCreateSchemaRelationshipMutation({
     project?.region,
     'hasura',
   );
-  const mutationFn = createSchemaRelationship;
+  const mutationFn = updateRemoteSchemaRelationship;
 
   const mutation = useMutation(
     (variables) =>

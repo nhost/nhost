@@ -3,6 +3,9 @@ import type {
   RemoteSchemaHeaderWithValue,
   RemoteSchemaInfo,
   RemoteSchemaInfoDefinitionHeadersItem,
+  RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
+  ToRemoteSchemaDefinition,
+  ToSourceDefinition,
 } from '@/utils/hasura-api/generated/schemas';
 
 export function isHeaderWithEnvValue(
@@ -65,4 +68,19 @@ export function isRemoteSchemaInfo(obj: unknown): obj is RemoteSchemaInfo {
   }
 
   return true;
+}
+
+/**
+ * Type guard to validate if an object is a ToRemoteSchemaDefinition or a ToSourceDefinition
+ */
+export function isToRemoteSchemaDefinition(
+  definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
+): definition is { to_remote_schema: ToRemoteSchemaDefinition } {
+  return 'to_remote_schema' in definition && !('to_source' in definition);
+}
+
+export function isToSourceDefinition(
+  definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
+): definition is { to_source: ToSourceDefinition } {
+  return 'to_source' in definition && !('to_remote_schema' in definition);
 }
