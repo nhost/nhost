@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material';
 import type { GraphQLSchema } from 'graphql';
 import React, {
   forwardRef,
@@ -61,6 +62,7 @@ export const RemoteSchemaTree = forwardRef<
   ) => {
     const treeRef = useRef<any>(null);
     const environmentRef = useRef<any>(null);
+    const theme = useTheme();
 
     const treeData: ComplexTreeData = useMemo(() => {
       return buildComplexTreeData({
@@ -189,7 +191,17 @@ export const RemoteSchemaTree = forwardRef<
     };
 
     return (
-      <div className={className}>
+      <div
+        className={`${className} ${theme.palette.mode === 'dark' ? 'rct-dark' : ''}`}
+        style={
+          theme.palette.mode === 'dark'
+            ? {
+                backgroundColor: '#171d26',
+                color: '#e3e3e3',
+              }
+            : undefined
+        }
+      >
         <ControlledTreeEnvironment
           ref={environmentRef}
           items={treeData}
