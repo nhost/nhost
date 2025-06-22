@@ -5,6 +5,7 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { ExportMetadata } from './exportMetadata';
 import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
 import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation';
@@ -18,4 +19,5 @@ export type MetadataOperationBody =
   | RemoveRemoteSchemaOperation
   | ReloadRemoteSchemaOperation
   | IntrospectRemoteSchemaOperation
-  | RemoteSchemaRemoteRelationshipOperation;
+  | RemoteSchemaRemoteRelationshipOperation
+  | DeleteRemoteSchemaRemoteRelationshipOperation;
