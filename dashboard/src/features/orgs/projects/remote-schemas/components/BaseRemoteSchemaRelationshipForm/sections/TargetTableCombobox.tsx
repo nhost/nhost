@@ -68,66 +68,69 @@ export default function TargetTableCombobox() {
     <FormField
       control={form.control}
       name="table"
-      render={({ field }) => (
-        <FormItem className="flex flex-1 flex-col">
-          <FormLabel>Target Table</FormLabel>
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className={cn(
-                    'w-full justify-between',
-                    !field.value && 'text-muted-foreground',
-                  )}
-                >
-                  {field.value
-                    ? tables.find(
-                        (table) =>
-                          table.value.name === field.value?.name &&
-                          table.value.schema === field.value?.schema,
-                      )?.label
-                    : 'Select table'}
-                  <ChevronsUpDown className="opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-              <Command>
-                <CommandInput
-                  placeholder="Search target table..."
-                  className="h-9"
-                />
-                <CommandList>
-                  <CommandEmpty>No target table found.</CommandEmpty>
-                  <CommandGroup>
-                    {tables.map((table) => (
-                      <CommandItem
-                        value={table.label}
-                        key={`${table.value.schema}/${table.value.name}`}
-                        onSelect={() => handleSelectTable(table.value)}
-                      >
-                        {table.label}
-                        <Check
-                          className={cn(
-                            'ml-auto',
+      render={({ field }) => {
+        return (
+          <FormItem className="flex flex-1 flex-col">
+            <FormLabel>Target Table</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      'w-full justify-between',
+                      (!field.value?.name || !field.value?.schema) &&
+                        'text-muted-foreground',
+                    )}
+                  >
+                    {field.value?.name && field.value?.schema
+                      ? tables.find(
+                          (table) =>
                             table.value.name === field.value?.name &&
-                              table.value.schema === field.value?.schema
-                              ? 'opacity-100'
-                              : 'opacity-0',
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          <FormMessage />
-        </FormItem>
-      )}
+                            table.value.schema === field.value?.schema,
+                        )?.label
+                      : 'Select table'}
+                    <ChevronsUpDown className="opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
+                <Command>
+                  <CommandInput
+                    placeholder="Search target table..."
+                    className="h-9"
+                  />
+                  <CommandList>
+                    <CommandEmpty>No target table found.</CommandEmpty>
+                    <CommandGroup>
+                      {tables.map((table) => (
+                        <CommandItem
+                          value={table.label}
+                          key={`${table.value.schema}/${table.value.name}`}
+                          onSelect={() => handleSelectTable(table.value)}
+                        >
+                          {table.label}
+                          <Check
+                            className={cn(
+                              'ml-auto',
+                              table.value.name === field.value?.name &&
+                                table.value.schema === field.value?.schema
+                                ? 'opacity-100'
+                                : 'opacity-0',
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 }
