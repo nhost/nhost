@@ -1,19 +1,3 @@
-export interface HasuraRemoteSchemaDefinition {
-  role: string;
-  permission: Partial<{
-    columns: string[];
-    filter: Record<string, any>;
-    check: Record<string, any>;
-    limit: number;
-    allow_aggregations: boolean;
-    query_root_fields: string[];
-    subscription_root_fields: string[];
-    computed_fields: string[];
-    set: Record<string, any>;
-    backend_only: boolean;
-  }>;
-}
-
 export type EnvOrValueHeader =
   | {
       name: string;
@@ -30,3 +14,5 @@ export interface MetadataOperationOptions {
   appUrl: string;
   adminSecret: string;
 }
+
+export type RemoteSchemaRelationshipType = 'remote-schema' | 'database';
