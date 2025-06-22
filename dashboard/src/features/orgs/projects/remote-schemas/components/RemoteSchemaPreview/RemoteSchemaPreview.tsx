@@ -1,3 +1,4 @@
+import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { Search, X } from 'lucide-react';
@@ -176,15 +177,12 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
 
         {/* Search Message */}
         {searchMessage && (
-          <div
-            className={`mt-2 rounded px-2 py-1 text-xs ${
-              searchMessage.includes('Found')
-                ? 'border border-green-200 bg-green-50 text-green-700'
-                : 'border border-yellow-200 bg-yellow-50 text-yellow-700'
-            }`}
+          <Alert
+            severity={searchMessage.includes('Found') ? 'success' : 'warning'}
+            className="mt-2"
           >
             {searchMessage}
-          </div>
+          </Alert>
         )}
       </div>
 
