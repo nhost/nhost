@@ -6,7 +6,7 @@ import BaseRemoteSchemaForm, {
   baseRemoteSchemaValidationSchema,
 } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaForm/BaseRemoteSchemaForm';
 import type {
-  AddRemoteSchemaArgsDefinitionHeadersItem,
+  RemoteSchemaHeaders,
   RemoteSchemaInfo,
   UpdateRemoteSchemaArgs,
 } from '@/utils/hasura-api/generated/schemas';
@@ -17,6 +17,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
 import { useUpdateRemoteSchemaMutation } from '../../hooks/useUpdateRemoteSchemaMutation';
 import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '../../utils/constants';
+import { isRemoteSchemaFromUrlDefinition } from '../../utils/guards';
 
 export interface EditRemoteSchemaFormProps
   extends Pick<BaseRemoteSchemaFormProps, 'onCancel' | 'location'> {
@@ -51,7 +52,9 @@ export default function EditRemoteSchemaForm({
       name: originalSchema.name,
       comment: originalSchema.comment,
       definition: {
-        url: originalSchema.definition.url,
+        url: isRemoteSchemaFromUrlDefinition(originalSchema.definition)
+          ? originalSchema.definition.url
+          : originalSchema.definition.url_from_env,
         forward_client_headers:
           originalSchema.definition.forward_client_headers ?? false,
         headers: originalSchema.definition.headers ?? [],
@@ -67,8 +70,8 @@ export default function EditRemoteSchemaForm({
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
-      const headers: AddRemoteSchemaArgsDefinitionHeadersItem[] =
-        values.definition.headers.map((header) => {
+      const headers: RemoteSchemaHeaders = values.definition.headers.map(
+        (header) => {
           if (header.value_from_env) {
             return {
               name: header.name,
@@ -79,7 +82,8 @@ export default function EditRemoteSchemaForm({
             name: header.name,
             value: header.value,
           };
-        });
+        },
+      );
 
       const remoteSchema: UpdateRemoteSchemaArgs = {
         name: values.name,
