@@ -155,7 +155,9 @@ export default function SchemaToArgumentMapSelector({
     }
   };
 
-  if (!selectedTargetField || targetArguments.length === 0) {
+  console.log(targetArguments.length);
+
+  if (!selectedTargetField) {
     return (
       <Box className="space-y-4 rounded border-1 p-4">
         <Text className="text-sm text-muted-foreground">
@@ -172,164 +174,174 @@ export default function SchemaToArgumentMapSelector({
           Configure arguments for {selectedTargetField}
         </Text>
 
-        <div className="space-y-3">
-          {targetArguments.map((argument) => {
-            const isSelected = isArgumentSelected(argument.value);
-            const mappingIndex = getArgumentMappingIndex(argument.value);
+        {targetArguments.length === 0 ? (
+          <Text className="text-sm text-muted-foreground">
+            No selectable items available for this type
+          </Text>
+        ) : (
+          <div className="space-y-3">
+            {targetArguments.map((argument) => {
+              const isSelected = isArgumentSelected(argument.value);
+              const mappingIndex = getArgumentMappingIndex(argument.value);
 
-            // Watch the type field for this specific mapping to make it reactive
-            const currentType =
-              mappingIndex !== -1
-                ? form.watch(`mappings.${mappingIndex}.type`)
-                : null;
+              // Watch the type field for this specific mapping to make it reactive
+              const currentType =
+                mappingIndex !== -1
+                  ? form.watch(`mappings.${mappingIndex}.type`)
+                  : null;
 
-            return (
-              <div key={argument.value} className="space-y-2">
-                {/* Argument header with checkbox */}
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id={`arg-${argument.value}`}
-                    checked={isSelected}
-                    onCheckedChange={(checked) =>
-                      handleArgumentToggle(argument.value, checked as boolean)
-                    }
-                  />
-                  <label
-                    htmlFor={`arg-${argument.value}`}
-                    className="cursor-pointer text-sm font-medium"
-                  >
-                    {argument.label}
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      ({argument.type})
-                    </span>
-                    {argument.required && (
-                      <span className="ml-1 text-xs text-red-500">*</span>
-                    )}
-                  </label>
-                </div>
-
-                {/* Configuration options when selected */}
-                {isSelected && mappingIndex !== -1 && (
-                  <div className="ml-6 flex items-center space-x-0">
-                    {/* Type Selection */}
-                    <FormField
-                      control={form.control}
-                      name={`mappings.${mappingIndex}.type`}
-                      render={({ field: typeField }) => (
-                        <FormItem>
-                          <FormLabel>Fill From</FormLabel>
-                          <Select
-                            onValueChange={typeField.onChange}
-                            defaultValue={typeField.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-40 rounded-r-none border-r-0">
-                                <SelectValue placeholder="Type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="sourceTypeField">
-                                Source Field
-                              </SelectItem>
-                              <SelectItem value="staticValue">
-                                Static Value
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+              return (
+                <div key={argument.value} className="space-y-2">
+                  {/* Argument header with checkbox */}
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`arg-${argument.value}`}
+                      checked={isSelected}
+                      onCheckedChange={(checked) =>
+                        handleArgumentToggle(argument.value, checked as boolean)
+                      }
                     />
-
-                    {/* Value Selection/Input */}
-                    <FormField
-                      control={form.control}
-                      name={`mappings.${mappingIndex}.value`}
-                      render={({ field: valueField }) => (
-                        <FormItem className="flex-1">
-                          {currentType === 'sourceTypeField' ? (
-                            // Source field selector
-                            <>
-                              <FormLabel>From Source Type Field</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <ButtonV3
-                                      variant="outline"
-                                      role="combobox"
-                                      className={cn(
-                                        'w-full justify-between rounded-l-none',
-                                        !valueField.value &&
-                                          'text-muted-foreground',
-                                      )}
-                                    >
-                                      {valueField.value
-                                        ? sourceFields.find(
-                                            (field) =>
-                                              field.value === valueField.value,
-                                          )?.label
-                                        : 'Select source field'}
-                                      <ChevronsUpDown className="opacity-50" />
-                                    </ButtonV3>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                                  <Command>
-                                    <CommandInput
-                                      placeholder="Search field..."
-                                      className="h-9"
-                                    />
-                                    <CommandList>
-                                      <CommandEmpty>
-                                        No source fields found.
-                                      </CommandEmpty>
-                                      <CommandGroup>
-                                        {sourceFields.map((field) => (
-                                          <CommandItem
-                                            value={field.value}
-                                            key={field.value}
-                                            onSelect={() => {
-                                              valueField.onChange(field.value);
-                                            }}
-                                          >
-                                            {field.label} ({field.type})
-                                            <Check
-                                              className={cn(
-                                                'ml-auto',
-                                                field.value === valueField.value
-                                                  ? 'opacity-100'
-                                                  : 'opacity-0',
-                                              )}
-                                            />
-                                          </CommandItem>
-                                        ))}
-                                      </CommandGroup>
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
-                            </>
-                          ) : (
-                            // Static value input
-                            <>
-                              <FormLabel>Static Value</FormLabel>
-                              <Input
-                                {...valueField}
-                                placeholder="Enter static value"
-                                className="rounded-l-none"
-                              />
-                            </>
-                          )}
-                          <FormMessage />
-                        </FormItem>
+                    <label
+                      htmlFor={`arg-${argument.value}`}
+                      className="cursor-pointer text-sm font-medium"
+                    >
+                      {argument.label}
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        ({argument.type})
+                      </span>
+                      {argument.required && (
+                        <span className="ml-1 text-xs text-red-500">*</span>
                       )}
-                    />
+                    </label>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+
+                  {/* Configuration options when selected */}
+                  {isSelected && mappingIndex !== -1 && (
+                    <div className="ml-6 flex items-center space-x-0">
+                      {/* Type Selection */}
+                      <FormField
+                        control={form.control}
+                        name={`mappings.${mappingIndex}.type`}
+                        render={({ field: typeField }) => (
+                          <FormItem>
+                            <FormLabel>Fill From</FormLabel>
+                            <Select
+                              onValueChange={typeField.onChange}
+                              defaultValue={typeField.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-40 rounded-r-none border-r-0">
+                                  <SelectValue placeholder="Type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="sourceTypeField">
+                                  Source Field
+                                </SelectItem>
+                                <SelectItem value="staticValue">
+                                  Static Value
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Value Selection/Input */}
+                      <FormField
+                        control={form.control}
+                        name={`mappings.${mappingIndex}.value`}
+                        render={({ field: valueField }) => (
+                          <FormItem className="flex-1">
+                            {currentType === 'sourceTypeField' ? (
+                              // Source field selector
+                              <>
+                                <FormLabel>From Source Type Field</FormLabel>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <ButtonV3
+                                        variant="outline"
+                                        role="combobox"
+                                        className={cn(
+                                          'w-full justify-between rounded-l-none',
+                                          !valueField.value &&
+                                            'text-muted-foreground',
+                                        )}
+                                      >
+                                        {valueField.value
+                                          ? sourceFields.find(
+                                              (field) =>
+                                                field.value ===
+                                                valueField.value,
+                                            )?.label
+                                          : 'Select source field'}
+                                        <ChevronsUpDown className="opacity-50" />
+                                      </ButtonV3>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
+                                    <Command>
+                                      <CommandInput
+                                        placeholder="Search field..."
+                                        className="h-9"
+                                      />
+                                      <CommandList>
+                                        <CommandEmpty>
+                                          No source fields found.
+                                        </CommandEmpty>
+                                        <CommandGroup>
+                                          {sourceFields.map((field) => (
+                                            <CommandItem
+                                              value={field.value}
+                                              key={field.value}
+                                              onSelect={() => {
+                                                valueField.onChange(
+                                                  field.value,
+                                                );
+                                              }}
+                                            >
+                                              {field.label} ({field.type})
+                                              <Check
+                                                className={cn(
+                                                  'ml-auto',
+                                                  field.value ===
+                                                    valueField.value
+                                                    ? 'opacity-100'
+                                                    : 'opacity-0',
+                                                )}
+                                              />
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
+                              </>
+                            ) : (
+                              // Static value input
+                              <>
+                                <FormLabel>Static Value</FormLabel>
+                                <Input
+                                  {...valueField}
+                                  placeholder="Enter static value"
+                                  className="rounded-l-none"
+                                />
+                              </>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Box>
     </Box>
   );
