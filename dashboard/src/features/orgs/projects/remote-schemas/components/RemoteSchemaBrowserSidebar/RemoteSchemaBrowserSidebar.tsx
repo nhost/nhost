@@ -364,7 +364,7 @@ function RemoteSchemaBrowserSidebarContent({
                         '2.25rem !important',
                     }}
                     component={NavLink}
-                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/settings/remote-schemas/${remoteSchema.name}`}
+                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${remoteSchema.name}`}
                     onClick={() => {
                       if (onSidebarItemClick) {
                         onSidebarItemClick(`${remoteSchema.name}`);
