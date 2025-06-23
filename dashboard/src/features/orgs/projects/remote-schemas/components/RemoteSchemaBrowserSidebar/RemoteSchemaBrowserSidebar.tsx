@@ -271,7 +271,7 @@ function RemoteSchemaBrowserSidebarContent({
                               className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                               onClick={() =>
                                 openDrawer({
-                                  title: 'Edit Table',
+                                  title: 'Edit Remote Schema',
                                   component: (
                                     <EditRemoteSchemaForm
                                       originalSchema={remoteSchema}
