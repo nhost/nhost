@@ -92,7 +92,7 @@ export default function CreateRemoteSchemaForm({
       triggerToast('The remote schema has been created successfully.');
 
       await router.push(
-        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/remote-schemas/${values.name}`,
+        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/graphql/remote-schemas/${values.name}`,
       );
     } catch {
       // This error is handled by the useCreateRemoteSchemaMutation hook.
