@@ -82,9 +82,6 @@ components:
           type: string
           description: JSON path where the error occurred
           example: '$.args'
-        message:
-          type: string
-          description: Detailed error message
 
     ExportMetadata:
       type: object

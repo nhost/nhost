@@ -5,10 +5,15 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { ErrorResponseInternalItem } from './errorResponseInternalItem';
 
 export interface ErrorResponse {
   /** Error code */
   code?: string;
-  /** Detailed error message */
-  message?: string;
+  /** Object error message */
+  error?: string;
+  /** Internal error details */
+  internal?: ErrorResponseInternalItem[];
+  /** JSON path where the error occurred */
+  path?: string;
 }

@@ -19,6 +19,7 @@ export * from './deleteRemoteSchemaRemoteRelationshipArgs';
 export * from './deleteRemoteSchemaRemoteRelationshipOperation';
 export * from './deleteRemoteSchemaRemoteRelationshipOperationType';
 export * from './errorResponse';
+export * from './errorResponseInternalItem';
 export * from './exportMetadata';
 export * from './exportMetadataArgs';
 export * from './exportMetadataResponse';
