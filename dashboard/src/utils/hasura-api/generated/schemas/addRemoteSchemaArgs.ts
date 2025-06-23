@@ -5,12 +5,12 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { AddRemoteSchemaArgsDefinition } from './addRemoteSchemaArgsDefinition';
+import type { RemoteSchemaDefinition } from './remoteSchemaDefinition';
 
 export interface AddRemoteSchemaArgs {
   /** Name of the remote schema */
   name: string;
-  definition: AddRemoteSchemaArgsDefinition;
+  definition: RemoteSchemaDefinition;
   /** Comment for the remote schema */
   comment?: string;
 }

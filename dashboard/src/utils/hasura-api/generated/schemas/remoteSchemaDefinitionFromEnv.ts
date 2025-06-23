@@ -5,15 +5,17 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { RemoteSchemaInfoDefinitionOneOfThreeHeadersItem } from './remoteSchemaInfoDefinitionOneOfThreeHeadersItem';
+import type { RemoteSchemaHeaders } from './remoteSchemaHeaders';
 
-export type RemoteSchemaInfoDefinitionOneOfThree = {
+/**
+ * Remote schema definition using URL from environment variable
+ */
+export interface RemoteSchemaDefinitionFromEnv {
   /** Environment variable name containing the GraphQL server URL */
   url_from_env: string;
   /** Timeout in seconds */
   timeout_seconds?: number;
   /** Forward client headers to the remote schema */
   forward_client_headers?: boolean;
-  /** Headers to be sent with the request */
-  headers?: RemoteSchemaInfoDefinitionOneOfThreeHeadersItem[];
-};
+  headers?: RemoteSchemaHeaders;
+}

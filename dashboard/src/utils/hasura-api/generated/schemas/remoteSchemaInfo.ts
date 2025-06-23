@@ -5,7 +5,7 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { RemoteSchemaInfoDefinition } from './remoteSchemaInfoDefinition';
+import type { RemoteSchemaDefinition } from './remoteSchemaDefinition';
 import type { RemoteSchemaInfoPermissionsItem } from './remoteSchemaInfoPermissionsItem';
 import type { RemoteSchemaInfoRemoteRelationshipsItem } from './remoteSchemaInfoRemoteRelationshipsItem';
 
@@ -15,8 +15,7 @@ import type { RemoteSchemaInfoRemoteRelationshipsItem } from './remoteSchemaInfo
 export interface RemoteSchemaInfo {
   /** Name of the remote schema */
   name: string;
-  /** Remote schema definition */
-  definition: RemoteSchemaInfoDefinition;
+  definition: RemoteSchemaDefinition;
   /** Comment for the remote schema */
   comment?: string;
   /** Remote relationships for the remote schema */
