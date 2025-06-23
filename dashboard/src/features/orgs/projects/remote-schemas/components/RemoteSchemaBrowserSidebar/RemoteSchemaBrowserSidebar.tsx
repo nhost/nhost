@@ -132,6 +132,7 @@ function RemoteSchemaBrowserSidebarContent({
             name: schema,
           },
         });
+        refetch();
       },
       {
         loadingMessage: 'Deleting remote schema...',
