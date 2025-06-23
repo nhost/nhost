@@ -1,5 +1,7 @@
 import type { IntrospectRemoteSchemaResponse } from '@/utils/hasura-api/generated/schemas';
 import { buildClientSchema, GraphQLSchema } from 'graphql';
+import { HelpCircle } from 'lucide-react';
+import React from 'react';
 import {
   AllowedRootFields,
   ComplexTreeData,
@@ -104,6 +106,7 @@ export const buildComplexTreeData = ({
         const hasArgs = field.args && field.args.length > 0;
         const hasNestedFields = isObjectTypeWithFields(field.type);
         const fieldType = getFieldTypeString(field.type);
+        // Root level fields use normal styling (not sub-field styling)
         const fieldLabel = `${field.name}: ${fieldType}`;
 
         treeData[fieldKey] = {
@@ -122,11 +125,14 @@ export const buildComplexTreeData = ({
           field.args.forEach((arg: any) => {
             const argKey = `${fieldKey}.arg.${arg.name}`;
             const argType = getFieldTypeString(arg.type);
+            // Arguments for root level fields use normal styling
+            const argData = createTreeItemData(arg.name, argType, 'argument');
+
             treeData[argKey] = {
               index: argKey,
               canMove: false,
               isFolder: false,
-              data: `${arg.name}: ${argType}`,
+              data: argData,
               canRename: false,
             };
             treeData[fieldKey].children!.push(argKey);
@@ -134,7 +140,7 @@ export const buildComplexTreeData = ({
         }
 
         // Add nested fields if present
-        if (hasNestedFields && !hasArgs) {
+        if (hasNestedFields) {
           buildNestedFields(field.type, fieldKey, treeData, 1);
         }
       });
@@ -169,18 +175,19 @@ const buildNestedFields = (
     const fields = underlyingType.getFields();
     Object.values(fields).forEach((field: any) => {
       const fieldKey = `${parentKey}.field.${field.name}`;
+      const hasArgs = field.args && field.args.length > 0;
       const hasNestedFields = isObjectTypeWithFields(field.type);
       const fieldType = getFieldTypeString(field.type);
 
-      // Include type information in the searchable data
-      const fieldLabel = `${field.name}: ${fieldType}`;
+      // Use styled data for sub-fields with visual indicator
+      const fieldData = createTreeItemData(field.name, fieldType, 'field');
 
       treeData[fieldKey] = {
         index: fieldKey,
         canMove: false,
-        isFolder: hasNestedFields,
-        children: hasNestedFields ? [] : undefined,
-        data: fieldLabel,
+        isFolder: hasArgs || hasNestedFields,
+        children: hasArgs || hasNestedFields ? [] : undefined,
+        data: fieldData,
         canRename: false,
       };
 
@@ -190,15 +197,18 @@ const buildNestedFields = (
       treeData[parentKey].children!.push(fieldKey);
 
       // Add arguments if present
-      if (field.args && field.args.length > 0) {
+      if (hasArgs) {
         field.args.forEach((arg: any) => {
           const argKey = `${fieldKey}.arg.${arg.name}`;
           const argType = getFieldTypeString(arg.type);
+          // Arguments use normal styling (no visual indicator)
+          const argData = createTreeItemData(arg.name, argType, 'argument');
+
           treeData[argKey] = {
             index: argKey,
             canMove: false,
             isFolder: false,
-            data: `${arg.name}: ${argType}`,
+            data: argData,
             canRename: false,
           };
           if (!treeData[fieldKey].children) {
@@ -208,11 +218,43 @@ const buildNestedFields = (
         });
       }
 
-      // Limit depth to prevent infinite recursion
+      // Add nested fields if present (regardless of whether arguments exist)
       if (depth < 3 && hasNestedFields) {
         buildNestedFields(field.type, fieldKey, treeData, depth + 1);
       }
     });
+  }
+};
+
+// Helper function to create styled tree item data
+const createTreeItemData = (
+  name: string,
+  type: string,
+  itemType: 'argument' | 'field' | 'root',
+): React.ReactNode => {
+  if (itemType === 'argument') {
+    // Arguments - normal styling
+    return `${name}: ${type}`;
+  } else if (itemType === 'field') {
+    // Sub-fields - grayer with arrow icon
+    return React.createElement(
+      'div',
+      {
+        className: 'flex items-center gap-1',
+        style: { color: '#6b7280' }, // Gray-500 color
+      },
+      [
+        React.createElement(HelpCircle, {
+          key: 'icon',
+          size: 12,
+          className: 'text-gray-400',
+        }),
+        React.createElement('span', { key: 'text' }, `${name}: ${type}`),
+      ],
+    );
+  } else {
+    // Root items - normal styling
+    return `${name}`;
   }
 };
 

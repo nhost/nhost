@@ -1,4 +1,3 @@
-import { Alert } from '@/components/ui/v2/Alert';
 import { Input } from '@/components/ui/v2/Input';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { Search, X } from 'lucide-react';
@@ -176,14 +175,14 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
         </form>
 
         {/* Search Message */}
-        {searchMessage && (
+        {/* {searchMessage && (
           <Alert
             severity={searchMessage.includes('Found') ? 'success' : 'warning'}
             className="mt-2"
           >
             {searchMessage}
           </Alert>
-        )}
+        )} */}
       </div>
 
       <div className="p-4">
