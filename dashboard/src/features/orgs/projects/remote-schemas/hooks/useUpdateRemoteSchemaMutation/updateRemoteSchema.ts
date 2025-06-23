@@ -35,6 +35,8 @@ export default async function updateRemoteSchema({
       return response.data;
     }
 
+    console.log(response.data);
+
     throw new Error(response.data.message);
   } catch (error) {
     console.error(error);

@@ -47,9 +47,9 @@ export default function EditRemoteSchemaRelationships({
     error,
   } = useGetRemoteSchemasQuery([`remote_schemas`, project?.subdomain]);
 
-  const remoteRelationships = remoteSchemas?.find(
-    (remoteSchema) => remoteSchema.name === schema,
-  ).remote_relationships;
+  const remoteRelationships =
+    remoteSchemas?.find((remoteSchema) => remoteSchema.name === schema)
+      ?.remote_relationships || [];
 
   const typeName =
     remoteRelationships.find((relationship) =>

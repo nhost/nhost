@@ -68,6 +68,8 @@ export default function EditRemoteSchemaForm({
     resolver: yupResolver(baseRemoteSchemaValidationSchema),
   });
 
+  console.log(updateRemoteSchemaError);
+
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
       const headers: RemoteSchemaHeaders = values.definition.headers.map(

@@ -67,7 +67,21 @@ components:
         code:
           type: string
           description: Error code
-          example: internal_error
+          example: invalid-configuration
+        error:
+          type: string
+          description: Object error message
+          example: "Inconsistent object: environment variable 'asdf' not set"
+        internal:
+          type: array
+          description: Internal error details
+          items:
+            type: object
+            additionalProperties: true
+        path:
+          type: string
+          description: JSON path where the error occurred
+          example: '$.args'
         message:
           type: string
           description: Detailed error message
