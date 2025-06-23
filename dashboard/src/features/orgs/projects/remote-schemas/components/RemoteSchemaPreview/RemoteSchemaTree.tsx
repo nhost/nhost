@@ -97,11 +97,31 @@ export const RemoteSchemaTree = forwardRef<
         const item = treeData[itemId];
         if (!item) return null;
 
-        const itemTitle =
-          typeof item.data === 'string' ? item.data : String(item.data);
+        // Handle different data types for search
+        let searchableText = '';
+        if (React.isValidElement(item.data)) {
+          // For JSX elements, extract the text content
+          const extractText = (element: any): string => {
+            if (typeof element === 'string') return element;
+            if (typeof element === 'number') return String(element);
+            if (element?.props?.children) {
+              if (Array.isArray(element.props.children)) {
+                return element.props.children.map(extractText).join('');
+              } else {
+                return extractText(element.props.children);
+              }
+            }
+            return '';
+          };
+          searchableText = extractText(item.data);
+        } else if (typeof item.data === 'string') {
+          searchableText = item.data;
+        } else {
+          searchableText = String(item.data);
+        }
 
         // Check if current item matches the search term (case-insensitive)
-        if (itemTitle.toLowerCase().includes(searchTerm.toLowerCase())) {
+        if (searchableText.toLowerCase().includes(searchTerm.toLowerCase())) {
           return [...currentPath, itemId];
         }
 
@@ -130,11 +150,30 @@ export const RemoteSchemaTree = forwardRef<
         const item = treeData[itemId];
         if (!item) return;
 
-        const itemTitle =
-          typeof item.data === 'string' ? item.data : String(item.data);
+        // Handle different data types for search (consistent with findItemPath)
+        let searchableText = '';
+        if (React.isValidElement(item.data)) {
+          const extractText = (element: any): string => {
+            if (typeof element === 'string') return element;
+            if (typeof element === 'number') return String(element);
+            if (element?.props?.children) {
+              if (Array.isArray(element.props.children)) {
+                return element.props.children.map(extractText).join('');
+              } else {
+                return extractText(element.props.children);
+              }
+            }
+            return '';
+          };
+          searchableText = extractText(item.data);
+        } else if (typeof item.data === 'string') {
+          searchableText = item.data;
+        } else {
+          searchableText = String(item.data);
+        }
 
         // Check if current item matches the search term
-        if (itemTitle.toLowerCase().includes(searchTerm.toLowerCase())) {
+        if (searchableText.toLowerCase().includes(searchTerm.toLowerCase())) {
           results.push([...currentPath, itemId]);
         }
 
@@ -184,6 +223,11 @@ export const RemoteSchemaTree = forwardRef<
     );
 
     const getItemTitle = (item: any) => {
+      // Handle JSX elements - return them as-is for rendering
+      if (React.isValidElement(item.data)) {
+        return item.data;
+      }
+
       if (typeof item.data === 'string') {
         return item.data;
       }

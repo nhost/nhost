@@ -45,7 +45,7 @@ export default function RemoteSchemaDetails({
     <div className="space-y-6 p-4">
       <Box className="grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 px-4 py-4">
         <h2 className="text-lg font-semibold">{remoteSchema.name}</h2>
-        {!showComment && (
+        {showComment && (
           <div>
             <Text variant="h3" className="pb-2">
               Comment
@@ -94,6 +94,26 @@ export default function RemoteSchemaDetails({
         {remoteSchema.definition.headers?.length > 0 && (
           <RemoteSchemaHeadersTable headers={remoteSchema.definition.headers} />
         )}
+        <div className="flex flex-row items-center space-x-2">
+          <Text>Forward all headers from client:</Text>
+          <Text color="secondary" className="font-semibold">
+            {remoteSchema.definition.forward_client_headers
+              ? 'Enabled'
+              : 'Disabled'}
+          </Text>
+          <Tooltip title="Toggle forwarding headers sent by the client app in the request to your remote GraphQL server">
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          </Tooltip>
+        </div>
+        <div className="flex flex-row items-center space-x-2">
+          <Text>GraphQL Server Timeout:</Text>
+          <Text color="secondary" className="font-semibold">
+            {remoteSchema.definition.timeout_seconds} seconds
+          </Text>
+          <Tooltip title="Configure timeout for your remote GraphQL server. Defaults to 60 seconds.">
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          </Tooltip>
+        </div>
       </Box>
 
       {/* Schema Preview Section */}
