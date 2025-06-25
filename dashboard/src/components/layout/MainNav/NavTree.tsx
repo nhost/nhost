@@ -162,8 +162,8 @@ const projectSettingsPages = [
 
 const projectGraphQLPages = [
   {
-    name: 'GraphQL IDE',
-    slug: 'ide',
+    name: 'Playground',
+    slug: 'playground',
     route: 'graphql',
   },
   {
@@ -252,16 +252,19 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
         index: `${org.slug}-${_app.subdomain}-${_page.slug}`,
         canMove: false,
         isFolder: _page.name === 'Settings' || _page.name === 'GraphQL',
-        children:
-          _page.name === 'Settings'
-            ? projectSettingsPages.map(
-                (p) => `${org.slug}-${_app.subdomain}-settings-${p.slug}`,
-              )
-            : _page.name === 'GraphQL'
-              ? projectGraphQLPages.map(
-                  (p) => `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
-                )
-              : undefined,
+        children: (() => {
+          if (_page.name === 'Settings') {
+            return projectSettingsPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-settings-${p.slug}`,
+            );
+          }
+          if (_page.name === 'GraphQL') {
+            return projectGraphQLPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
+            );
+          }
+          return undefined;
+        })(),
         data: {
           name: _page.name,
           icon: _page.icon,
