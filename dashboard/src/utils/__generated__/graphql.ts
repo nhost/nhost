@@ -27538,6 +27538,13 @@ export type GetObservabilitySettingsQueryVariables = Exact<{
 
 export type GetObservabilitySettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', alerting?: { __typename?: 'ConfigGrafanaAlerting', enabled?: boolean | null } | null, smtp?: { __typename?: 'ConfigGrafanaSmtp', host: string, password: string, port: any, sender: string, user: string } | null, contacts?: { __typename?: 'ConfigGrafanaContacts', emails?: Array<string> | null, discord?: Array<{ __typename?: 'ConfigGrafanacontactsDiscord', avatarUrl: string, url: string }> | null, pagerduty?: Array<{ __typename?: 'ConfigGrafanacontactsPagerduty', integrationKey: string, severity: string, class: string, component: string, group: string }> | null, slack?: Array<{ __typename?: 'ConfigGrafanacontactsSlack', recipient: string, token: string, username: string, iconEmoji: string, iconURL: string, mentionUsers: Array<string>, mentionGroups: Array<string>, mentionChannel: string, url: string, endpointURL: string }> | null, webhook?: Array<{ __typename?: 'ConfigGrafanacontactsWebhook', url: string, httpMethod: string, username: string, password: string, authorizationScheme: string, authorizationCredentials: string, maxAlerts: number }> | null } | null } } } | null };
 
+export type GetHasuraRemoteSchemaPermissionsEnabledQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetHasuraRemoteSchemaPermissionsEnabledQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', settings?: { __typename?: 'ConfigHasuraSettings', enableRemoteSchemaPermissions?: boolean | null } | null } } | null };
+
 export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null, networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null }, postgres: { __typename?: 'ConfigPostgres', resources: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage: { __typename?: 'ConfigPostgresResourcesStorage', capacity: any }, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } }, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null };
 
 export type GetResourcesQueryVariables = Exact<{
@@ -28032,7 +28039,7 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null, enableRemoteSchemaPermissions?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GetProjectStateQueryVariables = Exact<{
   subdomain: Scalars['String'];
@@ -29651,6 +29658,50 @@ export type GetObservabilitySettingsLazyQueryHookResult = ReturnType<typeof useG
 export type GetObservabilitySettingsQueryResult = Apollo.QueryResult<GetObservabilitySettingsQuery, GetObservabilitySettingsQueryVariables>;
 export function refetchGetObservabilitySettingsQuery(variables: GetObservabilitySettingsQueryVariables) {
       return { query: GetObservabilitySettingsDocument, variables: variables }
+    }
+export const GetHasuraRemoteSchemaPermissionsEnabledDocument = gql`
+    query GetHasuraRemoteSchemaPermissionsEnabled($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    hasura {
+      settings {
+        enableRemoteSchemaPermissions
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetHasuraRemoteSchemaPermissionsEnabledQuery__
+ *
+ * To run a query within a React component, call `useGetHasuraRemoteSchemaPermissionsEnabledQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHasuraRemoteSchemaPermissionsEnabledQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHasuraRemoteSchemaPermissionsEnabledQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetHasuraRemoteSchemaPermissionsEnabledQuery(baseOptions: Apollo.QueryHookOptions<GetHasuraRemoteSchemaPermissionsEnabledQuery, GetHasuraRemoteSchemaPermissionsEnabledQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetHasuraRemoteSchemaPermissionsEnabledQuery, GetHasuraRemoteSchemaPermissionsEnabledQueryVariables>(GetHasuraRemoteSchemaPermissionsEnabledDocument, options);
+      }
+export function useGetHasuraRemoteSchemaPermissionsEnabledLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetHasuraRemoteSchemaPermissionsEnabledQuery, GetHasuraRemoteSchemaPermissionsEnabledQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetHasuraRemoteSchemaPermissionsEnabledQuery, GetHasuraRemoteSchemaPermissionsEnabledQueryVariables>(GetHasuraRemoteSchemaPermissionsEnabledDocument, options);
+        }
+export type GetHasuraRemoteSchemaPermissionsEnabledQueryHookResult = ReturnType<typeof useGetHasuraRemoteSchemaPermissionsEnabledQuery>;
+export type GetHasuraRemoteSchemaPermissionsEnabledLazyQueryHookResult = ReturnType<typeof useGetHasuraRemoteSchemaPermissionsEnabledLazyQuery>;
+export type GetHasuraRemoteSchemaPermissionsEnabledQueryResult = Apollo.QueryResult<GetHasuraRemoteSchemaPermissionsEnabledQuery, GetHasuraRemoteSchemaPermissionsEnabledQueryVariables>;
+export function refetchGetHasuraRemoteSchemaPermissionsEnabledQuery(variables: GetHasuraRemoteSchemaPermissionsEnabledQueryVariables) {
+      return { query: GetHasuraRemoteSchemaPermissionsEnabledDocument, variables: variables }
     }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {
@@ -32441,7 +32492,6 @@ export const GetProjectDocument = gql`
         adminSecret
         settings {
           enableConsole
-          enableRemoteSchemaPermissions
         }
       }
       ai {
