@@ -57,7 +57,7 @@ const StyledRadio = styled(MaterialRadio)(({ theme }) => ({
 
 function Radio(
   { label, value, slotProps, ...props }: RadioProps,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   return (
     <StyledFormControlLabel

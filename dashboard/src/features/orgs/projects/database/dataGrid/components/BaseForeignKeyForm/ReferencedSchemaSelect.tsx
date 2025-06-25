@@ -17,7 +17,7 @@ export interface ReferencedSchemaSelectProps
 
 function ReferencedSchemaSelect(
   { options, ...props }: ReferencedSchemaSelectProps,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const { setValue } = useFormContext<BaseForeignKeyFormValues>();
   const { errors } = useFormState({ name: 'referencedSchema' });

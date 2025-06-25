@@ -24,7 +24,7 @@ export default function DataGridBooleanCell<TData extends object>({
     editCell,
     cancelEditCell,
     isSelected,
-  } = useDataGridCell<HTMLInputElement>();
+  } = useDataGridCell<HTMLButtonElement>();
 
   async function handleMenuClick(
     event: MouseEvent<HTMLLIElement> | ReactKeyboardEvent<HTMLLIElement>,

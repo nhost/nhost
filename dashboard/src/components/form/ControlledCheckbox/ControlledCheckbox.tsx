@@ -5,7 +5,7 @@ import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 import type { FieldValues, UseControllerProps } from 'react-hook-form';
 import { useController, useFormContext } from 'react-hook-form';
-import mergeRefs from 'react-merge-refs';
+import { mergeRefs } from 'react-merge-refs';
 
 export interface ControlledCheckboxProps<TFieldValues extends FieldValues = any>
   extends CheckboxProps {
@@ -38,7 +38,7 @@ function ControlledCheckbox(
     uncheckWhenDisabled,
     ...props
   }: ControlledCheckboxProps,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const { setValue } = useFormContext();
   const { field } = useController({

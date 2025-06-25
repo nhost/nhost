@@ -8,7 +8,6 @@ test('should return the total number of allocated resources', () => {
       totalAvailableVCPU: 1,
       totalAvailableMemory: 2,
       database: {
-        replicas: 1,
         vcpu: 0,
         memory: 0.5,
       },
@@ -36,7 +35,6 @@ test('should return the total number of allocated resources', () => {
       totalAvailableVCPU: 1,
       totalAvailableMemory: 2,
       database: {
-        replicas: 1,
         vcpu: 0.25,
         memory: 0,
       },
