@@ -212,11 +212,12 @@
             ]
           },
           {
-            "dropdown": "Local Development",
+            "dropdown": "Development",
             "icon": "terminal",
             "pages": [
               "/platform/cli/overview",
               "/platform/cli/local-development",
+              "/platform/cli/cloud-development",
               "/platform/cli/subdomain",
               "/platform/cli/migrate-config",
               "/platform/cli/multiple-projects",
