@@ -18,7 +18,6 @@ query getProject($subdomain: String!) {
         adminSecret
         settings {
           enableConsole
-          enableRemoteSchemaPermissions
         }
       }
       ai {
