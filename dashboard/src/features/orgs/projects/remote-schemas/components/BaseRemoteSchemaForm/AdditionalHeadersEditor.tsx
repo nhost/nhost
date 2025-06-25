@@ -169,7 +169,7 @@ export default function AdditionalHeadersEditor() {
                   className="pl-0"
                   sx={{
                     [`& .${inputBaseClasses.input}`]: {
-                      paddingLeft: '4px',
+                      paddingLeft: '8px',
                     },
                     borderLeft: 'none',
                     borderTopLeftRadius: 0,

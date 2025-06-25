@@ -9,6 +9,8 @@ import type {
   ErrorResponse,
   MetadataOperation200,
   MetadataOperationBody,
+  MigrationRequest,
+  SuccessResponse,
 } from '.././schemas';
 
 import type { CustomFetchOptions } from '../../customFetch';
@@ -49,5 +51,43 @@ export const metadataOperation = async (
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(metadataOperationBody),
+  });
+};
+
+/**
+ * Executes a migration with the provided up and down steps
+ * @summary Execute a database migration
+ */
+export type executeMigrationResponse200 = {
+  data: SuccessResponse;
+  status: 200;
+};
+
+export type executeMigrationResponse500 = {
+  data: ErrorResponse;
+  status: 500;
+};
+
+export type executeMigrationResponseComposite =
+  | executeMigrationResponse200
+  | executeMigrationResponse500;
+
+export type executeMigrationResponse = executeMigrationResponseComposite & {
+  headers: Headers;
+};
+
+export const getExecuteMigrationUrl = () => {
+  return `/apis/migrate`;
+};
+
+export const executeMigration = async (
+  migrationRequest: MigrationRequest,
+  options?: CustomFetchOptions,
+): Promise<executeMigrationResponse> => {
+  return customFetch<executeMigrationResponse>(getExecuteMigrationUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(migrationRequest),
   });
 };
