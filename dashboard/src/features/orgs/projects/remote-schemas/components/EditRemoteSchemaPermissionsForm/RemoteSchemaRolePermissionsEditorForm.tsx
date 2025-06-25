@@ -1,16 +1,8 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
-import { useQueryClient } from '@tanstack/react-query';
-import { buildClientSchema, type GraphQLSchema } from 'graphql';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ControlledTreeEnvironment, Tree } from 'react-complex-tree';
-import 'react-complex-tree/lib/style-modern.css';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as yup from 'yup';
+import { buildClientSchema, buildSchema, type GraphQLSchema } from 'graphql';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/form/Form';
-import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -21,348 +13,65 @@ import { useAddRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import { useRemoveRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaPermissionsMutation';
 import { useUpdateRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaPermissionsMutation';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
 
-interface ComplexTreeData {
-  [key: string]: {
-    index: string;
-    canMove: boolean;
-    isFolder: boolean;
-    children?: string[];
-    data: string | React.ReactNode;
-    title?: string;
-    canRename: boolean;
-    checkable?: boolean;
-    checked?: boolean;
-  };
+// Types matching Hasura's approach
+interface CustomFieldType {
+  name: string;
+  checked: boolean;
+  args?: Array<{ name: string; type: string }>;
+  return?: string;
+  typeName?: string;
+  children?: CustomFieldType[];
+  defaultValue?: any;
+  isInputObjectType?: boolean;
+  parentName?: string;
 }
 
-interface RemoteSchemaPermissionFormValues {
-  selectedFields?: string[];
-  schemaDefinition?: string;
+interface RemoteSchemaFields {
+  name: string;
+  typeName: string;
+  children: CustomFieldType[];
 }
 
-interface RemoteSchemaRolePermissionsEditorFormProps extends DialogFormProps {
-  disabled?: boolean;
+export interface RemoteSchemaRolePermissionsEditorFormProps
+  extends DialogFormProps {
+  /**
+   * The schema name of the remote schema that is being edited.
+   */
   remoteSchemaName: string;
+  /**
+   * The role being edited.
+   */
   role: string;
+  /**
+   * Existing permission for this role (if any).
+   */
+  permission?: any;
+  /**
+   * Function to be called when the operation is completed.
+   */
   onSubmit: () => void;
+  /**
+   * Function to be called when the operation is cancelled.
+   */
   onCancel: () => void;
-  permission?: RemoteSchemaInfoPermissionsItem;
 }
-
-const validationSchema = yup.object({
-  selectedFields: yup
-    .array()
-    .of(yup.string())
-    .default([])
-    .required('At least one field must be selected'),
-  schemaDefinition: yup.string().required('Schema definition is required'),
-});
-
-// Helper functions adapted from Hasura console
-const buildTreeDataFromSchema = (schema: GraphQLSchema): ComplexTreeData => {
-  const treeData: ComplexTreeData = {};
-
-  // Add root item
-  treeData.root = {
-    index: 'root',
-    canMove: false,
-    isFolder: true,
-    children: [],
-    data: 'Schema',
-    title: 'Schema',
-    canRename: false,
-  };
-
-  // Add query root
-  const queryType = schema.getQueryType();
-  if (queryType) {
-    const queryKey = '__query_root';
-    treeData[queryKey] = {
-      index: queryKey,
-      canMove: false,
-      isFolder: true,
-      children: [],
-      data: (
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            className="form-checkbox h-4 w-4 text-blue-600"
-            data-field-key={queryKey}
-          />
-          <span className="font-medium text-blue-600">Query</span>
-        </div>
-      ),
-      canRename: false,
-      checkable: true,
-    };
-    treeData.root.children!.push(queryKey);
-
-    // Add query fields
-    const queryFields = queryType.getFields();
-    Object.keys(queryFields).forEach((fieldName) => {
-      const field = queryFields[fieldName];
-      const fieldKey = `${queryKey}.field.${fieldName}`;
-
-      treeData[fieldKey] = {
-        index: fieldKey,
-        canMove: false,
-        isFolder: field.args.length > 0,
-        children: field.args.length > 0 ? [] : undefined,
-        data: (
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              className="form-checkbox h-4 w-4 text-blue-600"
-              data-field-key={fieldKey}
-            />
-            <span>{fieldName}</span>
-            <span className="text-sm text-gray-500">
-              : {field.type.toString()}
-            </span>
-          </div>
-        ),
-        canRename: false,
-        checkable: true,
-      };
-      treeData[queryKey].children!.push(fieldKey);
-
-      // Add arguments if present
-      field.args.forEach((arg) => {
-        const argKey = `${fieldKey}.arg.${arg.name}`;
-        treeData[argKey] = {
-          index: argKey,
-          canMove: false,
-          isFolder: false,
-          data: (
-            <div className="flex items-center space-x-2 pl-4">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-green-600"
-                data-field-key={argKey}
-              />
-              <span className="text-green-600">{arg.name}</span>
-              <span className="text-sm text-gray-500">
-                : {arg.type.toString()}
-              </span>
-            </div>
-          ),
-          canRename: false,
-          checkable: true,
-        };
-        treeData[fieldKey].children!.push(argKey);
-      });
-    });
-  }
-
-  // Add mutation root
-  const mutationType = schema.getMutationType();
-  if (mutationType) {
-    const mutationKey = '__mutation_root';
-    treeData[mutationKey] = {
-      index: mutationKey,
-      canMove: false,
-      isFolder: true,
-      children: [],
-      data: (
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            className="form-checkbox h-4 w-4 text-purple-600"
-            data-field-key={mutationKey}
-          />
-          <span className="font-medium text-purple-600">Mutation</span>
-        </div>
-      ),
-      canRename: false,
-      checkable: true,
-    };
-    treeData.root.children!.push(mutationKey);
-
-    // Add mutation fields (similar to query fields)
-    const mutationFields = mutationType.getFields();
-    Object.keys(mutationFields).forEach((fieldName) => {
-      const field = mutationFields[fieldName];
-      const fieldKey = `${mutationKey}.field.${fieldName}`;
-
-      treeData[fieldKey] = {
-        index: fieldKey,
-        canMove: false,
-        isFolder: field.args.length > 0,
-        children: field.args.length > 0 ? [] : undefined,
-        data: (
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              className="form-checkbox h-4 w-4 text-purple-600"
-              data-field-key={fieldKey}
-            />
-            <span>{fieldName}</span>
-            <span className="text-sm text-gray-500">
-              : {field.type.toString()}
-            </span>
-          </div>
-        ),
-        canRename: false,
-        checkable: true,
-      };
-      treeData[mutationKey].children!.push(fieldKey);
-
-      // Add arguments
-      field.args.forEach((arg) => {
-        const argKey = `${fieldKey}.arg.${arg.name}`;
-        treeData[argKey] = {
-          index: argKey,
-          canMove: false,
-          isFolder: false,
-          data: (
-            <div className="flex items-center space-x-2 pl-4">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-green-600"
-                data-field-key={argKey}
-              />
-              <span className="text-green-600">{arg.name}</span>
-              <span className="text-sm text-gray-500">
-                : {arg.type.toString()}
-              </span>
-            </div>
-          ),
-          canRename: false,
-          checkable: true,
-        };
-        treeData[fieldKey].children!.push(argKey);
-      });
-    });
-  }
-
-  // Add subscription root
-  const subscriptionType = schema.getSubscriptionType();
-  if (subscriptionType) {
-    const subscriptionKey = '__subscription_root';
-    treeData[subscriptionKey] = {
-      index: subscriptionKey,
-      canMove: false,
-      isFolder: true,
-      children: [],
-      data: (
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            className="form-checkbox h-4 w-4 text-orange-600"
-            data-field-key={subscriptionKey}
-          />
-          <span className="font-medium text-orange-600">Subscription</span>
-        </div>
-      ),
-      canRename: false,
-      checkable: true,
-    };
-    treeData.root.children!.push(subscriptionKey);
-
-    // Add subscription fields (similar to query fields)
-    const subscriptionFields = subscriptionType.getFields();
-    Object.keys(subscriptionFields).forEach((fieldName) => {
-      const field = subscriptionFields[fieldName];
-      const fieldKey = `${subscriptionKey}.field.${fieldName}`;
-
-      treeData[fieldKey] = {
-        index: fieldKey,
-        canMove: false,
-        isFolder: field.args.length > 0,
-        children: field.args.length > 0 ? [] : undefined,
-        data: (
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              className="form-checkbox h-4 w-4 text-orange-600"
-              data-field-key={fieldKey}
-            />
-            <span>{fieldName}</span>
-            <span className="text-sm text-gray-500">
-              : {field.type.toString()}
-            </span>
-          </div>
-        ),
-        canRename: false,
-        checkable: true,
-      };
-      treeData[subscriptionKey].children!.push(fieldKey);
-
-      // Add arguments
-      field.args.forEach((arg) => {
-        const argKey = `${fieldKey}.arg.${arg.name}`;
-        treeData[argKey] = {
-          index: argKey,
-          canMove: false,
-          isFolder: false,
-          data: (
-            <div className="flex items-center space-x-2 pl-4">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-green-600"
-                data-field-key={argKey}
-              />
-              <span className="text-green-600">{arg.name}</span>
-              <span className="text-sm text-gray-500">
-                : {arg.type.toString()}
-              </span>
-            </div>
-          ),
-          canRename: false,
-          checkable: true,
-        };
-        treeData[fieldKey].children!.push(argKey);
-      });
-    });
-  }
-
-  return treeData;
-};
-
-const generateSchemaDefinition = (selectedFields: string[]): string => {
-  // This is a simplified version. In production, you'd want to implement
-  // the full SDL generation logic from the Hasura console
-  const lines: string[] = [];
-
-  selectedFields.forEach((fieldKey) => {
-    if (fieldKey.includes('__query_root')) {
-      lines.push('type Query {');
-      // Add selected query fields
-      lines.push('}');
-    } else if (fieldKey.includes('__mutation_root')) {
-      lines.push('type Mutation {');
-      // Add selected mutation fields
-      lines.push('}');
-    } else if (fieldKey.includes('__subscription_root')) {
-      lines.push('type Subscription {');
-      // Add selected subscription fields
-      lines.push('}');
-    }
-  });
-
-  return lines.join('\n');
-};
 
 export default function RemoteSchemaRolePermissionsEditorForm({
   remoteSchemaName,
   role,
+  permission,
   onSubmit,
   onCancel,
-  permission,
-  disabled,
-  location,
 }: RemoteSchemaRolePermissionsEditorFormProps) {
   const theme = useTheme();
-  const queryClient = useQueryClient();
-  const treeRef = useRef<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  const [expandedItems, setExpandedItems] = useState<string[]>(['root']);
-  const [treeData, setTreeData] = useState<ComplexTreeData>({});
+  const [remoteSchemaFields, setRemoteSchemaFields] = useState<
+    RemoteSchemaFields[]
+  >([]);
+
+  const [schemaDefinition, setSchemaDefinition] = useState('');
 
   // Fetch remote schema introspection
   const {
@@ -373,133 +82,265 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
   // Mutations for managing permissions
   const addPermissionMutation = useAddRemoteSchemaPermissionsMutation();
-  const updatePermissionMutation = useUpdateRemoteSchemaPermissionsMutation();
+  const { mutateAsync: updatePermission, isLoading: isUpdatingPermission } =
+    useUpdateRemoteSchemaPermissionsMutation();
   const removePermissionMutation = useRemoveRemoteSchemaPermissionsMutation();
 
-  const form = useForm<RemoteSchemaPermissionFormValues>({
-    resolver: yupResolver(validationSchema),
-    defaultValues: {
-      selectedFields: [],
-      schemaDefinition: permission?.definition?.schema || '',
+  const { openAlertDialog } = useDialog();
+
+  // Build RemoteSchemaFields structure from introspection (matching Hasura's getTree function)
+  const buildRemoteSchemaFields = useCallback(
+    (
+      introspectionSchema: GraphQLSchema,
+      permissionsSchema: GraphQLSchema | null,
+    ): RemoteSchemaFields[] => {
+      const remoteFields: RemoteSchemaFields[] = [];
+
+      // Build Query root
+      const queryType = introspectionSchema.getQueryType();
+      if (queryType) {
+        const queryFields = queryType.getFields();
+        const permissionQueryFields = permissionsSchema
+          ?.getQueryType()
+          ?.getFields();
+
+        const children = Object.values(queryFields).map((field) => ({
+          name: field.name,
+          checked: !!(
+            permissionQueryFields && field.name in permissionQueryFields
+          ),
+          args: field.args.map((arg) => ({
+            name: arg.name,
+            type: arg.type.toString(),
+          })),
+          return: field.type.toString(),
+          parentName: `type ${queryType.name}`,
+        }));
+
+        remoteFields.push({
+          name: `type ${queryType.name}`,
+          typeName: '__query_root',
+          children,
+        });
+      }
+
+      // Build Mutation root
+      const mutationType = introspectionSchema.getMutationType();
+      if (mutationType) {
+        const mutationFields = mutationType.getFields();
+        const permissionMutationFields = permissionsSchema
+          ?.getMutationType()
+          ?.getFields();
+
+        const children = Object.values(mutationFields).map((field) => ({
+          name: field.name,
+          checked: !!(
+            permissionMutationFields && field.name in permissionMutationFields
+          ),
+          args: field.args.map((arg) => ({
+            name: arg.name,
+            type: arg.type.toString(),
+          })),
+          return: field.type.toString(),
+          parentName: `type ${mutationType.name}`,
+        }));
+
+        remoteFields.push({
+          name: `type ${mutationType.name}`,
+          typeName: '__mutation_root',
+          children,
+        });
+      }
+
+      // Build Subscription root
+      const subscriptionType = introspectionSchema.getSubscriptionType();
+      if (subscriptionType) {
+        const subscriptionFields = subscriptionType.getFields();
+        const permissionSubscriptionFields = permissionsSchema
+          ?.getSubscriptionType()
+          ?.getFields();
+
+        const children = Object.values(subscriptionFields).map((field) => ({
+          name: field.name,
+          checked: !!(
+            permissionSubscriptionFields &&
+            field.name in permissionSubscriptionFields
+          ),
+          args: field.args.map((arg) => ({
+            name: arg.name,
+            type: arg.type.toString(),
+          })),
+          return: field.type.toString(),
+          parentName: `type ${subscriptionType.name}`,
+        }));
+
+        remoteFields.push({
+          name: `type ${subscriptionType.name}`,
+          typeName: '__subscription_root',
+          children,
+        });
+      }
+
+      return remoteFields;
     },
-  });
+    [],
+  );
 
-  const { onDirtyStateChange, openDirtyConfirmation, openAlertDialog } =
-    useDialog();
-  const {
-    formState: { isDirty, isSubmitting },
-  } = form;
+  // Generate SDL from RemoteSchemaFields (inspired by Hasura's generateSDL function)
+  const generateSDL = useCallback((fields: RemoteSchemaFields[]): string => {
+    const lines: string[] = [];
+    let hasQuery = false;
+    let hasMutation = false;
+    let hasSubscription = false;
 
-  useEffect(() => {
-    onDirtyStateChange(isDirty, location);
-  }, [isDirty, location, onDirtyStateChange]);
+    fields.forEach((schemaType) => {
+      const checkedChildren = schemaType.children.filter(
+        (child) => child.checked,
+      );
+      if (checkedChildren.length === 0) {
+        return;
+      }
 
-  // Build tree data when schema is loaded
+      if (schemaType.typeName === '__query_root') {
+        hasQuery = true;
+        lines.push('type Query {');
+        checkedChildren.forEach((field) => {
+          lines.push(`  ${field.name}`);
+        });
+        lines.push('}');
+      } else if (schemaType.typeName === '__mutation_root') {
+        hasMutation = true;
+        lines.push('type Mutation {');
+        checkedChildren.forEach((field) => {
+          lines.push(`  ${field.name}`);
+        });
+        lines.push('}');
+      } else if (schemaType.typeName === '__subscription_root') {
+        hasSubscription = true;
+        lines.push('type Subscription {');
+        checkedChildren.forEach((field) => {
+          lines.push(`  ${field.name}`);
+        });
+        lines.push('}');
+      }
+    });
+
+    // Add schema definition if needed
+    if (hasQuery || hasMutation || hasSubscription) {
+      const schemaDef = ['schema {'];
+      if (hasQuery) {
+        schemaDef.push('  query: Query');
+      }
+      if (hasMutation) {
+        schemaDef.push('  mutation: Mutation');
+      }
+      if (hasSubscription) {
+        schemaDef.push('  subscription: Subscription');
+      }
+      schemaDef.push('}');
+
+      return `${schemaDef.join('\n')}\n\n${lines.join('\n')}`;
+    }
+
+    return lines.join('\n');
+  }, []);
+
+  // Build fields when schema is loaded
   useEffect(() => {
     if (introspectionData?.data) {
       try {
-        const schema = buildClientSchema(introspectionData.data as any);
-        const newTreeData = buildTreeDataFromSchema(schema);
-        setTreeData(newTreeData);
+        const introspectionSchema = buildClientSchema(
+          introspectionData.data as any,
+        );
+
+        let permissionSchema: GraphQLSchema | null = null;
+        if (permission?.definition?.schema) {
+          try {
+            permissionSchema = buildSchema(permission.definition.schema);
+          } catch (e) {
+            console.error('Error building permission schema:', e);
+          }
+        }
+
+        const fields = buildRemoteSchemaFields(
+          introspectionSchema,
+          permissionSchema,
+        );
+        setRemoteSchemaFields(fields);
+
+        // Generate SDL from the current state
+        if (permissionSchema) {
+          setSchemaDefinition(permission.definition.schema);
+        } else {
+          const sdl = generateSDL(fields);
+          setSchemaDefinition(sdl);
+        }
       } catch (error) {
         console.error('Error building schema:', error);
       }
     }
-  }, [introspectionData]);
+  }, [introspectionData, permission, buildRemoteSchemaFields, generateSDL]);
 
-  // Handle field selection
+  // Update schema definition when fields change
+  useEffect(() => {
+    if (remoteSchemaFields.length > 0) {
+      const newSchemaDefinition = generateSDL(remoteSchemaFields);
+      setSchemaDefinition(newSchemaDefinition);
+    }
+  }, [remoteSchemaFields, generateSDL]);
+
+  // Handle field selection changes
   const handleFieldToggle = useCallback(
-    (fieldKey: string, checked: boolean) => {
-      setSelectedFields((prev) => {
-        if (checked) {
-          return [...prev, fieldKey];
-        }
-        return prev.filter((key) => key !== fieldKey);
+    (schemaTypeIndex: number, fieldIndex: number, checked: boolean) => {
+      setRemoteSchemaFields((prev) => {
+        const newFields = [...prev];
+        newFields[schemaTypeIndex] = {
+          ...newFields[schemaTypeIndex],
+          children: newFields[schemaTypeIndex].children.map((child, index) =>
+            index === fieldIndex ? { ...child, checked } : child,
+          ),
+        };
+        return newFields;
       });
     },
     [],
   );
 
-  // Handle tree interaction
-  const handleTreeClick = useCallback(
-    (event: React.MouseEvent) => {
-      const target = event.target as HTMLElement;
-      const checkbox = target.closest(
-        'input[type="checkbox"]',
-      ) as HTMLInputElement;
-
-      if (checkbox) {
-        const { fieldKey } = checkbox.dataset;
-        if (fieldKey) {
-          const { checked } = checkbox;
-          handleFieldToggle(fieldKey, checked);
-
-          // Update form values
-          form.setValue(
-            'selectedFields',
-            checked
-              ? [...selectedFields, fieldKey]
-              : selectedFields.filter((key) => key !== fieldKey),
-          );
-        }
-      }
-    },
-    [selectedFields, handleFieldToggle, form],
-  );
-
-  // Generate schema definition when fields change
-  useEffect(() => {
-    if (selectedFields.length > 0) {
-      try {
-        const schemaDefinition = generateSchemaDefinition(selectedFields);
-        form.setValue('schemaDefinition', schemaDefinition);
-      } catch (error) {
-        console.error('Error generating schema definition:', error);
-      }
+  // Save permission
+  const handleSavePermission = async () => {
+    if (!schemaDefinition) {
+      console.log('No schema definition to save');
+      return;
     }
-  }, [selectedFields, form]);
 
-  const handleSubmit = async (values: RemoteSchemaPermissionFormValues) => {
     try {
       if (permission) {
-        // Update existing permission
-        await updatePermissionMutation.mutateAsync({
+        await updatePermission({
           role,
           remoteSchema: remoteSchemaName,
           originalPermissionSchema: permission.definition.schema,
-          newPermissionSchema: values.schemaDefinition || '',
+          newPermissionSchema: schemaDefinition,
         });
       } else {
-        // Add new permission
         await addPermissionMutation.mutateAsync({
           args: {
             remote_schema: remoteSchemaName,
             role,
             definition: {
-              schema: values.schemaDefinition || '',
+              schema: schemaDefinition,
             },
           },
         });
       }
 
-      await execPromiseWithErrorToast(
-        async () => {
-          queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
-          onDirtyStateChange(false, location);
-          onSubmit();
-        },
-        {
-          loadingMessage: 'Saving permission...',
-          successMessage: 'Permission has been saved successfully.',
-          errorMessage: 'An error occurred while saving the permission.',
-        },
-      );
+      onSubmit();
     } catch (error) {
       console.error('Error saving permission:', error);
     }
   };
 
-  const handleDelete = async () => {
+  // Remove permission
+  const handleRemovePermission = async () => {
     if (!permission) {
       return;
     }
@@ -515,20 +356,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         },
       });
 
-      await execPromiseWithErrorToast(
-        async () => {
-          queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
-          onDirtyStateChange(false, location);
-          onSubmit();
-        },
-        {
-          loadingMessage: 'Deleting permission...',
-          successMessage: 'Permission has been deleted successfully.',
-          errorMessage: 'An error occurred while deleting the permission.',
-        },
-      );
+      onSubmit();
     } catch (error) {
-      console.error('Error deleting permission:', error);
+      console.error('Error removing permission:', error);
     }
   };
 
@@ -538,37 +368,39 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       payload: (
         <span>
           Are you sure you want to delete the permissions for{' '}
-          <HighlightedText>{role}</HighlightedText> on{' '}
-          <HighlightedText>{remoteSchemaName}</HighlightedText>?
+          <strong>{role}</strong> on <strong>{remoteSchemaName}</strong>?
         </span>
       ),
       props: {
         primaryButtonText: 'Delete',
         primaryButtonColor: 'error',
-        onPrimaryAction: handleDelete,
+        onPrimaryAction: handleRemovePermission,
       },
     });
   };
 
-  const handleCancelClick = () => {
-    if (isDirty) {
-      openDirtyConfirmation({
-        props: {
-          onPrimaryAction: () => {
-            onDirtyStateChange(false, location);
-            onCancel();
-          },
-        },
-      });
-      return;
+  // Filter fields based on search term
+  const filteredFields = useMemo(() => {
+    if (!searchTerm) {
+      return remoteSchemaFields;
     }
-    onCancel();
-  };
+
+    return remoteSchemaFields
+      .map((schemaType) => ({
+        ...schemaType,
+        children: schemaType.children.filter(
+          (field) =>
+            field.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            field.return?.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
+      }))
+      .filter((schemaType) => schemaType.children.length > 0);
+  }, [remoteSchemaFields, searchTerm]);
 
   if (isLoadingSchema) {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading remote schema..." />
+        <ActivityIndicator label="Loading schema..." />
       </div>
     );
   }
@@ -585,150 +417,155 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   }
 
   return (
-    <FormProvider {...form}>
-      <Form
-        onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
-        sx={{ backgroundColor: 'background.default' }}
-      >
-        <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-hidden p-4">
+    <Box
+      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
+      sx={{ backgroundColor: 'background.default' }}
+    >
+      <div className="flex-auto">
+        <Box className="grid grid-flow-row content-start gap-6 overflow-y-auto border-b-1 p-6">
           {/* Header */}
-          <Box className="space-y-4 rounded border-1 p-4">
-            <div className="flex items-center justify-between">
-              <div className="grid grid-flow-col gap-4">
-                <Text>
-                  Remote Schema:{' '}
-                  <HighlightedText>{remoteSchemaName}</HighlightedText>
-                </Text>
-                <Text>
-                  Role: <HighlightedText>{role}</HighlightedText>
-                </Text>
-              </div>
-              <Button variant="borderless" onClick={handleCancelClick}>
-                Change
-              </Button>
-            </div>
-          </Box>
+          <div className="grid grid-flow-row gap-2">
+            <Text component="h2" className="!font-bold">
+              Edit Permissions: {remoteSchemaName} - {role}
+            </Text>
+            <Text>
+              Select the fields and operations that should be available for this
+              role.
+            </Text>
+          </div>
 
           {/* Search */}
-          <Box className="space-y-4 rounded border-1 p-4">
-            <Text className="text-lg font-semibold">Search Fields</Text>
+          <div className="relative">
             <Input
-              placeholder="Search schema fields..."
+              placeholder="Search fields and operations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
+              className="w-full pr-10"
             />
-          </Box>
+          </div>
 
-          {/* Schema Tree */}
-          <Box className="flex-1 space-y-4 overflow-hidden rounded border-1 p-4">
-            <Text className="text-lg font-semibold">
-              Select Fields for {role}
-            </Text>
-            <div
-              className={`flex-1 overflow-auto ${theme.palette.mode === 'dark' ? 'rct-dark' : ''}`}
-              style={
-                theme.palette.mode === 'dark'
-                  ? {
-                      backgroundColor: '#171d26',
-                      color: '#e3e3e3',
-                    }
-                  : undefined
-              }
-              onClick={handleTreeClick}
-              onKeyDown={handleTreeClick as any}
-              role="tree"
-              tabIndex={0}
-            >
-              <ControlledTreeEnvironment
-                items={treeData}
-                getItemTitle={(item) => {
-                  if (typeof item.data === 'string') return item.data;
-                  // Extract text content from React nodes
-                  if (item.index === 'root') return 'Schema';
-                  if (item.index.includes('__query_root')) return 'Query';
-                  if (item.index.includes('__mutation_root')) return 'Mutation';
-                  if (item.index.includes('__subscription_root'))
-                    return 'Subscription';
-                  // For field nodes, extract field name from index
-                  const parts = String(item.index).split('.');
-                  return parts[parts.length - 1] || String(item.index);
-                }}
-                viewState={{
-                  'schema-tree': {
-                    expandedItems,
-                    selectedItems: [],
-                    focusedItem: undefined,
-                  },
-                }}
-                onExpandItem={(item) =>
-                  setExpandedItems((prev) => [...prev, String(item.index)])
-                }
-                onCollapseItem={(item) =>
-                  setExpandedItems((prev) =>
-                    prev.filter((id) => id !== String(item.index)),
-                  )
-                }
-                onSelectItems={() => {}}
-              >
-                <Tree
-                  ref={treeRef}
-                  treeId="schema-tree"
-                  rootItem="root"
-                  treeLabel="Remote Schema Permission Tree"
-                />
-              </ControlledTreeEnvironment>
+          {/* Schema Fields */}
+          <Box className="space-y-4">
+            <Text className="text-lg font-semibold">Available Fields</Text>
+            <div className="max-h-96 space-y-4 overflow-y-auto rounded border p-4">
+              {filteredFields.map((schemaType) => (
+                <div key={schemaType.name} className="space-y-2">
+                  <Text className="font-semibold text-blue-600">
+                    {schemaType.name.replace('type ', '')} Operations
+                  </Text>
+                  <div className="space-y-1 pl-4">
+                    {schemaType.children.map((field) => {
+                      const fieldKey = `${schemaType.name}.${field.name}`;
+                      const actualSchemaIndex = remoteSchemaFields.findIndex(
+                        (f) => f.name === schemaType.name,
+                      );
+                      const actualFieldIndex = remoteSchemaFields[
+                        actualSchemaIndex
+                      ]?.children.findIndex((f) => f.name === field.name);
+
+                      return (
+                        <div
+                          key={fieldKey}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            id={fieldKey}
+                            checked={field.checked}
+                            onChange={(e) =>
+                              handleFieldToggle(
+                                actualSchemaIndex,
+                                actualFieldIndex,
+                                e.target.checked,
+                              )
+                            }
+                            className="form-checkbox h-4 w-4 text-blue-600"
+                          />
+                          <label
+                            htmlFor={fieldKey}
+                            className="flex-1 cursor-pointer"
+                          >
+                            <span className="font-medium">{field.name}</span>
+                            <span className="ml-2 text-sm text-gray-500">
+                              : {field.return}
+                            </span>
+                            {field.args && field.args.length > 0 && (
+                              <span className="ml-2 text-xs text-gray-400">
+                                ({field.args.length} arg
+                                {field.args.length > 1 ? 's' : ''})
+                              </span>
+                            )}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {filteredFields.length === 0 && (
+                <div className="py-8 text-center text-gray-500">
+                  {searchTerm
+                    ? 'No fields match your search'
+                    : 'No fields available'}
+                </div>
+              )}
             </div>
           </Box>
 
           {/* Schema Definition Preview */}
-          <Box className="space-y-4 rounded border-1 p-4">
-            <Text className="text-lg font-semibold">
-              Generated Schema Definition
-            </Text>
-            <pre className="max-h-40 overflow-auto rounded bg-gray-100 p-4 text-sm">
-              {form.watch('schemaDefinition') || 'No fields selected'}
-            </pre>
-          </Box>
-        </div>
-
-        {/* Actions */}
-        <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
-          <Button
-            variant="borderless"
-            color="secondary"
-            onClick={handleCancelClick}
-            tabIndex={isDirty ? -1 : 0}
-          >
-            Cancel
-          </Button>
-
-          {!disabled && (
-            <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
-              {Boolean(permission) && (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={handleDeleteClick}
-                  disabled={isSubmitting}
-                >
-                  Delete Permissions
-                </Button>
-              )}
-
-              <Button
-                loading={isSubmitting}
-                disabled={isSubmitting || selectedFields.length === 0}
-                type="submit"
-                className="justify-self-end"
+          {schemaDefinition && (
+            <Box className="space-y-4 rounded border-1 p-4">
+              <Text className="text-lg font-semibold">
+                Generated Schema Definition
+              </Text>
+              <pre
+                className="max-h-40 overflow-auto whitespace-pre-wrap rounded p-4 text-sm"
+                style={{
+                  backgroundColor:
+                    theme.palette.mode === 'dark' ? '#2d3748' : '#f7fafc',
+                  color: theme.palette.mode === 'dark' ? '#e2e8f0' : '#2d3748',
+                }}
               >
-                Save Permissions
-              </Button>
+                {schemaDefinition}
+              </pre>
             </Box>
           )}
         </Box>
-      </Form>
-    </FormProvider>
+      </div>
+
+      {/* Actions */}
+      <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
+        <Button variant="borderless" color="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+
+        <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
+          {permission && (
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleDeleteClick}
+              disabled={removePermissionMutation.isLoading}
+            >
+              Delete Permissions
+            </Button>
+          )}
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSavePermission}
+            disabled={
+              !schemaDefinition ||
+              addPermissionMutation.isLoading ||
+              isUpdatingPermission
+            }
+          >
+            Save Permissions
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   );
 }
