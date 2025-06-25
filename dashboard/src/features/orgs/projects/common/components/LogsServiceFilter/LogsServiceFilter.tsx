@@ -15,7 +15,7 @@ type LogsServiceFilterProps = UseFormRegisterReturn<
     service?: AvailableLogsService;
   }
 >;
-const LogsServiceFilter = forwardRef<HTMLInputElement, LogsServiceFilterProps>(
+const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
   (props, ref) => {
     const { project } = useProject();
     const { data } = useGetServiceLabelValuesQuery({

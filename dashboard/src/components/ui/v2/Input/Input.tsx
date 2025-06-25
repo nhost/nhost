@@ -5,7 +5,7 @@ import type { InputBaseProps as MaterialInputBaseProps } from '@mui/material/Inp
 import MaterialInputBase, { inputBaseClasses } from '@mui/material/InputBase';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef } from 'react';
-import mergeRefs from 'react-merge-refs';
+import { mergeRefs } from 'react-merge-refs';
 
 export interface InputProps
   extends Omit<MaterialInputBaseProps, 'componentsProps' | 'slotProps'>,

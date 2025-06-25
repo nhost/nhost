@@ -10,7 +10,7 @@ import type { DataGridHeaderProps } from '@/features/orgs/projects/storage/dataG
 import { DataGridHeader } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeader';
 import type { ForwardedRef } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
-import mergeRefs from 'react-merge-refs';
+import { mergeRefs } from 'react-merge-refs';
 import type { Column, Row, SortingRule, TableOptions } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 import useDataGrid from './useDataGrid';
