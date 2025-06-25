@@ -1,4 +1,13 @@
 {
   "extends": "../../config/react-library.tsconfig.json",
-  "include": ["src"]
+  "include": [
+    "src"
+  ],
+  "compilerOptions": {
+    // without it will throw on `pnpm run build`
+    // src/server.ts(1,15): error TS2307: Cannot find module '@nhost/react/server' or its corresponding type declarations.
+    //   There are types at '/home/srghma/projects/nhost/packages/nextjs/node_modules/@nhost/react/dist/server.d.mts', but this result could not be resolved under your current 'moduleResolution' setting. Consider updating to 'node16', 'nodenext', or 'bundler'.
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  }
 }

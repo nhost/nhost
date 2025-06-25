@@ -21,9 +21,9 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "source": "src/index.ts",
   "files": [
     "dist",
@@ -32,13 +32,19 @@
   ],
   "exports": {
     "./package.json": "./package.json",
+    "./server": {
+      "default": {
+        "types": "./dist/server.d.ts",
+        "import": "./dist/server.mjs",
+        "default": "./dist/server.mjs"
+      }
+    },
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "node": "./dist/index.cjs.js",
-        "default": "./dist/index.esm.js"
-      },
-      "require": "./dist/index.cjs.js"
+      "default": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js"
+      }
     }
   },
   "publishConfig": {
@@ -46,9 +52,10 @@
   },
   "scripts": {
     "dev": "vite build --config ../../config/vite.react.dev.config.js",
-    "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../config/vite.react.config.js",
-    "build:umd": "vite build --config ../../config/vite.react.umd.config.js",
+    "build": "tsup",
+    "old-build": "run-p build:lib build:umd",
+    "old-build:lib": "vite build --config ../../config/vite.react.config.js",
+    "old-build:umd": "vite build --config ../../config/vite.react.umd.config.js",
     "test": "vitest run --config ../../config/vite.react.config.js",
     "test:watch": "vitest --config ../../config/vite.react.config.js",
     "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
@@ -71,7 +78,9 @@
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
     "@types/react": "^18.2.73",
-    "react": "^18.2.0"
+    "@types/node": "latest",
+    "react": "^18.2.0",
+    "tsup": "latest"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.1.0 || ^19.0.0",

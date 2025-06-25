@@ -1,16 +1,17 @@
+// import 'server-only' // TODO?
+import { cookies } from 'next/headers'
 import {
-  AuthMachine,
-  NhostClient,
-  NhostReactClientConstructorParams,
-  NhostSession,
+  type AuthMachine,
+  type NhostClient,
+  type NhostReactClientConstructorParams,
+  type NhostSession,
   NHOST_REFRESH_TOKEN_KEY,
   VanillaNhostClient
-} from '@nhost/react'
-import Cookies from 'js-cookie'
-import { GetServerSidePropsContext } from 'next'
-import { StateFrom } from 'xstate'
+} from '@nhost/react/server'
+import { type StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { NHOST_SESSION_KEY } from './utils'
+import { NHOST_SESSION_KEY } from './constants'
+import { type SearchParams } from 'next/dist/server/request/search-params'
 
 export type CreateServerSideClientParams = Partial<
   Pick<
@@ -25,36 +26,41 @@ export type CreateServerSideClientParams = Partial<
  * If a refresh token is found, it uses it to get an up to date access token (JWT) and a user session
  * This method resolves when the authentication status is known eventually
  * @param config - An object containing connection information
- * @param context - Server side context
+ * @param searchParams - URL search parameters if needing to read tokens from URL (e.g., after OAuth redirect)
  * @returns instance of `NhostClient` that is ready to use on the server side (signed in or signed out)
  */
 export const createServerSideClient = async (
   params: CreateServerSideClientParams,
-  context: GetServerSidePropsContext
+  searchParams: SearchParams
 ): Promise<NhostClient> => {
+  const cookieStore = await cookies() // Get the cookie store from next/headers
+
   const nhost = new VanillaNhostClient({
     ...params,
     clientStorageType: 'custom',
     clientStorage: {
-      getItem: (key) => {
+      getItem: (key: string) => {
         // TODO does not perfectly work in the same way as the 'regular' client:
         // in the authentication machine, if the refresh token is null but an error is found in the url, then the authentication stops and fails.
         // * When the requested key is `NHOST_REFRESH_TOKEN_KEY`, we have to look for the given 'refreshToken' value
         // * in the url as this is the key sent by hasura-auth
+        //
+        // Reading from URL query params
         const urlKey = key === NHOST_REFRESH_TOKEN_KEY ? 'refreshToken' : key
-        const urlValue = context.query[urlKey]
-        const cookieValue = Cookies.get(key) ?? null
-        const nextCtxValue = context.req.cookies[key]
-
-        return typeof urlValue === 'string' ? urlValue : cookieValue ?? nextCtxValue
+        const urlValue = searchParams[urlKey]
+        if (typeof urlValue === 'string') {
+          return urlValue
+        }
+        // Reading from cookies
+        return cookieStore.get(key)?.value ?? null
       },
-      setItem: (key, value) => {
+      setItem: (key: string, value: string) => {
         // TODO: Set expires based on the actual refresh token expire time
         // For now, we're using 30 days so the cookie is not removed when the browser is closed because if `expiers` is omitted, the cookie becomes a session cookie.
-        Cookies.set(key, value, { httpOnly: false, sameSite: 'strict', expires: 30 })
+        cookieStore.set(key, value, { httpOnly: false, sameSite: 'strict', expires: 30 })
       },
-      removeItem: (key) => {
-        Cookies.remove(key)
+      removeItem: (key: string) => {
+        cookieStore.delete(key)
       }
     },
     start: false,
@@ -62,8 +68,8 @@ export const createServerSideClient = async (
     autoSignIn: true
   })
 
-  const strSession = context.req.cookies[NHOST_SESSION_KEY]
-  const refreshToken = context.req.cookies[NHOST_REFRESH_TOKEN_KEY]
+  const strSession = cookieStore.get(NHOST_SESSION_KEY)?.value
+  const refreshToken = cookieStore.get(NHOST_REFRESH_TOKEN_KEY)?.value
   const initialSession: NhostSession = strSession &&
     refreshToken && { ...JSON.parse(strSession), refreshToken }
 
