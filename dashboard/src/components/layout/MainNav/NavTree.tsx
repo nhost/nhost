@@ -162,8 +162,8 @@ const projectSettingsPages = [
 
 const projectGraphQLPages = [
   {
-    name: 'GraphQL IDE',
-    slug: 'ide',
+    name: 'Playground',
+    slug: 'playground',
     route: 'graphql',
   },
   {
