@@ -29,7 +29,7 @@ func TestExtractEmail(t *testing.T) {
 		{
 			name:     "malformed email - no closing bracket",
 			input:    "Test User <user@example.com",
-			expected: "user@example.com", // The regex should still match
+			expected: "Test User <user@example.com", // No closing bracket, return original
 		},
 		{
 			name:     "email with display name containing brackets",
@@ -39,7 +39,7 @@ func TestExtractEmail(t *testing.T) {
 		{
 			name:     "multiple email addresses in string",
 			input:    "user1@example.com, user2@example.com",
-			expected: "user1@example.com", // Should extract the first one
+			expected: "user1@example.com, user2@example.com", // No brackets, return original
 		},
 		{
 			name:     "complex display name",
@@ -60,6 +60,16 @@ func TestExtractEmail(t *testing.T) {
 			name:     "email with + character",
 			input:    "john+test@example.com",
 			expected: "john+test@example.com",
+		},
+		{
+			name:     "email with hyphen in domain",
+			input:    "user@ex-ample.com",
+			expected: "user@ex-ample.com",
+		},
+		{
+			name:     "email with hyphen in display name",
+			input:    "John-Doe <user@ex-ample.com>",
+			expected: "user@ex-ample.com",
 		},
 		{
 			name:     "invalid input without @",

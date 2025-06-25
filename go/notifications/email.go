@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net/smtp"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -54,11 +53,11 @@ func sanitize(s string) string {
 // ExtractEmail returns the email address from a string that may be formatted
 // as "Display Name <email@example.com>" or just "email@example.com".
 func ExtractEmail(address string) string {
-	re := regexp.MustCompile(`<?(\w+(\W\w+)*@.\w+(\.\w+)*)>?`)
-	if match := re.FindStringSubmatch(address); len(match) > 1 {
-		return match[1]
+	if start := strings.Index(address, "<"); start != -1 {
+		if end := strings.Index(address[start:], ">"); end != -1 {
+			return address[start+1 : start+end]
+		}
 	}
-
 	return address
 }
 
