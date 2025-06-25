@@ -52,6 +52,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /apis/migrate:
+    post:
+      summary: Execute a database migration
+      description: Executes a migration with the provided up and down steps
+      operationId: executeMigration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MigrationRequest'
+      responses:
+        '200':
+          description: Migration executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: internal_error
+                message: "{\n  \"error\": \"query execution failed\",\n  \"path\": \"$[0]\",\n  \"code\": \"postgres-error\",\n  \"internal\": {\n    \"arguments\": [],\n    \"error\": {\n      \"description\": null,\n      \"exec_status\": \"FatalError\",\n      \"hint\": null,\n      \"message\": \"syntax error at or near \\\":\\\"\",\n      \"status_code\": \"42601\"\n    },\n    \"prepared\": false,\n    \"statement\": \"CREATE TABLE asd ( id TEXT ):;\"\n  }\n}"
 
 components:
   securitySchemes:
@@ -61,6 +88,99 @@ components:
       name: x-hasura-admin-secret
 
   schemas:
+    RemoteSchemaPermissionsStepArgs:
+      type: object
+      required:
+        - remote_schema
+        - role
+      properties:
+        remote_schema:
+          type: string
+          description: Name of the remote schema
+          example: my_remote_schema
+        role:
+          type: string
+          description: Name of the role
+          example: user
+        definition:
+          type: object
+          description: Permission definition
+          required:
+            - schema
+          properties:
+            schema:
+              type: string
+              description: GraphQL schema definition for this role
+              example: 'schema { query: Query } type Query { hello: String }'
+
+    AddRemoteSchemaPermissionsStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [add_remote_schema_permissions]
+          description: Use to add permissions to a remote schema
+        args:
+          $ref: '#/components/schemas/RemoteSchemaPermissionsStepArgs'
+
+    DropRemoteSchemaPermissionsStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [drop_remote_schema_permissions]
+        args:
+          $ref: '#/components/schemas/RemoteSchemaPermissionsStepArgs'
+
+    MigrationStep:
+      oneOf:
+        - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
+        - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
+
+    MigrationRequest:
+      type: object
+      required:
+        - name
+        - up
+        - datasource
+      properties:
+        name:
+          type: string
+          description: Name of the migration
+          example: save_remote_schema_permission
+        up:
+          type: array
+          description: Steps to execute for the migration. Always provide a down migration as well when creating a migration that modifies the schema
+          items:
+            $ref: '#/components/schemas/MigrationStep'
+        down:
+          type: array
+          description: Steps to execute to revert the migration. Always provide this when creating a migration that modifies the schema
+          items:
+            $ref: '#/components/schemas/MigrationStep'
+        datasource:
+          type: string
+          description: The data source to use
+          example: default
+        skip_execution:
+          type: boolean
+          description: Whether to skip the execution of the migration
+          default: false
+
+    SuccessResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the created migration with a timestamp
+          example: 1745093409829_my_migration
+
     ErrorResponse:
       type: object
       properties:

@@ -8,7 +8,6 @@ import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
@@ -159,13 +158,12 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditPermissionClick(schema: string, table: string) {
+  function handleEditPermissionClick(schema: string) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions
-          <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
-          <Chip label="Preview" size="small" color="info" component="span" />
+          <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
       component: <EditRemoteSchemaPermissionsForm schema={schema} />,
