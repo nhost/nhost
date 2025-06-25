@@ -135,6 +135,9 @@ func CommandUp() *cli.Command { //nolint:funlen
 				EnvVars: []string{"NHOST_CA_CERTIFICATES"},
 			},
 		},
+		Subcommands: []*cli.Command{
+			CommandCloud(),
+		},
 	}
 }
 
@@ -187,11 +190,12 @@ func migrations(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	dc *dockercompose.DockerCompose,
+	endpoint string,
 	applySeeds bool,
 ) error {
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "migrations", "default")) {
 		ce.Infoln("Applying migrations...")
-		if err := dc.ApplyMigrations(ctx); err != nil {
+		if err := dc.ApplyMigrations(ctx, endpoint); err != nil {
 			return fmt.Errorf("failed to apply migrations: %w", err)
 		}
 	} else {
@@ -200,7 +204,7 @@ func migrations(
 
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "metadata", "version.yaml")) {
 		ce.Infoln("Applying metadata...")
-		if err := dc.ApplyMetadata(ctx); err != nil {
+		if err := dc.ApplyMetadata(ctx, endpoint); err != nil {
 			return fmt.Errorf("failed to apply metadata: %w", err)
 		}
 	} else {
@@ -210,7 +214,7 @@ func migrations(
 	if applySeeds {
 		if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "seeds", "default")) {
 			ce.Infoln("Applying seeds...")
-			if err := dc.ApplySeeds(ctx); err != nil {
+			if err := dc.ApplySeeds(ctx, endpoint); err != nil {
 				return fmt.Errorf("failed to apply seeds: %w", err)
 			}
 		}
@@ -386,7 +390,7 @@ func up( //nolint:funlen,cyclop
 		return fmt.Errorf("failed to start Nhost development environment: %w", err)
 	}
 
-	if err := migrations(ctx, ce, dc, applySeeds); err != nil {
+	if err := migrations(ctx, ce, dc, "http://graphql:8080", applySeeds); err != nil {
 		return err
 	}
 

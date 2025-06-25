@@ -450,6 +450,17 @@ func (t *GetConfigRawJSON) GetConfigRawJSON() string {
 	return t.ConfigRawJSON
 }
 
+type ReplaceConfigRawJSON struct {
+	ReplaceConfigRawJSON string "json:\"replaceConfigRawJSON\" graphql:\"replaceConfigRawJSON\""
+}
+
+func (t *ReplaceConfigRawJSON) GetReplaceConfigRawJSON() string {
+	if t == nil {
+		t = &ReplaceConfigRawJSON{}
+	}
+	return t.ReplaceConfigRawJSON
+}
+
 type ListDeployments struct {
 	Deployments []*ListDeployments_Deployments "json:\"deployments\" graphql:\"deployments\""
 }
@@ -680,6 +691,29 @@ func (c *Client) GetConfigRawJSON(ctx context.Context, appID string, interceptor
 
 	var res GetConfigRawJSON
 	if err := c.Client.Post(ctx, "GetConfigRawJSON", GetConfigRawJSONDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ReplaceConfigRawJSONDocument = `mutation ReplaceConfigRawJSON ($appID: uuid!, $rawJSON: String!) {
+	replaceConfigRawJSON(appID: $appID, rawJSON: $rawJSON)
+}
+`
+
+func (c *Client) ReplaceConfigRawJSON(ctx context.Context, appID string, rawJSON string, interceptors ...clientv2.RequestInterceptor) (*ReplaceConfigRawJSON, error) {
+	vars := map[string]any{
+		"appID":   appID,
+		"rawJSON": rawJSON,
+	}
+
+	var res ReplaceConfigRawJSON
+	if err := c.Client.Post(ctx, "ReplaceConfigRawJSON", ReplaceConfigRawJSONDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -1032,6 +1066,7 @@ var DocumentOperationNames = map[string]string{
 	GetOrganizationsAndWorkspacesAppsDocument: "GetOrganizationsAndWorkspacesApps",
 	GetHasuraAdminSecretDocument:              "GetHasuraAdminSecret",
 	GetConfigRawJSONDocument:                  "GetConfigRawJSON",
+	ReplaceConfigRawJSONDocument:              "ReplaceConfigRawJSON",
 	ListDeploymentsDocument:                   "ListDeployments",
 	GetDeploymentLogsDocument:                 "GetDeploymentLogs",
 	InsertDeploymentDocument:                  "InsertDeployment",

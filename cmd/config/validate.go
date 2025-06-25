@@ -38,11 +38,18 @@ func commandValidate(cCtx *cli.Context) error {
 
 	subdomain := cCtx.String(flagSubdomain)
 	if subdomain != "" && subdomain != "local" {
-		return ValidateRemote(
+		proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
+		if err != nil {
+			return fmt.Errorf("failed to get app info: %w", err)
+		}
+
+		_, _, err = ValidateRemote(
 			cCtx.Context,
 			ce,
-			cCtx.String(flagSubdomain),
+			proj.GetSubdomain(),
+			proj.GetID(),
 		)
+		return err
 	}
 
 	var secrets model.Secrets
@@ -134,50 +141,46 @@ func ValidateRemote(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	subdomain string,
-) error {
+	appID string,
+) (*model.ConfigConfig, *model.ConfigConfig, error) {
 	cfg := &model.ConfigConfig{} //nolint:exhaustruct
 	if err := clienv.UnmarshalFile(ce.Path.NhostToml(), cfg, toml.Unmarshal); err != nil {
-		return fmt.Errorf("failed to parse config: %w", err)
+		return nil, nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	schema, err := schema.New()
 	if err != nil {
-		return fmt.Errorf("failed to create schema: %w", err)
-	}
-
-	proj, err := ce.GetAppInfo(ctx, subdomain)
-	if err != nil {
-		return fmt.Errorf("failed to get app info: %w", err)
+		return nil, nil, fmt.Errorf("failed to create schema: %w", err)
 	}
 
 	ce.Infoln("Getting secrets...")
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get nhost client: %w", err)
+		return nil, nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
 	secretsResp, err := cl.GetSecrets(
 		ctx,
-		proj.ID,
+		appID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to get secrets: %w", err)
+		return nil, nil, fmt.Errorf("failed to get secrets: %w", err)
 	}
 
-	if clienv.PathExists(ce.Path.Overlay(proj.GetSubdomain())) {
+	if clienv.PathExists(ce.Path.Overlay(subdomain)) {
 		var err error
-		cfg, err = ApplyJSONPatches(*cfg, ce.Path.Overlay(proj.GetSubdomain()))
+		cfg, err = ApplyJSONPatches(*cfg, ce.Path.Overlay(subdomain))
 		if err != nil {
-			return fmt.Errorf("failed to apply json patches: %w", err)
+			return nil, nil, fmt.Errorf("failed to apply json patches: %w", err)
 		}
 	}
 
 	secrets := respToSecrets(secretsResp.GetAppSecrets(), false)
-	_, err = appconfig.SecretsResolver[model.ConfigConfig](cfg, secrets, schema.Fill)
+	cfgSecrets, err := appconfig.SecretsResolver[model.ConfigConfig](cfg, secrets, schema.Fill)
 	if err != nil {
-		return fmt.Errorf("failed to validate config: %w", err)
+		return nil, nil, fmt.Errorf("failed to validate config: %w", err)
 	}
 
 	ce.Infoln("Config is valid!")
 
-	return nil
+	return cfg, cfgSecrets, nil
 }

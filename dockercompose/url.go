@@ -9,9 +9,9 @@ func URL(host, service string, port uint, useTLS bool) string {
 		return fmt.Sprintf("http://%s.%s.local.nhost.run", host, service)
 	}
 
-	protocol := "http"
+	protocol := schemeHTTP
 	if useTLS {
-		protocol = "https"
+		protocol = schemeHTTPS
 	}
 	return fmt.Sprintf("%s://%s.%s.local.nhost.run:%d", protocol, host, service, port)
 }

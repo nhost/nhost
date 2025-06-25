@@ -136,7 +136,7 @@ func (dc *DockerCompose) Wrapper(ctx context.Context, extraArgs ...string) error
 	return nil
 }
 
-func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
+func (dc *DockerCompose) ApplyMetadata(ctx context.Context, endpoint string) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
@@ -147,7 +147,7 @@ func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
 		"console",
 		"hasura-cli",
 		"metadata", "apply",
-		"--endpoint", "http://graphql:8080",
+		"--endpoint", endpoint,
 		"--skip-update-check",
 	)
 
@@ -193,7 +193,7 @@ func (dc *DockerCompose) ReloadMetadata(ctx context.Context) error {
 	return nil
 }
 
-func (dc *DockerCompose) ApplyMigrations(ctx context.Context) error {
+func (dc *DockerCompose) ApplyMigrations(ctx context.Context, endpoint string) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
@@ -205,7 +205,7 @@ func (dc *DockerCompose) ApplyMigrations(ctx context.Context) error {
 		"hasura-cli",
 		"migrate",
 		"apply",
-		"--endpoint", "http://graphql:8080",
+		"--endpoint", endpoint,
 		"--all-databases",
 		"--skip-update-check",
 	)
@@ -229,7 +229,7 @@ func (dc *DockerCompose) ApplyMigrations(ctx context.Context) error {
 	return nil
 }
 
-func (dc *DockerCompose) ApplySeeds(ctx context.Context) error {
+func (dc *DockerCompose) ApplySeeds(ctx context.Context, endpoint string) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
@@ -241,7 +241,7 @@ func (dc *DockerCompose) ApplySeeds(ctx context.Context) error {
 		"hasura-cli",
 		"seed",
 		"apply",
-		"--endpoint", "http://graphql:8080",
+		"--endpoint", endpoint,
 		"--all-databases",
 		"--skip-update-check",
 	)

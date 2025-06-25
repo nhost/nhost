@@ -100,9 +100,9 @@ func console( //nolint:funlen
 		)
 	}
 
-	scheme := "http"
+	scheme := schemeHTTP
 	if useTLS {
-		scheme = "https"
+		scheme = schemeHTTPS
 	}
 
 	envars, err := appconfig.HasuraEnv(

@@ -12,6 +12,7 @@ func Command() *cli.Command {
 		Subcommands: []*cli.Command{
 			CommandDefault(),
 			CommandExample(),
+			CommandApply(),
 			CommandPull(),
 			CommandShow(),
 			CommandValidate(),

@@ -166,7 +166,7 @@ func (ce *CliEnv) loginGithub(ctx context.Context) (credentials.Credentials, err
 		}
 	}()
 
-	signinPage := ce.AuthURL() + "/signin/provider/github/?redirectTo=https://local.dashboard.nhost.run:8099/signin"
+	signinPage := ce.AuthURL() + "/signin/provider/github/?redirectTo=https://local.dashboard.local.nhost.run:8099/signin"
 	ce.Infoln("Opening browser to sign-in")
 	if err := openBrowser(signinPage); err != nil {
 		return credentials.Credentials{}, err
