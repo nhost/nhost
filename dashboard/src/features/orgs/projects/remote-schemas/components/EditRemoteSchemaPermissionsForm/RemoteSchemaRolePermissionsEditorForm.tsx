@@ -900,8 +900,8 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 }
                 loading={isAddingPermission || isUpdatingPermission}
               >
-                Save Permissions
-              </Button>
+                {schemaDefinition}
+              </pre>
             </Box>
           )}
         </Box>
