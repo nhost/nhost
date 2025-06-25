@@ -1,10 +1,11 @@
 import fetch, { Response } from 'node-fetch';
 import { Response as SuperTestResponse } from 'supertest';
-import { ENV } from '../src/utils/env';
-import { verifyJwt } from '@/utils';
+import { ENV } from './src/env';
+import { verifyJwt } from './src/get-claims';
 import { request } from './server';
 import { StatusCodes } from 'http-status-codes';
-import { generateTicketExpiresAt, hashPassword } from '@/utils';
+import { generateTicketExpiresAt } from './src/ticket';
+import { hashPassword } from './src/password';
 import { ClientBase } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 

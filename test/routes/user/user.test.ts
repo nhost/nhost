@@ -2,9 +2,9 @@ import { Client } from 'pg';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
-import { ENV } from '../../../src/utils/env';
+import { ENV } from '../../src/env';
 import { request, resetEnvironment } from '../../server';
-import { SignInResponse } from '../../../src/types';
+import { SignInResponse } from '../../src/types';
 
 describe('user password', () => {
   let client: Client;
@@ -27,7 +27,7 @@ describe('user password', () => {
   });
 
   it('should not get user data if not signed in', async () => {
-    await request.get('/user').expect(StatusCodes.UNAUTHORIZED);
+    await request.get('/user').expect(StatusCodes.BAD_REQUEST);
   });
 
   it('should get user data if signed in', async () => {

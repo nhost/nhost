@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 
-import { ENV } from '../../../src/utils/env';
+import { ENV } from '../../src/env';
 import { request, resetEnvironment } from '../../server';
 import { isValidAccessToken } from '../../utils';
 

@@ -1,4 +1,4 @@
-import { ENV } from '@/utils';
+import { ENV } from '../../src/env';
 import faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';

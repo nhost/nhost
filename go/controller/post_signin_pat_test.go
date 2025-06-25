@@ -23,7 +23,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 	pat := uuid.MustParse("1fb17604-86c7-444e-b337-09a644465f2d")
-	hashedPat := `\x9698157153010b858587119503cbeef0cf288f11775e51cdb6bfd65e930d9310`
+	hashedPat := `\x9698157153010b858587119503cbeef0cf288f11775e51cdb6bfd65e930d9310` //nolint:goconst
 
 	cases := []testRequest[api.PostSigninPatRequestObject, api.PostSigninPatResponseObject]{
 		{
@@ -89,6 +89,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"user", "me"},
+						ActiveMfaType:       nil,
 					},
 				},
 			},
@@ -181,6 +182,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"user", "me"},
+						ActiveMfaType:       nil,
 					},
 				},
 			},

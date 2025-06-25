@@ -32,6 +32,11 @@ func NewTemplatesFromFilesystem(
 	defaultLocale string,
 	logger *slog.Logger,
 ) (*Templates, error) {
+	basePath, err := filepath.EvalSymlinks(basePath)
+	if err != nil {
+		return nil, fmt.Errorf("error resolving symlinks in base path: %w", err)
+	}
+
 	templates := make(map[string]*fasttemplate.Template)
 	if err := filepath.Walk(basePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {

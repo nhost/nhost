@@ -130,6 +130,7 @@ func TestPostElevateWebauthnVerify(t *testing.T) { //nolint:maintidx
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"user", "me"},
+						ActiveMfaType:       nil,
 					},
 				},
 			},

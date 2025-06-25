@@ -651,6 +651,20 @@ func (mr *MockDBClientMockRecorder) CountSecurityKeysUser(ctx, userID any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountSecurityKeysUser", reflect.TypeOf((*MockDBClient)(nil).CountSecurityKeysUser), ctx, userID)
 }
 
+// DeleteRefreshToken mocks base method.
+func (m *MockDBClient) DeleteRefreshToken(ctx context.Context, refreshTokenHash pgtype.Text) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRefreshToken", ctx, refreshTokenHash)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRefreshToken indicates an expected call of DeleteRefreshToken.
+func (mr *MockDBClientMockRecorder) DeleteRefreshToken(ctx, refreshTokenHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRefreshToken", reflect.TypeOf((*MockDBClient)(nil).DeleteRefreshToken), ctx, refreshTokenHash)
+}
+
 // DeleteRefreshTokens mocks base method.
 func (m *MockDBClient) DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error {
 	m.ctrl.T.Helper()

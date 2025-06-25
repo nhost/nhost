@@ -87,6 +87,7 @@ func TestPostSigninOTPEmailVerify(t *testing.T) {
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"user", "me"},
+						ActiveMfaType:       nil,
 					},
 				},
 			},

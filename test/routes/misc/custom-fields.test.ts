@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
-import { ENV } from '@/utils';
+import { ENV } from '../../src/env';
 import { request, resetEnvironment } from '../../server';
 
 describe('user metadata field', () => {

@@ -93,6 +93,29 @@ paths:
           description: >-
             Successfully refreshed the JWT access token
 
+  /signout:
+    post:
+      summary: Sign out
+      tags:
+        - signout
+      security:
+        - BearerAuth: []
+        - {}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignOutRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+          description: >-
+            Successfully signed out
+
   /signin/anonymous:
     post:
       summary: Sign in anonymously
@@ -808,6 +831,29 @@ paths:
               $ref: '#/components/headers/RedirectLocation'
           content: {}
 
+  /token/verify:
+    post:
+      summary: Verify JWT token
+      description: If request body is not passed the authorization header will be used to be verified
+      tags:
+        - General
+      security:
+        - BearerAuth: []
+        - {}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyTokenRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "OK"
+          description: Valid JWT token
+
   /version:
     get:
       summary: Get version
@@ -948,6 +994,21 @@ paths:
           description: >-
             Elevated successfully
 
+  /user:
+    get:
+      summary: Get user information
+      tags:
+        - User management
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: User information
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1007,6 +1068,20 @@ components:
           type: string
       required:
         - refreshToken
+
+    SignOutRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        refreshToken:
+          description: Refresh Token
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        all:
+          description: Sign out from all connected devices
+          type: boolean
+          default: false
 
     CreatePATRequest:
       type: object
@@ -1205,6 +1280,10 @@ components:
           type: string
         phoneNumberVerified:
           type: boolean
+        activeMfaType:
+          type: string
+          description: Active MFA type for the user
+          nullable: true
         roles:
           example:
             - me
@@ -1664,6 +1743,14 @@ components:
           description: Type of MFA to activate. If not set or set to empty string, disable MFA
       required:
         - code
+
+    VerifyTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        token:
+          type: string
+          description: JWT token to verify
 
     TotpGenerateResponse:
       type: object

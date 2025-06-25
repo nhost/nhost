@@ -122,6 +122,7 @@ type DBClient interface { //nolint:interfacebloat
 	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserSecurityKey, error)
 	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
+	DeleteRefreshToken(ctx context.Context, refreshTokenHash pgtype.Text) error
 	DeleteUserRoles(ctx context.Context, userID uuid.UUID) error
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)
 	InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error)

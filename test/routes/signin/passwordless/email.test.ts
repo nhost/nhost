@@ -2,7 +2,7 @@ import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 import rfc2047 from 'rfc2047';
-import { ENV } from '../../../../src/utils/env';
+import { ENV } from '../../../src/env';
 import { request, resetEnvironment } from '../../../server';
 import {
   deleteAllMailHogEmails,

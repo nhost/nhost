@@ -24,6 +24,16 @@ func (q *Queries) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (
 	return count, err
 }
 
+const deleteRefreshToken = `-- name: DeleteRefreshToken :exec
+DELETE FROM auth.refresh_tokens
+WHERE refresh_token_hash = $1
+`
+
+func (q *Queries) DeleteRefreshToken(ctx context.Context, refreshTokenHash pgtype.Text) error {
+	_, err := q.db.Exec(ctx, deleteRefreshToken, refreshTokenHash)
+	return err
+}
+
 const deleteRefreshTokens = `-- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
 WHERE user_id = $1
@@ -1384,4 +1394,31 @@ func (q *Queries) UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (Auth
 		&i.WebauthnCurrentChallenge,
 	)
 	return i, err
+}
+
+const upsertRoles = `-- name: UpsertRoles :many
+INSERT INTO auth.roles (role)
+SELECT unnest($1::TEXT[])
+ON CONFLICT (role) DO NOTHING
+RETURNING role
+`
+
+func (q *Queries) UpsertRoles(ctx context.Context, roles []string) ([]string, error) {
+	rows, err := q.db.Query(ctx, upsertRoles, roles)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var role string
+		if err := rows.Scan(&role); err != nil {
+			return nil, err
+		}
+		items = append(items, role)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

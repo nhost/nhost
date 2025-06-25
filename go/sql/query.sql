@@ -358,6 +358,10 @@ INSERT INTO auth.user_roles (user_id, role)
 DELETE FROM auth.refresh_tokens
 WHERE user_id = $1;
 
+-- name: DeleteRefreshToken :exec
+DELETE FROM auth.refresh_tokens
+WHERE refresh_token_hash = $1;
+
 -- name: DeleteUserRoles :exec
 DELETE FROM auth.user_roles
 WHERE user_id = $1;
@@ -386,3 +390,9 @@ UPDATE auth.users
 SET (otp_hash, otp_hash_expires_at, otp_method_last_used) = ($2, $3, $4)
 WHERE id = $1
 RETURNING id;
+
+-- name: UpsertRoles :many
+INSERT INTO auth.roles (role)
+SELECT unnest(@roles::TEXT[])
+ON CONFLICT (role) DO NOTHING
+RETURNING role;

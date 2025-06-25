@@ -1,9 +1,9 @@
 import { Client } from 'pg';
 import { StatusCodes } from 'http-status-codes';
 
-import { ENV } from '../../../src/utils/env';
+import { ENV } from '../../src/env';
 import { request, resetEnvironment } from '../../server';
-import { SignInResponse } from '../../../src/types';
+import { SignInResponse } from '../../src/types';
 import {
   mailHogSearch,
   deleteAllMailHogEmails,

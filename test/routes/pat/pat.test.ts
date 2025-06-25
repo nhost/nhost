@@ -1,9 +1,13 @@
-import { ENV, hash } from '@/utils';
+import { ENV } from '../../src/env';
+import crypto from 'crypto';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 import { request, resetEnvironment } from '../../server';
 import { deleteAllMailHogEmails } from '../../utils';
+
+export const hash = (value: string) =>
+  `\\x${crypto.createHash('sha256').update(value).digest('hex')}`;
 
 describe('personal access token', () => {
   let client: Client;
@@ -68,7 +72,7 @@ describe('personal access token', () => {
       [hash(patResponse.body?.personalAccessToken)]
     );
 
-    expect(rows[0]?.metadata).toMatchObject({ name: 'Test PAT' });
+    expect(rows[0]?.metadata).toEqual({ name: 'Test PAT' });
   });
 
   test('should authenticate using the PAT workflow', async () => {

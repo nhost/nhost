@@ -1,8 +1,8 @@
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
-import { SignInResponse } from '../../../src/types';
-import { ENV } from '../../../src/utils/env';
+import { SignInResponse } from '../../src/types';
+import { ENV } from '../../src/env';
 import { request } from '../../server';
 import { isValidAccessToken } from '../../utils';
 

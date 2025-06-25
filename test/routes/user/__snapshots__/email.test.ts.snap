@@ -1,9 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`user email should not allow changing the email to one that is already used by another user 1`] = `
-Object {
-  "error": "email-already-in-use",
-  "message": "Email already in use",
-  "status": 409,
-}
-`;

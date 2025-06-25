@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
-import { ENV } from '../../../src/utils/env';
+import { ENV } from '../../src/env';
 import { request, resetEnvironment } from '../../server';
 import { deleteAllMailHogEmails, isValidAccessToken } from '../../utils';
 

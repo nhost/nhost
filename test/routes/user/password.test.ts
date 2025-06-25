@@ -3,9 +3,9 @@ import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
 import { request, resetEnvironment } from '../../server';
-import { ENV } from '../../../src/utils/env';
+import { ENV } from '../../src/env';
 import { mailHogSearch } from '../../utils';
-import { SignInResponse } from '@/types';
+import { SignInResponse } from '../../src/types';
 
 describe('user password', () => {
   let client: Client;

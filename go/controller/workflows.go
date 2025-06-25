@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -489,6 +490,7 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 			PhoneNumber:         sql.ToPointerString(user.PhoneNumber),
 			PhoneNumberVerified: user.PhoneNumberVerified,
 			Roles:               allowedRoles,
+			ActiveMfaType:       nil,
 		},
 	}, nil
 }
@@ -557,33 +559,46 @@ func (wf *Workflows) NewSession( //nolint:funlen
 			PhoneNumber:         sql.ToPointerString(user.PhoneNumber),
 			PhoneNumberVerified: user.PhoneNumberVerified,
 			Roles:               allowedRoles,
+			ActiveMfaType:       nil,
 		},
 	}, nil
 }
 
-func (wf *Workflows) GetUserFromJWTInContext(
+func (wf *Workflows) GetJWTInContext(
 	ctx context.Context,
 	logger *slog.Logger,
-) (sql.AuthUser, *APIError) {
+) (uuid.UUID, *APIError) {
 	jwtToken, ok := wf.jwtGetter.FromContext(ctx)
 	if !ok {
 		logger.Error(
 			"jwt token not found in context, this should not be possilble due to middleware",
 		)
-		return sql.AuthUser{}, ErrInvalidRequest
+		return uuid.UUID{}, ErrInvalidRequest
 	}
 
 	sub, err := jwtToken.Claims.GetSubject()
 	if err != nil {
 		logger.Error("error getting user id from jwt token", logError(err))
-		return sql.AuthUser{}, ErrInvalidRequest
+		return uuid.UUID{}, ErrInvalidRequest
 	}
 	logger = logger.With(slog.String("user_id", sub))
 
 	userID, err := uuid.Parse(sub)
 	if err != nil {
 		logger.Error("error parsing user id from jwt token's subject", logError(err))
-		return sql.AuthUser{}, ErrInvalidRequest
+		return uuid.UUID{}, ErrInvalidRequest
+	}
+
+	return userID, nil
+}
+
+func (wf *Workflows) GetUserFromJWTInContext(
+	ctx context.Context,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	userID, apiErr := wf.GetJWTInContext(ctx, logger)
+	if apiErr != nil {
+		return sql.AuthUser{}, apiErr
 	}
 
 	user, apiErr := wf.GetUser(ctx, userID, logger)
@@ -596,6 +611,27 @@ func (wf *Workflows) GetUserFromJWTInContext(
 	}
 
 	return user, nil
+}
+
+func (wf *Workflows) VerifyJWTToken(
+	_ context.Context,
+	token string,
+	logger *slog.Logger,
+) *APIError {
+	token = strings.TrimPrefix(token, "Bearer ")
+
+	jwtToken, err := wf.jwtGetter.Validate(token)
+	if err != nil {
+		logger.Warn("invalid JWT token", logError(err))
+		return ErrUnauthenticatedUser
+	}
+
+	if !jwtToken.Valid {
+		logger.Warn("JWT token is not valid")
+		return ErrUnauthenticatedUser
+	}
+
+	return nil
 }
 
 func (wf *Workflows) InsertRefreshtoken(
@@ -833,6 +869,7 @@ func (wf *Workflows) SignupUserWithSession( //nolint:funlen
 			PhoneNumber:         nil,
 			PhoneNumberVerified: false,
 			Roles:               deptr(options.AllowedRoles),
+			ActiveMfaType:       nil,
 		},
 	}, nil
 }
@@ -969,6 +1006,7 @@ func (wf *Workflows) SignupAnonymousUser( //nolint:funlen
 			PhoneNumber:         nil,
 			PhoneNumberVerified: false,
 			Roles:               []string{anonymousRole},
+			ActiveMfaType:       nil,
 		},
 	}, nil
 }
@@ -1199,4 +1237,32 @@ func (wf *Workflows) GetUserByPhoneNumber(
 	}
 
 	return user, nil
+}
+
+func (wf *Workflows) DeleteUserRefreshTokens(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.DeleteRefreshTokens(ctx, userID); err != nil {
+		logger.Error("error deleting user refresh tokens", logError(err))
+		return ErrInternalServerError
+	}
+
+	return nil
+}
+
+func (wf *Workflows) DeleteRefreshToken(
+	ctx context.Context,
+	refreshToken string,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.DeleteRefreshToken(
+		ctx, sql.Text(hashRefreshToken([]byte(refreshToken))),
+	); err != nil {
+		logger.Error("error deleting refresh token", logError(err))
+		return ErrInternalServerError
+	}
+
+	return nil
 }

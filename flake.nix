@@ -25,16 +25,11 @@
           root = ./.;
           include = with nix-filter.lib;[
             ./package.json
-            ./pnpm-lock.yaml
-            ./tsconfig.build.json
+            ./bun.lock
+            ./bunfig.toml
             ./tsconfig.json
             ./audit-ci.jsonc
-            ./jest.config.js
             ./.env.example
-            (inDirectory "migrations")
-            (inDirectory "src")
-            (inDirectory "types")
-            (inDirectory "email-templates")
             (inDirectory "test")
           ];
 
@@ -59,6 +54,7 @@
             ./go/sql/query.sql
             ./go/sql/auth_schema_dump.sql
             isDirectory
+            (inDirectory "go/migrations/postgres")
             (inDirectory "email-templates")
             (inDirectory "vendor")
           ];
@@ -77,7 +73,7 @@
           pname = "node_modules-builder";
 
           nativeBuildInputs = with pkgs; [
-            nodePackages.pnpm
+            bun
             cacert
           ];
 
@@ -85,13 +81,13 @@
             root = ./.;
             include = [
               ./package.json
-              ./pnpm-lock.yaml
+              ./bun.lock
+              ./bunfig.toml
             ];
           };
 
           buildPhase = ''
-            export PNPM_HOME=$TMP/.pnpm-home
-            pnpm install --frozen-lockfile
+            bun install --frozen-lockfile
           '';
 
           installPhase = ''
@@ -99,16 +95,6 @@
             cp -r node_modules $out
           '';
         };
-
-        node_modules-prod = node_modules-builder.overrideAttrs (oldAttrs: {
-          name = "node_modules-prod";
-
-          buildPhase = ''
-            export PNPM_HOME=$TMP/.pnpm-home
-            pnpm install --frozen-lockfile --prod
-          '';
-        });
-
 
         name = "hasura-auth";
         description = "Nhost's Auth Service";
@@ -123,11 +109,9 @@
           "-X main.Version=${version}"
         ];
 
-        buildInputs = with pkgs; [ ];
+        buildInputs = [ ];
 
-        nativeBuildInputs = with pkgs; [
-          makeWrapper
-        ];
+        nativeBuildInputs = [ ];
 
         checkDeps = with pkgs; [
           nhost-cli
@@ -163,8 +147,7 @@
             {
               nativeBuildInputs = with pkgs;
                 [
-                  nodejs-slim_20
-                  nodePackages.pnpm
+                  bun
                   cacert
                 ];
             }
@@ -176,17 +159,9 @@
               cp -r ${node-src}/.* .
               ln -s ${node_modules-builder}/node_modules node_modules
 
-              export XDG_DATA_HOME=$TMPDIR/.local/share
-              export HOME=$TMPDIR
-
-              echo "➜ Running pnpm audit"
-              pnpx audit-ci --config ./audit-ci.jsonc
-              echo "➜ Running pnpm build"
-              pnpm build
-              echo "➜ Running pnpm test"
               cp .env.example .env
-              pnpm test
 
+              bun test
               mkdir -p $out
             '';
         };
@@ -195,54 +170,19 @@
           default = nixops-lib.go.devShell {
             buildInputs = with pkgs; [
               go-migrate
-              nodejs
-              nodePackages.pnpm
               skopeo
+              bun
             ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
           };
         };
 
         packages = flake-utils.lib.flattenTree rec {
-          node-auth = pkgs.stdenv.mkDerivation {
-            pname = "node-${name}";
-            version = "hardcoded";
-
-            buildInputs = with pkgs; [
-              pkgs.nodejs-slim_20
-            ];
-
-            nativeBuildInputs = with pkgs; [
-              nodePackages.pnpm
-            ];
-
-            src = node-src;
-
-            buildPhase = ''
-              ln -s ${node_modules-builder}/node_modules node_modules
-              pnpm build
-            '';
-
-            installPhase = ''
-              mkdir -p $out/bin
-              cp -r dist $out/dist
-              cp -r migrations $out/migrations
-              cp -r email-templates $out/email-templates
-              cp package.json $out/package.json
-              ln -s ${node_modules-prod}/node_modules $out/node_modules
-            '';
-          };
-
           hasura-auth = nixops-lib.go.package {
-            inherit name submodule description src version ldflags nativeBuildInputs;
-
-            buildInputs = with pkgs; [
-              node-auth
-            ] ++ buildInputs;
+            inherit name submodule buildInputs description src version ldflags nativeBuildInputs;
 
             postInstall = ''
-              wrapProgram $out/bin/hasura-auth \
-                  --suffix PATH : ${pkgs.nodejs-slim_20}/bin \
-                  --prefix AUTH_NODE_SERVER_PATH : ${node-auth}
+              mkdir $out/share
+              cp -rv ${src}/email-templates $out/share/email-templates
             '';
           };
 
@@ -250,9 +190,7 @@
             inherit name created version buildInputs;
 
             maxLayers = 100;
-            contents = with pkgs; [
-              wget
-            ];
+            contents = [ pkgs.wget ];
 
             package = hasura-auth;
           };

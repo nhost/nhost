@@ -373,6 +373,15 @@ type SignInWebauthnVerifyRequest struct {
 	Email *openapi_types.Email `json:"email,omitempty"`
 }
 
+// SignOutRequest defines model for SignOutRequest.
+type SignOutRequest struct {
+	// All Sign out from all connected devices
+	All *bool `json:"all,omitempty"`
+
+	// RefreshToken Refresh Token
+	RefreshToken *string `json:"refreshToken,omitempty"`
+}
+
 // SignUpEmailPasswordRequest defines model for SignUpEmailPasswordRequest.
 type SignUpEmailPasswordRequest struct {
 	// Email A valid email
@@ -434,10 +443,12 @@ type TotpGenerateResponse struct {
 
 // User defines model for User.
 type User struct {
-	AvatarUrl   string    `json:"avatarUrl"`
-	CreatedAt   time.Time `json:"createdAt"`
-	DefaultRole string    `json:"defaultRole"`
-	DisplayName string    `json:"displayName"`
+	// ActiveMfaType Active MFA type for the user
+	ActiveMfaType *string   `json:"activeMfaType"`
+	AvatarUrl     string    `json:"avatarUrl"`
+	CreatedAt     time.Time `json:"createdAt"`
+	DefaultRole   string    `json:"defaultRole"`
+	DisplayName   string    `json:"displayName"`
 
 	// Email A valid email
 	Email         *openapi_types.Email `json:"email,omitempty"`
@@ -532,6 +543,12 @@ type UserPasswordResetRequest struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
+}
+
+// VerifyTokenRequest defines model for VerifyTokenRequest.
+type VerifyTokenRequest struct {
+	// Token JWT token to verify
+	Token *string `json:"token,omitempty"`
 }
 
 // RedirectToQuery Target URL for the redirect
@@ -694,6 +711,9 @@ type PostSigninWebauthnJSONRequestBody = SignInWebauthnRequest
 // PostSigninWebauthnVerifyJSONRequestBody defines body for PostSigninWebauthnVerify for application/json ContentType.
 type PostSigninWebauthnVerifyJSONRequestBody = SignInWebauthnVerifyRequest
 
+// PostSignoutJSONRequestBody defines body for PostSignout for application/json ContentType.
+type PostSignoutJSONRequestBody = SignOutRequest
+
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
 type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
 
@@ -705,6 +725,9 @@ type PostSignupWebauthnVerifyJSONRequestBody = SignUpWebauthnVerifyRequest
 
 // PostTokenJSONRequestBody defines body for PostToken for application/json ContentType.
 type PostTokenJSONRequestBody = RefreshTokenRequest
+
+// PostTokenVerifyJSONRequestBody defines body for PostTokenVerify for application/json ContentType.
+type PostTokenVerifyJSONRequestBody = VerifyTokenRequest
 
 // PostUserDeanonymizeJSONRequestBody defines body for PostUserDeanonymize for application/json ContentType.
 type PostUserDeanonymizeJSONRequestBody = UserDeanonymizeRequest

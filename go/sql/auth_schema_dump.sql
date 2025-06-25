@@ -60,27 +60,6 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: migrations; Type: TABLE; Schema: auth; Owner: postgres
---
-
-CREATE TABLE auth.migrations (
-    id integer NOT NULL,
-    name character varying(100) NOT NULL,
-    hash character varying(40) NOT NULL,
-    executed_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
-);
-
-
-ALTER TABLE auth.migrations OWNER TO postgres;
-
---
--- Name: TABLE migrations; Type: COMMENT; Schema: auth; Owner: postgres
---
-
-COMMENT ON TABLE auth.migrations IS 'Internal table for tracking migrations. Don''t modify its structure as Hasura Auth relies on it to function properly.';
-
-
---
 -- Name: provider_requests; Type: TABLE; Schema: auth; Owner: postgres
 --
 
@@ -169,6 +148,25 @@ ALTER TABLE auth.roles OWNER TO postgres;
 --
 
 COMMENT ON TABLE auth.roles IS 'Persistent Hasura roles for users. Don''t modify its structure as Hasura Auth relies on it to function properly.';
+
+
+--
+-- Name: schema_migrations; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.schema_migrations (
+    version bigint NOT NULL,
+    dirty boolean NOT NULL
+);
+
+
+ALTER TABLE auth.schema_migrations OWNER TO postgres;
+
+--
+-- Name: TABLE schema_migrations; Type: COMMENT; Schema: auth; Owner: postgres
+--
+
+COMMENT ON TABLE auth.schema_migrations IS 'Internal table for tracking migrations. Don''t modify its structure as Hasura Auth relies on it to function properly.';
 
 
 --
@@ -285,22 +283,6 @@ COMMENT ON TABLE auth.users IS 'User account information. Don''t modify its stru
 
 
 --
--- Name: migrations migrations_name_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
---
-
-ALTER TABLE ONLY auth.migrations
-    ADD CONSTRAINT migrations_name_key UNIQUE (name);
-
-
---
--- Name: migrations migrations_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
---
-
-ALTER TABLE ONLY auth.migrations
-    ADD CONSTRAINT migrations_pkey PRIMARY KEY (id);
-
-
---
 -- Name: provider_requests provider_requests_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
 --
 
@@ -338,6 +320,14 @@ ALTER TABLE ONLY auth.refresh_tokens
 
 ALTER TABLE ONLY auth.roles
     ADD CONSTRAINT roles_pkey PRIMARY KEY (role);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --

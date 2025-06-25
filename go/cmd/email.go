@@ -56,7 +56,8 @@ func getTemplates(cCtx *cli.Context, logger *slog.Logger) (*notifications.Templa
 	var templatesPath string
 	for _, p := range []string{
 		cCtx.String(flagEmailTemplatesPath),
-		filepath.Join(cCtx.String(flagNodeServerPath), "email-templates"),
+		"email-templates",
+		filepath.Join("share", "email-templates"),
 	} {
 		if _, err := os.Stat(p); err == nil {
 			templatesPath = p

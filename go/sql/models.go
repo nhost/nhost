@@ -9,14 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Internal table for tracking migrations. Don't modify its structure as Hasura Auth relies on it to function properly.
-type AuthMigration struct {
-	ID         int32
-	Name       string
-	Hash       string
-	ExecutedAt pgtype.Timestamp
-}
-
 // List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthProvider struct {
 	ID string
@@ -47,6 +39,12 @@ type AuthRefreshTokenType struct {
 // Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthRole struct {
 	Role string
+}
+
+// Internal table for tracking migrations. Don't modify its structure as Hasura Auth relies on it to function properly.
+type AuthSchemaMigration struct {
+	Version int64
+	Dirty   bool
 }
 
 // User account information. Don't modify its structure as Hasura Auth relies on it to function properly.

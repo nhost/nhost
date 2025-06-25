@@ -1,7 +1,7 @@
-import { createEmailRedirectionLink } from '@/utils';
-import { EmailType, EMAIL_TYPES } from '@/types';
+import { createEmailRedirectionLink } from '../src/utils';
+import { EmailType, EMAIL_TYPES } from '../src/types';
 import { v4 as uuidv4 } from 'uuid';
-import { ENV } from '@/utils';
+import { ENV } from '../src/env';
 
 describe('utils', () => {
   it('should create email redirection link', () => {

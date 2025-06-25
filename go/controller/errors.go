@@ -48,6 +48,7 @@ var (
 	ErrInvalidTicket                   = &APIError{api.InvalidTicket}
 	ErrInvalidRequest                  = &APIError{api.InvalidRequest}
 	ErrSignupDisabled                  = &APIError{api.SignupDisabled}
+	ErrUnauthenticatedUser             = &APIError{api.InvalidRequest}
 	ErrDisabledEndpoint                = &APIError{api.DisabledEndpoint}
 	ErrEmailAlreadyVerified            = &APIError{api.EmailAlreadyVerified}
 	ErrInvalidRefreshToken             = &APIError{api.InvalidRefreshToken}
@@ -202,6 +203,18 @@ func (response ErrorResponse) VisitPostUserWebauthnVerifyResponse(w http.Respons
 }
 
 func (response ErrorResponse) VisitPostSigninPasswordlessSmsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostSignoutResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostTokenVerifyResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitGetUserResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 

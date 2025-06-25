@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
-import { ENV } from '../../../src/utils/env';
+import { ENV } from '../../src/env';
 import { request, resetEnvironment } from '../../server';
 import { deleteAllMailHogEmails } from '../../utils';
 
@@ -58,7 +58,12 @@ describe('conceal error messages', () => {
       .post('/signin/email-password')
       .send({ email, password: '123456' });
 
-    expect(attemptWithProtection.body).toMatchSnapshot();
+    expect(attemptWithProtection.status).toBe(StatusCodes.BAD_REQUEST);
+    expect(attemptWithProtection.body).toEqual({
+      status: StatusCodes.BAD_REQUEST,
+      message: 'The request payload is incorrect',
+      error: 'invalid-request',
+    });
 
     // * Send details error messages
     await request.post('/change-env').send({
@@ -69,6 +74,11 @@ describe('conceal error messages', () => {
       .post('/signin/email-password')
       .send({ email, password: '123456' });
 
-    expect(attemptWithoutProtection.body).toMatchSnapshot();
+    expect(attemptWithoutProtection.status).toBe(StatusCodes.UNAUTHORIZED);
+    expect(attemptWithoutProtection.body).toEqual({
+      status: StatusCodes.UNAUTHORIZED,
+      message: 'Incorrect email or password',
+      error: 'invalid-email-password',
+    });
   });
 });

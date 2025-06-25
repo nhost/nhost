@@ -5,10 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
-	"os/exec"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -35,7 +31,6 @@ const (
 	flagTrustedProxies                   = "trusted-proxies"
 	flagPostgresConnection               = "postgres"
 	flagPostgresMigrationsConnection     = "postgres-migrations"
-	flagNodeServerPath                   = "node-server-path"
 	flagDisableSignup                    = "disable-signup"
 	flagConcealErrors                    = "conceal-errors"
 	flagDefaultAllowedRoles              = "default-allowed-roles"
@@ -218,13 +213,6 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "PostgreSQL connection URI for running migrations: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING. Required to inject the `auth` schema into the database. If not specied, the `postgres connection will be used",
 				Category: "postgres",
 				EnvVars:  []string{"POSTGRES_MIGRATIONS_CONNECTION"},
-			},
-			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagNodeServerPath,
-				Usage:    "Path to the node server",
-				Value:    ".",
-				Category: "node",
-				EnvVars:  []string{"AUTH_NODE_SERVER_PATH"},
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagDisableSignup,
@@ -1163,45 +1151,6 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 	}
 }
 
-func getNodeServer(cCtx *cli.Context) *exec.Cmd {
-	env := os.Environ()
-	found := false
-	authPort := strconv.Itoa(cCtx.Int(flagPort) + 1)
-	for i, v := range env {
-		if strings.HasPrefix(v, "AUTH_PORT=") {
-			found = true
-			env[i] = "AUTH_PORT=" + authPort
-		}
-	}
-	if !found {
-		env = append(env, "AUTH_PORT="+authPort)
-	}
-	env = append(env, "NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-bundle.crt")
-	env = append(env, "PWD="+cCtx.String(flagNodeServerPath))
-	env = append(env, "AUTH_VERSION="+cCtx.App.Version)
-
-	if cCtx.Bool(flagEnableChangeEnv) {
-		env = append(env, "NODE_ENV=development")
-	}
-
-	if cCtx.String(flagPostgresMigrationsConnection) != "" {
-		for i, v := range env {
-			if strings.HasPrefix(v, "HASURA_GRAPHQL_DATABASE_URL=") {
-				env[i] = "HASURA_GRAPHQL_DATABASE_URL=" + cCtx.String(
-					flagPostgresMigrationsConnection,
-				)
-			}
-		}
-	}
-
-	cmd := exec.CommandContext(cCtx.Context, "node", "./dist/start.js")
-	cmd.Dir = cCtx.String(flagNodeServerPath)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = env
-	return cmd
-}
-
 func getRateLimiter(cCtx *cli.Context, logger *slog.Logger) gin.HandlerFunc {
 	var store ratelimit.Store
 	if cCtx.String(flagRateLimitMemcacheServer) != "" {
@@ -1352,14 +1301,8 @@ func getGoServer( //nolint:funlen
 		},
 	)
 
-	nodejsHandler, err := nodejsHandler()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create nodejs handler: %w", err)
-	}
-	router.NoRoute(nodejsHandler)
-
 	if cCtx.Bool(flagEnableChangeEnv) {
-		router.POST(cCtx.String(flagAPIPrefix)+"/change-env", ctrl.PostChangeEnv(nodejsHandler))
+		router.POST(cCtx.String(flagAPIPrefix)+"/change-env", ctrl.PostChangeEnv)
 	}
 
 	server := &http.Server{ //nolint:exhaustruct
@@ -1379,27 +1322,25 @@ func serve(cCtx *cli.Context) error {
 	ctx, cancel := context.WithCancel(cCtx.Context)
 	defer cancel()
 
-	nodeServer := getNodeServer(cCtx)
-	go func() {
-		defer cancel()
-		if err := nodeServer.Run(); err != nil {
-			logger.Error("node server failed", slog.String("error", err.Error()))
-		}
-	}()
-
 	pool, err := getDBPool(cCtx)
 	if err != nil {
 		return fmt.Errorf("failed to create database pool: %w", err)
 	}
 	defer pool.Close()
 
-	server, err := getGoServer(cCtx, sql.New(pool), logger)
+	db := sql.New(pool)
+	if err := applyMigrations(ctx, cCtx, db, logger); err != nil {
+		return fmt.Errorf("failed to apply migrations: %w", err)
+	}
+
+	server, err := getGoServer(cCtx, db, logger)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}
 
 	go func() {
 		defer cancel()
+		logger.Info("starting server", slog.String("port", cCtx.String(flagPort)))
 		if err := server.ListenAndServe(); err != nil {
 			logger.Error("server failed", slog.String("error", err.Error()))
 		}
