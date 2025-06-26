@@ -137,11 +137,6 @@ const projectSettingsPages = [
     slug: 'roles-and-permissions',
     route: 'roles-and-permissions',
   },
-  {
-    name: 'Remote Schemas',
-    slug: 'remote-schemas',
-    route: 'remote-schemas',
-  },
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Git', slug: 'git', route: 'git' },
   {
@@ -163,6 +158,19 @@ const projectSettingsPages = [
   { name: 'AI', slug: 'ai', route: 'ai' },
   { name: 'Observability', slug: 'metrics', route: 'metrics' },
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
+];
+
+const projectGraphQLPages = [
+  {
+    name: 'Playground',
+    slug: 'playground',
+    route: 'graphql',
+  },
+  {
+    name: 'Remote Schemas',
+    slug: 'remote-schemas',
+    route: 'graphql/remote-schemas',
+  },
 ];
 
 const createOrganization = (org: Org, isPlatform: boolean) => {
@@ -243,13 +251,20 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
       result[`${org.slug}-${_app.subdomain}-${_page.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-${_page.slug}`,
         canMove: false,
-        isFolder: _page.name === 'Settings',
-        children:
-          _page.name === 'Settings'
-            ? projectSettingsPages.map(
-                (p) => `${org.slug}-${_app.subdomain}-settings-${p.slug}`,
-              )
-            : undefined,
+        isFolder: _page.name === 'Settings' || _page.name === 'GraphQL',
+        children: (() => {
+          if (_page.name === 'Settings') {
+            return projectSettingsPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-settings-${p.slug}`,
+            );
+          }
+          if (_page.name === 'GraphQL') {
+            return projectGraphQLPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
+            );
+          }
+          return undefined;
+        })(),
         data: {
           name: _page.name,
           icon: _page.icon,
@@ -277,6 +292,21 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
             p.slug === 'general'
               ? `/orgs/${org.slug}/projects/${_app.subdomain}/settings`
               : `/orgs/${org.slug}/projects/${_app.subdomain}/settings/${p.route}`,
+        },
+        canRename: false,
+      };
+    });
+
+    // add the graphql pages
+    projectGraphQLPages.forEach((p) => {
+      result[`${org.slug}-${_app.subdomain}-graphql-${p.slug}`] = {
+        index: `${org.slug}-${_app.subdomain}-graphql-${p.slug}`,
+        canMove: false,
+        isFolder: false,
+        children: undefined,
+        data: {
+          name: p.name,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
         },
         canRename: false,
       };
@@ -433,6 +463,13 @@ export default function NavTree() {
                   item.data.targetUrl
                 ) {
                   return;
+                }
+
+                // Special handling for GraphQL item - expand the tree when clicked
+                if (item.data.name === 'GraphQL' && item.isFolder) {
+                  if (!context.isExpanded) {
+                    context.toggleExpandedState();
+                  }
                 }
 
                 if (item.data.type !== 'org') {
