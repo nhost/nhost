@@ -1,4 +1,4 @@
-import { useTheme } from '@mui/material';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type ArgumentNode,
   buildClientSchema,
@@ -18,14 +18,24 @@ import {
   parse,
 } from 'graphql';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/v3/accordion';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Form } from '@/components/ui/v3/form';
+import { Input } from '@/components/ui/v3/input';
 import { useAddRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useAddRemoteSchemaPermissionsMutation';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import { useRemoveRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaPermissionsMutation';
@@ -53,6 +63,14 @@ interface RemoteSchemaFields {
 
 // Argument tree type for storing preset values
 type ArgTreeType = Record<string, any>;
+
+// Form Schema for react-hook-form with Zod validation
+const FormSchema = z.object({
+  selectedFields: z.array(z.string()).optional().default([]),
+  presetValues: z.any().optional().default({}),
+});
+
+type FormData = z.infer<typeof FormSchema>;
 
 // Utility functions for handling presets
 const addPresetDefinition = (schema: string): string => `scalar PresetValue
@@ -196,6 +214,85 @@ const checkDefaultGQLScalarType = (typeName: string): boolean => {
   return gqlDefaultTypes.includes(typeName);
 };
 
+// Extract base type name from GraphQL type string (remove !, [], etc.)
+const getBaseTypeName = (typeString: string): string =>
+  typeString.replace(/[[\]!]/g, '');
+
+// Extract all referenced scalar types from fields
+const extractReferencedScalars = (
+  fields: RemoteSchemaFields[],
+): Set<string> => {
+  const referencedScalars = new Set<string>();
+
+  fields.forEach((schemaType) => {
+    schemaType.children.forEach((field) => {
+      if (!field.checked) {
+        return;
+      }
+
+      // Check return type
+      if (field.return) {
+        const baseReturnType = getBaseTypeName(field.return);
+        if (
+          !checkDefaultGQLScalarType(baseReturnType) &&
+          !baseReturnType.match(/^(Query|Mutation|Subscription)$/)
+        ) {
+          // Check if this type is already explicitly defined and checked in our fields
+          const hasExplicitDefinition = fields.some((f) => {
+            if (f.name === `scalar ${baseReturnType}`) {
+              return f.children.some((child) => child.checked);
+            }
+            return (
+              f.typeName === baseReturnType ||
+              f.name === `type ${baseReturnType}` ||
+              f.name === `input ${baseReturnType}` ||
+              f.name === `enum ${baseReturnType}` ||
+              f.name === `union ${baseReturnType}` ||
+              f.name === `interface ${baseReturnType}`
+            );
+          });
+
+          if (!hasExplicitDefinition) {
+            referencedScalars.add(baseReturnType);
+          }
+        }
+      }
+
+      // Check argument types
+      if (field.args) {
+        field.args.forEach((arg) => {
+          const baseArgType = getBaseTypeName(arg.type);
+          if (
+            !checkDefaultGQLScalarType(baseArgType) &&
+            !baseArgType.match(/^(Query|Mutation|Subscription)$/)
+          ) {
+            // Check if this type is already explicitly defined and checked in our fields
+            const hasExplicitDefinition = fields.some((f) => {
+              if (f.name === `scalar ${baseArgType}`) {
+                return f.children.some((child) => child.checked);
+              }
+              return (
+                f.typeName === baseArgType ||
+                f.name === `type ${baseArgType}` ||
+                f.name === `input ${baseArgType}` ||
+                f.name === `enum ${baseArgType}` ||
+                f.name === `union ${baseArgType}` ||
+                f.name === `interface ${baseArgType}`
+              );
+            });
+
+            if (!hasExplicitDefinition) {
+              referencedScalars.add(baseArgType);
+            }
+          }
+        });
+      }
+    });
+  });
+
+  return referencedScalars;
+};
+
 // Get schema roots (Query, Mutation, Subscription)
 const getSchemaRoots = (schema: GraphQLSchema): string[] => {
   const roots: string[] = [];
@@ -215,10 +312,6 @@ const getSchemaRoots = (schema: GraphQLSchema): string[] => {
 
   return roots;
 };
-
-// Extract base type name from GraphQL type string (remove !, [], etc.)
-const getBaseTypeName = (typeString: string): string =>
-  typeString.replace(/[[\]!]/g, '');
 
 // Get all type dependencies for a field recursively
 const getTypeDependencies = (
@@ -565,13 +658,21 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   onSubmit,
   onCancel,
 }: RemoteSchemaRolePermissionsEditorFormProps) {
-  const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [remoteSchemaFields, setRemoteSchemaFields] = useState<
     RemoteSchemaFields[]
   >([]);
   const [argTree, setArgTree] = useState<ArgTreeType>({}); // Store preset values
   const [schemaDefinition, setSchemaDefinition] = useState('');
+
+  // Initialize form with react-hook-form
+  const form = useForm<FormData>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      selectedFields: [],
+      presetValues: {},
+    },
+  });
 
   // Fetch remote schema introspection
   const {
@@ -700,6 +801,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       let hasQuery = false;
       let hasMutation = false;
       let hasSubscription = false;
+
+      // Extract referenced scalars that need to be defined
+      const referencedScalars = extractReferencedScalars(fields);
 
       fields.forEach((schemaType) => {
         const checkedChildren = schemaType.children.filter(
@@ -872,6 +976,11 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         }
       });
 
+      // Add any referenced scalar types that aren't already defined
+      referencedScalars.forEach((scalarType) => {
+        lines.push(`scalar ${scalarType}`);
+      });
+
       // Add schema definition if needed
       if (hasQuery || hasMutation || hasSubscription) {
         const schemaDef = ['schema {'];
@@ -1021,25 +1130,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
           });
         }
 
-        return newFields;
-      });
-    },
-    [],
-  );
-
-  // Handle field expansion toggle
-  const handleFieldExpansionToggle = useCallback(
-    (schemaTypeIndex: number, fieldIndex: number) => {
-      setRemoteSchemaFields((prev) => {
-        const newFields = [...prev];
-        newFields[schemaTypeIndex] = {
-          ...newFields[schemaTypeIndex],
-          children: newFields[schemaTypeIndex].children.map((child, index) =>
-            index === fieldIndex
-              ? { ...child, expanded: !child.expanded }
-              : child,
-          ),
-        };
         return newFields;
       });
     },
@@ -1220,370 +1310,371 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   }
 
   return (
-    <Box
-      className="flex flex-auto flex-col content-between border-t-1"
-      sx={{
-        backgroundColor: 'background.default',
-        height: '92vh',
-        maxHeight: '92vh',
-      }}
-    >
-      <div className="flex flex-auto flex-col overflow-hidden">
-        <Box className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="grid grid-flow-row gap-2">
-              <Text component="h2" className="!font-bold">
-                Edit Permissions: {remoteSchemaName} - {role}
-              </Text>
-              <Text>
-                Select the fields and operations that should be available for
-                this role. Expand fields to edit @preset values for arguments.
-              </Text>
-            </div>
-
-            {/* Search */}
-            <div className="relative">
-              <Input
-                placeholder="Search fields and operations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-10"
-              />
-            </div>
-
-            {/* Schema Fields */}
-            <Box className="space-y-6">
-              {/* Root Operations */}
-              {rootTypes.length > 0 && (
-                <div className="space-y-4">
-                  <Text className="text-lg font-semibold">Root Operations</Text>
-                  <div className="space-y-4 rounded border p-4">
-                    {rootTypes.map((schemaType) => (
-                      <div key={schemaType.name} className="space-y-2">
-                        <Text className="font-semibold text-blue-600">
-                          {schemaType.name.replace('type ', '')} Operations
-                        </Text>
-                        <div className="space-y-1 pl-4">
-                          {schemaType.children.map((field) => {
-                            const fieldKey = `${schemaType.name}.${field.name}`;
-                            const actualSchemaIndex =
-                              remoteSchemaFields.findIndex(
-                                (f) => f.name === schemaType.name,
-                              );
-                            const actualFieldIndex = remoteSchemaFields[
-                              actualSchemaIndex
-                            ]?.children.findIndex((f) => f.name === field.name);
-
-                            return (
-                              <div key={fieldKey} className="space-y-2">
-                                <div className="flex items-center space-x-2">
-                                  <input
-                                    type="checkbox"
-                                    id={fieldKey}
-                                    checked={field.checked}
-                                    onChange={(e) =>
-                                      handleFieldToggle(
-                                        actualSchemaIndex,
-                                        actualFieldIndex,
-                                        e.target.checked,
-                                      )
-                                    }
-                                    className="form-checkbox h-4 w-4 text-blue-600"
-                                  />
-                                  <label
-                                    htmlFor={fieldKey}
-                                    className="flex-1 cursor-pointer"
-                                  >
-                                    <span className="font-medium">
-                                      {field.name}
-                                    </span>
-                                    <span className="ml-2 text-sm text-gray-500">
-                                      : {field.return}
-                                    </span>
-                                    {field.args && field.args.length > 0 && (
-                                      <span className="ml-2 text-xs text-gray-400">
-                                        ({field.args.length} arg
-                                        {field.args.length > 1 ? 's' : ''})
-                                      </span>
-                                    )}
-                                  </label>
-                                  {field.args && field.args.length > 0 && (
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleFieldExpansionToggle(
-                                          actualSchemaIndex,
-                                          actualFieldIndex,
-                                        )
-                                      }
-                                      className="rounded p-1 text-blue-600 hover:bg-blue-50"
-                                      title="Toggle arguments"
-                                    >
-                                      {field.expanded ? '▼' : '▶'}
-                                    </button>
-                                  )}
-                                </div>
-
-                                {/* Arguments section */}
-                                {field.expanded &&
-                                  field.args &&
-                                  field.args.length > 0 && (
-                                    <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
-                                      <Text className="text-sm font-medium text-gray-700">
-                                        Arguments:
-                                      </Text>
-                                      {field.args.map((arg) => {
-                                        const presetValue =
-                                          argTree?.[schemaType.name]?.[
-                                            field.name
-                                          ]?.[arg.name] || '';
-
-                                        return (
-                                          <div
-                                            key={arg.name}
-                                            className="flex items-center space-x-2"
-                                          >
-                                            <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
-                                              {arg.name}: {arg.type}
-                                            </span>
-                                            <Input
-                                              placeholder="@preset value"
-                                              value={presetValue}
-                                              onChange={(e) =>
-                                                handlePresetChange(
-                                                  schemaType.name,
-                                                  field.name,
-                                                  arg.name,
-                                                  e.target.value,
-                                                )
-                                              }
-                                              className="text-xs"
-                                              size="small"
-                                            />
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-
-                    {rootTypes.length === 0 && (
-                      <div className="py-8 text-center text-gray-500">
-                        {searchTerm
-                          ? 'No operations match your search'
-                          : 'No operations available'}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Custom Types */}
-              {customTypes.length > 0 && (
-                <div className="space-y-4">
-                  <Text className="text-lg font-semibold">Custom Types</Text>
-                  <div className="space-y-4 rounded border p-4">
-                    {customTypes.map((schemaType) => (
-                      <div key={schemaType.name} className="space-y-2">
-                        <Text className="font-semibold text-green-600">
-                          {schemaType.name}
-                        </Text>
-                        <div className="space-y-1 pl-4">
-                          {schemaType.children.map((field) => {
-                            const fieldKey = `${schemaType.name}.${field.name}`;
-                            const actualSchemaIndex =
-                              remoteSchemaFields.findIndex(
-                                (f) => f.name === schemaType.name,
-                              );
-                            const actualFieldIndex = remoteSchemaFields[
-                              actualSchemaIndex
-                            ]?.children.findIndex((f) => f.name === field.name);
-
-                            return (
-                              <div key={fieldKey} className="space-y-2">
-                                <div className="flex items-center space-x-2">
-                                  <input
-                                    type="checkbox"
-                                    id={fieldKey}
-                                    checked={field.checked}
-                                    onChange={(e) =>
-                                      handleFieldToggle(
-                                        actualSchemaIndex,
-                                        actualFieldIndex,
-                                        e.target.checked,
-                                      )
-                                    }
-                                    className="form-checkbox h-4 w-4 text-green-600"
-                                  />
-                                  <label
-                                    htmlFor={fieldKey}
-                                    className="flex-1 cursor-pointer"
-                                  >
-                                    <span className="font-medium">
-                                      {field.name}
-                                    </span>
-                                    {field.return && (
-                                      <span className="ml-2 text-sm text-gray-500">
-                                        : {field.return}
-                                      </span>
-                                    )}
-                                    {field.args && field.args.length > 0 && (
-                                      <span className="ml-2 text-xs text-gray-400">
-                                        ({field.args.length} arg
-                                        {field.args.length > 1 ? 's' : ''})
-                                      </span>
-                                    )}
-                                  </label>
-                                  {field.args && field.args.length > 0 && (
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleFieldExpansionToggle(
-                                          actualSchemaIndex,
-                                          actualFieldIndex,
-                                        )
-                                      }
-                                      className="rounded p-1 text-green-600 hover:bg-green-50"
-                                      title="Toggle arguments"
-                                    >
-                                      {field.expanded ? '▼' : '▶'}
-                                    </button>
-                                  )}
-                                </div>
-
-                                {/* Arguments section for custom types */}
-                                {field.expanded &&
-                                  field.args &&
-                                  field.args.length > 0 && (
-                                    <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
-                                      <Text className="text-sm font-medium text-gray-700">
-                                        Arguments:
-                                      </Text>
-                                      {field.args.map((arg) => {
-                                        const presetValue =
-                                          argTree?.[schemaType.name]?.[
-                                            field.name
-                                          ]?.[arg.name] || '';
-
-                                        return (
-                                          <div
-                                            key={arg.name}
-                                            className="flex items-center space-x-2"
-                                          >
-                                            <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
-                                              {arg.name}: {arg.type}
-                                            </span>
-                                            <Input
-                                              placeholder="@preset value"
-                                              value={presetValue}
-                                              onChange={(e) =>
-                                                handlePresetChange(
-                                                  schemaType.name,
-                                                  field.name,
-                                                  arg.name,
-                                                  e.target.value,
-                                                )
-                                              }
-                                              className="text-xs"
-                                              size="small"
-                                            />
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-
-                    {customTypes.length === 0 && !searchTerm && (
-                      <div className="py-8 text-center text-gray-500">
-                        No custom types found in schema
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* No results */}
-              {filteredFields.length === 0 && (
-                <div className="space-y-4">
-                  <Text className="text-lg font-semibold">
-                    Available Fields
-                  </Text>
-                  <div className="rounded border p-8 text-center text-gray-500">
-                    {searchTerm
-                      ? 'No fields match your search'
-                      : 'No fields available'}
-                  </div>
-                </div>
-              )}
-            </Box>
-
-            {/* Schema Definition Preview */}
-            {/* {schemaDefinition && (
-              <Box className="space-y-4 rounded border-1 p-4">
-                <Text className="text-lg font-semibold">
-                  Generated Schema Definition
+    <Form {...form}>
+      <Box
+        className="flex flex-auto flex-col content-between border-t-1"
+        sx={{
+          backgroundColor: 'background.default',
+          height: '92vh',
+          maxHeight: '92vh',
+        }}
+      >
+        <div className="flex flex-auto flex-col overflow-hidden">
+          <Box className="flex-1 overflow-y-auto p-6">
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="grid grid-flow-row gap-2">
+                <Text component="h2" className="!font-bold">
+                  Edit Permissions: {remoteSchemaName} - {role}
                 </Text>
-                <pre
-                  className="max-h-40 overflow-auto whitespace-pre-wrap rounded p-4 text-sm"
-                  style={{
-                    backgroundColor:
-                      theme.palette.mode === 'dark' ? '#2d3748' : '#f7fafc',
-                    color:
-                      theme.palette.mode === 'dark' ? '#e2e8f0' : '#2d3748',
-                  }}
-                >
-                  {schemaDefinition}
-                </pre>
+                <Text>
+                  Select the fields and operations that should be available for
+                  this role. Expand fields to edit @preset values for arguments.
+                </Text>
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Input
+                  placeholder="Search fields and operations..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pr-10"
+                />
+              </div>
+
+              {/* Schema Fields */}
+              <Box className="space-y-6">
+                {/* Root Operations */}
+                {rootTypes.length > 0 && (
+                  <div className="space-y-4">
+                    <Text className="text-lg font-semibold">
+                      Root Operations
+                    </Text>
+                    <div className="space-y-4 rounded border p-4">
+                      {rootTypes.map((schemaType) => (
+                        <div key={schemaType.name} className="space-y-2">
+                          <Text className="font-semibold text-blue-600">
+                            {schemaType.name.replace('type ', '')} Operations
+                          </Text>
+                          <div className="pl-4">
+                            <Accordion type="multiple" className="space-y-1">
+                              {schemaType.children.map((field) => {
+                                const fieldKey = `${schemaType.name}.${field.name}`;
+                                const actualSchemaIndex =
+                                  remoteSchemaFields.findIndex(
+                                    (f) => f.name === schemaType.name,
+                                  );
+                                const actualFieldIndex = remoteSchemaFields[
+                                  actualSchemaIndex
+                                ]?.children.findIndex(
+                                  (f) => f.name === field.name,
+                                );
+
+                                if (field.args && field.args.length > 0) {
+                                  return (
+                                    <AccordionItem
+                                      key={fieldKey}
+                                      value={fieldKey}
+                                    >
+                                      <AccordionTrigger className="py-2 hover:no-underline">
+                                        <div className="flex items-center space-x-2">
+                                          <Checkbox
+                                            id={fieldKey}
+                                            checked={field.checked}
+                                            onCheckedChange={(checked) =>
+                                              handleFieldToggle(
+                                                actualSchemaIndex,
+                                                actualFieldIndex,
+                                                checked as boolean,
+                                              )
+                                            }
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                          <span className="font-medium">
+                                            {field.name}
+                                          </span>
+                                          <span className="text-sm text-gray-500">
+                                            : {field.return}
+                                          </span>
+                                          <span className="text-xs text-gray-400">
+                                            ({field.args.length} arg
+                                            {field.args.length > 1 ? 's' : ''})
+                                          </span>
+                                        </div>
+                                      </AccordionTrigger>
+                                      <AccordionContent>
+                                        <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
+                                          <Text className="text-sm font-medium text-gray-700">
+                                            Arguments:
+                                          </Text>
+                                          {field.args.map((arg) => {
+                                            const presetValue =
+                                              argTree?.[schemaType.name]?.[
+                                                field.name
+                                              ]?.[arg.name] || '';
+
+                                            return (
+                                              <div
+                                                key={arg.name}
+                                                className="flex items-center space-x-2"
+                                              >
+                                                <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
+                                                  {arg.name}: {arg.type}
+                                                </span>
+                                                <Input
+                                                  placeholder="@preset value"
+                                                  value={presetValue}
+                                                  onChange={(e) =>
+                                                    handlePresetChange(
+                                                      schemaType.name,
+                                                      field.name,
+                                                      arg.name,
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  className="text-xs"
+                                                />
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                  );
+                                } else {
+                                  return (
+                                    <div
+                                      key={fieldKey}
+                                      className="flex items-center space-x-2 border-b py-2"
+                                    >
+                                      <Checkbox
+                                        id={fieldKey}
+                                        checked={field.checked}
+                                        onCheckedChange={(checked) =>
+                                          handleFieldToggle(
+                                            actualSchemaIndex,
+                                            actualFieldIndex,
+                                            checked as boolean,
+                                          )
+                                        }
+                                      />
+                                      <label
+                                        htmlFor={fieldKey}
+                                        className="flex-1 cursor-pointer"
+                                      >
+                                        <span className="font-medium">
+                                          {field.name}
+                                        </span>
+                                        <span className="ml-2 text-sm text-gray-500">
+                                          : {field.return}
+                                        </span>
+                                      </label>
+                                    </div>
+                                  );
+                                }
+                              })}
+                            </Accordion>
+                          </div>
+                        </div>
+                      ))}
+
+                      {rootTypes.length === 0 && (
+                        <div className="py-8 text-center text-gray-500">
+                          {searchTerm
+                            ? 'No operations match your search'
+                            : 'No operations available'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Custom Types */}
+                {customTypes.length > 0 && (
+                  <div className="space-y-4">
+                    <Text className="text-lg font-semibold">Custom Types</Text>
+                    <div className="space-y-4 rounded border p-4">
+                      {customTypes.map((schemaType) => (
+                        <div key={schemaType.name} className="space-y-2">
+                          <Text className="font-semibold text-green-600">
+                            {schemaType.name}
+                          </Text>
+                          <div className="space-y-1 pl-4">
+                            {schemaType.children.map((field) => {
+                              const fieldKey = `${schemaType.name}.${field.name}`;
+                              const actualSchemaIndex =
+                                remoteSchemaFields.findIndex(
+                                  (f) => f.name === schemaType.name,
+                                );
+                              const actualFieldIndex = remoteSchemaFields[
+                                actualSchemaIndex
+                              ]?.children.findIndex(
+                                (f) => f.name === field.name,
+                              );
+
+                              return (
+                                <div key={fieldKey} className="space-y-2">
+                                  <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={fieldKey}
+                                      checked={field.checked}
+                                      onCheckedChange={(checked) =>
+                                        handleFieldToggle(
+                                          actualSchemaIndex,
+                                          actualFieldIndex,
+                                          checked as boolean,
+                                        )
+                                      }
+                                    />
+                                    <label
+                                      htmlFor={fieldKey}
+                                      className="flex-1 cursor-pointer"
+                                    >
+                                      <span className="font-medium">
+                                        {field.name}
+                                      </span>
+                                      {field.return && (
+                                        <span className="ml-2 text-sm text-gray-500">
+                                          : {field.return}
+                                        </span>
+                                      )}
+                                      {field.args && field.args.length > 0 && (
+                                        <span className="ml-2 text-xs text-gray-400">
+                                          ({field.args.length} arg
+                                          {field.args.length > 1 ? 's' : ''})
+                                        </span>
+                                      )}
+                                    </label>
+                                  </div>
+
+                                  {/* Arguments section for custom types */}
+                                  {field.expanded &&
+                                    field.args &&
+                                    field.args.length > 0 && (
+                                      <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
+                                        <Text className="text-sm font-medium text-gray-700">
+                                          Arguments:
+                                        </Text>
+                                        {field.args.map((arg) => {
+                                          const presetValue =
+                                            argTree?.[schemaType.name]?.[
+                                              field.name
+                                            ]?.[arg.name] || '';
+
+                                          return (
+                                            <div
+                                              key={arg.name}
+                                              className="flex items-center space-x-2"
+                                            >
+                                              <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
+                                                {arg.name}: {arg.type}
+                                              </span>
+                                              <Input
+                                                placeholder="@preset value"
+                                                value={presetValue}
+                                                onChange={(e) =>
+                                                  handlePresetChange(
+                                                    schemaType.name,
+                                                    field.name,
+                                                    arg.name,
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                className="text-xs"
+                                              />
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+
+                      {customTypes.length === 0 && !searchTerm && (
+                        <div className="py-8 text-center text-gray-500">
+                          No custom types found in schema
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* No results */}
+                {filteredFields.length === 0 && (
+                  <div className="space-y-4">
+                    <Text className="text-lg font-semibold">
+                      Available Fields
+                    </Text>
+                    <div className="rounded border p-8 text-center text-gray-500">
+                      {searchTerm
+                        ? 'No fields match your search'
+                        : 'No fields available'}
+                    </div>
+                  </div>
+                )}
               </Box>
-            )} */}
-          </div>
-        </Box>
-      </div>
 
-      {/* Actions */}
-      <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
-        <Button variant="borderless" color="secondary" onClick={onCancel}>
-          Cancel
-        </Button>
+              {/* Schema Definition Preview */}
+              {/* {schemaDefinition && (
+                <Box className="space-y-4 rounded border-1 p-4">
+                  <Text className="text-lg font-semibold">
+                    Generated Schema Definition
+                  </Text>
+                  <pre
+                    className="max-h-40 overflow-auto whitespace-pre-wrap rounded p-4 text-sm"
+                    style={{
+                      backgroundColor:
+                        theme.palette.mode === 'dark' ? '#2d3748' : '#f7fafc',
+                      color:
+                        theme.palette.mode === 'dark' ? '#e2e8f0' : '#2d3748',
+                    }}
+                  >
+                    {schemaDefinition}
+                  </pre>
+                </Box>
+              )} */}
+            </div>
+          </Box>
+        </div>
 
-        <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
-          {permission && (
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleDeleteClick}
-              disabled={removePermissionMutation.isLoading}
-            >
-              Delete Permissions
-            </Button>
-          )}
-
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSavePermission}
-            disabled={
-              !schemaDefinition ||
-              addPermissionMutation.isLoading ||
-              isUpdatingPermission
-            }
-          >
-            Save Permissions
+        {/* Actions */}
+        <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
+          <Button variant="borderless" color="secondary" onClick={onCancel}>
+            Cancel
           </Button>
+
+          <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
+            {permission && (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleDeleteClick}
+                disabled={removePermissionMutation.isLoading}
+              >
+                Delete Permissions
+              </Button>
+            )}
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSavePermission}
+              disabled={
+                !schemaDefinition ||
+                addPermissionMutation.isLoading ||
+                isUpdatingPermission
+              }
+            >
+              Save Permissions
+            </Button>
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </Form>
   );
 }
