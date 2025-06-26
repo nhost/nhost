@@ -47,6 +47,489 @@ const rolePermissionsSchema = z.object({
 
 type RolePermissionsFormValues = z.infer<typeof rolePermissionsSchema>;
 
+// Argument tree type for storing preset values
+type ArgTreeType = Record<string, any>;
+
+// Utility functions for handling presets
+const addPresetDefinition = (schema: string): string => `scalar PresetValue
+directive @preset(
+    value: PresetValue
+) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+${schema}`;
+
+const buildSchemaFromRoleDefn = (
+  roleDefinition: string,
+): GraphQLSchema | null => {
+  try {
+    const newDef = addPresetDefinition(roleDefinition);
+    return buildSchema(newDef);
+  } catch (err) {
+    return null;
+  }
+};
+
+// Parse preset values from SDL
+const parseObjectField = (arg: ArgumentNode | ObjectFieldNode): any => {
+  if (arg?.value?.kind === 'IntValue' && arg?.value?.value) {
+    return arg?.value?.value;
+  }
+  if (arg?.value?.kind === 'FloatValue' && arg?.value?.value) {
+    return arg?.value?.value;
+  }
+  if (arg?.value?.kind === 'StringValue' && arg?.value?.value) {
+    return arg?.value?.value;
+  }
+  if (arg?.value?.kind === 'BooleanValue' && arg?.value?.value) {
+    return arg?.value?.value;
+  }
+  if (arg?.value?.kind === 'EnumValue' && arg?.value?.value) {
+    return arg?.value?.value;
+  }
+  if (arg?.value?.kind === 'NullValue') {
+    return null;
+  }
+
+  // nested values
+  if (
+    arg?.value?.kind === 'ObjectValue' &&
+    arg?.value?.fields &&
+    arg?.value?.fields?.length > 0
+  ) {
+    const res: Record<string, any> = {};
+    arg?.value?.fields.forEach((f: ObjectFieldNode) => {
+      res[f.name.value] = parseObjectField(f);
+    });
+    return res;
+  }
+
+  return undefined;
+};
+
+const getDirectives = (field: InputValueDefinitionNode) => {
+  let res: unknown | Record<string, any>;
+  const preset = field?.directives?.find(
+    (dir) => dir?.name?.value === 'preset',
+  );
+  if (preset?.arguments?.[0]) {
+    res = parseObjectField(preset.arguments[0]);
+  }
+  if (typeof res === 'object') {
+    return res;
+  }
+  if (typeof res === 'string') {
+    try {
+      return JSON.parse(res);
+    } catch {
+      return res;
+    }
+  }
+  return res;
+};
+
+const getPresets = (field: FieldDefinitionNode) => {
+  const res: Record<string, any> = {};
+  field?.arguments?.forEach((arg) => {
+    if (arg.directives && arg.directives.length > 0) {
+      res[arg?.name?.value] = getDirectives(arg);
+    }
+  });
+  return res;
+};
+
+const getFieldsMap = (fields: FieldDefinitionNode[], parentName: string) => {
+  const type = `type ${parentName}`;
+  const res: Record<string, any> = { [type]: {} };
+  fields.forEach((field) => {
+    res[type][field?.name?.value] = getPresets(field);
+  });
+  return res;
+};
+
+const getArgTreeFromPermissionSDL = (definition: string): ArgTreeType => {
+  const roots = ['Query', 'Mutation', 'Subscription'];
+  try {
+    const schema: DocumentNode = parse(definition);
+    const defs = schema.definitions as ObjectTypeDefinitionNode[];
+    const argTree =
+      defs?.reduce((acc: ArgTreeType, i: ObjectTypeDefinitionNode) => {
+        if (i.name?.value && i.fields && roots.includes(i.name.value)) {
+          const res = getFieldsMap(
+            i.fields as FieldDefinitionNode[],
+            i.name.value,
+          );
+          return { ...acc, ...res };
+        }
+        return acc;
+      }, {}) || {};
+    return argTree || {};
+  } catch (e) {
+    console.error(e);
+    return {};
+  }
+};
+
+// Format argument value for SDL
+const formatArg = (value: any): string => {
+  if (typeof value === 'string') {
+    return `"${value}"`;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  if (value === null) {
+    return 'null';
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+};
+
+// Check if type belongs to default GraphQL scalar types
+const checkDefaultGQLScalarType = (typeName: string): boolean => {
+  const gqlDefaultTypes = ['Boolean', 'Float', 'String', 'Int', 'ID'];
+  return gqlDefaultTypes.includes(typeName);
+};
+
+// Get schema roots (Query, Mutation, Subscription)
+const getSchemaRoots = (schema: GraphQLSchema): string[] => {
+  const roots: string[] = [];
+  const queryType = schema.getQueryType();
+  const mutationType = schema.getMutationType();
+  const subscriptionType = schema.getSubscriptionType();
+
+  if (queryType) {
+    roots.push(queryType.name);
+  }
+  if (mutationType) {
+    roots.push(mutationType.name);
+  }
+  if (subscriptionType) {
+    roots.push(subscriptionType.name);
+  }
+
+  return roots;
+};
+
+// Extract base type name from GraphQL type string (remove !, [], etc.)
+const getBaseTypeName = (typeString: string): string =>
+  typeString.replace(/[[\]!]/g, '');
+
+// Get all type dependencies for a field recursively
+const getTypeDependencies = (
+  field: CustomFieldType,
+  allTypes: RemoteSchemaFields[],
+  visited: Set<string> = new Set(),
+): string[] => {
+  const dependencies: string[] = [];
+
+  if (!field.return) {
+    return dependencies;
+  }
+
+  const baseType = getBaseTypeName(field.return);
+
+  // Skip built-in GraphQL types
+  if (['String', 'Int', 'Float', 'Boolean', 'ID'].includes(baseType)) {
+    return dependencies;
+  }
+
+  // Avoid circular dependencies
+  if (visited.has(baseType)) {
+    return dependencies;
+  }
+
+  visited.add(baseType);
+
+  // Find the type in our schema
+  const typeNames = [
+    `type ${baseType}`,
+    `input ${baseType}`,
+    `enum ${baseType}`,
+    `scalar ${baseType}`,
+    `union ${baseType}`,
+    `interface ${baseType}`,
+  ];
+
+  const foundType = allTypes.find((t) => typeNames.includes(t.name));
+
+  if (foundType) {
+    dependencies.push(foundType.name);
+
+    // Recursively find dependencies of this type's fields
+    foundType.children.forEach((childField) => {
+      if (childField.return) {
+        const childDeps = getTypeDependencies(childField, allTypes, visited);
+        childDeps.forEach((dep) => {
+          if (!dependencies.includes(dep)) {
+            dependencies.push(dep);
+          }
+        });
+      }
+    });
+  }
+
+  return dependencies;
+};
+
+const buildCustomTypes = (
+  introspectionSchema: GraphQLSchema,
+  permissionsSchema: GraphQLSchema | null,
+): RemoteSchemaFields[] => {
+  const introspectionSchemaFields = introspectionSchema.getTypeMap();
+  let permissionsSchemaFields: any = null;
+
+  if (permissionsSchema !== null) {
+    permissionsSchemaFields = permissionsSchema.getTypeMap();
+  }
+
+  const enumTypes: RemoteSchemaFields[] = [];
+  const scalarTypes: RemoteSchemaFields[] = [];
+  const inputObjectTypes: RemoteSchemaFields[] = [];
+  const objectTypes: RemoteSchemaFields[] = [];
+  const unionTypes: RemoteSchemaFields[] = [];
+  const interfaceTypes: RemoteSchemaFields[] = [];
+
+  const roots = getSchemaRoots(introspectionSchema);
+
+  Object.entries(introspectionSchemaFields).forEach(([key, value]: any) => {
+    if (
+      !(
+        value instanceof GraphQLObjectType ||
+        value instanceof GraphQLInputObjectType ||
+        value instanceof GraphQLEnumType ||
+        value instanceof GraphQLScalarType ||
+        value instanceof GraphQLUnionType ||
+        value instanceof GraphQLInterfaceType
+      )
+    ) {
+      return;
+    }
+
+    const { name } = value;
+
+    // Skip root types and built-in types
+    if (roots.includes(name) || name.startsWith('__')) {
+      return;
+    }
+
+    const type: RemoteSchemaFields = {
+      name: '',
+      typeName: name,
+      children: [],
+    };
+
+    if (value instanceof GraphQLEnumType) {
+      type.name = `enum ${name}`;
+      const values = value.getValues();
+      const childArray: CustomFieldType[] = [];
+      let checked = false;
+
+      if (
+        permissionsSchema !== null &&
+        permissionsSchemaFields !== null &&
+        key in permissionsSchemaFields
+      ) {
+        checked = true;
+      }
+
+      values.forEach((val) => {
+        childArray.push({
+          name: val.name,
+          checked,
+        });
+      });
+
+      type.children = childArray;
+      enumTypes.push(type);
+    } else if (value instanceof GraphQLScalarType) {
+      type.name = `scalar ${name}`;
+      let checked = false;
+
+      if (
+        permissionsSchema !== null &&
+        permissionsSchemaFields !== null &&
+        key in permissionsSchemaFields
+      ) {
+        checked = true;
+      }
+
+      const childArray: CustomFieldType[] = [{ name: type.name, checked }];
+      type.children = childArray;
+      scalarTypes.push(type);
+    } else if (value instanceof GraphQLObjectType) {
+      type.name = `type ${name}`;
+      if (value.getInterfaces().length) {
+        const implementsString = value
+          .getInterfaces()
+          .map((i: any) => i.name)
+          .join(' & ');
+        type.name = `type ${name} implements ${implementsString}`;
+      }
+    } else if (value instanceof GraphQLInputObjectType) {
+      type.name = `input ${name}`;
+    }
+
+    if (
+      value instanceof GraphQLObjectType ||
+      value instanceof GraphQLInputObjectType
+    ) {
+      const childArray: CustomFieldType[] = [];
+      const fieldVal = value.getFields();
+      let permissionsFieldVal: any = {};
+      let isFieldPresent = true;
+
+      // Check if the type is present in the permission schema
+      if (permissionsSchema !== null && permissionsSchemaFields !== null) {
+        if (key in permissionsSchemaFields) {
+          permissionsFieldVal = permissionsSchemaFields[key].getFields();
+        } else {
+          isFieldPresent = false;
+        }
+      }
+
+      Object.entries(fieldVal).forEach(([k, v]: any) => {
+        let checked = false;
+        if (
+          permissionsSchema !== null &&
+          isFieldPresent &&
+          k in permissionsFieldVal
+        ) {
+          checked = true;
+        }
+
+        const field: CustomFieldType = {
+          name: v.name,
+          checked,
+          return: v.type.toString(),
+          expanded: false,
+        };
+
+        if (v.defaultValue !== undefined) {
+          field.defaultValue = v.defaultValue;
+        }
+
+        if (value instanceof GraphQLInputObjectType) {
+          field.args = [{ name: k, type: v.type.toString() }];
+          field.isInputObjectType = true;
+          field.parentName = type.name;
+        } else if (v.args?.length) {
+          field.args = v.args.map((arg: any) => ({
+            name: arg.name,
+            type: arg.type.toString(),
+          }));
+        }
+
+        childArray.push(field);
+      });
+
+      type.children = childArray;
+      if (value instanceof GraphQLObjectType) {
+        objectTypes.push(type);
+      }
+      if (value instanceof GraphQLInputObjectType) {
+        inputObjectTypes.push(type);
+      }
+    }
+
+    if (value instanceof GraphQLUnionType) {
+      let isFieldPresent = true;
+      let permissionsTypesVal: any;
+
+      if (permissionsSchema !== null && permissionsSchemaFields !== null) {
+        if (key in permissionsSchemaFields) {
+          permissionsTypesVal = permissionsSchemaFields[key].getTypes();
+        } else {
+          isFieldPresent = false;
+        }
+      }
+
+      type.name = `union ${name}`;
+      const childArray: CustomFieldType[] = [];
+      const typesVal = value.getTypes();
+
+      typesVal.forEach((v: any, k: number) => {
+        let checked = false;
+        if (
+          permissionsSchema !== null &&
+          isFieldPresent &&
+          permissionsTypesVal &&
+          k < permissionsTypesVal.length
+        ) {
+          checked = true;
+        }
+
+        const field: CustomFieldType = {
+          name: v.name,
+          checked,
+          return: v.name,
+        };
+        childArray.push(field);
+      });
+
+      type.children = childArray;
+      unionTypes.push(type);
+    }
+
+    if (value instanceof GraphQLInterfaceType) {
+      let isFieldPresent = true;
+      let permissionsFieldVal: any = {};
+
+      if (permissionsSchema !== null && permissionsSchemaFields !== null) {
+        if (key in permissionsSchemaFields) {
+          permissionsFieldVal = permissionsSchemaFields[key].getFields();
+        } else {
+          isFieldPresent = false;
+        }
+      }
+
+      type.name = `interface ${name}`;
+      const childArray: CustomFieldType[] = [];
+      const fieldVal = value.getFields();
+
+      Object.entries(fieldVal).forEach(([k, v]: any) => {
+        let checked = false;
+        if (
+          permissionsSchema !== null &&
+          isFieldPresent &&
+          k in permissionsFieldVal
+        ) {
+          checked = true;
+        }
+
+        const field: CustomFieldType = {
+          name: v.name,
+          checked,
+          return: v.type.toString(),
+          expanded: false,
+        };
+
+        if (v.args?.length) {
+          field.args = v.args.map((arg: any) => ({
+            name: arg.name,
+            type: arg.type.toString(),
+          }));
+        }
+
+        childArray.push(field);
+      });
+
+      type.children = childArray;
+      interfaceTypes.push(type);
+    }
+  });
+
+  return [
+    ...objectTypes,
+    ...inputObjectTypes,
+    ...unionTypes,
+    ...enumTypes,
+    ...scalarTypes,
+    ...interfaceTypes,
+  ];
+};
+
 export interface RemoteSchemaRolePermissionsEditorFormProps
   extends DialogFormProps {
   /**
@@ -903,7 +1386,27 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 {schemaDefinition}
               </pre>
             </Box>
-          )}
+
+            {/* Schema Definition Preview */}
+            {/* {schemaDefinition && (
+              <Box className="space-y-4 rounded border-1 p-4">
+                <Text className="text-lg font-semibold">
+                  Generated Schema Definition
+                </Text>
+                <pre
+                  className="max-h-40 overflow-auto whitespace-pre-wrap rounded p-4 text-sm"
+                  style={{
+                    backgroundColor:
+                      theme.palette.mode === 'dark' ? '#2d3748' : '#f7fafc',
+                    color:
+                      theme.palette.mode === 'dark' ? '#e2e8f0' : '#2d3748',
+                  }}
+                >
+                  {schemaDefinition}
+                </pre>
+              </Box>
+            )} */}
+          </div>
         </Box>
       </Box>
     </Form>
