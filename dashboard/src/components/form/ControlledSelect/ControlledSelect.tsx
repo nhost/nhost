@@ -4,7 +4,7 @@ import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 import type { FieldValues, UseControllerProps } from 'react-hook-form';
 import { useController, useFormContext } from 'react-hook-form';
-import mergeRefs from 'react-merge-refs';
+import { mergeRefs } from 'react-merge-refs';
 
 export interface ControlledSelectProps<TFieldValues extends FieldValues = any>
   extends SelectProps<TFieldValues> {
@@ -24,7 +24,7 @@ export interface ControlledSelectProps<TFieldValues extends FieldValues = any>
 
 function ControlledSelect(
   { controllerProps, name, control, ...props }: ControlledSelectProps,
-  ref: ForwardedRef<HTMLInputElement>,
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const { setValue } = useFormContext();
   const { field } = useController({

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "target": "es6",
+    "target": "esnext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -10,7 +10,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -30,11 +30,16 @@
       "@/styles/*": ["styles/*"],
       "@/data/*": ["data/*"],
       "@/generated/*": ["utils/__generated__/*"],
-      "@/features/*": ["features/*"],
-      "@/hypertune/*": ["hypertune/*"]
+      "@/features/*": ["features/*"]
     },
     "incremental": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", ".nhost", "nhost", "functions", "playwright.config.ts"]
+  "exclude": [
+    "node_modules",
+    ".nhost",
+    "nhost",
+    "functions",
+    "playwright.config.ts"
+  ]
 }
