@@ -14,12 +14,12 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 import { useResetDatabasePasswordMutation } from '@/generated/graphql';
 import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
+import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { alpha } from '@mui/system';
-import { useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
@@ -85,7 +85,7 @@ export default function ResetDatabasePasswordSettings() {
         `An error occured while trying to update the database password for ${project.name}`,
       );
       await discordAnnounce(
-        `An error occurred while trying to update the database password: ${project.name} (${user.email}): ${e.message}`,
+        `An error occurred while trying to update the database password: ${project.name} (${user?.email}): ${e.message}`,
       );
     }
   }

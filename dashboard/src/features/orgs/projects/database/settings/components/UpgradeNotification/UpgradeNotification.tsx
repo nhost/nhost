@@ -11,8 +11,6 @@ interface Props {
   description: string;
 }
 
-// P
-
 function UpgradeNotification({ description }: Props) {
   const [transferProjectDialogOpen, setTransferProjectDialogOpen] =
     useState(false);

@@ -1,13 +1,14 @@
 import { Button } from '@/components/ui/v3/button';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useNhostClient } from '@/providers/nhost';
 import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
-import nhost from '@/utils/nhost/nhost';
 import { Download } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Soc2Download() {
   const { org } = useCurrentOrg();
+  const nhost = useNhostClient();
   const [downloading, setDownloading] = useState(false);
 
   const showSoc2Download =
@@ -28,26 +29,18 @@ export default function Soc2Download() {
         if (!fileId) {
           throw new Error('SOC2 report file ID not configured');
         }
+        try {
+          const response = await nhost.storage.getFile(fileId);
+          const url = URL.createObjectURL(response.body);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'Nhost-SOC2-Report.pdf';
+          link.click();
 
-        const { file, error } = await nhost.storage.download({
-          fileId,
-        });
-
-        if (error) {
+          URL.revokeObjectURL(url);
+        } catch (error) {
           throw new Error(error.message || 'Failed to download SOC2 report');
         }
-
-        if (!file) {
-          throw new Error('No file data available');
-        }
-
-        const url = URL.createObjectURL(file);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'Nhost-SOC2-Report.pdf';
-        link.click();
-
-        URL.revokeObjectURL(url);
       },
       {
         loadingMessage: 'Downloading SOC2 report...',

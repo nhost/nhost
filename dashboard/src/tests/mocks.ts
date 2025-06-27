@@ -2,7 +2,7 @@ import type { Organization, Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 import { faker } from '@faker-js/faker';
-import type { NhostSession } from '@nhost/nextjs';
+import type { Session } from '@nhost/nhost-js-beta/auth';
 import type { NextRouter } from 'next/router';
 import { vi } from 'vitest';
 
@@ -83,10 +83,11 @@ export const mockApplication: Project = {
   },
 };
 
-export const mockSession: NhostSession = {
+export const mockSession: Session = {
   accessToken: faker.random.alphaNumeric(),
-  accessTokenExpiresIn: 900,
+  accessTokenExpiresIn: 86400,
   refreshToken: faker.datatype.uuid(),
+  refreshTokenId: faker.datatype.uuid(),
   user: {
     id: faker.datatype.uuid(),
     email: faker.internet.email(),
@@ -101,7 +102,6 @@ export const mockSession: NhostSession = {
     emailVerified: true,
     phoneNumber: faker.phone.number(),
     phoneNumberVerified: true,
-    activeMfaType: 'totp',
   },
 };
 

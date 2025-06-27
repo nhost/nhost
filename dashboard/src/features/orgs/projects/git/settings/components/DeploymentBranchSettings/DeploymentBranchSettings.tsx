@@ -12,7 +12,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@nhost/nextjs';
+import { useUserData } from '@/hooks/useUserData';
 
 export interface DeploymentBranchFormValues {
   /**
@@ -53,7 +53,10 @@ export default function DeploymentBranchSettings() {
         },
       },
       refetchQueries: [
-        { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+        {
+          query: GetOrganizationsDocument,
+          variables: { userId: userData?.id },
+        },
       ],
     });
 

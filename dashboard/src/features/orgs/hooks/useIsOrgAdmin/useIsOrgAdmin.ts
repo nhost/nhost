@@ -1,6 +1,6 @@
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useUserData } from '@/hooks/useUserData';
 import { Organization_Members_Role_Enum } from '@/utils/__generated__/graphql';
-import { useUserData } from '@nhost/nextjs';
 
 export default function useIsOrgAdmin() {
   const { org: { members = [] } = {} } = useCurrentOrg();

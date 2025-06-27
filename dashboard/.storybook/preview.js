@@ -1,8 +1,9 @@
+import { NhostProvider } from '@/providers/nhost';
 import '@fontsource/inter';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/700.css';
 import { CssBaseline, ThemeProvider } from '@mui/material';
-import { NhostClient, NhostProvider } from '@nhost/nextjs';
+import { createClient } from '@nhost/nhost-js-beta';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Buffer } from 'buffer';
@@ -58,7 +59,9 @@ export const decorators = [
     </NhostApolloProvider>
   ),
   (Story) => (
-    <NhostProvider nhost={new NhostClient({ subdomain: 'local' })}>
+    <NhostProvider
+      nhost={createClient({ subdomain: 'local', region: 'local' })}
+    >
       <Story />
     </NhostProvider>
   ),

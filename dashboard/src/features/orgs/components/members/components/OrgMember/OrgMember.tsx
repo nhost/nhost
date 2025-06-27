@@ -48,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { useUserData } from '@/hooks/useUserData';
 import {
   Organization_Members_Role_Enum,
   useDeleteOrganizationMemberMutation,
@@ -55,7 +56,6 @@ import {
   type GetOrganizationQuery,
 } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useUserData } from '@nhost/nextjs';
 import { Ellipsis } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -76,7 +76,7 @@ const updateMemberRoleFormSchema = z.object({
 
 export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
   const { maintenanceActive } = useUI();
-  const { id } = useUserData();
+  const user = useUserData();
   const { push } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
   const { org: { plan: { isFree } = {} } = {}, refetch: refetchCurrentOrg } =
@@ -87,7 +87,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
   const [updateMemberRoleDialogOpen, setUpdateMemberRoleDialogOpen] =
     useState(false);
 
-  const isSelf = id === member.user.id;
+  const isSelf = user?.id === member.user.id;
 
   const [deleteMember] = useDeleteOrganizationMemberMutation({
     variables: {
@@ -98,7 +98,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
   const handleRemoveMemberFromOrg = async () => {
     await execPromiseWithErrorToast(
       async () => {
-        const isRemovingSelf = id === member.user.id;
+        const isRemovingSelf = user?.id === member.user.id;
         await deleteMember();
         // TODO see if it makes sense to unify both of these
         await refetchCurrentOrg();
@@ -191,7 +191,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
           <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
             <DropdownMenuTrigger
               disabled={
-                (!isAdmin && id !== member.user.id) ||
+                (!isAdmin && user?.id !== member.user.id) ||
                 isFree ||
                 maintenanceActive
               }

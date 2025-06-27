@@ -1,67 +1,65 @@
+import { isNotEmptyValue } from '@/lib/utils';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import {
-  useSendVerificationEmail,
-  useSignInEmailPassword,
-} from '@nhost/nextjs';
 import { useRouter } from 'next/router';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import type { SignInWithEmailAndPasswordFormValues } from './useSignInWithEmailAndPasswordForm';
 
-type EmailPasswordRef = {
+interface Props {
+  onNeedsMfa: (mfaTicket: string) => void;
+}
+
+type EmailAndPasswordRef = {
   email: string;
   password: string;
 } | null;
 
-function useOnSignInWithEmailAndPasswordHandler() {
+function useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa }: Props) {
+  const [isLoading, setIsloading] = useState(false);
+  const nhost = useNhostClient();
   const router = useRouter();
-  const { signInEmailPassword, needsMfaOtp, sendMfaOtp, isLoading } =
-    useSignInEmailPassword();
-  const emailPasswordRef = useRef<EmailPasswordRef>(null);
-
-  const { sendEmail } = useSendVerificationEmail();
+  const emailAndPasswordRef = useRef<EmailAndPasswordRef>();
 
   async function onSignInWithEmailAndPassword({
     email,
     password,
   }: SignInWithEmailAndPasswordFormValues) {
     try {
-      const { needsEmailVerification, error } = await signInEmailPassword(
+      setIsloading(true);
+      const response = await nhost.auth.signInEmailPassword({
         email,
         password,
-      );
-      emailPasswordRef.current = {
+      });
+
+      emailAndPasswordRef.current = {
         email,
         password,
       };
-      if (error) {
-        toast.error(
-          error?.message ||
-            'An error occurred while signing in. Please try again.',
-          getToastStyleProps(),
-        );
-        return;
+      if (response.body.mfa) {
+        onNeedsMfa(response.body.mfa.ticket);
       }
+    } catch (error) {
+      let errorMessage =
+        error?.message ||
+        'An error occurred while signing in. Please try again.';
 
-      if (needsEmailVerification) {
-        await sendEmail(email);
-        router.push(`/email/verify?email=${encodeURIComponent(email)}`);
+      if (isNotEmptyValue(error?.body)) {
+        const errorCode = error.body.error;
+        if (errorCode === 'unverified-user') {
+          await nhost.auth.sendVerificationEmail({ email });
+          router.push(`/email/verify?email=${encodeURIComponent(email)}`);
+          return;
+        }
+        errorMessage = error.body.message;
       }
-    } catch {
-      toast.error(
-        'An error occurred while signing in. Please try again.',
-        getToastStyleProps(),
-      );
+      toast.error(errorMessage, getToastStyleProps());
+    } finally {
+      setIsloading(false);
     }
   }
 
-  return {
-    onSignInWithEmailAndPassword,
-    needsMfaOtp,
-    sendMfaOtp,
-    isLoading,
-    emailPasswordRef,
-  };
+  return { onSignInWithEmailAndPassword, isLoading, emailAndPasswordRef };
 }
 
 export default useOnSignInWithEmailAndPasswordHandler;

@@ -8,7 +8,6 @@ import { PDFPreviewIcon } from '@/components/ui/v2/icons/PDFPreviewIcon';
 import { VideoPreviewIcon } from '@/components/ui/v2/icons/VideoPreviewIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { usePreviewToggle } from '@/features/orgs/projects/storage/dataGrid/hooks/usePreviewToggle';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
@@ -172,7 +171,6 @@ export default function DataGridPreviewCell<TData extends object>({
   value: { fetchBlob, id, mimeType, alt, blob },
   fallbackPreview = null,
 }: DataGridPreviewCellProps<TData>) {
-  const { project } = useProject();
   const appClient = useAppClient();
   const { objectUrl, loading, error } = useBlob({
     fetchBlob,
@@ -215,9 +213,7 @@ export default function DataGridPreviewCell<TData extends object>({
       dispatch({ type: 'PREVIEW_LOADING' });
     }
 
-    const { presignedUrl } = await appClient.storage
-      .setAdminSecret(project?.config?.hasura.adminSecret)
-      .getPresignedUrl({ fileId: id });
+    const { body: presignedUrl } = await appClient.storage.getPresignedURL(id);
 
     if (!presignedUrl) {
       dispatch({

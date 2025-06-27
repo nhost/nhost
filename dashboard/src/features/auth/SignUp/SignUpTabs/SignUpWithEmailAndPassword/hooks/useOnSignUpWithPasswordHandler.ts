@@ -1,12 +1,13 @@
 import { getAnonId } from '@/lib/segment';
+import { isEmptyValue } from '@/lib/utils';
+import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useSignUpEmailPassword } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import type { SignUpWithEmailAndPasswordFormValues } from './useSignUpWithEmailAndPasswordForm';
 
 function useOnSignUpWithPasswordHandler() {
-  const { signUpEmailPassword } = useSignUpEmailPassword();
+  const nhost = useNhostClient();
   const router = useRouter();
 
   async function onSignUpWithPassword({
@@ -16,12 +17,14 @@ function useOnSignUpWithPasswordHandler() {
     turnstileToken,
   }: SignUpWithEmailAndPasswordFormValues) {
     try {
-      const { needsEmailVerification, error } = await signUpEmailPassword(
-        email,
-        password,
+      const response = await nhost.auth.signUpEmailPassword(
         {
-          displayName,
-          metadata: { anonId: await getAnonId() },
+          email,
+          password,
+          options: {
+            displayName,
+            metadata: { anonId: await getAnonId() },
+          },
         },
         {
           headers: {
@@ -30,21 +33,13 @@ function useOnSignUpWithPasswordHandler() {
         },
       );
 
-      if (error) {
-        toast.error(
-          error.message ||
-            'An error occurred while signing up. Please try again.',
-          getToastStyleProps(),
-        );
-        return;
-      }
-
-      if (needsEmailVerification) {
+      if (response.status === 200 && isEmptyValue(response.body)) {
         router.push(`/email/verify?email=${encodeURIComponent(email)}`);
       }
-    } catch {
+    } catch (error) {
       toast.error(
-        'An error occurred while signing up. Please try again.',
+        error.message ||
+          'An error occurred while signing up. Please try again.',
         getToastStyleProps(),
       );
     }

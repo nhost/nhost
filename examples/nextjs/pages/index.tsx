@@ -46,13 +46,7 @@ const Home: NextPage = () => {
 
       <p>Access Token</p>
       <div>{accessToken}</div>
-      {isAuthenticated && (
-        <ul>
-          {data?.books.map((item) => (
-            <li key={item.id}>{item.title}</li>
-          ))}
-        </ul>
-      )}
+      {isAuthenticated && <ul>{data?.books.map((item) => <li key={item.id}>{item.title}</li>)}</ul>}
       {!loading && error && <div>ok {JSON.stringify(error)}</div>}
     </Container>
   )

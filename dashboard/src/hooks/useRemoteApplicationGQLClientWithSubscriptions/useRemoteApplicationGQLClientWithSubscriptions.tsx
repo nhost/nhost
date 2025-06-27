@@ -1,9 +1,31 @@
-import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client';
+import { useNhostClient } from '@/providers/nhost';
+import { nhost as test } from '@/utils/nhost';
+import {
+  ApolloClient,
+  createHttpLink,
+  InMemoryCache,
+  split,
+} from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { useAccessToken, useNhostClient } from '@nhost/nextjs';
 import { createClient } from 'graphql-ws';
 import { useMemo } from 'react';
+
+const getAuthHeaders = async () => {
+  // add headers
+  const session = await test?.refreshSession(60);
+  const token = session?.accessToken;
+  const resHeaders: any = {
+    'Sec-WebSocket-Protocol': 'graphql-ws',
+  };
+
+  if (token) {
+    resHeaders.authorization = `Bearer ${token}`;
+  }
+
+  return resHeaders;
+};
 
 /**
  * It creates a new Apollo Client instance with a split property which recognizes the type of operation and uses a different
@@ -11,25 +33,23 @@ import { useMemo } from 'react';
  * @returns A function that returns a new ApolloClient instance with split functionality prepared for websockets connected to bragi.
  */
 export default function useRemoteApplicationGQLClientWithSubscriptions() {
-  const client = useNhostClient();
-  const token = useAccessToken();
+  const nhost = useNhostClient();
 
   const userApplicationClient = useMemo(() => {
-    const httpLink = new HttpLink({
-      uri: client.graphql.getUrl(),
+    const uri = nhost.graphql.url;
+    const httpLink = setContext(async (_, { headers }) => ({
       headers: {
-        authorization: `Bearer ${token}`,
+        ...headers,
+        ...(await getAuthHeaders()),
       },
-    });
+    })).concat(createHttpLink({ uri }));
 
     const wsLink = new GraphQLWsLink(
       createClient({
         url: process.env.NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET,
-        connectionParams: {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        },
+        connectionParams: async () => ({
+          headers: await getAuthHeaders(),
+        }),
         webSocketImpl: WebSocket,
       }),
     );
@@ -66,7 +86,7 @@ export default function useRemoteApplicationGQLClientWithSubscriptions() {
         httpLink,
       ),
     });
-  }, [client.graphql, token]);
+  }, [nhost.graphql]);
 
   return userApplicationClient;
 }
