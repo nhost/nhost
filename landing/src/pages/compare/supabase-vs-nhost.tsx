@@ -12,7 +12,7 @@ import Image from 'next/image'
 export default function SupabaseVsNhostPage() {
   return (
     <>
-      {/* Hero Section */}
+      {/* hero section */}
       <Container component="section" className="relative pb-5 lg:pb-11">
         <div className="mt-8 grid grid-flow-row justify-center gap-10 pt-8 md:pt-25">
           <SectionHeading
@@ -50,7 +50,7 @@ export default function SupabaseVsNhostPage() {
         </div>
       </Container>
 
-      {/* Feature Comparison Table */}
+      {/* feature comparison table */}
       <Container component="section" className="max-w-6xl py-16">
         <SectionHeading
           title="Feature comparison"
@@ -163,7 +163,6 @@ export default function SupabaseVsNhostPage() {
 
         <div className="mt-8 text-center">
           <Button
-            component={Link}
             href="/blog/nhost-vs-supabase-practical-guide-for-growing-teams"
             variant="outlined"
           >
