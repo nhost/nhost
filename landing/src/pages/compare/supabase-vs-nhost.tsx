@@ -17,7 +17,7 @@ export default function SupabaseVsNhostPage() {
         <div className="mt-8 grid grid-flow-row justify-center gap-10 pt-8 md:pt-25">
           <SectionHeading
             title="Evaluating Supabase?"
-            subtitle="Here's why developers building scalable, GraphQL-native, and customizable apps choose Nhost instead."
+            subtitle="Here&apos;s why developers building scalable, GraphQL-native, and customizable apps choose Nhost instead."
             slotProps={{
               title: {
                 component: 'h1',
@@ -183,7 +183,7 @@ export default function SupabaseVsNhostPage() {
               <h3 className="text-xl font-semibold text-white mb-2">Run it your way</h3>
             </div>
             <p className="text-gray-300">
-              Use Nhost Cloud for top reliability, or deploy to your own infrastructure. You're not locked in, you're in control of your data and infrastructure.
+              Use Nhost Cloud for top reliability, or deploy to your own infrastructure. You&apos;re not locked in, you&apos;re in control of your data and infrastructure.
             </p>
           </Card>
 
@@ -218,7 +218,7 @@ export default function SupabaseVsNhostPage() {
 
         <Card className="p-8 bg-gray-900/50 border-gray-700">
           <blockquote className="text-lg text-gray-300 italic mb-6">
-            "One of the main issues we had with Supabase was that the generated APIs weren't usable straight away from the client side. This meant that we would have had to recode an entire API layer on top, which would have added unnecessary complexity and slowed down our development process."
+            "One of the main issues we had with Supabase was that the generated APIs weren&apos;t usable straight away from the client side. This meant that we would have had to recode an entire API layer on top, which would have added unnecessary complexity and slowed down our development process."
           </blockquote>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mr-4">
@@ -240,7 +240,7 @@ export default function SupabaseVsNhostPage() {
           Not sure yet?
         </h2>
         <p className="text-lg text-gray-300 mb-8">
-          Read our <strong>Backend Buyer's blog post</strong>, a practical evaluation for choosing a backend stack.
+          Read our <strong>Backend Buyer&apos;s blog post</strong>, a practical evaluation for choosing a backend stack.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
