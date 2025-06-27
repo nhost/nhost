@@ -17,14 +17,15 @@ export default function SupabaseVsNhostPage() {
         <div className="mt-8 grid grid-flow-row justify-center gap-10 pt-8 md:pt-25">
           <SectionHeading
             title="Evaluating Supabase?"
-            subtitle="Here&apos;s why developers building scalable, GraphQL-native, and customizable apps choose Nhost instead."
+            subtitle="Here's why developers building scalable, GraphQL-native, and customizable apps choose Nhost instead."
             slotProps={{
               title: {
                 component: 'h1',
                 className: 'text-3.5xl md:text-5xl font-bold',
               },
               subtitle: {
-                className: 'max-w-2xl mx-auto text-lg text-white text-opacity-80',
+                className:
+                  'max-w-2xl mx-auto text-lg text-white text-opacity-80',
               },
             }}
           />
@@ -50,65 +51,111 @@ export default function SupabaseVsNhostPage() {
       </Container>
 
       {/* Feature Comparison Table */}
-      <Container
-        component="section" 
-        className="max-w-6xl py-16"
-      >
+      <Container component="section" className="max-w-6xl py-16">
         <SectionHeading
           title="Feature comparison"
           subtitle="See how Nhost and Supabase stack up across key capabilities"
           className="mb-12"
         />
-        
+
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-gray-700">
-                <th className="text-left py-4 px-6 text-gray-300 font-semibold">Feature</th>
-                <th className="text-left py-4 px-6 text-gray-300 font-semibold">Supabase</th>
-                <th className="text-left py-4 px-6 text-blue-400 font-semibold">Nhost</th>
+                <th className="py-4 px-6 text-left font-semibold text-gray-300">
+                  Feature
+                </th>
+                <th className="py-4 px-6 text-left font-semibold text-gray-300">
+                  Supabase
+                </th>
+                <th className="py-4 px-6 text-left font-semibold text-blue-400">
+                  Nhost
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
               <tr className="hover:bg-gray-800/50">
-                <td className="py-4 px-6 font-medium text-white">Query Language</td>
-                <td className="py-4 px-6 text-gray-300">SQL + JS client (REST + RPC)</td>
-                <td className="py-4 px-6 text-blue-300 font-semibold">GraphQL-native with any GraphQL client</td>
+                <td className="py-4 px-6 font-medium text-white">
+                  Query Language
+                </td>
+                <td className="py-4 px-6 text-gray-300">
+                  SQL + JS client (REST + RPC)
+                </td>
+                <td className="py-4 px-6 font-semibold text-blue-300">
+                  GraphQL-native with any GraphQL client
+                </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
-                <td className="py-4 px-6 font-medium text-white">Postgres Access</td>
-                <td className="py-4 px-6 text-gray-300">Full access with many built-in extensions</td>
-                <td className="py-4 px-6 text-blue-300 font-semibold">Full access with some built-in extensions</td>
+                <td className="py-4 px-6 font-medium text-white">
+                  Postgres Access
+                </td>
+                <td className="py-4 px-6 text-gray-300">
+                  Full access with many built-in extensions
+                </td>
+                <td className="py-4 px-6 font-semibold text-blue-300">
+                  Full access with some built-in extensions
+                </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
-                <td className="py-4 px-6 font-medium text-white">Extensibility</td>
-                <td className="py-4 px-6 text-gray-300">Edge functions (Deno-based), limited customization</td>
-                <td className="py-4 px-6 text-blue-300 font-semibold">Serverless Functions + Nhost Run (bring your own containers), Remote Schemas</td>
+                <td className="py-4 px-6 font-medium text-white">
+                  Extensibility
+                </td>
+                <td className="py-4 px-6 text-gray-300">
+                  Edge functions (Deno-based), limited customization
+                </td>
+                <td className="py-4 px-6 font-semibold text-blue-300">
+                  Serverless Functions + Nhost Run (bring your own containers),
+                  Remote Schemas
+                </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
                 <td className="py-4 px-6 font-medium text-white">Auth</td>
-                <td className="py-4 px-6 text-gray-300">Feature-rich, RLS-based, Complex</td>
-                <td className="py-4 px-6 text-blue-300 font-semibold">Integrated GraphQL permissions with roles and field-level access</td>
+                <td className="py-4 px-6 text-gray-300">
+                  Feature-rich, RLS-based, Complex
+                </td>
+                <td className="py-4 px-6 font-semibold text-blue-300">
+                  Integrated GraphQL permissions with roles and field-level
+                  access
+                </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
                 <td className="py-4 px-6 font-medium text-white">AI agents</td>
                 <td className="py-4 px-6 text-gray-300">No native support</td>
-                <td className="py-4 px-6 text-blue-300 font-semibold">AI Agents integrated with all Nhost core backend services</td>
+                <td className="py-4 px-6 font-semibold text-blue-300">
+                  AI Agents integrated with all Nhost core backend services
+                </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
-                <td className="py-4 px-6 font-medium text-white">Developer tooling</td>
-                <td className="py-4 px-6 text-gray-300">CLI + SQL migrations</td>
-                <td className="py-4 px-6 text-blue-300 font-semibold">Git-based deployments + GraphQL-first DX</td>
+                <td className="py-4 px-6 font-medium text-white">
+                  Developer tooling
+                </td>
+                <td className="py-4 px-6 text-gray-300">
+                  CLI + SQL migrations
+                </td>
+                <td className="py-4 px-6 font-semibold text-blue-300">
+                  Git-based deployments + GraphQL-first DX
+                </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
-                <td className="py-4 px-6 font-medium text-white">Infrastructure control</td>
-                <td className="py-4 px-6 text-gray-300">Managed Postgres, multi-tenant auth & storage</td>
-                <td className="py-4 px-6 text-blue-300 font-semibold">Single tenant on all services, Kubernetes-native, supports dedicated clusters</td>
+                <td className="py-4 px-6 font-medium text-white">
+                  Infrastructure control
+                </td>
+                <td className="py-4 px-6 text-gray-300">
+                  Managed Postgres, multi-tenant auth & storage
+                </td>
+                <td className="py-4 px-6 font-semibold text-blue-300">
+                  Single tenant on all services, Kubernetes-native, supports
+                  dedicated clusters
+                </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
-                <td className="py-4 px-6 font-medium text-white">Federation support</td>
+                <td className="py-4 px-6 font-medium text-white">
+                  Federation support
+                </td>
                 <td className="py-4 px-6 text-gray-300">❌</td>
-                <td className="py-4 px-6 text-blue-300 font-semibold">✅ Native support with Remote Schemas / Nhost Run</td>
+                <td className="py-4 px-6 font-semibold text-blue-300">
+                  ✅ Native support with Remote Schemas / Nhost Run
+                </td>
               </tr>
             </tbody>
           </table>
@@ -125,20 +172,17 @@ export default function SupabaseVsNhostPage() {
         </div>
       </Container>
 
-      <Container
-        component="section"
-        className="max-w-6xl py-16"
-      >
+      <Container component="section" className="max-w-6xl py-16">
         <SectionHeading
           title="Built for flexibility, designed for scale"
           subtitle="Why growing teams choose Nhost for their production applications"
           className="mb-16"
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <Card className="p-6 bg-gray-900/50 border-gray-700">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-gray-700 bg-gray-900/50 p-6">
             <div className="mb-4">
-              <div className="mb-4 h-12 w-12 flex items-center justify-center rounded-lg bg-black ring-1 ring-white ring-opacity-10">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-black ring-1 ring-white ring-opacity-10">
                 <Image
                   src="/products/graphql.svg"
                   width={24}
@@ -146,16 +190,19 @@ export default function SupabaseVsNhostPage() {
                   alt="GraphQL icon"
                 />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">GraphQL-first developer experience</h3>
+              <h3 className="mb-2 text-xl font-semibold text-white">
+                GraphQL-first developer experience
+              </h3>
             </div>
             <p className="text-gray-300">
-              No wrappers, no patchwork APIs. Nhost is built from the ground up for GraphQL and frontend productivity.
+              No wrappers, no patchwork APIs. Nhost is built from the ground up
+              for GraphQL and frontend productivity.
             </p>
           </Card>
 
-          <Card className="p-6 bg-gray-900/50 border-gray-700">
+          <Card className="border-gray-700 bg-gray-900/50 p-6">
             <div className="mb-4">
-              <div className="mb-4 h-12 w-12 flex items-center justify-center rounded-lg bg-black ring-1 ring-white ring-opacity-10">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-black ring-1 ring-white ring-opacity-10">
                 <Image
                   src="/products/run-cloud.svg"
                   width={24}
@@ -163,16 +210,20 @@ export default function SupabaseVsNhostPage() {
                   alt="Nhost Run icon"
                 />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Extensible without limits</h3>
+              <h3 className="mb-2 text-xl font-semibold text-white">
+                Extensible without limits
+              </h3>
             </div>
             <p className="text-gray-300">
-              Deploy your own services as containers with Nhost Run. Wire up remote GraphQL APIs. Use event triggers to react to database changes.
+              Deploy your own services as containers with Nhost Run. Wire up
+              remote GraphQL APIs. Use event triggers to react to database
+              changes.
             </p>
           </Card>
 
-          <Card className="p-6 bg-gray-900/50 border-gray-700">
+          <Card className="border-gray-700 bg-gray-900/50 p-6">
             <div className="mb-4">
-              <div className="mb-4 h-12 w-12 flex items-center justify-center rounded-lg bg-black ring-1 ring-white ring-opacity-10">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-black ring-1 ring-white ring-opacity-10">
                 <Image
                   src="/products/platform.svg"
                   width={24}
@@ -180,16 +231,20 @@ export default function SupabaseVsNhostPage() {
                   alt="Platform icon"
                 />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Run it your way</h3>
+              <h3 className="mb-2 text-xl font-semibold text-white">
+                Run it your way
+              </h3>
             </div>
             <p className="text-gray-300">
-              Use Nhost Cloud for top reliability, or deploy to your own infrastructure. You&apos;re not locked in, you&apos;re in control of your data and infrastructure.
+              Use Nhost Cloud for top reliability, or deploy to your own
+              infrastructure. You&apos;re not locked in, you&apos;re in control
+              of your data and infrastructure.
             </p>
           </Card>
 
-          <Card className="p-6 bg-gray-900/50 border-gray-700">
+          <Card className="border-gray-700 bg-gray-900/50 p-6">
             <div className="mb-4">
-              <div className="mb-4 h-12 w-12 flex items-center justify-center rounded-lg bg-black ring-1 ring-white ring-opacity-10">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-black ring-1 ring-white ring-opacity-10">
                 <Image
                   src="/products/ai-assistants.svg"
                   width={24}
@@ -197,52 +252,53 @@ export default function SupabaseVsNhostPage() {
                   alt="AI Assistants icon"
                 />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">AI workflows, baked in</h3>
+              <h3 className="mb-2 text-xl font-semibold text-white">
+                AI workflows, baked in
+              </h3>
             </div>
             <p className="text-gray-300">
-              Nhost includes an integrated AI service for creating AI agents, managing embeddings, and more, with no extra infra or setup required. Build powerful AI-native apps.
+              Nhost includes an integrated AI service for creating AI agents,
+              managing embeddings, and more, with no extra infra or setup
+              required. Build powerful AI-native apps.
             </p>
           </Card>
         </div>
       </Container>
 
-      <Container
-        component="section"
-        className="max-w-4xl py-16"
-      >
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            "Why we chose Nhost over Supabase"
+      <Container component="section" className="max-w-4xl py-16">
+        <div className="mb-12 text-center">
+          <h2 className="mb-4 text-3xl font-bold text-white">
+            &quot;Why we chose Nhost over Supabase&quot;
           </h2>
         </div>
 
-        <Card className="p-8 bg-gray-900/50 border-gray-700">
-          <blockquote className="text-lg text-gray-300 italic mb-6">
-            "One of the main issues we had with Supabase was that the generated APIs weren&apos;t usable straight away from the client side. This meant that we would have had to recode an entire API layer on top, which would have added unnecessary complexity and slowed down our development process."
+        <Card className="border-gray-700 bg-gray-900/50 p-8">
+          <blockquote className="mb-6 text-lg italic text-gray-300">
+            &quot;One of the main issues we had with Supabase was that the
+            generated APIs weren&apos;t usable straight away from the client
+            side. This meant that we would have had to recode an entire API
+            layer on top, which would have added unnecessary complexity and
+            slowed down our development process.&quot;
           </blockquote>
           <div className="flex items-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mr-4">
-              <span className="text-white font-semibold">JS</span>
+            <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
+              <span className="font-semibold text-white">JS</span>
             </div>
             <div>
-              <div className="text-white font-semibold">Alex</div>
+              <div className="font-semibold text-white">Alex</div>
               <div className="text-gray-400">CPTO, Yalink</div>
             </div>
           </div>
         </Card>
       </Container>
 
-      <Container
-        component="section"
-        className="max-w-4xl py-16 text-center"
-      >
-        <h2 className="text-3xl font-bold text-white mb-4">
-          Not sure yet?
-        </h2>
-        <p className="text-lg text-gray-300 mb-8">
-          Read our <strong>Backend Buyer&apos;s blog post</strong>, a practical evaluation for choosing a backend stack.
+      <Container component="section" className="max-w-4xl py-16 text-center">
+        <h2 className="mb-4 text-3xl font-bold text-white">Not sure yet?</h2>
+        <p className="mb-8 text-lg text-gray-300">
+          Read our <strong>Backend Buyer&apos;s blog post</strong>, a practical
+          evaluation for choosing a backend stack.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col justify-center gap-4 sm:flex-row">
           <Button
             href="https://app.nhost.io/signup"
             target="_blank"
