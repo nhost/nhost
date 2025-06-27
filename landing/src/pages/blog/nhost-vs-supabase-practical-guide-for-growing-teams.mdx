@@ -1,0 +1,134 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost vs Supabase: A Practical Guide for Growing Teams',
+  description: 'A comprehensive comparison of Nhost and Supabase for teams building scalable applications. Learn the key differences in GraphQL support, extensibility, infrastructure control, and AI workflows.',
+  image: '/images/blog/nhost-vs-supabase-practical-guide-for-growing-teams/banner.png',
+  date: '2025-06-20',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Comparison', 'Platform'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+When you're choosing a backend platform for your application, you're not just picking a set of APIs. You're making foundational decisions about how you'll build, scale, and maintain your product over time.
+
+Two of the most popular modern backend platforms today are [Supabase](https://supabase.com/) and [Nhost](https://nhost.io/). They share some surface similarities: both are open source, both are built on top of Postgres, and both aim to give developers a fast, integrated experience for building applications without managing backend infrastructure manually.
+
+But when you look more closely, especially through the lens of growing teams with real production needs, key differences start to matter.
+
+## Quick comparison
+
+| Feature | Supabase | Nhost |
+| :---- | :---- | :---- |
+| **Query Language** | SQL + JS client (REST/RPC) | **GraphQL-native** |
+| **Postgres Access** | Full access with many built-in extensions | **Full access with some built-in extensions** |
+| **Extensibility** | Edge Functions (Deno runtime) | **Serverless functions + Nhost Run (bring your own containers), Remote Schemas** |
+| **Infra Control** | Managed Postgres, multi-tenant auth & storage | **Single tenant on all services, Kubernetes-native, supports dedicated clusters** |
+| **Auth** | Built-in providers with RLS | **GraphQL-integrated permissions with roles and field-level access** |
+| **Federation Support** | No | **Yes, built-in subgraph support** |
+| **Native AI features** | No | **Nhost AI service (Agents, Auto-Embeddings, etc)** |
+| **Docs and SDKs** | More polished | Improving, focused on flexibility |
+| **Open Source** | Fully open source and portable | **Fully open source and portable** |
+
+## When Supabase makes sense
+
+Supabase has done a great job of creating an integrated developer experience. It is well-documented, easy to start with, and offers a clean abstraction over Postgres.
+
+**It's a solid choice for:**
+
+- Developers building simpler apps where SQL-first workflows are sufficient
+- Teams who prioritize rapid prototyping over long-term flexibility  
+- Use cases that don't require custom backend services or deep infrastructure control
+- Projects where REST APIs and SQL queries meet all your needs
+
+However, as your application and team grow, the limitations of the platform can become friction points.
+
+## Why teams choose Nhost as they scale
+
+Nhost was built with extensibility and control in mind. It's aligned with GraphQL-first architectures and provides out-of-the-box tools for handling custom logic, API composition, infrastructure deployment, and more.
+
+Here are several areas where Nhost stands out:
+
+### Native GraphQL from day one
+
+Nhost is built around GraphQL, making it ideal for frontend teams working with React, Next.js, or other modern stacks. No need to convert SQL or REST into GraphQL; it works out of the box.
+
+**With Nhost, you can:**
+
+- Query your Postgres database with GraphQL immediately
+- Use GraphQL permissions tied to auth roles and row-level security
+- Integrate seamlessly with GraphQL clients and tooling like Apollo, Relay, or urql
+- Generate type-safe client code for any language or framework
+
+### Real backend extensibility with Nhost Run
+
+Supabase offers edge functions that run in a Deno-based environment. It's effective for small scripts but limited in runtime flexibility.
+
+**Nhost Run allows you to:**
+
+- Deploy long-running or complex logic as containerized apps
+- Bring your own runtime such as Python, Go, or Node
+- Run background jobs, scheduled tasks, and side effects
+- Scale containers independently based on your workload needs
+
+**You also get:**
+
+- **Remote schemas** to stitch in other GraphQL services
+- **Event triggers** to automate backend workflows like sending welcome emails or firing Stripe updates
+- **Native GraphQL federation** for composing multiple APIs
+
+### Naive AI support
+
+Nhost includes a built-in AI service that enables serverless inference and background processing without setting up additional infrastructure.
+
+**This is particularly useful for:**
+
+- Prompt chaining and AI assistants
+- Background enrichment or data processing  
+- Deploying and managing AI workflows alongside your backend logic
+- Auto-embeddings for semantic search and recommendations
+
+## The GraphQL advantage
+
+One of the biggest differentiators is Nhost's GraphQL-first approach versus Supabase's SQL-first model.
+
+**Why this matters:**
+
+- **Type Safety**: GraphQL generates strongly-typed client code automatically
+- **Efficient Queries**: Fetch exactly the data you need in a single request
+- **Real-time Subscriptions**: Native GraphQL subscriptions without proprietary abstractions
+- **Developer Experience**: Modern tooling, introspection, and excellent IDE support
+- **API Evolution**: Add fields and types without breaking existing clients
+
+## Making the right choice
+
+Both Supabase and Nhost offer strong developer experiences, but they serve different needs and architectural philosophies.
+
+**Choose Supabase if:**
+- You're building a straightforward app with simple data requirements
+- You prefer SQL-first development workflows
+- You want the most polished documentation and getting-started experience
+- You're prototyping and need to ship quickly
+
+**Choose Nhost if:**
+- You're building on GraphQL or want GraphQL-native development
+- You need extensibility through containers and remote schemas
+- You want control over your infrastructure and deployment options
+- You're building AI-enhanced workflows or complex backend logic
+- You need GraphQL federation for large-scale team coordination
+
+## Ready to try Nhost?
+
+Nhost gives you the power of Postgres, the simplicity of GraphQL, and the flexibility of modern infrastructure patterns.
+
+Whether you're starting a new project or considering migrating from another platform, Nhost is built to grow with your team and requirements.
+
+[**Start Building with Nhost →**](https://app.nhost.io/signup)
