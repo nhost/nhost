@@ -12,12 +12,12 @@ import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/co
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUserData } from '@/hooks/useUserData';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetOrganizationsDocument,
   useInsertDeploymentMutation,
 } from '@/utils/__generated__/graphql';
-import { useUserData } from '@nhost/nextjs';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import type { MouseEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -60,7 +60,7 @@ export default function DeploymentListItem({
 
   const [insertDeployment, { loading }] = useInsertDeploymentMutation({
     refetchQueries: [
-      { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+      { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
     ],
   });
   const { commitMessage } = deployment;

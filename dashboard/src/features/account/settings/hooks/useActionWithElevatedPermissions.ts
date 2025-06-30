@@ -1,14 +1,9 @@
 import useElevatedPermissions from '@/features/account/settings/hooks/useElevatedPermissions';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
-import type { AuthErrorPayload } from '@nhost/nextjs';
 import { toast } from 'react-hot-toast';
 
-type Action = (...args: any[]) => Promise<ActionResult>;
+type Action = (...args: any[]) => Promise<any>;
 
-type ActionResult = {
-  isError?: boolean;
-  error: AuthErrorPayload;
-};
 type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 
 interface Props<Fn extends Action> {
@@ -24,11 +19,11 @@ function useActionWithElevatedPermissions<F extends Action>({
   onError,
   successMessage,
 }: Props<F>) {
-  const { elevated, elevatePermissions } = useElevatedPermissions();
+  const elevatePermissions = useElevatedPermissions();
   const { data } = useGetSecurityKeys();
 
   async function requestPermissions() {
-    if (elevated || data?.authUserSecurityKeys.length === 0) {
+    if (data?.authUserSecurityKeys.length === 0) {
       return true;
     }
     const isPermissionsElevated = await elevatePermissions();
@@ -38,19 +33,17 @@ function useActionWithElevatedPermissions<F extends Action>({
   async function actionWithElevatedPermissions(...args: Parameters<F>) {
     let isSuccess = false;
     const permissionGranted = await requestPermissions();
-
     if (!permissionGranted) {
       return isSuccess;
     }
-
-    const response = await actionFn(...args);
-    if (response.error) {
-      toast.error(response.error?.message || 'Something went wrong.');
-      onError?.();
-    } else {
-      toast.success(successMessage || 'Success');
+    try {
+      const response = await actionFn(...args);
+      toast.success(successMessage || 'Success.');
       onSuccess?.(response as UnwrapPromise<ReturnType<F>>);
       isSuccess = true;
+    } catch (error) {
+      toast.error(error?.message || 'Something went wrong.');
+      onError?.();
     }
 
     return isSuccess;

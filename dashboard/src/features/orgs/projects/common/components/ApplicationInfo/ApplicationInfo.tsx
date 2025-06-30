@@ -9,9 +9,9 @@ import {
   GetOrganizationsDocument,
   useBillingDeleteAppMutation,
 } from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
-import { useUserData } from '@nhost/nextjs';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 
@@ -23,7 +23,7 @@ export default function ApplicationInfo() {
 
   const [deleteApplication] = useBillingDeleteAppMutation({
     refetchQueries: [
-      { query: GetOrganizationsDocument, variables: { userId: userData.id } },
+      { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
     ],
   });
 

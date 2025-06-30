@@ -5,22 +5,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import { useEffect, useState } from 'react';
 
 interface Props {
-  needsEmailVerification: boolean;
+  open: boolean;
+  setOpen: (openState: boolean) => void;
 }
 
-export function VerifyEmailDialog({ needsEmailVerification }: Props) {
-  const [open, setOpen] = useState(needsEmailVerification);
-
-  useEffect(() => {
-    setOpen(needsEmailVerification);
-  }, [needsEmailVerification, open]);
-
+export function VerifyEmailDialog({ open, setOpen }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="text-foreground sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Email verification required</DialogTitle>
           <DialogDescription>

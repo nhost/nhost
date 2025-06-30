@@ -1,6 +1,7 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useAuth } from '@/providers/Auth';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
@@ -11,6 +12,7 @@ import { useEffect } from 'react';
  */
 export default function useNotFoundRedirect() {
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
   const {
     query: {
       orgSlug: urlOrgSlug,
@@ -30,6 +32,8 @@ export default function useNotFoundRedirect() {
 
   useEffect(() => {
     if (
+      !isAuthenticated ||
+      isLoading ||
       // If we're updating, we don't want to redirect to 404
       updating ||
       // If the router is not ready, we don't want to redirect to 404
@@ -69,5 +73,7 @@ export default function useNotFoundRedirect() {
     projectSubdomain,
     urlOrgSlug,
     isPlatform,
+    isAuthenticated,
+    isLoading,
   ]);
 }

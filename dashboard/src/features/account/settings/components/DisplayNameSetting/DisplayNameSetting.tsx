@@ -2,9 +2,9 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUserData } from '@/hooks/useUserData';
 import { useUpdateUserDisplayNameMutation } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -19,7 +19,9 @@ export type DisplayNameSettingFormValues = Yup.InferType<
 >;
 
 export default function DisplayNameSetting() {
-  const { id: userID, displayName } = useUserData() || {};
+  const user = useUserData();
+
+  const { id: userID, displayName } = user || {};
 
   const [updateUserDisplayName] = useUpdateUserDisplayNameMutation();
 

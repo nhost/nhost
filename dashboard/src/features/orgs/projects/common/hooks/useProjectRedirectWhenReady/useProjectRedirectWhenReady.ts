@@ -1,4 +1,5 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import type {
   GetApplicationStateQuery,
@@ -9,7 +10,6 @@ import {
   useGetOrganizationsLazyQuery,
 } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
-import { useUserData } from '@nhost/nextjs';
 import { useEffect } from 'react';
 
 export interface UseProjectRedirectWhenReadyOptions
@@ -37,7 +37,7 @@ export default function useProjectRedirectWhenReady(
 
   useEffect(() => {
     async function updateOwnCache() {
-      await getOrgs({ variables: { userId: userData.id } });
+      await getOrgs({ variables: { userId: userData?.id } });
     }
     if (!data) {
       return;

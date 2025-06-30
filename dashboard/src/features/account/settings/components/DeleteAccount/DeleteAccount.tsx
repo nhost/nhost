@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUserData } from '@/hooks/useUserData';
+import { useAuth } from '@/providers/Auth';
 import { useDeleteUserAccountMutation } from '@/utils/__generated__/graphql';
-import { useSignOut, useUserData } from '@nhost/nextjs';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -82,14 +82,12 @@ function ConfirmDeleteAccountModal({
 }
 
 export default function DeleteAccount() {
-  const router = useRouter();
-  const { signOut } = useSignOut();
+  const { signout } = useAuth();
 
   const { openDialog, closeDialog } = useDialog();
 
   const onDelete = async () => {
-    await signOut();
-    await router.push('/signin');
+    await signout();
   };
 
   const confirmDeleteAccount = async () => {

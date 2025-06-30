@@ -263,12 +263,9 @@ importers:
       '@mui/x-date-pickers':
         specifier: ^5.0.20
         version: 5.0.20(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@mui/material@5.15.19(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@mui/system@5.15.15(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(date-fns@2.30.0)(dayjs@1.11.11)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@nhost/nextjs':
-        specifier: workspace:*
-        version: link:../packages/nextjs
-      '@nhost/react-apollo':
-        specifier: workspace:*
-        version: link:../integrations/react-apollo
+      '@nhost/nhost-js-beta':
+        specifier: npm:@nhost/nhost-js@5.0.0-beta.7
+        version: '@nhost/nhost-js@5.0.0-beta.7'
       '@radix-ui/react-accordion':
         specifier: ^1.2.1
         version: 1.2.2(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -317,6 +314,9 @@ importers:
       '@segment/analytics-next':
         specifier: ^1.77.0
         version: 1.77.0(encoding@0.1.13)
+      '@simplewebauthn/browser':
+        specifier: ^9.0.1
+        version: 9.0.1
       '@stripe/react-stripe-js':
         specifier: ^2.6.2
         version: 2.7.1(@stripe/stripe-js@1.54.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -392,6 +392,9 @@ importers:
       just-kebab-case:
         specifier: ^4.2.0
         version: 4.2.0
+      jwt-decode:
+        specifier: ^4.0.0
+        version: 4.0.0
       lodash.debounce:
         specifier: ^4.0.8
         version: 4.0.8
@@ -4961,6 +4964,10 @@ packages:
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
+
+  '@nhost/nhost-js@5.0.0-beta.7':
+    resolution: {integrity: sha512-usfX+azFr38zKsHXC0b5lqZCKJz32Hdi9QuLUkNO1amPENgkR95t2ZcZbxllJj7qiFXYsrmwfp/nxMz64HIsYg==}
+    engines: {node: '>=20'}
 
   '@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1':
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
@@ -13166,6 +13173,7 @@ packages:
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
+    deprecated: Use your platform's native DOMException instead
 
   node-fetch-native@1.6.6:
     resolution: {integrity: sha512-8Mc2HhqPdlIfedsuZoc3yioPuzp6b+L5jRCRY1QzuWZh2EGJVQrGppC6V6cF0bLdbW0+O2YpqCA25aF/1lvipQ==}
@@ -22253,6 +22261,8 @@ snapshots:
 
   '@next/swc-win32-x64-msvc@14.2.28':
     optional: true
+
+  '@nhost/nhost-js@5.0.0-beta.7': {}
 
   '@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1':
     dependencies:

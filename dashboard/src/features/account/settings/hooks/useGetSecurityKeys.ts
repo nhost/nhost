@@ -1,11 +1,11 @@
+import { useUserData } from '@/hooks/useUserData';
 import { useSecurityKeysQuery } from '@/utils/__generated__/graphql';
-import { useUserId } from '@nhost/nextjs';
 
 function useGetSecurityKeys() {
-  const currentUserId = useUserId();
+  const user = useUserData();
   const query = useSecurityKeysQuery({
     variables: {
-      userId: currentUserId,
+      userId: user?.id,
     },
   });
 

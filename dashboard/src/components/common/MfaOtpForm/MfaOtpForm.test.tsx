@@ -191,7 +191,9 @@ describe('MfaOtpForm', () => {
 
       // Resolve the promise to clean up
       resolvePromise!({ success: true });
-      await promise;
+      await waitFor(async () => {
+        await promise;
+      });
     });
 
     it('manages submission state properly', async () => {
@@ -215,7 +217,9 @@ describe('MfaOtpForm', () => {
 
       // Resolve the promise
       resolvePromise!({ success: true });
-      await promise;
+      await waitFor(async () => {
+        await promise;
+      });
 
       // After submission
       await waitFor(() => {
@@ -228,9 +232,8 @@ describe('MfaOtpForm', () => {
   describe('Error Handling', () => {
     it('displays error toast when sendMfaOtp returns an error', async () => {
       const errorMessage = 'Invalid TOTP code';
-      mockSendMfaOtp.mockResolvedValue({
-        error: { message: errorMessage },
-      });
+
+      mockSendMfaOtp.mockRejectedValueOnce({ message: errorMessage });
 
       render(<MfaOtpForm {...defaultProps} />);
 
@@ -246,9 +249,7 @@ describe('MfaOtpForm', () => {
     });
 
     it('shows generic error message when no specific error message is provided', async () => {
-      mockSendMfaOtp.mockResolvedValue({
-        error: {},
-      });
+      mockSendMfaOtp.mockRejectedValueOnce({});
 
       render(<MfaOtpForm {...defaultProps} />);
 
@@ -260,7 +261,7 @@ describe('MfaOtpForm', () => {
 
       await waitFor(() => {
         expect(mocks.toastError).toHaveBeenCalledWith(
-          'An error occurred while verifying TOTP. Please try again.',
+          'An error occurred. Please try again.',
           {},
         );
       });
@@ -289,9 +290,7 @@ describe('MfaOtpForm', () => {
   describe('MFA Ticket Renewal', () => {
     it('calls requestNewMfaTicket when ticket is invalid', async () => {
       // First call - set ticket as invalid
-      mockSendMfaOtp.mockResolvedValueOnce({
-        error: { message: 'Invalid ticket' },
-      });
+      mockSendMfaOtp.mockRejectedValueOnce({ message: 'Invalid ticket' });
       // Second call - should work
       mockSendMfaOtp.mockResolvedValueOnce({ success: true });
 
@@ -338,9 +337,7 @@ describe('MfaOtpForm', () => {
         loading: false,
       } as any;
 
-      mockSendMfaOtp.mockResolvedValue({
-        error: { message: 'Some error' },
-      });
+      mockSendMfaOtp.mockRejectedValueOnce({ message: 'Some error' });
 
       render(<MfaOtpForm {...propsWithoutTicketRenewal} />);
 
@@ -453,15 +450,15 @@ describe('MfaOtpForm', () => {
 
       // Clean up
       resolvePromise!({ success: true });
-      await promise;
+      await waitFor(async () => {
+        await promise;
+      });
     });
   });
 
   describe('Edge Cases', () => {
     it('handles null error message gracefully', async () => {
-      mockSendMfaOtp.mockResolvedValue({
-        error: { message: null },
-      });
+      mockSendMfaOtp.mockRejectedValueOnce({ message: null });
 
       render(<MfaOtpForm {...defaultProps} />);
 
@@ -473,7 +470,7 @@ describe('MfaOtpForm', () => {
 
       await waitFor(() => {
         expect(mocks.toastError).toHaveBeenCalledWith(
-          'An error occurred while verifying TOTP. Please try again.',
+          'An error occurred. Please try again.',
           {},
         );
       });
@@ -502,7 +499,9 @@ describe('MfaOtpForm', () => {
 
       // Clean up
       resolvePromise!({ success: true });
-      await promise;
+      await waitFor(async () => {
+        await promise;
+      });
     });
 
     it('handles empty input correctly', async () => {

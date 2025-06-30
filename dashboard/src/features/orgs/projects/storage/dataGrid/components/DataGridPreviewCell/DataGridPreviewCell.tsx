@@ -10,6 +10,7 @@ import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { usePreviewToggle } from '@/features/orgs/projects/storage/dataGrid/hooks/usePreviewToggle';
+import { getHasuraAdminSecret } from '@/utils/env';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useEffect, useReducer, useState } from 'react';
@@ -50,7 +51,7 @@ function useBlob({
   const { previewEnabled } = usePreviewToggle();
 
   // This side-effect fetches the blob of the file from the server and sets the
-  // relevant `objectUrl` state. Abort controller is reponsible for cancelling
+  // relevant `objectUrl` state. Abort controller is responsible for cancelling
   // the fetch if the component is unmounted.
   useEffect(() => {
     if (!previewEnabled) {
@@ -172,7 +173,6 @@ export default function DataGridPreviewCell<TData extends object>({
   value: { fetchBlob, id, mimeType, alt, blob },
   fallbackPreview = null,
 }: DataGridPreviewCellProps<TData>) {
-  const { project } = useProject();
   const appClient = useAppClient();
   const { objectUrl, loading, error } = useBlob({
     fetchBlob,
@@ -181,6 +181,7 @@ export default function DataGridPreviewCell<TData extends object>({
   });
   const [showModal, setShowModal] = useState(false);
   const { previewEnabled } = usePreviewToggle();
+  const { project } = useProject();
 
   const [
     { loading: previewLoading, error: previewError, data: previewUrl },
@@ -215,9 +216,14 @@ export default function DataGridPreviewCell<TData extends object>({
       dispatch({ type: 'PREVIEW_LOADING' });
     }
 
-    const { presignedUrl } = await appClient.storage
-      .setAdminSecret(project?.config?.hasura.adminSecret)
-      .getPresignedUrl({ fileId: id });
+    const { body: presignedUrl } = await appClient.storage.getPresignedURL(id, {
+      headers: {
+        'x-hasura-admin-secret':
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? getHasuraAdminSecret()
+            : project?.config?.hasura.adminSecret,
+      },
+    });
 
     if (!presignedUrl) {
       dispatch({

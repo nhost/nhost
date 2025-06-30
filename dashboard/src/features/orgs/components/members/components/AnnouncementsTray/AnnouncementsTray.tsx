@@ -14,18 +14,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/v3/sheet';
+import { useAuth } from '@/providers/Auth';
 import {
   useDeleteAnnouncementReadMutation,
   useGetAnnouncementsQuery,
   useInsertAnnouncementReadMutation,
 } from '@/utils/__generated__/graphql';
-import { useAuthenticationStatus } from '@nhost/nextjs';
 import { formatDistance } from 'date-fns';
 import { EllipsisVertical, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AnnouncementsTray() {
-  const { isAuthenticated } = useAuthenticationStatus();
+  const { isAuthenticated } = useAuth();
 
   const {
     data,

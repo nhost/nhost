@@ -26,10 +26,10 @@ import {
   useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

@@ -10,8 +10,8 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useAuth } from '@/providers/Auth';
 import { useApolloClient } from '@apollo/client';
-import { useSignOut } from '@nhost/nextjs';
 import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -22,10 +22,17 @@ export interface MobileNavProps extends ButtonProps {}
 export default function MobileNav({ className, ...props }: MobileNavProps) {
   const isPlatform = useIsPlatform();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { signOut } = useSignOut();
+  const { signout } = useAuth();
   const apolloClient = useApolloClient();
   const router = useRouter();
   const { publicRuntimeConfig } = getConfig();
+
+  async function handleSignOut() {
+    setMenuOpen(false);
+    await apolloClient.clearStore();
+    await signout();
+    await router.push('/signin');
+  }
 
   return (
     <>
@@ -120,12 +127,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                   variant="borderless"
                   sx={{ color: 'error.main' }}
                   className="justify-start border-none px-2 py-2.5 text-[16px]"
-                  onClick={async () => {
-                    setMenuOpen(false);
-                    await apolloClient.clearStore();
-                    await signOut();
-                    await router.push('/signin');
-                  }}
+                  onClick={handleSignOut}
                 >
                   Sign Out
                 </ListItem.Button>

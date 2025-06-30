@@ -30,24 +30,26 @@ function MfaOtpForm({ sendMfaOtp, loading, requestNewMfaTicket }: Props) {
 
   async function submitTOTP() {
     if (otpValue.length === 6 && !isSubmitting) {
-      setIsSubmitting(true);
-      if (requestNewMfaTicket && isMfaTicketInvalid.current) {
-        await requestNewMfaTicket();
-      }
-      const result = await sendMfaOtp(otpValue);
-      if (result?.error) {
+      try {
+        setIsSubmitting(true);
+
+        if (requestNewMfaTicket && isMfaTicketInvalid.current) {
+          await requestNewMfaTicket();
+        }
+        await sendMfaOtp(otpValue);
+      } catch (error) {
         isMfaTicketInvalid.current = true;
         toast.error(
-          result.error?.message ||
-            'An error occurred while verifying TOTP. Please try again.',
+          error?.message || 'An error occurred. Please try again.',
           getToastStyleProps(),
         );
         setTimeout(() => {
           inputRef.current?.focus();
         }, 10);
+      } finally {
+        setIsSubmitting(false);
       }
     }
-    setIsSubmitting(false);
   }
 
   async function handleChange(event: ChangeEvent<HTMLInputElement>) {

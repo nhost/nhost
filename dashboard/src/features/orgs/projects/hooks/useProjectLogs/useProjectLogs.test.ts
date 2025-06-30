@@ -1,6 +1,5 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
-import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
 import { mockApplication as mockProject } from '@/tests/mocks';
 import { renderHook } from '@/tests/testUtils';
 import { useGetProjectLogsQuery } from '@/utils/__generated__/graphql';
@@ -10,27 +9,8 @@ import useProjectLogs, { type UseProjectLogsProps } from './useProjectLogs';
 
 // Mock the dependencies
 vi.mock('@/features/orgs/projects/hooks/useProject');
-vi.mock('@/hooks/useRemoteApplicationGQLClientWithSubscriptions');
-vi.mock('@/utils/__generated__/graphql', async () => {
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
-  return {
-    ...actual,
-    useGetProjectLogsQuery: vi.fn(),
-    GetLogsSubscriptionDocument: 'GetLogsSubscriptionDocument',
-  };
-});
-
-const mockUseProject = vi.mocked(useProject);
-const mockUseRemoteApplicationGQLClientWithSubscriptions = vi.mocked(
-  useRemoteApplicationGQLClientWithSubscriptions,
-);
-const mockUseGetProjectLogsQuery = vi.mocked(useGetProjectLogsQuery);
-
-type ProjectLogsReturnType = ReturnType<typeof useGetProjectLogsQuery>;
-type SubscribeToMore = ProjectLogsReturnType['subscribeToMore'];
-
-describe('useProjectLogs - Subscription Creation & Cleanup', () => {
-  const createMockApolloClient = () => ({
+vi.mock('@/utils/splitGraphqlClient', () => ({
+  splitGraphqlClient: {
     query: vi.fn(),
     mutate: vi.fn(),
     watchQuery: vi.fn(),
@@ -64,10 +44,25 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
     localState: {},
     queryManager: {} as any,
     typeDefs: undefined,
-  });
+  },
+}));
 
-  let mockClient: ReturnType<typeof createMockApolloClient>;
+vi.mock('@/utils/__generated__/graphql', async () => {
+  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  return {
+    ...actual,
+    useGetProjectLogsQuery: vi.fn(),
+    GetLogsSubscriptionDocument: 'GetLogsSubscriptionDocument',
+  };
+});
 
+const mockUseProject = vi.mocked(useProject);
+const mockUseGetProjectLogsQuery = vi.mocked(useGetProjectLogsQuery);
+
+type ProjectLogsReturnType = ReturnType<typeof useGetProjectLogsQuery>;
+type SubscribeToMore = ProjectLogsReturnType['subscribeToMore'];
+
+describe('useProjectLogs - Subscription Creation & Cleanup', () => {
   const mockSubscribeToMore = vi.fn();
   const mockUnsubscribe = vi.fn();
 
@@ -88,13 +83,6 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
       error: undefined,
       refetch: vi.fn(),
     });
-
-    mockClient = createMockApolloClient();
-
-    // Mock the GraphQL client
-    mockUseRemoteApplicationGQLClientWithSubscriptions.mockReturnValue(
-      mockClient as any,
-    );
 
     // Mock subscribeToMore to return an unsubscribe function
     mockSubscribeToMore.mockReturnValue(mockUnsubscribe);

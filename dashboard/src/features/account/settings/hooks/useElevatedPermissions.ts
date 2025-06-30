@@ -1,23 +1,24 @@
+import { useElevateEmail } from '@/hooks/useElevateEmail';
+import { useHasuraClaims } from '@/hooks/useHasuraClaims';
+
+import { useUserData } from '@/hooks/useUserData';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useElevateSecurityKeyEmail, useUserData } from '@nhost/nextjs';
 import { toast } from 'react-hot-toast';
 
 function useElevatedPermissions() {
   const user = useUserData();
-
-  const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail();
+  const elevateEmail = useElevateEmail();
+  const claims = useHasuraClaims();
 
   async function elevatePermissions(shouldThrowError = false) {
+    const elevated = user
+      ? claims?.['x-hasura-auth-elevated'] === user?.id
+      : false;
     if (elevated) {
       return true;
     }
     try {
-      const response = await elevateEmailSecurityKey(user.email);
-      if (response.isError) {
-        const errorMessage =
-          response.error?.message || 'Permissions were not elevated';
-        throw new Error(errorMessage);
-      }
+      await elevateEmail();
       return true;
     } catch (e) {
       if (shouldThrowError) {
@@ -30,7 +31,7 @@ function useElevatedPermissions() {
     }
   }
 
-  return { elevated, elevatePermissions };
+  return elevatePermissions;
 }
 
 export default useElevatedPermissions;

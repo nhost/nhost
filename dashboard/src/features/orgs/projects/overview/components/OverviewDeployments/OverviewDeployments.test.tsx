@@ -67,11 +67,12 @@ test('should render an empty state when GitHub is not connected', async () => {
       'https://local.graphql.local.nhost.run/v1',
       async (req, res, ctx) => {
         const { operationName } = await req.json();
-
         if (operationName === 'getProject') {
           return res(
             ctx.json({
-              apps: [{ ...mockApplication, githubRepository: null }],
+              data: {
+                apps: [{ ...mockApplication, githubRepository: null }],
+              },
             }),
           );
         }
@@ -79,7 +80,9 @@ test('should render an empty state when GitHub is not connected', async () => {
         if (operationName === 'getOrganization') {
           return res(
             ctx.json({
-              organizations: [{ ...mockOrganization }],
+              data: {
+                organizations: [{ ...mockOrganization }],
+              },
             }),
           );
         }
@@ -102,7 +105,6 @@ test('should render an empty state when GitHub is not connected', async () => {
     await screen.findByRole('button', { name: /connect to github/i }),
   ).toBeInTheDocument();
 });
-
 test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
   server.use(
     rest.post(
@@ -171,7 +173,6 @@ test('should render a list of deployments', async () => {
             }),
           );
         }
-
         if (operationName === 'getOrganization') {
           return res(
             ctx.json({
@@ -260,7 +261,6 @@ test('should disable redeployments if a deployment is already in progress', asyn
             }),
           );
         }
-
         if (operationName === 'getOrganization') {
           return res(
             ctx.json({

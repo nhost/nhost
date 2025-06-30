@@ -50,7 +50,7 @@ function ProjectCard({ project }: { project: Project }) {
 }
 
 export default function ProjectsGrid() {
-  const { org } = useCurrentOrg();
+  const { org, loading: orgLoading } = useCurrentOrg();
 
   const { data, loading, error } = useGetProjectsQuery({
     variables: {
@@ -76,7 +76,7 @@ export default function ProjectsGrid() {
     throw error;
   }
 
-  if (loading) {
+  if (loading || orgLoading) {
     return <LoadingScreen />;
   }
 

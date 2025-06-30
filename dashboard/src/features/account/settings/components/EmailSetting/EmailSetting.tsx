@@ -2,8 +2,9 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
+import { useUserData } from '@/hooks/useUserData';
+import { useNhostClient } from '@/providers/nhost';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useNhostClient, useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -15,11 +16,11 @@ export type EmailSettingFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function EmailSetting() {
   const nhost = useNhostClient();
-  const { email } = useUserData() || {};
+  const user = useUserData();
 
   const form = useForm<EmailSettingFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { email },
+    defaultValues: { email: user?.email },
     resolver: yupResolver(validationSchema),
   });
 
@@ -28,7 +29,7 @@ export default function EmailSetting() {
 
   const changeEmail = useActionWithElevatedPermissions({
     actionFn: async (newEmail: string) => {
-      const result = await nhost.auth.changeEmail({
+      const result = await nhost.auth.changeUserEmail({
         newEmail,
         options: {
           redirectTo: `${window.location.origin}/account`,

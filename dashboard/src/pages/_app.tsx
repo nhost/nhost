@@ -1,10 +1,12 @@
-import Analytics from '@/components/analytics/analytics';
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
 import { TreeNavStateProvider } from '@/components/layout/MainNav/TreeNavStateContext';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
+import { NhostApolloProvider } from '@/providers/Apollo';
+import AuthProvider from '@/providers/Auth/AuthProvider';
+import { NhostProvider } from '@/providers/nhost';
 // eslint-disable-next-line import/extensions
 import '@/styles/fonts.css';
 // eslint-disable-next-line import/extensions
@@ -18,16 +20,13 @@ import '@/styles/style.css';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 import { createEmotionCache } from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
-import type { EmotionCache } from '@emotion/react';
-import { CacheProvider } from '@emotion/react';
+import { CacheProvider, type EmotionCache } from '@emotion/react';
 import '@fontsource/inter';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
-import { NhostProvider } from '@nhost/nextjs';
-import { NhostApolloProvider } from '@nhost/react-apollo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { NextPage } from 'next';
 import { PagesProgressBar as ProgressBar } from 'next-nprogress-bar';
@@ -78,38 +77,37 @@ function MyApp({
 
       <CacheProvider value={emotionCache}>
         <NhostProvider nhost={nhost}>
-          <NhostApolloProvider
-            fetchPolicy="cache-and-network"
-            nhost={nhost}
-            connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
-          >
-            <UIProvider>
-              <Toaster position="bottom-center" />
-
-              <Analytics />
-
-              <ThemeProvider
-                colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
-              >
-                <RetryableErrorBoundary>
-                  <RecoilRoot>
-                    <TooltipProvider>
-                      <DialogProvider>
-                        <ProgressBar
-                          height="2px"
-                          color="#0052cd"
-                          options={{ showSpinner: false }}
-                        />
-                        <TreeNavStateProvider>
-                          {getLayout(<Component {...pageProps} />)}
-                        </TreeNavStateProvider>
-                      </DialogProvider>
-                    </TooltipProvider>
-                  </RecoilRoot>
-                </RetryableErrorBoundary>
-              </ThemeProvider>
-            </UIProvider>
-          </NhostApolloProvider>
+          <AuthProvider>
+            <NhostApolloProvider
+              fetchPolicy="cache-and-network"
+              nhost={nhost}
+              connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
+            >
+              <UIProvider>
+                <Toaster position="bottom-center" />
+                <ThemeProvider
+                  colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
+                >
+                  <RetryableErrorBoundary>
+                    <RecoilRoot>
+                      <TooltipProvider>
+                        <DialogProvider>
+                          <ProgressBar
+                            height="2px"
+                            color="#0052cd"
+                            options={{ showSpinner: false }}
+                          />
+                          <TreeNavStateProvider>
+                            {getLayout(<Component {...pageProps} />)}
+                          </TreeNavStateProvider>
+                        </DialogProvider>
+                      </TooltipProvider>
+                    </RecoilRoot>
+                  </RetryableErrorBoundary>
+                </ThemeProvider>
+              </UIProvider>
+            </NhostApolloProvider>
+          </AuthProvider>
         </NhostProvider>
       </CacheProvider>
     </QueryClientProvider>

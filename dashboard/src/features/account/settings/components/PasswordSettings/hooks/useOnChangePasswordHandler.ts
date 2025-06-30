@@ -1,5 +1,5 @@
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
-import { useChangePassword } from '@nhost/nextjs';
+import { useNhostClient } from '@/providers/nhost';
 import { type ChangePasswordFormValues } from './useChangePasswordForm';
 
 interface Props {
@@ -7,10 +7,10 @@ interface Props {
 }
 
 function useOnChangePasswordHandler({ onSuccess }: Props) {
-  const { changePassword: actionFn } = useChangePassword();
+  const nhost = useNhostClient();
 
   const changePassword = useActionWithElevatedPermissions({
-    actionFn,
+    actionFn: nhost.auth.changeUserPassword,
     onSuccess,
     successMessage: 'The password has been changed successfully.',
   });
@@ -18,7 +18,7 @@ function useOnChangePasswordHandler({ onSuccess }: Props) {
   async function onSubmit(values: ChangePasswordFormValues) {
     const { newPassword } = values;
 
-    await changePassword(newPassword);
+    await changePassword({ newPassword });
   }
 
   return onSubmit;

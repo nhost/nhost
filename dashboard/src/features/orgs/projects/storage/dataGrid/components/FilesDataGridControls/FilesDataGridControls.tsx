@@ -70,38 +70,23 @@ export default function FilesDataGridControls({
     setDeleteLoading(true);
 
     try {
-      const storageWithAdminSecret = appClient.storage.setAdminSecret(
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : project.config?.hasura.adminSecret,
-      );
-
-      // note: this is not an optimal solution, but we don't have a better way
-      // to batch remove files for now
-      const response = await Promise.allSettled(
+      await Promise.allSettled(
         selectedFiles.map((file) =>
-          storageWithAdminSecret.delete({ fileId: file.original.id }),
+          appClient.storage.deleteFile(file.original.id, {
+            headers: {
+              'x-hasura-admin-secret':
+                process.env.NEXT_PUBLIC_ENV === 'dev'
+                  ? getHasuraAdminSecret()
+                  : project.config?.hasura.adminSecret,
+            },
+          }),
         ),
       );
-
-      const failedFiles = response.filter(
-        (content) =>
-          content.status === 'rejected' || Boolean(content.value.error),
+      triggerToast(
+        selectedFiles.length === 1
+          ? `The file was successfully deleted.`
+          : `${selectedFiles.length} files were successfully deleted.`,
       );
-
-      if (failedFiles.length > 0) {
-        triggerToast(
-          `Failed to delete ${failedFiles.length} ${
-            failedFiles.length === 1 ? 'file' : 'files'
-          }`,
-        );
-      } else {
-        triggerToast(
-          selectedFiles.length === 1
-            ? `The file was successfully deleted.`
-            : `${selectedFiles.length} files were successfully deleted.`,
-        );
-      }
 
       toggleAllRowsSelected(false);
 
@@ -110,9 +95,9 @@ export default function FilesDataGridControls({
       }
     } catch (error) {
       triggerToast(error.message || 'Unknown error occurred');
+    } finally {
+      setDeleteLoading(false);
     }
-
-    setDeleteLoading(false);
   }
 
   return (

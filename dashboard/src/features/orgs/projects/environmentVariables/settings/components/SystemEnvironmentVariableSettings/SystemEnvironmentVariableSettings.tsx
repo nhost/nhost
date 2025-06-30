@@ -98,10 +98,13 @@ export default function SystemEnvironmentVariableSettings() {
               { ...defaultRemoteBackendSlugs, hasura: '/console' },
             ),
     },
-    { key: 'NHOST_AUTH_URL', value: appClient.auth.url },
-    { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.httpUrl },
-    { key: 'NHOST_STORAGE_URL', value: appClient.storage.url },
-    { key: 'NHOST_FUNCTIONS_URL', value: appClient.functions.url },
+    { key: 'NHOST_AUTH_URL', value: appClient.auth.baseURL },
+    { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.url },
+    { key: 'NHOST_STORAGE_URL', value: appClient.storage.baseURL },
+    {
+      key: 'NHOST_FUNCTIONS_URL',
+      value: appClient.functions.baseURL,
+    },
   ];
 
   return (

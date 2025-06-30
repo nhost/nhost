@@ -1,7 +1,7 @@
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useUserData } from '@/hooks/useUserData';
 import { Organization_Members_Role_Enum } from '@/utils/__generated__/graphql';
-import { useUserData } from '@nhost/nextjs';
 
 /**
  * Returns true if the current user is the owner of the current organization.
