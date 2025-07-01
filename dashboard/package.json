@@ -109,7 +109,7 @@
     "react-is": "18.2.0",
     "react-loading-skeleton": "^2.2.0",
     "react-markdown": "^9.0.1",
-    "react-merge-refs": "^1.1.0",
+    "react-merge-refs": "^3.0.2",
     "react-resizable-layout": "^0.7.2",
     "react-table": "^7.8.0",
     "recoil": "^0.7.7",

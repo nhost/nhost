@@ -2,13 +2,13 @@ import type { SwitchProps } from '@/components/ui/v2/Switch';
 import { Switch } from '@/components/ui/v2/Switch';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
-import { useController, useFormContext } from 'react-hook-form';
 import type {
   ControllerProps,
   FieldValues,
   UseControllerProps,
-} from 'react-hook-form/dist/types';
-import mergeRefs from 'react-merge-refs';
+} from 'react-hook-form';
+import { useController, useFormContext } from 'react-hook-form';
+import { mergeRefs } from 'react-merge-refs';
 
 export interface ControlledSwitchProps<TFieldValues extends FieldValues = any>
   extends SwitchProps {
