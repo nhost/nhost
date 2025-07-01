@@ -1,6 +1,6 @@
 import { MembersList } from '@/features/orgs/components/members/components/MembersList';
 import { PendingInvites } from '@/features/orgs/components/members/components/PendingInvites';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import type { ReactElement } from 'react';
 
@@ -15,5 +15,5 @@ export default function OrgMembers() {
 }
 
 OrgMembers.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <OrgLayout isOrgPage>{page}</OrgLayout>;
 };

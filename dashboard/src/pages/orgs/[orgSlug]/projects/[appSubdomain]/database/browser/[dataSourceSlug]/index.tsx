@@ -1,6 +1,6 @@
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Box } from '@/components/ui/v2/Box';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useRouter } from 'next/router';
@@ -38,7 +38,7 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   page: ReactElement,
 ) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
@@ -51,6 +51,6 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
       >
         {page}
       </Box>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

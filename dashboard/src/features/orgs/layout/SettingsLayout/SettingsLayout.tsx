@@ -2,14 +2,12 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import type { ProjectLayoutProps } from '@/features/orgs/layout/ProjectLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTheme } from '@mui/material';
+import type { PropsWithChildren } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface SettingsLayoutProps extends ProjectLayoutProps {}
-
-export default function SettingsLayout({ children }: SettingsLayoutProps) {
+export default function SettingsLayout({ children }: PropsWithChildren) {
   const theme = useTheme();
   const { project } = useProject();
   const hasGitRepo = !!project?.githubRepository;
