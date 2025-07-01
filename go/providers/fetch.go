@@ -59,8 +59,15 @@ func fetchOAuthProfile(
 			"API error (status %d): %s", resp.StatusCode, string(body))
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
-		return fmt.Errorf("error parsing response data: %w", err)
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %w", err)
+	}
+
+	// fmt.Println("Response body:", string(b)) // Debugging line
+
+	if err := json.Unmarshal(b, result); err != nil {
+		return fmt.Errorf("error unmarshalling response data: %w", err)
 	}
 
 	return nil

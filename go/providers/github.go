@@ -2,6 +2,7 @@ package providers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -44,6 +45,11 @@ type gitHubUser struct {
 	AvatarURL string `json:"avatar_url"`
 }
 
+type gitHubEmail []struct {
+	Email    string `json:"email"`
+	Verified bool   `json:"verified"`
+}
+
 func (g *Github) GetProfile(
 	ctx context.Context,
 	accessToken string,
@@ -60,10 +66,25 @@ func (g *Github) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("GitHub API error: %w", err)
 	}
 
+	var emails gitHubEmail
+	if err := fetchOAuthProfile(
+		ctx,
+		"https://api.github.com/user/emails",
+		accessToken,
+		&emails,
+		WithHeaders(map[string]string{"Accept": "application/json"}),
+	); err != nil {
+		return oidc.Profile{}, fmt.Errorf("GitHub API error: %w", err)
+	}
+
+	if len(emails) == 0 {
+		return oidc.Profile{}, errors.New("GitHub user has no email addresses") //nolint:goerr113
+	}
+
 	return oidc.Profile{
 		ProviderUserID: strconv.Itoa(user.ID),
-		Email:          user.Email,
-		EmailVerified:  user.Email != "",
+		Email:          emails[0].Email,
+		EmailVerified:  emails[0].Verified,
 		Name:           user.Name,
 		Picture:        user.AvatarURL,
 	}, nil
