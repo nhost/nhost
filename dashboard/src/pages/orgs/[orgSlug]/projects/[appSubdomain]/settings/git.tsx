@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/components/BaseDirectorySettings';
 import { DeploymentBranchSettings } from '@/features/orgs/projects/git/settings/components/DeploymentBranchSettings';
@@ -21,7 +21,7 @@ export default function GitSettingsPage() {
 
 GitSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex h-full overflow-auto',
       }}
@@ -34,6 +34,6 @@ GitSettingsPage.getLayout = function getLayout(page: ReactElement) {
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

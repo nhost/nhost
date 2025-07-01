@@ -1,4 +1,4 @@
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
 import type { ReactElement } from 'react';
 
@@ -8,12 +8,12 @@ export default function TOMLEditorPage() {
 
 TOMLEditorPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex flex-col h-full overflow-auto',
       }}
     >
       {page}
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

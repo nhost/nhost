@@ -9,7 +9,7 @@ import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   useRunServices,
@@ -242,5 +242,5 @@ export default function RunPage() {
 }
 
 RunPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <OrgLayout>{page}</OrgLayout>;
 };

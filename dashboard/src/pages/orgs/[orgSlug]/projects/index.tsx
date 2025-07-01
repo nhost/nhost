@@ -1,26 +1,31 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectsGrid } from '@/features/orgs/components/projects/projects-grid';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useGetOrganizationProjectsQuery } from '@/utils/__generated__/graphql';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useGetProjectsQuery } from '@/utils/__generated__/graphql';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 
 export default function OrgProjects() {
-  const { currentOrg } = useOrgs();
+  const { org: currentOrg, loading: currentOrgLoading } = useCurrentOrg();
 
-  const { data, loading } = useGetOrganizationProjectsQuery({
+  const { data, loading, error } = useGetProjectsQuery({
     variables: {
-      orgId: currentOrg?.id,
+      orgSlug: currentOrg?.slug,
     },
     skip: !currentOrg,
+    pollInterval: 10 * 1000,
   });
 
-  const apps = data?.apps;
+  if (error) {
+    throw error;
+  }
 
-  if (loading) {
+  const apps = data?.apps || [];
+
+  if (loading || currentOrgLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <ActivityIndicator circularProgressProps={{ className: 'w-6 h-6' }} />
@@ -40,7 +45,7 @@ export default function OrgProjects() {
           </div>
 
           <Button asChild>
-            <Link href={`/orgs/${currentOrg.slug}/projects/new`}>
+            <Link href={`/orgs/${currentOrg?.slug}/projects/new`}>
               <div className="flex h-fit flex-row items-center justify-center space-x-2">
                 <Plus className="h-5 w-5" strokeWidth={2} />
                 <span>Create your first project</span>
@@ -54,11 +59,11 @@ export default function OrgProjects() {
 
   return (
     <div className="h-full bg-accent">
-      <ProjectsGrid />
+      <ProjectsGrid projects={apps} />
     </div>
   );
 }
 
 OrgProjects.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <OrgLayout isOrgPage>{page}</OrgLayout>;
 };

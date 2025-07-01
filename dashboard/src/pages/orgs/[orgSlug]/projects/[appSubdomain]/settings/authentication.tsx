@@ -14,7 +14,7 @@ import { SessionSettings } from '@/features/orgs/projects/authentication/setting
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { DisableSignUpsSettings } from '@/features/orgs/projects/authentication/settings/components/DisableSignUpsSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -69,7 +69,7 @@ export default function SettingsAuthenticationPage() {
 
 SettingsAuthenticationPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
+    <OrgLayout>
       <SettingsLayout>
         <Container
           sx={{ backgroundColor: 'background.default' }}
@@ -78,6 +78,6 @@ SettingsAuthenticationPage.getLayout = function getLayout(page: ReactElement) {
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

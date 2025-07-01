@@ -5,7 +5,7 @@ import { RoleSettings } from '@/features/orgs/projects/roles/settings/components
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -50,7 +50,7 @@ export default function RolesAndPermissionsPage() {
 
 RolesAndPermissionsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex h-full overflow-auto',
       }}
@@ -63,6 +63,6 @@ RolesAndPermissionsPage.getLayout = function getLayout(page: ReactElement) {
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };
