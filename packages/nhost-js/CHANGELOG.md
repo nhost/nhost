@@ -1,5 +1,16 @@
 # @nhost/nhost-js
 
+## 3.3.0
+
+### Minor Changes
+
+- aee9a80: chore: update typescript version to the latest
+
+### Patch Changes
+
+- Updated dependencies [aee9a80]
+  - @nhost/hasura-storage-js@2.8.0
+
 ## 3.2.9
 
 ### Patch Changes

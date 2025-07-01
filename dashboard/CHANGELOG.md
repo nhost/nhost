@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 2.33.0
+
+### Minor Changes
+
+- aee9a80: chore: update typescript version to the latest
+- 5ef3f76: chore (dashboard): Use the new SDK in the Dashboard
+
+### Patch Changes
+
+- 9ed8ce8: fix (dashboard): Request new Mfa ticket after an invalid totp when signing in
+- fd3b5c7: fix (dashboard): Limit new project's name to a maximum of 32 charachters in E2E tests
+
 ## 2.32.0
 
 ### Minor Changes
