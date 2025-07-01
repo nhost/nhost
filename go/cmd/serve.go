@@ -1305,6 +1305,16 @@ func getGoServer( //nolint:funlen
 		router.POST(cCtx.String(flagAPIPrefix)+"/change-env", ctrl.PostChangeEnv)
 	}
 
+	// for backwards compatibility we keep these two endpoints without the prefix
+	if cCtx.String(flagAPIPrefix) != "" {
+		router.GET("/healthz", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		})
+		router.HEAD("/healthz", func(c *gin.Context) {
+			c.Status(http.StatusOK)
+		})
+	}
+
 	server := &http.Server{ //nolint:exhaustruct
 		Addr:              ":" + cCtx.String(flagPort),
 		Handler:           router,

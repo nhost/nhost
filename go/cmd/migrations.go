@@ -49,9 +49,12 @@ func insertRoles(
 func applyMigrations(
 	ctx context.Context, cCtx *cli.Context, db *sql.Queries, logger *slog.Logger,
 ) error {
-	if err := migrations.ApplyPostgresMigration(
-		cCtx.String(flagPostgresConnection), logger,
-	); err != nil {
+	postgresURL := cCtx.String(flagPostgresMigrationsConnection)
+	if postgresURL == "" {
+		postgresURL = cCtx.String(flagPostgresConnection)
+	}
+
+	if err := migrations.ApplyPostgresMigration(postgresURL, logger); err != nil {
 		logger.Error("failed to apply migrations", slog.String("error", err.Error()))
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
