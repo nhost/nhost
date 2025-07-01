@@ -1,6 +1,6 @@
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DatabaseConnectionInfo } from '@/features/orgs/projects/database/settings/components/DatabaseConnectionInfo';
@@ -59,7 +59,7 @@ export default function DatabaseSettingsPage() {
 
 DatabaseSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
+    <OrgLayout>
       <SettingsLayout>
         <Container
           sx={{ backgroundColor: 'background.default' }}
@@ -68,6 +68,6 @@ DatabaseSettingsPage.getLayout = function getLayout(page: ReactElement) {
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

@@ -1,5 +1,5 @@
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useProjectLogs } from '@/features/orgs/projects/hooks/useProjectLogs';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import {
@@ -50,5 +50,5 @@ export default function LogsPage() {
 }
 
 LogsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <OrgLayout>{page}</OrgLayout>;
 };

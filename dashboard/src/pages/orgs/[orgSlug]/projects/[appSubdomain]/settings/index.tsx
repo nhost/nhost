@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
@@ -377,12 +377,12 @@ export default function SettingsGeneralPage() {
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
+    <OrgLayout>
       <SettingsLayout>
         <Container sx={{ backgroundColor: 'background.default' }}>
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

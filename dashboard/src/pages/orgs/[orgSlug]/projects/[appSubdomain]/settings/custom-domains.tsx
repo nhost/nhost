@@ -5,7 +5,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AuthDomain } from '@/features/orgs/projects/custom-domains/settings/components/AuthDomain';
 import { DatabaseDomain } from '@/features/orgs/projects/custom-domains/settings/components/DatabaseDomain';
@@ -74,7 +74,7 @@ export default function CustomDomains() {
 
 CustomDomains.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex h-full overflow-auto',
       }}
@@ -87,6 +87,6 @@ CustomDomains.getLayout = function getLayout(page: ReactElement) {
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

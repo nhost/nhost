@@ -1,6 +1,6 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { FilesDataGrid } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGrid';
@@ -40,5 +40,5 @@ export default function StoragePage() {
 }
 
 StoragePage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <OrgLayout>{page}</OrgLayout>;
 };

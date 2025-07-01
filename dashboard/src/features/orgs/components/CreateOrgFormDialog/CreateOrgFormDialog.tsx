@@ -56,11 +56,12 @@ interface CreateOrgFormProps {
 }
 
 function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
+  const proPlan = plans.find(({ name }) => name === 'Pro')!;
   const form = useForm<z.infer<typeof createOrgFormSchema>>({
     resolver: zodResolver(createOrgFormSchema),
     defaultValues: {
       name: '',
-      plan: plans[0].id,
+      plan: proPlan?.id || '',
     },
   });
 

@@ -1,7 +1,6 @@
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Divider } from '@/components/ui/v2/Divider';
 import { SignUpTabs } from '@/features/auth/SignUp/SignUpTabs';
-import { SignUpWithEmailAndPasswordForm } from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword';
 import { SignUpWithGithub } from '@/features/auth/SignUp/SignUpWithGithub';
 import NextLink from 'next/link';
 import type { ReactElement } from 'react';
@@ -23,9 +22,7 @@ export default function SignUpPage() {
 
           <Divider />
         </div>
-        {/* TODO: https://github.com/nhost/nhost/issues/3340 */}
         <SignUpTabs />
-        {false && <SignUpWithEmailAndPasswordForm />}
         <Divider className="!my-2" />
         <p className="text-center text-sm text-[#A2B3BE]">
           By signing up, you agree to our{' '}

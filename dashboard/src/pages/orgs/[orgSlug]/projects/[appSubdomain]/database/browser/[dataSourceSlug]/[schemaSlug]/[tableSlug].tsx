@@ -1,7 +1,7 @@
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/components/ui/v2/Box';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserGrid } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
@@ -39,7 +39,7 @@ export default function DataBrowserTableDetailsPage() {
 
 DataBrowserTableDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
@@ -52,6 +52,6 @@ DataBrowserTableDetailsPage.getLayout = function getLayout(page: ReactElement) {
       >
         {page}
       </Box>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

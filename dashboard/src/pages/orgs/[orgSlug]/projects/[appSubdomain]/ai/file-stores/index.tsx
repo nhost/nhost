@@ -7,7 +7,7 @@ import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import { FileStoresList } from '@/features/orgs/projects/ai/FileStoresList';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
@@ -179,11 +179,11 @@ export default function FileStoresPage() {
 
 FileStoresPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
     >
       <AISidebar className="w-full max-w-sidebar" />
       <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

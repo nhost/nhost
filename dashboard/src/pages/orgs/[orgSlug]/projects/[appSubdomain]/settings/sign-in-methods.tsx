@@ -20,7 +20,7 @@ import { WorkOsProviderSettings } from '@/features/orgs/projects/authentication/
 import { useGetSignInMethodsQuery } from '@/generated/graphql';
 import type { ReactElement } from 'react';
 
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { OTPEmailSettings } from '@/features/orgs/projects/authentication/settings/OTPEmailSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -81,7 +81,7 @@ export default function SettingsSignInMethodsPage() {
 
 SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex h-full overflow-auto',
       }}
@@ -94,6 +94,6 @@ SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

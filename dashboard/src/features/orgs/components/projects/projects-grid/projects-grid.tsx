@@ -1,13 +1,9 @@
-import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Input } from '@/components/ui/v2/Input';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import {
-  useGetProjectsQuery,
-  type GetProjectsQuery,
-} from '@/utils/__generated__/graphql';
+import { type GetProjectsQuery } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
 import { ArrowRight, Box, Plus, SearchIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -49,36 +45,21 @@ function ProjectCard({ project }: { project: Project }) {
   );
 }
 
-export default function ProjectsGrid() {
-  const { org, loading: orgLoading } = useCurrentOrg();
+interface ProjectGridProps {
+  projects: Project[];
+}
 
-  const { data, loading, error } = useGetProjectsQuery({
-    variables: {
-      orgSlug: org?.slug,
-    },
-    skip: !org,
-    pollInterval: 10 * 1000,
-  });
-
+export default function ProjectsGrid({ projects }: ProjectGridProps) {
+  const { org } = useCurrentOrg();
   const [query, setQuery] = useState('');
 
   const handleQueryChange = debounce((event: ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
   }, 500);
 
-  const projects = data?.apps ?? [];
-
   const filteredProjects = projects.filter((project) =>
     project.name.toLowerCase().includes(query.toLowerCase()),
   );
-
-  if (error) {
-    throw error;
-  }
-
-  if (loading || orgLoading) {
-    return <LoadingScreen />;
-  }
 
   return (
     <div className="mx-auto h-full overflow-auto bg-accent">
