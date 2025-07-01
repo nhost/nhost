@@ -24,7 +24,7 @@ liveQueriesMultiplexedRefetchInterval = 3000
 version = 22
 
 [auth]
-version = '0.37.1'
+version = '0.40.0'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'

@@ -205,32 +205,46 @@ func trafikFiles(dotnhostfolder string) error {
 	return nil
 }
 
-func getDockerHost() (string, error) {
+func getDockerHost() (*url.URL, error) {
 	socket, ok := os.LookupEnv("DOCKER_HOST")
 	if !ok {
-		return "/var/run/docker.sock", nil
+		u, _ := url.Parse("unix:///var/run/docker.sock")
+		return u, nil
 	}
 
 	u, err := url.Parse(socket)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse DOCKER_HOST: %w", err)
+		return nil, fmt.Errorf("failed to parse DOCKER_HOST: %w", err)
 	}
-	if u.Scheme != "unix" {
-		return "", fmt.Errorf( //nolint:err113
-			"unsupported scheme %s in DOCKER_HOST, only unix supported",
-			u.Scheme,
-		)
-	}
-	return u.Path, nil
+
+	return u, nil
 }
 
 func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*Service, error) {
 	if err := trafikFiles(dotnhostfolder); err != nil {
 		return nil, fmt.Errorf("failed to create traefik files: %w", err)
 	}
-	path, err := getDockerHost()
+	dockerURL, err := getDockerHost()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get docker host: %w", err)
+	}
+
+	volumes := []Volume{{
+		Type:     "bind",
+		Source:   filepath.Join(dotnhostfolder, "traefik"),
+		Target:   "/opt/traefik",
+		ReadOnly: ptr(true),
+	}}
+
+	dockerEndpoint := dockerURL.String()
+	if dockerURL.Scheme == "unix" {
+		volumes = append(volumes, Volume{
+			Type:     "bind",
+			Source:   dockerURL.Path,
+			Target:   "/var/run/docker.sock",
+			ReadOnly: ptr(true),
+		})
+		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
 
 	return &Service{
@@ -240,6 +254,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		Command: []string{
 			"--api.insecure=true",
 			"--providers.docker=true",
+			"--providers.docker.endpoint=" + dockerEndpoint,
 			"--providers.file.directory=/opt/traefik",
 			"--providers.file.watch=true",
 			"--providers.docker.exposedbydefault=false",
@@ -261,21 +276,8 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 				Protocol:  "tcp",
 			},
 		},
-		Restart: "always",
-		Volumes: []Volume{
-			{
-				Type:     "bind",
-				Source:   path,
-				Target:   "/var/run/docker.sock",
-				ReadOnly: ptr(true),
-			},
-			{
-				Type:     "bind",
-				Source:   filepath.Join(dotnhostfolder, "traefik"),
-				Target:   "/opt/traefik",
-				ReadOnly: ptr(true),
-			},
-		},
+		Restart:    "always",
+		Volumes:    volumes,
 		WorkingDir: nil,
 	}, nil
 }
