@@ -1,5 +1,12 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.8.2
+
+### Patch Changes
+
+- @nhost/react@3.11.1
+- @nhost/react-apollo@18.0.1
+
 ## 0.8.1
 
 ### Patch Changes

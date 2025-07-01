@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.8.0
+
+### Minor Changes
+
+- aee9a80: chore: update typescript version to the latest
+
 ## 2.7.1
 
 ### Patch Changes

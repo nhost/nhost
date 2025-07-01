@@ -1,5 +1,12 @@
 # @nhost-examples/react-native
 
+## 0.1.10
+
+### Patch Changes
+
+- @nhost/react@3.11.1
+- @nhost/react-apollo@18.0.1
+
 ## 0.1.9
 
 ### Patch Changes

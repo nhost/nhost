@@ -1,5 +1,11 @@
 ---
 
+## 0.8.2
+### Patch Changes
+
+- Updated dependencies [aee9a80]
+  - @nhost/nhost-js@3.3.0
+
 ## 0.8.1
 ### Patch Changes
 

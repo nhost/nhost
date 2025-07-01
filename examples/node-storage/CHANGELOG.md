@@ -1,5 +1,12 @@
 # @nhost-examples/node-storage
 
+## 0.2.23
+
+### Patch Changes
+
+- Updated dependencies [aee9a80]
+  - @nhost/nhost-js@3.3.0
+
 ## 0.2.22
 
 ### Patch Changes

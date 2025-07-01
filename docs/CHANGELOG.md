@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.33.0
+
+### Minor Changes
+
+- 4ca9641: feat: added cloud development documentation
+
 ## 2.32.0
 
 ### Minor Changes
