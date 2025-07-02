@@ -176,13 +176,13 @@ func cloud( //nolint:funlen
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:mnd
 	defer cancel()
 	ce.Infoln("Checking versions...")
-	if err := software.CheckVersions(ctxWithTimeout, ce, cfg, appVersion); err != nil {
+	if err := software.CheckVersions(ctxWithTimeout, ce, cfgSecrets, appVersion); err != nil {
 		ce.Warnln("Problem verifying recommended versions: %s", err.Error())
 	}
 
 	ce.Infoln("Setting up Nhost development environment...")
 	composeFile, err := dockercompose.CloudComposeFileFromConfig(
-		cfg,
+		cfgSecrets,
 		ce.LocalSubdomain(),
 		proj.GetSubdomain(),
 		proj.GetRegion().GetName(),
@@ -231,7 +231,7 @@ func cloud( //nolint:funlen
 		ctx,
 		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
-		*cfg.Hasura.Version,
+		*cfgSecrets.Hasura.Version,
 		"metadata", "export",
 		"--skip-update-check",
 		"--log-level", "ERROR",

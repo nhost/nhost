@@ -129,7 +129,7 @@ func Validate(
 		return nil, fmt.Errorf("failed to create schema: %w", err)
 	}
 
-	cfg, err = appconfig.SecretsResolver[model.ConfigConfig](cfg, secrets, schema.Fill)
+	cfg, err = appconfig.SecretsResolver(cfg, secrets, schema.Fill)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
@@ -137,6 +137,11 @@ func Validate(
 	return cfg, nil
 }
 
+// ValidateRemote validates the configuration of a remote project by fetching
+// the secrets and applying them to the configuration. It also applies any
+// JSON patches from the overlay directory if it exists.
+// It returns the original configuration with the applied patches (without being filled
+// and without secrets resolved) and another configuration filled and with secrets resolved.
 func ValidateRemote(
 	ctx context.Context,
 	ce *clienv.CliEnv,
@@ -146,6 +151,14 @@ func ValidateRemote(
 	cfg := &model.ConfigConfig{} //nolint:exhaustruct
 	if err := clienv.UnmarshalFile(ce.Path.NhostToml(), cfg, toml.Unmarshal); err != nil {
 		return nil, nil, fmt.Errorf("failed to parse config: %w", err)
+	}
+
+	if clienv.PathExists(ce.Path.Overlay(subdomain)) {
+		var err error
+		cfg, err = ApplyJSONPatches(*cfg, ce.Path.Overlay(subdomain))
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to apply json patches: %w", err)
+		}
 	}
 
 	schema, err := schema.New()
@@ -166,16 +179,9 @@ func ValidateRemote(
 		return nil, nil, fmt.Errorf("failed to get secrets: %w", err)
 	}
 
-	if clienv.PathExists(ce.Path.Overlay(subdomain)) {
-		var err error
-		cfg, err = ApplyJSONPatches(*cfg, ce.Path.Overlay(subdomain))
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to apply json patches: %w", err)
-		}
-	}
-
 	secrets := respToSecrets(secretsResp.GetAppSecrets(), false)
-	cfgSecrets, err := appconfig.SecretsResolver[model.ConfigConfig](cfg, secrets, schema.Fill)
+
+	cfgSecrets, err := appconfig.SecretsResolver(cfg, secrets, schema.Fill)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to validate config: %w", err)
 	}
