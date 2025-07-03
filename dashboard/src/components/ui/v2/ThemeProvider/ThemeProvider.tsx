@@ -29,9 +29,6 @@ function ThemeProviderContent({
           'html, body': {
             backgroundColor: `${theme.palette.background.default} !important`,
           },
-          html: {
-            class: `${preferredColor}`,
-          },
         }}
       />
       <Head>

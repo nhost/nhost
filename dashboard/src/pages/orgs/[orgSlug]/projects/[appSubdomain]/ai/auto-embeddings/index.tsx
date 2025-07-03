@@ -12,7 +12,7 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
@@ -221,11 +221,11 @@ export default function AutoEmbeddingsPage() {
 
 AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
     >
       <AISidebar className="w-full max-w-sidebar" />
       <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

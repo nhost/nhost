@@ -4,7 +4,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { BackupsContent } from '@/features/orgs/projects/backups/components/BackupsContent';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import type { ReactElement } from 'react';
@@ -49,5 +49,5 @@ export default function BackupsPage() {
 }
 
 BackupsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <OrgLayout>{page}</OrgLayout>;
 };

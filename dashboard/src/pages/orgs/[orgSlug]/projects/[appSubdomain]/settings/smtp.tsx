@@ -10,7 +10,7 @@ import DeleteSMTPSettings from '@/features/orgs/projects/authentication/settings
 import { PostmarkSettings } from '@/features/orgs/projects/authentication/settings/components/PostmarkSettings';
 import { SMTPSettings } from '@/features/orgs/projects/authentication/settings/components/SMTPSettings';
 
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -94,7 +94,7 @@ export default function SMTPSettingsPage() {
 
 SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex h-full overflow-auto',
       }}
@@ -107,6 +107,6 @@ SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

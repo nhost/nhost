@@ -70,10 +70,6 @@ export default function AuthenticatedLayout({
     );
   }
 
-  // if (isPlatform && !isLoading && !isAuthenticated) {
-  //   return null;
-  // }
-
   if (!isPlatform && !isHealthy) {
     return (
       <BaseLayout className="h-full" {...props}>

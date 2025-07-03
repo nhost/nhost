@@ -12,7 +12,7 @@ import { HasuraPoolSizeSettings } from '@/features/orgs/projects/hasura/settings
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraServiceVersionSettings';
 
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -67,7 +67,7 @@ export default function HasuraSettingsPage() {
 
 HasuraSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
+    <OrgLayout>
       <SettingsLayout>
         <Container
           sx={{ backgroundColor: 'background.default' }}
@@ -76,6 +76,6 @@ HasuraSettingsPage.getLayout = function getLayout(page: ReactElement) {
           {page}
         </Container>
       </SettingsLayout>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };
