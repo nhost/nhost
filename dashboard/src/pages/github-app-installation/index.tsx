@@ -45,6 +45,9 @@ function Page() {
           body: JSON.stringify({
             installationId,
           }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
       } catch (error) {
         setState({
