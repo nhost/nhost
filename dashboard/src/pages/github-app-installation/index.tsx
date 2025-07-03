@@ -41,6 +41,7 @@ function Page() {
     async function installGithubApp() {
       try {
         await nhost.functions.fetch('/client/github-app-installation', {
+          method: 'POST',
           body: JSON.stringify({
             installationId,
           }),
