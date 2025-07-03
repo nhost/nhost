@@ -118,7 +118,7 @@ export default function AnnouncementsTray() {
                   ) : (
                     <span className="mt-[5px] h-2 w-2 flex-shrink-0" />
                   )}
-                  <div className="flex flex-row">
+                  <div className="flex w-full flex-row justify-between">
                     <div className="flex flex-col gap-1">
                       <span className="text-xs text-muted-foreground">
                         {formatDistance(
