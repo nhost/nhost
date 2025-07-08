@@ -90,10 +90,10 @@ export default function SupabaseVsNhostPage() {
                   Postgres Access
                 </td>
                 <td className="py-4 px-6 text-gray-300">
-                  Full access with many built-in extensions
+                  Root access
                 </td>
                 <td className="py-4 px-6 font-semibold text-blue-300">
-                  Full access with some built-in extensions
+                  Root access
                 </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
@@ -104,8 +104,8 @@ export default function SupabaseVsNhostPage() {
                   Edge functions (Deno-based), limited customization
                 </td>
                 <td className="py-4 px-6 font-semibold text-blue-300">
-                  Serverless Functions + Nhost Run (bring your own containers),
-                  Remote Schemas
+                  Serverless Functions (Lambda-based) + Nhost Run (bring your own containers),
+                  GraphQL federation with remote schemas
                 </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
@@ -114,7 +114,7 @@ export default function SupabaseVsNhostPage() {
                   Feature-rich, RLS-based, Complex
                 </td>
                 <td className="py-4 px-6 font-semibold text-blue-300">
-                  Integrated GraphQL permissions with roles and field-level
+                  Feature-rich, easy permissions with roles and field-level
                   access
                 </td>
               </tr>
@@ -152,9 +152,9 @@ export default function SupabaseVsNhostPage() {
                 <td className="py-4 px-6 font-medium text-white">
                   Federation support
                 </td>
-                <td className="py-4 px-6 text-gray-300">❌</td>
+                <td className="py-4 px-6 text-gray-300">No support</td>
                 <td className="py-4 px-6 font-semibold text-blue-300">
-                  ✅ Native support with Remote Schemas / Nhost Run
+                  Native support with Remote Schemas / Nhost Run
                 </td>
               </tr>
             </tbody>
@@ -294,7 +294,7 @@ export default function SupabaseVsNhostPage() {
       <Container component="section" className="max-w-4xl py-16 text-center">
         <h2 className="mb-4 text-3xl font-bold text-white">Not sure yet?</h2>
         <p className="mb-8 text-lg text-gray-300">
-          Read our <strong>Backend Buyer&apos;s blog post</strong>, a practical
+          Read our blog post for a practical
           evaluation for choosing a backend stack.
         </p>
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
