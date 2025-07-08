@@ -34,7 +34,7 @@ go/
 
 ### 1. API Specification (OpenAPI)
 
-Add endpoint definition to `go/api/openapi.yaml`:
+Add endpoint definition to `docs/openapi.yaml`:
 
 ```yaml
 paths:

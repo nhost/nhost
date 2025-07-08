@@ -76,141 +76,145 @@ func (response ErrorResponse) visit(w http.ResponseWriter) error {
 	return json.NewEncoder(w).Encode(response) //nolint:wrapcheck
 }
 
-func (response ErrorResponse) VisitPostSignupEmailPasswordResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignUpEmailPasswordResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninAnonymousResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignInAnonymousResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninMfaTotpResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifySignInMfaTotpResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostUserMfaResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifyChangeUserMfaResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitGetMfaTotpGenerateResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitChangeUserMfaResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninEmailPasswordResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignInEmailPasswordResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninPasswordlessEmailResponse(
+func (response ErrorResponse) VisitSignInPasswordlessEmailResponse(
 	w http.ResponseWriter,
 ) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninPatResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignInPATResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitGetSigninProviderProviderResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignInProviderResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitGetSigninProviderProviderCallbackResponse(
+func (response ErrorResponse) VisitSignInProviderCallbackGetResponse(
 	w http.ResponseWriter,
 ) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostUserEmailChangeResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitChangeUserEmailResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostUserPasswordResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitChangeUserPasswordResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostUserPasswordResetResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSendPasswordResetEmailResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostUserEmailSendVerificationEmailResponse(
+func (response ErrorResponse) VisitSendVerificationEmailResponse(
 	w http.ResponseWriter,
 ) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostPatResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitCreatePATResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostUserDeanonymizeResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitDeanonymizeUserResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSignupWebauthnResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignUpWebauthnResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninWebauthnResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignInWebauthnResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninWebauthnVerifyResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifySignInWebauthnResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSignupWebauthnVerifyResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifySignUpWebauthnResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostTokenResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitRefreshTokenResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninIdtokenResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignInIdTokenResponse( //nolint:revive,stylecheck
+	w http.ResponseWriter,
+) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostLinkIdtokenResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitLinkIdTokenResponse( //nolint:revive,stylecheck
+	w http.ResponseWriter,
+) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitGetVerifyResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifyTicketResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninOtpEmailResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignInOTPEmailResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninOtpEmailVerifyResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifySignInOTPEmailResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostElevateWebauthnResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitElevateWebauthnResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostElevateWebauthnVerifyResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifyElevateWebauthnResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostUserWebauthnAddResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitAddSecurityKeyResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostUserWebauthnVerifyResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifyAddSecurityKeyResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninPasswordlessSmsResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignInPasswordlessSmsResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSignoutResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitSignOutResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostTokenVerifyResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitVerifyTokenResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -218,7 +222,7 @@ func (response ErrorResponse) VisitGetUserResponse(w http.ResponseWriter) error 
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninPasswordlessSmsOtpResponse(
+func (response ErrorResponse) VisitVerifySignInPasswordlessSmsResponse(
 	w http.ResponseWriter,
 ) error {
 	return response.visit(w)
@@ -481,23 +485,23 @@ func (response ErrorRedirectResponse) visit(w http.ResponseWriter) error {
 	return nil
 }
 
-func (response ErrorRedirectResponse) VisitGetVerifyResponse(w http.ResponseWriter) error {
+func (response ErrorRedirectResponse) VisitVerifyTicketResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorRedirectResponse) VisitGetSigninProviderProviderResponse(
+func (response ErrorRedirectResponse) VisitSignInProviderResponse(
 	w http.ResponseWriter,
 ) error {
 	return response.visit(w)
 }
 
-func (response ErrorRedirectResponse) VisitGetSigninProviderProviderCallbackResponse(
+func (response ErrorRedirectResponse) VisitSignInProviderCallbackGetResponse(
 	w http.ResponseWriter,
 ) error {
 	return response.visit(w)
 }
 
-func (response ErrorRedirectResponse) VisitPostSigninProviderProviderCallbackResponse(
+func (response ErrorRedirectResponse) VisitSignInProviderCallbackPostResponse(
 	w http.ResponseWriter,
 ) error {
 	return response.visit(w)

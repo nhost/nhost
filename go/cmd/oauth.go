@@ -9,44 +9,44 @@ import (
 )
 
 //nolint:cyclop
-func getDefaultScopes(providerName api.SigninProvider) []string {
+func getDefaultScopes(providerName api.SignInProvider) []string {
 	switch providerName {
-	case api.SigninProviderGoogle:
+	case api.SignInProviderGoogle:
 		return providers.DefaultGoogleScopes
-	case api.SigninProviderDiscord:
+	case api.SignInProviderDiscord:
 		return providers.DefaultDiscordScopes
-	case api.SigninProviderGithub:
+	case api.SignInProviderGithub:
 		return providers.DefaultGithubScopes
-	case api.SigninProviderApple:
+	case api.SignInProviderApple:
 		return providers.DefaultAppleScopes
-	case api.SigninProviderLinkedin:
+	case api.SignInProviderLinkedin:
 		return providers.DefaultLinkedInScopes
-	case api.SigninProviderSpotify:
+	case api.SignInProviderSpotify:
 		return providers.DefaultSpotifyScopes
-	case api.SigninProviderTwitch:
+	case api.SignInProviderTwitch:
 		return providers.DefaultTwitchScopes
-	case api.SigninProviderGitlab:
+	case api.SignInProviderGitlab:
 		return providers.DefaultGitlabScopes
-	case api.SigninProviderBitbucket:
+	case api.SignInProviderBitbucket:
 		return providers.DefaultBitbucketScopes
-	case api.SigninProviderWorkos:
+	case api.SignInProviderWorkos:
 		return providers.DefaultWorkOSScopes
-	case api.SigninProviderAzuread:
+	case api.SignInProviderAzuread:
 		return providers.DefaultAzureadScopes
-	case api.SigninProviderFacebook:
+	case api.SignInProviderFacebook:
 		return providers.DefaultFacebookScopes
-	case api.SigninProviderWindowslive:
+	case api.SignInProviderWindowslive:
 		return providers.DefaultWindowsliveScopes
-	case api.SigninProviderStrava:
+	case api.SignInProviderStrava:
 		return providers.DefaultStravaScopes
-	case api.SigninProviderTwitter:
+	case api.SignInProviderTwitter:
 		return []string{}
 	default:
 		panic("Unknown OAuth2 provider: " + providerName)
 	}
 }
 
-func getScopes(provider api.SigninProvider, scopes []string) []string {
+func getScopes(provider api.SignInProvider, scopes []string) []string {
 	// clean the scopes in case of empty string
 	var cleanedScopes []string
 	for _, scope := range scopes {
@@ -72,7 +72,7 @@ func getOauth2Providers(
 			cCtx.String(flagGoogleClientID),
 			cCtx.String(flagGoogleClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderGoogle, cCtx.StringSlice(flagGoogleScope)),
+			getScopes(api.SignInProviderGoogle, cCtx.StringSlice(flagGoogleScope)),
 		)
 	}
 
@@ -84,7 +84,7 @@ func getOauth2Providers(
 			cCtx.String(flagGithubAuthorizationURL),
 			cCtx.String(flagGithubTokenURL),
 			cCtx.String(flagGithubUserProfileURL),
-			getScopes(api.SigninProviderGithub, cCtx.StringSlice(flagGithubScope)),
+			getScopes(api.SignInProviderGithub, cCtx.StringSlice(flagGithubScope)),
 		)
 	}
 
@@ -104,7 +104,7 @@ func getOauth2Providers(
 			cCtx.String(flagAppleClientID),
 			clientSecret,
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderApple, cCtx.StringSlice(flagAppleScope)),
+			getScopes(api.SignInProviderApple, cCtx.StringSlice(flagAppleScope)),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Apple provider: %w", err)
@@ -116,7 +116,7 @@ func getOauth2Providers(
 			cCtx.String(flagLinkedInClientID),
 			cCtx.String(flagLinkedInClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderLinkedin, cCtx.StringSlice(flagLinkedInScope)),
+			getScopes(api.SignInProviderLinkedin, cCtx.StringSlice(flagLinkedInScope)),
 		)
 	}
 
@@ -125,7 +125,7 @@ func getOauth2Providers(
 			cCtx.String(flagDiscordClientID),
 			cCtx.String(flagDiscordClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderDiscord, cCtx.StringSlice(flagDiscordScope)),
+			getScopes(api.SignInProviderDiscord, cCtx.StringSlice(flagDiscordScope)),
 		)
 	}
 
@@ -134,7 +134,7 @@ func getOauth2Providers(
 			cCtx.String(flagSpotifyClientID),
 			cCtx.String(flagSpotifyClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderSpotify, cCtx.StringSlice(flagSpotifyScope)),
+			getScopes(api.SignInProviderSpotify, cCtx.StringSlice(flagSpotifyScope)),
 		)
 	}
 
@@ -143,7 +143,7 @@ func getOauth2Providers(
 			cCtx.String(flagTwitchClientID),
 			cCtx.String(flagTwitchClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderTwitch, cCtx.StringSlice(flagTwitchScope)),
+			getScopes(api.SignInProviderTwitch, cCtx.StringSlice(flagTwitchScope)),
 		)
 	}
 
@@ -152,7 +152,7 @@ func getOauth2Providers(
 			cCtx.String(flagGitlabClientID),
 			cCtx.String(flagGitlabClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderGitlab, cCtx.StringSlice(flagGitlabScope)),
+			getScopes(api.SignInProviderGitlab, cCtx.StringSlice(flagGitlabScope)),
 		)
 	}
 
@@ -161,7 +161,7 @@ func getOauth2Providers(
 			cCtx.String(flagBitbucketClientID),
 			cCtx.String(flagBitbucketClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderBitbucket, cCtx.StringSlice(flagBitbucketScope)),
+			getScopes(api.SignInProviderBitbucket, cCtx.StringSlice(flagBitbucketScope)),
 		)
 	}
 
@@ -170,7 +170,7 @@ func getOauth2Providers(
 			cCtx.String(flagWorkosClientID),
 			cCtx.String(flagWorkosClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderWorkos, cCtx.StringSlice(flagWorkosScope)),
+			getScopes(api.SignInProviderWorkos, cCtx.StringSlice(flagWorkosScope)),
 			cCtx.String(flagWorkosDefaultOrganization),
 			cCtx.String(flagWorkosDefaultConnection),
 			cCtx.String(flagWorkosDefaultDomain),
@@ -183,7 +183,7 @@ func getOauth2Providers(
 			cCtx.String(flagAzureadClientSecret),
 			cCtx.String(flagServerURL),
 			cCtx.String(flagAzureadTenant),
-			getScopes(api.SigninProviderAzuread, cCtx.StringSlice(flagAzureadScope)),
+			getScopes(api.SignInProviderAzuread, cCtx.StringSlice(flagAzureadScope)),
 		)
 	}
 
@@ -192,7 +192,7 @@ func getOauth2Providers(
 			cCtx.String(flagFacebookClientID),
 			cCtx.String(flagFacebookClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderFacebook, cCtx.StringSlice(flagFacebookScope)),
+			getScopes(api.SignInProviderFacebook, cCtx.StringSlice(flagFacebookScope)),
 		)
 	}
 
@@ -201,7 +201,7 @@ func getOauth2Providers(
 			cCtx.String(flagWindowsliveClientID),
 			cCtx.String(flagWindowsliveClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderWindowslive, cCtx.StringSlice(flagWindowsliveScope)),
+			getScopes(api.SignInProviderWindowslive, cCtx.StringSlice(flagWindowsliveScope)),
 		)
 	}
 	if cCtx.Bool(flagStravaEnabled) {
@@ -209,7 +209,7 @@ func getOauth2Providers(
 			cCtx.String(flagStravaClientID),
 			cCtx.String(flagStravaClientSecret),
 			cCtx.String(flagServerURL),
-			getScopes(api.SigninProviderStrava, cCtx.StringSlice(flagStravaScope)),
+			getScopes(api.SignInProviderStrava, cCtx.StringSlice(flagStravaScope)),
 		)
 	}
 

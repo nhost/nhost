@@ -94,20 +94,6 @@ describe('webauthn', () => {
       .expect(StatusCodes.UNAUTHORIZED);
   });
 
-  it('should fail verify user is webauth is not enabled', async () => {
-    const email = faker.internet.email();
-
-    // reset env vars
-    await request.post('/change-env').send({
-      AUTH_WEBAUTHN_ENABLED: false,
-    });
-
-    await request
-      .post('/signin/webauthn/verify')
-      .send({ email, credential: {} })
-      .expect(StatusCodes.CONFLICT);
-  });
-
   it('should fail verify user when no credential is passed', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();

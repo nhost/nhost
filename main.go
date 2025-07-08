@@ -10,8 +10,8 @@ import (
 
 var Version string
 
-//go:generate oapi-codegen -config go/api/server.cfg.yaml go/api/openapi.yaml
-//go:generate oapi-codegen -config go/api/types.cfg.yaml go/api/openapi.yaml
+//go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml
+//go:generate oapi-codegen -config go/api/types.cfg.yaml docs/openapi.yaml
 func main() {
 	serveCmd := cmd.CommandServe()
 	app := &cli.App{ //nolint:exhaustruct

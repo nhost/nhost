@@ -89,7 +89,7 @@ When using asymmetric keys, you can get the JWK Set from the endpoing `.well-kno
 ## Reference
 
 - List of the available [environment variables](./docs/environment-variables.md).
-- The service comes with an [OpenAPI definition](./docs/openapi.json) which you can also see [online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/nhost/hasura-auth/main/docs/openapi.json).
+- The service comes with an [OpenAPI definition](./docs/openapi.yaml) which you can also see [online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/nhost/hasura-auth/main/docs/openapi.yaml).
 - [Database Schema](./docs/schema.md)
 
 ## 🤝 Contributing

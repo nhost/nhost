@@ -1,0 +1,2545 @@
+openapi: "3.0.0"
+
+info:
+  version: 1.0.0
+  title: "Nhost Authentication API"
+  description: "Comprehensive authentication service for managing user identities, sessions, and authentication methods"
+  license:
+    name: "MIT License"
+    url: "https://opensource.org/licenses/MIT"
+  contact:
+    name: "Nhost Support"
+    email: "support@nhost.io"
+    url: "https://nhost.io"
+
+servers:
+  - url: "https://{subdomain}.auth.{region}.nhost.run/v1"
+    description: "Nhost Authentication API Server"
+
+tags:
+  - name: authentication
+    description: "User authentication operations including sign-in, sign-up, and various authentication methods (email/password, passwordless, OAuth, WebAuthn, MFA)"
+  - name: security
+    description: "Security-related operations including Personal Access Tokens, WebAuthn management, account elevation, and account linking"
+  - name: session
+    description: "Session management operations including token refresh, verification, and sign-out"
+  - name: user
+    description: "User profile and account management operations including email/password changes, MFA configuration, and profile updates"
+  - name: system
+    description: "System operations including health checks, service version, and public key endpoints"
+  - name: verification
+    description: "Email and ticket verification operations for confirming user actions"
+  - name: excludeme
+    description: "These operations are not intended to be used directly by clients and should be excluded from client SDKs"
+
+paths:
+  /.well-known/jwks.json:
+    get:
+      summary: Get public keys for JWT verification in JWK Set format
+      description: Retrieve the JSON Web Key Set (JWKS) containing public keys used to verify JWT signatures. This endpoint is used by clients to validate access tokens.
+      operationId: getJWKs
+      tags:
+        - system
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JWKSet"
+          description: >-
+            The public keys in JWK Set format
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /elevate/webauthn:
+    post:
+      summary: Elevate access for an already signed in user using FIDO2 Webauthn
+      description: Generate a Webauthn challenge for elevating user permissions
+      operationId: elevateWebauthn
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicKeyCredentialRequestOptions"
+          description: >-
+            Challenge sent for elevation
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
+  /elevate/webauthn/verify:
+    post:
+      summary: Verify FIDO2 Webauthn authentication using public-key cryptography for elevation
+      description: Complete Webauthn elevation by verifying the authentication response
+      operationId: verifyElevateWebauthn
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: WebAuthn credential assertion response for elevation verification
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInWebauthnVerifyRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: >-
+            Elevated successfully
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
+  /healthz:
+    get:
+      summary: Health check (GET)
+      description: Verify if the authentication service is operational using GET method
+      operationId: healthCheckGet
+      tags:
+        - system
+      responses:
+        "200":
+          description: "Service is healthy and operational"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+    head:
+      summary: Health check (HEAD)
+      description: Verify if the authentication service is operational using HEAD method
+      operationId: healthCheckHead
+      tags:
+        - system
+      responses:
+        "200":
+          description: "Service is healthy and operational"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /link/idtoken:
+    post:
+      summary: Link a user account with the provider's account using an id token
+      description: Link the authenticated user's account with an external OAuth provider account using an ID token. Requires elevated permissions.
+      operationId: linkIdToken
+      tags:
+        - security
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        description: ID token and provider information for account linking
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkIdTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Identity linked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /mfa/totp/generate:
+    get:
+      summary: Generate TOTP secret
+      description: Generate a Time-based One-Time Password (TOTP) secret for setting up multi-factor authentication
+      operationId: changeUserMfa
+      tags:
+        - user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: "TOTP secret successfully generated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TotpGenerateResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /pat:
+    post:
+      summary: Create a Personal Access Token (PAT)
+      description: Generate a new Personal Access Token for programmatic API access. PATs are long-lived tokens that can be used instead of regular authentication for automated systems. Requires elevated permissions.
+      operationId: createPAT
+      tags:
+        - security
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        description: Personal Access Token creation request with expiration and metadata
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePATRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatePATResponse"
+          description: >-
+            Successfully created a Personal Access Token
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/anonymous:
+    post:
+      summary: Sign in anonymously
+      description: Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+      operationId: signInAnonymous
+      tags:
+        - authentication
+      requestBody:
+        description: Optional user profile information for anonymous sign-in
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInAnonymousRequest"
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: >-
+            Successfully signed in
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/email-password:
+    post:
+      summary: Sign in with email and password
+      description: Authenticate a user with their email and password. Returns a session object or MFA challenge if two-factor authentication is enabled.
+      operationId: signInEmailPassword
+      tags:
+        - authentication
+      requestBody:
+        description: User credentials for email and password authentication
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInEmailPasswordRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignInEmailPasswordResponse"
+          description: "Authentication successful. If MFA is enabled, a challenge will be returned instead of a session."
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/idtoken:
+    post:
+      summary: Sign in with an ID token
+      description: Authenticate using an ID token from a supported OAuth provider (Apple or Google). Creates a new user account if one doesn't exist.
+      operationId: signInIdToken
+      tags:
+        - authentication
+      requestBody:
+        description: ID token and provider information for authentication
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInIdTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Successfully signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/mfa/totp:
+    post:
+      summary: Verify TOTP for MFA
+      description: Complete the multi-factor authentication by verifying a Time-based One-Time Password (TOTP). Returns a session if validation is successful.
+      operationId: verifySignInMfaTotp
+      tags:
+        - authentication
+      requestBody:
+        description: MFA ticket and TOTP code for multi-factor authentication verification
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInMfaTotpRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: "MFA verification successful, session created"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/otp/email:
+    post:
+      summary: Sign in with email OTP
+      description: Initiate email-based one-time password authentication. Sends an OTP to the specified email address. If the user doesn't exist, a new account will be created with the provided options.
+      operationId: signInOTPEmail
+      tags:
+        - authentication
+      requestBody:
+        description: Email address and optional user options for OTP authentication
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInOTPEmailRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            OTP sent to user's email successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/otp/email/verify:
+    post:
+      summary: Verify email OTP
+      description: Complete email OTP authentication by verifying the one-time password. Returns a session if validation is successful.
+      operationId: verifySignInOTPEmail
+      tags:
+        - authentication
+      requestBody:
+        description: OTP code and email address for verification
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInOTPEmailVerifyRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Magic link sent to user's email successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignInOTPEmailVerifyResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/passwordless/email:
+    post:
+      summary: Sign in with magic link email
+      description: Initiate passwordless authentication by sending a magic link to the user's email. If the user doesn't exist, a new account will be created with the provided options.
+      operationId: signInPasswordlessEmail
+      tags:
+        - authentication
+      requestBody:
+        description: Email address and optional user options for magic link authentication
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInPasswordlessEmailRequest"
+        required: true
+      responses:
+        "200":
+          description: "Magic link email sent successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/passwordless/sms:
+    post:
+      operationId: signInPasswordlessSms
+      summary: Sign in with SMS OTP
+      description: Initiate passwordless authentication by sending a one-time password to the user's phone number. If the user doesn't exist, a new account will be created with the provided options.
+      tags:
+        - authentication
+      requestBody:
+        description: Phone number and optional user options for SMS OTP authentication
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInPasswordlessSmsRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            OTP sent to user's phone number successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/passwordless/sms/otp:
+    post:
+      operationId: verifySignInPasswordlessSms
+      summary: Verify SMS OTP
+      description: Complete passwordless SMS authentication by verifying the one-time password. Returns a session if validation is successful.
+      tags:
+        - authentication
+      requestBody:
+        description: Phone number and OTP code for SMS verification
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInPasswordlessSmsOtpRequest'
+        required: true
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInPasswordlessSmsOtpResponse'
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/pat:
+    post:
+      summary: Sign in with Personal Access Token (PAT)
+      description: Authenticate using a Personal Access Token. PATs are long-lived tokens that can be used for programmatic access to the API.
+      operationId: signInPAT
+      tags:
+        - authentication
+      requestBody:
+        description: Personal Access Token for authentication
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInPATRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Successfully signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/provider/{provider}:
+    get:
+      summary: Sign in with an OAuth2 provider
+      description: Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+      operationId: signInProvider
+      tags:
+        - authentication
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+        - name: allowedRoles
+          in: query
+          required: false
+          description: Array of allowed roles for the user
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - me
+              - user
+        - name: defaultRole
+          in: query
+          required: false
+          description: Default role for the user
+          schema:
+            type: string
+            example: user
+        - name: displayName
+          in: query
+          required: false
+          description: Display name for the user
+          schema:
+            type: string
+            pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
+            maxLength: 32
+            example: John Smith
+        - name: locale
+          in: query
+          required: false
+          description: A two-characters locale
+          schema:
+            type: string
+            maxLength: 2
+            minLength: 2
+            example: en
+        - name: metadata
+          in: query
+          required: false
+          description: Additional metadata for the user
+          schema:
+            type: object
+            additionalProperties: true
+            example:
+              firstName: John
+              lastName: Smith
+        - name: redirectTo
+          in: query
+          required: false
+          description: URI to redirect to
+          schema:
+            type: string
+            format: uri
+            example: https://my-app.com/catch-redirection
+        - name: connect
+          in: query
+          required: false
+          description: >-
+            If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
+          schema:
+            type: string
+
+      responses:
+        "302":
+          description: Redirect to social provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/provider/{provider}/callback:
+    get:
+      summary: OAuth2 provider callback endpoint
+      description: Handles the callback from OAuth2 providers after user authorization. Processes the authorization code and creates a user session.
+      operationId: signInProviderCallbackGet
+      tags:
+        - authentication
+        - excludeme
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+        - name: code
+          in: query
+          description: Authorization code provided by the authentication provider
+          schema:
+            type: string
+        - name: id_token
+          in: query
+          description: ID token provided by the authentication provider
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          description: State parameter to avoid CSRF attacks
+          schema:
+            type: string
+        - name: oauth_token
+          in: query
+          required: false
+          description: OAuth token for the provider (e.g., X)
+          schema:
+            type: string
+        - name: oauth_verifier
+          in: query
+          required: false
+          description: OAuth verifier for the provider (e.g., X)
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          description: Error message if authentication failed
+          schema:
+            type: string
+        - name: error_description
+          in: query
+          required: false
+          description: Detailed error description if authentication failed
+          schema:
+            type: string
+        - name: error_uri
+          in: query
+          required: false
+          description: URI with more information about the error
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to client application after successful authentication
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+    post:
+      summary: OAuth2 provider callback endpoint (form_post)
+      description: Handles OAuth2 provider callbacks using form_post response mode. Used by providers like Apple that send data via POST instead of query parameters.
+      operationId: signInProviderCallbackPost
+      tags:
+        - authentication
+        - excludeme
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+      requestBody:
+        description: OAuth2 provider callback data including authorization code, ID token, and state
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  nullable: true
+                  description: Authorization code provided by the authentication provider
+                id_token:
+                  type: string
+                  nullable: true
+                  description: ID token provided by the authentication provider
+                state:
+                  type: string
+                  description: State parameter to avoid CSRF attacks
+                user:
+                  type: string
+                  nullable: true
+                  description: JSON string containing user information (only provided on first authentication with Apple)
+                error:
+                  type: string
+                  nullable: true
+                  description: Error message if authentication failed
+                error_description:
+                  type: string
+                  nullable: true
+                  description: Detailed error description if authentication failed
+                error_uri:
+                  type: string
+                  nullable: true
+                  description: URI with more information about the error
+              required:
+                - state
+              additionalProperties: true
+      responses:
+        "302":
+          description: Redirect to client application after successful authentication
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signin/webauthn:
+    post:
+      summary: Sign in with Webauthn
+      description: >-
+        Initiate a Webauthn sign-in process by sending a challenge to the user's device.
+        The user must have previously registered a Webauthn credential.
+      operationId: signInWebauthn
+      requestBody:
+        description: Optional email address to help identify the user for WebAuthn authentication
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInWebauthnRequest"
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicKeyCredentialRequestOptions"
+          description: >-
+            Challenge sent
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+      tags:
+        - authentication
+
+  /signin/webauthn/verify:
+    post:
+      summary: Verify Webauthn sign-in
+      description: >-
+        Complete the Webauthn sign-in process by verifying the response from the user's device.
+        Returns a session if validation is successful.
+      operationId: verifySignInWebauthn
+      requestBody:
+        description: WebAuthn credential assertion response from the user's authenticator device
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInWebauthnVerifyRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: >-
+            Sign in successful
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+      tags:
+        - authentication
+
+  /signout:
+    post:
+      summary: Sign out
+      description: End the current user session by invalidating refresh tokens. Optionally sign out from all devices.
+      operationId: signOut
+      tags:
+        - session
+      security:
+        - BearerAuth: []
+        - {}
+      requestBody:
+        description: Sign-out options including refresh token and whether to sign out from all devices
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignOutRequest"
+      responses:
+        "200":
+          description: "Successfully signed out"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signup/email-password:
+    post:
+      summary: Sign up with email and password
+      description: Register a new user account with email and password. Returns a session if email verification is not required, otherwise returns null session.
+      operationId: signUpEmailPassword
+      tags:
+        - authentication
+      requestBody:
+        description: User registration information including email, password, and optional profile data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpEmailPasswordRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: "Registration successful. If email verification is required, session will be null."
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /signup/webauthn:
+    post:
+      summary: Sign up with Webauthn
+      description: >-
+        Initiate a Webauthn sign-up process by sending a challenge to the user's device.
+        The user must not have an existing account.
+      operationId: signUpWebauthn
+      requestBody:
+        description: Email address and optional user options for WebAuthn registration
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpWebauthnRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicKeyCredentialCreationOptions"
+          description: >-
+            Challenge sent
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+      tags:
+        - authentication
+
+  /signup/webauthn/verify:
+    post:
+      summary: Verify Webauthn sign-up
+      description: >-
+        Complete the Webauthn sign-up process by verifying the response from the user's device.
+        Returns a session if validation is successful.
+      operationId: verifySignUpWebauthn
+      requestBody:
+        description: WebAuthn credential creation response and optional user profile information
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpWebauthnVerifyRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: >-
+            Sign up successful
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+      tags:
+        - authentication
+        - verification
+
+  /token:
+    post:
+      summary: Refresh access token
+      description: Generate a new JWT access token using a valid refresh token. The refresh token used will be revoked and a new one will be issued.
+      operationId: refreshToken
+      tags:
+        - session
+      requestBody:
+        description: Refresh token to exchange for a new access token
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+          description: "Access token successfully refreshed"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /token/verify:
+    post:
+      summary: Verify JWT token
+      description: Verify the validity of a JWT access token. If no request body is provided, the Authorization header will be used for verification.
+      operationId: verifyToken
+      tags:
+        - session
+      security:
+        - BearerAuth: []
+        - {}
+      requestBody:
+        description: Optional JWT token to verify (if not provided, Authorization header will be used)
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyTokenRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "OK"
+          description: Valid JWT token
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user:
+    get:
+      summary: Get user information
+      description: Retrieve the authenticated user's profile information including roles, metadata, and account status.
+      operationId: getUser
+      tags:
+        - user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: User information
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/deanonymize:
+    post:
+      summary: Deanonymize an anonymous user
+      description: Convert an anonymous user to a regular user by adding email and optionally password credentials. A confirmation email will be sent if the server is configured to do so.
+      operationId: deanonymizeUser
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Authentication method and credentials to convert anonymous user to regular user
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserDeanonymizeRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            User deanonymized successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/email/change:
+    post:
+      summary: Change user email
+      description: Request to change the authenticated user's email address. A verification email will be sent to the new address to confirm the change. Requires elevated permissions.
+      operationId: changeUserEmail
+      tags:
+        - user
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        description: New email address and optional redirect URL for email change
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserEmailChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Email change requested. An email with a verification link has been sent to the new address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/email/send-verification-email:
+    post:
+      summary: Send verification email
+      description: Send an email verification link to the specified email address. Used to verify email addresses for new accounts or email changes.
+      operationId: sendVerificationEmail
+      tags:
+        - user
+      requestBody:
+        description: Email address and optional redirect URL for verification email
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserEmailSendVerificationEmailRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+          description: >-
+            Email verification email sent successfully
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/mfa:
+    post:
+      summary: Manage multi-factor authentication
+      description: Activate or deactivate multi-factor authentication for the authenticated user
+      operationId: verifyChangeUserMfa
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: TOTP verification code and MFA activation settings
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserMfaRequest"
+        required: true
+      responses:
+        "200":
+          description: "MFA status successfully updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/password:
+    post:
+      summary: Change user password
+      description: Change the user's password. The user must be authenticated with elevated permissions or provide a valid password reset ticket.
+      operationId: changeUserPassword
+      tags:
+        - user
+      security:
+        - BearerAuthElevated: []
+        - {}
+      requestBody:
+        description: New password and optional password reset ticket for authentication
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/password/reset:
+    post:
+      summary: Request password reset
+      description: Request a password reset for a user account. An email with a verification link will be sent to the user's email address to complete the password reset process.
+      operationId: sendPasswordResetEmail
+      tags:
+        - user
+      requestBody:
+        description: Email address and optional redirect URL for password reset
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPasswordResetRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Password reset requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/webauthn/add:
+    post:
+      summary: Initialize adding of a new webauthn security key
+      description: Start the process of adding a new WebAuthn security key to the user's account. Returns a challenge that must be completed by the user's authenticator device. Requires elevated permissions.
+      operationId: addSecurityKey
+      tags:
+        - security
+      security:
+        - BearerAuthElevated: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicKeyCredentialCreationOptions"
+          description: >-
+            Challenge created for registering a new security key
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
+  /user/webauthn/verify:
+    post:
+      summary: Verify adding of a new webauthn security key
+      description: Complete the process of adding a new WebAuthn security key by verifying the authenticator response. Requires elevated permissions.
+      operationId: verifyAddSecurityKey
+      tags:
+        - security
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        description: WebAuthn credential creation response and optional security key nickname
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyAddSecurityKeyRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyAddSecurityKeyResponse"
+          description: >-
+            Security key successfully added
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
+  /verify:
+    get:
+      summary: Verify email and authentication tickets
+      description: Verify tickets created by email verification, magic link authentication, or password reset processes. Redirects the user to the appropriate destination upon successful verification.
+      operationId: verifyTicket
+      tags:
+        - verification
+      parameters:
+        - $ref: "#/components/parameters/TicketQuery"
+        - $ref: "#/components/parameters/TicketTypeQuery"
+        - $ref: "#/components/parameters/RedirectToQuery"
+      responses:
+        "302":
+          description: Redirect response
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /version:
+    get:
+      summary: Get service version
+      description: Retrieve version information about the authentication service
+      operationId: getVersion
+      tags:
+        - system
+      responses:
+        "200":
+          description: "Version information successfully retrieved"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  version:
+                    type: string
+                    description: "The version of the authentication service"
+                    example: "1.2.3"
+                required:
+                  - version
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: "Bearer authentication with JWT access token. Used to authenticate requests to protected endpoints."
+    BearerAuthElevated:
+      type: http
+      scheme: bearer
+      description: "Bearer authentication that requires elevated permissions. Used for sensitive operations that may require additional security measures such as recent authentication. For details see https://docs.nhost.io/guides/auth/elevated-permissions"
+
+  schemas:
+    AttestationFormat:
+      type: string
+      enum:
+        - packed
+        - tpm
+        - android-key
+        - android-safetynet
+        - fido-u2f
+        - apple
+        - none
+      description: The attestation statement format
+
+    AuthenticationExtensions:
+      type: object
+      additionalProperties: true
+      description: Additional parameters requesting additional processing by the client and authenticator
+
+    AuthenticationExtensionsClientOutputs:
+      type: object
+      additionalProperties: true
+      description: Map of extension outputs from the client
+      properties:
+        appid:
+          type: boolean
+          description: Application identifier extension output
+        credProps:
+          $ref: "#/components/schemas/CredentialPropertiesOutput"
+        hmacCreateSecret:
+          type: boolean
+          description: HMAC secret extension output
+
+    AuthenticatorAssertionResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        clientDataJSON:
+          type: string
+          description: Base64url encoded client data JSON
+        authenticatorData:
+          type: string
+          description: Base64url encoded authenticator data
+        signature:
+          type: string
+          description: Base64url encoded assertion signature
+        userHandle:
+          type: string
+          nullable: true
+          description: Base64url encoded user handle
+      required:
+        - clientDataJSON
+        - authenticatorData
+        - signature
+
+    AuthenticatorAttachment:
+      type: string
+      enum:
+        - platform
+        - cross-platform
+      description: The authenticator attachment modality
+
+    AuthenticatorAttestationResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        clientDataJSON:
+          $ref: "#/components/schemas/URLEncodedBase64"
+        transports:
+          type: array
+          items:
+            type: string
+          description: The authenticator transports
+        authenticatorData:
+          $ref: "#/components/schemas/URLEncodedBase64"
+        publicKey:
+          $ref: "#/components/schemas/URLEncodedBase64"
+        publicKeyAlgorithm:
+          type: integer
+          format: int64
+          description: The public key algorithm identifier
+        attestationObject:
+          $ref: "#/components/schemas/URLEncodedBase64"
+      required:
+        - clientDataJSON
+        - attestationObject
+
+    AuthenticatorSelection:
+      type: object
+      additionalProperties: false
+      properties:
+        authenticatorAttachment:
+          $ref: "#/components/schemas/AuthenticatorAttachment"
+        requireResidentKey:
+          type: boolean
+          description: Whether the authenticator must create a client-side-resident public key credential source
+        residentKey:
+          $ref: "#/components/schemas/ResidentKeyRequirement"
+        userVerification:
+          $ref: "#/components/schemas/UserVerificationRequirement"
+
+    AuthenticatorTransport:
+      type: string
+      enum:
+        - usb
+        - nfc
+        - ble
+        - smart-card
+        - hybrid
+        - internal
+      description: The authenticator transports that can be used
+
+    ConveyancePreference:
+      type: string
+      enum:
+        - none
+        - indirect
+        - direct
+        - enterprise
+      default: none
+      description: The attestation conveyance preference
+
+    CreatePATRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        expiresAt:
+          description: Expiration date of the PAT
+          format: date-time
+          type: string
+
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            name: my-pat
+            used-by: my-app-cli
+          properties: {}
+      required:
+        - expiresAt
+
+    CreatePATResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          description: ID of the PAT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        personalAccessToken:
+          description: PAT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - id
+        - personalAccessToken
+
+    CredentialAssertionResponse:
+      type: object
+      x-go-type-import:
+        name: protocol
+        path: github.com/go-webauthn/webauthn/protocol
+      x-go-type: protocol.CredentialAssertionResponse
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: The credential's identifier
+        type:
+          type: string
+          description: The credential type represented by this object
+        rawId:
+          $ref: "#/components/schemas/URLEncodedBase64"
+        clientExtensionResults:
+          $ref: "#/components/schemas/AuthenticationExtensionsClientOutputs"
+        authenticatorAttachment:
+          type: string
+          description: The authenticator attachment
+        response:
+          $ref: "#/components/schemas/AuthenticatorAssertionResponse"
+      required:
+        - id
+        - type
+        - rawId
+        - response
+
+    CredentialCreationResponse:
+      type: object
+      additionalProperties: false
+      x-go-type-import:
+        name: protocol
+        path: github.com/go-webauthn/webauthn/protocol
+      x-go-type: protocol.CredentialCreationResponse
+      properties:
+        id:
+          type: string
+          description: The credential's identifier
+        type:
+          type: string
+          description: The credential type represented by this object
+        rawId:
+          $ref: "#/components/schemas/URLEncodedBase64"
+        clientExtensionResults:
+          $ref: "#/components/schemas/AuthenticationExtensionsClientOutputs"
+        authenticatorAttachment:
+          type: string
+          description: The authenticator attachment
+        response:
+          $ref: "#/components/schemas/AuthenticatorAttestationResponse"
+      required:
+        - id
+        - type
+        - rawId
+        - response
+
+    CredentialParameter:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          $ref: "#/components/schemas/CredentialType"
+        alg:
+          type: integer
+          description: The cryptographic algorithm identifier
+      required:
+        - type
+        - alg
+
+    CredentialPropertiesOutput:
+      type: object
+      additionalProperties: false
+      description: Credential properties extension output
+      properties:
+        rk:
+          type: boolean
+          description: Indicates if the credential is a resident key
+
+    CredentialType:
+      type: string
+      enum:
+        - public-key
+      description: The valid credential types
+
+    ErrorResponse:
+      type: object
+      description: "Standardized error response"
+      additionalProperties: false
+      properties:
+        status:
+          description: "HTTP status error code"
+          type: integer
+          example: 400
+        message:
+          description: "Human-friendly error message"
+          type: string
+          example: "Invalid email format"
+        error:
+          description: "Error code identifying the specific application error"
+          type: string
+          enum:
+            - default-role-must-be-in-allowed-roles
+            - disabled-endpoint
+            - disabled-user
+            - email-already-in-use
+            - email-already-verified
+            - forbidden-anonymous
+            - internal-server-error
+            - invalid-email-password
+            - invalid-request
+            - locale-not-allowed
+            - password-too-short
+            - password-in-hibp-database
+            - redirectTo-not-allowed
+            - role-not-allowed
+            - signup-disabled
+            - unverified-user
+            - user-not-anonymous
+            - invalid-pat
+            - invalid-refresh-token
+            - invalid-ticket
+            - disabled-mfa-totp
+            - no-totp-secret
+            - invalid-totp
+            - mfa-type-not-found
+            - totp-already-active
+            - invalid-state
+            - oauth-token-echange-failed
+            - oauth-profile-fetch-failed
+            - oauth-provider-error
+            - invalid-otp
+            - cannot-send-sms
+      required:
+        - status
+        - message
+        - error
+
+    IdTokenProvider:
+      type: string
+      additionalProperties: false
+      enum:
+        - apple
+        - google
+
+    JWK:
+      type: object
+      description: "JSON Web Key for JWT verification"
+      additionalProperties: false
+      properties:
+        alg:
+          type: string
+          description: "Algorithm used with this key"
+          example: "RS256"
+        e:
+          type: string
+          description: "RSA public exponent"
+          example: "AQAB"
+        kid:
+          type: string
+          description: "Key ID"
+          example: "key-id-1"
+        kty:
+          type: string
+          description: "Key type"
+          example: "RSA"
+        n:
+          type: string
+          description: "RSA modulus"
+          example: "abcd1234..."
+        use:
+          type: string
+          description: "Key usage"
+          example: "sig"
+      required:
+        - alg
+        - e
+        - kid
+        - kty
+        - n
+        - use
+
+    JWKSet:
+      type: object
+      description: "JSON Web Key Set for verifying JWT signatures"
+      additionalProperties: false
+      properties:
+        keys:
+          type: array
+          description: "Array of public keys"
+          items:
+            $ref: "#/components/schemas/JWK"
+      required:
+        - keys
+
+    LinkIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        provider:
+          $ref: "#/components/schemas/IdTokenProvider"
+        idToken:
+          type: string
+          description: Apple ID token
+        nonce:
+          type: string
+          description: Nonce used during sign in process
+      required:
+        - provider
+        - idToken
+
+    MFAChallengePayload:
+      type: object
+      description: "Challenge payload for multi-factor authentication"
+      additionalProperties: false
+      properties:
+        ticket:
+          type: string
+          description: "Ticket to use when completing the MFA challenge"
+          example: "mfaTotp:abc123def456"
+      required:
+        - ticket
+
+    OKResponse:
+      type: string
+      additionalProperties: false
+      enum:
+        - OK
+
+    OptionsRedirectTo:
+      type: object
+      additionalProperties: false
+      properties:
+        redirectTo:
+          type: string
+          format: uri
+          example: https://my-app.com/catch-redirection
+
+    PublicKeyCredentialCreationOptions:
+      type: object
+      x-go-type-import:
+        name: protocol
+        path: github.com/go-webauthn/webauthn/protocol
+      x-go-type: protocol.PublicKeyCredentialCreationOptions
+      additionalProperties: false
+      properties:
+        rp:
+          $ref: "#/components/schemas/RelyingPartyEntity"
+        user:
+          $ref: "#/components/schemas/UserEntity"
+        challenge:
+          $ref: "#/components/schemas/URLEncodedBase64"
+        pubKeyCredParams:
+          type: array
+          items:
+            $ref: "#/components/schemas/CredentialParameter"
+          description: The desired credential types and their respective cryptographic parameters
+        timeout:
+          type: integer
+          description: A time, in milliseconds, that the caller is willing to wait for the call to complete
+        excludeCredentials:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicKeyCredentialDescriptor"
+          description: A list of PublicKeyCredentialDescriptor objects representing public key credentials that are not acceptable to the caller
+        authenticatorSelection:
+          $ref: "#/components/schemas/AuthenticatorSelection"
+        hints:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicKeyCredentialHints"
+          description: Hints to help guide the user through the experience
+        attestation:
+          $ref: "#/components/schemas/ConveyancePreference"
+        attestationFormats:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttestationFormat"
+          description: The preferred attestation statement formats
+        extensions:
+          $ref: "#/components/schemas/AuthenticationExtensions"
+      required:
+        - rp
+        - user
+        - challenge
+        - pubKeyCredParams
+
+    PublicKeyCredentialDescriptor:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          $ref: "#/components/schemas/CredentialType"
+        id:
+          $ref: "#/components/schemas/URLEncodedBase64"
+        transports:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuthenticatorTransport"
+          description: The authenticator transports that can be used
+      required:
+        - type
+        - id
+
+    PublicKeyCredentialHints:
+      type: string
+      enum:
+        - security-key
+        - client-device
+        - hybrid
+      description: Hints to help guide the user through the experience
+
+    PublicKeyCredentialRequestOptions:
+      type: object
+      x-go-type-import:
+        name: protocol
+        path: github.com/go-webauthn/webauthn/protocol
+      x-go-type: protocol.PublicKeyCredentialRequestOptions
+      additionalProperties: false
+      properties:
+        challenge:
+          $ref: "#/components/schemas/URLEncodedBase64"
+        timeout:
+          type: integer
+          description: A time, in milliseconds, that the caller is willing to wait for the call to complete
+        rpId:
+          type: string
+          description: The RP ID the credential should be scoped to
+        allowCredentials:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicKeyCredentialDescriptor"
+          description: A list of CredentialDescriptor objects representing public key credentials acceptable to the caller
+        userVerification:
+          $ref: "#/components/schemas/UserVerificationRequirement"
+        hints:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicKeyCredentialHints"
+          description: Hints to help guide the user through the experience
+        extensions:
+          $ref: "#/components/schemas/AuthenticationExtensions"
+      required:
+        - challenge
+
+    RefreshTokenRequest:
+      type: object
+      description: "Request to refresh an access token"
+      additionalProperties: false
+      properties:
+        refreshToken:
+          description: "Refresh token used to generate a new access token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - refreshToken
+
+    RelyingPartyEntity:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: A human-palatable name for the entity
+        id:
+          type: string
+          description: A unique identifier for the Relying Party entity, which sets the RP ID
+      required:
+        - name
+        - id
+
+    ResidentKeyRequirement:
+      type: string
+      enum:
+        - discouraged
+        - preferred
+        - required
+      default: discouraged
+      description: The resident key requirement
+
+    Session:
+      type: object
+      description: "User authentication session containing tokens and user information"
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+          description: "JWT token for authenticating API requests"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        accessTokenExpiresIn:
+          type: integer
+          format: int64
+          description: "Expiration time of the access token in seconds"
+          example: 900
+        refreshTokenId:
+          description: "Identifier for the refresh token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        refreshToken:
+          description: "Token used to refresh the access token"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - accessToken
+        - accessTokenExpiresIn
+        - refreshToken
+        - refreshTokenId
+
+    SessionPayload:
+      type: object
+      description: "Container for session information"
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+
+    SignInAnonymousRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName:
+          example: John Smith
+          type: string
+        locale:
+          description: A two-characters locale
+          example: en
+          maxLength: 2
+          minLength: 2
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            firstName: John
+            lastName: Smith
+          properties: {}
+
+    SignInEmailPasswordRequest:
+      type: object
+      description: "Request to authenticate using email and password"
+      additionalProperties: false
+      properties:
+        email:
+          description: "User's email address"
+          example: "john.smith@nhost.io"
+          format: email
+          type: string
+        password:
+          description: "User's password"
+          example: "Str0ngPassw#ord-94|%"
+          minLength: 3
+          maxLength: 50
+          type: string
+      required:
+        - email
+        - password
+
+    SignInEmailPasswordResponse:
+      type: object
+      description: "Response for email-password authentication that may include a session or MFA challenge"
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+        mfa:
+          $ref: "#/components/schemas/MFAChallengePayload"
+
+    SignInIdTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        provider:
+          $ref: "#/components/schemas/IdTokenProvider"
+        idToken:
+          type: string
+          description: Apple ID token
+        nonce:
+          type: string
+          description: Nonce used during sign in process
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - provider
+        - idToken
+
+    SignInMfaTotpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        ticket:
+          type: string
+          description: Ticket
+          pattern: ^mfaTotp:.*$
+        otp:
+          type: string
+          description: One time password
+      required:
+        - ticket
+        - otp
+
+    SignInOTPEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+
+    SignInOTPEmailVerifyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        otp:
+          type: string
+          description: One time password
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+      required:
+        - otp
+        - email
+
+    SignInOTPEmailVerifyResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+
+    SignInPATRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        personalAccessToken:
+          description: PAT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - personalAccessToken
+
+    SignInPasswordlessEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+
+    SignInPasswordlessSmsOtpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        phoneNumber:
+          description: Phone number of the user
+          example: '+123456789'
+          type: string
+        otp:
+          type: string
+          description: One-time password received by SMS
+      required:
+        - phoneNumber
+        - otp
+
+    SignInPasswordlessSmsOtpResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          $ref: '#/components/schemas/Session'
+        mfa:
+          $ref: '#/components/schemas/MFAChallengePayload'
+
+    SignInPasswordlessSmsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        phoneNumber:
+          description: Phone number of the user
+          example: '+123456789'
+          type: string
+        options:
+          $ref: '#/components/schemas/SignUpOptions'
+      required:
+        - phoneNumber
+
+    SignInWebauthnRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+
+    SignInWebauthnVerifyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email. Deprecated, no longer used
+          example: john.smith@nhost.io
+          format: email
+          type: string
+          deprecated: true
+        credential:
+          $ref: "#/components/schemas/CredentialAssertionResponse"
+      required:
+        - credential
+
+    SignOutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token for the current session
+        all:
+          type: boolean
+          default: false
+          description: Sign out from all connected devices
+
+    SignUpEmailPasswordRequest:
+      type: object
+      description: "Request to register a new user with email and password"
+      additionalProperties: false
+      properties:
+        email:
+          description: "Email address for the new user account"
+          example: "john.smith@nhost.io"
+          format: email
+          type: string
+        password:
+          description: "Password for the new user account"
+          example: "Str0ngPassw#ord-94|%"
+          minLength: 3
+          maxLength: 50
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+        - password
+
+    SignUpOptions:
+      type: object
+      additionalProperties: false
+      properties:
+        allowedRoles:
+          example:
+            - me
+            - user
+          type: array
+          items:
+            type: string
+        defaultRole:
+          example: user
+          type: string
+        displayName:
+          example: John Smith
+          type: string
+          # This is a very permissive regex that allows most characters
+          # but forbids characters like `&`, '/' and ':' that could be used for XSS
+          pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
+          maxLength: 32
+        locale:
+          description: A two-characters locale
+          example: en
+          maxLength: 2
+          minLength: 2
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            firstName: John
+            lastName: Smith
+          properties: {}
+        redirectTo:
+          type: string
+          format: uri
+          example: https://my-app.com/catch-redirection
+
+    SignUpWebauthnRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+
+    SignUpWebauthnVerifyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        credential:
+          $ref: "#/components/schemas/CredentialCreationResponse"
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+        nickname:
+          description: Nickname for the security key
+          type: string
+      required:
+        - credential
+
+    TotpGenerateResponse:
+      type: object
+      description: "Response containing TOTP setup information for MFA"
+      additionalProperties: false
+      properties:
+        imageUrl:
+          type: string
+          description: "URL to QR code image for scanning with an authenticator app"
+          example: "data:image/png;base64,iVBORw0KGg..."
+        totpSecret:
+          type: string
+          description: "TOTP secret key for manual setup with an authenticator app"
+          example: "ABCDEFGHIJK23456"
+      required:
+        - imageUrl
+        - totpSecret
+
+    URLEncodedBase64:
+      type: string
+      format: byte
+      description: Base64url-encoded binary data
+
+    User:
+      type: object
+      description: "User profile and account information"
+      additionalProperties: false
+      properties:
+        avatarUrl:
+          type: string
+          description: "URL to the user's profile picture"
+          example: "https://myapp.com/avatars/user123.jpg"
+        createdAt:
+          format: date-time
+          type: string
+          description: "Timestamp when the user account was created"
+          example: "2023-01-15T12:34:56Z"
+        defaultRole:
+          example: "user"
+          type: string
+          description: "Default authorization role for the user"
+        displayName:
+          example: "John Smith"
+          type: string
+          description: "User's display name"
+        email:
+          description: "User's email address"
+          example: "john.smith@nhost.io"
+          format: email
+          type: string
+        emailVerified:
+          type: boolean
+          description: "Whether the user's email has been verified"
+          example: true
+        id:
+          description: "Unique identifier for the user"
+          example: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        isAnonymous:
+          type: boolean
+          description: "Whether this is an anonymous user account"
+          example: false
+        locale:
+          description: "User's preferred locale (language code)"
+          example: "en"
+          maxLength: 2
+          minLength: 2
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+          description: "Custom metadata associated with the user"
+          example:
+            firstName: "John"
+            lastName: "Smith"
+          properties: {}
+        phoneNumber:
+          type: string
+          description: "User's phone number"
+          example: "+12025550123"
+        phoneNumberVerified:
+          type: boolean
+          description: "Whether the user's phone number has been verified"
+          example: false
+        roles:
+          example:
+            - "user"
+            - "customer"
+          type: array
+          description: "List of roles assigned to the user"
+          items:
+            type: string
+        activeMfaType:
+          type: string
+          description: Active MFA type for the user
+          nullable: true
+      required:
+        - avatarUrl
+        - createdAt
+        - defaultRole
+        - displayName
+        - emailVerified
+        - id
+        - isAnonymous
+        - locale
+        - metadata
+        - phoneNumberVerified
+        - roles
+
+    UserDeanonymizeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        signInMethod:
+          description: Which sign-in method to use
+          type: string
+          enum:
+            - email-password
+            - passwordless
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        password:
+          description: A password of minimum 3 characters
+          example: Str0ngPassw#ord-94|%
+          minLength: 3
+          maxLength: 50
+          type: string
+        connection:
+          deprecated: true
+          description: Deprecated, will be ignored
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - signInMethod
+        - email
+
+    UserEmailChangeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        newEmail:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/OptionsRedirectTo"
+      required:
+        - newEmail
+
+    UserEmailSendVerificationEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/OptionsRedirectTo"
+      required:
+        - email
+
+    UserEntity:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: A human-palatable name for the entity
+        displayName:
+          type: string
+          description: A human-palatable name for the user account, intended only for display
+        id:
+          type: string
+          description: The user handle of the user account entity
+      required:
+        - name
+        - displayName
+        - id
+
+    UserMfaRequest:
+      type: object
+      description: "Request to activate or deactivate multi-factor authentication"
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          description: "Verification code from the authenticator app when activating MFA"
+          example: "123456"
+        activeMfaType:
+          type: string
+          enum: [totp, ""]
+          description: "Type of MFA to activate. Use empty string to disable MFA."
+          example: "totp"
+      required:
+        - code
+
+    UserPasswordRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        newPassword:
+          description: A password of minimum 3 characters
+          example: Str0ngPassw#ord-94|%
+          minLength: 3
+          maxLength: 50
+          type: string
+        ticket:
+          type: string
+          pattern: ^passwordReset\:.*$
+          description: Ticket to reset the password, required if the user is not authenticated
+      required:
+        - newPassword
+
+    UserPasswordResetRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/OptionsRedirectTo"
+      required:
+        - email
+
+    UserVerificationRequirement:
+      type: string
+      enum:
+        - required
+        - preferred
+        - discouraged
+      default: preferred
+      description: A requirement for user verification for the operation
+
+    VerifyAddSecurityKeyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        credential:
+          $ref: "#/components/schemas/CredentialCreationResponse"
+        nickname:
+          type: string
+          description: Optional nickname for the security key
+      required:
+        - credential
+
+    VerifyAddSecurityKeyResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: The ID of the newly added security key
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        nickname:
+          type: string
+          description: The nickname of the security key if provided
+      required:
+        - id
+
+    VerifyTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        token:
+          type: string
+          description: JWT token to verify
+
+  parameters:
+    RedirectToQuery:
+      in: query
+      name: redirectTo
+      description: Target URL for the redirect
+      required: true
+      schema:
+        description: Target URL for the redirect
+        type: string
+        format: uri
+        example: https://my-app.com/catch-redirection
+
+    SignInProvider:
+      in: path
+      name: provider
+      required: true
+      description: The name of the social provider
+      schema:
+        type: string
+        enum:
+          - apple
+          - github
+          - google
+          - linkedin
+          - discord
+          - spotify
+          - twitch
+          - gitlab
+          - bitbucket
+          - workos
+          - azuread
+          - strava
+          - facebook
+          - windowslive
+          - twitter
+      deprecated: true
+
+    TicketQuery:
+      in: query
+      name: ticket
+      description: Ticket
+      required: true
+      schema:
+        type: string
+        description: Ticket
+        example: "verifyEmail:xxxxxxxx"
+
+    TicketTypeQuery:
+      in: query
+      name: type
+      description: Type of the ticket. Deprecated, no longer used
+      required: false
+      schema:
+        type: string
+        enum:
+          - emailVerify
+          - emailConfirmChange
+          - signinPasswordless
+          - passwordReset
+        description: Type of the ticket
+        example: emailVerify
+      deprecated: true
+
+  headers:
+    RedirectLocation:
+      description: URL to redirect to
+      schema:
+        type: string
+        format: uri
+      required: true
+

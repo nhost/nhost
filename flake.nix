@@ -46,7 +46,7 @@
             ./go.mod
             ./go.sum
             ./.golangci.yaml
-            ./go/api/openapi.yaml
+            ./docs/openapi.yaml
             ./go/api/server.cfg.yaml
             ./go/api/types.cfg.yaml
             ./go/sql/schema.sh
@@ -57,6 +57,14 @@
             (inDirectory "go/migrations/postgres")
             (inDirectory "email-templates")
             (inDirectory "vendor")
+          ];
+        };
+
+        openapi-src = nix-filter.lib.filter {
+          root = ./.;
+          include = [
+            ./docs/openapi.yaml
+            ./vacuum.yaml
           ];
         };
 
@@ -119,6 +127,7 @@
           oapi-codegen
           sqlc
           postgresql_17_4-client
+          vacuum-go
         ];
 
 
@@ -137,6 +146,21 @@
             ''
               mkdir $out
               nixpkgs-fmt --check ${nix-src}
+            '';
+
+          openapi = pkgs.runCommand "check-openapi"
+            {
+              nativeBuildInputs = with pkgs;
+                [
+                  vacuum-go
+                ];
+            }
+            ''
+              vacuum lint \
+                -dqb -n info \
+                --ruleset ${openapi-src}/vacuum.yaml \
+                ${openapi-src}/docs/openapi.yaml
+              mkdir -p $out
             '';
 
           go-checks = nixops-lib.go.check {

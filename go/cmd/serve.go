@@ -11,6 +11,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-auth/docs"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/hibp"
@@ -1224,7 +1225,7 @@ func getGoServer( //nolint:funlen
 	router := gin.New()
 
 	loader := openapi3.NewLoader()
-	doc, err := loader.LoadFromData(api.OpenAPISchema)
+	doc, err := loader.LoadFromData(docs.OpenAPISchema)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OpenAPI schema: %w", err)
 	}
