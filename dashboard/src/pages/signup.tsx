@@ -5,8 +5,57 @@ import { SignUpWithEmailAndPasswordForm } from '@/features/auth/SignUp/SignUpTab
 import { SignUpWithGithub } from '@/features/auth/SignUp/SignUpWithGithub';
 import NextLink from 'next/link';
 import type { ReactElement } from 'react';
+import { useEffect } from 'react';
+
+// Extend Window interface for gtag
+declare global {
+  interface Window {
+    gtag: (command: string, ...args: any[]) => void;
+    dataLayer: any[];
+  }
+}
 
 export default function SignUpPage() {
+  useEffect(() => {
+    if (window.gtag) {
+      return;
+    }
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(...args: any[]) { 
+      window.dataLayer.push(args); 
+    }
+    window.gtag = gtag;
+
+    const script = document.createElement('script');
+    script.src = "https://www.googletagmanager.com/gtag/js?id=AW-390000803";
+    script.async = true;
+    
+    script.onerror = () => {
+      console.error('Failed to load Google Ads script');
+    };
+
+    script.onload = () => {
+      // Configure gtag after script loads
+      gtag('js', new Date());
+      gtag('config', 'AW-390000803', {
+        linker: {
+          domains: ['nhost.io', 'app.nhost.io'],
+          accept_incoming: true,
+        },
+      });
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      const existingScript = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+      if (existingScript) {
+        document.head.removeChild(existingScript);
+      }
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-12 font-[Inter]">
       <h1 className="text-center text-3.5xl font-semibold lg:text-4.5xl">
