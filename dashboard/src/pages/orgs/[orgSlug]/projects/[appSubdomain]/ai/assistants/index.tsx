@@ -19,7 +19,7 @@ import { useMemo, type ReactElement } from 'react';
 
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
@@ -196,11 +196,11 @@ export default function AssistantsPage() {
 
 AssistantsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
     >
       <AISidebar className="w-full max-w-sidebar" />
       <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

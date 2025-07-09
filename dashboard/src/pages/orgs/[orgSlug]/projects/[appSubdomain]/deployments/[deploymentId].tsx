@@ -1,4 +1,4 @@
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import DeploymentDetails from '@/features/orgs/projects/deployments/components/DeploymentDetails/DeploymentDetails';
 import { useRouter } from 'next/router';
 import { type ReactElement } from 'react';
@@ -11,5 +11,5 @@ export default function DeploymentDetailsPage() {
 }
 
 DeploymentDetailsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <OrgLayout>{page}</OrgLayout>;
 };

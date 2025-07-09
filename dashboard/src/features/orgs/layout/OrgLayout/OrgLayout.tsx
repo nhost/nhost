@@ -1,5 +1,7 @@
-import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import {
+  AuthenticatedLayout,
+  type AuthenticatedLayoutProps,
+} from '@/components/layout/AuthenticatedLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v2/Alert';
 import type { BoxProps } from '@/components/ui/v2/Box';
@@ -19,7 +21,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useMemo, type ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
+export interface ProjectLayoutContentProps extends AuthenticatedLayoutProps {
   /**
    * Props passed to the internal `<main />` element.
    */
@@ -29,7 +31,7 @@ export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
 function ProjectLayoutContent({
   children,
   mainContainerProps = {},
-}: ProjectLayoutProps) {
+}: ProjectLayoutContentProps) {
   const {
     route,
     query: { appSubdomain },
@@ -155,16 +157,24 @@ function ProjectLayoutContent({
   );
 }
 
-export default function ProjectLayout({
+interface OrgLayoutPros extends ProjectLayoutContentProps {
+  isOrgPage?: boolean;
+}
+
+export default function OrgLayout({
   children,
   mainContainerProps,
-  ...props
-}: ProjectLayoutProps) {
+  isOrgPage,
+}: OrgLayoutPros) {
   return (
-    <AuthenticatedLayout {...props}>
-      <ProjectLayoutContent mainContainerProps={mainContainerProps}>
-        {children}
-      </ProjectLayoutContent>
+    <AuthenticatedLayout>
+      {isOrgPage ? (
+        children
+      ) : (
+        <ProjectLayoutContent mainContainerProps={mainContainerProps}>
+          {children}
+        </ProjectLayoutContent>
+      )}
     </AuthenticatedLayout>
   );
 }
