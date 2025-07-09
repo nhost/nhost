@@ -7,7 +7,6 @@ import NextLink from 'next/link';
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 
-// Extend Window interface for gtag
 declare global {
   interface Window {
     gtag: (command: string, ...args: any[]) => void;
@@ -36,7 +35,6 @@ export default function SignUpPage() {
     };
 
     script.onload = () => {
-      // Configure gtag after script loads
       gtag('js', new Date());
       gtag('config', 'AW-390000803', {
         linker: {
