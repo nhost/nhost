@@ -89,9 +89,7 @@ export default function SupabaseVsNhostPage() {
                 <td className="py-4 px-6 font-medium text-white">
                   Postgres Access
                 </td>
-                <td className="py-4 px-6 text-gray-300">
-                  Root access
-                </td>
+                <td className="py-4 px-6 text-gray-300">Root access</td>
                 <td className="py-4 px-6 font-semibold text-blue-300">
                   Root access
                 </td>
@@ -104,8 +102,8 @@ export default function SupabaseVsNhostPage() {
                   Edge functions (Deno-based), limited customization
                 </td>
                 <td className="py-4 px-6 font-semibold text-blue-300">
-                  Serverless Functions (Lambda-based) + Nhost Run (bring your own containers),
-                  GraphQL federation with remote schemas
+                  Serverless Functions (Lambda-based) + Nhost Run (bring your
+                  own containers), GraphQL federation with remote schemas
                 </td>
               </tr>
               <tr className="hover:bg-gray-800/50">
@@ -294,8 +292,8 @@ export default function SupabaseVsNhostPage() {
       <Container component="section" className="max-w-4xl py-16 text-center">
         <h2 className="mb-4 text-3xl font-bold text-white">Not sure yet?</h2>
         <p className="mb-8 text-lg text-gray-300">
-          Read our blog post for a practical
-          evaluation for choosing a backend stack.
+          Read our blog post for a practical evaluation for choosing a backend
+          stack.
         </p>
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
           <Button
@@ -304,14 +302,14 @@ export default function SupabaseVsNhostPage() {
             rel="noopener noreferrer"
             className="text-center text-base"
           >
-            Try Nhost Free <ArrowRightIcon />
+            Try Nhost free <ArrowRightIcon />
           </Button>
           <Button
             variant="outlined"
             href="/blog/nhost-vs-supabase-practical-guide-for-growing-teams"
             className="text-center text-base"
           >
-            Read Full Guide
+            Read full guide
           </Button>
         </div>
       </Container>
