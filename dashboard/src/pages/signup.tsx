@@ -22,15 +22,15 @@ export default function SignUpPage() {
     }
 
     window.dataLayer = window.dataLayer || [];
-    function gtag(...args: any[]) { 
-      window.dataLayer.push(args); 
+    function gtag(...args: any[]) {
+      window.dataLayer.push(args);
     }
     window.gtag = gtag;
 
     const script = document.createElement('script');
-    script.src = "https://www.googletagmanager.com/gtag/js?id=AW-390000803";
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=AW-390000803';
     script.async = true;
-    
+
     script.onerror = () => {
       console.error('Failed to load Google Ads script');
     };
@@ -47,7 +47,6 @@ export default function SignUpPage() {
 
     document.head.appendChild(script);
   }, []);
-
 
   return (
     <>
@@ -99,9 +98,7 @@ export default function SignUpPage() {
         </p>
       </div>
 
-      <CookieConsent 
-        onAccept={initializeGoogleAds}
-      />
+      <CookieConsent onAccept={initializeGoogleAds} />
     </>
   );
 }

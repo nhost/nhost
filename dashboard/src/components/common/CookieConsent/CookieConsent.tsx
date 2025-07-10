@@ -9,7 +9,10 @@ interface CookieConsentProps {
 }
 
 export default function CookieConsent({ onAccept }: CookieConsentProps) {
-  const [consentGiven, setConsentGiven] = useSSRLocalStorage('cookie-consent', null);
+  const [consentGiven, setConsentGiven] = useSSRLocalStorage(
+    'cookie-consent',
+    null,
+  );
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
@@ -61,7 +64,7 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
               <Button
                 onClick={handleAccept}
                 size="sm"
-                className="bg-blue-600 text-white hover:bg-blue-700 text-xs px-3 py-1"
+                className="bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
               >
                 Accept all
               </Button>
@@ -69,7 +72,7 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
                 onClick={handleDecline}
                 variant="outline"
                 size="sm"
-                className="border-gray-600 text-white hover:bg-gray-800 text-xs px-3 py-1"
+                className="border-gray-600 px-3 py-1 text-xs text-white hover:bg-gray-800"
               >
                 Essential only
               </Button>
@@ -86,4 +89,4 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
       </div>
     </div>
   );
-} 
+}
