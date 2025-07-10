@@ -17,12 +17,10 @@ declare global {
 
 export default function SignUpPage() {
   const initializeGoogleAds = useCallback(() => {
-    // Check if gtag is already loaded to avoid duplicate scripts
     if (window.gtag) {
       return;
     }
 
-    // Initialize dataLayer first, before loading the script
     window.dataLayer = window.dataLayer || [];
     function gtag(...args: any[]) { 
       window.dataLayer.push(args); 
@@ -38,7 +36,6 @@ export default function SignUpPage() {
     };
 
     script.onload = () => {
-      // Configure gtag after script loads
       gtag('js', new Date());
       gtag('config', 'AW-390000803', {
         linker: {
@@ -51,10 +48,6 @@ export default function SignUpPage() {
     document.head.appendChild(script);
   }, []);
 
-  const handleConsentDecline = useCallback(() => {
-    // User declined cookies - don't initialize tracking
-    console.log('User declined analytics cookies');
-  }, []);
 
   return (
     <>
@@ -108,7 +101,6 @@ export default function SignUpPage() {
 
       <CookieConsent 
         onAccept={initializeGoogleAds}
-        onDecline={handleConsentDecline}
       />
     </>
   );

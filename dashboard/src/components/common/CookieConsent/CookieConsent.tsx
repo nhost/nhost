@@ -6,22 +6,18 @@ import { useEffect, useState } from 'react';
 
 interface CookieConsentProps {
   onAccept: () => void;
-  onDecline: () => void;
 }
 
-export default function CookieConsent({ onAccept, onDecline }: CookieConsentProps) {
+export default function CookieConsent({ onAccept }: CookieConsentProps) {
   const [consentGiven, setConsentGiven] = useSSRLocalStorage('cookie-consent', null);
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Show banner if no consent decision has been made
     if (consentGiven === null) {
       setShowBanner(true);
     } else if (consentGiven === true) {
-      // User previously accepted, initialize tracking
       onAccept();
     }
-    // If consentGiven === false, user declined, do nothing
   }, [consentGiven, onAccept]);
 
   const handleAccept = () => {
@@ -33,11 +29,9 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
   const handleDecline = () => {
     setConsentGiven(false);
     setShowBanner(false);
-    onDecline();
   };
 
   const handleClose = () => {
-    // Closing without decision is treated as decline
     handleDecline();
   };
 
