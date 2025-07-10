@@ -294,7 +294,6 @@ export default function EditRemoteSchemaPermissionsForm({
     return (
       <RemoteSchemaRolePermissionsEditorForm
         location={location}
-        disabled={disabled}
         remoteSchemaName={schema}
         role={selectedRole}
         permission={existingPermission}
