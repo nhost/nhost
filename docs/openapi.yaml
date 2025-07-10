@@ -531,6 +531,8 @@ paths:
           in: query
           required: false
           description: Array of allowed roles for the user
+          style: form
+          explode: false
           schema:
             type: array
             items:
@@ -566,13 +568,15 @@ paths:
         - name: metadata
           in: query
           required: false
-          description: Additional metadata for the user
-          schema:
-            type: object
-            additionalProperties: true
-            example:
-              firstName: John
-              lastName: Smith
+          description: Additional metadata for the user (JSON encoded string)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                example:
+                  firstName: John
+                  lastName: Smith
         - name: redirectTo
           in: query
           required: false
