@@ -251,10 +251,7 @@ function RemoteSchemaBrowserSidebarContent({
                           <Dropdown.Item
                             className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                             onClick={() =>
-                              handleEditPermissionClick(
-                                remoteSchema.name,
-                                remoteSchema.name,
-                              )
+                              handleEditPermissionClick(remoteSchema.name)
                             }
                           >
                             <UsersIcon
@@ -300,10 +297,7 @@ function RemoteSchemaBrowserSidebarContent({
                               key="edit-permissions"
                               className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                               onClick={() =>
-                                handleEditPermissionClick(
-                                  remoteSchema.name,
-                                  remoteSchema.name,
-                                )
+                                handleEditPermissionClick(remoteSchema.name)
                               }
                             >
                               <UsersIcon
