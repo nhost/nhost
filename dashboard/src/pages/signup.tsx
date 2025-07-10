@@ -1,4 +1,4 @@
-import CookieConsent from '@/components/common/CookieConsent';
+import { CookieConsent } from '@/components/common/CookieConsent';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Divider } from '@/components/ui/v2/Divider';
 import { SignUpTabs } from '@/features/auth/SignUp/SignUpTabs';

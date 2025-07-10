@@ -80,6 +80,7 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
           </div>
           <button
             onClick={handleClose}
+            type="button"
             className="text-[#A2B3BE] hover:text-white"
             aria-label="Close cookie banner"
           >
