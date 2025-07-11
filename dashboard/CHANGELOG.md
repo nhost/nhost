@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 2.34.0
+
+### Minor Changes
+
+- f7d7080: chore: dashboard: add gtag
+
+### Patch Changes
+
+- 56c87da: fix (dashboard): Use the correct http method when conneting to new github
+- ec24567: fix (dashboard): Add content-type header
+- 47ab341: fix (dashboard): Fix announcement layout when title is too short
+
 ## 2.33.0
 
 ### Minor Changes
