@@ -3,7 +3,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Button } from '@/components/ui/v2/Button';
 import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -275,7 +275,7 @@ export default function GraphQLPage() {
 
 GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex flex-col h-full',
         sx: {
@@ -309,6 +309,6 @@ GraphQLPage.getLayout = function getLayout(page: ReactElement) {
       }}
     >
       {page}
-    </ProjectLayout>
+    </OrgLayout>
   );
 };

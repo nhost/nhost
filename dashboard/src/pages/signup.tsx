@@ -2,7 +2,6 @@ import { CookieConsent } from '@/components/common/CookieConsent';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Divider } from '@/components/ui/v2/Divider';
 import { SignUpTabs } from '@/features/auth/SignUp/SignUpTabs';
-import { SignUpWithEmailAndPasswordForm } from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword';
 import { SignUpWithGithub } from '@/features/auth/SignUp/SignUpWithGithub';
 import NextLink from 'next/link';
 import type { ReactElement } from 'react';
@@ -65,9 +64,7 @@ export default function SignUpPage() {
 
             <Divider />
           </div>
-          {/* TODO: https://github.com/nhost/nhost/issues/3340 */}
           <SignUpTabs />
-          {false && <SignUpWithEmailAndPasswordForm />}
           <Divider className="!my-2" />
           <p className="text-center text-sm text-[#A2B3BE]">
             By signing up, you agree to our{' '}
@@ -89,11 +86,25 @@ export default function SignUpPage() {
             </NextLink>
           </p>
         </div>
-
-        <p className="text-center text-base text-[#A2B3BE] lg:text-lg">
-          Already have an account?{' '}
-          <NextLink href="/signin" className="font-medium text-white">
-            Sign In
+        <SignUpTabs />
+        <Divider className="!my-2" />
+        <p className="text-center text-sm text-[#A2B3BE]">
+          By signing up, you agree to our{' '}
+          <NextLink
+            href="https://nhost.io/legal/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-white"
+          >
+            Terms of Service
+          </NextLink>{' '}
+          and{' '}
+          <NextLink
+            href="https://nhost.io/legal/privacy-policy"
+            rel="noopener noreferrer"
+            className="font-semibold text-white"
+          >
+            Privacy Policy
           </NextLink>
         </p>
       </div>

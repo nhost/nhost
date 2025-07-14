@@ -28312,13 +28312,6 @@ export type GetOrganizationInvitesQueryVariables = Exact<{
 
 export type GetOrganizationInvitesQuery = { __typename?: 'query_root', organizationMemberInvites: Array<{ __typename?: 'organization_member_invites', id: any, email: any, role: Organization_Members_Role_Enum, createdAt: any, updateAt: any }> };
 
-export type GetOrganizationProjectsQueryVariables = Exact<{
-  orgId: Scalars['uuid'];
-}>;
-
-
-export type GetOrganizationProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
-
 export type GetOrganizationSpendingNotificationQueryVariables = Exact<{
   orgId: Scalars['uuid'];
 }>;
@@ -32540,44 +32533,6 @@ export type GetOrganizationInvitesLazyQueryHookResult = ReturnType<typeof useGet
 export type GetOrganizationInvitesQueryResult = Apollo.QueryResult<GetOrganizationInvitesQuery, GetOrganizationInvitesQueryVariables>;
 export function refetchGetOrganizationInvitesQuery(variables: GetOrganizationInvitesQueryVariables) {
       return { query: GetOrganizationInvitesDocument, variables: variables }
-    }
-export const GetOrganizationProjectsDocument = gql`
-    query getOrganizationProjects($orgId: uuid!) {
-  apps(where: {organizationID: {_eq: $orgId}}, order_by: {name: asc}) {
-    ...Project
-  }
-}
-    ${ProjectFragmentDoc}`;
-
-/**
- * __useGetOrganizationProjectsQuery__
- *
- * To run a query within a React component, call `useGetOrganizationProjectsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOrganizationProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetOrganizationProjectsQuery({
- *   variables: {
- *      orgId: // value for 'orgId'
- *   },
- * });
- */
-export function useGetOrganizationProjectsQuery(baseOptions: Apollo.QueryHookOptions<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>(GetOrganizationProjectsDocument, options);
-      }
-export function useGetOrganizationProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>(GetOrganizationProjectsDocument, options);
-        }
-export type GetOrganizationProjectsQueryHookResult = ReturnType<typeof useGetOrganizationProjectsQuery>;
-export type GetOrganizationProjectsLazyQueryHookResult = ReturnType<typeof useGetOrganizationProjectsLazyQuery>;
-export type GetOrganizationProjectsQueryResult = Apollo.QueryResult<GetOrganizationProjectsQuery, GetOrganizationProjectsQueryVariables>;
-export function refetchGetOrganizationProjectsQuery(variables: GetOrganizationProjectsQueryVariables) {
-      return { query: GetOrganizationProjectsDocument, variables: variables }
     }
 export const GetOrganizationSpendingNotificationDocument = gql`
     query getOrganizationSpendingNotification($orgId: uuid!) {
