@@ -130,7 +130,7 @@ function OverviewDeploymentList() {
   const { deployments: scheduledOrPendingDeployments } =
     scheduledOrPendingDeploymentsData || { deployments: [] };
   const isDeploymentInProgress = deployments?.some((deployment) =>
-    ['PENDING', 'SCHEDULED'].includes(deployment.deploymentStatus),
+    ['PENDING', 'SCHEDULED'].includes(deployment.deploymentStatus as string),
   );
 
   return (

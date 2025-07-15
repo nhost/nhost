@@ -7,6 +7,7 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import {
   DOC_EXPLORER_PLUGIN,
@@ -41,13 +42,27 @@ interface GraphiQLHeaderProps {
 function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
   const copyQuery = useCopyQuery();
   const prettifyEditors = usePrettifyEditors();
-  const {
-    isFetching: isQueryFetching,
-    run: runQuery,
-    stop: stopQuery,
-  } = useExecutionContext();
+
+  const executionContext = useExecutionContext();
+
+  const isQueryFetching = isNotEmptyValue(executionContext)
+    ? !!executionContext?.isFetching
+    : false;
+  const runQuery = isNotEmptyValue(executionContext)
+    ? executionContext.run
+    : () => {};
+  const stopQuery = isNotEmptyValue(executionContext)
+    ? executionContext.stop
+    : () => {};
   const { theme, setTheme } = useTheme();
-  const { visiblePlugin, setVisiblePlugin } = usePluginContext();
+  const pluginContext = usePluginContext();
+
+  const visiblePlugin = isNotEmptyValue(pluginContext)
+    ? pluginContext.visiblePlugin
+    : null;
+  const setVisiblePlugin = isNotEmptyValue(pluginContext)
+    ? pluginContext.setVisiblePlugin
+    : () => {};
 
   useEffect(() => {
     if (theme !== 'light') {

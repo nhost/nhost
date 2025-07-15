@@ -12,6 +12,7 @@ import { useCreateTableMutation } from '@/features/orgs/projects/database/dataGr
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useTrackTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackTableMutation';
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
@@ -61,8 +62,8 @@ export default function CreateTableForm({
       columns: [
         {
           name: '',
-          type: null,
-          defaultValue: null,
+          type: null as any,
+          defaultValue: null as any,
           isNullable: false,
           isUnique: false,
           isIdentity: false,
@@ -81,7 +82,7 @@ export default function CreateTableForm({
     try {
       const table: DatabaseTable = {
         ...values,
-        primaryKey: values.columns[values.primaryKeyIndex]?.name,
+        primaryKey: values.columns[values.primaryKeyIndex!]?.name,
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'
@@ -92,7 +93,7 @@ export default function CreateTableForm({
       await createTable({ table });
       await trackTable({ table });
 
-      if (table.foreignKeyRelations?.length > 0) {
+      if (isNotEmptyValue(table.foreignKeyRelations)) {
         await trackForeignKeyRelation({
           foreignKeyRelations: table.foreignKeyRelations,
           schema,
@@ -116,7 +117,7 @@ export default function CreateTableForm({
 
   return (
     <FormProvider {...form}>
-      {error && error instanceof Error && (
+      {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
@@ -139,7 +140,7 @@ export default function CreateTableForm({
             </Button>
           </Alert>
         </div>
-      )}
+      ) : null}
 
       <BaseTableForm
         submitButtonText="Create"

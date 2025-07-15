@@ -265,7 +265,7 @@ test(`transfer dialog opens automatically when there is a session_id and selects
       ClientSecret: null,
       __typename: 'PostOrganizationRequestResponse',
     },
-  });
+  } as any);
 
   mocks.useOrgs.mockImplementation(() => ({
     orgs: mockOrganizationsWithNewOrg,
@@ -278,7 +278,7 @@ test(`transfer dialog opens automatically when there is a session_id and selects
 
   await waitFor(async () => {
     expect(
-      await screen.queryByRole('combobox', {
+      screen.queryByRole('combobox', {
         name: /Organization/i,
       }),
     ).toBeInTheDocument();
@@ -330,7 +330,7 @@ test(`upgrade project dialog opens automatically when there is a session_id and 
       ClientSecret: null,
       __typename: 'PostOrganizationRequestResponse',
     },
-  });
+  } as any);
 
   mocks.useOrgs.mockImplementation(() => ({
     orgs: mockOrganizationsWithNewOrg,
@@ -346,7 +346,7 @@ test(`upgrade project dialog opens automatically when there is a session_id and 
 
   billingTransferAppRequestResolver.resolve({
     billingTransferApp: true,
-  });
+  } as any);
 
   await waitFor(async () => {});
 

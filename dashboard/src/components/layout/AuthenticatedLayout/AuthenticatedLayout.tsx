@@ -37,7 +37,9 @@ export default function AuthenticatedLayout({
 
   const { isAuthenticated, isLoading, isSigningOut } = useAuth();
   const { isHealthy, isLoading: isHealthyLoading } = useIsHealthy();
-  const [mainNavContainer, setMainNavContainer] = useState(null);
+  const [mainNavContainer, setMainNavContainer] = useState<HTMLElement | null>(
+    null,
+  );
   const { mainNavPinned } = useTreeNavState();
 
   useEffect(() => {

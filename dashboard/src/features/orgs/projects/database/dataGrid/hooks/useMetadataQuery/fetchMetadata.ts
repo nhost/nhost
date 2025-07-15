@@ -44,7 +44,7 @@ export default async function fetchMetadata({
   if (!response.ok || 'error' in responseData) {
     if ('internal' in responseData) {
       const queryError = responseData as QueryError;
-      throw new Error(queryError.internal.error.message);
+      throw new Error(queryError.internal?.error.message);
     }
 
     if ('error' in responseData) {

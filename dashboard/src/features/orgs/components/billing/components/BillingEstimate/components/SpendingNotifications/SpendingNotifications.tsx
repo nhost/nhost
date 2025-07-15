@@ -35,7 +35,7 @@ const validationSchema = Yup.object({
   threshold: Yup.number().test(
     'is-valid-threshold',
     `Threshold must be greater than 110% of your plan's price`,
-    (value: number, { options }) => {
+    (value, { options }) => {
       const planPrice = options?.context?.planPrice || 0;
       if (value === 0) {
         return true;
@@ -105,7 +105,7 @@ export default function SpendingNotifications() {
   const enabled = watch('enabled');
 
   const progress = useMemo(() => {
-    if (!enabled || threshold <= 0 || !amountDue) {
+    if (!enabled || !threshold || threshold <= 0 || !amountDue) {
       return 0;
     }
 
@@ -134,7 +134,7 @@ export default function SpendingNotifications() {
     const updateConfigPromise = updateConfig({
       variables: {
         id: org?.id,
-        threshold: values.threshold,
+        threshold: values.threshold!,
       },
     });
 

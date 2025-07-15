@@ -3,7 +3,9 @@ import type {
   AutocompleteProps,
 } from '@/components/ui/v2/Autocomplete';
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
+import { isNotEmptyValue } from '@/lib/utils';
 import { callAll } from '@/utils/callAll';
+import type { FilterOptionsState } from '@mui/material';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 import type { FieldValues, UseControllerProps } from 'react-hook-form';
@@ -28,6 +30,29 @@ export interface ControlledAutocompleteProps<
   control?: UseControllerProps<TFieldValues>['control'];
 }
 
+export function defaultFilterOptions(
+  options: AutocompleteOption<string>[],
+  { inputValue }: FilterOptionsState<AutocompleteOption<string>>,
+) {
+  const inputValueLower = inputValue.toLowerCase();
+  const matched: AutocompleteOption<string>[] = [];
+  const otherOptions: AutocompleteOption<string>[] = [];
+
+  options.forEach((option) => {
+    const optionLabelLower = option.label.toLowerCase();
+
+    if (optionLabelLower.startsWith(inputValueLower)) {
+      matched.push(option);
+    } else {
+      otherOptions.push(option);
+    }
+  });
+
+  const result = [...matched, ...otherOptions];
+
+  return result;
+}
+
 function ControlledAutocomplete(
   {
     controllerProps,
@@ -38,9 +63,10 @@ function ControlledAutocomplete(
   ref: ForwardedRef<HTMLInputElement>,
 ) {
   const form = useFormContext();
+  const nameAttr = controllerProps?.name || name || '';
   const { field } = useController({
     ...(controllerProps || {}),
-    name: controllerProps?.name || name || '',
+    name: nameAttr,
     control: controllerProps?.control || control,
   });
 
@@ -53,13 +79,15 @@ function ControlledAutocomplete(
   return (
     <Autocomplete
       inputValue={
-        typeof field.value !== 'object' ? field.value.toString() : undefined
+        typeof field.value !== 'object' && isNotEmptyValue(field.value)
+          ? field.value.toString()
+          : undefined
       }
       {...props}
       {...field}
       ref={mergeRefs([field.ref, ref])}
       onChange={(event, options, reason, details) => {
-        setValue?.(controllerProps?.name || name, options, {
+        setValue?.(nameAttr, options, {
           shouldDirty: true,
         });
 
@@ -67,7 +95,10 @@ function ControlledAutocomplete(
           props.onChange(event, options, reason, details);
         }
       }}
-      onBlur={callAll(field.onBlur, props.onBlur)}
+      onBlur={callAll<[React.FocusEvent<HTMLDivElement>]>(
+        field.onBlur,
+        props.onBlur,
+      )}
     />
   );
 }

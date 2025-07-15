@@ -12,7 +12,7 @@ export default function PinnedMainNav() {
     query: { orgSlug },
   } = useRouter();
 
-  const scrollContainerRef = useRef();
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const { mainNavPinned, setMainNavPinned } = useTreeNavState();
 
   useEffect(() => {

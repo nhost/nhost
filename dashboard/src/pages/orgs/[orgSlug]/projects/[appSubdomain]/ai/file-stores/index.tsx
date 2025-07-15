@@ -27,7 +27,7 @@ import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 export type GraphiteFileStore = Omit<
-  GetGraphiteFileStoresQuery['graphite']['fileStores'][0],
+  NonNullable<GetGraphiteFileStoresQuery['graphite']>['fileStores'][number],
   '__typename'
 >;
 
@@ -46,7 +46,7 @@ export default function FileStoresPage() {
     client: adminClient,
   });
 
-  const fileStores = useMemo(() => data?.graphite.fileStores || [], [data]);
+  const fileStores = useMemo(() => data?.graphite?.fileStores || [], [data]);
 
   const openCreateFileStoreForm = () => {
     openDrawer({
@@ -86,7 +86,7 @@ export default function FileStoresPage() {
   const slug = isPlatform ? org?.slug : 'local';
 
   if (
-    (isPlatform && !org?.plan?.isFree && !project.config?.ai) ||
+    (isPlatform && !org?.plan?.isFree && !project?.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (

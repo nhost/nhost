@@ -10,7 +10,7 @@ function useDeployment() {
     query: { deploymentId },
   } = useRouter();
 
-  const unsubscribe = useRef(null);
+  const unsubscribe = useRef<(() => void) | null>(null);
 
   const { subscribeToMore, ...result } = useGetDeploymentQuery({
     variables: {
@@ -32,17 +32,21 @@ function useDeployment() {
 
   useEffect(() => {
     if (
-      ['PENDING', 'SCHEDULED'].includes(data?.deployment.deploymentStatus) &&
+      ['PENDING', 'SCHEDULED'].includes(
+        data?.deployment?.deploymentStatus as string,
+      ) &&
       unsubscribe.current === null
     ) {
       unsubscribe.current = subscribeToDeployment();
     } else if (
-      ['DEPLOYED', 'FAILED'].includes(data?.deployment.deploymentStatus) &&
+      ['DEPLOYED', 'FAILED'].includes(
+        data?.deployment?.deploymentStatus as string,
+      ) &&
       unsubscribe.current !== null
     ) {
       unsubscribe.current();
     }
-  }, [data?.deployment.deploymentStatus, subscribeToDeployment]);
+  }, [data?.deployment?.deploymentStatus, subscribeToDeployment]);
 
   useEffect(
     () => () => {

@@ -9,11 +9,11 @@ export interface PrepareUpdateForeignKeyRelationQueryVariables
   /**
    * Original foreign key relation.
    */
-  originalForeignKeyRelation?: ForeignKeyRelation;
+  originalForeignKeyRelation?: ForeignKeyRelation | null;
   /**
    * Data for the new foreign key relation.
    */
-  foreignKeyRelation?: ForeignKeyRelation;
+  foreignKeyRelation?: ForeignKeyRelation | null;
 }
 
 /**

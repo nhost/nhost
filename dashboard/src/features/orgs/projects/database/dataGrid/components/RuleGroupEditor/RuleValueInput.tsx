@@ -46,7 +46,7 @@ function ColumnSelectorInput({
   table,
   disabled,
   ...props
-}: ColumnAutocompleteProps & { selectedTablePath: string }) {
+}: ColumnAutocompleteProps & { selectedTablePath: string; name: string }) {
   const { setValue, control } = useFormContext();
   const { field } = useController({
     name,
@@ -90,7 +90,7 @@ export interface RuleValueInputProps {
   /**
    * Path of the table selected through the column input.
    */
-  selectedTablePath?: string;
+  selectedTablePath: string;
 }
 
 export default function RuleValueInput({

@@ -68,7 +68,7 @@ export default function SettingsGeneralPage() {
     }
 
     return services?.some(
-      (service) => service?.config?.resources?.storage?.length > 0,
+      (service) => (service?.config?.resources?.storage?.length ?? 0) > 0,
     );
   }, [org?.plan?.isFree, services]);
 
@@ -131,7 +131,7 @@ export default function SettingsGeneralPage() {
 
     const updateAppMutation = updateApp({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         app: {
           name: data.name,
           slug: newProjectSlug,
@@ -161,12 +161,12 @@ export default function SettingsGeneralPage() {
           },
         });
 
-        await router.push(`/orgs/${org.slug}/projects`);
+        await router.push(`/orgs/${org?.slug}/projects`);
       },
       {
-        loadingMessage: `Deleting ${project.name}...`,
-        successMessage: `${project.name} has been deleted successfully.`,
-        errorMessage: `An error occurred while trying to delete the project "${project.name}". Please try again.`,
+        loadingMessage: `Deleting ${project?.name}...`,
+        successMessage: `${project?.name} has been deleted successfully.`,
+        errorMessage: `An error occurred while trying to delete the project "${project?.name}". Please try again.`,
       },
     );
   }
@@ -181,9 +181,9 @@ export default function SettingsGeneralPage() {
         await refetchProject();
       },
       {
-        loadingMessage: `Pausing ${project.name}...`,
-        successMessage: `${project.name} will be paused, but please note that it may take some time to complete the process.`,
-        errorMessage: `An error occurred while trying to pause the project "${project.name}". Please try again.`,
+        loadingMessage: `Pausing ${project?.name}...`,
+        successMessage: `${project?.name} will be paused, but please note that it may take some time to complete the process.`,
+        errorMessage: `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
       },
     );
   }

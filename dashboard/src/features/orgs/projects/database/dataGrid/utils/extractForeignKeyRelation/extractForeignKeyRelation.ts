@@ -14,7 +14,7 @@ import type {
 export default function extractForeignKeyRelation(
   name: string,
   rawConstraintDefinition: string,
-): ForeignKeyRelation {
+): ForeignKeyRelation | null {
   const matches =
     /FOREIGN KEY (.*) REFERENCES (.*)(\(.*\))\s?(ON UPDATE (?:CASCADE|SET NULL|SET DEFAULT|RESTRICT|NO ACTION))?\s?(ON DELETE (?:CASCADE|SET NULL|SET DEFAULT|RESTRICT|NO ACTION))?/gi.exec(
       rawConstraintDefinition,

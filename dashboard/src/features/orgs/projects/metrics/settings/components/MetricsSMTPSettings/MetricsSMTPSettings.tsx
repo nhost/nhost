@@ -85,7 +85,7 @@ export default function MetricsSMTPSettings() {
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           provider: {
             smtp: newPassword ? values : valuesWithoutPassword,

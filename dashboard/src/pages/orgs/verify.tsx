@@ -42,10 +42,10 @@ export default function PostCheckout() {
       const metadata = localStorage.getItem('metadata') || null;
       const parsedMetadata = metadata ? JSON.parse(metadata) : {};
 
-      const { id, name, slug, plan } = orgData.organizations[0];
       const isFromOnboarding =
         document.referrer.includes('/onboarding') ||
         sessionStorage.getItem('onboarding') === 'true';
+      const { id, name, slug, plan } = orgData?.organizations[0] || {};
 
       analytics.track('Organization Created', {
         organizationId: id,

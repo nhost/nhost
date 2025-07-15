@@ -1,6 +1,9 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import {
+  ControlledAutocomplete,
+  defaultFilterOptions,
+} from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -89,15 +92,20 @@ export default function DatabaseServiceVersionSettings() {
     skip: !isPlatform,
   });
 
-  const databaseVersions = databaseVersionsData?.softwareVersions || [];
-  const availableVersions = Array.from(
-    new Set(databaseVersions.map((el) => el.version)).add(postgresVersion),
-  )
-    .sort()
-    .map((availableVersion) => ({
-      label: availableVersion,
-      value: availableVersion,
-    }));
+  const availableVersions = useMemo(() => {
+    const databaseVersions = databaseVersionsData?.softwareVersions || [];
+    const optionsSet = new Set(databaseVersions.map((el) => el.version));
+    if (isNotEmptyValue(postgresVersion)) {
+      optionsSet.add(postgresVersion);
+    }
+
+    return Array.from(optionsSet)
+      .sort()
+      .map((availableVersion) => ({
+        label: availableVersion,
+        value: availableVersion,
+      }));
+  }, [postgresVersion, databaseVersionsData?.softwareVersions]);
 
   const form = useForm<DatabaseServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
@@ -118,7 +126,7 @@ export default function DatabaseServiceVersionSettings() {
     majorToMinorVersions: Record<string, DatabaseServiceField[]>;
   } => {
     const majorToMinorVersions = {};
-    const availableMajorVersions = [];
+    const availableMajorVersions: { label: string; value: string }[] = [];
     availableVersions.forEach((availableVersion) => {
       if (!availableVersion.value) {
         return;
@@ -245,7 +253,7 @@ export default function DatabaseServiceVersionSettings() {
     // Only minor version change or project is paused/pausing
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           postgres: {
             version: newVersion,
@@ -352,27 +360,13 @@ export default function DatabaseServiceVersionSettings() {
                 return option.value;
               }}
               showCustomOption="auto"
-              filterOptions={(options, { inputValue }) => {
-                const inputValueLower = inputValue.toLowerCase();
-                const matched = [];
-                const otherOptions = [];
-
-                options.forEach((option) => {
-                  const optionLabelLower = option.label.toLowerCase();
-
-                  if (optionLabelLower.startsWith(inputValueLower)) {
-                    matched.push(option);
-                  } else {
-                    otherOptions.push(option);
-                  }
-                });
-
-                const result = [...matched, ...otherOptions];
-
-                return result;
-              }}
+              filterOptions={defaultFilterOptions}
               onChange={(_event, value) => {
-                if (typeof value !== 'string' && !Array.isArray(value)) {
+                if (
+                  typeof value !== 'string' &&
+                  !Array.isArray(value) &&
+                  isNotEmptyValue(value)
+                ) {
                   if (value.value !== selectedMajor) {
                     const nextAvailableMinorVersions =
                       majorToMinorVersions[value.value] || [];
@@ -418,25 +412,7 @@ export default function DatabaseServiceVersionSettings() {
                 return option.value;
               }}
               isOptionEqualToValue={() => false}
-              filterOptions={(options, { inputValue }) => {
-                const inputValueLower = inputValue.toLowerCase();
-                const matched = [];
-                const otherOptions = [];
-
-                options.forEach((option) => {
-                  const optionLabelLower = option.label.toLowerCase();
-
-                  if (optionLabelLower.startsWith(inputValueLower)) {
-                    matched.push(option);
-                  } else {
-                    otherOptions.push(option);
-                  }
-                });
-
-                const result = [...matched, ...otherOptions];
-
-                return result;
-              }}
+              filterOptions={defaultFilterOptions}
               clearOnBlur
               fullWidth
               className="lg:col-span-2"

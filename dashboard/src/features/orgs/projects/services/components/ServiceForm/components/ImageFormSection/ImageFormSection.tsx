@@ -6,8 +6,8 @@ import { ImageField } from '@/features/orgs/projects/services/components/Service
 
 interface ImageFormSectionProps {
   onImageTypeChange?: (value: 'public' | 'private' | 'nhost') => void;
-  privateRegistryImage?: string;
-  imageType?: 'public' | 'private' | 'nhost';
+  privateRegistryImage: string;
+  imageType: 'public' | 'private' | 'nhost';
   initialImageTag?: string;
 }
 

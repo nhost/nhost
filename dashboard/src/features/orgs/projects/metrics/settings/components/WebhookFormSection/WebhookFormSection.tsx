@@ -91,7 +91,7 @@ export default function WebhookFormSection() {
 
                 <Select
                   fullWidth
-                  value={formValues.webhook.at(index)?.httpMethod || ''}
+                  value={formValues.webhook?.at(index)?.httpMethod || ''}
                   className="lg:col-span-2"
                   label="HTTP Method"
                   onChange={(_event, inputValue) =>

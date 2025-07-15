@@ -9,7 +9,7 @@ interface CookieConsentProps {
 }
 
 export default function CookieConsent({ onAccept }: CookieConsentProps) {
-  const [consentGiven, setConsentGiven] = useSSRLocalStorage(
+  const [consentGiven, setConsentGiven] = useSSRLocalStorage<boolean | null>(
     'cookie-consent',
     null,
   );

@@ -14,7 +14,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "strictNullChecks": false,
     "noImplicitAny": false,
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,

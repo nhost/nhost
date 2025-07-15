@@ -36,19 +36,19 @@ export interface FetchTableReturnType {
   /**
    * List of columns in the table.
    */
-  columns?: NormalizedQueryDataRow[];
+  columns: NormalizedQueryDataRow[];
   /**
    * List of rows in the table.
    */
-  rows?: NormalizedQueryDataRow[];
+  rows: NormalizedQueryDataRow[];
   /**
    * Foreign key relations in the table.
    */
-  foreignKeyRelations?: ForeignKeyRelation[];
+  foreignKeyRelations: ForeignKeyRelation[];
   /**
    * Total number of rows in the table.
    */
-  numberOfRows?: number;
+  numberOfRows: number;
   /**
    * Response metadata that usually contains information about the schema and
    * the table for which the query was run.
@@ -91,8 +91,11 @@ export default async function fetchTable({
 
     // Note: We are flattening object values so that we can pass them to the
     // formatter function as arguments
-    const flattenedOrderByValues = orderBy.reduce(
-      (values, currentOrderBy) => [...values, ...Object.values(currentOrderBy)],
+    const flattenedOrderByValues = orderBy.reduce<OrderBy[]>(
+      (values, currentOrderBy) => {
+        const currentValues = Object.values(currentOrderBy) as OrderBy[];
+        return [...values, ...currentValues];
+      },
       [],
     );
 
@@ -198,6 +201,7 @@ export default async function fetchTable({
           columns: [],
           rows: [],
           numberOfRows: 0,
+          foreignKeyRelations: [],
           metadata: { schema, table, schemaNotFound, tableNotFound },
         };
       }
@@ -210,6 +214,7 @@ export default async function fetchTable({
           columns: [],
           rows: [],
           numberOfRows: 0,
+          foreignKeyRelations: [],
           metadata: { schema, table, columnsNotFound: true },
         };
       }
@@ -252,7 +257,7 @@ export default async function fetchTable({
           columnName,
           JSON.stringify({
             ...foreignKeyRelation,
-            referencedSchema: foreignKeyRelation.referencedSchema || schema,
+            referencedSchema: foreignKeyRelation?.referencedSchema || schema,
           }),
         );
       }
@@ -261,7 +266,7 @@ export default async function fetchTable({
     if (constraintType === 'p') {
       if (primaryKeyConstraintMap.has(columnName)) {
         primaryKeyConstraintMap.set(columnName, [
-          ...primaryKeyConstraintMap.get(columnName),
+          ...primaryKeyConstraintMap.get(columnName)!,
           constraintName,
         ]);
       } else {
@@ -272,7 +277,7 @@ export default async function fetchTable({
     if (constraintType === 'u') {
       if (uniqueKeyConstraintMap.has(columnName)) {
         uniqueKeyConstraintMap.set(columnName, [
-          ...uniqueKeyConstraintMap.get(columnName),
+          ...uniqueKeyConstraintMap.get(columnName)!,
           constraintName,
         ]);
       } else {

@@ -68,6 +68,9 @@ export const validationSchema = Yup.object({
 });
 
 export type AssistantFormValues = Yup.InferType<typeof validationSchema>;
+export type AssistantFormInitialData = AssistantFormValues & {
+  fileStores?: string[];
+};
 
 export interface AssistantFormProps extends DialogFormProps {
   /**
@@ -78,9 +81,7 @@ export interface AssistantFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AssistantFormValues & {
-    fileStores?: string[];
-  };
+  initialData?: AssistantFormInitialData;
   fileStores?: GraphiteFileStore[];
 
   /**
@@ -126,7 +127,7 @@ export default function AssistantForm({
   const assistantFileStore = initialData?.fileStores
     ? fileStores?.find(
         (fileStore: GraphiteFileStore) =>
-          fileStore.id === initialData?.fileStores[0],
+          fileStore.id === initialData?.fileStores?.[0],
       )
     : null;
 

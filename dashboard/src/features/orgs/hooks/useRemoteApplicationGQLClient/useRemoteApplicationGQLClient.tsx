@@ -10,16 +10,17 @@ import { useMemo } from 'react';
  */
 export default function useRemoteApplicationGQLClient() {
   const { project, loading } = useProject();
-  const serviceUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'graphql',
-  );
 
   const userApplicationClient = useMemo(() => {
-    if (loading || !serviceUrl) {
+    if (loading || !project?.subdomain) {
       return new ApolloClient({ cache: new InMemoryCache() });
     }
+
+    const serviceUrl = generateAppServiceUrl(
+      project.subdomain,
+      project.region,
+      'graphql',
+    );
 
     return new ApolloClient({
       cache: new InMemoryCache(),
@@ -29,11 +30,16 @@ export default function useRemoteApplicationGQLClient() {
           'x-hasura-admin-secret':
             process.env.NEXT_PUBLIC_ENV === 'dev'
               ? getHasuraAdminSecret()
-              : project?.config?.hasura.adminSecret,
+              : project?.config?.hasura.adminSecret!,
         },
       }),
     });
-  }, [loading, serviceUrl, project?.config?.hasura.adminSecret]);
+  }, [
+    loading,
+    project?.config?.hasura.adminSecret,
+    project?.subdomain,
+    project?.region,
+  ]);
 
   return userApplicationClient;
 }

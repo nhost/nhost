@@ -147,7 +147,7 @@ export default function DatabaseStorageCapacity() {
       async () => {
         await updateConfig({
           variables: {
-            appId: project.id,
+            appId: project?.id,
             config: {
               postgres: {
                 resources: {

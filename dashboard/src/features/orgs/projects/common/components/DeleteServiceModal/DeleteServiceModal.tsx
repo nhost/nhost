@@ -32,7 +32,7 @@ export default function DeleteServiceModal({
   const deleteServiceAndConfig = async () => {
     await deleteRunService({ variables: { serviceID: service.id } });
     await deleteRunServiceConfig({
-      variables: { appID: project.id, serviceID: service.id },
+      variables: { appID: project?.id, serviceID: service.id },
     });
     await onDelete?.();
     close();

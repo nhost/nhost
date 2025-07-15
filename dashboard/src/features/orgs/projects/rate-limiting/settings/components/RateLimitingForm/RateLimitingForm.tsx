@@ -99,7 +99,7 @@ export default function RateLimitingForm({
   const handleSubmit = async (formValues: RateLimitingFormValues) => {
     const updateConfigPromise = updateRateLimitConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           [serviceName]: {
             rateLimit: formValues.enabled

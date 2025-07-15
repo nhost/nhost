@@ -1,4 +1,4 @@
-export default function parseIntervalNameUnit(interval: string) {
+export default function parseIntervalNameUnit(interval?: string) {
   if (!interval) {
     return {};
   }

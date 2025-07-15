@@ -10,7 +10,10 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
+import {
+  AutoEmbeddingsForm,
+  type AutoEmbeddingsInitialData,
+} from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { DeleteAutoEmbeddingsModal } from '@/features/orgs/projects/ai/DeleteAutoEmbeddingsModal';
 import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 import { formatDistanceToNow } from 'date-fns';
@@ -26,7 +29,7 @@ interface AutoEmbeddingsConfigurationsListProps {
    *
    * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate?: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<any>;
 
   /**
    * Function to be called after a successful delete action.
@@ -55,9 +58,7 @@ export default function AutoEmbeddingsList({
       component: (
         <AutoEmbeddingsForm
           autoEmbeddingsId={autoEmbeddingsConfiguration.id}
-          initialData={{
-            ...autoEmbeddingsConfiguration,
-          }}
+          initialData={autoEmbeddingsConfiguration as AutoEmbeddingsInitialData}
           onSubmit={() => onCreateOrUpdate()}
         />
       ),
