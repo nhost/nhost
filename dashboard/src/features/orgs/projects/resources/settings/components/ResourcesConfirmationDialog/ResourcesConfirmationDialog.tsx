@@ -75,9 +75,8 @@ export default function ResourcesConfirmationDialog({
         priceForTotalAvailableVCPU,
         (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
           RESOURCE_VCPU_PRICE,
-        // ) + proPlan.price
       )
-    : proPlan.price;
+    : proPlan?.price;
 
   if (!loading && !proPlan) {
     return (
@@ -125,15 +124,10 @@ export default function ResourcesConfirmationDialog({
       ) : (
         <Text className="text-center">
           By confirming this you will go back to the original shared resources
-          included in the {proPlan.name} plan.
+          included in the {proPlan?.name} plan.
         </Text>
       )}
       <Box className="grid grid-flow-row gap-4">
-        {/* <Box className="grid justify-between grid-flow-col gap-2">
-          <Text className="font-medium">{proPlan.name} Plan</Text>
-          <Text>${proPlan.price.toFixed(2)}/mo</Text>
-        </Box> */}
-
         <Box className="grid grid-flow-row gap-1.5">
           <Box className="grid grid-flow-col items-center justify-between gap-2">
             <Box className="grid grid-flow-row gap-0.5">
@@ -215,7 +209,7 @@ export default function ResourcesConfirmationDialog({
             </Tooltip>
           </Box>
 
-          <Text>{enabled ? `$${updatedPrice.toFixed(2)}/mo` : `$0/mo`}</Text>
+          <Text>{enabled ? `$${updatedPrice?.toFixed(2)}/mo` : `$0/mo`}</Text>
         </Box>
         {enabled && (
           <Text className="text-xs text-gray-400">

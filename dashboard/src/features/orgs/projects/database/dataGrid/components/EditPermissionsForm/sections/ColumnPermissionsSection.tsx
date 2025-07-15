@@ -50,6 +50,7 @@ export default function ColumnPermissionsSection({
   } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
   if (tableError) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw tableError;
   }
 
@@ -93,7 +94,6 @@ export default function ColumnPermissionsSection({
           {tableData?.columns?.map((column) => (
             <Checkbox
               disabled={disabled}
-              name="columns"
               value={column.column_name}
               label={column.column_name}
               key={column.column_name}

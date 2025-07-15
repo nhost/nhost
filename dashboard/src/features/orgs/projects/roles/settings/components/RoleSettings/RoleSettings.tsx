@@ -123,7 +123,9 @@ export default function RoleSettings() {
               auth: {
                 user: {
                   roles: {
-                    allowed: allowedRoles.filter((role) => role !== name),
+                    allowed: (allowedRoles ?? []).filter(
+                      (role) => role !== name,
+                    ),
                     default: name === defaultRole ? 'user' : defaultRole,
                   },
                 },

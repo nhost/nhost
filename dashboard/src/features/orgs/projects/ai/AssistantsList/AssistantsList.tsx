@@ -8,7 +8,10 @@ import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon'
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
+import {
+  AssistantForm,
+  type AssistantFormInitialData,
+} from '@/features/orgs/projects/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/orgs/projects/ai/DeleteAssistantModal';
 import { type Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
 import { type GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
@@ -23,14 +26,14 @@ interface AssistantsListProps {
   /**
    * The list of file stores
    */
-  fileStores: GraphiteFileStore[];
+  fileStores?: GraphiteFileStore[];
 
   /**
    * Function to be called after a submitting the form for either creating or updating an assistant.
    *
    * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate?: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<any>;
 
   /**
    * Function to be called after a successful delete action.
@@ -53,11 +56,9 @@ export default function AssistantsList({
       component: (
         <AssistantForm
           assistantId={assistant.assistantID}
-          initialData={{
-            ...assistant,
-          }}
+          initialData={assistant as AssistantFormInitialData}
           fileStores={fileStores}
-          onSubmit={() => onCreateOrUpdate()}
+          onSubmit={onCreateOrUpdate}
         />
       ),
     });

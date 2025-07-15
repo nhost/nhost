@@ -33,17 +33,11 @@ export default function CreateForeignKeyForm({
   selectedColumn,
   ...props
 }: CreateForeignKeyFormProps) {
-  const [error, setError] = useState<Error>(null);
+  const [error, setError] = useState<Error | null>(null);
 
-  const form = useForm<
-    | BaseForeignKeyFormValues
-    | Yup.InferType<typeof baseForeignKeyValidationSchema>
-  >({
+  const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
-      id: null,
-      name: '',
       columnName: selectedColumn || '',
-      disableOriginColumn: Boolean(selectedColumn),
       referencedSchema: 'public',
       referencedTable: '',
       referencedColumn: '',
@@ -53,9 +47,10 @@ export default function CreateForeignKeyForm({
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
+  const disableOriginColumn = Boolean(selectedColumn);
 
   async function handleSubmit(values: BaseForeignKeyFormValues) {
-    setError(undefined);
+    setError(null);
 
     try {
       await onSubmit?.(values);
@@ -95,6 +90,7 @@ export default function CreateForeignKeyForm({
       <BaseForeignKeyForm
         submitButtonText="Add"
         onSubmit={handleSubmit}
+        disableOriginColumn={disableOriginColumn}
         {...props}
       />
     </FormProvider>

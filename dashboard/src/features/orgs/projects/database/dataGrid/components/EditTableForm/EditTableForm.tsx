@@ -17,6 +17,7 @@ import type {
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
+import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
@@ -58,10 +59,8 @@ export default function EditTableForm({
     table: originalTable.table_name,
   });
 
-  const { columns, foreignKeyRelations } = data || {
-    columns: [],
-    foreignKeyRelations: [],
-  };
+  const columns = data?.columns;
+  const foreignKeyRelations = data?.foreignKeyRelations;
 
   const dataGridColumns = (columns || []).map((column) =>
     normalizeDatabaseColumn(column),
@@ -148,7 +147,7 @@ export default function EditTableForm({
     try {
       const updatedTable: DatabaseTable = {
         ...values,
-        primaryKey: values.columns[values.primaryKeyIndex]?.name,
+        primaryKey: values.columns[values.primaryKeyIndex!]?.name,
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'
@@ -159,11 +158,11 @@ export default function EditTableForm({
       await updateTable({
         originalTable,
         originalColumns: dataGridColumns,
-        originalForeignKeyRelations: foreignKeyRelations,
+        originalForeignKeyRelations: foreignKeyRelations ?? [],
         updatedTable,
       });
 
-      if (updatedTable.foreignKeyRelations?.length > 0) {
+      if (isNotEmptyValue(updatedTable.foreignKeyRelations)) {
         await trackForeignKeyRelations({
           foreignKeyRelations: updatedTable.foreignKeyRelations,
           schema,
@@ -210,7 +209,7 @@ export default function EditTableForm({
 
   return (
     <FormProvider {...form}>
-      {error && error instanceof Error && (
+      {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
@@ -230,7 +229,7 @@ export default function EditTableForm({
             </Button>
           </Alert>
         </div>
-      )}
+      ) : null}
 
       <BaseTableForm
         submitButtonText="Save"

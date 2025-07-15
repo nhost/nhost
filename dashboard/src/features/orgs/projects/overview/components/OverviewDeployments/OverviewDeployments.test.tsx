@@ -208,8 +208,9 @@ test('should render a list of deployments', async () => {
   render(<OverviewDeployments />);
 
   expect(await screen.findByText(/test commit message/i)).toBeInTheDocument();
-  expect(await screen.findByLabelText(/avatar/i)).toHaveStyle(
-    'background-image: url(http://images.example.com/avatar.png)',
+  expect(await screen.findByAltText('test.user')).toHaveAttribute(
+    'src',
+    'http://images.example.com/avatar.png',
   );
   expect(
     await screen.findByRole('link', {

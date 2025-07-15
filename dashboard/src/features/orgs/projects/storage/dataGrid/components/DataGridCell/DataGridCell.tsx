@@ -54,12 +54,11 @@ export interface CommonDataGridCellProps<TData extends object, TValue = any>
   onTemporaryValueChange?: (value: TValue) => void;
 }
 
-export interface DataGridCellProps<TData extends object, TValue = unknown>
-  extends BoxProps {
+export interface DataGridCellProps<TData extends object> extends BoxProps {
   /**
    * Current cell's props.
    */
-  cell: DataBrowserGridCell<TData, TValue>;
+  cell: DataBrowserGridCell<TData, any>;
   /**
    * Determines whether the cell is editable.
    */
@@ -70,7 +69,7 @@ export interface DataGridCellProps<TData extends object, TValue = unknown>
   columnType?: ColumnType;
 }
 
-function DataGridCellContent<TData extends object = {}, TValue = unknown>({
+function DataGridCellContent<TData extends object = {}>({
   isEditable,
   children,
   className,
@@ -80,7 +79,7 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
     row,
   },
   ...props
-}: DataGridCellProps<TData, TValue>) {
+}: DataGridCellProps<TData>) {
   const { openAlertDialog } = useDialog();
 
   const {
@@ -91,8 +90,8 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
     resetTooltipTitle,
   } = useTooltip();
 
-  const [optimisticValue, setOptimisticValue] = useState<TValue>(originalValue);
-  const [temporaryValue, setTemporaryValue] = useState<TValue>(originalValue);
+  const [optimisticValue, setOptimisticValue] = useState(originalValue);
+  const [temporaryValue, setTemporaryValue] = useState(originalValue);
 
   useEffect(() => {
     setOptimisticValue(originalValue);
@@ -152,7 +151,7 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
   }
 
   async function handleSave(
-    value: TValue,
+    value: any,
     options: { reset: boolean } = { reset: false },
   ) {
     if (!onCellEdit) {
@@ -370,8 +369,8 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
   return content;
 }
 
-export default function DataGridCell<TData extends object, TValue = unknown>(
-  props: DataGridCellProps<TData, TValue>,
+export default function DataGridCell<TData extends object>(
+  props: DataGridCellProps<TData>,
 ) {
   return (
     <DataGridCellProvider>

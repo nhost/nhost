@@ -93,7 +93,7 @@ export default function DataGridHeader<T extends object>({
                 column.id === 'selection' ? '100%' : headerProps.style?.width,
               zIndex:
                 column.id === 'selection' ? 10 : headerProps.style?.zIndex,
-              position: null,
+              position: undefined,
             }}
             key={column.id}
           >

@@ -1,7 +1,9 @@
 /**
  * Calls all the functions in the array with the given arguments.
  */
-export default function callAll(...fns: ((...args: any[]) => any)[]) {
+export default function callAll(
+  ...fns: (((...args: any[]) => any) | undefined)[]
+) {
   return (...args: any[]) => {
     fns.forEach((fn) => fn?.(...args));
   };

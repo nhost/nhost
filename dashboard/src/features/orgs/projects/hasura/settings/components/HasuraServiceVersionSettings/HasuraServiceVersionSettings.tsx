@@ -1,7 +1,10 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import {
+  ControlledAutocomplete,
+  defaultFilterOptions,
+} from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -15,8 +18,9 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -56,18 +60,23 @@ export default function HasuraServiceVersionSettings() {
     skip: !isPlatform,
   });
 
-  const { version } = data?.config?.hasura || {};
-  const versions = hasuraVersionsData?.softwareVersions || [];
-  const availableVersions = Array.from(
-    new Set(versions.map((el) => el.version)).add(version),
-  )
-    .filter((v) => !!v)
-    .sort()
-    .reverse()
-    .map((availableVersion) => ({
-      label: availableVersion,
-      value: availableVersion,
-    }));
+  const version = data?.config?.hasura.version;
+  const availableVersions = useMemo(() => {
+    const versions = hasuraVersionsData?.softwareVersions || [];
+    const optionsSet = new Set(versions.map((el) => el.version));
+    if (isNotEmptyValue(version)) {
+      optionsSet.add(version);
+    }
+
+    return Array.from(optionsSet)
+      .filter((v) => !!v)
+      .sort()
+      .reverse()
+      .map((availableVersion) => ({
+        label: availableVersion,
+        value: availableVersion,
+      }));
+  }, [version, hasuraVersionsData?.softwareVersions]);
 
   // TODO make sure the network request is made in the parent component
   // also this request should be made against cache only and the data should be available right away
@@ -107,7 +116,7 @@ export default function HasuraServiceVersionSettings() {
   async function handleSubmit(formValues: HasuraServiceVersionFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             version: formValues.version.value,
@@ -172,25 +181,7 @@ export default function HasuraServiceVersionSettings() {
             }}
             autoHighlight
             isOptionEqualToValue={() => false}
-            filterOptions={(options, { inputValue }) => {
-              const inputValueLower = inputValue.toLowerCase();
-              const matched = [];
-              const otherOptions = [];
-
-              options.forEach((option) => {
-                const optionLabelLower = option.label.toLowerCase();
-
-                if (optionLabelLower.startsWith(inputValueLower)) {
-                  matched.push(option);
-                } else {
-                  otherOptions.push(option);
-                }
-              });
-
-              const result = [...matched, ...otherOptions];
-
-              return result;
-            }}
+            filterOptions={defaultFilterOptions}
             fullWidth
             className="lg:col-span-2"
             aria-label="Hasura Service Version"

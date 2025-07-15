@@ -60,8 +60,8 @@ export default function WebhooksDataSourcesFormSection() {
                 placeholder="Name"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.webhooks?.at(index)?.name}
-                helperText={errors?.webhooks?.at(index)?.message}
+                error={!!errors?.webhooks?.at?.(index)?.name}
+                helperText={errors?.webhooks?.at?.(index)?.message}
                 fullWidth
                 autoComplete="off"
               />
@@ -73,8 +73,8 @@ export default function WebhooksDataSourcesFormSection() {
                 placeholder="Description"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.webhooks?.at(index)?.description}
-                helperText={errors?.webhooks?.at(index)?.description?.message}
+                error={!!errors?.webhooks?.at?.(index)?.description}
+                helperText={errors?.webhooks?.at?.(index)?.description?.message}
                 fullWidth
                 autoComplete="off"
                 multiline
@@ -90,8 +90,8 @@ export default function WebhooksDataSourcesFormSection() {
                 placeholder="URL"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.webhooks?.at(index)?.URL}
-                helperText={errors?.webhooks?.at(index)?.URL?.message}
+                error={!!errors?.webhooks?.at?.(index)?.URL}
+                helperText={errors?.webhooks?.at?.(index)?.URL?.message}
                 fullWidth
                 autoComplete="off"
                 multiline

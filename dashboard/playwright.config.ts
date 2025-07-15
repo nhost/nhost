@@ -17,7 +17,7 @@ export default defineConfig({
   reporter: 'html',
   use: {
     actionTimeout: 0,
-    trace: 'retain-on-failure',
+    trace: 'on',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
       slowMo: 500,

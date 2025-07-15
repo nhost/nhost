@@ -23,7 +23,7 @@ function checkIfAcceptedState(appState: ApplicationStatus) {
 export default function getPreviousApplicationState(
   states: ApplicationState[],
 ) {
-  let previousAcceptedStateInHistory: AcceptedState;
+  let previousAcceptedStateInHistory: AcceptedState | null = null;
 
   let wasTheApplicationPaused: boolean = false;
   let wasTheApplicationEverLive: boolean = false;

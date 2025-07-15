@@ -55,7 +55,7 @@ export default function MessageBox({ message }: { message: Message }) {
     <Box
       className="flex flex-col space-y-4 border-t p-4 first:border-t-0"
       sx={{
-        backgroundColor: isUserMessage && 'background.default',
+        backgroundColor: isUserMessage ? 'background.default' : undefined,
       }}
     >
       <div className="flex items-center space-x-2">

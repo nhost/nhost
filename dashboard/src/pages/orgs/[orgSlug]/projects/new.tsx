@@ -101,19 +101,18 @@ export function NewProjectPageContent({
 
     await execPromiseWithErrorToast(
       async () => {
-        const { data: { insertApp: { subdomain } = {} } = {} } =
-          await insertApp({
-            variables: {
-              app: {
-                name,
-                slug,
-                organizationID: selectedOrg.id,
-                regionId: selectedRegion.id,
-              },
+        const { data } = await insertApp({
+          variables: {
+            app: {
+              name,
+              slug,
+              organizationID: selectedOrg.id,
+              regionId: selectedRegion.id,
             },
-          });
-
-        if (subdomain) {
+          },
+        });
+        if (data?.insertApp?.subdomain) {
+          const { subdomain } = data.insertApp;
           analytics.track('Project Created', {
             projectName: name,
             projectSlug: slug,
@@ -204,7 +203,7 @@ export function NewProjectPageContent({
                 root: { className: 'grid grid-flow-col gap-1' },
               }}
               onChange={(_event, value) => {
-                const orgInList = orgs.find(({ id }) => id === value);
+                const orgInList = orgs.find(({ id }) => id === value)!;
 
                 setSelectedOrg({
                   id: orgInList.id,
@@ -250,7 +249,7 @@ export function NewProjectPageContent({
                 root: { className: 'grid grid-flow-col gap-1' },
               }}
               onChange={(_event, value) => {
-                const regionInList = regions.find(({ id }) => id === value);
+                const regionInList = regions.find(({ id }) => id === value)!;
                 setSelectedRegion({
                   id: regionInList.id,
                   name: regionInList.city,
@@ -357,7 +356,7 @@ export default function NewProjectPage() {
   // get pre-selected organization
   // use query param to get organization or just pick first organization
   const preSelectedOrg = currentOrg || orgs[0];
-  const preSelectedRegion = regions.find((region) => region.active);
+  const preSelectedRegion = regions.find((region) => region.active)!;
 
   return (
     <div className="flex h-full w-full items-start justify-center p-4">

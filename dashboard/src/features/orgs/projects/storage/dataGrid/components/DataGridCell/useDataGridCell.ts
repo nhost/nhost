@@ -3,8 +3,7 @@ import type { DataGridCellContextProps } from './DataGridCellProvider';
 import { DataGridCellContext } from './DataGridCellProvider';
 
 export default function useDataGridCell<TInput extends HTMLElement>() {
-  const context =
-    useContext<DataGridCellContextProps<TInput>>(DataGridCellContext);
+  const context = useContext(DataGridCellContext);
 
-  return context;
+  return context as DataGridCellContextProps<TInput>;
 }

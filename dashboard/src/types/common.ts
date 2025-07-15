@@ -8,3 +8,6 @@ export interface DialogFormProps {
    */
   location?: 'drawer' | 'dialog';
 }
+
+export type MakeRequired<T, K extends keyof T> = Omit<T, K> &
+  Required<Pick<T, K>>;

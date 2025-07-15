@@ -11,6 +11,7 @@ import type {
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isNotEmptyValue } from '@/lib/utils';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -99,7 +100,7 @@ export default function RuleGroupEditor({
 
   const contextValue = useMemo(
     () => ({
-      disabled,
+      disabled: !!disabled,
       schema,
       table,
     }),
@@ -232,7 +233,9 @@ export default function RuleGroupEditor({
                     unsupported: [],
                   })
                 }
-                disabled={depth >= maxDepth - 1}
+                disabled={
+                  isNotEmptyValue(maxDepth) ? depth >= maxDepth - 1 : false
+                }
               >
                 New Group
               </Button>

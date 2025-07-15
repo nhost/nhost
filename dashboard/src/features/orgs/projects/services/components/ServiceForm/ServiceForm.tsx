@@ -22,6 +22,7 @@ import { StorageFormSection } from '@/features/orgs/projects/services/components
 
 import {
   validationSchema,
+  type Port,
   type ServiceFormProps,
   type ServiceFormValues,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
@@ -106,7 +107,7 @@ export default function ServiceForm({
     initialImageType = 'nhost';
   }
 
-  if (initialData?.pullCredentials?.length > 0) {
+  if ((initialData?.pullCredentials?.length ?? 0) > 0) {
     initialImageType = 'private';
   }
 
@@ -144,7 +145,7 @@ export default function ServiceForm({
   const getFormattedConfig = (values: ServiceFormValues) => {
     // Remove any __typename property from the values
     const sanitizedValues = removeTypename(values) as ServiceFormValues;
-    const sanitizedInitialDataPorts = initialData?.ports
+    const sanitizedInitialDataPorts: Port[] = initialData?.ports
       ? removeTypename(initialData.ports)
       : [];
 
@@ -154,13 +155,13 @@ export default function ServiceForm({
         image: sanitizedValues.image,
         pullCredentials: sanitizedValues.pullCredentials,
       },
-      command: sanitizedValues.command.map((arg) => arg.argument),
+      command: sanitizedValues.command?.map((arg) => arg.argument),
       resources: {
         compute: {
           cpu: sanitizedValues.compute?.cpu,
           memory: sanitizedValues.compute?.memory,
         },
-        storage: sanitizedValues.storage.map((item) => ({
+        storage: sanitizedValues.storage?.map((item) => ({
           name: item.name,
           path: item.path,
           capacity: item.capacity,
@@ -172,19 +173,19 @@ export default function ServiceForm({
             }
           : null,
       },
-      environment: sanitizedValues.environment.map((item) => ({
+      environment: sanitizedValues.environment?.map((item) => ({
         name: item.name,
         value: item.value,
       })),
-      ports: sanitizedValues.ports.map((item) => ({
+      ports: sanitizedValues.ports?.map((item) => ({
         port: item.port,
         type: item.type,
         publish: item.publish,
-        ingresses: item.ingresses,
+        ingresses: item.ingresses as any, // cannot be changed on the UI always null type checking can be skipped.
         rateLimit:
           sanitizedInitialDataPorts.find(
             (port) => port.port === item.port && port.type === item.type,
-          )?.rateLimit ?? null,
+          )?.rateLimit ?? (null as any), // cannot be changed on the UI always null type checking can be skipped.
       })),
       healthCheck: sanitizedValues.healthCheck
         ? {
@@ -206,7 +207,7 @@ export default function ServiceForm({
       // Update service config
       await replaceRunServiceConfig({
         variables: {
-          appID: project.id,
+          appID: project?.id,
           serviceID,
           config,
         },
@@ -227,13 +228,13 @@ export default function ServiceForm({
       // Create service
       await insertRunServiceConfig({
         variables: {
-          appID: project.id,
+          appID: project?.id,
           config: {
             ...config,
             image: {
               image: values.image,
               pullCredentials:
-                values.pullCredentials?.length > 0
+                (values.pullCredentials?.length ?? 0) > 0
                   ? values.pullCredentials
                   : null,
             },

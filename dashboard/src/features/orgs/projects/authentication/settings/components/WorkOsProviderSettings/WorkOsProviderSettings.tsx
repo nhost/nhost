@@ -56,7 +56,7 @@ const validationSchema = Yup.object({
 export type WorkOsProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WorkOsProviderSettings() {
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -106,7 +106,7 @@ export default function WorkOsProviderSettings() {
     form,
   ]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -126,7 +126,7 @@ export default function WorkOsProviderSettings() {
   async function handleSubmit(formValues: WorkOsProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             method: {
@@ -216,8 +216,8 @@ export default function WorkOsProviderSettings() {
             name="redirectUrl"
             id="workos-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/workos/callback`}
             className="col-span-2"
@@ -235,8 +235,8 @@ export default function WorkOsProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/workos/callback`,
                       'Redirect URL',

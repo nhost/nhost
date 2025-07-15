@@ -5,7 +5,7 @@ import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/use
 
 interface Props {
   buttonText?: string;
-  onClick?: () => void;
+  onClick: () => void;
 }
 
 function OpenTransferDialogButton({ buttonText, onClick }: Props) {

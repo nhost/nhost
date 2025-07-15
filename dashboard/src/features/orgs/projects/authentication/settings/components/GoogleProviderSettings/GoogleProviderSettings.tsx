@@ -48,7 +48,7 @@ export type GoogleProviderFormValues = Yup.InferType<
 >;
 
 export default function GoogleProviderSettings() {
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -88,7 +88,7 @@ export default function GoogleProviderSettings() {
     }
   }, [loading, clientId, clientSecret, audience, enabled, form]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -108,7 +108,7 @@ export default function GoogleProviderSettings() {
   async function handleSubmit(formValues: BaseProviderSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             method: {
@@ -214,8 +214,8 @@ export default function GoogleProviderSettings() {
             hideEmptyHelperText
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/google/callback`}
             disabled
@@ -229,8 +229,8 @@ export default function GoogleProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/google/callback`,
                       'Redirect URL',

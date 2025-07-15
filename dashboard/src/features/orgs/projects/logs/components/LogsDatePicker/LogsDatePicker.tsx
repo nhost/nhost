@@ -84,7 +84,7 @@ function LogsDatePicker({
             )}
           >
             {format(
-              value || new Date(previousDate) || new Date(),
+              value || (previousDate && new Date(previousDate)) || new Date(),
               DATEPICKER_DISPLAY_FORMAT,
             )}
           </Button>

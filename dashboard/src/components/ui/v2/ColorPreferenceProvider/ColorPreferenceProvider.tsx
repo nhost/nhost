@@ -31,7 +31,9 @@ function ColorPreferenceProvider({
       colorPreferenceStorageKey,
     );
 
-    if (!['light', 'dark', 'system'].includes(storedColorPreference)) {
+    if (
+      !['light', 'dark', 'system'].includes(storedColorPreference as string)
+    ) {
       setColorPreference('system');
 
       return;

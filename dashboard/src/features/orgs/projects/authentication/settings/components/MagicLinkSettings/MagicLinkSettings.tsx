@@ -40,7 +40,7 @@ export default function MagicLinkSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { enabled } = data?.config?.auth?.method?.emailPasswordless || {};
+  const enabled = !!data?.config?.auth?.method?.emailPasswordless?.enabled;
 
   const form = useForm<MagicLinkFormValues>({
     reValidateMode: 'onSubmit',
@@ -75,7 +75,7 @@ export default function MagicLinkSettings() {
   const handleMagicLinkSettingsUpdate = async (values: MagicLinkFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           auth: {
             method: {

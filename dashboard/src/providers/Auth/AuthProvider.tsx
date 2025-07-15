@@ -33,7 +33,9 @@ function AuthProvider({ children }: PropsWithChildren) {
     const unsubscribe = nhost.sessionStorage.onChange(setSession);
     function storageEventListener(event: StorageEvent) {
       if (event.key === 'nhostSession') {
-        const newSession = JSON.parse(event.newValue) as Session;
+        const newSession = event.newValue
+          ? (JSON.parse(event.newValue) as Session)
+          : null;
         setSession(newSession);
       }
     }
@@ -77,7 +79,7 @@ function AuthProvider({ children }: PropsWithChildren) {
       signout: async () => {
         setSession(null);
         nhost.auth.signOut({
-          refreshToken: session.refreshToken,
+          refreshToken: session!.refreshToken,
         });
 
         await push('/signin');

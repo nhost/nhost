@@ -37,28 +37,27 @@ export default function useTrackForeignKeyRelationMutation({
 
   const { project } = useProject();
 
-  const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'hasura',
-  );
   const mutationFn = isPlatform
     ? trackForeignKeyRelations
     : trackForeignKeyRelationsMigration;
 
-  const mutation = useMutation(
-    (variables) =>
-      mutationFn({
-        ...variables,
-        appUrl: customAppUrl || appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : customAdminSecret || project?.config?.hasura.adminSecret,
-        dataSource: customDataSource || (dataSourceSlug as string),
-      }),
-    mutationOptions,
-  );
+  const mutation = useMutation((variables) => {
+    const appUrl = generateAppServiceUrl(
+      project!.subdomain,
+      project!.region,
+      'hasura',
+    );
+
+    return mutationFn({
+      ...variables,
+      appUrl: customAppUrl || appUrl,
+      adminSecret:
+        process.env.NEXT_PUBLIC_ENV === 'dev'
+          ? getHasuraAdminSecret()
+          : customAdminSecret || project?.config?.hasura.adminSecret!,
+      dataSource: customDataSource || (dataSourceSlug as string),
+    });
+  }, mutationOptions);
 
   return mutation;
 }

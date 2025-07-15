@@ -12,7 +12,7 @@ export type Org = GetOrganizationQuery['organizations'][0];
 export interface UseCurrenOrgReturnType {
   org: Org;
   loading?: boolean;
-  error?: Error;
+  error: Error | null;
   refetch: (
     variables?: Partial<
       Exact<{

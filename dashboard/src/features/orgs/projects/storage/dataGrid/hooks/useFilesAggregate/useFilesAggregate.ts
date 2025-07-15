@@ -1,3 +1,4 @@
+import { isNotEmptyValue } from '@/lib/utils';
 import type { GetFilesAggregateQuery } from '@/utils/__generated__/graphql';
 import { useGetFilesAggregateQuery } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
@@ -18,7 +19,9 @@ export default function useFilesAggregate({
   searchString,
   options = {},
 }: UseFilesAggregateOptions) {
-  const isUUID = uuidValidate(searchString);
+  const isUUID = isNotEmptyValue(searchString)
+    ? uuidValidate(searchString)
+    : false;
   const { data, previousData, ...rest } = useGetFilesAggregateQuery({
     variables: {
       where: searchString

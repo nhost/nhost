@@ -30,7 +30,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function SystemEnvironmentVariableSettings() {
   const appClient = useAppClient();
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
@@ -52,7 +52,7 @@ export default function SystemEnvironmentVariableSettings() {
       ? JSON.stringify(jwtSecretsWithoutFalsyValues[0], null, 2)
       : JSON.stringify(jwtSecretsWithoutFalsyValues, null, 2);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -84,16 +84,16 @@ export default function SystemEnvironmentVariableSettings() {
   }
 
   const systemEnvironmentVariables = [
-    { key: 'NHOST_SUBDOMAIN', value: project.subdomain },
-    { key: 'NHOST_REGION', value: project.region.name },
+    { key: 'NHOST_SUBDOMAIN', value: project!.subdomain },
+    { key: 'NHOST_REGION', value: project!.region.name },
     {
       key: 'NHOST_HASURA_URL',
       value:
         process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
           ? `${getHasuraConsoleServiceUrl()}/console`
           : generateAppServiceUrl(
-              project?.subdomain,
-              project?.region,
+              project!.subdomain,
+              project!.region,
               'hasura',
               { ...defaultRemoteBackendSlugs, hasura: '/console' },
             ),
