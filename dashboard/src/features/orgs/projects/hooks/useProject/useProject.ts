@@ -14,9 +14,9 @@ import { useMemo } from 'react';
 type Project = GetProjectQuery['apps'][0];
 
 export interface UseProjectReturnType {
-  project: Project;
+  project: Project | null;
   loading?: boolean;
-  error?: Error;
+  error?: Error | null;
   refetch: (variables?: any) => Promise<any>;
 }
 
@@ -56,7 +56,7 @@ export default function useProject(): UseProjectReturnType {
     return {
       project: data?.data?.apps?.[0] || null,
       loading: isLoading && shouldFetchProject,
-      error: Array.isArray(error || {}) ? error[0] : error,
+      error: Array.isArray(error || {}) ? error?.[0] : error,
       refetch,
     };
   }

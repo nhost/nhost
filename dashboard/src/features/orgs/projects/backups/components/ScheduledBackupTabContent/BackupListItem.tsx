@@ -50,7 +50,7 @@ export default function BackupListItem({
       return;
     }
 
-    window.open(presignedUrlData.getBackupPresignedUrl.url, '_blank');
+    window.open(presignedUrlData?.getBackupPresignedUrl.url, '_blank');
   }
 
   function restoreBackup() {

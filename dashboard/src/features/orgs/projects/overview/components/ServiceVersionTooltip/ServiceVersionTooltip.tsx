@@ -2,6 +2,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import type { baseServices } from '@/features/orgs/projects/overview/health';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ServiceState } from '@/utils/__generated__/graphql';
 import { useTheme } from '@mui/material';
 
@@ -12,7 +13,7 @@ interface ServiceVersionTooltipProps {
   recommendedVersionMismatch?: boolean;
   recommendedVersions?: string[];
   children?: React.ReactNode;
-  openHealthModal?: (
+  openHealthModal: (
     defaultExpanded?: keyof typeof baseServices | 'run',
   ) => void;
   state?: ServiceState;
@@ -113,24 +114,26 @@ function ServiceVersionTooltip({
             {serviceName} is not using a recommended version. Recommended
             version(s):
           </Text>
-          <ul className="list-disc text-sm+">
-            {recommendedVersions.map((version) => (
-              <li className="ml-6 list-item" key={version}>
-                <Text
-                  sx={{
-                    color:
-                      theme.palette.mode === 'dark'
-                        ? 'text.primary'
-                        : 'text.primary',
-                  }}
-                  variant="body1"
-                  component="p"
-                >
-                  {version}
-                </Text>
-              </li>
-            ))}
-          </ul>
+          {isNotEmptyValue(recommendedVersions) ? (
+            <ul className="list-disc text-sm+">
+              {recommendedVersions.map((version) => (
+                <li className="ml-6 list-item" key={version}>
+                  <Text
+                    sx={{
+                      color:
+                        theme.palette.mode === 'dark'
+                          ? 'text.primary'
+                          : 'text.primary',
+                    }}
+                    variant="body1"
+                    component="p"
+                  >
+                    {version}
+                  </Text>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </Box>
       )}
       {errorMessage ? (

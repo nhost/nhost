@@ -11,7 +11,7 @@ export default function ClientOnlyPortal({
   children,
   selector,
 }: ClientOnlyPortalProps) {
-  const ref = useRef();
+  const ref = useRef<Element | DocumentFragment>();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -19,5 +19,5 @@ export default function ClientOnlyPortal({
     setMounted(true);
   }, [selector]);
 
-  return mounted ? createPortal(children, ref.current) : null;
+  return mounted ? createPortal(children, ref.current!) : null;
 }

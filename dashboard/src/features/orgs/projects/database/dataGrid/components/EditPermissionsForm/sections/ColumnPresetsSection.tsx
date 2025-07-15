@@ -12,6 +12,7 @@ import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/da
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
+import { isNotEmptyValue } from '@/lib/utils';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useTheme } from '@mui/material';
 import clsx from 'clsx';
@@ -72,6 +73,7 @@ export default function ColumnPresetsSection({
   );
 
   if (tableError) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw tableError;
   }
 
@@ -111,7 +113,7 @@ export default function ColumnPresetsSection({
                   disabled={disabled}
                   name={`columnPresets.${index}.column`}
                   error={Boolean(
-                    errors?.columnPresets?.at(index).column?.message,
+                    errors?.columnPresets?.at?.(index)?.column?.message,
                   )}
                 >
                   {allColumnNames.map((column) => (
@@ -128,7 +130,7 @@ export default function ColumnPresetsSection({
                 <Autocomplete
                   disabled={disabled}
                   options={permissionVariableOptions}
-                  groupBy={(option) => option.group}
+                  groupBy={(option) => option.group || ''}
                   name={`columnPresets.${index}.value`}
                   inputValue={field.value}
                   value={field.value}
@@ -144,7 +146,7 @@ export default function ColumnPresetsSection({
                   autoSelect
                   autoHighlight={false}
                   error={Boolean(
-                    errors?.columnPresets?.at(index).value?.message,
+                    errors?.columnPresets?.at?.(index)?.value?.message,
                   )}
                   slotProps={{
                     paper: {
@@ -167,20 +169,26 @@ export default function ColumnPresetsSection({
                   }}
                   onChange={(_event, _value, reason, details) => {
                     if (reason === 'clear') {
-                      setValue(`columnPresets.${index}.value`, null, {
+                      setValue(`columnPresets.${index}.value`, '', {
                         shouldDirty: true,
                       });
 
                       return;
                     }
-
-                    setValue(
-                      `columnPresets.${index}.value`,
+                    if (
+                      isNotEmptyValue(details) &&
                       typeof details.option === 'string'
-                        ? details.option
-                        : details.option.value,
-                      { shouldDirty: true },
-                    );
+                    ) {
+                      setValue(`columnPresets.${index}.value`, details.option, {
+                        shouldDirty: true,
+                      });
+                    } else if (isNotEmptyValue(details?.option?.value)) {
+                      setValue(
+                        `columnPresets.${index}.value`,
+                        details.option.value,
+                        { shouldDirty: true },
+                      );
+                    }
                   }}
                 />
 

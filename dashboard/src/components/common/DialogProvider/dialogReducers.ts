@@ -115,7 +115,7 @@ export function drawerReducer(
 }
 
 export type AlertDialogAction =
-  | { type: 'OPEN_ALERT'; payload?: DialogConfig }
+  | { type: 'OPEN_ALERT'; payload: DialogConfig }
   | { type: 'HIDE_ALERT' }
   | { type: 'CLEAR_ALERT_CONTENT' };
 

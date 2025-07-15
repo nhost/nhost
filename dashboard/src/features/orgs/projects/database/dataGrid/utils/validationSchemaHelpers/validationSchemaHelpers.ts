@@ -35,7 +35,7 @@ function createJSONValidationSchema(details: ColumnDetails) {
     .string()
     .test('is-json', 'This is not a valid JSON.', (value) => {
       try {
-        JSON.parse(value);
+        JSON.parse(value as string);
 
         return true;
       } catch {
@@ -97,8 +97,8 @@ export function createDynamicValidationSchema(
       column.defaultValue !== null;
 
     const details: ColumnDetails = {
-      isNullable,
-      isIdentity,
+      isNullable: !!isNullable,
+      isIdentity: !!isIdentity,
       hasDefaultValue,
     };
 
@@ -111,7 +111,7 @@ export function createDynamicValidationSchema(
 
     if (
       column.type === 'date' &&
-      ['time', 'timetz', 'interval'].includes(column.specificType)
+      ['time', 'timetz', 'interval'].includes(column.specificType as string)
     ) {
       return {
         ...currentSchema,

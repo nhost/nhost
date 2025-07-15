@@ -73,7 +73,7 @@ export default function HasuraPoolSizeSettings() {
   async function handleSubmit(formValues: HasuraPoolSizeFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             events: {

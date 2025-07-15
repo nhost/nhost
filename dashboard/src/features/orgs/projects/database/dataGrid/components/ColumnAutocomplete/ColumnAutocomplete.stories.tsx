@@ -46,8 +46,8 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
 
   const form = useForm<{ firstReference: string; secondReference: string }>({
     defaultValues: {
-      firstReference: null,
-      secondReference: null,
+      firstReference: null as any,
+      secondReference: null as any,
     },
   });
 
@@ -64,7 +64,6 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
         <Form onSubmit={handleSubmit} className="grid grid-flow-row gap-2">
           <ColumnAutocomplete
             {...args}
-            name="firstReference"
             onChange={(newValue) =>
               form.setValue('firstReference', newValue.value, {
                 shouldDirty: true,
@@ -78,7 +77,6 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
           />
           <ColumnAutocomplete
             {...args}
-            name="secondReference"
             onChange={(newValue) =>
               form.setValue('secondReference', newValue.value, {
                 shouldDirty: true,

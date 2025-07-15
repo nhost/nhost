@@ -6,7 +6,7 @@ import type { MouseEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export type DataGridBooleanCellProps<TData extends object> =
-  CommonDataGridCellProps<TData, boolean | null>;
+  CommonDataGridCellProps<TData, boolean | null | undefined>;
 
 export default function DataGridBooleanCell<TData extends object>({
   onSave,
@@ -31,7 +31,7 @@ export default function DataGridBooleanCell<TData extends object>({
     value: boolean | null,
   ) {
     event.stopPropagation();
-    await onSave(value);
+    await onSave?.(value);
     cancelEditCell();
   }
 

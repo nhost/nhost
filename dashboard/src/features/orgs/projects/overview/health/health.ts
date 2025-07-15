@@ -29,7 +29,10 @@ export const baseServices = {
   },
 } as const;
 
-export const serviceStateToThemeColor = new Map<ServiceState, string>([
+export const serviceStateToThemeColor = new Map<
+  ServiceState | undefined,
+  string
+>([
   [ServiceState.Running, 'success.dark'],
   [ServiceState.Error, 'error.main'],
   [ServiceState.UpdateError, 'error.main'],
@@ -39,7 +42,7 @@ export const serviceStateToThemeColor = new Map<ServiceState, string>([
 ]);
 
 export const serviceStateToBadgeColor = new Map<
-  ServiceState,
+  ServiceState | undefined,
   'success' | 'error' | 'warning' | 'secondary'
 >([
   [ServiceState.Running, 'success'],
@@ -57,22 +60,20 @@ export const serviceStateToBadgeColor = new Map<
 export const findHighestImportanceState = (
   servicesStates: ServiceState[],
 ): ServiceState => {
-  const serviceStateToImportance = new Map([
-    [ServiceState.Running, 0],
-    [ServiceState.Updating, 1],
-    [ServiceState.UpdateError, 2],
-    [ServiceState.Error, 3],
-    [ServiceState.None, 4],
-  ]);
+  const serviceStateToImportance = {
+    [ServiceState.Running]: 0,
+    [ServiceState.Updating]: 1,
+    [ServiceState.UpdateError]: 2,
+    [ServiceState.Error]: 3,
+    [ServiceState.None]: 4,
+  } as const;
 
   if (servicesStates.length === 0) {
     return ServiceState.None;
   }
 
   return servicesStates.reduce((acc, state) => {
-    if (
-      serviceStateToImportance.get(state) > serviceStateToImportance.get(acc)
-    ) {
+    if (serviceStateToImportance[state] > serviceStateToImportance[acc]) {
       return state;
     }
     return acc;

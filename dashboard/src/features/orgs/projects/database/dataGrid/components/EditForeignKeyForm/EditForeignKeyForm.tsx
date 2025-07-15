@@ -39,12 +39,9 @@ export default function EditForeignKeyForm({
   onSubmit,
   ...props
 }: EditForeignKeyFormProps) {
-  const [error, setError] = useState<Error>(null);
+  const [error, setError] = useState<Error | null>(null);
 
-  const form = useForm<
-    | BaseForeignKeyFormValues
-    | Yup.InferType<typeof baseForeignKeyValidationSchema>
-  >({
+  const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
       id: foreignKeyRelation.id,
       name: foreignKeyRelation.name,
@@ -52,7 +49,7 @@ export default function EditForeignKeyForm({
       referencedSchema: foreignKeyRelation.referencedSchema || 'public',
       referencedTable: foreignKeyRelation.referencedTable,
       referencedColumn: foreignKeyRelation.referencedColumn,
-      disableOriginColumn: Boolean(selectedColumn),
+
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,
     },
@@ -60,8 +57,10 @@ export default function EditForeignKeyForm({
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
 
+  const disableOriginColumn = Boolean(selectedColumn);
+
   async function handleSubmit(values: BaseForeignKeyFormValues) {
-    setError(undefined);
+    setError(null);
 
     try {
       await onSubmit?.(values);
@@ -101,6 +100,7 @@ export default function EditForeignKeyForm({
       <BaseForeignKeyForm
         submitButtonText="Save"
         onSubmit={handleSubmit}
+        disableOriginColumn={disableOriginColumn}
         {...props}
       />
     </FormProvider>

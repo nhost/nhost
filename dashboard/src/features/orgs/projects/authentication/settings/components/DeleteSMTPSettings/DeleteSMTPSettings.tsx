@@ -20,7 +20,7 @@ function ConfirmDeleteSMTPSettingsModal({
   close,
   onDelete,
 }: {
-  onDelete?: () => Promise<any>;
+  onDelete: () => Promise<any>;
   close: () => void;
 }) {
   const onClickDelete = async () => {
@@ -76,7 +76,7 @@ export default function DeleteSMTPSettings() {
   const deleteSMTPSettings = async () => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           provider: {
             smtp: null,

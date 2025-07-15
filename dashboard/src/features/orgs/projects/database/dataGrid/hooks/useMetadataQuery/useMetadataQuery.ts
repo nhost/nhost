@@ -40,24 +40,25 @@ export default function useMetadataQuery(
     isReady,
   } = useRouter();
   const { project } = useProject();
-  const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'hasura',
-  );
 
   const query = useQuery<FetchMetadataReturnType>(
     queryKey,
-    () =>
-      fetchMetadata({
+    () => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
+      return fetchMetadata({
         ...options,
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || project?.config?.hasura.adminSecret,
+            : customAdminSecret || project?.config?.hasura.adminSecret!,
         dataSource: customDataSource || (dataSourceSlug as string),
-      }),
+      });
+    },
     {
       ...queryOptions,
       enabled:

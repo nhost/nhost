@@ -95,7 +95,7 @@ function TypeAutocomplete({ index }: FieldArrayInputProps) {
       name={`columns.${index}.type`}
       aria-label="Type"
       options={postgresTypeGroups}
-      groupBy={(option) => option.group}
+      groupBy={(option) => option.group ?? ''}
       placeholder="Select type"
       hideEmptyHelperText
       autoHighlight
@@ -122,7 +122,7 @@ function TypeAutocomplete({ index }: FieldArrayInputProps) {
         // that's being edited is the identity column, but its
         // new type is not suitable for identity columns.
         if (
-          !identityTypes.includes(value.value as ColumnType) &&
+          !identityTypes.includes(value?.value as ColumnType) &&
           identityColumnIndex !== null &&
           typeof identityColumnIndex !== 'undefined' &&
           identityColumnIndex === index
@@ -165,7 +165,7 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
       hideEmptyHelperText
       autoHighlight
       autoSelect={(filteredOptions) =>
-        filteredOptions.length === 0 && inputValue.length > 0
+        filteredOptions?.length === 0 && inputValue.length > 0
       }
       freeSolo
       slotProps={{
@@ -264,7 +264,7 @@ export interface ColumnEditorRowProps extends FieldArrayInputProps {
   /**
    * Function to be called when the user wants to remove a row.
    */
-  remove?: (index: number) => void;
+  remove: (index: number) => void;
 }
 
 const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
