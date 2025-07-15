@@ -120,7 +120,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const { deployments: scheduledOrPendingDeployments } =
     scheduledOrPendingDeploymentsData || { deployments: [] };
   const isDeploymentInProgress = deployments?.some((deployment) =>
-    ['PENDING', 'SCHEDULED'].includes(deployment.deploymentStatus),
+    ['PENDING', 'SCHEDULED'].includes(deployment?.deploymentStatus as string),
   );
 
   const latestDeployment = latestDeploymentData?.deployments[0];
@@ -142,7 +142,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
                 <DeploymentListItem
                   deployment={deployment}
                   isLive={liveDeploymentId === deployment.id}
-                  showRedeploy={latestDeployment.id === deployment.id}
+                  showRedeploy={latestDeployment?.id === deployment.id}
                   disableRedeploy={
                     scheduledOrPendingDeployments?.length > 0 ||
                     isDeploymentInProgress

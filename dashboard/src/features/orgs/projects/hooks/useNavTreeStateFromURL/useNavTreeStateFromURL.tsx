@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 type TreeState = {
   expandedItems: string[];
-  focusedItem: string | null;
+  focusedItem?: string;
 };
 
 const useNavTreeStateFromURL = (): TreeState => {
@@ -29,11 +29,11 @@ const useNavTreeStateFromURL = (): TreeState => {
   return useMemo(() => {
     if (!orgSlug) {
       // If no orgSlug, return an empty state
-      return { expandedItems: ['organizations'], focusedItem: null };
+      return { expandedItems: ['organizations'], focusedItem: undefined };
     }
 
     const expandedItems: string[] = [];
-    let focusedItem: string | null = null;
+    let focusedItem: string | undefined;
 
     // Expand organization-level items
     expandedItems.push('organizations', orgSlug);

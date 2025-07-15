@@ -14,7 +14,7 @@ export interface UseDatabaseQueryOptions extends Partial<FetchDatabaseOptions> {
   /**
    * Props passed to the underlying query hook.
    */
-  queryOptions?: UseQueryOptions;
+  queryOptions?: UseQueryOptions<FetchDatabaseReturnType>;
 }
 
 /**
@@ -41,23 +41,23 @@ export default function useDatabaseQuery(
 
   const { project } = useProject();
 
-  const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'hasura',
-  );
-
   const query = useQuery<FetchDatabaseReturnType>(
     queryKey,
-    () =>
-      fetchDatabase({
+    () => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
+      return fetchDatabase({
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || project?.config?.hasura.adminSecret,
+            : customAdminSecret || project?.config?.hasura.adminSecret!,
         dataSource: customDataSource || (dataSourceSlug as string),
-      }),
+      });
+    },
     {
       ...queryOptions,
       enabled:

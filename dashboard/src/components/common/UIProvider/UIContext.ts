@@ -8,7 +8,7 @@ export interface UIContextProps {
   /**
    * The date and time when maintenance mode will end.
    */
-  maintenanceEndDate: Date;
+  maintenanceEndDate: Date | null;
 }
 
 const UIContext = createContext<UIContextProps>({

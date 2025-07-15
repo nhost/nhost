@@ -17,6 +17,10 @@ export interface UseIsDatabaseMigratingOptions
   shouldPoll?: boolean;
 }
 
+type AppState = NonNullable<
+  GetApplicationStateQuery['app']
+>['appStates'][number];
+
 /*
  * This hook returns information about the current state of database migration.
  * @param options - Options for the query.
@@ -55,9 +59,7 @@ export default function useIsDatabaseMigrating(
   }, [stopPolling, startPolling, options.shouldPoll, options.pollInterval]);
 
   // Return true if the application is migrating or if the application is not live after a migration
-  const shouldShowUpgradeLogs = (
-    appStates: GetApplicationStateQuery['app']['appStates'],
-  ) => {
+  const shouldShowUpgradeLogs = (appStates: AppState[]) => {
     for (let i = 0; i < appStates.length; i += 1) {
       if (appStates[i].stateId === ApplicationStatus.Live) {
         return false;
@@ -71,9 +73,7 @@ export default function useIsDatabaseMigrating(
   };
 
   // Return true if the application is currently migrating
-  const isMigrating = (
-    appStates: GetApplicationStateQuery['app']['appStates'],
-  ) => {
+  const isMigrating = (appStates: AppState[]) => {
     for (let i = 0; i < appStates.length; i += 1) {
       if (appStates[i].stateId === ApplicationStatus.Live) {
         return false;

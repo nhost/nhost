@@ -24,6 +24,7 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { analytics } from '@/lib/segment';
+import { isNotEmptyValue } from '@/lib/utils';
 import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
@@ -77,7 +78,10 @@ export default function OnboardingProjectPage() {
   }, [orgs, form]);
 
   useEffect(() => {
-    if (regionsData?.regions?.length > 0 && !form.getValues('regionId')) {
+    if (
+      isNotEmptyValue(regionsData?.regions?.length) &&
+      !form.getValues('regionId')
+    ) {
       const activeRegion = regionsData.regions.find((region) => region.active);
       if (activeRegion) {
         form.setValue('regionId', activeRegion.id);
@@ -94,19 +98,19 @@ export default function OnboardingProjectPage() {
 
     await execPromiseWithErrorToast(
       async () => {
-        const { data: { insertApp: { subdomain } = {} } = {} } =
-          await insertApp({
-            variables: {
-              app: {
-                name: data.projectName,
-                slug,
-                organizationID: data.organizationId,
-                regionId: data.regionId,
-              },
+        const response = await insertApp({
+          variables: {
+            app: {
+              name: data.projectName,
+              slug,
+              organizationID: data.organizationId,
+              regionId: data.regionId,
             },
-          });
+          },
+        });
+        const subdomain = response?.data?.insertApp?.subdomain;
 
-        if (subdomain) {
+        if (isNotEmptyValue(subdomain)) {
           const metadata = localStorage.getItem('metadata');
           const parsedMetadata = metadata ? JSON.parse(metadata) : {};
 

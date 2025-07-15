@@ -13,6 +13,8 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import { type ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import { isNotEmptyValue } from '@/lib/utils';
+import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 import { getRunServicePortURL } from '@/utils/helpers';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
@@ -37,10 +39,11 @@ export default function PortsFormSection() {
     setValue(`ports.${index}.type`, value as PortTypes);
 
   const showURL = (index: number) =>
-    formValues.subdomain &&
-    (formValues.ports[index]?.type === PortTypes.HTTP ||
-      formValues.ports[index]?.type === PortTypes.GRPC) &&
-    formValues.ports[index]?.publish;
+    isNotEmptyValue(formValues.subdomain) &&
+    isNotEmptyValue(project) &&
+    (formValues.ports?.[index]?.type === PortTypes.HTTP ||
+      formValues.ports?.[index]?.type === PortTypes.GRPC) &&
+    formValues.ports?.[index]?.publish;
 
   return (
     <Box className="space-y-4 rounded border-1 p-4">
@@ -86,15 +89,15 @@ export default function PortsFormSection() {
                 placeholder="Port"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.ports?.at(index)}
-                helperText={errors?.ports?.at(index)?.message}
+                error={!!errors?.ports?.at?.(index)}
+                helperText={errors?.ports?.at?.(index)?.message}
                 fullWidth
                 autoComplete="off"
               />
 
               <Select
                 fullWidth
-                value={formValues.ports.at(index)?.type || ''}
+                value={formValues.ports?.at?.(index)?.type || ''}
                 onChange={(_event, inputValue) =>
                   onChangePortType(inputValue as string, index)
                 }
@@ -137,10 +140,10 @@ export default function PortsFormSection() {
               <InfoCard
                 title="URL"
                 value={getRunServicePortURL(
-                  formValues?.subdomain,
-                  project?.region.name,
-                  project?.region.domain,
-                  formValues.ports[index],
+                  formValues.subdomain!,
+                  project?.region.name!,
+                  project?.region.domain!,
+                  formValues.ports![index] as ConfigRunServicePort,
                 )}
               />
             )}

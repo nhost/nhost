@@ -7,7 +7,7 @@ import {
 import type { ChangeEvent, KeyboardEvent } from 'react';
 
 export type DataGridIntegerCellProps<TData extends object> =
-  CommonDataGridCellProps<TData, number>;
+  CommonDataGridCellProps<TData, number | null>;
 
 export default function DataGridIntegerCell<TData extends object>({
   onSave,

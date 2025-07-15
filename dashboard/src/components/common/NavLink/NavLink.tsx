@@ -1,11 +1,13 @@
 import type { LinkProps } from '@/components/ui/v2/Link';
 import { Link } from '@/components/ui/v2/Link';
+import type { MakeRequired } from '@/types/common';
 import NextLink from 'next/link';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface NavLinkProps extends PropsWithoutRef<LinkProps> {
+export interface NavLinkProps
+  extends MakeRequired<PropsWithoutRef<LinkProps>, 'href'> {
   /**
    * Determines whether or not the link should be disabled.
    */

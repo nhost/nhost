@@ -14,6 +14,7 @@ import type {
 import { convertToHasuraPermissions } from '@/features/orgs/projects/database/dataGrid/utils/convertToHasuraPermissions';
 import { convertToRuleGroup } from '@/features/orgs/projects/database/dataGrid/utils/convertToRuleGroup';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
@@ -33,7 +34,7 @@ export interface RolePermissionEditorFormValues {
   /**
    * The permission filter to be applied for the role.
    */
-  filter: Record<string, any> | {};
+  filter: Record<string, any> | null;
   /**
    * The allowed columns to CRUD for the role.
    */
@@ -41,7 +42,7 @@ export interface RolePermissionEditorFormValues {
   /**
    * The number of rows to be returned for the role.
    */
-  limit?: number;
+  limit?: number | null;
   /**
    * Whether the role is allowed to perform aggregations.
    */
@@ -113,17 +114,19 @@ export interface RolePermissionEditorFormProps extends DialogFormProps {
 
 function getDefaultRuleGroup(
   action: DatabaseAction,
-  permission: HasuraMetadataPermission['permission'],
-): RuleGroup | {} {
+  permission?: HasuraMetadataPermission['permission'],
+): RuleGroup | null {
   if (!permission) {
     return null;
   }
 
-  if (action === 'insert') {
+  if (action === 'insert' && isNotEmptyValue(permission.check)) {
     return convertToRuleGroup(permission.check);
   }
 
-  return convertToRuleGroup(permission.filter);
+  return isNotEmptyValue(permission.filter)
+    ? convertToRuleGroup(permission.filter)
+    : null;
 }
 
 function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
@@ -138,13 +141,13 @@ function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
 }
 
 function convertToColumnPresetObject(
-  columnPresets: ColumnPreset[],
-): Record<string, any> {
-  if (columnPresets?.length === 0) {
+  columnPresets?: ColumnPreset[],
+): Record<string, any> | null {
+  if (isEmptyValue(columnPresets)) {
     return null;
   }
 
-  const returnValue = columnPresets.reduce((data, { column, value }) => {
+  const returnValue = columnPresets!.reduce((data, { column, value }) => {
     if (column) {
       return { ...data, [column]: value };
     }
@@ -195,8 +198,8 @@ export default function RolePermissionEditorForm({
       limit: permission?.limit || null,
       allowAggregations: permission?.allow_aggregations || false,
       enableRootFieldCustomization:
-        permission?.query_root_fields?.length > 0 ||
-        permission?.subscription_root_fields?.length > 0,
+        isNotEmptyValue(permission?.query_root_fields) ||
+        isNotEmptyValue(permission?.subscription_root_fields),
       queryRootFields: permission?.query_root_fields || [],
       subscriptionRootFields: permission?.subscription_root_fields || [],
       computedFields: permission?.computed_fields || [],
@@ -230,25 +233,24 @@ export default function RolePermissionEditorForm({
         columns: values.columns,
         limit: values.limit,
         allow_aggregations: values.allowAggregations,
-        query_root_fields:
-          values.queryRootFields.length > 0 ? values.queryRootFields : null,
-        subscription_root_fields:
-          values.subscriptionRootFields.length > 0
-            ? values.subscriptionRootFields
-            : null,
+        query_root_fields: isNotEmptyValue(values.queryRootFields)
+          ? values.queryRootFields
+          : null,
+        subscription_root_fields: isNotEmptyValue(values.subscriptionRootFields)
+          ? values.subscriptionRootFields
+          : null,
         filter:
           action !== 'insert'
-            ? convertToHasuraPermissions(values.filter as RuleGroup)
+            ? (convertToHasuraPermissions(values.filter as RuleGroup) ?? {})
             : permission?.filter,
         check:
           action === 'insert'
-            ? convertToHasuraPermissions(values.filter as RuleGroup)
+            ? (convertToHasuraPermissions(values.filter as RuleGroup) ?? {})
             : permission?.check,
         backend_only: values.backendOnly,
-        computed_fields:
-          permission?.computed_fields?.length > 0
-            ? permission?.computed_fields
-            : null,
+        computed_fields: isNotEmptyValue(permission?.computed_fields)
+          ? permission?.computed_fields
+          : null,
       },
     });
 
@@ -325,7 +327,7 @@ export default function RolePermissionEditorForm({
 
   return (
     <FormProvider {...form}>
-      {error && error instanceof Error && (
+      {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
@@ -345,7 +347,7 @@ export default function RolePermissionEditorForm({
             </Button>
           </Alert>
         </div>
-      )}
+      ) : null}
 
       <Form
         onSubmit={handleSubmit}

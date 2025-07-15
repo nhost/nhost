@@ -10,7 +10,7 @@ import { twMerge } from 'tailwind-merge';
 interface DataGridHeaderButtonProps<T extends object> {
   column: DataBrowserGridColumn<T>;
   headerProps: TableHeaderProps;
-  onRemoveColumn: (column: DataBrowserGridColumn<T>) => void;
+  onRemoveColumn?: (column: DataBrowserGridColumn<T>) => void;
 }
 
 export default function DataGridHeaderButton<T extends object>({

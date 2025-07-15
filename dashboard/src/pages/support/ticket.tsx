@@ -98,7 +98,7 @@ function TicketPage() {
       `${process.env.NEXT_PUBLIC_ZENDESK_USER_EMAIL}/token:${process.env.NEXT_PUBLIC_ZENDESK_API_KEY}`,
     );
     const emails = ccs
-      .replace(/ /g, '')
+      ?.replace(/ /g, '')
       .split(',')
       .map((email) => ({ user_email: email }));
 
@@ -133,7 +133,7 @@ function TicketPage() {
                   {
                     id: 19922709880978,
                     value: services.map((service) =>
-                      service.value.toLowerCase(),
+                      service.value?.toLowerCase(),
                     ),
                   },
                 ],

@@ -19,7 +19,7 @@ function getOrderedTimezones(dateTime: string, selectedTimezone: string) {
   ) {
     const selectedTimezoneOption = timezones.find(
       (tz) => tz.value === selectedTimezone,
-    );
+    )!;
     orderedTimezones = [
       selectedTimezoneOption,
       ...timezones.filter((tz) => tz.value !== selectedTimezone),

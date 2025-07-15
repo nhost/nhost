@@ -27,9 +27,10 @@ function ControlledSelect(
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const { setValue } = useFormContext();
+  const nameAttr = controllerProps?.name || name || '';
   const { field } = useController({
     ...controllerProps,
-    name: controllerProps?.name || name || '',
+    name: nameAttr,
     control: controllerProps?.control || control,
   });
 
@@ -39,7 +40,7 @@ function ControlledSelect(
       {...field}
       ref={mergeRefs([field.ref, ref])}
       onChange={(event, value) => {
-        setValue(controllerProps?.name || name, value, { shouldDirty: true });
+        setValue(nameAttr, value, { shouldDirty: true });
 
         if (props.onChange) {
           props.onChange(event, value);

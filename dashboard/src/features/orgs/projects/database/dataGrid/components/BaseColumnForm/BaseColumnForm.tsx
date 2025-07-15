@@ -56,8 +56,8 @@ export const baseColumnValidationSchema = Yup.object().shape({
     ),
   type: Yup.object()
     .shape({ value: Yup.string().required() })
-    .nullable()
-    .required('This field is required.'),
+    .required('This field is required.')
+    .nullable(),
 });
 
 export default function BaseColumnForm({
@@ -72,13 +72,13 @@ export default function BaseColumnForm({
     control,
     register,
     setValue,
-    watch,
+    getValues,
     formState: { errors, isSubmitting, dirtyFields },
   } = useFormContext<BaseColumnFormValues>();
 
   // Learn more: https://github.com/thundermiracle/mobx-json/issues/46
   const [defaultValueInputText, setDefaultValueInputText] = useState(
-    () => watch('defaultValue.label') || '',
+    () => getValues('defaultValue.label') || '',
   );
 
   const isIdentity = useWatch({ name: 'isIdentity' });
@@ -128,7 +128,6 @@ export default function BaseColumnForm({
             autoFocus
             autoComplete="off"
           />
-
           <ControlledAutocomplete
             id="type"
             name="type"
@@ -143,14 +142,14 @@ export default function BaseColumnForm({
             className="col-span-8 py-3"
             variant="inline"
             options={postgresTypeGroups}
-            groupBy={(option) => option.group}
+            groupBy={(option) => option.group ?? ''}
             onChange={(_event, value) => {
               setDefaultValueInputText('');
 
               if (
                 typeof value !== 'string' &&
                 !Array.isArray(value) &&
-                !identityTypes.includes(value.value as ColumnType)
+                !identityTypes.includes(value?.value as ColumnType)
               ) {
                 setValue('isIdentity', false);
                 setValue('defaultValue', null);
@@ -227,7 +226,7 @@ export default function BaseColumnForm({
               }
             }}
             autoSelect={(filteredOptions) =>
-              filteredOptions.length === 0 && defaultValueInputText.length > 0
+              filteredOptions?.length === 0 && defaultValueInputText.length > 0
             }
             slotProps={{
               paper: {

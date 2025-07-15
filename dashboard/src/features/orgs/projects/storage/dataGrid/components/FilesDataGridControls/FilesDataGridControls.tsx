@@ -77,7 +77,7 @@ export default function FilesDataGridControls({
               'x-hasura-admin-secret':
                 process.env.NEXT_PUBLIC_ENV === 'dev'
                   ? getHasuraAdminSecret()
-                  : project.config?.hasura.adminSecret,
+                  : project!.config!.hasura.adminSecret,
             },
           }),
         ),

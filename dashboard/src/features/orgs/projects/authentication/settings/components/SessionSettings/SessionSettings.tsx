@@ -88,7 +88,7 @@ export default function SessionSettings() {
   const handleSessionSettingsChange = async (formValues: SessionFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             session: {

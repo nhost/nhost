@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 export type RunService = Pick<
-  GetRunServicesQuery['app']['runServices'][0],
+  NonNullable<GetRunServicesQuery['app']>['runServices'][number],
   'config'
 > & {
   id?: string;
@@ -21,7 +21,9 @@ export type RunService = Pick<
 };
 
 export type RunServiceConfig = Omit<
-  GetRunServicesQuery['app']['runServices'][0]['config'],
+  NonNullable<
+    NonNullable<GetRunServicesQuery['app']>['runServices'][number]['config']
+  >,
   '__typename'
 >;
 
@@ -86,10 +88,10 @@ export default function useRunServices() {
       return;
     }
 
-    const userCount = data?.app?.runServices_aggregate.aggregate.count ?? 0;
+    const userCount = data?.app?.runServices_aggregate.aggregate?.count ?? 0;
 
     setTotalServicesCount(
-      data?.app?.runServices_aggregate.aggregate.count ?? 0,
+      data?.app?.runServices_aggregate.aggregate?.count ?? 0,
     );
     setNrOfPages(Math.ceil(userCount / limit.current));
   }, [data, loading, isPlatform]);

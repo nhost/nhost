@@ -6,7 +6,11 @@ function useRestoreApplicationDatabasePiTR() {
     useRestoreApplicationDatabasePiTrMutation();
 
   async function restoreApplicationDatabase(
-    variables: { appId: string; recoveryTarget: string; fromAppId?: string },
+    variables: {
+      appId: string;
+      recoveryTarget: string;
+      fromAppId: string | null;
+    },
     onCompleted?: () => void,
   ) {
     await execPromiseWithErrorToast(

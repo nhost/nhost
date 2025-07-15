@@ -18,7 +18,7 @@ import MaterialAutocomplete, {
 } from '@mui/material/Autocomplete';
 import clsx from 'clsx';
 import type { ForwardedRef } from 'react';
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 
 export interface AutocompleteOption<TValue = string> {
   /**
@@ -217,7 +217,6 @@ function Autocomplete(
   }: AutocompleteProps<AutocompleteOption>,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
-  const inputRef = useRef<HTMLInputElement>();
   const { formControl: formControlSlotProps, ...defaultComponentsProps } =
     slotProps || {};
 
@@ -228,7 +227,7 @@ function Autocomplete(
   // TODO: Revisit this implementation. We should probably have a better way to
   // make this component controlled.
   useEffect(() => {
-    setInputValue(externalInputValue);
+    setInputValue(externalInputValue ?? '');
   }, [externalInputValue]);
 
   const filterOptionsFn = externalFilterOptions || filterOptions;
@@ -431,7 +430,6 @@ function Autocomplete(
         ...params
       }) => (
         <Input
-          ref={inputRef}
           slotProps={{
             input: {
               className: slotProps?.input?.className,

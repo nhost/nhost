@@ -63,7 +63,7 @@ const StyledPopper = styled(BasePopper)`
   z-index: 9999;
 `;
 
-function Select<TValue>(
+function Select<TValue extends {}>(
   {
     className,
     slotProps,

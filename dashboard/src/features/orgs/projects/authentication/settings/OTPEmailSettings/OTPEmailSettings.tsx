@@ -39,7 +39,7 @@ export default function OTPEmailSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { enabled } = data?.config?.auth?.method?.otp?.email || {};
+  const enabled = !!data?.config?.auth?.method?.otp?.email?.enabled;
 
   const form = useForm<OTPEmailSettingsFormValues>({
     reValidateMode: 'onSubmit',
@@ -74,7 +74,7 @@ export default function OTPEmailSettings() {
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           auth: {
             method: {

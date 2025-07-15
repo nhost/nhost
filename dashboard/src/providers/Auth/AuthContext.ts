@@ -2,7 +2,7 @@ import { type Session } from '@nhost/nhost-js-beta/auth';
 import { createContext } from 'react';
 
 export type AuthContextType = {
-  user: Session['user'] | null;
+  user: NonNullable<Session['user']> | null;
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;

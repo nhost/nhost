@@ -12,7 +12,7 @@ interface MessagesListProps {
 
 function MessagesList({ loading }: MessagesListProps) {
   const { project } = useProject();
-  const bottomElement = useRef(null);
+  const bottomElement = useRef<HTMLDivElement | null>(null);
   const messages = useRecoilValue(projectMessagesState(project?.id));
 
   const scrollToBottom = () =>

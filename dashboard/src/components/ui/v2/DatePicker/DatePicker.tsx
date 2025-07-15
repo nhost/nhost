@@ -9,16 +9,15 @@ import { pickersDayClasses } from '@mui/x-date-pickers/PickersDay';
 import type { StaticDatePickerProps } from '@mui/x-date-pickers/StaticDatePicker';
 import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 
-export interface DatePickerProps
-  extends Omit<
-    StaticDatePickerProps<any, Date>,
-    'renderInput' | 'componentsProps' | 'renderDay'
-  > {
+export type DatePickerProps = Omit<
+  StaticDatePickerProps<any, Date>,
+  'renderInput' | 'componentsProps' | 'renderDay' | 'onChange' | 'value'
+> & {
   /**
    * Date value to be displayed in the datepicker.
    * It should be of "yyyy-MM-dd'T'HH:mm" format.
    */
-  value: Date;
+  value: Date | null;
   /**
    * If true, it will not allow the user to select any date.
    */
@@ -35,7 +34,7 @@ export interface DatePickerProps
    * Function to be called when the user selects a date.
    */
   onChange: (value: Date, keyboardInputValue?: string) => void;
-}
+};
 
 const CustomStaticDatePicker = styled(StaticDatePicker)(({ theme }) => ({
   borderRadius: '10px',
@@ -177,7 +176,12 @@ function DatePicker({
         minDate={minDate}
         maxDate={maxDate}
         onChange={(newValue) => onChange(newValue as Date)}
-        renderInput={() => null}
+        renderInput={
+          (() => null) as unknown as StaticDatePickerProps<
+            any,
+            Date
+          >['renderInput']
+        }
       />
     </LocalizationProvider>
   );

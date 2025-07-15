@@ -50,7 +50,7 @@ export function updateQuery(
 function useProjectLogs(props: UseProjectLogsProps) {
   const { project, loading: loadingProject } = useProject();
   // create a client that sends http requests to Hasura but websocket requests to Bragi
-  const subscriptionReturn = useRef(null);
+  const subscriptionReturn = useRef<(() => void) | null>(null);
 
   const {
     loading: loadingLogs,

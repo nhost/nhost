@@ -13,7 +13,7 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
-import { cn } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
 import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -341,7 +341,7 @@ type NavItem = {
 };
 
 const buildNavTreeData = (
-  org: Org,
+  org?: Org,
 ): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
   if (!org) {
     return {
@@ -382,8 +382,11 @@ const buildNavTreeData = (
 
 export default function NavTree() {
   const { currentOrg: org } = useOrgs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const navTree = useMemo(() => buildNavTreeData(org), [org?.slug]);
+  const navTree = useMemo(
+    () => buildNavTreeData(org),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [org?.slug],
+  );
   const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
     useTreeNavState();
 
@@ -426,7 +429,7 @@ export default function NavTree() {
               asChild
               onClick={() => {
                 // do not focus an item if we already there
-                // this will prevent the case where clikcing on the project name
+                // this will prevent the case where clicking on the project name
                 // would focus on the project name instead of the overview page
                 if (
                   navTree.items[item.index].data.targetUrl ===
@@ -515,13 +518,19 @@ export default function NavTree() {
       canSearch={false}
       onExpandItem={(item) => {
         setOrgsTreeViewState(
-          ({ expandedItems: prevExpandedItems, ...rest }) => ({
-            ...rest,
-            // Add item index to expandedItems only if it's not already present
-            expandedItems: prevExpandedItems.includes(item.index)
-              ? prevExpandedItems
-              : [...prevExpandedItems, item.index],
-          }),
+          ({ expandedItems: prevExpandedItems, ...rest }) => {
+            const newExpandedItems = isNotEmptyValue(prevExpandedItems)
+              ? [...prevExpandedItems]
+              : [];
+
+            return {
+              ...rest,
+              // Add item index to expandedItems only if it's not already present
+              expandedItems: newExpandedItems?.includes(item.index)
+                ? prevExpandedItems
+                : [...newExpandedItems, item.index],
+            };
+          },
         );
       }}
       onCollapseItem={(item) => {
@@ -529,7 +538,7 @@ export default function NavTree() {
           ({ expandedItems: prevExpandedItems, ...rest }) => ({
             ...rest,
             // Remove the item index from expandedItems
-            expandedItems: prevExpandedItems.filter(
+            expandedItems: (prevExpandedItems ?? []).filter(
               (index) => index !== item.index,
             ),
           }),

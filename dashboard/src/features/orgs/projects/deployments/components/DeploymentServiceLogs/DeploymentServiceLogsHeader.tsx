@@ -13,9 +13,10 @@ import * as Yup from 'yup';
 import DeploymentInfo from './DeploymentInfo';
 
 export const validationSchema = Yup.object({
-  service: Yup.string().oneOf(Object.values(AvailableLogsService)),
-  regexFilter: Yup.string(),
+  service: Yup.string().oneOf(Object.values(AvailableLogsService)).required(),
+  regexFilter: Yup.string().required(),
 }).required();
+
 export type DeploymentLogsFormValues = Yup.InferType<typeof validationSchema>;
 
 interface Props {

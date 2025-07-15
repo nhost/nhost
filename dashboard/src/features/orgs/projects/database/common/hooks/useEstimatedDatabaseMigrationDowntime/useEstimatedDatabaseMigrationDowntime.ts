@@ -1,5 +1,6 @@
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isNotEmptyValue } from '@/lib/utils';
 import {
   useGetApplicationBackupsQuery,
   type GetApplicationBackupsQuery,
@@ -81,7 +82,7 @@ export default function useEstimatedDatabaseMigrationDowntime(
 
   let estimatedMilliseconds = 1000 * 60 * 10; // DEFAULT ESTIMATED DOWNTIME is 10 minutes
 
-  if (!isPlanFree && backups?.length > 0) {
+  if (!isPlanFree && isNotEmptyValue(backups)) {
     const lastBackup = backups[0];
     const createdAt = new Date(lastBackup.createdAt);
     const completedAt = new Date(lastBackup.completedAt);

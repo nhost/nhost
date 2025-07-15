@@ -11,8 +11,12 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/components/BaseColumnForm';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateColumnMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateColumnMutation';
-import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  ColumnType,
+  DataBrowserGridColumn,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { convertDataBrowserGridColumnToDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/convertDataBrowserGridColumnToDatabaseColumn';
+import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
@@ -68,8 +72,8 @@ export default function EditColumnForm({
   const columnValues: BaseColumnFormValues = {
     name: originalColumn.id,
     type: {
-      value: originalColumn.specificType,
-      label: originalColumn.specificType,
+      value: originalColumn.specificType as ColumnType,
+      label: originalColumn.specificType as ColumnType,
     },
     defaultValue,
     isNullable: originalColumn.isNullable || false,
@@ -95,7 +99,7 @@ export default function EditColumnForm({
         column: values,
       });
 
-      if (values.foreignKeyRelation) {
+      if (isNotEmptyValue(values.foreignKeyRelation)) {
         await trackForeignKeyRelation({
           foreignKeyRelations: [values.foreignKeyRelation],
           schema: schemaSlug as string,
@@ -115,7 +119,7 @@ export default function EditColumnForm({
 
   return (
     <FormProvider {...form}>
-      {error && error instanceof Error && (
+      {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
@@ -135,7 +139,7 @@ export default function EditColumnForm({
             </Button>
           </Alert>
         </div>
-      )}
+      ) : null}
 
       <BaseColumnForm
         submitButtonText="Save"

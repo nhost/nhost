@@ -19,6 +19,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import type { ServiceFormInitialData } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, type ReactElement } from 'react';
@@ -49,6 +50,27 @@ export default function RunPage() {
         try {
           const decodedConfig = atob(base64Config);
           const parsedConfig: RunServiceConfig = JSON.parse(decodedConfig);
+          const initialData = {
+            ...parsedConfig,
+            autoscaler: parsedConfig?.resources?.autoscaler ?? {
+              maxReplicas: 0,
+            },
+            compute: parsedConfig?.resources?.compute ?? {
+              cpu: 62,
+              memory: 128,
+            },
+            image: parsedConfig?.image?.image,
+            command: parsedConfig?.command?.map((arg) => ({
+              argument: arg,
+            })),
+            ports: parsedConfig?.ports?.map((item) => ({
+              port: item.port,
+              type: item.type as PortTypes,
+              publish: item.publish,
+            })),
+            replicas: parsedConfig?.resources?.replicas,
+            storage: parsedConfig?.resources?.storage,
+          } as ServiceFormInitialData;
 
           openDrawer({
             title: (
@@ -58,27 +80,7 @@ export default function RunPage() {
               </Box>
             ),
             component: (
-              <ServiceForm
-                initialData={{
-                  ...parsedConfig,
-                  compute: parsedConfig?.resources?.compute ?? {
-                    cpu: 62,
-                    memory: 128,
-                  },
-                  image: parsedConfig?.image?.image,
-                  command: parsedConfig?.command.map((arg) => ({
-                    argument: arg,
-                  })),
-                  ports: parsedConfig?.ports.map((item) => ({
-                    port: item.port,
-                    type: item.type as PortTypes,
-                    publish: item.publish,
-                  })),
-                  replicas: parsedConfig?.resources?.replicas,
-                  storage: parsedConfig?.resources?.storage,
-                }}
-                onSubmit={refetch}
-              />
+              <ServiceForm initialData={initialData} onSubmit={refetch} />
             ),
           });
         } catch (error) {

@@ -95,7 +95,7 @@ export default function GravatarSettings() {
   const handleGravatarSettingsChange = async (values: GravatarFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             user: {
@@ -132,6 +132,9 @@ export default function GravatarSettings() {
     );
   };
 
+  const { onChange: defaultOnChange, ...defaultProps } = register('default');
+  const { onChange: ratingOnChange, ...ratingProps } = register('rating');
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleGravatarSettingsChange}>
@@ -153,7 +156,7 @@ export default function GravatarSettings() {
           )}
         >
           <ControlledSelect
-            {...register('default')}
+            {...defaultProps}
             id="default"
             className="col-span-5 lg:col-span-2"
             placeholder="Default Gravatar"
@@ -168,7 +171,7 @@ export default function GravatarSettings() {
             ))}
           </ControlledSelect>
           <ControlledSelect
-            {...register('rating')}
+            {...ratingProps}
             id="rating"
             className="col-span-5 lg:col-span-2"
             placeholder="Gravatar Rating"

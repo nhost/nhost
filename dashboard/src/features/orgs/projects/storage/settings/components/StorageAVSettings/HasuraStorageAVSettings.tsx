@@ -73,7 +73,7 @@ export default function HasuraStorageAVSettings() {
   }
 
   async function handleSubmit(formValues: HasuraStorageAVFormValues) {
-    let antivirus = null;
+    let antivirus: { server: string } | null = null;
 
     if (formValues.enabled) {
       antivirus = {
@@ -83,7 +83,7 @@ export default function HasuraStorageAVSettings() {
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           storage: {
             antivirus,

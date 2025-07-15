@@ -5,7 +5,7 @@ import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/compo
 import type { ChangeEvent, KeyboardEvent } from 'react';
 
 export type DataGridDecimalCellProps<TData extends object> =
-  CommonDataGridCellProps<TData, number | string>;
+  CommonDataGridCellProps<TData, number | string | null>;
 
 export default function DataGridDecimalCell<TData extends object>({
   onSave,

@@ -43,7 +43,7 @@ function SignUpWithEmailAndPasswordForm() {
               <FormLabel>Verification</FormLabel>
               <FormControl>
                 <Turnstile
-                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
                   options={{ theme: 'dark', size: 'flexible' }}
                   onSuccess={(token) => {
                     form.setValue('turnstileToken', token, {

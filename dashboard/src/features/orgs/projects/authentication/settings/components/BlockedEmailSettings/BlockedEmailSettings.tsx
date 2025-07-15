@@ -49,7 +49,9 @@ export default function BlockedEmailSettings() {
   const form = useForm<BlockedEmailFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: email?.blocked?.length > 0 || emailDomains?.blocked?.length > 0,
+      enabled:
+        (email?.blocked?.length ?? 0) > 0 ||
+        (emailDomains?.blocked?.length ?? 0) > 0,
       blockedEmails: email?.blocked?.join(', ') || '',
       blockedEmailDomains: emailDomains?.blocked?.join(', ') || '',
     },
@@ -64,7 +66,8 @@ export default function BlockedEmailSettings() {
     if (!loading && email && emailDomains) {
       form.reset({
         enabled:
-          email?.blocked?.length > 0 || emailDomains?.blocked?.length > 0,
+          (email?.blocked?.length ?? 0) > 0 ||
+          (emailDomains?.blocked?.length ?? 0) > 0,
         blockedEmails: email?.blocked?.join(', ') || '',
         blockedEmailDomains: emailDomains?.blocked?.join(', ') || '',
       });
@@ -90,12 +93,12 @@ export default function BlockedEmailSettings() {
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             user: {
               email: {
-                allowed: email.allowed,
+                allowed: email?.allowed,
                 blocked:
                   values.enabled && values.blockedEmails
                     ? [
@@ -108,7 +111,7 @@ export default function BlockedEmailSettings() {
                     : [],
               },
               emailDomains: {
-                allowed: emailDomains.allowed,
+                allowed: emailDomains?.allowed,
                 blocked:
                   values.enabled && values.blockedEmailDomains
                     ? [

@@ -9,7 +9,7 @@ import type {
   DatabaseAction,
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import type { FocusEvent } from 'react';
+import type { FocusEvent, ReactNode } from 'react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
@@ -62,11 +62,10 @@ export default function RowPermissionsSection({
       ? 'custom'
       : 'none';
 
-  const [temporaryPermissions, setTemporaryPermissions] = useState<
-    RuleGroup | {}
-  >(null);
+  const [temporaryPermissions, setTemporaryPermissions] =
+    useState<RuleGroup | null>(null);
 
-  const [rowCheckType, setRowCheckType] = useState<'none' | 'custom'>(
+  const [rowCheckType, setRowCheckType] = useState<'none' | 'custom' | null>(
     filter ? defaultRowCheckType : null,
   );
 
@@ -74,7 +73,7 @@ export default function RowPermissionsSection({
     setRowCheckType(value);
 
     if (value === 'none') {
-      setTemporaryPermissions(getValues().filter);
+      setTemporaryPermissions(getValues().filter as RuleGroup);
 
       // Note: https://github.com/react-hook-form/react-hook-form/issues/4055#issuecomment-950145092
       // @ts-ignore
@@ -112,15 +111,15 @@ export default function RowPermissionsSection({
         <Radio value="custom" label="With custom check" disabled={disabled} />
       </RadioGroup>
 
-      {errors?.filter?.message && (
+      {errors?.filter?.message ? (
         <Text
           variant="subtitle2"
           className="font-normal"
           sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
         >
-          {errors.filter.message}
+          {errors.filter.message as ReactNode}
         </Text>
-      )}
+      ) : null}
 
       {rowCheckType === 'custom' && (
         <RuleGroupEditor

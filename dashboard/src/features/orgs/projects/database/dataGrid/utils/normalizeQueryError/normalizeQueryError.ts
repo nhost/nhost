@@ -53,11 +53,13 @@ export default function normalizeQueryError(responseData: any): string {
     const queryError = responseData as QueryError;
 
     try {
-      const parsedMessage = JSON.parse(queryError.message) as QueryError;
+      const parsedMessage = JSON.parse(
+        queryError.message as string,
+      ) as QueryError;
 
       return normalizeQueryError(parsedMessage);
     } catch {
-      return queryError.message;
+      return queryError.message || '';
     }
   }
 

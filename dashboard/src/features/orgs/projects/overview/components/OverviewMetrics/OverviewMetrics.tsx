@@ -20,20 +20,7 @@ export default function OverviewMetrics() {
   const { project } = useProject();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
-  const {
-    data: {
-      allUsers: { aggregate: { count: allUsers = 0 } = {} } = {},
-      dailyActiveUsers: {
-        aggregate: { count: dailyActiveUsers = 0 } = {},
-      } = {},
-      monthlyActiveUsers: {
-        aggregate: { count: monthlyActiveUsers = 0 } = {},
-      } = {},
-      filesAggregate: {
-        aggregate: { sum: { size: totalStorage = 0 } = {} } = {},
-      } = {},
-    } = {},
-  } = useGetUserProjectMetricsQuery({
+  const { data } = useGetUserProjectMetricsQuery({
     client: remoteProjectGQLClient,
     variables: {
       startOfMonth: startOfMonth(new Date()),
@@ -42,13 +29,18 @@ export default function OverviewMetrics() {
     skip: !project,
   });
 
+  const allUsers = data?.allUsers?.aggregate?.count ?? 0;
+  const dailyActiveUsers = data?.dailyActiveUsers?.aggregate?.count ?? 0;
+  const monthlyActiveUsers = data?.monthlyActiveUsers?.aggregate?.count ?? 0;
+  const totalStorage = data?.filesAggregate?.aggregate?.sum?.size ?? 0;
+
   const {
     data: {
       totalRequests: { value: totalRequestsInLastFiveMinutes = 0 } = {},
     } = {},
   } = useGetProjectRequestsMetricQuery({
     variables: {
-      appId: project.id,
+      appId: project?.id,
       from: formatISO(subMinutes(new Date(), 6)), // 6 mns earlier
       to: formatISO(subMinutes(new Date(), 1)), // 1 mn earlier
     },
@@ -67,8 +59,8 @@ export default function OverviewMetrics() {
     error,
   } = useGetProjectMetricsQuery({
     variables: {
-      appId: project.id,
-      subdomain: project?.subdomain,
+      appId: project?.id,
+      subdomain: project?.subdomain!,
       from: new Date(now.getFullYear(), now.getMonth(), 1),
     },
     skip: !project,

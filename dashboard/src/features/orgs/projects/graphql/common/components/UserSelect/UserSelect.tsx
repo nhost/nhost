@@ -13,7 +13,7 @@ export interface UserSelectProps {
   /**
    * Function to be called when the user changes.
    */
-  onUserChange: (userId: string, availableRoles?: string[]) => void;
+  onUserChange: (userId: string, availableRoles: string[]) => void;
   /**
    * Class name to be applied to the `<Autocomplete />` element.
    */
@@ -25,7 +25,9 @@ export default function UserSelect({
   ...props
 }: UserSelectProps) {
   const [inputValue, setInputValue] = useState('');
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<
+    RemoteAppGetUsersAndAuthRolesQuery['users']
+  >([]);
   const [active, setActive] = useState(true);
   const [adminAuthRoles, setAdminAuthRoles] = useState<string[]>(() =>
     getAdminRoles(),
@@ -119,13 +121,13 @@ export default function UserSelect({
       autoComplete
       fullWidth
       autoSelect
-      groupBy={(option) => option.group}
+      groupBy={(option) => option.group ?? ''}
       autoHighlight
       includeInputInList
       loading={loading}
       onChange={(_event, _value, reason, details) => {
         setActive(false);
-        const userId = details.option.value;
+        const userId = details?.option.value;
         if (typeof userId !== 'string') {
           return;
         }
@@ -135,9 +137,8 @@ export default function UserSelect({
           return;
         }
 
-        const user: RemoteAppGetUsersAndAuthRolesQuery['users'][0] = users.find(
-          ({ id }) => id === userId,
-        );
+        const user: RemoteAppGetUsersAndAuthRolesQuery['users'][number] =
+          users.find(({ id }) => id === userId)!;
 
         if (isNotEmptyValue(user?.roles)) {
           const roles = user.roles.map(({ role }) => role);

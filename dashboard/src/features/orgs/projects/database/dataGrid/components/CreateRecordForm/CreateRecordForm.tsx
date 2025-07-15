@@ -52,7 +52,7 @@ export default function CreateRecordForm({
 
   return (
     <FormProvider {...form}>
-      {error && error instanceof Error && (
+      {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
@@ -72,7 +72,7 @@ export default function CreateRecordForm({
             </Button>
           </Alert>
         </div>
-      )}
+      ) : null}
 
       <BaseRecordForm
         submitButtonText="Insert"

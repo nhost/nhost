@@ -84,7 +84,7 @@ export default function PagerdutyFormSection() {
 
                 <Select
                   fullWidth
-                  value={formValues.pagerduty.at(index)?.severity || ''}
+                  value={formValues.pagerduty?.at(index)?.severity || ''}
                   className="lg:col-span-2"
                   label="Severity"
                   onChange={(_event, inputValue) =>

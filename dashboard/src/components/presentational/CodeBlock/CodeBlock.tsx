@@ -19,7 +19,7 @@ export interface CodeBlockPropsBase {
   /**
    * Text of the toast that appears when the code is copied to the clipboard.
    */
-  copyToClipboardToastTitle?: string;
+  copyToClipboardToastTitle: string;
 }
 
 export type CodeBlockProps = CodeBlockPropsBase &
@@ -63,7 +63,7 @@ interface CopyToClipboardButtonProps
   > {
   filenameColor?: string;
   tooltipColor?: string;
-  toastTitle?: string;
+  toastTitle: string;
 }
 
 function CopyToClipboardButton({

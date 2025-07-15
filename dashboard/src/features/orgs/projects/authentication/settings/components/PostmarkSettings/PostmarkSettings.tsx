@@ -68,7 +68,7 @@ export default function PostmarkSettings() {
   const handleEditPostmarkSettings = async (values: PostmarkFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           provider: {
             smtp: { method: 'LOGIN', host: 'postmark', ...values },

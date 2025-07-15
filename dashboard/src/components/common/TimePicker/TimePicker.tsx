@@ -7,7 +7,7 @@ import { TimePickerInput } from './TimePickerInput';
 
 interface TimePickerProps {
   date: Date | undefined;
-  setDate: (date: Date | undefined) => void;
+  setDate: (date: Date) => void;
 }
 
 function TimePicker({ date, setDate }: TimePickerProps) {

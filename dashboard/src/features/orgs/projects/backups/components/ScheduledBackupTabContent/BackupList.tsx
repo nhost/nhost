@@ -36,7 +36,7 @@ export default function BackupList() {
     throw error;
   }
 
-  const { backups } = data.app;
+  const backups = data?.app?.backups;
 
   return (
     <TableContainer sx={{ backgroundColor: 'background.paper' }}>
@@ -51,7 +51,7 @@ export default function BackupList() {
         </TableHead>
 
         <TableBody>
-          {backups.length === 0 && (
+          {backups?.length === 0 && (
             <TableRow>
               <TableCell>
                 <Text className="text-xs" color="secondary">
@@ -64,11 +64,11 @@ export default function BackupList() {
             </TableRow>
           )}
 
-          {backups.map((backup) => (
+          {backups?.map((backup) => (
             <BackupListItem
               key={backup.id}
               backup={backup}
-              projectId={project.id}
+              projectId={project?.id}
             />
           ))}
         </TableBody>

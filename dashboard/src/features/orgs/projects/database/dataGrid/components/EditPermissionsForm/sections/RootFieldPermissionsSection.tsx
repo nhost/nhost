@@ -150,7 +150,6 @@ export default function RootFieldPermissionsSection({
             <div className="flex flex-row flex-wrap justify-start gap-6">
               <Checkbox
                 disabled={disabled}
-                name="queryRootFields"
                 value="select"
                 label="select"
                 checked={availableQueryRootFields.includes('select')}
@@ -158,7 +157,6 @@ export default function RootFieldPermissionsSection({
               />
               <Checkbox
                 disabled={disabled}
-                name="queryRootFields"
                 value="select_by_pk"
                 label="select_by_pk"
                 checked={availableQueryRootFields.includes('select_by_pk')}
@@ -166,7 +164,6 @@ export default function RootFieldPermissionsSection({
               />
               <Checkbox
                 disabled={!allowAggregations || disabled}
-                name="queryRootFields"
                 value="select_aggregate"
                 label="select_aggregate"
                 checked={
@@ -202,7 +199,6 @@ export default function RootFieldPermissionsSection({
             <div className="flex flex-row flex-wrap justify-start gap-6">
               <Checkbox
                 disabled={disabled}
-                name="subscriptionRootFields"
                 value="select"
                 label="select"
                 checked={availableSubscriptionRootFields.includes('select')}
@@ -210,7 +206,6 @@ export default function RootFieldPermissionsSection({
               />
               <Checkbox
                 disabled={disabled}
-                name="subscriptionRootFields"
                 value="select_by_pk"
                 label="select_by_pk"
                 checked={availableSubscriptionRootFields.includes(
@@ -220,7 +215,6 @@ export default function RootFieldPermissionsSection({
               />
               <Checkbox
                 disabled={!allowAggregations || disabled}
-                name="subscriptionRootFields"
                 value="select_aggregate"
                 label="select_aggregate"
                 checked={

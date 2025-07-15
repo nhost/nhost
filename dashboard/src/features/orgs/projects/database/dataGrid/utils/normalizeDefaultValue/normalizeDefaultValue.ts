@@ -20,7 +20,7 @@ export interface NormalizeDefaultValueOptions {
  * default value, `false` otherwise.
  */
 export default function normalizeDefaultValue(
-  defaultValue: string,
+  defaultValue?: string | null,
   { removeArgs }: NormalizeDefaultValueOptions = {},
 ) {
   if (!defaultValue) {

@@ -77,7 +77,10 @@ export default function FileStoreForm({
       }))
     : [];
 
-  const formDefaultValues = { ...initialData, buckets: [] };
+  const formDefaultValues = {
+    ...initialData,
+    buckets: [] as { label: string; value: string }[],
+  };
   formDefaultValues.buckets = initialData?.buckets
     ? initialData.buckets.map((bucket) => ({
         label: bucket,

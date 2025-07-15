@@ -1,7 +1,10 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import {
+  ControlledAutocomplete,
+  defaultFilterOptions,
+} from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -35,6 +38,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
   version: Yup.object({
@@ -66,9 +70,7 @@ export default function AISettings() {
   const [aiServiceEnabled, setAIServiceEnabled] = useState(true);
 
   const {
-    data: {
-      config: { ai, postgres: { version: postgresVersion } = {} } = {},
-    } = {},
+    data,
     loading: loadingAiSettings,
     error: errorGettingAiSettings,
   } = useGetAiSettingsQuery({
@@ -78,6 +80,9 @@ export default function AISettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
     skip: !project?.id,
   });
+
+  const ai = data?.config?.ai;
+  const postgresVersion = data?.config?.postgres?.version;
 
   const { data: graphiteVersionsData, loading: loadingGraphiteVersionsData } =
     useGetSoftwareVersionsQuery({
@@ -132,13 +137,13 @@ export default function AISettings() {
     if (ai) {
       reset({
         version: {
-          label: ai?.version,
-          value: ai?.version,
+          label: ai?.version!,
+          value: ai?.version!,
         },
         webhookSecret: ai?.webhookSecret,
         synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes,
         apiKey: ai?.openai?.apiKey,
-        organization: ai?.openai?.organization,
+        organization: ai?.openai?.organization!,
         compute: {
           cpu: ai?.resources?.compute?.cpu ?? 62,
           memory: ai?.resources?.compute?.memory ?? 128,
@@ -156,7 +161,7 @@ export default function AISettings() {
       !ai &&
       !aiSettingsFormValues.version.value
     ) {
-      setValue('version', availableVersions?.at(0));
+      setValue('version', availableVersions.at(0)!);
     }
   }, [
     ai,
@@ -167,7 +172,10 @@ export default function AISettings() {
   ]);
 
   const toggleAIService = async (enabled: boolean) => {
-    if (!isPostgresVersionValidForAI(postgresVersion)) {
+    if (
+      isNotEmptyValue(postgresVersion) &&
+      !isPostgresVersionValidForAI(postgresVersion)
+    ) {
       toast.error(
         'In order to enable the AI service you need to update your database version to 14.6-20231018-1 or newer.',
         {
@@ -212,7 +220,7 @@ export default function AISettings() {
       async () => {
         await updateConfig({
           variables: {
-            appId: project.id,
+            appId: project?.id,
             config: {
               ai: {
                 version: formValues.version.value,
@@ -309,25 +317,7 @@ export default function AISettings() {
                     name="version"
                     autoHighlight
                     isOptionEqualToValue={() => false}
-                    filterOptions={(options, { inputValue }) => {
-                      const inputValueLower = inputValue.toLowerCase();
-                      const matched = [];
-                      const otherOptions = [];
-
-                      options.forEach((option) => {
-                        const optionLabelLower = option.label.toLowerCase();
-
-                        if (optionLabelLower.startsWith(inputValueLower)) {
-                          matched.push(option);
-                        } else {
-                          otherOptions.push(option);
-                        }
-                      });
-
-                      const result = [...matched, ...otherOptions];
-
-                      return result;
-                    }}
+                    filterOptions={defaultFilterOptions}
                     fullWidth
                     className="col-span-4"
                     options={availableVersions}

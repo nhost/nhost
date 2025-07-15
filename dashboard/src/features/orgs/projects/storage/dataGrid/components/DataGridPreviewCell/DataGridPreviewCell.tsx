@@ -21,10 +21,10 @@ export type PreviewProps = {
     init?: RequestInit,
     size?: { width?: number; height?: number },
   ) => Promise<Blob | null>;
-  mimeType?: string;
+  mimeType: string;
   alt?: string;
   blob?: Blob;
-  id?: string;
+  id: string;
 };
 
 export type DataGridPreviewCellProps<TData extends object> = CellProps<
@@ -63,9 +63,12 @@ function useBlob({
     async function generateOptimizedObjectUrl() {
       // todo: it could be more declarative if this function was called with the
       // actual preview URL here, not pre-generated in useFiles
+
+      const size =
+        mimeType !== 'image/svg+xml' ? { width: 80, height: 40 } : undefined;
       const fetchedBlob = await fetchBlob(
         { signal: abortController.signal },
-        mimeType !== 'image/svg+xml' && { width: 80, height: 40 },
+        size,
       );
 
       if (fetchedBlob) {
@@ -221,24 +224,23 @@ export default function DataGridPreviewCell<TData extends object>({
         'x-hasura-admin-secret':
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret,
+            : project!.config!.hasura.adminSecret,
       },
     });
 
-    if (!presignedUrl) {
+    if (presignedUrl?.url) {
+      if (!isPreviewable) {
+        window.open(presignedUrl.url, '_blank', 'noopener noreferrer');
+        return;
+      }
+
+      dispatch({ type: 'PREVIEW_FETCHED', payload: presignedUrl.url });
+    } else {
       dispatch({
         type: 'PREVIEW_ERROR',
         payload: new Error('Presigned URL could not be fetched.'),
       });
-      return;
     }
-
-    if (!isPreviewable) {
-      window.open(presignedUrl.url, '_blank', 'noopener noreferrer');
-      return;
-    }
-
-    dispatch({ type: 'PREVIEW_FETCHED', payload: presignedUrl.url });
   }
 
   if (loading) {
@@ -275,7 +277,7 @@ export default function DataGridPreviewCell<TData extends object>({
             'relative mx-auto flex overflow-hidden rounded-md',
           )}
           sx={{
-            backgroundColor: isJson && 'background.default',
+            backgroundColor: isJson ? 'background.default' : undefined,
             color: 'text.primary',
           }}
         >

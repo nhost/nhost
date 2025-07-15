@@ -14,11 +14,14 @@ export default function getInputType<T extends {}>({
   DataBrowserGridColumn<T>,
   'type' | 'specificType'
 >): InputProps['type'] {
-  if (type === 'date' && ['timestamp', 'timestamptz'].includes(specificType)) {
+  if (
+    type === 'date' &&
+    ['timestamp', 'timestamptz'].includes(specificType as string)
+  ) {
     return 'datetime-local';
   }
 
-  if (type === 'date' && ['time', 'timetz'].includes(specificType)) {
+  if (type === 'date' && ['time', 'timetz'].includes(specificType as string)) {
     return 'time';
   }
 

@@ -42,6 +42,7 @@ test('should be able to delete a user', async ({
   await expect(
     page.getByRole('button', { name: `View ${email}`, exact: true }),
   ).not.toBeVisible();
+  await expect(page.getByText('User deleted successfully.')).toBeVisible();
 });
 
 test('should be able to delete a user from the details page', async ({
@@ -75,4 +76,5 @@ test('should be able to delete a user from the details page', async ({
   await expect(
     page.getByRole('button', { name: `View ${email}`, exact: true }),
   ).not.toBeVisible();
+  await expect(page.getByText('User deleted successfully.')).toBeVisible();
 });

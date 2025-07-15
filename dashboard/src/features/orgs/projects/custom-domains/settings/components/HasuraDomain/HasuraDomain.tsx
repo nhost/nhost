@@ -15,6 +15,7 @@ import {
   useUpdateConfigMutation,
   type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -45,7 +46,7 @@ export default function HasuraDomain() {
 
   const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',
-    defaultValues: { hasura_fqdn: null },
+    defaultValues: { hasura_fqdn: '' },
     resolver: yupResolver(validationSchema),
   });
 
@@ -85,14 +86,15 @@ export default function HasuraDomain() {
   const hasura_fqdn = watch('hasura_fqdn');
 
   async function handleSubmit(formValues: HasuraDomainFormValues) {
-    const ingresses: ConfigIngressUpdateInput[] =
-      formValues.hasura_fqdn.length > 0
-        ? [{ fqdn: [formValues.hasura_fqdn] }]
-        : [];
+    const ingresses: ConfigIngressUpdateInput[] = isNotEmptyValue(
+      formValues.hasura_fqdn,
+    )
+      ? [{ fqdn: [formValues.hasura_fqdn] }]
+      : [];
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           hasura: {
             resources: {
@@ -161,7 +163,7 @@ export default function HasuraDomain() {
             type="string"
             fullWidth
             className="col-span-5 lg:col-span-2"
-            placeholder="auth.mydomain.dev"
+            placeholder="graphql.mydomain.dev"
             error={Boolean(formState.errors.hasura_fqdn?.message)}
             helperText={formState.errors.hasura_fqdn?.message}
             slotProps={{ inputRoot: { min: 1, max: 100 } }}
@@ -170,7 +172,7 @@ export default function HasuraDomain() {
             <VerifyDomain
               recordType="CNAME"
               hostname={hasura_fqdn}
-              value={`lb.${project.region.name}.${project.region.domain}.`}
+              value={`lb.${project?.region.name}.${project?.region.domain}.`}
               onHostNameVerified={() => setIsVerified(true)}
             />
           </div>

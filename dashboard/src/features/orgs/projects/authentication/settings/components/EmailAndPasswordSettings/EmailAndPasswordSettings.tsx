@@ -65,8 +65,8 @@ export default function EmailAndPasswordSettings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
-        hibpEnabled,
-        emailVerificationRequired,
+        hibpEnabled: !!hibpEnabled,
+        emailVerificationRequired: !!emailVerificationRequired,
         passwordMinLength,
       });
     }
@@ -97,7 +97,7 @@ export default function EmailAndPasswordSettings() {
   async function handleSubmit(formValues: EmailAndPasswordFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             method: {

@@ -3,23 +3,21 @@ import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import { AvailableLogsService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { memo, useCallback, useState } from 'react';
-import DeploymentLogsHeader from './DeploymentServiceLogsHeader';
+import DeploymentLogsHeader, {
+  type DeploymentLogsFormValues,
+} from './DeploymentServiceLogsHeader';
 
 interface Props {
   from: string;
   to: string | null;
 }
 
-type DeploymentLogsFilters = {
-  regexFilter?: string;
-  service?: AvailableLogsService;
-};
-
 function DeploymentServiceLogs({ from, to }: Props) {
-  const [filters, setFilters] = useState<DeploymentLogsFilters>({
+  const [filters, setFilters] = useState<DeploymentLogsFormValues>({
     regexFilter: '',
     service: AvailableLogsService.ALL,
   });
+
   const { data, error, loading } = useProjectLogs({
     from,
     to,
@@ -28,7 +26,7 @@ function DeploymentServiceLogs({ from, to }: Props) {
   });
 
   const onSubmitFilterValues = useCallback(
-    (values: DeploymentLogsFilters) => {
+    (values: DeploymentLogsFormValues) => {
       setFilters({ ...values });
     },
     [setFilters],

@@ -101,7 +101,7 @@ export default function HasuraLogLevelSettings() {
   async function handleSubmit(formValues: HasuraLogLevelFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             logs: {

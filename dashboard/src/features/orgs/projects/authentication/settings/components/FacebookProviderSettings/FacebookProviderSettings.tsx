@@ -30,7 +30,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function FacebookProviderSettings() {
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -68,7 +68,7 @@ export default function FacebookProviderSettings() {
     }
   }, [loading, clientId, clientSecret, enabled, form]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -88,7 +88,7 @@ export default function FacebookProviderSettings() {
   async function handleSubmit(formValues: BaseProviderSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             method: {
@@ -161,8 +161,8 @@ export default function FacebookProviderSettings() {
             hideEmptyHelperText
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/facebook/callback`}
             disabled
@@ -176,8 +176,8 @@ export default function FacebookProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/facebook/callback`,
                       'Redirect URL',

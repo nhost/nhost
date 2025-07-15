@@ -51,7 +51,7 @@ export interface DialogContextProps {
   /**
    * Call this function to open an alert dialog.
    */
-  openAlertDialog: <TPayload = string>(config?: DialogConfig<TPayload>) => void;
+  openAlertDialog: <TPayload = string>(config: DialogConfig<TPayload>) => void;
   /**
    * Call this function to close the active dialog.
    */

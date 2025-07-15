@@ -14,6 +14,7 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
@@ -173,15 +174,21 @@ export default function UsersPage() {
     if (loadingRemoteAppUsersQuery) {
       return;
     }
+    if (
+      dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate
+        ?.count &&
+      dataRemoteAppUsersAndAuthRoles?.usersAggregate.aggregate?.count
+    ) {
+      const userCount = searchString
+        ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate?.aggregate
+            ?.count
+        : dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count;
 
-    const userCount = searchString
-      ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate.count
-      : dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count;
-
-    setNrOfPages(Math.ceil(userCount / limit.current));
+      setNrOfPages(Math.ceil(userCount / limit.current));
+    }
   }, [
-    dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate.count,
-    dataRemoteAppUsersAndAuthRoles?.usersAggregate.aggregate.count,
+    dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate?.aggregate?.count,
+    dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count,
     loadingRemoteAppUsersQuery,
     searchString,
   ]);
@@ -227,7 +234,7 @@ export default function UsersPage() {
   );
 
   const thereAreUsers =
-    dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate.count ||
+    dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate?.count ||
     usersCount <= 0;
 
   if (loadingRemoteAppUsersQuery) {
@@ -263,6 +270,14 @@ export default function UsersPage() {
       </Container>
     );
   }
+
+  const elementsPerPage =
+    searchString &&
+    isNotEmptyValue(
+      dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate?.count,
+    )
+      ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate?.count
+      : limit.current;
 
   return (
     <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
@@ -325,7 +340,7 @@ export default function UsersPage() {
               </Text>
             </Box>
             {dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate
-              .count === 0 &&
+              ?.count === 0 &&
               usersCount !== 0 && (
                 <Box className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
                   <UserIcon
@@ -357,17 +372,12 @@ export default function UsersPage() {
                   totalNrOfElements={
                     searchString
                       ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate
-                          .aggregate.count
+                          .aggregate?.count!
                       : dataRemoteAppUsersAndAuthRoles?.usersAggregate
-                          ?.aggregate?.count
+                          ?.aggregate?.count!
                   }
                   itemsLabel="users"
-                  elementsPerPage={
-                    searchString
-                      ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate
-                          .aggregate.count
-                      : limit.current
-                  }
+                  elementsPerPage={elementsPerPage}
                   onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
                     if (currentPage - 1 !== 1) {

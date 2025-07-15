@@ -72,9 +72,9 @@ export default function AppLoader({
     <div className="grid grid-flow-row gap-2">
       <div className="grid grid-flow-row gap-1">
         <Text variant="h3" component="h1">
-          {restoring && `Restoring ${project.name} from backup`}
-          {!restoring && unpause && `Unpausing ${project.name}`}
-          {!restoring && !unpause && `Provisioning ${project.name}`}
+          {restoring && `Restoring ${project?.name} from backup`}
+          {!restoring && unpause && `Unpausing ${project?.name}`}
+          {!restoring && !unpause && `Provisioning ${project?.name}`}
         </Text>
         <Text>This normally takes around 2 minutes</Text>
       </div>

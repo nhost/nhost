@@ -102,7 +102,7 @@ function DataGrid<TColumnData extends object>(
   }: DataGridProps<TColumnData>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
-  const tableRef = useRef<HTMLDivElement>();
+  const tableRef = useRef<HTMLDivElement | null>(null);
   const { toggleAllRowsSelected, setSortBy, ...dataGridProps } =
     useDataGrid<TColumnData>({
       columns: columns || [],
@@ -138,7 +138,6 @@ function DataGrid<TColumnData extends object>(
     >
       <>
         {controls}
-
         {columns.length === 0 && !loading && (
           <DataBrowserEmptyState
             title="Columns not found"

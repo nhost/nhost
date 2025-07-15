@@ -40,6 +40,19 @@ export interface ManagePermissionVariables {
 
 export interface ManagePermissionOptions extends MutationOrQueryBaseOptions {}
 
+type HasuraArgs = {
+  type: string;
+  args: {
+    table: {
+      schema: string;
+      name: string;
+    };
+    source: string;
+    role: string;
+    permission?: HasuraMetadataPermission['permission'];
+  };
+};
+
 export default async function managePermission({
   dataSource,
   schema,
@@ -73,7 +86,7 @@ export default async function managePermission({
     },
   };
 
-  let args = [];
+  let args: HasuraArgs[] = [];
 
   if (mode === 'delete') {
     args = [deleteArgs];

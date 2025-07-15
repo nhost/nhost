@@ -25,7 +25,7 @@ interface FileStoresListProps {
    *
    * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate?: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<any>;
 
   /**
    * Function to be called after a successful delete action.

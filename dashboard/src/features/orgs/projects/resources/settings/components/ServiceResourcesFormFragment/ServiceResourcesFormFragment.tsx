@@ -85,7 +85,7 @@ export default function ServiceResourcesFormFragment({
     formState,
     register,
   } = useFormContext<ResourceSettingsFormValues>();
-  const formValues = useWatch<ResourceSettingsFormValues>();
+  const formValues = useWatch() as ResourceSettingsFormValues;
   const serviceValues = formValues[serviceKey];
 
   const isRatioLocked = isServiceWithReplicasValues(serviceValues)
@@ -243,18 +243,19 @@ export default function ServiceResourcesFormFragment({
             </span>
           </Text>
 
-          {remainingMemory > 0 && serviceValues.memory < MAX_SERVICE_MEMORY && (
-            <Text className="text-sm">
-              <span className="font-medium">
-                {prettifyMemory(remainingMemory)} of Memory
-              </span>{' '}
-              remaining
-            </Text>
-          )}
+          {remainingMemory > 0 &&
+            serviceValues?.memory < MAX_SERVICE_MEMORY && (
+              <Text className="text-sm">
+                <span className="font-medium">
+                  {prettifyMemory(remainingMemory)} of Memory
+                </span>{' '}
+                remaining
+              </Text>
+            )}
         </Box>
 
         <Slider
-          value={serviceValues.memory}
+          value={serviceValues?.memory}
           onChange={(_event, value) => handleMemoryChange(value.toString())}
           max={MAX_SERVICE_MEMORY}
           step={resourceMemoryStep}
@@ -322,7 +323,7 @@ export default function ServiceResourcesFormFragment({
                 type="number"
                 id={`${serviceKey}.maxReplicas`}
                 placeholder="10"
-                disabled={!formValues[serviceKey].autoscale}
+                disabled={!formValues[serviceKey]?.autoscale}
                 className="max-w-28"
                 hideEmptyHelperText
                 error={!!formState.errors?.[serviceKey]?.maxReplicas}

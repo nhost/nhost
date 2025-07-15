@@ -68,7 +68,7 @@ export default function useAsyncValue({
     .map((relationship) => relationship.name)
     .join('.');
   const [selectedColumn, setSelectedColumn] =
-    useState<AutocompleteOption>(null);
+    useState<AutocompleteOption | null>(null);
   const activeRelationship =
     selectedRelationships[selectedRelationships.length - 1];
 
@@ -149,7 +149,7 @@ export default function useAsyncValue({
       return;
     }
 
-    const metadataMap = metadata.tables.reduce(
+    const metadataMap = (metadata?.tables ?? []).reduce(
       (map, metadataTable) =>
         map.set(
           `${metadataTable.table.schema}.${metadataTable.table.name}`,
@@ -240,7 +240,7 @@ export default function useAsyncValue({
           return foreign_key_constraint_on === normalizedColumnName;
         }
 
-        return foreign_key_constraint_on.column === normalizedColumnName;
+        return foreign_key_constraint_on?.column === normalizedColumnName;
       },
     );
 
@@ -253,10 +253,8 @@ export default function useAsyncValue({
       /(\\"|")/g,
       '',
     );
-    const normalizedTable = foreignKeyRelation.referencedTable?.replace(
-      /(\\"|")/g,
-      '',
-    );
+    const normalizedTable =
+      foreignKeyRelation.referencedTable?.replace(/(\\"|")/g, '') ?? '';
 
     setAsyncTablePath(`${normalizedSchema || 'public'}.${normalizedTable}`);
 

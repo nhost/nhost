@@ -10,6 +10,7 @@ import {
   type LogsCustomInterval,
 } from '@/features/orgs/projects/logs/utils/constants/intervals';
 import { useInterval } from '@/hooks/useInterval';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ChevronDownIcon } from '@graphiql/react';
 import { formatDistance, parseISO, subMinutes } from 'date-fns';
 import { useState } from 'react';
@@ -20,7 +21,7 @@ function LogsToDatePickerLiveButton() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const { setValue } = useFormContext<LogsFilterFormValues>();
-  const { from, to } = useWatch<LogsFilterFormValues>();
+  const { from, to } = useWatch() as LogsFilterFormValues;
   const isLive = !to;
 
   function handleLiveButtonClick() {
@@ -88,10 +89,10 @@ function LogsRangeSelectorIntervalPickers({
   onSubmitFilterValues,
 }: LogsRangeSelectorProps) {
   const { project } = useProject();
-  const applicationCreationDate = new Date(project.createdAt);
+  const applicationCreationDate = new Date(project?.createdAt);
 
   const { setValue, getValues } = useFormContext<LogsFilterFormValues>();
-  const { from, interval } = useWatch<LogsFilterFormValues>();
+  const { from, interval } = useWatch() as LogsFilterFormValues;
 
   const { handleClose } = useDropdown();
 
@@ -161,7 +162,7 @@ function LogsRangeSelectorIntervalPickers({
 export default function LogsRangeSelector({
   onSubmitFilterValues,
 }: LogsRangeSelectorProps) {
-  const { from, to } = useWatch<LogsFilterFormValues>();
+  const { from, to } = useWatch() as LogsFilterFormValues;
 
   return (
     <Dropdown.Root>
@@ -172,9 +173,9 @@ export default function LogsRangeSelector({
           variant="outlined"
         >
           <span>
-            {to === null
-              ? 'Live'
-              : `${formatDistance(parseISO(to).getTime(), parseISO(from).getTime())}`}
+            {isNotEmptyValue(to)
+              ? `${formatDistance(parseISO(to).getTime(), parseISO(from).getTime())}`
+              : 'Live'}
           </span>
           <ChevronDownIcon className="h-3 w-3" />
         </Button>

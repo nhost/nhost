@@ -6,12 +6,17 @@ import { isEmptyValue } from '@/lib/utils';
  * @param roles - Roles from auth.roles table in string format
  * @returns An array with the admin roles
  */
-export default function getAdminRoles(roles?: string[]) {
+export default function getAdminRoles(roles?: string[] | null) {
   if (isEmptyValue(roles)) {
     return ['admin', 'public', 'anonymous'];
   }
 
-  const rolesSet = new Set(['admin', 'public', 'anonymous', ...roles]);
+  const rolesSet = new Set([
+    'admin',
+    'public',
+    'anonymous',
+    ...(roles as string[]),
+  ]);
 
   return Array.from(rolesSet);
 }

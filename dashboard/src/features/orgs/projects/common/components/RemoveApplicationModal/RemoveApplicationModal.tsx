@@ -89,7 +89,7 @@ export default function RemoveApplicationModal({
     }
     close();
     await router.push(`/orgs/${org?.slug}/projects`);
-    triggerToast(`${project.name} deleted`);
+    triggerToast(`${project?.name} deleted`);
   }
 
   return (

@@ -16,7 +16,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
-  from: Yup.string(),
+  from: Yup.string().required(),
   to: Yup.string().nullable(),
   interval: Yup.number().nullable(), // in minutes
   service: Yup.string().oneOf(Object.values(AvailableLogsService)),

@@ -119,7 +119,7 @@ export default function convertToRuleGroup(
         operator: '_and',
         rules: [
           {
-            column: previousKey,
+            column: previousKey as string,
             operator: '_is_null',
             value: Boolean(
               shouldNegate ? !convertedValue : convertedValue,
@@ -134,7 +134,7 @@ export default function convertToRuleGroup(
       operator: '_and',
       rules: [
         {
-          column: options.previousKey,
+          column: options?.previousKey as string,
           operator: '_is_null',
           value: Boolean(shouldNegate ? !value : value).toString(),
         },
@@ -153,7 +153,7 @@ export default function convertToRuleGroup(
       operator: '_and',
       rules: [
         {
-          column: previousKey,
+          column: previousKey as string,
           operator: shouldNegate
             ? negatedValueOperatorPairs[currentKey]
             : currentKey,
@@ -196,7 +196,7 @@ export default function convertToRuleGroup(
       operator: '_and',
       rules: [
         {
-          column: previousKey,
+          column: previousKey as string,
           operator: shouldNegate
             ? negatedValueOperatorPairs[currentKey]
             : currentKey,

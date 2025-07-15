@@ -47,7 +47,7 @@ export default function HasuraInferFunctionPermissionsSettings() {
   const form = useForm<HasuraInferFunctionPermissionsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: inferFunctionPermissions,
+      enabled: !!inferFunctionPermissions,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -55,7 +55,7 @@ export default function HasuraInferFunctionPermissionsSettings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
-        enabled: inferFunctionPermissions,
+        enabled: !!inferFunctionPermissions,
       });
     }
   }, [loading, inferFunctionPermissions, form]);
@@ -79,7 +79,7 @@ export default function HasuraInferFunctionPermissionsSettings() {
   ) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             settings: {

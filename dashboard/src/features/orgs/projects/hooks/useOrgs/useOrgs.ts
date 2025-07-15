@@ -17,7 +17,7 @@ export interface UseOrgsReturnType {
   orgs: Org[];
   currentOrg?: Org;
   loading?: boolean;
-  error?: Error;
+  error: Error | null;
   refetch: (
     variables?: Partial<
       Exact<{

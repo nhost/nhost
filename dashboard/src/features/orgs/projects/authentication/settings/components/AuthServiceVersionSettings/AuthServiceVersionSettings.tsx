@@ -1,7 +1,10 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import {
+  ControlledAutocomplete,
+  defaultFilterOptions,
+} from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -12,7 +15,7 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -20,6 +23,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
   version: Yup.object({
@@ -56,16 +60,25 @@ export default function AuthServiceVersionSettings() {
   });
 
   const { version } = data?.config?.auth || {};
-  const versions = authVersionsData?.softwareVersions || [];
-  const availableVersions = Array.from(
-    new Set(versions.map((el) => el.version)).add(version),
-  )
-    .sort()
-    .reverse()
-    .map((availableVersion) => ({
-      label: availableVersion,
-      value: availableVersion,
-    }));
+
+  const availableVersions = useMemo(() => {
+    const versions = authVersionsData?.softwareVersions || [];
+
+    if (isEmptyValue(versions)) {
+      return [];
+    }
+    const versionSet = new Set(versions.map((el) => el.version));
+    if (version) {
+      versionSet.add(version);
+    }
+    return Array.from(versionSet)
+      .sort()
+      .reverse()
+      .map((availableVersion) => ({
+        label: availableVersion,
+        value: availableVersion,
+      }));
+  }, [authVersionsData?.softwareVersions, version]);
 
   const form = useForm<AuthServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
@@ -105,7 +118,7 @@ export default function AuthServiceVersionSettings() {
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           auth: {
             version: formValues.version.value,
@@ -168,25 +181,7 @@ export default function AuthServiceVersionSettings() {
               return option.value;
             }}
             isOptionEqualToValue={() => false}
-            filterOptions={(options, { inputValue }) => {
-              const inputValueLower = inputValue.toLowerCase();
-              const matched = [];
-              const otherOptions = [];
-
-              options.forEach((option) => {
-                const optionLabelLower = option.label.toLowerCase();
-
-                if (optionLabelLower.startsWith(inputValueLower)) {
-                  matched.push(option);
-                } else {
-                  otherOptions.push(option);
-                }
-              });
-
-              const result = [...matched, ...otherOptions];
-
-              return result;
-            }}
+            filterOptions={defaultFilterOptions}
             fullWidth
             className="lg:col-span-2"
             options={availableVersions}

@@ -58,12 +58,12 @@ export interface HasuraMetadataPermission {
     columns: string[];
     filter: Record<string, any>;
     check: Record<string, any>;
-    limit: number;
+    limit: number | null;
     allow_aggregations: boolean;
-    query_root_fields: string[];
-    subscription_root_fields: string[];
-    computed_fields: string[];
-    set: Record<string, any>;
+    query_root_fields: string[] | null;
+    subscription_root_fields: string[] | null;
+    computed_fields: string[] | null;
+    set: Record<string, any> | null;
     backend_only: boolean;
   }>;
 }
@@ -344,7 +344,7 @@ export interface ForeignKeyRelation {
   id?: string;
   name?: string;
   columnName: string;
-  referencedSchema?: string;
+  referencedSchema?: string | null;
   referencedTable: string;
   referencedColumn: string;
   updateAction: PostgresReferentialAction;
@@ -373,7 +373,7 @@ export interface DatabaseColumn {
   /**
    * Default value of the column.
    */
-  defaultValue?: string | AutocompleteOption;
+  defaultValue?: string | null | AutocompleteOption<string | null>;
   /**
    * Determines whether or not the column is nullable.
    */
@@ -393,11 +393,11 @@ export interface DatabaseColumn {
   /**
    * Comment of the column.
    */
-  comment?: string;
+  comment?: string | null;
   /**
    * Foreign key relation of the column.
    */
-  foreignKeyRelation?: ForeignKeyRelation;
+  foreignKeyRelation?: ForeignKeyRelation | null;
   /**
    * Name of unique constraints on the column.
    */

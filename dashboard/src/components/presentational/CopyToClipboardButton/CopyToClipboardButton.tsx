@@ -11,7 +11,7 @@ function CopyToClipboardButton({
   title,
   ...props
 }: {
-  textToCopy: string;
+  textToCopy?: string | null;
   title: string;
 } & ButtonProps) {
   const [disabled, setDisabled] = useState(true);

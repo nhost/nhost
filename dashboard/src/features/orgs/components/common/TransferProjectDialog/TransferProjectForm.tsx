@@ -71,7 +71,7 @@ function TransferProjectForm({
     }
   }, [selectedOrganizationId, form]);
 
-  const isUserAdminOfOrg = (org: Org, userId: string) =>
+  const isUserAdminOfOrg = (org: Org, userId?: string) =>
     org.members.some(
       (member) =>
         member.role === Organization_Members_Role_Enum.Admin &&
@@ -99,7 +99,9 @@ function TransferProjectForm({
           });
 
           const targetOrg = orgs.find((o) => o.id === organization);
-          await push(`/orgs/${targetOrg.slug}/projects`);
+          if (targetOrg) {
+            await push(`/orgs/${targetOrg.slug}/projects`);
+          }
         },
         {
           loadingMessage: 'Transferring project...',
@@ -132,7 +134,7 @@ function TransferProjectForm({
                       value={org.id}
                       disabled={
                         org.plan.isFree || // disable the personal org
-                        org.id === currentOrg.id || // disable the current org as it can't be a destination org
+                        org.id === currentOrg?.id || // disable the current org as it can't be a destination org
                         !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
                       }
                     >

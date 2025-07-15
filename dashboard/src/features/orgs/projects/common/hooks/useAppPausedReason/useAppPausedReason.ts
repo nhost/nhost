@@ -29,8 +29,8 @@ export default function useAppPausedReason(): {
     skip: !project,
   });
 
-  const isLocked = isLockedData?.app?.isLocked;
-  const lockedReason = isLockedData?.app?.isLockedReason;
+  const isLocked = !!isLockedData?.app?.isLocked;
+  const lockedReason = isLockedData?.app?.isLockedReason || '';
 
   const numberOfFreeAndLiveProjects = data?.freeAndActiveProjects.length || 0;
   const freeAndLiveProjectsNumberExceeded =

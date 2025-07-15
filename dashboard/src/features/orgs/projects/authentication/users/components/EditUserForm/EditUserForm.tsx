@@ -46,7 +46,7 @@ export interface EditUserFormProps extends DialogFormProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: (values: EditUserFormValues) => Promise<void>;
+  onSubmit: (values: EditUserFormValues) => Promise<void>;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -85,7 +85,7 @@ export const EditUserFormValidationSchema = Yup.object({
         return true;
       } // Allow empty string as valid input
       try {
-        JSON.parse(value);
+        JSON.parse(value as any);
         return true;
       } catch (error) {
         return false;
@@ -233,6 +233,9 @@ export default function EditUserForm({
     });
   }
 
+  const { onChange, ...localeProps } = register('locale');
+  const { onChange: defaultOnChange, ...defaultRoleProps } =
+    register('defaultRole');
   return (
     <FormProvider {...form}>
       <Form
@@ -417,7 +420,7 @@ export default function EditUserForm({
               }
             />
             <ControlledSelect
-              {...register('locale')}
+              {...localeProps}
               id="locale"
               variant="inline"
               label="Locale"
@@ -479,7 +482,7 @@ export default function EditUserForm({
           </Box>
           <Box component="section" className="grid grid-flow-row gap-y-10 p-6">
             <ControlledSelect
-              {...register('defaultRole')}
+              {...defaultRoleProps}
               id="defaultRole"
               name="defaultRole"
               variant="inline"

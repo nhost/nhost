@@ -18,8 +18,8 @@ function usePiTRBaseBackups(appId: string) {
             'An error occurred while fetching the Point-in-Time backup data. Please try again later.',
           );
         }
-        if (isNotEmptyValue(data.getPiTRBaseBackups)) {
-          const earliestBackup = data.getPiTRBaseBackups.slice(-1).pop();
+        if (isNotEmptyValue(data?.getPiTRBaseBackups)) {
+          const earliestBackup = data.getPiTRBaseBackups.slice(-1).pop()!;
           setEarliestBackup(earliestBackup.date);
         }
       }

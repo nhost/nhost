@@ -14,6 +14,7 @@ import { PreviewHeader } from '@/features/orgs/projects/storage/dataGrid/compone
 import { useBuckets } from '@/features/orgs/projects/storage/dataGrid/hooks/useBuckets';
 import { useFiles } from '@/features/orgs/projects/storage/dataGrid/hooks/useFiles';
 import { useFilesAggregate } from '@/features/orgs/projects/storage/dataGrid/hooks/useFilesAggregate';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { Files } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -26,17 +27,89 @@ import toast from 'react-hot-toast';
 import type { Column, SortingRule } from 'react-table';
 
 export type StoredFile = Files & {
-  preview?: PreviewProps;
+  preview: PreviewProps;
 };
 
 export type FilesDataGridProps = Partial<DataGridProps<StoredFile>>;
+
+const columns: (Column<StoredFile> & {
+  isCopiable?: boolean;
+  isPrimary?: boolean;
+})[] = [
+  {
+    id: 'preview',
+    Header: PreviewHeader,
+    accessor: 'preview',
+    Cell: (cellProps) => (
+      <DataGridPreviewCell
+        {...cellProps}
+        fallbackPreview={<FilePreviewIcon className="h-5 w-5 fill-current" />}
+      />
+    ),
+    minWidth: 120,
+    width: 120,
+    disableSortBy: true,
+    disableResizing: true,
+  },
+  {
+    Header: 'id',
+    accessor: 'id',
+    isCopiable: true,
+    Cell: DataGridTextCell,
+    width: 318,
+    sortType: 'basic',
+    isPrimary: true,
+  },
+  { Header: 'name', accessor: 'name', width: 200, sortType: 'basic' },
+  { Header: 'size', accessor: 'size', width: 80, sortType: 'basic' },
+  {
+    Header: 'mimeType',
+    accessor: 'mimeType',
+    width: 120,
+    sortType: 'basic',
+  },
+  {
+    Header: 'createdAt',
+    accessor: 'createdAt',
+    width: 120,
+    Cell: DataGridDateCell,
+    sortType: 'basic',
+  },
+  {
+    Header: 'updatedAt',
+    accessor: 'updatedAt',
+    width: 120,
+    Cell: DataGridDateCell,
+    sortType: 'basic',
+  },
+  {
+    Header: 'bucketId',
+    accessor: 'bucketId',
+    width: 200,
+    sortType: 'basic',
+  },
+  { Header: 'etag', accessor: 'etag', width: 280, sortType: 'basic' },
+  {
+    Header: 'isUploaded',
+    accessor: 'isUploaded',
+    width: 100,
+    Cell: DataGridBooleanCell,
+    sortType: 'basic',
+  },
+  {
+    Header: 'uploadedByUserId',
+    accessor: 'uploadedByUserId',
+    width: 318,
+    sortType: 'basic',
+  },
+];
 
 export default function FilesDataGrid(props: FilesDataGridProps) {
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();
-  const [searchString, setSearchString] = useState<string | null>(null);
-  const [currentOffset, setCurrentOffset] = useState<number | null>(
+  const [searchString, setSearchString] = useState('');
+  const [currentOffset, setCurrentOffset] = useState<number>(
     parseInt(router.query.page as string, 10) - 1 || 0,
   );
   const [sortBy, setSortBy] = useState<SortingRule<StoredFile>[]>();
@@ -110,79 +183,6 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     }
   }, [router.query, loading, numberOfPages, currentOffset]);
 
-  const memoizedColumns: Column<StoredFile>[] = useMemo(
-    () => [
-      {
-        id: 'preview',
-        Header: PreviewHeader,
-        accessor: 'preview',
-        Cell: (cellProps) =>
-          DataGridPreviewCell({
-            ...cellProps,
-            fallbackPreview: (
-              <FilePreviewIcon className="h-5 w-5 fill-current" />
-            ),
-          }),
-        minWidth: 120,
-        width: 120,
-        disableSortBy: true,
-        disableResizing: true,
-      },
-      {
-        Header: 'id',
-        accessor: 'id',
-        isCopiable: true,
-        Cell: DataGridTextCell,
-        width: 318,
-        sortType: 'basic',
-        isPrimary: true,
-      },
-      { Header: 'name', accessor: 'name', width: 200, sortType: 'basic' },
-      { Header: 'size', accessor: 'size', width: 80, sortType: 'basic' },
-      {
-        Header: 'mimeType',
-        accessor: 'mimeType',
-        width: 120,
-        sortType: 'basic',
-      },
-      {
-        Header: 'createdAt',
-        accessor: 'createdAt',
-        width: 120,
-        Cell: DataGridDateCell,
-        sortType: 'basic',
-      },
-      {
-        Header: 'updatedAt',
-        accessor: 'updatedAt',
-        width: 120,
-        Cell: DataGridDateCell,
-        sortType: 'basic',
-      },
-      {
-        Header: 'bucketId',
-        accessor: 'bucketId',
-        width: 200,
-        sortType: 'basic',
-      },
-      { Header: 'etag', accessor: 'etag', width: 280, sortType: 'basic' },
-      {
-        Header: 'isUploaded',
-        accessor: 'isUploaded',
-        width: 100,
-        Cell: DataGridBooleanCell,
-        sortType: 'basic',
-      },
-      {
-        Header: 'uploadedByUserId',
-        accessor: 'uploadedByUserId',
-        width: 318,
-        sortType: 'basic',
-      },
-    ],
-    [],
-  );
-
   const memoizedData = useMemo(() => files, [files]);
 
   async function refetchFilesAndAggregate() {
@@ -215,18 +215,18 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
   // no-param-reassign is disabled in this function, because this is the only
   // way to reset the file input's value after the file has been uploaded.
   async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
-    const [file] = event.target.files;
+    const [file] = event.target.files!;
 
     if (!file) {
       // eslint-disable-next-line no-param-reassign
-      event.target.value = null;
+      event.target.value = '';
 
       return;
     }
 
     if (!defaultBucket?.id) {
       // eslint-disable-next-line no-param-reassign
-      event.target.value = null;
+      event.target.value = '';
 
       triggerToast(
         'File cannot be uploaded, because no default bucket is available.',
@@ -237,7 +237,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
 
     if (file.size > defaultBucket.maxUploadFileSize) {
       // eslint-disable-next-line no-param-reassign
-      event.target.value = null;
+      event.target.value = '';
 
       triggerToast(
         `File size cannot be larger than the maximum allowed size of ${
@@ -248,15 +248,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       return;
     }
 
-    let toastId: string;
-    let uploaded: boolean;
-
-    setTimeout(() => {
-      if (!uploaded) {
-        toastId = showLoadingToast(`Uploading ${file.name}...`);
-      }
-    }, 250);
-
+    const toastId = showLoadingToast(`Uploading ${file.name}...`);
     try {
       const uploadResponse = await appClient.storage.uploadFiles(
         {
@@ -273,30 +265,27 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
             'x-hasura-admin-secret':
               process.env.NEXT_PUBLIC_ENV === 'dev'
                 ? getHasuraAdminSecret()
-                : project?.config?.hasura.adminSecret,
+                : project!.config!.hasura.adminSecret,
           },
         },
       );
-      const fileMetadata = uploadResponse.body.processedFiles[0];
+      if (isNotEmptyValue(uploadResponse.body.processedFiles)) {
+        const fileMetadata = uploadResponse.body.processedFiles?.[0];
 
-      uploaded = true;
+        if (toastId) {
+          toast.remove(toastId);
+        }
 
-      if (toastId) {
-        toast.remove(toastId);
+        if (fileMetadata) {
+          const fileId = fileMetadata.id;
+
+          triggerToast(`File has been uploaded successfully (${fileId})`);
+
+          await refetchFilesAndAggregate();
+        } else {
+          throw new Error('File metadata is missing.');
+        }
       }
-
-      if (!fileMetadata) {
-        throw new Error('File metadata is missing.');
-      }
-
-      const fileId =
-        'processedFiles' in fileMetadata
-          ? fileMetadata.processedFiles[0]?.id
-          : fileMetadata.id;
-
-      triggerToast(`File has been uploaded successfully (${fileId})`);
-
-      await refetchFilesAndAggregate();
     } catch (uploadError) {
       if (toastId) {
         toast.remove(toastId);
@@ -306,7 +295,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     }
 
     // eslint-disable-next-line no-param-reassign
-    event.target.value = null;
+    event.target.value = '';
   }
 
   if (error) {
@@ -319,7 +308,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
 
   return (
     <DataGrid
-      columns={memoizedColumns}
+      columns={columns}
       data={memoizedData}
       allowSelection
       allowResize

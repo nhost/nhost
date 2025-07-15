@@ -50,7 +50,7 @@ function TransferProjectDialogContent({
         data: { organizations },
       } = await refetchOrgs();
 
-      const newOrg = organizations.find((org) => org.slug === Slug);
+      const newOrg = organizations.find((org) => org.slug === Slug)!;
 
       setShowContent(true);
       onOrganizationChange(newOrg.id);

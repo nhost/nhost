@@ -16,6 +16,7 @@ import {
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -87,15 +88,16 @@ export default function HasuraCorsDomainSettings() {
   async function handleSubmit(formValues: HasuraCorsDomainFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             settings: {
-              corsDomain: formValues.enabled
-                ? formValues.corsDomain
-                    .split(',')
-                    .map((domain) => domain.trim())
-                : ['*'],
+              corsDomain:
+                formValues.enabled && isNotEmptyValue(formValues?.corsDomain)
+                  ? formValues.corsDomain
+                      .split(',')
+                      .map((domain) => domain.trim())
+                  : ['*'],
             },
           },
         },

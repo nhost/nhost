@@ -13,7 +13,7 @@ import type {
 
 interface RateLimitFieldProps {
   register: UseFormRegister<any>;
-  errors: Merge<
+  errors?: Merge<
     FieldError,
     FieldErrorsImpl<{
       limit: number;
@@ -33,6 +33,7 @@ export default function RateLimitField({
   errors,
   title,
 }: RateLimitFieldProps) {
+  const { onChange, ...intervalUnitProps } = register(`${id}.intervalUnit`);
   return (
     <Box className="px-4">
       {title ? <Text className="py-4 font-semibold">{title}</Text> : null}
@@ -67,7 +68,7 @@ export default function RateLimitField({
             autoComplete="off"
           />
           <ControlledSelect
-            {...register(`${id}.intervalUnit`)}
+            {...intervalUnitProps}
             disabled={disabled}
             variant="normal"
             id={`${id}.intervalUnit`}

@@ -18,7 +18,7 @@ export interface UseSoftwareVersionsInfoOptions
   > {}
 
 type ServiceVersionInfo = {
-  configuredVersion: string | undefined;
+  configuredVersion: string | undefined | null;
   recommendedVersions: string[];
   isVersionMismatch: boolean;
 };
@@ -64,7 +64,7 @@ export default function useSoftwareVersionsInfo(
     return () => stopPolling();
   }, [refetchConfiguredVersions, stopPolling]);
 
-  const recommendedVersions = {
+  const recommendedVersions: Record<string, string[]> = {
     'hasura-auth': [],
     'hasura-storage': [],
     postgres: [],
@@ -96,7 +96,7 @@ export default function useSoftwareVersionsInfo(
 
   const isVersionMismatch = (
     service: string,
-    configuredVersion: string | undefined,
+    configuredVersion: string | undefined | null,
   ) =>
     !recommendedVersions[service].some(
       (version) => version === configuredVersion,

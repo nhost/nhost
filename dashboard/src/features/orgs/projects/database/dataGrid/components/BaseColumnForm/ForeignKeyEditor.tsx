@@ -76,12 +76,12 @@ const ForeignKeyEditorInput = forwardRef(
           <LinkIcon className="h-4 w-4" />
 
           <Text className="grid grid-flow-col items-center gap-1.5 truncate font-medium">
-            <span className="truncate">{foreignKeyRelation.columnName}</span>
+            <span className="truncate">{foreignKeyRelation?.columnName}</span>
             <ArrowRightIcon />
             <span className="truncate">
-              {foreignKeyRelation.referencedSchema}.
-              {foreignKeyRelation.referencedTable}.
-              {foreignKeyRelation.referencedColumn}
+              {foreignKeyRelation?.referencedSchema}.
+              {foreignKeyRelation?.referencedTable}.
+              {foreignKeyRelation?.referencedColumn}
             </span>
           </Text>
         </div>
@@ -94,7 +94,7 @@ const ForeignKeyEditorInput = forwardRef(
                 title: 'Edit Foreign Key Relation',
                 component: (
                   <EditForeignKeyForm
-                    foreignKeyRelation={foreignKeyRelation}
+                    foreignKeyRelation={foreignKeyRelation!}
                     selectedColumn={column.name}
                     availableColumns={[column]}
                     onSubmit={(values) => {
@@ -127,7 +127,7 @@ const ForeignKeyEditorInput = forwardRef(
 ForeignKeyEditorInput.displayName = 'NhostForeignKeyEditorInput';
 
 export default function ForeignKeyEditor() {
-  const buttonRef = useRef<HTMLButtonElement>();
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   return (
     <div className="col-span-8 grid grid-cols-8 items-center justify-start gap-x-4 gap-y-2">
@@ -137,10 +137,10 @@ export default function ForeignKeyEditor() {
         <ForeignKeyEditorInput
           ref={buttonRef}
           onEditSubmit={() =>
-            requestAnimationFrame(() => buttonRef.current.focus())
+            requestAnimationFrame(() => buttonRef.current?.focus())
           }
           onCreateSubmit={() =>
-            requestAnimationFrame(() => buttonRef.current.focus())
+            requestAnimationFrame(() => buttonRef.current?.focus())
           }
         />
       </Box>

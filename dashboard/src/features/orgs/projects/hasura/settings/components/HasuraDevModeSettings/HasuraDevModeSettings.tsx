@@ -46,7 +46,7 @@ export default function HasuraDevModeSettings() {
   const form = useForm<HasuraDevModeFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: devMode,
+      enabled: !!devMode,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -54,7 +54,7 @@ export default function HasuraDevModeSettings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
-        enabled: devMode,
+        enabled: !!devMode,
       });
     }
   }, [loading, devMode, form]);
@@ -76,7 +76,7 @@ export default function HasuraDevModeSettings() {
   async function handleSubmit(formValues: HasuraDevModeFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             settings: {

@@ -46,7 +46,9 @@ export default function DataGridDateCell<TData extends object>({
       : undefined;
 
   const { year, month, day, hour, minute, second } = getDateComponents(date, {
-    adjustTimezone: ['date', 'timetz', 'timestamptz'].includes(specificType),
+    adjustTimezone: ['date', 'timetz', 'timestamptz'].includes(
+      specificType as string,
+    ),
   });
 
   const { inputRef, focusCell, isEditing, cancelEditCell } =

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
@@ -64,11 +65,10 @@ export default function CreateUserForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const baseAuthUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'auth',
-  );
+  const baseAuthUrl =
+    isNotEmptyValue(project?.subdomain) && isNotEmptyValue(project?.region)
+      ? generateAppServiceUrl(project!.subdomain, project!.region, 'auth')
+      : '';
 
   const signUpUrl = `${baseAuthUrl}/signup/email-password`;
 

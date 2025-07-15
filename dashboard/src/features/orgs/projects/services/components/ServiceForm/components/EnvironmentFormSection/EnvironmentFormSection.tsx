@@ -16,7 +16,7 @@ export default function EnvironmentFormSection() {
     formState: { errors },
   } = useFormContext<ServiceFormValues>();
 
-  const [focusedInput, setFocusedInput] = useState<string>(null);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   const { fields, append, remove } = useFieldArray({
     name: 'environment',
@@ -60,8 +60,8 @@ export default function EnvironmentFormSection() {
                 placeholder={`Key ${index}`}
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.environment?.at(index)}
-                helperText={errors?.environment?.at(index)?.message}
+                error={!!errors?.environment?.at?.(index)}
+                helperText={errors?.environment?.at?.(index)?.message}
                 fullWidth
                 autoComplete="off"
               />
@@ -71,8 +71,8 @@ export default function EnvironmentFormSection() {
                 placeholder={`Value ${index}`}
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.environment?.at(index)}
-                helperText={errors?.environment?.at(index)?.message}
+                error={!!errors?.environment?.at?.(index)}
+                helperText={errors?.environment?.at?.(index)?.message}
                 fullWidth
                 autoComplete="off"
                 multiline

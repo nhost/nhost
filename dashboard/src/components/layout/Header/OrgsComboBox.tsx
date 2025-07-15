@@ -30,7 +30,7 @@ type Option = {
 export default function OrgsComboBox() {
   const { orgs } = useOrgs();
   const isPlatform = useIsPlatform();
-  const [, setLastSlug] = useSSRLocalStorage('slug', null);
+  const [, setLastSlug] = useSSRLocalStorage<string | null>('slug', null);
 
   const {
     query: { orgSlug },

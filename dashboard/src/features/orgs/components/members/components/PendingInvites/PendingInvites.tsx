@@ -54,7 +54,7 @@ export default function PendingInvites() {
   const { org } = useCurrentOrg();
   const isAdmin = useIsOrgAdmin();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const [orgInviteError, setOrgInviteError] = useState(null);
+  const [orgInviteError, setOrgInviteError] = useState<string | null>(null);
 
   const {
     data: { organizationMemberInvites = [] } = {},
@@ -110,7 +110,7 @@ export default function PendingInvites() {
       {
         loadingMessage: 'Sending invite...',
         successMessage: `Invite to join Organization ${org?.name} sent to ${email}.`,
-        errorMessage: null,
+        errorMessage: '',
         onError: async (error) => {
           await discordAnnounce(
             `Error trying to invite to ${email} to Organization ${org?.name} ${error.message}`,
