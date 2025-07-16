@@ -5,14 +5,13 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -49,20 +48,16 @@ export default function ResetPasswordPage() {
 
   const { register, formState } = form;
 
-  async function handleSubmit({ newPassword }: ResetPasswordFormValues) {
-    try {
-      await nhost.auth.changeUserPassword({
-        newPassword,
-      });
-
-      toast.success('Password was updated successfully.');
+  const changePassword = useActionWithElevatedPermissions({
+    actionFn: nhost.auth.changeUserPassword,
+    onSuccess: () => {
       router.push('/');
-    } catch (error) {
-      toast.error(
-        `An error occurred while changing your password: ${error?.message}`,
-        getToastStyleProps(),
-      );
-    }
+    },
+    successMessage: 'Password was updated successfully.',
+  });
+
+  async function handleSubmit({ newPassword }: ResetPasswordFormValues) {
+    await changePassword({ newPassword });
   }
 
   return (
