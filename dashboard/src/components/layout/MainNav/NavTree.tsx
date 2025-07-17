@@ -19,6 +19,7 @@ import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, type ReactElement } from 'react';
 
+import { useIsSelfHosted } from '@/hooks/useIsSelfHosted';
 import {
   ControlledTreeEnvironment,
   Tree,
@@ -160,7 +161,11 @@ const projectSettingsPages = [
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ];
 
-const createOrganization = (org: Org, isPlatform: boolean) => {
+const createOrganization = (
+  org: Org,
+  isPlatform: boolean,
+  isSelfHosted: boolean,
+) => {
   const result = {};
 
   result[org.slug] = {
@@ -238,9 +243,9 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
       result[`${org.slug}-${_app.subdomain}-${_page.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-${_page.slug}`,
         canMove: false,
-        isFolder: _page.name === 'Settings',
+        isFolder: _page.name === 'Settings' && !isSelfHosted,
         children:
-          _page.name === 'Settings'
+          _page.name === 'Settings' && !isSelfHosted
             ? projectSettingsPages.map(
                 (p) => `${org.slug}-${_app.subdomain}-settings-${p.slug}`,
               )
@@ -251,9 +256,11 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
           isProjectPage: true,
           targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${_page.route}`,
           disabled:
-            ['deployments', 'backups', 'logs', 'metrics'].includes(
+            (['deployments', 'backups', 'logs', 'metrics'].includes(
               _page.slug,
-            ) && !isPlatform,
+            ) &&
+              !isPlatform) ||
+            (_page.name === 'Settings' && isSelfHosted),
         },
         canRename: false,
       };
@@ -272,6 +279,7 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
             p.slug === 'general'
               ? `/orgs/${org.slug}/projects/${_app.subdomain}/settings`
               : `/orgs/${org.slug}/projects/${_app.subdomain}/settings/${p.route}`,
+          disabled: true,
         },
         canRename: false,
       };
@@ -334,6 +342,7 @@ type NavItem = {
 const buildNavTreeData = (
   org: Org,
   isPlatform: boolean,
+  isSelfHosted: boolean,
 ): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
   if (!org) {
     return {
@@ -365,7 +374,7 @@ const buildNavTreeData = (
         data: { name: 'root' },
         canRename: false,
       },
-      ...createOrganization(org, isPlatform),
+      ...createOrganization(org, isPlatform, isSelfHosted),
     },
   };
 
@@ -375,9 +384,10 @@ const buildNavTreeData = (
 export default function NavTree() {
   const { currentOrg: org } = useOrgs();
   const isPlatform = useIsPlatform();
+  const isSelfHosted = useIsSelfHosted();
   const navTree = useMemo(
-    () => buildNavTreeData(org, isPlatform),
-    [org, isPlatform],
+    () => buildNavTreeData(org, isPlatform, isSelfHosted),
+    [org, isPlatform, isSelfHosted],
   );
   const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
     useTreeNavState();

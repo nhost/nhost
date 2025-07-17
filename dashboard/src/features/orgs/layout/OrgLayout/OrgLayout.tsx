@@ -16,10 +16,26 @@ import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProjectWithState } from '@/features/orgs/projects/hooks/useProjectWithState';
 import { ApplicationStatus } from '@/types/application';
+import { isPlatform as isPlatformFn, isSelfHosted } from '@/utils/env';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
-import { useCallback, useMemo, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
+
+const platFormOnlyPages = [
+  '/orgs/[orgSlug]/projects/[appSubdomain]/deployments',
+  '/orgs[orgSlug]/projects/[appSubdomain]/backups',
+  '/orgs/[orgSlug]/projects/[appSubdomain]/logs',
+  '/orgs/[orgSlug]/projects/[appSubdomain]/metrics',
+];
+
+function isPlatformOnlyPage(route: string) {
+  const platFormOnlyPage = !!platFormOnlyPages.find((page) => route === page);
+
+  return (!isPlatformFn() || isSelfHosted()) && platFormOnlyPage;
+
+  return false;
+}
 
 export interface ProjectLayoutContentProps extends AuthenticatedLayoutProps {
   /**
@@ -35,10 +51,12 @@ function ProjectLayoutContent({
   const {
     route,
     query: { appSubdomain },
+    push,
   } = useRouter();
 
   const { state } = useAppState();
   const isPlatform = useIsPlatform();
+
   const { project, loading, error } = useProjectWithState();
 
   const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
@@ -131,6 +149,16 @@ function ProjectLayoutContent({
     isOnOverviewPage,
     renderPausedProjectContent,
   ]);
+
+  useEffect(() => {
+    if (isPlatformOnlyPage(route)) {
+      push('/404');
+    }
+  }, [route, push]);
+
+  if (isPlatformOnlyPage(route)) {
+    return null;
+  }
 
   // Handle loading state
   if (loading) {

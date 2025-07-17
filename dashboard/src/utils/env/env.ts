@@ -5,6 +5,10 @@ export function isPlatform() {
   return process.env.NEXT_PUBLIC_NHOST_PLATFORM === 'true';
 }
 
+export function isSelfHosted() {
+  return process.env.NEXT_PUBLIC_NHOST_IS_SELF_HOSTED === 'true';
+}
+
 /**
  * Admin secret for Hasura.
  */

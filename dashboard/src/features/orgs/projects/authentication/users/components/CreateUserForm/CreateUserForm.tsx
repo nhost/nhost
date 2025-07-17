@@ -74,7 +74,8 @@ export default function CreateUserForm({
 
   async function handleCreateUser({ email, password }: CreateUserFormValues) {
     setCreateUserFormError(null);
-
+    // eslint-disable-next-line no-console
+    console.log({ signUpUrl });
     await execPromiseWithErrorToast(
       async () => {
         await fetch(signUpUrl, {

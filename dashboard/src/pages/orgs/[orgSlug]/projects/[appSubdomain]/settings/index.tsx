@@ -175,9 +175,6 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await pauseApplication();
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
         await refetchProject();
       },
       {
@@ -192,9 +189,6 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await unpauseApplication();
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
         await refetchProject();
       },
       {
