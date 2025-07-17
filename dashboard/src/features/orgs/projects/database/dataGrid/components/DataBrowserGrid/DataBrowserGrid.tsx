@@ -172,7 +172,7 @@ export default function DataBrowserGrid({
   sortBy,
   ...props
 }: DataBrowserGridProps) {
-  const dataGridRef = useRef<HTMLDivElement>();
+  const dataGridRef = useRef<HTMLDivElement | null>(null);
 
   const queryClient = useQueryClient();
   const {
@@ -187,7 +187,7 @@ export default function DataBrowserGrid({
   const isGitHubConnected = !!project?.githubRepository;
 
   const limit = 25;
-  const [currentOffset, setCurrentOffset] = useState<number | null>(
+  const [currentOffset, setCurrentOffset] = useState<number>(
     parseInt(page as string, 10) - 1 || 0,
   );
 
@@ -212,8 +212,8 @@ export default function DataBrowserGrid({
   );
 
   const { columns, rows, numberOfRows, metadata } = data || {
-    columns: [],
-    rows: [],
+    columns: [] as NormalizedQueryDataRow[],
+    rows: [] as NormalizedQueryDataRow[],
     numberOfRows: 0,
   };
 
@@ -350,7 +350,7 @@ export default function DataBrowserGrid({
       setRemovableColumnId(column.id);
       await deleteColumn({ column });
 
-      // Note: At this point we can optimisticly assume that the column was
+      // Note: At this point we can optimistically assume that the column was
       // removed, so we can improve the UX by removing it from the grid right
       // away, without waiting for the refetch to succeed.
       setOptimisticlyRemovedColumnId(column.id);
@@ -417,6 +417,7 @@ export default function DataBrowserGrid({
   // We need to display the header when columns are not available in the table,
   // so we are not throwing an error in this case
   if (error && !metadata?.columnsNotFound) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw error || new Error('Unknown error occurred. Please try again later.');
   }
 

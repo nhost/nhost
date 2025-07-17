@@ -20,7 +20,7 @@ interface UseFinishOrgCreationProps {
 function useFinishOrgCreation({
   onCompleted,
   onError,
-}: UseFinishOrgCreationProps): [boolean, CheckoutStatus] {
+}: UseFinishOrgCreationProps) {
   const router = useRouter();
   const { session_id } = router.query;
 
@@ -36,37 +36,37 @@ function useFinishOrgCreation({
         setLoading(true);
         execPromiseWithErrorToast(
           async () => {
-            const {
-              data: { billingPostOrganizationRequest },
-            } = await postOrganizationRequest({
+            const response = await postOrganizationRequest({
               variables: {
                 sessionID: session_id as string,
               },
             });
+            if (response.data) {
+              const { billingPostOrganizationRequest } = response.data;
+              const { Status } = billingPostOrganizationRequest;
 
-            const { Status } = billingPostOrganizationRequest;
+              setLoading(false);
+              setPostOrganizationRequestStatus(Status);
 
-            setLoading(false);
-            setPostOrganizationRequestStatus(Status);
+              switch (Status) {
+                case CheckoutStatus.Completed:
+                  onCompleted(billingPostOrganizationRequest);
+                  break;
 
-            switch (Status) {
-              case CheckoutStatus.Completed:
-                onCompleted(billingPostOrganizationRequest);
-                break;
+                case CheckoutStatus.Expired:
+                  onError?.();
+                  throw new Error('Request to create organization has expired');
 
-              case CheckoutStatus.Expired:
-                onError();
-                throw new Error('Request to create organization has expired');
+                case CheckoutStatus.Open:
+                  // TODO discuss what to do in this case
+                  onError?.();
+                  throw new Error(
+                    'Request to create organization with status "Open"',
+                  );
 
-              case CheckoutStatus.Open:
-                // TODO discuss what to do in this case
-                onError();
-                throw new Error(
-                  'Request to create organization with status "Open"',
-                );
-
-              default:
-                break;
+                default:
+                  break;
+              }
             }
           },
           {

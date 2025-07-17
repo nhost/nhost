@@ -7,7 +7,7 @@ import RemoveSecurityKeyButton from './RemoveSecurityKeyButton';
 
 type SecurityKeyProps = {
   id: string;
-  nickname?: string;
+  nickname?: string | null;
 };
 
 function SecurityKey({ id, nickname }: SecurityKeyProps) {

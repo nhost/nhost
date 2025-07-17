@@ -62,8 +62,8 @@ export const mockApplication: Project = {
   desiredState: ApplicationStatus.Live,
   featureFlags: [],
   githubRepository: { fullName: 'test/git-project' },
-  repositoryProductionBranch: null,
-  nhostBaseFolder: null,
+  repositoryProductionBranch: '',
+  nhostBaseFolder: '',
   legacyPlan: {
     id: '1',
     name: 'Starter',

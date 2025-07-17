@@ -70,22 +70,22 @@ export default function ResetDatabasePasswordSettings() {
     try {
       await resetPassword({
         variables: {
-          appId: project.id,
-          newPassword: formValues.databasePassword,
+          appId: project?.id,
+          newPassword: formValues.databasePassword!,
         },
       });
 
       form.reset(formValues);
 
       triggerToast(
-        `The database password for ${project.name} has been updated successfully.`,
+        `The database password for ${project?.name} has been updated successfully.`,
       );
     } catch (e) {
       triggerToast(
-        `An error occured while trying to update the database password for ${project.name}`,
+        `An error occured while trying to update the database password for ${project?.name}`,
       );
       await discordAnnounce(
-        `An error occurred while trying to update the database password: ${project.name} (${user?.email}): ${e.message}`,
+        `An error occurred while trying to update the database password: ${project?.name} (${user?.email}): ${e.message}`,
       );
     }
   }
@@ -174,7 +174,10 @@ export default function ResetDatabasePasswordSettings() {
                   sx={{ minWidth: 0, padding: 0 }}
                   color="secondary"
                   onClick={() => {
-                    copy(getValues('databasePassword'), 'Postgres password');
+                    copy(
+                      getValues('databasePassword') as string,
+                      'Postgres password',
+                    );
                   }}
                   variant="borderless"
                   aria-label="Copy password"

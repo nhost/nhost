@@ -39,7 +39,8 @@ export default function PostCheckout() {
         },
       });
 
-      const { id, name, slug, plan } = orgData.organizations[0];
+      const { id, name, slug, plan } = orgData?.organizations[0] || {};
+
       analytics.track('Organization Created', {
         organizationId: id,
         organizationSlug: slug,

@@ -7,7 +7,9 @@ import { useRouter } from 'next/router';
 import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
 
-export function authProtected<P>(Comp: ComponentType<P>) {
+export function authProtected<P extends JSX.IntrinsicAttributes>(
+  Comp: ComponentType<P>,
+) {
   return function AuthProtected(props: P) {
     const router = useRouter();
     const { isAuthenticated, isLoading } = useAuth();
@@ -75,6 +77,7 @@ function Page() {
   }
 
   if (state.error) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw state.error;
   }
 

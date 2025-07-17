@@ -23,7 +23,7 @@ export default function GitConnectionSettings() {
       payload: (
         <p>
           Are you sure you want to disconnect{' '}
-          <b>{project?.githubRepository.fullName}</b>?
+          <b>{project?.githubRepository?.fullName}</b>?
         </p>
       ),
       props: {
@@ -32,14 +32,14 @@ export default function GitConnectionSettings() {
         onPrimaryAction: async () => {
           await updateApp({
             variables: {
-              appId: project.id,
+              appId: project?.id,
               app: {
                 githubRepositoryId: null,
               },
             },
           });
           triggerToast(
-            `Successfully disconnected GitHub repository from ${project.name}.`,
+            `Successfully disconnected GitHub repository from ${project?.name}.`,
           );
           await refetch();
         },

@@ -74,7 +74,7 @@ export default function DisableSignUpsSettings() {
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             signUp: {

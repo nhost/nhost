@@ -10,11 +10,11 @@ import type {
  * @param dataBrowserGridColumn - Data browser grid column.
  * @returns Normalized database column.
  */
-export default function convertDataGridColumnToDatabaseColumn(
+export default function convertDataBrowserGridColumnToDatabaseColumn(
   dataBrowserGridColumn: Partial<DataBrowserGridColumn> &
     Required<Pick<DataBrowserGridColumn, 'id'>>,
 ): DatabaseColumn {
-  let defaultValue: AutocompleteOption = null;
+  let defaultValue: AutocompleteOption | null = null;
 
   if (typeof dataBrowserGridColumn.defaultValue === 'string') {
     defaultValue = {
@@ -41,8 +41,8 @@ export default function convertDataGridColumnToDatabaseColumn(
     isUnique: dataBrowserGridColumn.isUnique || false,
     isNullable: dataBrowserGridColumn.isNullable || false,
     type: {
-      value: dataBrowserGridColumn.specificType,
-      label: dataBrowserGridColumn.specificType,
+      value: dataBrowserGridColumn.specificType!,
+      label: dataBrowserGridColumn.specificType!,
     },
     defaultValue,
     foreignKeyRelation: dataBrowserGridColumn.foreignKeyRelation || null,

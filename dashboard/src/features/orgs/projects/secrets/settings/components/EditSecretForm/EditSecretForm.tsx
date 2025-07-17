@@ -18,6 +18,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { MakeRequired } from '@/types/common';
 
 export interface EditSecretFormProps
   extends Pick<BaseSecretFormProps, 'onCancel'> {
@@ -54,7 +55,10 @@ export default function EditSecretForm({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  async function handleSubmit({ name, value }: BaseSecretFormValues) {
+  async function handleSubmit({
+    name,
+    value,
+  }: MakeRequired<BaseSecretFormValues, 'value'>) {
     const updateSecretPromise = updateSecret({
       variables: {
         appId: project?.id,

@@ -26,7 +26,8 @@ import useAsyncValue from './useAsyncValue';
 import type { UseColumnGroupsOptions } from './useColumnGroups';
 import useColumnGroups from './useColumnGroups';
 
-export interface ColumnAutocompleteProps extends Omit<ButtonProps, 'onChange'> {
+export interface ColumnAutocompleteProps
+  extends Omit<ButtonProps, 'onChange' | 'name'> {
   value?: string;
   /**
    * Schema where the `table` is located.

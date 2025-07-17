@@ -43,12 +43,12 @@ import { z } from 'zod';
 
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
-  plan: z.optional(z.string()),
+  plan: z.string(),
 });
 
 interface CreateOrgFormProps {
   plans: PrefetchNewAppPlansFragment[];
-  onSubmit?: ({
+  onSubmit: ({
     name,
     plan,
   }: z.infer<typeof createOrgFormSchema>) => Promise<void>;
@@ -183,7 +183,7 @@ interface CreateOrgDialogProps {
   redirectUrl?: string;
 }
 
-function isPropSet(prop: any) {
+function isPropSet<T>(prop: T): prop is Exclude<T, undefined | null> {
   return prop !== undefined;
 }
 
@@ -213,27 +213,24 @@ export default function CreateOrgDialog({
     }
   };
 
-  const createOrg = async ({
-    name,
-    plan,
-  }: {
-    name?: string;
-    plan?: string;
-  }) => {
+  const createOrg = async ({ name, plan }: { name: string; plan: string }) => {
     await execPromiseWithErrorToast(
       async () => {
         const defaultRedirectUrl = `${window.location.origin}/orgs/verify`;
 
-        const {
-          data: { billingCreateOrganizationRequest: clientSecret },
-        } = await createOrganizationRequest({
+        const response = await createOrganizationRequest({
           variables: {
             organizationName: name,
             planID: plan,
             redirectURL: redirectUrl ?? defaultRedirectUrl,
           },
         });
-        setStripeClientSecret(clientSecret);
+
+        if (response.data?.billingCreateOrganizationRequest) {
+          setStripeClientSecret(
+            response.data?.billingCreateOrganizationRequest,
+          );
+        }
       },
       {
         loadingMessage: 'Redirecting to checkout',
@@ -290,9 +287,9 @@ export default function CreateOrgDialog({
             />
           </div>
         )}
-        {!loading && !stripeClientSecret && (
+        {data && !loading && !stripeClientSecret && (
           <CreateOrgForm
-            plans={data?.plans}
+            plans={data.plans}
             onSubmit={createOrg}
             onCancel={() => handleOpenChange(false)}
           />

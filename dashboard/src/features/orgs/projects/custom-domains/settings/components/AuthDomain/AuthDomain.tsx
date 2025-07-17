@@ -20,6 +20,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
   auth_fqdn: Yup.string(),
@@ -46,7 +47,7 @@ export default function AuthDomain() {
 
   const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',
-    defaultValues: { auth_fqdn: null },
+    defaultValues: { auth_fqdn: '' },
     resolver: yupResolver(validationSchema),
   });
 
@@ -86,12 +87,15 @@ export default function AuthDomain() {
   const auth_fqdn = watch('auth_fqdn');
 
   async function handleSubmit(formValues: AuthDomainFormValues) {
-    const ingresses: ConfigIngressUpdateInput[] =
-      formValues.auth_fqdn.length > 0 ? [{ fqdn: [formValues.auth_fqdn] }] : [];
+    const ingresses: ConfigIngressUpdateInput[] = isNotEmptyValue(
+      formValues.auth_fqdn?.length,
+    )
+      ? [{ fqdn: [formValues.auth_fqdn] }]
+      : [];
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             resources: {
@@ -169,7 +173,7 @@ export default function AuthDomain() {
             <VerifyDomain
               recordType="CNAME"
               hostname={auth_fqdn}
-              value={`lb.${project.region.name}.${project.region.domain}.`}
+              value={`lb.${project?.region.name}.${project?.region.domain}.`}
               onHostNameVerified={() => setIsVerified(true)}
             />
           </div>

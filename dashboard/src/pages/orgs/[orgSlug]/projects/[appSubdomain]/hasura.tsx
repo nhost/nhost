@@ -32,7 +32,7 @@ export default function HasuraPage() {
   const hasuraUrl =
     process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
       ? `${getHasuraConsoleServiceUrl()}`
-      : generateAppServiceUrl(project?.subdomain, project?.region, 'hasura', {
+      : generateAppServiceUrl(project!.subdomain, project!.region, 'hasura', {
           ...defaultRemoteBackendSlugs,
           hasura: '/console',
         });

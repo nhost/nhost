@@ -82,7 +82,7 @@ export default function AllowedRedirectURLsSettings() {
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           auth: {
             redirections: {

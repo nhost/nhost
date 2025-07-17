@@ -12,7 +12,7 @@ export default function normalizeMetadataError(responseData: any): string {
   if ('error' in responseData && 'internal' in responseData) {
     const metadataError = responseData as MetadataError;
 
-    return metadataError.internal[0]?.reason || unknownErrorMessage;
+    return metadataError.internal?.[0]?.reason || unknownErrorMessage;
   }
 
   if ('error' in responseData) {
