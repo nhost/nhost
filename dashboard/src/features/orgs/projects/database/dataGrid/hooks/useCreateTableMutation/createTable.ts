@@ -26,7 +26,8 @@ export default async function createTable({
   table,
 }: CreateTableOptions & CreateTableVariables) {
   const args = prepareCreateTableQuery({ dataSource, schema, table });
-
+  // eslint-disable-next-line no-console
+  console.log({ test: adminSecret?.slice(0, 5) ?? 'No adminsecret' });
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {
