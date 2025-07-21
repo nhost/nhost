@@ -31,7 +31,11 @@ func (ctrl *Controller) RefreshToken( //nolint:ireturn
 	}
 
 	session, err := ctrl.wf.UpdateSession(ctx, user, request.Body.RefreshToken, logger)
-	if err != nil {
+	switch {
+	case errors.Is(err, ErrInvalidRefreshToken):
+		logger.Error("invalid refresh token, token already used", logError(err))
+		return ctrl.sendError(ErrInvalidRefreshToken), nil
+	case err != nil:
 		logger.Error("error updating session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
