@@ -19,11 +19,15 @@ export default function SocialProvidersSettings() {
   );
 
   const github = useMemo(
-    () =>
-      nhost.auth.signInProviderURL('github', {
-        connect: token,
-        redirectTo: `${window.location.origin}/account`,
-      }),
+    () => {
+      if (typeof window !== 'undefined') {
+        return nhost.auth.signInProviderURL('github', {
+          connect: token,
+          redirectTo: `${window.location.origin}/account`,
+        });
+      }
+      return '';
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [token],
   );

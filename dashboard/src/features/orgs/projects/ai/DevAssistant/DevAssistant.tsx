@@ -165,6 +165,8 @@ export default function DevAssistant() {
     );
   }
 
+  const slug = isPlatform ? currentOrg?.slug : 'local';
+
   if (
     (isPlatform && !currentOrg?.plan?.isFree && !project?.config?.ai) ||
     !isGraphiteEnabled
@@ -176,7 +178,7 @@ export default function DevAssistant() {
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
-                href={`/orgs/${currentOrg?.slug}/projects/${project?.subdomain}/settings/ai`}
+                href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
                 target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"
