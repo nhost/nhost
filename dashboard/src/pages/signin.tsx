@@ -11,10 +11,10 @@ export default function SigninPage() {
   return (
     <div className="grid gap-12 font-[Inter]">
       <div className="text-center">
-        <h2 className="text-3.5xl font-semibold lg:text-4.5xl mb-3">
+        <h2 className="mb-3 text-3.5xl font-semibold lg:text-4.5xl">
           Welcome back
         </h2>
-        <p className="text-lg text-[#A2B3BE] max-w-md mx-auto">
+        <p className="mx-auto max-w-md text-lg text-[#A2B3BE]">
           Continue building amazing things with Nhost
         </p>
       </div>
@@ -68,5 +68,12 @@ export default function SigninPage() {
 }
 
 SigninPage.getLayout = function getLayout(page: ReactElement) {
-  return <UnauthenticatedLayout title="Sign In" rightColumnContent={<SignInRightColumn />}>{page}</UnauthenticatedLayout>;
+  return (
+    <UnauthenticatedLayout
+      title="Sign In"
+      rightColumnContent={<SignInRightColumn />}
+    >
+      {page}
+    </UnauthenticatedLayout>
+  );
 };

@@ -60,7 +60,6 @@ export default function PostCheckout() {
 
       if (isFromOnboarding) {
         router.push('/onboarding/project');
-
       } else {
         router.push(`/orgs/${Slug}/projects`);
       }
