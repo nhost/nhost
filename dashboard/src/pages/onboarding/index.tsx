@@ -102,7 +102,6 @@ export default function OnboardingPage() {
           setStripeClientSecret(clientSecret);
         } else {
           router.push('/onboarding/project');
-          return;
         }
       },
       {

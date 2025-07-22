@@ -104,11 +104,8 @@ export default function OnboardingProjectPage() {
           });
 
         if (subdomain) {
-          console.log('subdomain', subdomain);
           const metadata = localStorage.getItem('metadata');
           const parsedMetadata = metadata ? JSON.parse(metadata) : {};
-
-          console.log('parsedMetadata', parsedMetadata);
 
           // we only track the org creation here if it is a starter plan
           // this is because in case of a paid plan, we track the org creation in the verify page
