@@ -22,17 +22,24 @@ export default function IndexPage() {
       }
 
       if (orgs) {
-        const orgFromLastSlug = orgs.find((o) => o.slug === lastSlug);
+        // check if user has no organizations (first-time user)
+        // should we render this even if user is not coming in for the first time?
+      
+        // if (orgs.length === 0 && localStorage.getItem('onboarding') === 'true') {
+        if (orgs.length === 0) {
+          await push('/onboarding');
+          return;
+        }
 
+        const orgFromLastSlug = orgs.find((o) => o.slug === lastSlug);
         if (orgFromLastSlug) {
           await push(`/orgs/${orgFromLastSlug.slug}/projects`);
           return;
         }
+        const org = orgs.find((org) => org.plan.isFree) || orgs[0];
 
-        const personalOrg = orgs.find((org) => org.plan.isFree);
-
-        if (personalOrg) {
-          push(`/orgs/${personalOrg.slug}/projects`);
+        if (org) {
+          push(`/orgs/${org.slug}/projects`);
         }
       }
     };

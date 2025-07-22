@@ -33,7 +33,6 @@ export type Scalars = {
   jsonb: any;
   map: any;
   smallint: any;
-  timestamp: any;
   timestamptz: any;
   uuid: any;
 };
@@ -7054,229 +7053,6 @@ export type AuthUserSecurityKeys_Variance_Order_By = {
   counter?: InputMaybe<Order_By>;
 };
 
-/** Internal table for tracking migrations. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type Auth_Migrations = {
-  __typename?: 'auth_migrations';
-  executed_at?: Maybe<Scalars['timestamp']>;
-  hash: Scalars['String'];
-  id: Scalars['Int'];
-  name: Scalars['String'];
-};
-
-/** aggregated selection of "auth.migrations" */
-export type Auth_Migrations_Aggregate = {
-  __typename?: 'auth_migrations_aggregate';
-  aggregate?: Maybe<Auth_Migrations_Aggregate_Fields>;
-  nodes: Array<Auth_Migrations>;
-};
-
-/** aggregate fields of "auth.migrations" */
-export type Auth_Migrations_Aggregate_Fields = {
-  __typename?: 'auth_migrations_aggregate_fields';
-  avg?: Maybe<Auth_Migrations_Avg_Fields>;
-  count: Scalars['Int'];
-  max?: Maybe<Auth_Migrations_Max_Fields>;
-  min?: Maybe<Auth_Migrations_Min_Fields>;
-  stddev?: Maybe<Auth_Migrations_Stddev_Fields>;
-  stddev_pop?: Maybe<Auth_Migrations_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<Auth_Migrations_Stddev_Samp_Fields>;
-  sum?: Maybe<Auth_Migrations_Sum_Fields>;
-  var_pop?: Maybe<Auth_Migrations_Var_Pop_Fields>;
-  var_samp?: Maybe<Auth_Migrations_Var_Samp_Fields>;
-  variance?: Maybe<Auth_Migrations_Variance_Fields>;
-};
-
-
-/** aggregate fields of "auth.migrations" */
-export type Auth_Migrations_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** aggregate avg on columns */
-export type Auth_Migrations_Avg_Fields = {
-  __typename?: 'auth_migrations_avg_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** Boolean expression to filter rows from the table "auth.migrations". All fields are combined with a logical 'AND'. */
-export type Auth_Migrations_Bool_Exp = {
-  _and?: InputMaybe<Array<Auth_Migrations_Bool_Exp>>;
-  _not?: InputMaybe<Auth_Migrations_Bool_Exp>;
-  _or?: InputMaybe<Array<Auth_Migrations_Bool_Exp>>;
-  executed_at?: InputMaybe<Timestamp_Comparison_Exp>;
-  hash?: InputMaybe<String_Comparison_Exp>;
-  id?: InputMaybe<Int_Comparison_Exp>;
-  name?: InputMaybe<String_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "auth.migrations" */
-export enum Auth_Migrations_Constraint {
-  /** unique or primary key constraint on columns "name" */
-  MigrationsNameKey = 'migrations_name_key',
-  /** unique or primary key constraint on columns "id" */
-  MigrationsPkey = 'migrations_pkey'
-}
-
-/** input type for incrementing numeric columns in table "auth.migrations" */
-export type Auth_Migrations_Inc_Input = {
-  id?: InputMaybe<Scalars['Int']>;
-};
-
-/** input type for inserting data into table "auth.migrations" */
-export type Auth_Migrations_Insert_Input = {
-  executed_at?: InputMaybe<Scalars['timestamp']>;
-  hash?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['Int']>;
-  name?: InputMaybe<Scalars['String']>;
-};
-
-/** aggregate max on columns */
-export type Auth_Migrations_Max_Fields = {
-  __typename?: 'auth_migrations_max_fields';
-  executed_at?: Maybe<Scalars['timestamp']>;
-  hash?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
-};
-
-/** aggregate min on columns */
-export type Auth_Migrations_Min_Fields = {
-  __typename?: 'auth_migrations_min_fields';
-  executed_at?: Maybe<Scalars['timestamp']>;
-  hash?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['Int']>;
-  name?: Maybe<Scalars['String']>;
-};
-
-/** response of any mutation on the table "auth.migrations" */
-export type Auth_Migrations_Mutation_Response = {
-  __typename?: 'auth_migrations_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Auth_Migrations>;
-};
-
-/** on_conflict condition type for table "auth.migrations" */
-export type Auth_Migrations_On_Conflict = {
-  constraint: Auth_Migrations_Constraint;
-  update_columns?: Array<Auth_Migrations_Update_Column>;
-  where?: InputMaybe<Auth_Migrations_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "auth.migrations". */
-export type Auth_Migrations_Order_By = {
-  executed_at?: InputMaybe<Order_By>;
-  hash?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  name?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: auth.migrations */
-export type Auth_Migrations_Pk_Columns_Input = {
-  id: Scalars['Int'];
-};
-
-/** select columns of table "auth.migrations" */
-export enum Auth_Migrations_Select_Column {
-  /** column name */
-  ExecutedAt = 'executed_at',
-  /** column name */
-  Hash = 'hash',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Name = 'name'
-}
-
-/** input type for updating data in table "auth.migrations" */
-export type Auth_Migrations_Set_Input = {
-  executed_at?: InputMaybe<Scalars['timestamp']>;
-  hash?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['Int']>;
-  name?: InputMaybe<Scalars['String']>;
-};
-
-/** aggregate stddev on columns */
-export type Auth_Migrations_Stddev_Fields = {
-  __typename?: 'auth_migrations_stddev_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_pop on columns */
-export type Auth_Migrations_Stddev_Pop_Fields = {
-  __typename?: 'auth_migrations_stddev_pop_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_samp on columns */
-export type Auth_Migrations_Stddev_Samp_Fields = {
-  __typename?: 'auth_migrations_stddev_samp_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** Streaming cursor of the table "auth_migrations" */
-export type Auth_Migrations_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Auth_Migrations_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Auth_Migrations_Stream_Cursor_Value_Input = {
-  executed_at?: InputMaybe<Scalars['timestamp']>;
-  hash?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['Int']>;
-  name?: InputMaybe<Scalars['String']>;
-};
-
-/** aggregate sum on columns */
-export type Auth_Migrations_Sum_Fields = {
-  __typename?: 'auth_migrations_sum_fields';
-  id?: Maybe<Scalars['Int']>;
-};
-
-/** update columns of table "auth.migrations" */
-export enum Auth_Migrations_Update_Column {
-  /** column name */
-  ExecutedAt = 'executed_at',
-  /** column name */
-  Hash = 'hash',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Name = 'name'
-}
-
-export type Auth_Migrations_Updates = {
-  /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<Auth_Migrations_Inc_Input>;
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Auth_Migrations_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Auth_Migrations_Bool_Exp;
-};
-
-/** aggregate var_pop on columns */
-export type Auth_Migrations_Var_Pop_Fields = {
-  __typename?: 'auth_migrations_var_pop_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate var_samp on columns */
-export type Auth_Migrations_Var_Samp_Fields = {
-  __typename?: 'auth_migrations_var_samp_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate variance on columns */
-export type Auth_Migrations_Variance_Fields = {
-  __typename?: 'auth_migrations_variance_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
 /** columns and relationships of "backups" */
 export type Backups = {
   __typename?: 'backups';
@@ -13417,10 +13193,6 @@ export type Mutation_Root = {
   delete_announcements?: Maybe<Announcements_Mutation_Response>;
   /** delete single row from the table: "announcements" */
   delete_announcements_by_pk?: Maybe<Announcements>;
-  /** delete data from the table: "auth.migrations" */
-  delete_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
-  /** delete single row from the table: "auth.migrations" */
-  delete_auth_migrations_by_pk?: Maybe<Auth_Migrations>;
   /** delete data from the table: "billing.report_resource_type" */
   delete_billing_report_resource_type?: Maybe<Billing_Report_Resource_Type_Mutation_Response>;
   /** delete single row from the table: "billing.report_resource_type" */
@@ -13636,10 +13408,6 @@ export type Mutation_Root = {
   insert_announcements?: Maybe<Announcements_Mutation_Response>;
   /** insert a single row into the table: "announcements" */
   insert_announcements_one?: Maybe<Announcements>;
-  /** insert data into the table: "auth.migrations" */
-  insert_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
-  /** insert a single row into the table: "auth.migrations" */
-  insert_auth_migrations_one?: Maybe<Auth_Migrations>;
   /** insert data into the table: "billing.report_resource_type" */
   insert_billing_report_resource_type?: Maybe<Billing_Report_Resource_Type_Mutation_Response>;
   /** insert a single row into the table: "billing.report_resource_type" */
@@ -13919,12 +13687,6 @@ export type Mutation_Root = {
   update_authUserRoles_many?: Maybe<Array<Maybe<AuthUserRoles_Mutation_Response>>>;
   /** update multiples rows of table: "auth.user_security_keys" */
   update_authUserSecurityKeys_many?: Maybe<Array<Maybe<AuthUserSecurityKeys_Mutation_Response>>>;
-  /** update data of the table: "auth.migrations" */
-  update_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
-  /** update single row of the table: "auth.migrations" */
-  update_auth_migrations_by_pk?: Maybe<Auth_Migrations>;
-  /** update multiples rows of table: "auth.migrations" */
-  update_auth_migrations_many?: Maybe<Array<Maybe<Auth_Migrations_Mutation_Response>>>;
   /** update multiples rows of table: "backups" */
   update_backups_many?: Maybe<Array<Maybe<Backups_Mutation_Response>>>;
   /** update multiples rows of table: "billing.dedicated_compute" */
@@ -14678,18 +14440,6 @@ export type Mutation_RootDelete_Announcements_By_PkArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDelete_Auth_MigrationsArgs = {
-  where: Auth_Migrations_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDelete_Auth_Migrations_By_PkArgs = {
-  id: Scalars['Int'];
-};
-
-
-/** mutation root */
 export type Mutation_RootDelete_Billing_Report_Resource_TypeArgs = {
   where: Billing_Report_Resource_Type_Bool_Exp;
 };
@@ -15429,20 +15179,6 @@ export type Mutation_RootInsert_AnnouncementsArgs = {
 export type Mutation_RootInsert_Announcements_OneArgs = {
   object: Announcements_Insert_Input;
   on_conflict?: InputMaybe<Announcements_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsert_Auth_MigrationsArgs = {
-  objects: Array<Auth_Migrations_Insert_Input>;
-  on_conflict?: InputMaybe<Auth_Migrations_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsert_Auth_Migrations_OneArgs = {
-  object: Auth_Migrations_Insert_Input;
-  on_conflict?: InputMaybe<Auth_Migrations_On_Conflict>;
 };
 
 
@@ -16530,28 +16266,6 @@ export type Mutation_RootUpdate_AuthUserRoles_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserSecurityKeys_ManyArgs = {
   updates: Array<AuthUserSecurityKeys_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Auth_MigrationsArgs = {
-  _inc?: InputMaybe<Auth_Migrations_Inc_Input>;
-  _set?: InputMaybe<Auth_Migrations_Set_Input>;
-  where: Auth_Migrations_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Auth_Migrations_By_PkArgs = {
-  _inc?: InputMaybe<Auth_Migrations_Inc_Input>;
-  _set?: InputMaybe<Auth_Migrations_Set_Input>;
-  pk_columns: Auth_Migrations_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Auth_Migrations_ManyArgs = {
-  updates: Array<Auth_Migrations_Updates>;
 };
 
 
@@ -19790,12 +19504,6 @@ export type Query_Root = {
   authUserSecurityKeys: Array<AuthUserSecurityKeys>;
   /** fetch aggregated fields from the table: "auth.user_security_keys" */
   authUserSecurityKeysAggregate: AuthUserSecurityKeys_Aggregate;
-  /** fetch data from the table: "auth.migrations" */
-  auth_migrations: Array<Auth_Migrations>;
-  /** fetch aggregated fields from the table: "auth.migrations" */
-  auth_migrations_aggregate: Auth_Migrations_Aggregate;
-  /** fetch data from the table: "auth.migrations" using primary key columns */
-  auth_migrations_by_pk?: Maybe<Auth_Migrations>;
   /** fetch data from the table: "backups" using primary key columns */
   backup?: Maybe<Backups>;
   /** An array relationship */
@@ -20390,29 +20098,6 @@ export type Query_RootAuthUserSecurityKeysAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<AuthUserSecurityKeys_Order_By>>;
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
-};
-
-
-export type Query_RootAuth_MigrationsArgs = {
-  distinct_on?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Auth_Migrations_Order_By>>;
-  where?: InputMaybe<Auth_Migrations_Bool_Exp>;
-};
-
-
-export type Query_RootAuth_Migrations_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Auth_Migrations_Order_By>>;
-  where?: InputMaybe<Auth_Migrations_Bool_Exp>;
-};
-
-
-export type Query_RootAuth_Migrations_By_PkArgs = {
-  id: Scalars['Int'];
 };
 
 
@@ -22952,8 +22637,6 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
-  /** Nhost AI service */
-  Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
   /** PostgreSQL Database */
@@ -23362,14 +23045,6 @@ export type Subscription_Root = {
   authUserSecurityKeysAggregate: AuthUserSecurityKeys_Aggregate;
   /** fetch data from the table in a streaming manner: "auth.user_security_keys" */
   authUserSecurityKeys_stream: Array<AuthUserSecurityKeys>;
-  /** fetch data from the table: "auth.migrations" */
-  auth_migrations: Array<Auth_Migrations>;
-  /** fetch aggregated fields from the table: "auth.migrations" */
-  auth_migrations_aggregate: Auth_Migrations_Aggregate;
-  /** fetch data from the table: "auth.migrations" using primary key columns */
-  auth_migrations_by_pk?: Maybe<Auth_Migrations>;
-  /** fetch data from the table in a streaming manner: "auth.migrations" */
-  auth_migrations_stream: Array<Auth_Migrations>;
   /** fetch data from the table: "backups" using primary key columns */
   backup?: Maybe<Backups>;
   /** An array relationship */
@@ -24085,36 +23760,6 @@ export type Subscription_RootAuthUserSecurityKeys_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserSecurityKeys_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
-};
-
-
-export type Subscription_RootAuth_MigrationsArgs = {
-  distinct_on?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Auth_Migrations_Order_By>>;
-  where?: InputMaybe<Auth_Migrations_Bool_Exp>;
-};
-
-
-export type Subscription_RootAuth_Migrations_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Auth_Migrations_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Auth_Migrations_Order_By>>;
-  where?: InputMaybe<Auth_Migrations_Bool_Exp>;
-};
-
-
-export type Subscription_RootAuth_Migrations_By_PkArgs = {
-  id: Scalars['Int'];
-};
-
-
-export type Subscription_RootAuth_Migrations_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Auth_Migrations_Stream_Cursor_Input>>;
-  where?: InputMaybe<Auth_Migrations_Bool_Exp>;
 };
 
 
@@ -25323,19 +24968,6 @@ export type Subscription_RootWorkspaces_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Workspaces_Stream_Cursor_Input>>;
   where?: InputMaybe<Workspaces_Bool_Exp>;
-};
-
-/** Boolean expression to compare columns of type "timestamp". All fields are combined with logical 'AND'. */
-export type Timestamp_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars['timestamp']>;
-  _gt?: InputMaybe<Scalars['timestamp']>;
-  _gte?: InputMaybe<Scalars['timestamp']>;
-  _in?: InputMaybe<Array<Scalars['timestamp']>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _lt?: InputMaybe<Scalars['timestamp']>;
-  _lte?: InputMaybe<Scalars['timestamp']>;
-  _neq?: InputMaybe<Scalars['timestamp']>;
-  _nin?: InputMaybe<Array<Scalars['timestamp']>>;
 };
 
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */

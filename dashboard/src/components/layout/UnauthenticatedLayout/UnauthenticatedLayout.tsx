@@ -12,10 +12,13 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-export interface UnauthenticatedLayoutProps extends BaseLayoutProps {}
+export interface UnauthenticatedLayoutProps extends BaseLayoutProps {
+  rightColumnContent?: React.ReactNode;
+}
 
 export default function UnauthenticatedLayout({
   children,
+  rightColumnContent,
   ...props
 }: UnauthenticatedLayoutProps) {
   const router = useRouter();
@@ -63,38 +66,46 @@ export default function UnauthenticatedLayout({
           >
             <Container
               rootClassName="bg-transparent h-full"
-              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pb-12 pt-8 lg:grid-cols-2 lg:gap-4 lg:pb-0 lg:pt-0"
+              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pb-12 pt-8 lg:grid-cols-2 lg:gap-4 lg:pb-0 lg:pt-8"
             >
               <div className="relative z-10 order-2 grid w-full max-w-[544px] grid-flow-row gap-12 lg:order-1">
                 {children}
               </div>
 
-              <div className="relative z-0 order-1 flex h-full w-full items-center justify-center md:min-h-[150px] lg:order-2 lg:min-h-[none]">
-                <div className="absolute bottom-0 left-0 right-0 top-0 mx-auto flex h-full w-full max-w-xl items-center justify-center overflow-hidden opacity-70">
+              <div className="relative z-0 order-1 flex h-full w-full flex-col items-center justify-center md:min-h-[150px] lg:order-2 lg:min-h-[none] lg:gap-8">
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute bottom-0 left-0 right-0 top-0 mx-auto flex h-full w-full max-w-xl items-center justify-center overflow-hidden opacity-70">
+                    <Image
+                      priority
+                      src="/assets/line-grid.svg"
+                      width={1003}
+                      height={644}
+                      alt="Transparent lines"
+                      objectFit="fill"
+                      className="h-full w-full scale-[200%]"
+                    />
+                  </div>
+
+                  <Box
+                    className="backface-hidden absolute left-0 right-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full opacity-80 blur-[56px]"
+                    sx={{
+                      backgroundColor: (theme) => theme.palette.primary.main,
+                    }}
+                  />
+
                   <Image
-                    priority
-                    src="/assets/line-grid.svg"
-                    width={1003}
-                    height={644}
-                    alt="Transparent lines"
-                    objectFit="fill"
-                    className="h-full w-full scale-[200%]"
+                    src="/assets/logo.svg"
+                    width={119}
+                    height={40}
+                    alt="Nhost Logo"
                   />
                 </div>
 
-                <Box
-                  className="backface-hidden absolute left-0 right-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full opacity-80 blur-[56px]"
-                  sx={{
-                    backgroundColor: (theme) => theme.palette.primary.main,
-                  }}
-                />
-
-                <Image
-                  src="/assets/logo.svg"
-                  width={119}
-                  height={40}
-                  alt="Nhost Logo"
-                />
+                {rightColumnContent && (
+                  <div className="relative z-10 w-full max-w-md px-4 lg:px-0">
+                    {rightColumnContent}
+                  </div>
+                )}
               </div>
             </Container>
           </Box>

@@ -1,3 +1,4 @@
+import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Button } from '@/components/ui/v3/button';
@@ -9,9 +10,14 @@ import type { ReactElement } from 'react';
 export default function SigninPage() {
   return (
     <div className="grid gap-12 font-[Inter]">
-      <h2 className="text-center text-3.5xl font-semibold lg:text-4.5xl">
-        It&apos;s time to build
-      </h2>
+      <div className="text-center">
+        <h2 className="text-3.5xl font-semibold lg:text-4.5xl mb-3">
+          Welcome back
+        </h2>
+        <p className="text-lg text-[#A2B3BE] max-w-md mx-auto">
+          Continue building amazing things with Nhost
+        </p>
+      </div>
 
       <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <SignInWithGithub />
@@ -62,5 +68,5 @@ export default function SigninPage() {
 }
 
 SigninPage.getLayout = function getLayout(page: ReactElement) {
-  return <UnauthenticatedLayout title="Sign In">{page}</UnauthenticatedLayout>;
+  return <UnauthenticatedLayout title="Sign In" rightColumnContent={<SignInRightColumn />}>{page}</UnauthenticatedLayout>;
 };
