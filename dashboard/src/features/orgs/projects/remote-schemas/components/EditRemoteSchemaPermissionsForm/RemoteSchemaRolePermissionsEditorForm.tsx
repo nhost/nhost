@@ -1591,37 +1591,36 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                       </AccordionContent>
                                     </AccordionItem>
                                   );
-                                } else {
-                                  return (
-                                    <div
-                                      key={fieldKey}
-                                      className="flex items-center space-x-2 border-b py-2"
-                                    >
-                                      <Checkbox
-                                        id={fieldKey}
-                                        checked={field.checked}
-                                        onCheckedChange={(checked) =>
-                                          handleFieldToggle(
-                                            actualSchemaIndex,
-                                            actualFieldIndex,
-                                            checked as boolean,
-                                          )
-                                        }
-                                      />
-                                      <label
-                                        htmlFor={fieldKey}
-                                        className="flex-1 cursor-pointer"
-                                      >
-                                        <span className="font-medium">
-                                          {field.name}
-                                        </span>
-                                        <span className="ml-2 text-sm text-gray-500">
-                                          : {field.return}
-                                        </span>
-                                      </label>
-                                    </div>
-                                  );
                                 }
+                                return (
+                                  <div
+                                    key={fieldKey}
+                                    className="flex items-center space-x-2 border-b py-2"
+                                  >
+                                    <Checkbox
+                                      id={fieldKey}
+                                      checked={field.checked}
+                                      onCheckedChange={(checked) =>
+                                        handleFieldToggle(
+                                          actualSchemaIndex,
+                                          actualFieldIndex,
+                                          checked as boolean,
+                                        )
+                                      }
+                                    />
+                                    <label
+                                      htmlFor={fieldKey}
+                                      className="flex-1 cursor-pointer"
+                                    >
+                                      <span className="font-medium">
+                                        {field.name}
+                                      </span>
+                                      <span className="ml-2 text-sm text-gray-500">
+                                        : {field.return}
+                                      </span>
+                                    </label>
+                                  </div>
+                                );
                               })}
                             </Accordion>
                           </div>
