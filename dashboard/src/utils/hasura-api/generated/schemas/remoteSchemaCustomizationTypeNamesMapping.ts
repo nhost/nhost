@@ -5,6 +5,10 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { ReloadRemoteSchemaArgs } from './reloadRemoteSchemaArgs';
 
-export type IntrospectRemoteSchemaArgs = ReloadRemoteSchemaArgs;
+/**
+ * Mapping of original type names to new type names
+ */
+export type RemoteSchemaCustomizationTypeNamesMapping = {
+  [key: string]: string;
+};

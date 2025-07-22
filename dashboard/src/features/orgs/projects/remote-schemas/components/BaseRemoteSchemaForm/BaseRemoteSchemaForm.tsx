@@ -9,6 +9,7 @@ import { useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import AdditionalHeadersEditor from './AdditionalHeadersEditor';
 import ForwardClientHeadersToggle from './ForwardClientHeadersToggle';
+import GraphQLCustomizations from './GraphQLCustomizations';
 import GraphQLServerTimeoutInput from './GraphQLServerTimeoutInput';
 import GraphQLServiceURLInput from './GraphQLServiceURLInput';
 import RemoteSchemaCommentInput from './RemoteSchemaCommentInput';
@@ -56,7 +57,7 @@ export const baseRemoteSchemaValidationSchema = Yup.object({
       }).test(
         'has-value-or-env',
         'Either value or value from environment variable must be provided',
-        function (obj) {
+        (obj) => {
           const { value, value_from_env } = obj || {};
           const hasValue = value && value.trim() !== '';
           const hasEnvValue = value_from_env && value_from_env.trim() !== '';
@@ -65,6 +66,21 @@ export const baseRemoteSchemaValidationSchema = Yup.object({
       ),
     ),
     timeout_seconds: Yup.number().required('This field is required.'),
+    customization: Yup.object({
+      root_fields_namespace: Yup.string(),
+      type_prefix: Yup.string(),
+      type_suffix: Yup.string(),
+      query_root: Yup.object({
+        parent_type: Yup.string(),
+        prefix: Yup.string(),
+        suffix: Yup.string(),
+      }),
+      mutation_root: Yup.object({
+        parent_type: Yup.string(),
+        prefix: Yup.string(),
+        suffix: Yup.string(),
+      }),
+    }),
   }).required('This field is required.'),
 });
 
@@ -142,6 +158,7 @@ export default function BaseRemoteSchemaForm({
           </Text>
           <ForwardClientHeadersToggle />
           <AdditionalHeadersEditor />
+          <GraphQLCustomizations />
         </Box>
       </div>
 

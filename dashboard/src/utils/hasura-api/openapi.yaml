@@ -355,6 +355,8 @@ components:
           default: false
         headers:
           $ref: '#/components/schemas/RemoteSchemaHeaders'
+        customization:
+          $ref: '#/components/schemas/RemoteSchemaCustomization'
 
     RemoteSchemaDefinitionFromEnv:
       type: object
@@ -376,6 +378,53 @@ components:
           default: false
         headers:
           $ref: '#/components/schemas/RemoteSchemaHeaders'
+        customization:
+          $ref: '#/components/schemas/RemoteSchemaCustomization'
+
+    RemoteSchemaCustomization:
+      type: object
+      description: Customization options for the remote schema
+      properties:
+        root_fields_namespace:
+          type: string
+          description: Namespace for root fields
+          example: your_field_name
+        type_names:
+          type: object
+          description: Type name customization options
+          properties:
+            prefix:
+              type: string
+              description: Prefix to add to all type names
+              example: your_type_name_prefix
+            mapping:
+              type: object
+              description: Mapping of original type names to new type names
+              additionalProperties:
+                type: string
+              example:
+                some_type_name: some_new_type_name
+        field_names:
+          type: array
+          description: Field name customization options
+          items:
+            type: object
+            properties:
+              parent_type:
+                type: string
+                description: Parent type name
+                example: your_type_name
+              prefix:
+                type: string
+                description: Prefix to add to field names
+                example: your_field_name_prefix
+              mapping:
+                type: object
+                description: Mapping of original field names to new field names
+                additionalProperties:
+                  type: string
+                example:
+                  some_field_name: some_new_field_name
 
     RemoteSchemaDefinition:
       description: Remote schema definition - can use direct URL or environment variable

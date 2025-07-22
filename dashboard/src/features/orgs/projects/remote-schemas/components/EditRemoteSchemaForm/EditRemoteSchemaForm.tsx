@@ -61,6 +61,11 @@ export default function EditRemoteSchemaForm({
         timeout_seconds:
           originalSchema.definition.timeout_seconds ??
           DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS,
+        customization: (originalSchema.definition as any)?.customization ?? {
+          root_fields_namespace: '',
+          type_names: {},
+          field_names: [],
+        },
       },
     },
     shouldUnregister: true,

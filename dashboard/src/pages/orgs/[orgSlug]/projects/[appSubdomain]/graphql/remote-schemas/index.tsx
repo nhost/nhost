@@ -1,6 +1,6 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
@@ -28,8 +28,10 @@ export default function RemoteSchemasPage() {
   if (remoteSchemas && remoteSchemas.length === 0) {
     return (
       <RemoteSchemaEmptyState
-        title="Remote Schema not found"
-        description={<span>No remote schemas found.</span>}
+        title="Remote Schemas"
+        description={
+          <span>Select a remote schema from the sidebar to get started.</span>
+        }
       />
     );
   }
@@ -44,7 +46,7 @@ export default function RemoteSchemasPage() {
 
 RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
+    <OrgLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
@@ -57,6 +59,6 @@ RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
       >
         {page}
       </Box>
-    </ProjectLayout>
+    </OrgLayout>
   );
 };
