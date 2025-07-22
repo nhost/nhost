@@ -49,6 +49,21 @@ export default function CreateRemoteSchemaForm({
         forward_client_headers: false,
         headers: [],
         timeout_seconds: DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS,
+        customization: {
+          root_fields_namespace: '',
+          type_prefix: '',
+          type_suffix: '',
+          query_root: {
+            parent_type: '',
+            prefix: '',
+            suffix: '',
+          },
+          mutation_root: {
+            parent_type: '',
+            prefix: '',
+            suffix: '',
+          },
+        },
       },
     },
     shouldUnregister: true,
