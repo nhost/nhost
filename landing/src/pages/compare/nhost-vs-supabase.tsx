@@ -16,12 +16,12 @@ export default function SupabaseVsNhostPage() {
       <Container component="section" className="relative pb-5 lg:pb-11">
         <div className="mt-8 grid grid-flow-row justify-center gap-10 pt-8 md:pt-25">
           <SectionHeading
-            title="Evaluating Supabase?"
+            title="The scalable Supabase alternative"
             subtitle="Here's why developers building scalable, GraphQL-native, and customizable apps choose Nhost instead."
             slotProps={{
               title: {
                 component: 'h1',
-                className: 'text-3.5xl md:text-5xl font-bold',
+                className: 'text-3.5xl md:text-5xl font-bold ',
               },
               subtitle: {
                 className:
