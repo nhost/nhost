@@ -40,6 +40,7 @@ import { useAddRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import { useRemoveRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaPermissionsMutation';
 import { useUpdateRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaPermissionsMutation';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 
 interface CustomFieldType {
@@ -682,10 +683,12 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   } = useIntrospectRemoteSchemaQuery(remoteSchemaName);
 
   // Mutations for managing permissions
-  const addPermissionMutation = useAddRemoteSchemaPermissionsMutation();
+  const { mutateAsync: addPermission, isLoading: isAddingPermission } =
+    useAddRemoteSchemaPermissionsMutation();
   const { mutateAsync: updatePermission, isLoading: isUpdatingPermission } =
     useUpdateRemoteSchemaPermissionsMutation();
-  const removePermissionMutation = useRemoveRemoteSchemaPermissionsMutation();
+  const { mutateAsync: removePermission, isLoading: isRemovingPermission } =
+    useRemoveRemoteSchemaPermissionsMutation();
 
   const { openAlertDialog } = useDialog();
 
@@ -1177,33 +1180,50 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   // Save permission
   const handleSavePermission = async () => {
     if (!schemaDefinition) {
-      console.log('No schema definition to save');
       return;
     }
 
-    try {
-      if (permission) {
-        await updatePermission({
-          role,
-          remoteSchema: remoteSchemaName,
-          originalPermissionSchema: permission.definition.schema,
-          newPermissionSchema: schemaDefinition,
-        });
-      } else {
-        await addPermissionMutation.mutateAsync({
-          args: {
-            remote_schema: remoteSchemaName,
+    if (permission) {
+      await execPromiseWithErrorToast(
+        async () => {
+          await updatePermission({
             role,
-            definition: {
-              schema: schemaDefinition,
-            },
-          },
-        });
-      }
+            remoteSchema: remoteSchemaName,
+            originalPermissionSchema: permission.definition.schema,
+            newPermissionSchema: schemaDefinition,
+          });
 
-      onSubmit();
-    } catch (error) {
-      console.error('Error saving permission:', error);
+          onSubmit();
+        },
+        {
+          loadingMessage: 'Updating permissions...',
+          successMessage: 'Permissions updated successfully.',
+          errorMessage:
+            'An error occurred while updating permissions. Please try again.',
+        },
+      );
+    } else {
+      await execPromiseWithErrorToast(
+        async () => {
+          await addPermission({
+            args: {
+              remote_schema: remoteSchemaName,
+              role,
+              definition: {
+                schema: schemaDefinition,
+              },
+            },
+          });
+
+          onSubmit();
+        },
+        {
+          loadingMessage: 'Adding permissions...',
+          successMessage: 'Permissions added successfully.',
+          errorMessage:
+            'An error occurred while adding permissions. Please try again.',
+        },
+      );
     }
   };
 
@@ -1213,21 +1233,27 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       return;
     }
 
-    try {
-      await removePermissionMutation.mutateAsync({
-        args: {
-          remote_schema: remoteSchemaName,
-          role,
-          definition: {
-            schema: permission.definition.schema,
+    await execPromiseWithErrorToast(
+      async () => {
+        await removePermission({
+          args: {
+            remote_schema: remoteSchemaName,
+            role,
+            definition: {
+              schema: permission.definition.schema,
+            },
           },
-        },
-      });
+        });
 
-      onSubmit();
-    } catch (error) {
-      console.error('Error removing permission:', error);
-    }
+        onSubmit();
+      },
+      {
+        loadingMessage: 'Removing permissions...',
+        successMessage: 'Permissions removed successfully.',
+        errorMessage:
+          'An error occurred while removing permissions. Please try again.',
+      },
+    );
   };
 
   const handleDeleteClick = () => {
@@ -1442,37 +1468,36 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                       </AccordionContent>
                                     </AccordionItem>
                                   );
-                                } else {
-                                  return (
-                                    <div
-                                      key={fieldKey}
-                                      className="flex items-center space-x-2 border-b py-2"
-                                    >
-                                      <Checkbox
-                                        id={fieldKey}
-                                        checked={field.checked}
-                                        onCheckedChange={(checked) =>
-                                          handleFieldToggle(
-                                            actualSchemaIndex,
-                                            actualFieldIndex,
-                                            checked as boolean,
-                                          )
-                                        }
-                                      />
-                                      <label
-                                        htmlFor={fieldKey}
-                                        className="flex-1 cursor-pointer"
-                                      >
-                                        <span className="font-medium">
-                                          {field.name}
-                                        </span>
-                                        <span className="ml-2 text-sm text-gray-500">
-                                          : {field.return}
-                                        </span>
-                                      </label>
-                                    </div>
-                                  );
                                 }
+                                return (
+                                  <div
+                                    key={fieldKey}
+                                    className="flex items-center space-x-2 border-b py-2"
+                                  >
+                                    <Checkbox
+                                      id={fieldKey}
+                                      checked={field.checked}
+                                      onCheckedChange={(checked) =>
+                                        handleFieldToggle(
+                                          actualSchemaIndex,
+                                          actualFieldIndex,
+                                          checked as boolean,
+                                        )
+                                      }
+                                    />
+                                    <label
+                                      htmlFor={fieldKey}
+                                      className="flex-1 cursor-pointer"
+                                    >
+                                      <span className="font-medium">
+                                        {field.name}
+                                      </span>
+                                      <span className="ml-2 text-sm text-gray-500">
+                                        : {field.return}
+                                      </span>
+                                    </label>
+                                  </div>
+                                );
                               })}
                             </Accordion>
                           </div>
@@ -1654,7 +1679,8 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 variant="outlined"
                 color="error"
                 onClick={handleDeleteClick}
-                disabled={removePermissionMutation.isLoading}
+                disabled={isRemovingPermission}
+                loading={isRemovingPermission}
               >
                 Delete Permissions
               </Button>
@@ -1665,10 +1691,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
               color="primary"
               onClick={handleSavePermission}
               disabled={
-                !schemaDefinition ||
-                addPermissionMutation.isLoading ||
-                isUpdatingPermission
+                !schemaDefinition || isAddingPermission || isUpdatingPermission
               }
+              loading={isAddingPermission || isUpdatingPermission}
             >
               Save Permissions
             </Button>
