@@ -142,15 +142,16 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
         </div>
 
         {/* Search Input */}
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+        <form onSubmit={handleSearch} className="flex w-full gap-2">
+          <div className="relative flex w-full flex-1 flex-row items-center">
+            <Search className="h-4 w-4 text-muted-foreground" />
             <Input
               value={searchTerm}
+              fullWidth
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search fields, types, or operations..."
-              className="pl-10 pr-10"
+              className="max-w-72 pl-4"
               disabled={isSearching}
             />
             {searchTerm && (
