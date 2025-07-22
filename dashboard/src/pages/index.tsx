@@ -36,7 +36,7 @@ export default function IndexPage() {
           await push(`/orgs/${orgFromLastSlug.slug}/projects`);
           return;
         }
-        const org = orgs.find((org) => org.plan.isFree) || orgs[0];
+        const org = orgs.find((o) => o.plan.isFree) || orgs[0];
 
         if (org) {
           push(`/orgs/${org.slug}/projects`);

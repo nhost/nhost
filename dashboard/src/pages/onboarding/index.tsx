@@ -50,7 +50,7 @@ type OnboardingFormData = z.infer<typeof onboardingSchema>;
 export default function OnboardingPage() {
   const router = useRouter();
   const user = useUserData();
-  const { orgs, loading: loadingOrgs, refetch: refetchOrgs } = useOrgs();
+  const { orgs, loading: loadingOrgs } = useOrgs();
   const { data: plansData, loading: loadingPlans } = usePrefetchNewAppQuery({
     skip: !user,
   });
