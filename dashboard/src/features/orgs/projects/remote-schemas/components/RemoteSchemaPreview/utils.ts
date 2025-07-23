@@ -1,54 +1,12 @@
-import type { IntrospectRemoteSchemaResponse } from '@/utils/hasura-api/generated/schemas';
-import { buildClientSchema, GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 import { HelpCircle } from 'lucide-react';
 import React from 'react';
 import {
   AllowedRootFields,
   ComplexTreeData,
-  GraphQLTypeForVisualization,
   HasuraRsFields,
   RelationshipFields,
 } from './types';
-
-export const convertIntrospectionToSchema = (
-  introspectionData: IntrospectRemoteSchemaResponse,
-): GraphQLSchema => {
-  return buildClientSchema(introspectionData.data as any);
-};
-
-export const findRemoteField = (
-  fields: RelationshipFields[],
-  fieldKey: string,
-): RelationshipFields | undefined => {
-  return fields.find((f) => f.key === fieldKey);
-};
-
-export const getExpandedKeys = (
-  relationshipFields: RelationshipFields[],
-): string[] =>
-  relationshipFields.filter((rf) => !rf.argValue).map((rf) => rf.key);
-
-export const getCheckedKeys = (
-  relationshipFields: RelationshipFields[],
-): string[] =>
-  relationshipFields.filter((rf) => rf.argValue).map((rf) => rf.key);
-
-const isElementActive = (
-  relationshipFields: RelationshipFields[],
-  fieldKey: string,
-): boolean => {
-  return relationshipFields.some((f) => f.key === fieldKey);
-};
-
-const getUnderlyingType = (
-  type: GraphQLTypeForVisualization,
-): GraphQLTypeForVisualization => {
-  let currentType = type;
-  while (currentType.ofType) {
-    currentType = currentType.ofType;
-  }
-  return currentType;
-};
 
 export const buildComplexTreeData = ({
   schema,
