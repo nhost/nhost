@@ -3,9 +3,9 @@ import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { Search, X } from 'lucide-react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import useIntrospectRemoteSchemaQuery from '../../hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
-import { RemoteSchemaTree, RemoteSchemaTreeRef } from './RemoteSchemaTree';
-import { RelationshipFields } from './types';
-import { convertIntrospectionToSchema } from './utils';
+import convertIntrospectionToSchema from '../../utils/convertIntrospectionToSchema';
+import { RemoteSchemaTree } from './RemoteSchemaTree';
+import type { RelationshipFields } from './types';
 
 export interface RemoteSchemaPreviewProps {
   name: string;
