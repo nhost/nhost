@@ -52,9 +52,54 @@ export interface EditRemoteSchemaPermissionsFormProps extends DialogFormProps {
   disabled?: boolean;
 }
 
+// // Helper function to count total available fields in a schema
+// const countSchemaFields = (schema: any): number => {
+//   let totalFields = 0;
+
+//   // Count Query fields
+//   const queryType = schema.getQueryType();
+//   if (queryType) {
+//     totalFields += Object.keys(queryType.getFields()).length;
+//   }
+
+//   // Count Mutation fields
+//   const mutationType = schema.getMutationType();
+//   if (mutationType) {
+//     totalFields += Object.keys(mutationType.getFields()).length;
+//   }
+
+//   // Count Subscription fields
+//   const subscriptionType = schema.getSubscriptionType();
+//   if (subscriptionType) {
+//     totalFields += Object.keys(subscriptionType.getFields()).length;
+//   }
+
+//   // Count custom types
+//   const typeMap = schema.getTypeMap();
+//   Object.values(typeMap).forEach((type: any) => {
+//     if (
+//       !type.name.startsWith('__') &&
+//       (type.constructor.name === 'GraphQLObjectType' ||
+//         type.constructor.name === 'GraphQLInputObjectType' ||
+//         type.constructor.name === 'GraphQLInterfaceType')
+//     ) {
+//       if (type.getFields) {
+//         totalFields += Object.keys(type.getFields()).length;
+//       }
+//     } else if (
+//       type.constructor.name === 'GraphQLEnumType' ||
+//       type.constructor.name === 'GraphQLScalarType' ||
+//       type.constructor.name === 'GraphQLUnionType'
+//     ) {
+//       totalFields += 1; // Count the type itself
+//     }
+//   });
+
+//   return totalFields;
+// };
+
 export default function EditRemoteSchemaPermissionsForm({
   schema,
-  disabled,
   onCancel,
   location,
   disabled,
@@ -224,8 +269,6 @@ export default function EditRemoteSchemaPermissionsForm({
       ...(!isPlatform ? { client: localMimirClient } : {}),
     });
 
-  console.log(remoteSchemaPermissionsEnabledData);
-
   const remoteSchemaPermissionsEnabled = Boolean(
     remoteSchemaPermissionsEnabledData?.config?.hasura?.settings
       ?.enableRemoteSchemaPermissions,
@@ -234,6 +277,11 @@ export default function EditRemoteSchemaPermissionsForm({
   // Get remote schema permissions from metadata
   const remoteSchema = remoteSchemas?.find((rs: any) => rs.name === schema);
   const remoteSchemaPermissions = remoteSchema?.permissions || [];
+
+  // Get introspection data for permission level comparison
+  const { data: introspectionData } = useIntrospectRemoteSchemaQuery(schema, {
+    queryOptions: { enabled: !!schema },
+  });
 
   if (!remoteSchemaPermissionsEnabled) {
     return (
@@ -274,12 +322,43 @@ export default function EditRemoteSchemaPermissionsForm({
     ...(rolesData?.authRoles?.map(({ role: authRole }) => authRole) || []),
   ];
 
+  const graphqlSchema = convertIntrospectionToSchema(introspectionData);
+
   // Helper function to get permission access level for a role
-  const getPermissionAccessLevel = (roleName: string) => {
-    const permission = remoteSchemaPermissions.find(
-      (p: any) => p.role === roleName,
-    );
-    return permission?.definition?.schema ? 'full' : 'none';
+  const getPermissionAccessLevel = (role: string): RemoteSchemaAccessLevel => {
+    let permissionAccess: RemoteSchemaAccessLevel;
+    if (role === 'admin') {
+      permissionAccess = 'full';
+    } else {
+      const existingPerm = findRemoteSchemaPermission(
+        remoteSchemaPermissions,
+        role,
+      );
+      if (existingPerm) {
+        const remoteFields = getRemoteSchemaFields(
+          graphqlSchema,
+          buildSchemaFromRoleDefinition(existingPerm?.definition.schema),
+        );
+        permissionAccess = 'full';
+
+        if (
+          remoteFields
+            .filter(
+              (field) =>
+                !field.name.startsWith('enum') &&
+                !field.name.startsWith('scalar'),
+            )
+            .some((field) =>
+              field.children?.some((element) => element.checked === false),
+            )
+        ) {
+          permissionAccess = 'partial';
+        }
+      } else {
+        permissionAccess = 'none';
+      }
+    }
+    return permissionAccess;
   };
 
   // If editing a specific role's permissions
@@ -288,8 +367,6 @@ export default function EditRemoteSchemaPermissionsForm({
     const existingPermission = remoteSchemaPermissions.find(
       (p: any) => p.role === selectedRole,
     );
-
-    console.log('existingPermission', existingPermission);
 
     return (
       <RemoteSchemaRolePermissionsEditorForm
