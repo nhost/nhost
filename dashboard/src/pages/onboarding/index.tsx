@@ -1,3 +1,4 @@
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -33,7 +34,7 @@ import {
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -303,3 +304,11 @@ export default function OnboardingPage() {
     </Container>
   );
 }
+
+OnboardingPage.getLayout = function getLayout(page: ReactElement) {
+  return (
+    <AuthenticatedLayout title="Onboarding - Welcome to Nhost">
+      {page}
+    </AuthenticatedLayout>
+  );
+};
