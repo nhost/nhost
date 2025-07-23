@@ -34,7 +34,8 @@ import {
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
-import { ReactElement, useEffect, useState } from 'react';
+import type { ReactElement } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
