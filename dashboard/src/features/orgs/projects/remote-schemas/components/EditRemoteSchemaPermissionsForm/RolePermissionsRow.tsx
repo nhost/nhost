@@ -6,10 +6,7 @@ import type { TableCellProps } from '@/components/ui/v2/TableCell';
 import { TableCell } from '@/components/ui/v2/TableCell';
 import type { TableRowProps } from '@/components/ui/v2/TableRow';
 import { TableRow } from '@/components/ui/v2/TableRow';
-import type {
-  DatabaseAccessLevel,
-  DatabaseAction,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { RemoteSchemaAccessLevel } from '@/features/orgs/projects/remote-schemas/types';
 import { twMerge } from 'tailwind-merge';
 
 export interface RolePermissionsProps extends TableRowProps {
@@ -22,14 +19,14 @@ export interface RolePermissionsProps extends TableRowProps {
    */
   disabled?: boolean;
   /**
-   * Access types for specific operations.
+   * Access level for the role.
    */
-  accessLevels?: Record<DatabaseAction, DatabaseAccessLevel>;
+  accessLevel?: RemoteSchemaAccessLevel;
   /**
-   * Function to be called when the user wants to open the settings for an
-   * operation.
+   * Function to be called when the user wants to open the settings for the
+   * role.
    */
-  onActionSelect?: (action: DatabaseAction) => void;
+  onActionSelect?: () => void;
   /**
    * Props passed to individual component slots.
    */
@@ -41,7 +38,7 @@ export interface RolePermissionsProps extends TableRowProps {
   };
 }
 
-function AccessLevelIcon({ level }: { level: DatabaseAccessLevel }) {
+function AccessLevelIcon({ level }: { level: RemoteSchemaAccessLevel }) {
   if (level === 'none') {
     return <NoPermissionIcon />;
   }
@@ -56,12 +53,7 @@ function AccessLevelIcon({ level }: { level: DatabaseAccessLevel }) {
 export default function RolePermissions({
   name,
   disabled,
-  accessLevels = {
-    insert: 'none',
-    select: 'none',
-    update: 'none',
-    delete: 'none',
-  },
+  accessLevel,
   onActionSelect,
   slotProps,
   className,
@@ -96,15 +88,15 @@ export default function RolePermissions({
         )}
       >
         {disabled ? (
-          <AccessLevelIcon level={accessLevels.insert} />
+          <AccessLevelIcon level={accessLevel} />
         ) : (
           <IconButton
             variant="borderless"
             color="secondary"
             className="h-full w-full rounded-none"
-            onClick={() => onActionSelect?.('insert')}
+            onClick={onActionSelect}
           >
-            <AccessLevelIcon level={accessLevels.insert} />
+            <AccessLevelIcon level={accessLevel} />
           </IconButton>
         )}
       </TableCell>
