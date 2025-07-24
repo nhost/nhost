@@ -23,10 +23,13 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-export interface AuthenticatedLayoutProps extends BaseLayoutProps {}
+export interface AuthenticatedLayoutProps extends BaseLayoutProps {
+  withMainNav?: boolean;
+}
 
 export default function AuthenticatedLayout({
   children,
+  withMainNav = true,
   ...props
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
@@ -124,10 +127,9 @@ export default function AuthenticatedLayout({
         {mainNavPinned && isMdOrLarger && <PinnedMainNav />}
 
         <div
-          className={cn(
-            'relative flex h-full w-full flex-row bg-accent',
-            mainNavPinned && isMdOrLarger ? 'overflow-x-auto' : '',
-          )}
+          className={cn('relative flex h-full w-full flex-row bg-accent', {
+            'overflow-x-auto': mainNavPinned && isMdOrLarger && withMainNav,
+          })}
         >
           {(!mainNavPinned || !isMdOrLarger) && (
             <div className="flex h-full w-6 justify-center">

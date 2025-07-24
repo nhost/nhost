@@ -25,7 +25,6 @@ export default function IndexPage() {
         // check if user has no organizations (first-time user)
         // should we render this even if user is not coming in for the first time?
 
-        // if (orgs.length === 0 && localStorage.getItem('onboarding') === 'true') {
         if (orgs.length === 0) {
           await push('/onboarding');
           return;
