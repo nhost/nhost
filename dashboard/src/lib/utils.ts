@@ -22,3 +22,12 @@ export function isEmptyValue<T>(value: T) {
 export function isNotEmptyValue<T>(value: T): value is Exclude<T, undefined | null> {
   return !isEmptyValue(value)
 }
+
+export function isJSONString(str: string) {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
