@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -51,52 +52,6 @@ export interface EditRemoteSchemaPermissionsFormProps extends DialogFormProps {
    */
   disabled?: boolean;
 }
-
-// // Helper function to count total available fields in a schema
-// const countSchemaFields = (schema: any): number => {
-//   let totalFields = 0;
-
-//   // Count Query fields
-//   const queryType = schema.getQueryType();
-//   if (queryType) {
-//     totalFields += Object.keys(queryType.getFields()).length;
-//   }
-
-//   // Count Mutation fields
-//   const mutationType = schema.getMutationType();
-//   if (mutationType) {
-//     totalFields += Object.keys(mutationType.getFields()).length;
-//   }
-
-//   // Count Subscription fields
-//   const subscriptionType = schema.getSubscriptionType();
-//   if (subscriptionType) {
-//     totalFields += Object.keys(subscriptionType.getFields()).length;
-//   }
-
-//   // Count custom types
-//   const typeMap = schema.getTypeMap();
-//   Object.values(typeMap).forEach((type: any) => {
-//     if (
-//       !type.name.startsWith('__') &&
-//       (type.constructor.name === 'GraphQLObjectType' ||
-//         type.constructor.name === 'GraphQLInputObjectType' ||
-//         type.constructor.name === 'GraphQLInterfaceType')
-//     ) {
-//       if (type.getFields) {
-//         totalFields += Object.keys(type.getFields()).length;
-//       }
-//     } else if (
-//       type.constructor.name === 'GraphQLEnumType' ||
-//       type.constructor.name === 'GraphQLScalarType' ||
-//       type.constructor.name === 'GraphQLUnionType'
-//     ) {
-//       totalFields += 1; // Count the type itself
-//     }
-//   });
-
-//   return totalFields;
-// };
 
 export default function EditRemoteSchemaPermissionsForm({
   schema,
@@ -305,7 +260,7 @@ export default function EditRemoteSchemaPermissionsForm({
     );
   }
 
-  if (rolesLoading) {
+  if (rolesLoading || !introspectionData) {
     return (
       <div className="p-6">
         <ActivityIndicator label="Loading available roles..." />
@@ -374,7 +329,9 @@ export default function EditRemoteSchemaPermissionsForm({
         remoteSchemaName={schema}
         role={selectedRole}
         permission={existingPermission}
-        onSubmit={() => {
+        onSubmit={async () => {
+          // Refresh the remote schemas data to reflect permission changes
+          await refetchRemoteSchemas();
           setIsEditing(false);
           setSelectedRole(undefined);
         }}
@@ -471,7 +428,7 @@ export default function EditRemoteSchemaPermissionsForm({
               <Link
                 href="settings/roles-and-permissions"
                 underline="hover"
-                onClick={() => {}}
+                onClick={closeDrawerWithDirtyGuard}
               >
                 Settings page
               </Link>
