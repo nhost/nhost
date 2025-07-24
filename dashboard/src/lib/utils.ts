@@ -29,3 +29,13 @@ export function ifNullconvertToUndefined<T>(
 ): T | undefined {
   return nullableValue === null ? undefined : nullableValue;
 }
+
+
+export function isJSONString(str: string) {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
