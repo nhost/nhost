@@ -1,22 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  type ArgumentNode,
-  buildClientSchema,
-  buildSchema,
-  type DocumentNode,
-  type FieldDefinitionNode,
-  GraphQLEnumType,
-  GraphQLInputObjectType,
-  GraphQLInterfaceType,
-  GraphQLObjectType,
-  GraphQLScalarType,
-  type GraphQLSchema,
-  GraphQLUnionType,
-  type InputValueDefinitionNode,
-  type ObjectFieldNode,
-  type ObjectTypeDefinitionNode,
-  parse,
-} from 'graphql';
+import { buildClientSchema, type GraphQLSchema } from 'graphql';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -42,25 +25,12 @@ import { useRemoveRemoteSchemaPermissionsMutation } from '@/features/orgs/projec
 import { useUpdateRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaPermissionsMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-
-interface CustomFieldType {
-  name: string;
-  checked: boolean;
-  args?: Array<{ name: string; type: string }>;
-  return?: string;
-  typeName?: string;
-  children?: CustomFieldType[];
-  defaultValue?: any;
-  isInputObjectType?: boolean;
-  parentName?: string;
-  expanded?: boolean; // for UI expansion state
-}
-
-interface RemoteSchemaFields {
-  name: string;
-  typeName: string;
-  children: CustomFieldType[];
-}
+import type { RemoteSchemaFields } from '../../types';
+import { buildSchemaFromRoleDefinition } from '../../utils/buildSchemaFromRoleDefinition';
+import generateSDL from '../../utils/generateSDL';
+import getArgTreeFromPermissionSDL from '../../utils/getArgTreeFromPermissionSDL';
+import getBaseTypeName from '../../utils/getBaseTypeName';
+import { getRemoteSchemaFields } from '../../utils/getRemoteSchemaFields';
 
 // Argument tree type for storing preset values
 type ArgTreeType = Record<string, any>;
@@ -72,561 +42,6 @@ const FormSchema = z.object({
 });
 
 type FormData = z.infer<typeof FormSchema>;
-
-// Utility functions for handling presets
-const addPresetDefinition = (schema: string): string => `scalar PresetValue
-directive @preset(
-    value: PresetValue
-) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
-
-${schema}`;
-
-const buildSchemaFromRoleDefn = (
-  roleDefinition: string,
-): GraphQLSchema | null => {
-  try {
-    const newDef = addPresetDefinition(roleDefinition);
-    return buildSchema(newDef);
-  } catch (err) {
-    return null;
-  }
-};
-
-// Parse preset values from SDL
-const parseObjectField = (arg: ArgumentNode | ObjectFieldNode): any => {
-  if (arg?.value?.kind === 'IntValue' && arg?.value?.value) {
-    return arg?.value?.value;
-  }
-  if (arg?.value?.kind === 'FloatValue' && arg?.value?.value) {
-    return arg?.value?.value;
-  }
-  if (arg?.value?.kind === 'StringValue' && arg?.value?.value) {
-    return arg?.value?.value;
-  }
-  if (arg?.value?.kind === 'BooleanValue' && arg?.value?.value) {
-    return arg?.value?.value;
-  }
-  if (arg?.value?.kind === 'EnumValue' && arg?.value?.value) {
-    return arg?.value?.value;
-  }
-  if (arg?.value?.kind === 'NullValue') {
-    return null;
-  }
-
-  // nested values
-  if (
-    arg?.value?.kind === 'ObjectValue' &&
-    arg?.value?.fields &&
-    arg?.value?.fields?.length > 0
-  ) {
-    const res: Record<string, any> = {};
-    arg?.value?.fields.forEach((f: ObjectFieldNode) => {
-      res[f.name.value] = parseObjectField(f);
-    });
-    return res;
-  }
-
-  return undefined;
-};
-
-const getDirectives = (field: InputValueDefinitionNode) => {
-  let res: unknown | Record<string, any>;
-  const preset = field?.directives?.find(
-    (dir) => dir?.name?.value === 'preset',
-  );
-  if (preset?.arguments?.[0]) {
-    res = parseObjectField(preset.arguments[0]);
-  }
-  if (typeof res === 'object') {
-    return res;
-  }
-  if (typeof res === 'string') {
-    try {
-      return JSON.parse(res);
-    } catch {
-      return res;
-    }
-  }
-  return res;
-};
-
-const getPresets = (field: FieldDefinitionNode) => {
-  const res: Record<string, any> = {};
-  field?.arguments?.forEach((arg) => {
-    if (arg.directives && arg.directives.length > 0) {
-      res[arg?.name?.value] = getDirectives(arg);
-    }
-  });
-  return res;
-};
-
-const getFieldsMap = (fields: FieldDefinitionNode[], parentName: string) => {
-  const type = `type ${parentName}`;
-  const res: Record<string, any> = { [type]: {} };
-  fields.forEach((field) => {
-    res[type][field?.name?.value] = getPresets(field);
-  });
-  return res;
-};
-
-const getArgTreeFromPermissionSDL = (definition: string): ArgTreeType => {
-  const roots = ['Query', 'Mutation', 'Subscription'];
-  try {
-    const schema: DocumentNode = parse(definition);
-    const defs = schema.definitions as ObjectTypeDefinitionNode[];
-    const argTree =
-      defs?.reduce((acc: ArgTreeType, i: ObjectTypeDefinitionNode) => {
-        if (i.name?.value && i.fields && roots.includes(i.name.value)) {
-          const res = getFieldsMap(
-            i.fields as FieldDefinitionNode[],
-            i.name.value,
-          );
-          return { ...acc, ...res };
-        }
-        return acc;
-      }, {}) || {};
-    return argTree || {};
-  } catch (e) {
-    console.error(e);
-    return {};
-  }
-};
-
-// Format argument value for SDL
-const formatArg = (value: any): string => {
-  if (typeof value === 'string') {
-    return `"${value}"`;
-  }
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value);
-  }
-  if (value === null) {
-    return 'null';
-  }
-  if (typeof value === 'object') {
-    return JSON.stringify(value);
-  }
-  return String(value);
-};
-
-// Check if type belongs to default GraphQL scalar types
-const checkDefaultGQLScalarType = (typeName: string): boolean => {
-  const gqlDefaultTypes = ['Boolean', 'Float', 'String', 'Int', 'ID'];
-  return gqlDefaultTypes.includes(typeName);
-};
-
-// Extract base type name from GraphQL type string (remove !, [], etc.)
-const getBaseTypeName = (typeString: string): string =>
-  typeString.replace(/[[\]!]/g, '');
-
-// Extract all referenced scalar types from fields
-const extractReferencedScalars = (
-  fields: RemoteSchemaFields[],
-): Set<string> => {
-  const referencedScalars = new Set<string>();
-
-  fields.forEach((schemaType) => {
-    schemaType.children.forEach((field) => {
-      if (!field.checked) {
-        return;
-      }
-
-      // Check return type
-      if (field.return) {
-        const baseReturnType = getBaseTypeName(field.return);
-        if (
-          !checkDefaultGQLScalarType(baseReturnType) &&
-          !baseReturnType.match(/^(Query|Mutation|Subscription)$/)
-        ) {
-          // Check if this type is already explicitly defined and checked in our fields
-          const hasExplicitDefinition = fields.some((f) => {
-            if (f.name === `scalar ${baseReturnType}`) {
-              return f.children.some((child) => child.checked);
-            }
-            return (
-              f.typeName === baseReturnType ||
-              f.name === `type ${baseReturnType}` ||
-              f.name === `input ${baseReturnType}` ||
-              f.name === `enum ${baseReturnType}` ||
-              f.name === `union ${baseReturnType}` ||
-              f.name === `interface ${baseReturnType}`
-            );
-          });
-
-          if (!hasExplicitDefinition) {
-            referencedScalars.add(baseReturnType);
-          }
-        }
-      }
-
-      // Check argument types
-      if (field.args) {
-        field.args.forEach((arg) => {
-          const baseArgType = getBaseTypeName(arg.type);
-          if (
-            !checkDefaultGQLScalarType(baseArgType) &&
-            !baseArgType.match(/^(Query|Mutation|Subscription)$/)
-          ) {
-            // Check if this type is already explicitly defined and checked in our fields
-            const hasExplicitDefinition = fields.some((f) => {
-              if (f.name === `scalar ${baseArgType}`) {
-                return f.children.some((child) => child.checked);
-              }
-              return (
-                f.typeName === baseArgType ||
-                f.name === `type ${baseArgType}` ||
-                f.name === `input ${baseArgType}` ||
-                f.name === `enum ${baseArgType}` ||
-                f.name === `union ${baseArgType}` ||
-                f.name === `interface ${baseArgType}`
-              );
-            });
-
-            if (!hasExplicitDefinition) {
-              referencedScalars.add(baseArgType);
-            }
-          }
-        });
-      }
-    });
-  });
-
-  return referencedScalars;
-};
-
-// Get schema roots (Query, Mutation, Subscription)
-const getSchemaRoots = (schema: GraphQLSchema): string[] => {
-  const roots: string[] = [];
-  const queryType = schema.getQueryType();
-  const mutationType = schema.getMutationType();
-  const subscriptionType = schema.getSubscriptionType();
-
-  if (queryType) {
-    roots.push(queryType.name);
-  }
-  if (mutationType) {
-    roots.push(mutationType.name);
-  }
-  if (subscriptionType) {
-    roots.push(subscriptionType.name);
-  }
-
-  return roots;
-};
-
-// Get all type dependencies for a field recursively
-const getTypeDependencies = (
-  field: CustomFieldType,
-  allTypes: RemoteSchemaFields[],
-  visited: Set<string> = new Set(),
-): string[] => {
-  const dependencies: string[] = [];
-
-  if (!field.return) {
-    return dependencies;
-  }
-
-  const baseType = getBaseTypeName(field.return);
-
-  // Skip built-in GraphQL types
-  if (['String', 'Int', 'Float', 'Boolean', 'ID'].includes(baseType)) {
-    return dependencies;
-  }
-
-  // Avoid circular dependencies
-  if (visited.has(baseType)) {
-    return dependencies;
-  }
-
-  visited.add(baseType);
-
-  // Find the type in our schema
-  const typeNames = [
-    `type ${baseType}`,
-    `input ${baseType}`,
-    `enum ${baseType}`,
-    `scalar ${baseType}`,
-    `union ${baseType}`,
-    `interface ${baseType}`,
-  ];
-
-  const foundType = allTypes.find((t) => typeNames.includes(t.name));
-
-  if (foundType) {
-    dependencies.push(foundType.name);
-
-    // Recursively find dependencies of this type's fields
-    foundType.children.forEach((childField) => {
-      if (childField.return) {
-        const childDeps = getTypeDependencies(childField, allTypes, visited);
-        childDeps.forEach((dep) => {
-          if (!dependencies.includes(dep)) {
-            dependencies.push(dep);
-          }
-        });
-      }
-    });
-  }
-
-  return dependencies;
-};
-
-const buildCustomTypes = (
-  introspectionSchema: GraphQLSchema,
-  permissionsSchema: GraphQLSchema | null,
-): RemoteSchemaFields[] => {
-  const introspectionSchemaFields = introspectionSchema.getTypeMap();
-  let permissionsSchemaFields: any = null;
-
-  if (permissionsSchema !== null) {
-    permissionsSchemaFields = permissionsSchema.getTypeMap();
-  }
-
-  const enumTypes: RemoteSchemaFields[] = [];
-  const scalarTypes: RemoteSchemaFields[] = [];
-  const inputObjectTypes: RemoteSchemaFields[] = [];
-  const objectTypes: RemoteSchemaFields[] = [];
-  const unionTypes: RemoteSchemaFields[] = [];
-  const interfaceTypes: RemoteSchemaFields[] = [];
-
-  const roots = getSchemaRoots(introspectionSchema);
-
-  Object.entries(introspectionSchemaFields).forEach(([key, value]: any) => {
-    if (
-      !(
-        value instanceof GraphQLObjectType ||
-        value instanceof GraphQLInputObjectType ||
-        value instanceof GraphQLEnumType ||
-        value instanceof GraphQLScalarType ||
-        value instanceof GraphQLUnionType ||
-        value instanceof GraphQLInterfaceType
-      )
-    ) {
-      return;
-    }
-
-    const { name } = value;
-
-    // Skip root types and built-in types
-    if (roots.includes(name) || name.startsWith('__')) {
-      return;
-    }
-
-    const type: RemoteSchemaFields = {
-      name: '',
-      typeName: name,
-      children: [],
-    };
-
-    if (value instanceof GraphQLEnumType) {
-      type.name = `enum ${name}`;
-      const values = value.getValues();
-      const childArray: CustomFieldType[] = [];
-      let checked = false;
-
-      if (
-        permissionsSchema !== null &&
-        permissionsSchemaFields !== null &&
-        key in permissionsSchemaFields
-      ) {
-        checked = true;
-      }
-
-      values.forEach((val) => {
-        childArray.push({
-          name: val.name,
-          checked,
-        });
-      });
-
-      type.children = childArray;
-      enumTypes.push(type);
-    } else if (value instanceof GraphQLScalarType) {
-      type.name = `scalar ${name}`;
-      let checked = false;
-
-      if (
-        permissionsSchema !== null &&
-        permissionsSchemaFields !== null &&
-        key in permissionsSchemaFields
-      ) {
-        checked = true;
-      }
-
-      const childArray: CustomFieldType[] = [{ name: type.name, checked }];
-      type.children = childArray;
-      scalarTypes.push(type);
-    } else if (value instanceof GraphQLObjectType) {
-      type.name = `type ${name}`;
-      if (value.getInterfaces().length) {
-        const implementsString = value
-          .getInterfaces()
-          .map((i: any) => i.name)
-          .join(' & ');
-        type.name = `type ${name} implements ${implementsString}`;
-      }
-    } else if (value instanceof GraphQLInputObjectType) {
-      type.name = `input ${name}`;
-    }
-
-    if (
-      value instanceof GraphQLObjectType ||
-      value instanceof GraphQLInputObjectType
-    ) {
-      const childArray: CustomFieldType[] = [];
-      const fieldVal = value.getFields();
-      let permissionsFieldVal: any = {};
-      let isFieldPresent = true;
-
-      // Check if the type is present in the permission schema
-      if (permissionsSchema !== null && permissionsSchemaFields !== null) {
-        if (key in permissionsSchemaFields) {
-          permissionsFieldVal = permissionsSchemaFields[key].getFields();
-        } else {
-          isFieldPresent = false;
-        }
-      }
-
-      Object.entries(fieldVal).forEach(([k, v]: any) => {
-        let checked = false;
-        if (
-          permissionsSchema !== null &&
-          isFieldPresent &&
-          k in permissionsFieldVal
-        ) {
-          checked = true;
-        }
-
-        const field: CustomFieldType = {
-          name: v.name,
-          checked,
-          return: v.type.toString(),
-          expanded: false,
-        };
-
-        if (v.defaultValue !== undefined) {
-          field.defaultValue = v.defaultValue;
-        }
-
-        if (value instanceof GraphQLInputObjectType) {
-          field.args = [{ name: k, type: v.type.toString() }];
-          field.isInputObjectType = true;
-          field.parentName = type.name;
-        } else if (v.args?.length) {
-          field.args = v.args.map((arg: any) => ({
-            name: arg.name,
-            type: arg.type.toString(),
-          }));
-        }
-
-        childArray.push(field);
-      });
-
-      type.children = childArray;
-      if (value instanceof GraphQLObjectType) {
-        objectTypes.push(type);
-      }
-      if (value instanceof GraphQLInputObjectType) {
-        inputObjectTypes.push(type);
-      }
-    }
-
-    if (value instanceof GraphQLUnionType) {
-      let isFieldPresent = true;
-      let permissionsTypesVal: any;
-
-      if (permissionsSchema !== null && permissionsSchemaFields !== null) {
-        if (key in permissionsSchemaFields) {
-          permissionsTypesVal = permissionsSchemaFields[key].getTypes();
-        } else {
-          isFieldPresent = false;
-        }
-      }
-
-      type.name = `union ${name}`;
-      const childArray: CustomFieldType[] = [];
-      const typesVal = value.getTypes();
-
-      typesVal.forEach((v: any, k: number) => {
-        let checked = false;
-        if (
-          permissionsSchema !== null &&
-          isFieldPresent &&
-          permissionsTypesVal &&
-          k < permissionsTypesVal.length
-        ) {
-          checked = true;
-        }
-
-        const field: CustomFieldType = {
-          name: v.name,
-          checked,
-          return: v.name,
-        };
-        childArray.push(field);
-      });
-
-      type.children = childArray;
-      unionTypes.push(type);
-    }
-
-    if (value instanceof GraphQLInterfaceType) {
-      let isFieldPresent = true;
-      let permissionsFieldVal: any = {};
-
-      if (permissionsSchema !== null && permissionsSchemaFields !== null) {
-        if (key in permissionsSchemaFields) {
-          permissionsFieldVal = permissionsSchemaFields[key].getFields();
-        } else {
-          isFieldPresent = false;
-        }
-      }
-
-      type.name = `interface ${name}`;
-      const childArray: CustomFieldType[] = [];
-      const fieldVal = value.getFields();
-
-      Object.entries(fieldVal).forEach(([k, v]: any) => {
-        let checked = false;
-        if (
-          permissionsSchema !== null &&
-          isFieldPresent &&
-          k in permissionsFieldVal
-        ) {
-          checked = true;
-        }
-
-        const field: CustomFieldType = {
-          name: v.name,
-          checked,
-          return: v.type.toString(),
-          expanded: false,
-        };
-
-        if (v.args?.length) {
-          field.args = v.args.map((arg: any) => ({
-            name: arg.name,
-            type: arg.type.toString(),
-          }));
-        }
-
-        childArray.push(field);
-      });
-
-      type.children = childArray;
-      interfaceTypes.push(type);
-    }
-  });
-
-  return [
-    ...objectTypes,
-    ...inputObjectTypes,
-    ...unionTypes,
-    ...enumTypes,
-    ...scalarTypes,
-    ...interfaceTypes,
-  ];
-};
 
 export interface RemoteSchemaRolePermissionsEditorFormProps
   extends DialogFormProps {
@@ -666,6 +81,18 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   const [argTree, setArgTree] = useState<ArgTreeType>({}); // Store preset values
   const [schemaDefinition, setSchemaDefinition] = useState('');
 
+  // Count visible types
+  const countVisible = useCallback(
+    (list: RemoteSchemaFields[]) =>
+      list.filter(
+        (field) =>
+          !['scalar', 'enum'].some((type) =>
+            field?.name?.toLowerCase().includes(type),
+          ),
+      ).length,
+    [],
+  );
+
   // Initialize form with react-hook-form
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -692,320 +119,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
   const { openAlertDialog } = useDialog();
 
-  const buildRemoteSchemaFields = useCallback(
-    (
-      introspectionSchema: GraphQLSchema,
-      permissionsSchema: GraphQLSchema | null,
-    ): RemoteSchemaFields[] => {
-      const remoteFields: RemoteSchemaFields[] = [];
-
-      // Build Query root
-      const queryType = introspectionSchema.getQueryType();
-      if (queryType) {
-        const queryFields = queryType.getFields();
-        const permissionQueryFields = permissionsSchema
-          ?.getQueryType()
-          ?.getFields();
-
-        const children = Object.values(queryFields).map((field) => ({
-          name: field.name,
-          checked: !!(
-            permissionQueryFields && field.name in permissionQueryFields
-          ),
-          args: field.args.map((arg) => ({
-            name: arg.name,
-            type: arg.type.toString(),
-          })),
-          return: field.type.toString(),
-          parentName: `type ${queryType.name}`,
-          expanded: false,
-        }));
-
-        remoteFields.push({
-          name: `type ${queryType.name}`,
-          typeName: '__query_root',
-          children,
-        });
-      }
-
-      // Build Mutation root
-      const mutationType = introspectionSchema.getMutationType();
-      if (mutationType) {
-        const mutationFields = mutationType.getFields();
-        const permissionMutationFields = permissionsSchema
-          ?.getMutationType()
-          ?.getFields();
-
-        const children = Object.values(mutationFields).map((field) => ({
-          name: field.name,
-          checked: !!(
-            permissionMutationFields && field.name in permissionMutationFields
-          ),
-          args: field.args.map((arg) => ({
-            name: arg.name,
-            type: arg.type.toString(),
-          })),
-          return: field.type.toString(),
-          parentName: `type ${mutationType.name}`,
-          expanded: false,
-        }));
-
-        remoteFields.push({
-          name: `type ${mutationType.name}`,
-          typeName: '__mutation_root',
-          children,
-        });
-      }
-
-      // Build Subscription root
-      const subscriptionType = introspectionSchema.getSubscriptionType();
-      if (subscriptionType) {
-        const subscriptionFields = subscriptionType.getFields();
-        const permissionSubscriptionFields = permissionsSchema
-          ?.getSubscriptionType()
-          ?.getFields();
-
-        const children = Object.values(subscriptionFields).map((field) => ({
-          name: field.name,
-          checked: !!(
-            permissionSubscriptionFields &&
-            field.name in permissionSubscriptionFields
-          ),
-          args: field.args.map((arg) => ({
-            name: arg.name,
-            type: arg.type.toString(),
-          })),
-          return: field.type.toString(),
-          parentName: `type ${subscriptionType.name}`,
-          expanded: false,
-        }));
-
-        remoteFields.push({
-          name: `type ${subscriptionType.name}`,
-          typeName: '__subscription_root',
-          children,
-        });
-      }
-
-      const customTypes = buildCustomTypes(
-        introspectionSchema,
-        permissionsSchema,
-      );
-
-      return [...remoteFields, ...customTypes];
-    },
-    [],
-  );
-
-  // Generate SDL from RemoteSchemaFields with preset support
-  const generateSDL = useCallback(
-    (fields: RemoteSchemaFields[], argTreeData: ArgTreeType): string => {
-      const lines: string[] = [];
-      let hasQuery = false;
-      let hasMutation = false;
-      let hasSubscription = false;
-
-      // Extract referenced scalars that need to be defined
-      const referencedScalars = extractReferencedScalars(fields);
-
-      fields.forEach((schemaType) => {
-        const checkedChildren = schemaType.children.filter(
-          (child) => child.checked,
-        );
-        if (checkedChildren.length === 0) {
-          return;
-        }
-
-        if (schemaType.typeName === '__query_root') {
-          hasQuery = true;
-          lines.push('type Query {');
-          checkedChildren.forEach((field) => {
-            let fieldStr = `  ${field.name}`;
-
-            // Add arguments with presets
-            if (field.args && field.args.length > 0) {
-              fieldStr += '(';
-              const argStrs: string[] = [];
-
-              field.args.forEach((arg) => {
-                let argStr = `${arg.name} : ${arg.type}`;
-
-                // Check for preset value
-                const presetValue =
-                  argTreeData?.[schemaType.name]?.[field.name]?.[arg.name];
-                if (presetValue !== undefined) {
-                  argStr += ` @preset(value: ${formatArg(presetValue)}) `;
-                }
-
-                argStrs.push(argStr);
-              });
-
-              fieldStr += `${argStrs.join(' ')})`;
-            }
-
-            fieldStr += ` : ${field.return}`;
-            lines.push(fieldStr);
-          });
-          lines.push('}');
-        } else if (schemaType.typeName === '__mutation_root') {
-          hasMutation = true;
-          lines.push('type Mutation {');
-          checkedChildren.forEach((field) => {
-            let fieldStr = `  ${field.name}`;
-
-            // Add arguments with presets
-            if (field.args && field.args.length > 0) {
-              fieldStr += '(';
-              const argStrs: string[] = [];
-
-              field.args.forEach((arg) => {
-                let argStr = `${arg.name} : ${arg.type}`;
-
-                // Check for preset value
-                const presetValue =
-                  argTreeData?.[schemaType.name]?.[field.name]?.[arg.name];
-                if (presetValue !== undefined) {
-                  argStr += ` @preset(value: ${formatArg(presetValue)}) `;
-                }
-
-                argStrs.push(argStr);
-              });
-
-              fieldStr += `${argStrs.join(' ')})`;
-            }
-
-            fieldStr += ` : ${field.return}`;
-            lines.push(fieldStr);
-          });
-          lines.push('}');
-        } else if (schemaType.typeName === '__subscription_root') {
-          hasSubscription = true;
-          lines.push('type Subscription {');
-          checkedChildren.forEach((field) => {
-            let fieldStr = `  ${field.name}`;
-
-            // Add arguments with presets
-            if (field.args && field.args.length > 0) {
-              fieldStr += '(';
-              const argStrs: string[] = [];
-
-              field.args.forEach((arg) => {
-                let argStr = `${arg.name} : ${arg.type}`;
-
-                // Check for preset value
-                const presetValue =
-                  argTreeData?.[schemaType.name]?.[field.name]?.[arg.name];
-                if (presetValue !== undefined) {
-                  argStr += ` @preset(value: ${formatArg(presetValue)}) `;
-                }
-
-                argStrs.push(argStr);
-              });
-
-              fieldStr += `${argStrs.join(' ')})`;
-            }
-
-            fieldStr += ` : ${field.return}`;
-            lines.push(fieldStr);
-          });
-          lines.push('}');
-        } else {
-          // Handle custom types (object, input, enum, scalar, union, interface)
-          const typeName = schemaType.name;
-
-          // Skip default GraphQL scalar types
-          if (
-            typeName.startsWith('scalar') &&
-            checkDefaultGQLScalarType(schemaType.typeName)
-          ) {
-            return;
-          }
-
-          if (typeName.startsWith('enum')) {
-            lines.push(`${typeName} {`);
-            checkedChildren.forEach((field) => {
-              lines.push(`  ${field.name}`);
-            });
-            lines.push('}');
-          } else if (typeName.startsWith('scalar')) {
-            lines.push(typeName);
-          } else if (typeName.startsWith('union')) {
-            const typeNames = checkedChildren
-              .map((child) => child.name)
-              .join(' | ');
-            lines.push(`${typeName} = ${typeNames}`);
-          } else if (
-            typeName.startsWith('type') ||
-            typeName.startsWith('input') ||
-            typeName.startsWith('interface')
-          ) {
-            lines.push(`${typeName} {`);
-            checkedChildren.forEach((field) => {
-              let fieldStr = `  ${field.name}`;
-
-              // Add arguments with presets for object/interface types
-              if (
-                !typeName.startsWith('input') &&
-                field.args &&
-                field.args.length > 0
-              ) {
-                fieldStr += '(';
-                const argStrs: string[] = [];
-
-                field.args.forEach((arg) => {
-                  let argStr = `${arg.name} : ${arg.type}`;
-
-                  // Check for preset value
-                  const presetValue =
-                    argTreeData?.[schemaType.name]?.[field.name]?.[arg.name];
-                  if (presetValue !== undefined) {
-                    argStr += ` @preset(value: ${formatArg(presetValue)}) `;
-                  }
-
-                  argStrs.push(argStr);
-                });
-
-                fieldStr += `${argStrs.join(' ')})`;
-              }
-
-              if (field.return) {
-                fieldStr += ` : ${field.return}`;
-              }
-
-              lines.push(fieldStr);
-            });
-            lines.push('}');
-          }
-        }
-      });
-
-      // Add any referenced scalar types that aren't already defined
-      referencedScalars.forEach((scalarType) => {
-        lines.push(`scalar ${scalarType}`);
-      });
-
-      // Add schema definition if needed
-      if (hasQuery || hasMutation || hasSubscription) {
-        const schemaDef = ['schema {'];
-        if (hasQuery) {
-          schemaDef.push('  query: Query');
-        }
-        if (hasMutation) {
-          schemaDef.push('  mutation: Mutation');
-        }
-        if (hasSubscription) {
-          schemaDef.push('  subscription: Subscription');
-        }
-        schemaDef.push('}');
-
-        return `${schemaDef.join('\n')}\n\n${lines.join('\n')}`;
-      }
-
-      return lines.join('\n');
-    },
-    [],
-  );
-
   // Build fields when schema is loaded
   useEffect(() => {
     if (introspectionData?.data) {
@@ -1019,18 +132,19 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
         if (permission?.definition?.schema) {
           // Use buildSchemaFromRoleDefn to handle @preset directives
-          permissionSchema = buildSchemaFromRoleDefn(
+          permissionSchema = buildSchemaFromRoleDefinition(
             permission.definition.schema,
           );
 
           // Parse existing presets from the schema definition
           newArgTree = getArgTreeFromPermissionSDL(
             permission.definition.schema,
+            introspectionSchema,
           );
           setArgTree(newArgTree);
         }
 
-        const fields = buildRemoteSchemaFields(
+        const fields = getRemoteSchemaFields(
           introspectionSchema,
           permissionSchema,
         );
@@ -1047,7 +161,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         console.error('Error building schema:', error);
       }
     }
-  }, [introspectionData, permission, buildRemoteSchemaFields, generateSDL]);
+  }, [introspectionData, permission]);
 
   // Update schema definition when fields or argTree change
   useEffect(() => {
@@ -1055,7 +169,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       const newSchemaDefinition = generateSDL(remoteSchemaFields, argTree);
       setSchemaDefinition(newSchemaDefinition);
     }
-  }, [remoteSchemaFields, argTree, generateSDL]);
+  }, [remoteSchemaFields, argTree]);
 
   // Handle field selection changes with automatic dependency selection
   const handleFieldToggle = useCallback(
@@ -1072,64 +186,108 @@ export default function RemoteSchemaRolePermissionsEditorForm({
           ),
         };
 
-        // If checking a field, automatically check its dependencies
+        // If checking a field, recursively check all dependencies
         if (checked && currentField.return) {
-          const dependencies = getTypeDependencies(currentField, newFields);
+          const typesToCheck = new Set<string>();
 
-          dependencies.forEach((depTypeName) => {
-            const depTypeIndex = newFields.findIndex(
-              (type) => type.name === depTypeName,
-            );
-            if (depTypeIndex !== -1) {
-              // Mark all fields in the dependent type as checked
-              newFields[depTypeIndex] = {
-                ...newFields[depTypeIndex],
-                children: newFields[depTypeIndex].children.map((child) => ({
-                  ...child,
-                  checked: true,
-                })),
-              };
-            }
-          });
-        }
+          // Add return type
+          const returnBaseType = getBaseTypeName(currentField.return);
+          if (
+            !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
+              returnBaseType,
+            )
+          ) {
+            typesToCheck.add(returnBaseType);
+          }
 
-        // If unchecking a field, check if we need to uncheck dependencies
-        if (!checked && currentField.return) {
-          const dependencies = getTypeDependencies(currentField, newFields);
-
-          dependencies.forEach((depTypeName) => {
-            const depTypeIndex = newFields.findIndex(
-              (type) => type.name === depTypeName,
-            );
-            if (depTypeIndex !== -1) {
-              // Check if any other checked fields still depend on this type
-              const stillNeeded = newFields.some((schemaType, typeIndex) => {
-                if (typeIndex === schemaTypeIndex) {
-                  return false; // Skip the current type
+          // Add argument types
+          if (currentField.args) {
+            Object.values(currentField.args).forEach((arg: any) => {
+              let argTypeString = '';
+              if (typeof arg === 'object' && arg.type) {
+                if (typeof arg.type === 'string') {
+                  argTypeString = arg.type;
+                } else if (arg.type.toString) {
+                  argTypeString = arg.type.toString();
+                } else if (arg.type.inspect) {
+                  argTypeString = arg.type.inspect();
                 }
-                return schemaType.children.some((field, fIndex) => {
-                  if (typeIndex === schemaTypeIndex && fIndex === fieldIndex) {
-                    return false; // Skip current field
-                  }
-                  if (!field.checked || !field.return) {
-                    return false;
-                  }
-                  const fieldDeps = getTypeDependencies(field, newFields);
-                  return fieldDeps.includes(depTypeName);
-                });
-              });
+              }
 
-              // If no other fields need this dependency, uncheck it
-              if (!stillNeeded) {
+              const argBaseType = getBaseTypeName(argTypeString);
+
+              if (
+                argBaseType &&
+                !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
+                  argBaseType,
+                )
+              ) {
+                typesToCheck.add(argBaseType);
+              }
+            });
+          }
+
+          const checkTypeDependencies = (
+            baseType: string,
+            visited: Set<string> = new Set(),
+          ) => {
+            // Skip already visited types
+            if (visited.has(baseType)) {
+              return;
+            }
+
+            visited.add(baseType);
+
+            // Find the type in our schema and check all its fields
+            const typeNames = [
+              `type ${baseType}`,
+              `input ${baseType}`,
+              `enum ${baseType}`,
+              `scalar ${baseType}`,
+              `union ${baseType}`,
+              `interface ${baseType}`,
+            ];
+
+            const depTypeIndex = newFields.findIndex((type) =>
+              typeNames.includes(type.name),
+            );
+
+            if (depTypeIndex !== -1) {
+              // Only check if not already fully checked to preserve order
+              const hasUncheckedFields = newFields[depTypeIndex].children.some(
+                (child) => !child.checked,
+              );
+
+              if (hasUncheckedFields) {
+                // Mark all fields in the dependent type as checked
                 newFields[depTypeIndex] = {
                   ...newFields[depTypeIndex],
                   children: newFields[depTypeIndex].children.map((child) => ({
                     ...child,
-                    checked: false,
+                    checked: true,
                   })),
                 };
+
+                // Recursively check dependencies of each field in this type
+                newFields[depTypeIndex].children.forEach((childField) => {
+                  if (childField.return) {
+                    const childBaseType = getBaseTypeName(childField.return);
+                    if (
+                      !['String', 'Int', 'Float', 'Boolean', 'ID'].includes(
+                        childBaseType,
+                      )
+                    ) {
+                      checkTypeDependencies(childBaseType, visited);
+                    }
+                  }
+                });
               }
             }
+          };
+
+          // Check all types we found
+          typesToCheck.forEach((baseType) => {
+            checkTypeDependencies(baseType);
           });
         }
 
@@ -1280,6 +438,26 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     }
 
     return remoteSchemaFields
+      .filter((field) => {
+        if (
+          ['scalar', 'enum'].some((type) =>
+            field?.name?.toLowerCase().includes(type),
+          )
+        ) {
+          return false;
+        }
+
+        if (searchTerm === '') {
+          return true;
+        }
+
+        return (
+          field?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+          field.children?.some((child) =>
+            child?.name?.toLowerCase().includes(searchTerm?.toLowerCase()),
+          )
+        );
+      })
       .map((schemaType) => ({
         ...schemaType,
         children: schemaType.children.filter(
@@ -1290,6 +468,12 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       }))
       .filter((schemaType) => schemaType.children.length > 0);
   }, [remoteSchemaFields, searchTerm]);
+
+  // Create filtered types set for display logic
+  const filteredTypesSet = useMemo(
+    () => new Set(filteredFields.map((field) => field.name)),
+    [filteredFields],
+  );
 
   // Separate root types from custom types for better organization
   const rootTypes = useMemo(
@@ -1355,18 +539,24 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 </Text>
                 <Text>
                   Select the fields and operations that should be available for
-                  this role. Expand fields to edit @preset values for arguments.
+                  this role. Edit @preset values for arguments when needed.
                 </Text>
               </div>
 
               {/* Search */}
-              <div className="relative">
+              <div className="relative space-y-2">
                 <Input
                   placeholder="Search fields and operations..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pr-10"
                 />
+                {searchTerm && (
+                  <div className="text-sm text-gray-500">
+                    {filteredTypesSet.size} out of{' '}
+                    {countVisible(remoteSchemaFields)} types found
+                  </div>
+                )}
               </div>
 
               {/* Schema Fields */}

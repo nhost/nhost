@@ -1,4 +1,11 @@
-import type { GraphQLArgument, GraphQLField } from 'graphql';
+import type {
+  GraphQLArgument,
+  GraphQLEnumValue,
+  GraphQLField,
+  GraphQLInputField,
+  GraphQLInputFieldMap,
+  GraphQLType,
+} from 'graphql';
 
 export type EnvOrValueHeader =
   | {
@@ -42,6 +49,7 @@ export type CustomFieldType = {
   defaultValue?: any;
   isInputObjectType?: boolean;
   parentName?: string;
+  expanded?: boolean;
 };
 
 export type FieldType = CustomFieldType & GraphQLField<any, any>;
@@ -53,3 +61,14 @@ export type RemoteSchemaFields =
       children: FieldType[] | CustomFieldType[];
     }
   | FieldType;
+
+export interface FormatParamArgs {
+  argName: ArgTreeType | string;
+  arg: GraphQLInputField;
+}
+
+export type ChildArgumentType = {
+  children?: GraphQLInputFieldMap | GraphQLEnumValue[];
+  path?: string;
+  childrenType?: GraphQLType;
+};
