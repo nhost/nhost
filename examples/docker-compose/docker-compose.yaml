@@ -1,6 +1,6 @@
 services:
     auth:
-        image: nhost/hasura-auth:0.37.1
+        image: nhost/hasura-auth:0.40.2
         depends_on:
             graphql:
                 condition: service_healthy
@@ -96,7 +96,7 @@ services:
               read_only: false
 
     console:
-        image: nhost/graphql-engine:v2.36.9-ce.cli-migrations-v3
+        image: nhost/graphql-engine:v2.46.0-ce.cli-migrations-v3
         depends_on:
             graphql:
                 condition: service_healthy
@@ -179,7 +179,6 @@ services:
             NEXT_PUBLIC_ENV: dev
             NEXT_PUBLIC_NHOST_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
             NEXT_PUBLIC_NHOST_AUTH_URL: http://${AUTH_URL}/v1
-            NEXT_PUBLIC_NHOST_CONFIGSERVER_URL: http://unused.in.self.hosting
             NEXT_PUBLIC_NHOST_FUNCTIONS_URL: http://${FUNCTIONS_URL}/v1
             NEXT_PUBLIC_NHOST_GRAPHQL_URL: http://${GRAPHQL_URL}/v1/graphql
             NEXT_PUBLIC_NHOST_HASURA_API_URL: http://${GRAPHQL_URL}
@@ -255,7 +254,7 @@ services:
               read_only: false
 
     graphql:
-        image: nhost/graphql-engine:v2.36.9-ce
+        image: nhost/graphql-engine:v2.46.0-ce
         depends_on:
             postgres:
                 condition: service_healthy
@@ -406,7 +405,7 @@ services:
               read_only: true
 
     storage:
-        image: nhost/hasura-storage:0.7.1
+        image: nhost/hasura-storage:0.7.2
         depends_on:
             graphql:
                 condition: service_healthy
