@@ -184,7 +184,7 @@ export default function AuthLimitingForm() {
   const handleSubmit = async (formValues: AuthLimitingFormValues) => {
     const updateConfigPromise = updateRateLimitConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           auth: {
             rateLimit: formValues.enabled

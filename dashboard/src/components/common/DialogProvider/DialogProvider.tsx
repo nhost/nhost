@@ -23,6 +23,10 @@ import {
   drawerReducer,
 } from './dialogReducers';
 
+function isBaseSyntheticEvent(event: any): event is BaseSyntheticEvent {
+  return event?.type !== undefined;
+}
+
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const router = useRouter();
 
@@ -87,7 +91,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     drawerDispatch({ type: 'CLEAR_DRAWER_CONTENT' });
   }, []);
 
-  function openAlertDialog<TConfig = string>(config?: DialogConfig<TConfig>) {
+  function openAlertDialog<TConfig = string>(config: DialogConfig<TConfig>) {
     alertDialogDispatch({ type: 'OPEN_ALERT', payload: config });
   }
 
@@ -122,8 +126,12 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   );
 
   const closeDrawerWithDirtyGuard = useCallback(
-    (event?: BaseSyntheticEvent) => {
-      if (isDrawerDirty.current && event?.type !== 'submit') {
+    (event?: any) => {
+      if (
+        isDrawerDirty.current &&
+        isBaseSyntheticEvent(event) &&
+        event.type !== 'submit'
+      ) {
         setShowDirtyConfirmation(true);
         openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
         return;
@@ -135,8 +143,12 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   );
 
   const closeDialogWithDirtyGuard = useCallback(
-    (event?: BaseSyntheticEvent) => {
-      if (isDialogDirty.current && event?.type !== 'submit') {
+    (event?: any) => {
+      if (
+        isDialogDirty.current &&
+        isBaseSyntheticEvent(event) &&
+        event.type !== 'submit'
+      ) {
         setShowDirtyConfirmation(true);
         openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
         return;
@@ -250,7 +262,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       <BaseDialog
         {...dialogProps}
         title={dialogTitle}
-        open={dialogOpen}
+        open={!!dialogOpen}
         onClose={closeDialogWithDirtyGuard}
         TransitionProps={{ onExited: clearDialogContent, unmountOnExit: false }}
         PaperProps={{

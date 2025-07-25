@@ -76,7 +76,7 @@ export default function ClientURLSettings() {
   const handleClientURLChange = async (values: ClientURLFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             redirections: {

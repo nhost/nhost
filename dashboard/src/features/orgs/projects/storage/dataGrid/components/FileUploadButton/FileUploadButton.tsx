@@ -32,7 +32,7 @@ export default function FileUploadButton({
   onChangeCapture,
   ...props
 }: FileUploadButtonProps) {
-  const fileRef = useRef<HTMLInputElement>();
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   function handleClick() {
     if (fileRef.current) {

@@ -27,7 +27,7 @@ export default function RunServiceDomains() {
   return (
     <div className="flex flex-col gap-6">
       {services
-        .filter((service) => service.config?.ports?.length > 0)
+        .filter((service) => (service.config?.ports?.length ?? 0) > 0)
         .map((service) => (
           <SettingsContainer
             key={service.id ?? service.serviceID}

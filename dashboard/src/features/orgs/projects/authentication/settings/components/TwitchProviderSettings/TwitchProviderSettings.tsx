@@ -32,7 +32,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 
 export default function TwitchProviderSettings() {
   const theme = useTheme();
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -70,7 +70,7 @@ export default function TwitchProviderSettings() {
     }
   }, [loading, clientId, clientSecret, enabled, form]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -90,7 +90,7 @@ export default function TwitchProviderSettings() {
   async function handleSubmit(formValues: BaseProviderSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             method: {
@@ -167,8 +167,8 @@ export default function TwitchProviderSettings() {
             hideEmptyHelperText
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/twitch/callback`}
             disabled
@@ -182,8 +182,8 @@ export default function TwitchProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/twitch/callback`,
                       'Redirect URL',

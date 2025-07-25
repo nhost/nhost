@@ -26,7 +26,7 @@ import { twMerge } from 'tailwind-merge';
 
 export default function BitbucketProviderSettings() {
   const { maintenanceActive } = useUI();
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
@@ -49,7 +49,7 @@ export default function BitbucketProviderSettings() {
     resolver: yupResolver(baseProviderValidationSchema),
   });
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -69,7 +69,7 @@ export default function BitbucketProviderSettings() {
   async function handleSubmit(formValues: BaseProviderSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             method: {
@@ -125,8 +125,8 @@ export default function BitbucketProviderSettings() {
             hideEmptyHelperText
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/bitbucket/callback`}
             disabled
@@ -140,8 +140,8 @@ export default function BitbucketProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/bitbucket/callback`,
                       'Redirect URL',

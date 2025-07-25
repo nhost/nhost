@@ -15,7 +15,9 @@ const LinearProgress = styled(MaterialLinearProgress)(({ theme, value }) => ({
   },
   [`& .${linearProgressClasses.bar}`]: {
     backgroundColor:
-      value >= 100 ? theme.palette.error.dark : theme.palette.primary.main,
+      value && value >= 100
+        ? theme.palette.error.dark
+        : theme.palette.primary.main,
   },
 }));
 

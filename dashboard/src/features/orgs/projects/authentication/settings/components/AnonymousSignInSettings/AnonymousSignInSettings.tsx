@@ -24,7 +24,7 @@ const validationSchema = Yup.object({
 export type AnonymousSignInFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AnonymousSignInSettings() {
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -39,7 +39,7 @@ export default function AnonymousSignInSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { enabled } = data?.config?.auth?.method?.anonymous || {};
+  const enabled = !!data?.config?.auth?.method?.anonymous?.enabled;
 
   const form = useForm<AnonymousSignInFormValues>({
     reValidateMode: 'onSubmit',
@@ -55,7 +55,7 @@ export default function AnonymousSignInSettings() {
     }
   }, [loading, enabled, form]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -74,7 +74,7 @@ export default function AnonymousSignInSettings() {
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           auth: {
             method: {

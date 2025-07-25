@@ -14,18 +14,13 @@ import type {
 import type { DialogFormProps } from '@/types/common';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { useFormContext, useFormState } from 'react-hook-form';
+import { useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import ReferencedColumnSelect from './ReferencedColumnSelect';
 import ReferencedSchemaSelect from './ReferencedSchemaSelect';
 import ReferencedTableSelect from './ReferencedTableSelect';
 
-export interface BaseForeignKeyFormValues extends ForeignKeyRelation {
-  /**
-   * Determines whether or not the origin column selector should be disabled.
-   */
-  disableOriginColumn?: boolean;
-}
+export type BaseForeignKeyFormValues = ForeignKeyRelation;
 
 export interface BaseForeignKeyFormProps extends DialogFormProps {
   /**
@@ -35,7 +30,7 @@ export interface BaseForeignKeyFormProps extends DialogFormProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit: (values: BaseForeignKeyFormValues) => Promise<void>;
+  onSubmit: (values: ForeignKeyRelation) => Promise<void>;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -46,9 +41,15 @@ export interface BaseForeignKeyFormProps extends DialogFormProps {
    * @default 'Save'
    */
   submitButtonText?: string;
+  /**
+   * Determines whether or not the origin column selector should be disabled.
+   */
+  disableOriginColumn?: boolean;
 }
 
 export const baseForeignKeyValidationSchema = Yup.object().shape({
+  id: Yup.string(),
+  name: Yup.string(),
   columnName: Yup.string().nullable().required('This field is required.'),
   referencedSchema: Yup.string().nullable().required('This field is required.'),
   referencedTable: Yup.string().nullable().required('This field is required.'),
@@ -63,12 +64,17 @@ export const baseForeignKeyValidationSchema = Yup.object().shape({
     .oneOf(['NO ACTION', 'RESTRICT', 'CASCADE', 'SET NULL', 'SET DEFAULT']),
 });
 
+export type BaseForeignKeySchemaValues = Yup.InferType<
+  typeof baseForeignKeyValidationSchema
+>;
+
 export default function BaseForeignKeyForm({
   availableColumns,
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
   location,
+  disableOriginColumn,
 }: BaseForeignKeyFormProps) {
   const { onDirtyStateChange } = useDialog();
 
@@ -77,14 +83,13 @@ export default function BaseForeignKeyForm({
     query: { dataSourceSlug },
   } = router;
 
-  const { getValues } = useFormContext();
   const { dirtyFields, errors, isSubmitting } =
-    useFormState<BaseForeignKeyFormValues>();
-
-  const disableOriginColumn = getValues('disableOriginColumn');
+    useFormState<BaseForeignKeySchemaValues>();
 
   const { data } = useDatabaseQuery([dataSourceSlug]);
-  const { schemas, tables } = data || { schemas: [], tables: [] };
+
+  const schemas = data?.schemas ?? [];
+  const tables = data?.tables ?? [];
 
   // react-hook-form's isDirty gets true even if an input field is focused, then
   // immediately unfocused - we can't rely on that information
@@ -100,7 +105,6 @@ export default function BaseForeignKeyForm({
         const selectedColumn = availableColumns?.find(
           (column) => column.name === values.columnName,
         );
-
         return handleExternalSubmit({
           ...values,
           oneToOne:
@@ -186,7 +190,12 @@ export default function BaseForeignKeyForm({
       </Box>
 
       <Box className="grid flex-shrink-0 grid-flow-row gap-2 border-t-1 px-6 pt-4">
-        <Button loading={isSubmitting} disabled={isSubmitting} type="submit">
+        <Button
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          type="submit"
+          data-testid="foreignKeyFormSubmitButton"
+        >
           {submitButtonText}
         </Button>
 

@@ -10,8 +10,8 @@ function useIsPiTREnabled() {
   });
 
   const isPiTREnabled = useMemo(
-    () => isNotNull(data?.config.postgres.pitr?.retention),
-    [data?.config.postgres.pitr?.retention],
+    () => isNotNull(data?.config?.postgres.pitr),
+    [data?.config?.postgres.pitr],
   );
 
   return { isPiTREnabled, loading };

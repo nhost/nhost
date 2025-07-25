@@ -39,7 +39,7 @@ export const validationSchema = Yup.object({
       maxReplicas: Yup.number().min(0).max(MAX_SERVICE_REPLICAS),
     })
     .nullable()
-    .default(undefined),
+    .default(null),
   ports: Yup.array().of(
     Yup.object().shape({
       port: Yup.number().required(),
@@ -69,11 +69,23 @@ export const validationSchema = Yup.object({
       initialDelaySeconds: Yup.number().required(),
       probePeriodSeconds: Yup.number().required(),
     })
+    .optional()
     .nullable()
     .default(undefined),
 });
 
 export type ServiceFormValues = Yup.InferType<typeof validationSchema>;
+
+export type ServiceFormInitialData = Omit<ServiceFormValues, 'ports'> & {
+  subdomain?: string; // subdomain is only set on the backend
+  ports: {
+    port: number;
+    type: PortTypes;
+    publish: boolean;
+    ingresses?: { fqdn?: string[] }[] | null;
+    rateLimit?: { limit: number; interval: string } | null;
+  }[];
+};
 
 export interface ServiceFormProps extends DialogFormProps {
   /**
@@ -81,20 +93,7 @@ export interface ServiceFormProps extends DialogFormProps {
    */
   serviceID?: string;
 
-  /**
-   * if there is initialData then it's an update operation
-   */
-  initialData?: Omit<ServiceFormValues, 'ports'> & {
-    subdomain?: string;
-    ports: {
-      port: number;
-      type: PortTypes;
-      publish: boolean;
-      ingresses?: { fqdn?: string[] }[] | null;
-      rateLimit?: { limit: number; interval: string } | null;
-    }[];
-  }; // subdomain is only set on the backend
-
+  initialData?: ServiceFormInitialData;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -104,3 +103,15 @@ export interface ServiceFormProps extends DialogFormProps {
    */
   onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
 }
+
+export type Port = {
+  port: number;
+  type: PortTypes;
+  publish: boolean;
+  rateLimit: number | null;
+  ingresses:
+    | {
+        fqdn: string[];
+      }[]
+    | null;
+};

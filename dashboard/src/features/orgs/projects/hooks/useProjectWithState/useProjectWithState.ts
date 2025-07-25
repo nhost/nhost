@@ -14,9 +14,9 @@ import { useMemo } from 'react';
 type Project = GetProjectQuery['apps'][0];
 
 export interface UseProjectWithStateReturnType {
-  project: Project;
+  project: Project | null;
   loading?: boolean;
-  error?: Error;
+  error: Error | null;
   refetch: (variables?: any) => Promise<any>;
 }
 
@@ -39,9 +39,9 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
     [isPlatform, isAuthenticated, isAuthLoading, appSubdomain, isRouterReady],
   );
 
-  const { data, isLoading, refetch, error } = useQuery(
-    ['projectWithState', appSubdomain as string],
-    async () => {
+  const { data, isLoading, refetch, error } = useQuery({
+    queryKey: ['projectWithState', appSubdomain as string],
+    queryFn: async () => {
       const response = await nhost.graphql.post<{
         apps: ProjectFragment[];
       }>(GetProjectStateDocument, {
@@ -49,21 +49,19 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
       });
       return response?.body.data;
     },
-    {
-      enabled: shouldFetchProject,
-      keepPreviousData: true,
-      refetchOnWindowFocus: true,
-      refetchInterval: 10000, // poll every 10s
-      staleTime: 1000 * 60 * 5, // 1 minutes
-      cacheTime: 1000 * 60 * 6, //
-    },
-  );
+    enabled: shouldFetchProject,
+    keepPreviousData: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000, // poll every 10s
+    staleTime: 1000 * 60 * 5, // 1 minutes
+    cacheTime: 1000 * 60 * 6, //
+  });
 
   if (isPlatform) {
     return {
       project: data?.apps?.[0] || null,
       loading: isLoading && shouldFetchProject,
-      error: Array.isArray(error || {}) ? error[0] : error,
+      error: Array.isArray(error) ? error[0] : error,
       refetch,
     };
   }

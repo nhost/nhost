@@ -1,9 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function isEmptyValue<T>(value: T) {
@@ -16,9 +15,17 @@ export function isEmptyValue<T>(value: T) {
     value === 'NaN' ||
     (typeof value === 'number' && Number.isNaN(value)) ||
     (typeof value === 'object' && Object.keys(value).length === 0)
-  )
+  );
 }
 
-export function isNotEmptyValue<T>(value: T): value is Exclude<T, undefined | null> {
-  return !isEmptyValue(value)
+export function isNotEmptyValue<T>(
+  value: T,
+): value is Exclude<T, undefined | null> {
+  return !isEmptyValue(value);
+}
+
+export function ifNullconvertToUndefined<T>(
+  nullableValue: T | null,
+): T | undefined {
+  return nullableValue === null ? undefined : nullableValue;
 }

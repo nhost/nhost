@@ -23,11 +23,11 @@ export interface BaseTableFormValues
   /**
    * The index of the primary key column.
    */
-  primaryKeyIndex: number;
+  primaryKeyIndex: number | null;
   /**
    * The index of the identity column.
    */
-  identityColumnIndex?: number;
+  identityColumnIndex?: number | null;
   /**
    * Foreign keys of the table.
    */
@@ -66,14 +66,17 @@ export const baseTableValidationSchema = Yup.object({
     .of(baseColumnValidationSchema)
     .test({
       message: 'At least one column is required.',
-      test: (columns) => columns?.length > 0,
+      test: (columns) => (columns?.length ?? 0) > 0,
     })
     .test({
       message: 'The table must contain only unique column names.',
       test: (columns) =>
         new Set(columns?.map(({ name }) => name)).size === columns?.length,
     }),
-  primaryKeyIndex: Yup.number().nullable().required('This field is required.'),
+  primaryKeyIndex: Yup.number()
+    .nullable()
+    .defined('This field is required.')
+    .default(null),
   identityColumnIndex: Yup.number().nullable(),
 });
 

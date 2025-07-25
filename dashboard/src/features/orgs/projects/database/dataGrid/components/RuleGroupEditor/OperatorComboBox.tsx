@@ -22,7 +22,7 @@ import { useFormContext } from 'react-hook-form';
 const commonOperators: {
   value: HasuraOperator;
   label?: string;
-  helperText?: string;
+  helperText: string;
 }[] = [
   { value: '_eq', helperText: 'equal' },
   { value: '_neq', helperText: 'not equal' },

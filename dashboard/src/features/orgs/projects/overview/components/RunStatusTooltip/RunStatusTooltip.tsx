@@ -9,8 +9,8 @@ import {
 import { ServiceState } from '@/generated/graphql';
 
 export interface RunStatusTooltipProps {
-  servicesStatusInfo?: Array<ServiceHealthInfo>;
-  openHealthModal?: (
+  servicesStatusInfo: Array<ServiceHealthInfo>;
+  openHealthModal: (
     defaultExpanded?: keyof typeof baseServices | 'run',
   ) => void;
 }

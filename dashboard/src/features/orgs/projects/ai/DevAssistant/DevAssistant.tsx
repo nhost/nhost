@@ -19,6 +19,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isNotEmptyValue } from '@/lib/utils';
 import {
   useSendDevMessageMutation,
   useStartDevSessionMutation,
@@ -31,7 +32,9 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 const MAX_THREAD_LENGTH = 50;
 
 export type Message = Omit<
-  SendDevMessageMutation['graphite']['sendDevMessage']['messages'][0],
+  NonNullable<
+    SendDevMessageMutation['graphite']
+  >['sendDevMessage']['messages'][number],
   '__typename'
 >;
 
@@ -84,7 +87,8 @@ export default function DevAssistant() {
 
       if (!sessionID || hasBeenAnHourSinceLastMessage) {
         const sessionRes = await startDevSession({ client: adminClient });
-        sessionID = sessionRes?.data?.graphite?.startDevSession?.sessionID;
+        sessionID =
+          sessionRes?.data?.graphite?.startDevSession?.sessionID || '';
         setStoredSessionID(sessionID);
       }
 
@@ -92,37 +96,33 @@ export default function DevAssistant() {
         throw new Error('Failed to start a new session');
       }
 
-      const {
-        data: {
-          graphite: { sendDevMessage: { messages: newMessages } = {} } = {},
-        } = {},
-      } = await sendDevMessage({
+      const result = await sendDevMessage({
         variables: {
           message: userInput,
-          sessionId: sessionID || '',
+          sessionId: sessionID,
           prevMessageID: !hasBeenAnHourSinceLastMessage
             ? lastMessage?.id || ''
             : '',
         },
       });
+      const newMessages = result.data?.graphite?.sendDevMessage.messages;
+      if (isNotEmptyValue(newMessages)) {
+        let thread = [
+          // remove the temp messages of the user input while we wait for the dev assistant to respond
+          ...$messages.filter((item) => item.createdAt),
+          ...newMessages
+            // remove empty messages
+            .filter((item) => item.message)
 
-      let thread = [
-        // remove the temp messages of the user input while we wait for the dev assistant to respond
-        ...$messages.filter((item) => item.createdAt),
-        ...newMessages
+            // add the currentProject.id to the new messages
+            .map((item) => ({ ...item, projectId: project?.id })),
+        ];
 
-          // remove empty messages
-          .filter((item) => item.message)
-
-          // add the currentProject.id to the new messages
-          .map((item) => ({ ...item, projectId: project?.id })),
-      ];
-
-      if (thread.length > MAX_THREAD_LENGTH) {
-        thread = thread.slice(thread.length - MAX_THREAD_LENGTH); // keep the thread at a max length of MAX_THREAD_LENGTH
+        if (thread.length > MAX_THREAD_LENGTH) {
+          thread = thread.slice(thread.length - MAX_THREAD_LENGTH); // keep the thread at a max length of MAX_THREAD_LENGTH
+        }
+        setMessages(thread);
       }
-
-      setMessages(thread);
     } catch (error) {
       toast.custom(
         (t) => (

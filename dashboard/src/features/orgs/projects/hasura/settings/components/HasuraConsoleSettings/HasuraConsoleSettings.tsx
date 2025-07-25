@@ -46,7 +46,7 @@ export default function HasuraConsoleSettings() {
   const form = useForm<HasuraConsoleFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: enableConsole,
+      enabled: !!enableConsole,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -54,7 +54,7 @@ export default function HasuraConsoleSettings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
-        enabled: enableConsole,
+        enabled: !!enableConsole,
       });
     }
   }, [loading, enableConsole, form]);
@@ -76,7 +76,7 @@ export default function HasuraConsoleSettings() {
   async function handleSubmit(formValues: HasuraConsoleFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             settings: {

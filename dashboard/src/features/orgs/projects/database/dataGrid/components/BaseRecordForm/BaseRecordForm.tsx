@@ -40,7 +40,10 @@ export default function BaseRecordForm({
   location,
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
-  const { requiredColumns, optionalColumns } = columns.reduce(
+  const { requiredColumns, optionalColumns } = columns.reduce<{
+    requiredColumns: DataBrowserGridColumn<{}>[];
+    optionalColumns: DataBrowserGridColumn<{}>[];
+  }>(
     (accumulator, column) => {
       if (
         column.isPrimary ||
@@ -120,7 +123,7 @@ export default function BaseRecordForm({
           ...options,
           [columnId]: {
             value:
-              gridColumn.type === 'date' && value instanceof Date
+              gridColumn?.type === 'date' && value instanceof Date
                 ? value.toUTCString()
                 : value,
           },

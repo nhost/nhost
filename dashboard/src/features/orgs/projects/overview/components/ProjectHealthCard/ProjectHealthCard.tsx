@@ -3,17 +3,12 @@ import { Box } from '@/components/ui/v2/Box';
 import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
 import { ProjectHealthBadge } from '@/features/orgs/projects/overview/components/ProjectHealthBadge';
 import { serviceStateToBadgeColor } from '@/features/orgs/projects/overview/health';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ServiceState } from '@/utils/__generated__/graphql';
-import type { ImageProps } from 'next/image';
-import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ProjectHealthCardProps extends BoxProps {
-  /**
-   * Label of the card icon.
-   */
-  alt?: string;
   /**
    * Tooltip of the card.
    */
@@ -32,17 +27,6 @@ export interface ProjectHealthCardProps extends BoxProps {
    */
   disableIconBackground?: boolean;
   /**
-   * Determines whether the icon is a react component.
-   * @default true
-   */
-  iconIsComponent?: boolean;
-  /**
-   * Props to be passed to the internal components.
-   */
-  slotProps?: {
-    imgIcon?: Partial<ImageProps>;
-  };
-  /**
    * State of the service.
    */
   state?: ServiceState;
@@ -59,18 +43,17 @@ export interface ProjectHealthCardProps extends BoxProps {
 }
 
 export default function ProjectHealthCard({
-  alt,
   tooltip,
   icon,
-  iconIsComponent = true,
   className,
-  slotProps = {},
   isVersionMismatch = false,
   isLoading = false,
   state,
   ...props
 }: ProjectHealthCardProps) {
-  const badgeColor = serviceStateToBadgeColor.get(state);
+  const badgeColor = isNotEmptyValue(state)
+    ? serviceStateToBadgeColor.get(state)
+    : state;
   const unknownState = state === undefined;
   let badgeVariant: 'dot' | 'standard' = 'dot';
   if (state === ServiceState.Running || unknownState) {
@@ -111,17 +94,7 @@ export default function ProjectHealthCard({
             unknownState={unknownState}
             blink={shouldBlink}
           >
-            {iconIsComponent
-              ? icon
-              : typeof icon === 'string' && (
-                  <Image
-                    src={icon}
-                    alt={alt}
-                    width={slotProps.imgIcon?.width}
-                    height={slotProps.imgIcon?.height}
-                    {...slotProps.imgIcon}
-                  />
-                )}
+            {icon}
           </ProjectHealthBadge>
         </div>
       </Box>

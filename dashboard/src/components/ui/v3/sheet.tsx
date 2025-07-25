@@ -52,7 +52,7 @@ const sheetVariants = cva(
 interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {
-  container?: HTMLElement;
+  container?: HTMLElement | null;
   hideCloseButton?: boolean;
 }
 
@@ -64,7 +64,7 @@ const SheetContent = React.forwardRef<
     {
       side = 'right',
       className,
-      container,
+      container = null,
       hideCloseButton,
       children,
       ...props

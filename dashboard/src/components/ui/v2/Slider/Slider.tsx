@@ -60,7 +60,7 @@ function Slider(
       ref={ref}
       components={{
         Rail: SliderRail({
-          value: allowed,
+          value: allowed ?? 0,
           max: props.max,
           marks: props.marks,
           step: props.step,
@@ -69,7 +69,7 @@ function Slider(
       }}
       color="primary"
       {...props}
-      marks={allowed > 0 ? false : props.marks}
+      marks={allowed && allowed > 0 ? false : props.marks}
     />
   );
 }
