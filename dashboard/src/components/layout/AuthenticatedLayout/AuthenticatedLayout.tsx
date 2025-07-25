@@ -34,7 +34,7 @@ export default function AuthenticatedLayout({
   const isMdOrLarger = useMediaQuery('md');
 
   const { isAuthenticated, isLoading } = useAuth();
-  const isHealthy = useIsHealthy();
+  const { isHealthy, isLoading: isHealthyLoading } = useIsHealthy();
   const [mainNavContainer, setMainNavContainer] = useState(null);
   const { mainNavPinned } = useTreeNavState();
 
@@ -70,7 +70,7 @@ export default function AuthenticatedLayout({
     );
   }
 
-  if (!isPlatform && !isHealthy) {
+  if (!isPlatform && !isHealthy && !isHealthyLoading) {
     return (
       <BaseLayout className="h-full" {...props}>
         <Header className="flex max-h-[59px] flex-auto" />

@@ -16,7 +16,7 @@ export default function useIsHealthy() {
     'hasura',
   );
 
-  const { failureCount, status } = useQuery(
+  const { failureCount, status, isLoading } = useQuery(
     ['/v1/version'],
     () => fetch(`${appUrl}/v1/version`),
     {
@@ -27,5 +27,8 @@ export default function useIsHealthy() {
     },
   );
 
-  return isPlatform || (status === 'success' && failureCount === 0);
+  return {
+    isHealthy: isPlatform || (status === 'success' && failureCount === 0),
+    isLoading,
+  };
 }

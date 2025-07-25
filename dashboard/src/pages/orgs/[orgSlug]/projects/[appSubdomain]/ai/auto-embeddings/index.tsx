@@ -101,6 +101,8 @@ export default function AutoEmbeddingsPage() {
     );
   }
 
+  const slug = isPlatform ? org?.slug : 'local';
+
   if (
     (isPlatform && !org?.plan?.isFree && !project?.config?.ai) ||
     !isGraphiteEnabled
@@ -115,7 +117,7 @@ export default function AutoEmbeddingsPage() {
             <Text component="span">
               To enable graphite, configure the service first in{' '}
               <Link
-                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/ai`}
+                href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
                 rel="noopener noreferrer"
                 underline="hover"
               >

@@ -3,14 +3,29 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 import { useTheme } from '@mui/material';
+import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
+import { useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
   const theme = useTheme();
   const { project } = useProject();
   const hasGitRepo = !!project?.githubRepository;
+  const isSettingsDisabled = useSettingsDisabled();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isSettingsDisabled) {
+      router.push('/404');
+    }
+  }, [router, isSettingsDisabled]);
+
+  if (isSettingsDisabled) {
+    return null;
+  }
 
   return (
     <Box
