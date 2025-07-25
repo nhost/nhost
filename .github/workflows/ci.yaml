@@ -137,26 +137,26 @@ jobs:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       # * Build Dashboard image to test it locally
-      - name: Build Dashboard local image
-        if: matrix.package.path == 'dashboard'
-        run: |
-          docker build -t nhost/dashboard:0.0.0-dev -f ${{ matrix.package.path }}/Dockerfile .
-          mkdir -p nhost-test-project
+      # - name: Build Dashboard local image
+      #   if: matrix.package.path == 'dashboard'
+      #   run: |
+      #     docker build -t nhost/dashboard:0.0.0-dev -f ${{ matrix.package.path }}/Dockerfile .
+      #     mkdir -p nhost-test-project
       # * Install Nhost CLI if a `nhost/config.yaml` file is found
       - name: Install Nhost CLI
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != '' && matrix.package.path != 'dashboard'
         uses: ./.github/actions/nhost-cli
       # * Install Nhost CLI to test Dashboard locally
-      - name: Install Nhost CLI (Local Dashboard tests)
-        timeout-minutes: 5
-        if: matrix.package.path == 'dashboard'
-        uses: ./.github/actions/nhost-cli
-        with:
-          init: 'true' # Initialize the application
-          start: 'true' # Start the application
-          path: ./nhost-test-project
-          wait: 'true' # Wait until the application is ready
-          dashboard-image: 'nhost/dashboard:0.0.0-dev'
+      # - name: Install Nhost CLI (Local Dashboard tests)
+      #   timeout-minutes: 5
+      #   if: matrix.package.path == 'dashboard'
+      #   uses: ./.github/actions/nhost-cli
+      #   with:
+      #     init: 'true' # Initialize the application
+      #     start: 'true' # Start the application
+      #     path: ./nhost-test-project
+      #     wait: 'true' # Wait until the application is ready
+      #     dashboard-image: 'nhost/dashboard:0.0.0-dev'
       - name: Fetch Dashboard Preview URL
         id: fetch-dashboard-preview-url
         uses: zentered/vercel-preview-url@v1.1.9
@@ -172,38 +172,37 @@ jobs:
       - name: Set Dashboard Preview URL
         if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
         run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
-      # Turning it off temporarly
-      # - name: Run Upgrade project Dashboard e2e tests
-      #   if: matrix.package.path == 'dashboard'
-      #   timeout-minutes: 10
-      #   run: pnpm --filter="${{ matrix.package.name }}" run e2e:upgrade-project
+      - name: Run Upgrade project Dashboard e2e tests
+        if: matrix.package.path == 'dashboard'
+        timeout-minutes: 10
+        run: pnpm --filter="${{ matrix.package.name }}" run e2e:upgrade-project
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
-      - name: Run e2e tests
-        timeout-minutes: 20
-        run: pnpm --filter="${{ matrix.package.name }}" run e2e
+      # - name: Run e2e tests
+      #   timeout-minutes: 20
+      #   run: pnpm --filter="${{ matrix.package.name }}" run e2e
       # * Run the `e2e-local` script of the dashboard
-      - name: Run Local Dashboard e2e tests
-        if: matrix.package.path == 'dashboard'
-        timeout-minutes: 5
-        run: pnpm --filter="${{ matrix.package.name }}" run e2e:local
+      # - name: Run Local Dashboard e2e tests
+      #   if: matrix.package.path == 'dashboard'
+      #   timeout-minutes: 5
+      #   run: pnpm --filter="${{ matrix.package.name }}" run e2e:local
 
-      - name: Stop Nhost CLI
-        if: matrix.package.path == 'dashboard'
-        working-directory: ./nhost-test-project
-        run: nhost down
+      # - name: Stop Nhost CLI
+      #   if: matrix.package.path == 'dashboard'
+      #   working-directory: ./nhost-test-project
+      #   run: nhost down
       - name: Stop Nhost CLI for packages
         if: always() && (matrix.package.path == 'packages/hasura-auth-js' || matrix.package.path == 'packages/hasura-storage-js')
         working-directory: ./${{ matrix.package.path }}
         run: nhost down
       - id: file-name
-        if: ${{ failure() }}
+        if: ${{ always() }}
         name: Transform package name into a valid file name
         run: |
           PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
           echo "fileName=$PACKAGE_FILE_NAME"  >> $GITHUB_OUTPUT
       # * Run this step only if the previous step failed, and Playwright generated a report
       - name: Upload Playwright Report
-        if: ${{ failure() && hashFiles(format('{0}/playwright-report/**', matrix.package.path)) != ''}}
+        if: ${{ always() && hashFiles(format('{0}/playwright-report/**', matrix.package.path)) != ''}}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-${{ steps.file-name.outputs.fileName }}

@@ -77,7 +77,7 @@ export default function AuthenticatedLayout({
 
         <Container
           rootClassName="h-full"
-          className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
+          className="remove-me-later my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
         >
           <div className="mx-auto">
             <Image
