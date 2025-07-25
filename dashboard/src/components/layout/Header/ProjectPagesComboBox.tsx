@@ -33,6 +33,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
@@ -54,6 +55,8 @@ export default function ProjectPagesComboBox() {
   } = useRouter();
 
   const isPlatform = useIsPlatform();
+
+  const isSettingsDisabled = useSettingsDisabled();
 
   const projectPages = useMemo(
     () => [
@@ -146,10 +149,10 @@ export default function ProjectPagesComboBox() {
         value: 'settings',
         icon: <CogIcon className="h-4 w-4" />,
         slug: 'settings',
-        disabled: false,
+        disabled: isSettingsDisabled,
       },
     ],
-    [isPlatform],
+    [isPlatform, isSettingsDisabled],
   );
 
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
