@@ -40,7 +40,7 @@ type Invite = OrganizationMemberInvitesQuery['organizationMemberInvites'][0];
 
 export default function NotificationsTray() {
   const userData = useUserData();
-  const { asPath, route, push, query, isReady: isRouterReady } = useRouter();
+  const { route, push, query, isReady: isRouterReady } = useRouter();
   const { session_id } = query;
   const { refetch: refetchOrgs } = useOrgs();
   const [open, setOpen] = useState(false);
@@ -70,7 +70,7 @@ export default function NotificationsTray() {
         },
       });
     }
-  }, [asPath, userData?.id, getInvites]);
+  }, [userData?.id, getInvites]);
 
   useEffect(() => {
     const checkForPendingOrgRequests = async () => {
@@ -99,11 +99,9 @@ export default function NotificationsTray() {
             break;
 
           case CheckoutStatus.Completed:
-            // Do nothing
             break;
 
           case CheckoutStatus.Expired:
-            // Do nothing
             break;
 
           default:
@@ -165,7 +163,7 @@ export default function NotificationsTray() {
           },
         });
 
-        refetchInvites();
+        await refetchInvites();
       },
       {
         loadingMessage: `Processing...`,

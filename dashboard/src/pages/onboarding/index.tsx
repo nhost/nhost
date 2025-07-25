@@ -1,5 +1,7 @@
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
@@ -28,10 +30,13 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useUserData } from '@/hooks/useUserData';
 import {
   useCreateOrganizationRequestMutation,
+  useOrganizationMemberInviteAcceptMutation,
+  useOrganizationMemberInvitesLazyQuery,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
@@ -58,6 +63,18 @@ export default function OnboardingPage() {
   const [createOrganizationRequest] = useCreateOrganizationRequestMutation();
   const [stripeClientSecret, setStripeClientSecret] = useState('');
 
+  const [
+    getInvites,
+    {
+      loading: loadingInvites,
+      data: { organizationMemberInvites: invites = [] } = {},
+    },
+  ] = useOrganizationMemberInvitesLazyQuery();
+  
+  const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
+  
+  const [showOnboardingForm, setShowOnboardingForm] = useState(false);
+
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
@@ -67,14 +84,22 @@ export default function OnboardingPage() {
     },
   });
 
-  // redirect if user already has organizations
+  useEffect(() => {
+    if (user?.id) {
+      getInvites({
+        variables: {
+          userId: user.id,
+        },
+      });
+    }
+  }, [user?.id, getInvites]);
+
   useEffect(() => {
     if (!loadingOrgs && orgs && orgs.length > 0) {
       router.push('/');
     }
   }, [orgs, loadingOrgs, router]);
 
-  // set default plan when plans data is loaded
   useEffect(() => {
     if (plansData?.plans?.length > 0 && !form.getValues('plan')) {
       form.setValue('plan', plansData.plans[0].id);
@@ -82,7 +107,6 @@ export default function OnboardingPage() {
   }, [plansData, form]);
 
   const onSubmit = async (data: OnboardingFormData) => {
-    // not sure if this is needed but I couldn't find a better way to do it
     sessionStorage.setItem('onboarding', 'true');
 
     await execPromiseWithErrorToast(
@@ -113,11 +137,91 @@ export default function OnboardingPage() {
     );
   };
 
-  if (loadingOrgs || loadingPlans) {
+  const handleAcceptInvite = async (invite: typeof invites[0]) => {
+    await execPromiseWithErrorToast(
+      async () => {
+        await acceptInvite({
+          variables: {
+            inviteId: invite.id,
+          },
+        });
+
+        await router.push(`/orgs/${invite?.organization?.slug}/projects`);
+      },
+      {
+        loadingMessage: `Joining ${invite.organization.name}...`,
+        successMessage: `Welcome to ${invite.organization.name}!`,
+        errorMessage: `Failed to join organization. Please try again.`,
+      },
+    );
+  };
+
+  if (loadingOrgs || loadingPlans || loadingInvites) {
     return (
       <div className="flex h-screen items-center justify-center">
         <ActivityIndicator />
       </div>
+    );
+  }
+
+  if (invites && invites.length > 0 && !showOnboardingForm) {
+    return (
+      <Container rootClassName="h-full">
+        <div className="mx-auto max-w-2xl py-12">
+          <div className="mb-8 text-center">
+            <Text variant="h2" className="mb-4 text-3xl font-bold">
+              You've been invited!
+            </Text>
+            <Text className="text-muted-foreground text-lg">
+              You have {invites.length === 1 ? 'an invitation' : `${invites.length} invitations`} to join 
+              {invites.length === 1 ? ' an organization' : ' organizations'}
+            </Text>
+          </div>
+
+          <div className="space-y-4">
+            {invites.map((invite) => (
+              <Box
+                key={invite.id}
+                className="rounded-lg border border-border bg-card p-6 shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <Text variant="h3" className="mb-2 text-xl font-semibold">
+                      {invite.organization.name}
+                    </Text>
+                    <Text className="text-muted-foreground">
+                      Join as {invite.role.toLowerCase()}
+                    </Text>
+                    <Text className="text-sm text-muted-foreground mt-1">
+                      Invited {formatDistance(new Date(invite.createdAt), new Date(), { addSuffix: true })}
+                    </Text>  
+                  </div>
+                  <div className="ml-6">
+                    <Button
+                      onClick={() => handleAcceptInvite(invite)}
+                      className="min-w-[120px]"
+                    >
+                      Join Organization
+                    </Button>
+                  </div>
+                </div>
+              </Box>
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Text className="text-sm text-muted-foreground mb-4">
+              Don't want to join? You can create your own organization instead.
+            </Text>
+            <Button
+              variant="outline"
+              onClick={() => setShowOnboardingForm(true)}
+            >
+              Create New Organization
+            </Button>
+          </div>
+        </div>
+      </Container>
     );
   }
 
@@ -268,7 +372,18 @@ export default function OnboardingPage() {
                 )}
               />
 
-              <div className="flex justify-end">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                {invites && invites.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowOnboardingForm(false)}
+                    className="w-full sm:w-auto"
+                  >
+                    ← Back to Invites
+                  </Button>
+                )}
+                
                 <Button
                   type="submit"
                   disabled={form.formState.isSubmitting}
@@ -284,6 +399,24 @@ export default function OnboardingPage() {
                   )}
                 </Button>
               </div>
+
+              {invites && invites.length > 0 && (
+                <Alert
+                  severity="info"
+                  className="bg-primary/8 mt-4 rounded-lg border border-primary/20"
+                >
+                  <Text className="text-sm">
+                    <span className="font-medium text-primary">
+                      💡 Pending Invitation{invites.length > 1 ? 's' : ''}
+                    </span>
+                    <br />
+                    <span className="mt-1.5 block text-sm text-gray-600 dark:text-gray-400">
+                      You have {invites.length} pending invitation{invites.length > 1 ? 's' : ''} to join existing organization{invites.length > 1 ? 's' : ''}. 
+                      You can accept {invites.length > 1 ? 'them' : 'it'} instead of creating a new organization.
+                    </span>
+                  </Text>
+                </Alert>
+              )}
             </form>
           </Form>
         </div>

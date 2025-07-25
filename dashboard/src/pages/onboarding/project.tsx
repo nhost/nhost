@@ -38,6 +38,7 @@ import slugify from 'slugify';
 import { z } from 'zod';
 
 const projectSchema = z.object({
+  organizationId: z.string().min(1, 'Please select an organization'),
   projectName: z
     .string()
     .min(1, 'Project name is required')
@@ -60,21 +61,20 @@ export default function OnboardingProjectPage() {
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
+      organizationId: '',
       projectName: '',
       regionId: '',
     },
   });
 
-  const selectedOrg = orgs?.[0]
-    ? {
-        id: orgs[0].id,
-        name: orgs[0].name,
-        slug: orgs[0].slug,
-        plan: orgs[0].plan?.name,
-      }
-    : null;
+  const selectedOrg = orgs?.find((org) => org.id === form.watch('organizationId')) || null;
 
-  // set default region when regions data is loaded
+  useEffect(() => {
+    if (orgs?.length > 0 && !form.getValues('organizationId')) {
+      form.setValue('organizationId', orgs[0].id);
+    }
+  }, [orgs, form]);
+
   useEffect(() => {
     if (regionsData?.regions?.length > 0 && !form.getValues('regionId')) {
       const activeRegion = regionsData.regions.find((region) => region.active);
@@ -99,7 +99,7 @@ export default function OnboardingProjectPage() {
               app: {
                 name: data.projectName,
                 slug,
-                organizationID: selectedOrg.id,
+                organizationID: data.organizationId,
                 regionId: data.regionId,
               },
             },
@@ -109,14 +109,14 @@ export default function OnboardingProjectPage() {
           const metadata = localStorage.getItem('metadata');
           const parsedMetadata = metadata ? JSON.parse(metadata) : {};
 
-          // we only track the org creation here if it is a starter plan
-          // this is because in case of a paid plan, we track the org creation in the verify page
-          if (selectedOrg.plan === 'Starter') {
+          // we only track here if it is a starter org
+          // this is because in case of a paid org, we track the org creation in the verify page
+          if (selectedOrg?.plan?.name === 'Starter') {
             analytics.track('Organization Created', {
               organizationId: selectedOrg.id,
               organizationSlug: selectedOrg.slug,
               organizationName: selectedOrg.name,
-              organizationPlan: selectedOrg.plan,
+              organizationPlan: selectedOrg.plan.name,
               organizationOwnerId: user?.id,
               organizationOwnerEmail: user?.email,
               organizationMetadata: parsedMetadata,
@@ -127,15 +127,15 @@ export default function OnboardingProjectPage() {
           analytics.track('Project Created', {
             projectName: data.projectName,
             projectSlug: slug,
-            organizationId: selectedOrg.id,
-            organizationName: selectedOrg.name,
+            organizationId: selectedOrg?.id,
+            organizationName: selectedOrg?.name,
             regionId: data.regionId,
             isOnboarding: true,
           });
 
           // clear onboarding flow and redirect to project dashboard
           sessionStorage.removeItem('onboarding');
-          router.push(`/orgs/${selectedOrg.slug}/projects/${subdomain}`);
+          router.push(`/orgs/${selectedOrg?.slug}/projects/${subdomain}`);
         }
       },
       {
@@ -157,7 +157,7 @@ export default function OnboardingProjectPage() {
   }
 
   return (
-    <Container>
+    <Container rootClassName="h-full">
       <div className="mx-auto max-w-2xl py-12">
         <div className="mb-8 flex items-center justify-center">
           <div className="flex items-center space-x-4">
@@ -186,6 +186,45 @@ export default function OnboardingProjectPage() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
               >
+                <FormField
+                  control={form.control}
+                  name="organizationId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Organization</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an organization" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {orgs?.map((org) => (
+                            <SelectItem key={org.id} value={org.id}>
+                              <div className="flex items-center space-x-3">
+                                <Image
+                                  src="/logos/new.svg"
+                                  alt="Organization"
+                                  width={16}
+                                  height={16}
+                                />
+                                <span className="font-medium">{org.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({org.plan?.name} plan)
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="projectName"
@@ -242,23 +281,6 @@ export default function OnboardingProjectPage() {
                     </FormItem>
                   )}
                 />
-
-                {selectedOrg && (
-                  <div className="rounded-lg bg-muted p-4">
-                    <Text className="mb-1 text-sm text-muted-foreground">
-                      Organization
-                    </Text>
-                    <div className="flex items-center space-x-2">
-                      <Image
-                        src="/logos/new.svg"
-                        alt="Organization"
-                        width={20}
-                        height={20}
-                      />
-                      <Text className="font-medium">{selectedOrg.name}</Text>
-                    </div>
-                  </div>
-                )}
 
                 <div className="flex justify-end">
                   <Button
