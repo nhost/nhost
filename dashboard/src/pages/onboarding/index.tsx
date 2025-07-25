@@ -170,7 +170,7 @@ export default function OnboardingPage() {
         <div className="mx-auto max-w-2xl py-12">
           <div className="mb-8 text-center">
             <Text variant="h2" className="mb-4 text-3xl font-bold">
-              You've been invited!
+              You&apos;ve been invited!
             </Text>
             <Text className="text-muted-foreground text-lg">
               You have {invites.length === 1 ? 'an invitation' : `${invites.length} invitations`} to join 
@@ -211,7 +211,7 @@ export default function OnboardingPage() {
 
           <div className="mt-8 text-center">
             <Text className="text-sm text-muted-foreground mb-4">
-              Don't want to join? You can create your own organization instead.
+              Don&apos;t want to join? You can create your own organization instead.
             </Text>
             <Button
               variant="outline"
