@@ -70,9 +70,9 @@ export default function OnboardingPage() {
       data: { organizationMemberInvites: invites = [] } = {},
     },
   ] = useOrganizationMemberInvitesLazyQuery();
-  
+
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
-  
+
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
 
   const form = useForm<OnboardingFormData>({
@@ -137,7 +137,7 @@ export default function OnboardingPage() {
     );
   };
 
-  const handleAcceptInvite = async (invite: typeof invites[0]) => {
+  const handleAcceptInvite = async (invite: (typeof invites)[0]) => {
     await execPromiseWithErrorToast(
       async () => {
         await acceptInvite({
@@ -172,8 +172,12 @@ export default function OnboardingPage() {
             <Text variant="h2" className="mb-4 text-3xl font-bold">
               You&apos;ve been invited!
             </Text>
-            <Text className="text-muted-foreground text-lg">
-              You have {invites.length === 1 ? 'an invitation' : `${invites.length} invitations`} to join 
+            <Text className="text-lg text-muted-foreground">
+              You have{' '}
+              {invites.length === 1
+                ? 'an invitation'
+                : `${invites.length} invitations`}{' '}
+              to join
               {invites.length === 1 ? ' an organization' : ' organizations'}
             </Text>
           </div>
@@ -192,9 +196,12 @@ export default function OnboardingPage() {
                     <Text className="text-muted-foreground">
                       Join as {invite.role.toLowerCase()}
                     </Text>
-                    <Text className="text-sm text-muted-foreground mt-1">
-                      Invited {formatDistance(new Date(invite.createdAt), new Date(), { addSuffix: true })}
-                    </Text>  
+                    <Text className="mt-1 text-sm text-muted-foreground">
+                      Invited{' '}
+                      {formatDistance(new Date(invite.createdAt), new Date(), {
+                        addSuffix: true,
+                      })}
+                    </Text>
                   </div>
                   <div className="ml-6">
                     <Button
@@ -210,8 +217,9 @@ export default function OnboardingPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <Text className="text-sm text-muted-foreground mb-4">
-              Don&apos;t want to join? You can create your own organization instead.
+            <Text className="mb-4 text-sm text-muted-foreground">
+              Don&apos;t want to join? You can create your own organization
+              instead.
             </Text>
             <Button
               variant="outline"
@@ -372,7 +380,7 @@ export default function OnboardingPage() {
                 )}
               />
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+              <div className="flex flex-col justify-end gap-3 sm:flex-row">
                 {invites && invites.length > 0 && (
                   <Button
                     type="button"
@@ -383,7 +391,7 @@ export default function OnboardingPage() {
                     ← Back to Invites
                   </Button>
                 )}
-                
+
                 <Button
                   type="submit"
                   disabled={form.formState.isSubmitting}
@@ -411,8 +419,11 @@ export default function OnboardingPage() {
                     </span>
                     <br />
                     <span className="mt-1.5 block text-sm text-gray-600 dark:text-gray-400">
-                      You have {invites.length} pending invitation{invites.length > 1 ? 's' : ''} to join existing organization{invites.length > 1 ? 's' : ''}. 
-                      You can accept {invites.length > 1 ? 'them' : 'it'} instead of creating a new organization.
+                      You have {invites.length} pending invitation
+                      {invites.length > 1 ? 's' : ''} to join existing
+                      organization{invites.length > 1 ? 's' : ''}. You can
+                      accept {invites.length > 1 ? 'them' : 'it'} instead of
+                      creating a new organization.
                     </span>
                   </Text>
                 </Alert>

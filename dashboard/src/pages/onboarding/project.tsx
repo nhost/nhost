@@ -67,7 +67,8 @@ export default function OnboardingProjectPage() {
     },
   });
 
-  const selectedOrg = orgs?.find((org) => org.id === form.watch('organizationId')) || null;
+  const selectedOrg =
+    orgs?.find((org) => org.id === form.watch('organizationId')) || null;
 
   useEffect(() => {
     if (orgs?.length > 0 && !form.getValues('organizationId')) {
