@@ -7,6 +7,7 @@ import {
   type WatchQueryFetchPolicy,
 } from '@apollo/client/core';
 import { setContext } from '@apollo/client/link/context';
+import { RetryLink } from '@apollo/client/link/retry';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import type { NhostClient } from '@nhost/nhost-js-beta';
@@ -91,6 +92,7 @@ export const createApolloClient = ({
       })
     : null;
 
+  const retryLink = new RetryLink();
   const wsLink = wsClient ? new GraphQLWsLink(wsClient) : null;
 
   const httpLink = setContext(async (_, { headers }) => ({
@@ -117,7 +119,7 @@ export const createApolloClient = ({
       )
     : httpLink;
 
-  const link = from([splitLink]);
+  const link = from([retryLink, splitLink]);
 
   const client = new ApolloClient({
     cache: new InMemoryCache(),
