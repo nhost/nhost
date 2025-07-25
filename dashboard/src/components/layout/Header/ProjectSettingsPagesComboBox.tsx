@@ -54,6 +54,11 @@ const projectSettingsPages = [
     slug: 'roles-and-permissions',
     route: 'roles-and-permissions',
   },
+  {
+    name: 'Remote Schemas',
+    slug: 'remote-schemas',
+    route: 'remote-schemas',
+  },
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Git', slug: 'git', route: 'git' },
   {
