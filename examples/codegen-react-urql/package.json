@@ -1,7 +1,7 @@
 {
   "name": "@nhost-examples/codegen-react-urql",
   "private": true,
-  "version": "0.7.2",
+  "version": "0.8.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
