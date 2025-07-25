@@ -46,6 +46,8 @@ export default function useNotFoundRedirect() {
       router.pathname === '/404' ||
       router.pathname === '/' ||
       router.pathname === '/account' ||
+      router.pathname === '/onboarding' ||
+      router.pathname === '/onboarding/project' ||
       router.pathname === '/support/ticket' ||
       router.pathname === '/run-one-click-install' ||
       router.pathname.includes('/orgs/_') ||

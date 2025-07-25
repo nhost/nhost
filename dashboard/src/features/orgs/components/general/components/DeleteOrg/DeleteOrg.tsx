@@ -70,7 +70,7 @@ export default function DeleteOrg() {
           <AlertDialogTrigger asChild>
             <Button
               variant="destructive"
-              disabled={deleting || org?.plan?.isFree || maintenanceActive}
+              disabled={deleting || maintenanceActive}
             >
               Delete
             </Button>

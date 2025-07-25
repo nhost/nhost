@@ -8,6 +8,18 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { Input } from '@/components/ui/v3/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useUserData } from '@/hooks/useUserData';
+import { analytics } from '@/lib/segment';
+
+import { useRouter } from 'next/router';
 
 import {
   Form,
@@ -27,13 +39,13 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
 import { cn } from '@/lib/utils';
 import {
   useCreateOrganizationRequestMutation,
   usePrefetchNewAppQuery,
   type PrefetchNewAppPlansFragment,
 } from '@/utils/__generated__/graphql';
+import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { Plus } from 'lucide-react';
@@ -43,6 +55,7 @@ import { z } from 'zod';
 
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
+  organizationType: z.string().min(1, 'Please select an organization type'),
   plan: z.optional(z.string()),
 });
 
@@ -62,6 +75,7 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
     defaultValues: {
       name: '',
       plan: proPlan?.id || '',
+      organizationType: '',
     },
   });
 
@@ -77,6 +91,31 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
               <FormControl>
                 <Input placeholder="Acme Inc" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="organizationType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>What would best describe your organization?</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select organization type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {ORGANIZATION_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -193,6 +232,8 @@ export default function CreateOrgDialog({
   onOpenStateChange,
   redirectUrl,
 }: CreateOrgDialogProps) {
+  const router = useRouter();
+  const currentUser = useUserData();
   const { maintenanceActive } = useUI();
   const user = useUserData();
   const isPlatform = useIsPlatform();
@@ -202,6 +243,7 @@ export default function CreateOrgDialog({
   });
   const [createOrganizationRequest] = useCreateOrganizationRequestMutation();
   const [stripeClientSecret, setStripeClientSecret] = useState('');
+  const { refetch: refetchOrgs } = useOrgs();
 
   const handleOpenChange = (newOpenState: boolean) => {
     const controlledFromOutSide =
@@ -215,9 +257,11 @@ export default function CreateOrgDialog({
 
   const createOrg = async ({
     name,
+    organizationType,
     plan,
   }: {
     name?: string;
+    organizationType?: string;
     plan?: string;
   }) => {
     await execPromiseWithErrorToast(
@@ -233,7 +277,32 @@ export default function CreateOrgDialog({
             redirectURL: redirectUrl ?? defaultRedirectUrl,
           },
         });
-        setStripeClientSecret(clientSecret);
+
+        if (clientSecret) {
+          setStripeClientSecret(clientSecret);
+        } else {
+          const {
+            data: { organizations },
+          } = await refetchOrgs();
+
+          const newOrg = organizations.find((org) => org.plan.isFree);
+
+          analytics.track('Organization Created', {
+            organizationId: newOrg.id,
+            organizationSlug: newOrg.slug,
+            organizationName: name,
+            organizationPlan: newOrg.plan.name,
+            organizationOwnerId: currentUser?.id,
+            organizationOwnerEmail: currentUser?.email,
+            organizationMetadata: {
+              organizationType,
+            },
+            isOnboarding: false,
+          });
+
+          router.push(`/orgs/${newOrg.slug}/projects`);
+          handleOpenChange(false);
+        }
       },
       {
         loadingMessage: 'Redirecting to checkout',
