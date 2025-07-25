@@ -36,7 +36,8 @@ export default function TransferOrUpgradeProjectDialog({
   }, [session_id, setOpen, isRouterReady]);
 
   const path = asPath.split('?')[0];
-  const redirectUrl = `${window.location.origin}${path}`;
+  const redirectUrl =
+    typeof window !== 'undefined' ? `${window.location.origin}${path}` : '';
 
   const handleCreateDialogOpenStateChange = (newState: boolean) => {
     setShowCreateOrgModal(newState);

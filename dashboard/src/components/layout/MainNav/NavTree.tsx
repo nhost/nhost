@@ -12,9 +12,9 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
+import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
 import { Box, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, type ReactElement } from 'react';
@@ -160,7 +160,12 @@ const projectSettingsPages = [
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ];
 
-const createOrganization = (org: Org, isPlatform: boolean) => {
+const createOrganization = (org: Org) => {
+  const isNotPlatform = !getIsPlatform();
+  const configServerVariableNotSet = getConfigServerUrl() === '';
+  const shouldDisableSettings = isNotPlatform && configServerVariableNotSet;
+  const shouldDisableGraphite = shouldDisableSettings;
+
   const result = {};
 
   result[org.slug] = {
@@ -211,7 +216,7 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
       slug: 'new',
       icon: <Plus className="mr-1 h-4 w-4 font-bold" strokeWidth={3} />,
       targetUrl: `/orgs/${org.slug}/projects/new`,
-      disabled: !isPlatform,
+      disabled: isNotPlatform,
     },
   };
 
@@ -238,9 +243,9 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
       result[`${org.slug}-${_app.subdomain}-${_page.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-${_page.slug}`,
         canMove: false,
-        isFolder: _page.name === 'Settings',
+        isFolder: _page.name === 'Settings' && !shouldDisableSettings,
         children:
-          _page.name === 'Settings'
+          _page.name === 'Settings' && !shouldDisableSettings
             ? projectSettingsPages.map(
                 (p) => `${org.slug}-${_app.subdomain}-settings-${p.slug}`,
               )
@@ -251,9 +256,12 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
           isProjectPage: true,
           targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${_page.route}`,
           disabled:
-            ['deployments', 'backups', 'logs', 'metrics'].includes(
+            (['deployments', 'backups', 'logs', 'metrics'].includes(
               _page.slug,
-            ) && !isPlatform,
+            ) &&
+              isNotPlatform) ||
+            (_page.name === 'Settings' && shouldDisableSettings) ||
+            (_page.name === 'AI' && shouldDisableGraphite),
         },
         canRename: false,
       };
@@ -272,6 +280,7 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
             p.slug === 'general'
               ? `/orgs/${org.slug}/projects/${_app.subdomain}/settings`
               : `/orgs/${org.slug}/projects/${_app.subdomain}/settings/${p.route}`,
+          disabled: shouldDisableSettings,
         },
         canRename: false,
       };
@@ -286,7 +295,7 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
     data: {
       name: 'Settings',
       targetUrl: `/orgs/${org.slug}/settings`,
-      disabled: !isPlatform,
+      disabled: isNotPlatform,
     },
     canRename: false,
   };
@@ -299,7 +308,7 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
     data: {
       name: 'Members',
       targetUrl: `/orgs/${org.slug}/members`,
-      disabled: !isPlatform,
+      disabled: isNotPlatform,
     },
     canRename: false,
   };
@@ -312,7 +321,7 @@ const createOrganization = (org: Org, isPlatform: boolean) => {
     data: {
       name: 'Billing',
       targetUrl: `/orgs/${org.slug}/billing`,
-      disabled: !isPlatform,
+      disabled: isNotPlatform,
     },
     canRename: false,
   };
@@ -333,7 +342,6 @@ type NavItem = {
 
 const buildNavTreeData = (
   org: Org,
-  isPlatform: boolean,
 ): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
   if (!org) {
     return {
@@ -365,7 +373,7 @@ const buildNavTreeData = (
         data: { name: 'root' },
         canRename: false,
       },
-      ...createOrganization(org, isPlatform),
+      ...createOrganization(org),
     },
   };
 
@@ -374,11 +382,8 @@ const buildNavTreeData = (
 
 export default function NavTree() {
   const { currentOrg: org } = useOrgs();
-  const isPlatform = useIsPlatform();
-  const navTree = useMemo(
-    () => buildNavTreeData(org, isPlatform),
-    [org, isPlatform],
-  );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const navTree = useMemo(() => buildNavTreeData(org), [org?.slug]);
   const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
     useTreeNavState();
 

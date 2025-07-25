@@ -21,6 +21,6 @@ find dashboard -type f -exec sed -i "s~__NEXT_PUBLIC_NHOST_STORAGE_URL__~${NEXT_
 find dashboard -type f -exec sed -i "s~__NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL__~${NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL}~g" {} +
 find dashboard -type f -exec sed -i "s~__NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL__~${NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL}~g" {} +
 find dashboard -type f -exec sed -i "s~__NEXT_PUBLIC_NHOST_HASURA_API_URL__~${NEXT_PUBLIC_NHOST_HASURA_API_URL}~g" {} +
-find dashboard -type f -exec sed -i "s~__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__~${NEXT_PUBLIC_NHOST_CONFIGSERVER_URL}~g" {} +
+find dashboard -type f -exec sed -i "s~__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__~${NEXT_PUBLIC_NHOST_CONFIGSERVER_URL:-""}~g" {} +
 
 exec "$@"

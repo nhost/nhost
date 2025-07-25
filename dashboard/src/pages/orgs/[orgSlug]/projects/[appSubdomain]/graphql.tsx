@@ -23,6 +23,7 @@ import { GraphiQLInterface } from 'graphiql';
 import 'graphiql/graphiql.min.css';
 import { createClient } from 'graphql-ws';
 import debounce from 'lodash.debounce';
+import dynamic from 'next/dynamic';
 import type { ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -209,66 +210,76 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
   );
 }
 
-export default function GraphQLPage() {
-  const { project } = useProject();
-  const [userHeaders, setUserHeaders] = useState<Record<string, any>>({});
+const GraphQLPageContent = dynamic(
+  () =>
+    Promise.resolve(() => {
+      const { project } = useProject();
+      const [userHeaders, setUserHeaders] = useState<Record<string, any>>({});
 
-  if (!project?.subdomain || !project?.config?.hasura.adminSecret) {
-    return <LoadingScreen />;
-  }
+      if (!project?.subdomain || !project?.config?.hasura.adminSecret) {
+        return <LoadingScreen />;
+      }
 
-  const appUrl = generateAppServiceUrl(
-    project.subdomain,
-    project.region,
-    'graphql',
-  );
+      const appUrl = generateAppServiceUrl(
+        project.subdomain,
+        project.region,
+        'graphql',
+      );
 
-  const subscriptionUrl = `${appUrl
-    .replace('https', 'wss')
-    .replace('http', 'ws')}`;
+      const subscriptionUrl = `${appUrl
+        .replace('https', 'wss')
+        .replace('http', 'ws')}`;
 
-  const headers = {
-    'content-type': 'application/json',
-    'x-hasura-admin-secret': project.config?.hasura.adminSecret,
-    ...userHeaders,
-  };
+      const headers = {
+        'content-type': 'application/json',
+        'x-hasura-admin-secret': project.config?.hasura.adminSecret,
+        ...userHeaders,
+      };
 
-  const fetcher = createGraphiQLFetcher({
-    url: appUrl,
-    headers,
-    wsClient: createClient({
-      url: subscriptionUrl,
-      keepAlive: 2000,
-      connectionParams: {
+      const fetcher = createGraphiQLFetcher({
+        url: appUrl,
         headers,
-      },
+        wsClient: createClient({
+          url: subscriptionUrl,
+          keepAlive: 2000,
+          connectionParams: {
+            headers,
+          },
+        }),
+      });
+
+      function handleUserChange(userId: string) {
+        setUserHeaders((currentHeaders) => ({
+          ...currentHeaders,
+          'x-hasura-user-id': userId,
+        }));
+      }
+
+      function handleRoleChange(role: string) {
+        setUserHeaders((currentHeaders) => ({
+          ...currentHeaders,
+          'x-hasura-role': role,
+        }));
+      }
+
+      return (
+        <GraphiQLProvider fetcher={fetcher} shouldPersistHeaders>
+          <GraphiQLHeader
+            onUserChange={handleUserChange}
+            onRoleChange={handleRoleChange}
+          />
+
+          <GraphiQLEditor onHeaderChange={setUserHeaders} />
+        </GraphiQLProvider>
+      );
     }),
-  });
+  { ssr: false },
+);
 
-  function handleUserChange(userId: string) {
-    setUserHeaders((currentHeaders) => ({
-      ...currentHeaders,
-      'x-hasura-user-id': userId,
-    }));
-  }
-
-  function handleRoleChange(role: string) {
-    setUserHeaders((currentHeaders) => ({
-      ...currentHeaders,
-      'x-hasura-role': role,
-    }));
-  }
-
+export default function GraphQLPage() {
   return (
     <RetryableErrorBoundary>
-      <GraphiQLProvider fetcher={fetcher} shouldPersistHeaders>
-        <GraphiQLHeader
-          onUserChange={handleUserChange}
-          onRoleChange={handleRoleChange}
-        />
-
-        <GraphiQLEditor onHeaderChange={setUserHeaders} />
-      </GraphiQLProvider>
+      <GraphQLPageContent />
     </RetryableErrorBoundary>
   );
 }
