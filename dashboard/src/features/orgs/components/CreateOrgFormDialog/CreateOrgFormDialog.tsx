@@ -78,12 +78,10 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
   const starterPlan = plans.find(({ name }) => name === 'Starter');
   const proPlan = plans.find(({ name }) => name === 'Pro')!;
 
-  // Check if user already has a starter organization
   const hasStarterOrg = orgs.some(
     (org) => org.plan.name === 'Starter' || org.plan.isFree,
   );
 
-  // Default to starter plan if user doesn't have one, otherwise default to pro
   const defaultPlan =
     !hasStarterOrg && starterPlan ? starterPlan.id : proPlan?.id || '';
 
