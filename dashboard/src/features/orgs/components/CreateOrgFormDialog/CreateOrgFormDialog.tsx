@@ -35,6 +35,11 @@ import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
@@ -69,12 +74,24 @@ interface CreateOrgFormProps {
 }
 
 function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
+  const { orgs } = useOrgs();
+  const starterPlan = plans.find(({ name }) => name === 'Starter');
   const proPlan = plans.find(({ name }) => name === 'Pro')!;
+
+  // Check if user already has a starter organization
+  const hasStarterOrg = orgs.some(
+    (org) => org.plan.name === 'Starter' || org.plan.isFree,
+  );
+
+  // Default to starter plan if user doesn't have one, otherwise default to pro
+  const defaultPlan =
+    !hasStarterOrg && starterPlan ? starterPlan.id : proPlan?.id || '';
+
   const form = useForm<z.infer<typeof createOrgFormSchema>>({
     resolver: zodResolver(createOrgFormSchema),
     defaultValues: {
       name: '',
-      plan: proPlan?.id || '',
+      plan: defaultPlan,
       organizationType: '',
     },
   });
@@ -138,12 +155,24 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                   defaultValue={field.value}
                   className="flex flex-col space-y-1"
                 >
-                  {plans.map((plan) => (
-                    <FormItem key={plan.id}>
-                      <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                  {plans.map((plan) => {
+                    const isStarterPlan =
+                      plan.name === 'Starter' || plan.isFree;
+                    const isDisabled = isStarterPlan && hasStarterOrg;
+
+                    const labelContent = (
+                      <FormLabel
+                        className={cn(
+                          'flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3',
+                          isDisabled && 'cursor-not-allowed opacity-50',
+                        )}
+                      >
                         <div className="flex flex-row items-center space-x-3">
                           <FormControl>
-                            <RadioGroupItem value={plan.id} />
+                            <RadioGroupItem
+                              value={plan.id}
+                              disabled={isDisabled}
+                            />
                           </FormControl>
                           <div className="flex flex-col space-y-2">
                             <div className="text-md font-semibold">
@@ -159,8 +188,25 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                           {plan.isFree ? 'Free' : `$${plan.price}/mo`}
                         </div>
                       </FormLabel>
-                    </FormItem>
-                  ))}
+                    );
+
+                    return (
+                      <FormItem key={plan.id}>
+                        {isDisabled ? (
+                          <Tooltip delayDuration={100}>
+                            <TooltipTrigger asChild>
+                              {labelContent}
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              You can only have one Starter organization
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          labelContent
+                        )}
+                      </FormItem>
+                    );
+                  })}
                   <div>
                     <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
                       <div className="flex flex-row items-center space-x-3">

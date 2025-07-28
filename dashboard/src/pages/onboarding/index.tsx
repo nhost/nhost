@@ -84,6 +84,12 @@ export default function OnboardingPage() {
     },
   });
 
+  const selectedPlan = form.watch('plan');
+  const selectedPlanData = plansData?.plans?.find(
+    (plan) => plan.id === selectedPlan,
+  );
+  const isSelectedPlanPaid = selectedPlanData && !selectedPlanData.isFree;
+
   useEffect(() => {
     if (user?.id) {
       getInvites({
@@ -235,15 +241,19 @@ export default function OnboardingPage() {
 
   if (stripeClientSecret) {
     return (
-      <div className="mx-auto max-w-2xl py-12">
+      <Container className="mx-auto max-w-2xl py-12">
         <div className="mb-8 flex items-center justify-center">
           <div className="flex items-center space-x-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-sm font-medium text-white">
+              ✓
+            </div>
+            <div className="h-1 w-16 bg-green-500" />
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-              1
+              2
             </div>
             <div className="h-1 w-16 bg-muted" />
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
-              2
+              3
             </div>
           </div>
         </div>
@@ -260,12 +270,12 @@ export default function OnboardingPage() {
 
           <StripeEmbeddedForm clientSecret={stripeClientSecret} />
         </Box>
-      </div>
+      </Container>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl py-12">
+    <Container className="mx-auto max-w-2xl py-12">
       <div className="mb-8 flex items-center justify-center">
         <div className="flex items-center space-x-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
@@ -275,6 +285,14 @@ export default function OnboardingPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
             2
           </div>
+          {isSelectedPlanPaid && (
+            <>
+              <div className="h-1 w-16 bg-muted" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+                3
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -432,7 +450,7 @@ export default function OnboardingPage() {
           </Form>
         </div>
       </Box>
-    </div>
+    </Container>
   );
 }
 

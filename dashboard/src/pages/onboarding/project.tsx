@@ -166,9 +166,22 @@ export default function OnboardingProjectPage() {
               ✓
             </div>
             <div className="h-1 w-16 bg-green-600" />
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-              2
-            </div>
+
+            {selectedOrg?.plan?.name !== 'Starter' ? (
+              <>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-sm font-medium text-white">
+                  ✓
+                </div>
+                <div className="h-1 w-16 bg-green-600" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                  3
+                </div>
+              </>
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                2
+              </div>
+            )}
           </div>
         </div>
 
