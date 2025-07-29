@@ -1,5 +1,6 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
+import { isEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 import {
@@ -18,6 +19,7 @@ export interface UseProjectWithStateReturnType {
   loading?: boolean;
   error?: Error;
   refetch: (variables?: any) => Promise<any>;
+  projectNotFound: boolean;
 }
 
 export default function useProjectWithState(): UseProjectWithStateReturnType {
@@ -39,7 +41,7 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
     [isPlatform, isAuthenticated, isAuthLoading, appSubdomain, isRouterReady],
   );
 
-  const { data, isLoading, refetch, error } = useQuery(
+  const { data, isLoading, refetch, error, isFetched } = useQuery(
     ['projectWithState', appSubdomain as string],
     async () => {
       const response = await nhost.graphql.post<{
@@ -65,6 +67,7 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
       loading: isLoading && shouldFetchProject,
       error: Array.isArray(error || {}) ? error[0] : error,
       refetch,
+      projectNotFound: isFetched && !isLoading && isEmptyValue(data?.apps),
     };
   }
 
@@ -73,5 +76,6 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
     loading: false,
     error: null,
     refetch: () => Promise.resolve(),
+    projectNotFound: false,
   };
 }

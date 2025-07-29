@@ -5,7 +5,6 @@ import type { ReactElement } from 'react';
 
 export default function AppIndexPage() {
   const { project, error } = useProject();
-
   if (error) {
     throw error;
   }

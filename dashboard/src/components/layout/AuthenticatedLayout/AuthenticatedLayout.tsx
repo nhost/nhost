@@ -16,7 +16,6 @@ import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
-import { useNotFoundRedirect } from '@/features/orgs/projects/common/hooks/useNotFoundRedirect';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import Image from 'next/image';
@@ -36,12 +35,10 @@ export default function AuthenticatedLayout({
   const isPlatform = useIsPlatform();
   const isMdOrLarger = useMediaQuery('md');
 
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isSigningOut } = useAuth();
   const { isHealthy, isLoading: isHealthyLoading } = useIsHealthy();
   const [mainNavContainer, setMainNavContainer] = useState(null);
   const { mainNavPinned } = useTreeNavState();
-
-  useNotFoundRedirect();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -65,7 +62,7 @@ export default function AuthenticatedLayout({
     router.push('/orgs/local/projects/local');
   }, [isPlatform, router]);
 
-  if (isPlatform && isLoading) {
+  if ((isPlatform && isLoading) || isSigningOut) {
     return (
       <BaseLayout className="h-full" {...props}>
         <Header className="flex max-h-[59px] flex-auto py-1" />
