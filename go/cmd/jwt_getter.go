@@ -12,10 +12,17 @@ import (
 
 func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGetter, error) {
 	var rawClaims map[string]string
+	var defaults map[string]any
 
 	if cCtx.String(flagCustomClaims) != "" {
 		if err := json.Unmarshal([]byte(cCtx.String(flagCustomClaims)), &rawClaims); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal custom claims: %w", err)
+		}
+	}
+
+	if cCtx.String(flagCustomClaimsDefaults) != "" {
+		if err := json.Unmarshal([]byte(cCtx.String(flagCustomClaimsDefaults)), &defaults); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal custom claims defaults: %w", err)
 		}
 	}
 
@@ -26,6 +33,7 @@ func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGet
 			rawClaims,
 			&http.Client{}, //nolint:exhaustruct
 			cCtx.String(flagGraphqlURL),
+			defaults,
 			controller.CustomClaimerAddAdminSecret(cCtx.String(flagHasuraAdminSecret)),
 		)
 		if err != nil {

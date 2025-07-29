@@ -37,6 +37,7 @@ type Config struct {
 	BlockedEmails               stringlice    `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS"`
 	ClientURL                   *url.URL      `json:"AUTH_CLIENT_URL"`
 	CustomClaims                string        `json:"AUTH_JWT_CUSTOM_CLAIMS"`
+	CustomClaimsDefaults        string        `json:"AUTH_JWT_CUSTOM_CLAIMS_DEFAULTS"`
 	ConcealErrors               bool          `json:"AUTH_CONCEAL_ERRORS"`
 	DisableSignup               bool          `json:"AUTH_DISABLE_SIGNUP"`
 	DisableNewUsers             bool          `json:"AUTH_DISABLE_NEW_USERS"`

@@ -81,6 +81,7 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 		BlockedEmails:               blockedEmails,
 		ClientURL:                   clientURL,
 		CustomClaims:                cCtx.String(flagCustomClaims),
+		CustomClaimsDefaults:        cCtx.String(flagCustomClaimsDefaults),
 		ConcealErrors:               cCtx.Bool(flagConcealErrors),
 		DisableSignup:               cCtx.Bool(flagDisableSignup),
 		DisableNewUsers:             cCtx.Bool(flagDisableNewUsers),

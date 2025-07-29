@@ -36,7 +36,15 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 	} else {
 		var rawClaims map[string]string
 		if err := json.Unmarshal([]byte(ctrl.config.CustomClaims), &rawClaims); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "failed to unmarhsal custom claims", "error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "failed to unmarshal custom claims", "error": err.Error()})
+		}
+		var defaults map[string]any
+		if ctrl.config.CustomClaimsDefaults == "" {
+			defaults = nil
+		} else {
+			if err := json.Unmarshal([]byte(ctrl.config.CustomClaimsDefaults), &defaults); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"message": "failed to unmarshal custom claims defaults", "error": err.Error()})
+			}
 		}
 
 		if len(rawClaims) > 0 {
@@ -44,6 +52,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 				rawClaims,
 				&http.Client{}, //nolint:exhaustruct
 				ctrl.config.HasuraGraphqlURL,
+				defaults,
 				CustomClaimerAddAdminSecret(ctrl.config.HasuraAdminSecret),
 			)
 			if err != nil {

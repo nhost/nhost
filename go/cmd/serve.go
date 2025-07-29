@@ -59,6 +59,7 @@ const (
 	flagAllowRedirectURLs                = "allow-redirect-urls"
 	flagEnableChangeEnv                  = "enable-change-env"
 	flagCustomClaims                     = "custom-claims"
+	flagCustomClaimsDefaults             = "custom-claims-defaults"
 	flagGraphqlURL                       = "graphql-url"
 	flagHasuraAdminSecret                = "hasura-admin-secret" //nolint:gosec
 	flagPasswordMinLength                = "password-min-length"
@@ -418,6 +419,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Custom claims",
 				Category: "jwt",
 				EnvVars:  []string{"AUTH_JWT_CUSTOM_CLAIMS"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagCustomClaimsDefaults,
+				Usage:    "Custom claims defaults",
+				Category: "jwt",
+				EnvVars:  []string{"AUTH_JWT_CUSTOM_CLAIMS_DEFAULTS"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagGraphqlURL,

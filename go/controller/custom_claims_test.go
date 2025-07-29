@@ -51,13 +51,14 @@ func TestCustomClaims(t *testing.T) {
 	}
 
 	cases := []struct {
-		name            string
-		claims          map[string]string
-		expectedGraphql string
-		expectedData    map[string]any
+		name                 string
+		claims               map[string]string
+		expectedGraphql      string
+		expectedData         map[string]any
+		customClaimsDefaults map[string]any
 	}{
 		{
-			name: "",
+			name: "without custom claim defaults",
 			claims: map[string]string{
 				"root":              "m",
 				"key":               "m.k",
@@ -90,6 +91,41 @@ func TestCustomClaims(t *testing.T) {
 					3,
 				},
 			},
+			customClaimsDefaults: nil,
+		},
+		{
+			name: "with custom claims defaults",
+			claims: map[string]string{
+				"root":              "m",
+				"key":               "m.k",
+				"element":           "m.l[2]",
+				"array[]":           "m.l[]",
+				"array[*]":          "m.l[*]",
+				"array[].ids":       "m.lm[].id",
+				"array[*].ids":      "m.lm[*].id",
+				"array.ids[]":       "m.lm.id[]",
+				"arrayOneElement[]": "m.l2[]",
+				"metadata.m1":       "metadata.m1",
+				"nonexistent":       "nonexistent.nonexistent",
+			},
+			expectedGraphql: "query GetClaims($id: uuid!) { user(id:$id) {m{k l l2 lm{id }}metadata nonexistent{nonexistent }} }", //nolint:lll
+			expectedData: map[string]any{
+				"root":              data["m"],
+				"key":               "v",
+				"element":           "c",
+				"arrayOneElement[]": []any{string("a")},
+				"array[]":           []any{"a", "b", "c"},
+				"array[*]":          []any{"a", "b", "c"},
+				"array[].ids":       []any{1, 2, 3},
+				"array[*].ids":      []any{1, 2, 3},
+				"array.ids[]":       []any{1, 2, 3},
+				"metadata.m1":       1,
+				"nonexistent":       "defaultNonExistent",
+			},
+			customClaimsDefaults: map[string]any{
+				"root":        "defaultRoot",
+				"nonexistent": "defaultNonExistent",
+			},
 		},
 	}
 
@@ -97,7 +133,7 @@ func TestCustomClaims(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			c, err := controller.NewCustomClaims(tc.claims, nil, "")
+			c, err := controller.NewCustomClaims(tc.claims, nil, "", tc.customClaimsDefaults)
 			if err != nil {
 				t.Fatalf("failed to get custom claims: %v", err)
 			}
