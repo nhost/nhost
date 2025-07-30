@@ -1,6 +1,6 @@
+import { isPlatform } from '@/utils/env';
 import { isDevOrStaging } from '@/utils/helpers';
 import { AnalyticsBrowser } from '@segment/analytics-next';
-import { isPlatform } from '@/utils/env';
 
 
 export const analytics = AnalyticsBrowser.load(

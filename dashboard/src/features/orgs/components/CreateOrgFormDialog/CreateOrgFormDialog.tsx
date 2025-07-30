@@ -8,6 +8,18 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { Input } from '@/components/ui/v3/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
+import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useUserData } from '@/hooks/useUserData';
+import { analytics } from '@/lib/segment';
+
+import { useRouter } from 'next/router';
 
 import {
   Form,
@@ -23,17 +35,22 @@ import { useUI } from '@/components/common/UIProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
 import { cn } from '@/lib/utils';
 import {
   useCreateOrganizationRequestMutation,
   usePrefetchNewAppQuery,
   type PrefetchNewAppPlansFragment,
 } from '@/utils/__generated__/graphql';
+import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { Plus } from 'lucide-react';
@@ -43,6 +60,7 @@ import { z } from 'zod';
 
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
+  organizationType: z.string().min(1, 'Please select an organization type'),
   plan: z.optional(z.string()),
 });
 
@@ -56,12 +74,23 @@ interface CreateOrgFormProps {
 }
 
 function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
+  const { orgs } = useOrgs();
+  const starterPlan = plans.find(({ name }) => name === 'Starter');
   const proPlan = plans.find(({ name }) => name === 'Pro')!;
+
+  const hasStarterOrg = orgs.some(
+    (org) => org.plan.name === 'Starter' || org.plan.isFree,
+  );
+
+  const defaultPlan =
+    !hasStarterOrg && starterPlan ? starterPlan.id : proPlan?.id || '';
+
   const form = useForm<z.infer<typeof createOrgFormSchema>>({
     resolver: zodResolver(createOrgFormSchema),
     defaultValues: {
       name: '',
-      plan: proPlan?.id || '',
+      plan: defaultPlan,
+      organizationType: '',
     },
   });
 
@@ -84,6 +113,31 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
 
         <FormField
           control={form.control}
+          name="organizationType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>What would best describe your organization?</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select organization type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {ORGANIZATION_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="plan"
           render={({ field }) => (
             <FormItem className="">
@@ -99,12 +153,24 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                   defaultValue={field.value}
                   className="flex flex-col space-y-1"
                 >
-                  {plans.map((plan) => (
-                    <FormItem key={plan.id}>
-                      <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                  {plans.map((plan) => {
+                    const isStarterPlan =
+                      plan.name === 'Starter' || plan.isFree;
+                    const isDisabled = isStarterPlan && hasStarterOrg;
+
+                    const labelContent = (
+                      <FormLabel
+                        className={cn(
+                          'flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3',
+                          isDisabled && 'cursor-not-allowed opacity-50',
+                        )}
+                      >
                         <div className="flex flex-row items-center space-x-3">
                           <FormControl>
-                            <RadioGroupItem value={plan.id} />
+                            <RadioGroupItem
+                              value={plan.id}
+                              disabled={isDisabled}
+                            />
                           </FormControl>
                           <div className="flex flex-col space-y-2">
                             <div className="text-md font-semibold">
@@ -120,8 +186,25 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                           {plan.isFree ? 'Free' : `$${plan.price}/mo`}
                         </div>
                       </FormLabel>
-                    </FormItem>
-                  ))}
+                    );
+
+                    return (
+                      <FormItem key={plan.id}>
+                        {isDisabled ? (
+                          <Tooltip delayDuration={100}>
+                            <TooltipTrigger asChild>
+                              {labelContent}
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              You can only have one Starter organization
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          labelContent
+                        )}
+                      </FormItem>
+                    );
+                  })}
                   <div>
                     <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
                       <div className="flex flex-row items-center space-x-3">
@@ -193,6 +276,8 @@ export default function CreateOrgDialog({
   onOpenStateChange,
   redirectUrl,
 }: CreateOrgDialogProps) {
+  const router = useRouter();
+  const currentUser = useUserData();
   const { maintenanceActive } = useUI();
   const user = useUserData();
   const isPlatform = useIsPlatform();
@@ -202,6 +287,7 @@ export default function CreateOrgDialog({
   });
   const [createOrganizationRequest] = useCreateOrganizationRequestMutation();
   const [stripeClientSecret, setStripeClientSecret] = useState('');
+  const { refetch: refetchOrgs } = useOrgs();
 
   const handleOpenChange = (newOpenState: boolean) => {
     const controlledFromOutSide =
@@ -215,9 +301,11 @@ export default function CreateOrgDialog({
 
   const createOrg = async ({
     name,
+    organizationType,
     plan,
   }: {
     name?: string;
+    organizationType?: string;
     plan?: string;
   }) => {
     await execPromiseWithErrorToast(
@@ -233,7 +321,32 @@ export default function CreateOrgDialog({
             redirectURL: redirectUrl ?? defaultRedirectUrl,
           },
         });
-        setStripeClientSecret(clientSecret);
+
+        if (clientSecret) {
+          setStripeClientSecret(clientSecret);
+        } else {
+          const {
+            data: { organizations },
+          } = await refetchOrgs();
+
+          const newOrg = organizations.find((org) => org.plan.isFree);
+
+          analytics.track('Organization Created', {
+            organizationId: newOrg.id,
+            organizationSlug: newOrg.slug,
+            organizationName: name,
+            organizationPlan: newOrg.plan.name,
+            organizationOwnerId: currentUser?.id,
+            organizationOwnerEmail: currentUser?.email,
+            organizationMetadata: {
+              organizationType,
+            },
+            isOnboarding: false,
+          });
+
+          router.push(`/orgs/${newOrg.slug}/projects`);
+          handleOpenChange(false);
+        }
       },
       {
         loadingMessage: 'Redirecting to checkout',

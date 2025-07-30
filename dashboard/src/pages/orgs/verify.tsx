@@ -39,7 +39,14 @@ export default function PostCheckout() {
         },
       });
 
+      const metadata = localStorage.getItem('metadata') || null;
+      const parsedMetadata = metadata ? JSON.parse(metadata) : {};
+
       const { id, name, slug, plan } = orgData.organizations[0];
+      const isFromOnboarding =
+        document.referrer.includes('/onboarding') ||
+        sessionStorage.getItem('onboarding') === 'true';
+
       analytics.track('Organization Created', {
         organizationId: id,
         organizationSlug: slug,
@@ -47,9 +54,15 @@ export default function PostCheckout() {
         organizationPlan: plan?.name,
         organizationOwnerId: currentUser?.id,
         organizationOwnerEmail: currentUser?.email,
+        organizationMetadata: parsedMetadata,
+        isOnboarding: isFromOnboarding,
       });
 
-      router.push(`/orgs/${Slug}/projects`);
+      if (isFromOnboarding) {
+        router.push('/onboarding/project');
+      } else {
+        router.push(`/orgs/${Slug}/projects`);
+      }
     },
     [router, currentUser?.email, currentUser?.id, getOrganizations],
   );
