@@ -15,6 +15,11 @@ import (
 // apply applies the patch to the given source document.
 // If valid is true, the document is validated prior to
 // the application of the patch.
+//
+// Note for readers, this method will **NEVER** be exported,
+// as it is only used for internal tests, and is feature-wise
+// out of scope of the project.
+// See https://github.com/wI2L/jsondiff/issues/28#issuecomment-2360883098
 func (p Patch) apply(src []byte, valid bool) ([]byte, error) {
 	if valid && !json.Valid(src) {
 		return nil, fmt.Errorf("invalid source document")
@@ -64,6 +69,12 @@ func (p Patch) apply(src []byte, valid bool) ([]byte, error) {
 				break // bail out to interpret error
 			}
 		case OperationTest:
+			if strings.HasSuffix(dp, "-1") {
+				// Special case when the path inserts an
+				// element at the end of an array, we revert
+				// the array and test the first element.
+				dp = strings.TrimSuffix(dp, "-1") + "@reverse.0"
+			}
 			r := gjson.GetBytes(tgt, dp)
 			if !r.Exists() {
 				return nil, fmt.Errorf("invalid patch: %q value is not set", op.Path)
@@ -126,9 +137,9 @@ func isArrayIndex(path string) bool {
 }
 
 // dotPath converts the given JSON Pointer string to the
-// dot-path notation used by tidwall/sjson package.
+// dot-path notation used by sjson package.
 // The source document is required in order to distinguish
-// // numeric object keys from array indices
+// numeric object keys from array indices
 func toDotPath(path string, src []byte) (string, error) {
 	if path == "" {
 		// @this returns the current element.

@@ -54,3 +54,6 @@ benchstats
 coverage.txt
 dist/
 *.txt
+
+# Editors
+.idea/

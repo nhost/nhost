@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
 //go:build !safe && !codec.safe && !appengine && go1.9 && gc
-// +build !safe,!codec.safe,!appengine,go1.9,gc
 
 package codec
 
@@ -24,8 +23,67 @@ const (
 	mapMaxElemSize = 128
 )
 
-func unsafeGrowslice(typ unsafe.Pointer, old unsafeSlice, cap, incr int) (v unsafeSlice) {
-	return growslice(typ, old, cap+incr)
+type mapKeyFastKind uint8
+
+const (
+	mapKeyFastKindAny = iota + 1
+	mapKeyFastKind32
+	mapKeyFastKind32ptr
+	mapKeyFastKind64
+	mapKeyFastKind64ptr
+	mapKeyFastKindStr
+)
+
+var mapKeyFastKindVals [32]mapKeyFastKind
+
+type mapReqParams struct {
+	kfast    mapKeyFastKind
+	ref      bool
+	indirect bool
+}
+
+func getMapReqParams(ti *typeInfo) (r mapReqParams) {
+	r.indirect = mapStoresElemIndirect(uintptr(ti.elemsize))
+	r.ref = refBitset.isset(ti.elemkind)
+	r.kfast = mapKeyFastKindFor(reflect.Kind(ti.keykind))
+	return
+}
+
+func init() {
+	xx := func(f mapKeyFastKind, k ...reflect.Kind) {
+		for _, v := range k {
+			mapKeyFastKindVals[byte(v)&31] = f // 'v % 32' equal to 'v & 31'
+		}
+	}
+
+	var f mapKeyFastKind
+
+	f = mapKeyFastKind64
+	if wordSizeBits == 32 {
+		f = mapKeyFastKind32
+	}
+	xx(f, reflect.Int, reflect.Uint, reflect.Uintptr)
+
+	f = mapKeyFastKind64ptr
+	if wordSizeBits == 32 {
+		f = mapKeyFastKind32ptr
+	}
+	xx(f, reflect.Ptr)
+
+	xx(mapKeyFastKindStr, reflect.String)
+	xx(mapKeyFastKind32, reflect.Uint32, reflect.Int32, reflect.Float32)
+	xx(mapKeyFastKind64, reflect.Uint64, reflect.Int64, reflect.Float64)
+}
+
+func mapKeyFastKindFor(k reflect.Kind) mapKeyFastKind {
+	return mapKeyFastKindVals[k&31]
+}
+
+func unsafeGrowslice(typ unsafe.Pointer, old unsafeSlice, cap, incr int) (s unsafeSlice) {
+	// culled from GOROOT/runtime/slice.go
+	s = rtgrowslice(old.Data, old.Cap+incr, old.Cap, incr, typ)
+	s.Len = old.Len
+	return
 }
 
 // func rvType(rv reflect.Value) reflect.Type {
@@ -43,7 +101,7 @@ func mapStoresElemIndirect(elemsize uintptr) bool {
 	return elemsize > mapMaxElemSize
 }
 
-func mapSet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, valIsIndirect, valIsRef bool) {
+func mapSet(m, k, v reflect.Value, p mapReqParams) { // valIsRef
 	var urv = (*unsafeReflectValue)(unsafe.Pointer(&k))
 	var kptr = unsafeMapKVPtr(urv)
 	urv = (*unsafeReflectValue)(unsafe.Pointer(&v))
@@ -60,14 +118,15 @@ func mapSet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, valIsIndirect, va
 	// Sometimes, we got vvptr == nil when we dereferenced vvptr (if valIsIndirect).
 	// Consequently, only use fastXXX functions if !valIsIndirect
 
-	if valIsIndirect {
+	if p.indirect {
 		vvptr = mapassign(urv.typ, mptr, kptr)
-		typedmemmove(vtyp, vvptr, vptr)
-		// reflect_mapassign(urv.typ, mptr, kptr, vptr)
-		return
+		// typedmemmove(vtyp, vvptr, vptr)
+		// // reflect_mapassign(urv.typ, mptr, kptr, vptr)
+		// return
+		goto END
 	}
 
-	switch keyFastKind {
+	switch p.kfast {
 	case mapKeyFastKind32:
 		vvptr = mapassign_fast32(urv.typ, mptr, *(*uint32)(kptr))
 	case mapKeyFastKind32ptr:
@@ -82,14 +141,14 @@ func mapSet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, valIsIndirect, va
 		vvptr = mapassign(urv.typ, mptr, kptr)
 	}
 
-	// if keyFastKind != 0 && valIsIndirect {
+	// if p.kfast != 0 && valIsIndirect {
 	// 	vvptr = *(*unsafe.Pointer)(vvptr)
 	// }
-
+END:
 	typedmemmove(vtyp, vvptr, vptr)
 }
 
-func mapGet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, valIsIndirect, valIsRef bool) (_ reflect.Value) {
+func mapGet(m, k, v reflect.Value, p mapReqParams) (_ reflect.Value) {
 	var urv = (*unsafeReflectValue)(unsafe.Pointer(&k))
 	var kptr = unsafeMapKVPtr(urv)
 	urv = (*unsafeReflectValue)(unsafe.Pointer(&m))
@@ -101,7 +160,7 @@ func mapGet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, valIsIndirect, va
 	// Note that mapaccess2_fastXXX functions do not check if the value needs to be copied.
 	// if they do, we should dereference the pointer and return that
 
-	switch keyFastKind {
+	switch p.kfast {
 	case mapKeyFastKind32, mapKeyFastKind32ptr:
 		vvptr, ok = mapaccess2_fast32(urv.typ, mptr, *(*uint32)(kptr))
 	case mapKeyFastKind64, mapKeyFastKind64ptr:
@@ -118,9 +177,9 @@ func mapGet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, valIsIndirect, va
 
 	urv = (*unsafeReflectValue)(unsafe.Pointer(&v))
 
-	if keyFastKind != 0 && valIsIndirect {
+	if p.kfast != 0 && p.indirect {
 		urv.ptr = *(*unsafe.Pointer)(vvptr)
-	} else if helperUnsafeDirectAssignMapEntry || valIsRef {
+	} else if helperUnsafeDirectAssignMapEntry || p.ref {
 		urv.ptr = vvptr
 	} else {
 		typedmemmove(urv.typ, urv.ptr, vvptr)
@@ -129,12 +188,10 @@ func mapGet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, valIsIndirect, va
 	return v
 }
 
+// ----
+
 //go:linkname unsafeZeroArr runtime.zeroVal
 var unsafeZeroArr [1024]byte
-
-// //go:linkname rvPtrToType reflect.toType
-// //go:noescape
-// func rvPtrToType(typ unsafe.Pointer) reflect.Type
 
 //go:linkname mapassign_fast32 runtime.mapassign_fast32
 //go:noescape
@@ -167,3 +224,19 @@ func mapaccess2_fast64(typ unsafe.Pointer, m unsafe.Pointer, key uint64) (val un
 //go:linkname mapaccess2_faststr runtime.mapaccess2_faststr
 //go:noescape
 func mapaccess2_faststr(typ unsafe.Pointer, m unsafe.Pointer, key string) (val unsafe.Pointer, ok bool)
+
+//go:linkname rtgrowslice runtime.growslice
+//go:noescape
+func rtgrowslice(oldPtr unsafe.Pointer, newLen, oldCap, num int, typ unsafe.Pointer) unsafeSlice
+
+// ----
+
+// //go:linkname rvPtrToType reflect.toType
+// //go:noescape
+// func rvPtrToType(typ unsafe.Pointer) reflect.Type
+
+// //go:linkname growslice reflect.growslice
+// //go:noescape
+// func growslice(typ unsafe.Pointer, old unsafeSlice, cap int) unsafeSlice
+
+// ----

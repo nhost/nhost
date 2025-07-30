@@ -469,13 +469,15 @@ type ConfigAuthUserUpdateInput struct {
 }
 
 type ConfigAuthsessionaccessTokenCustomClaims struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Default *string `json:"default,omitempty"`
+	Key     string  `json:"key"`
+	Value   string  `json:"value"`
 }
 
 type ConfigAuthsessionaccessTokenCustomClaimsUpdateInput struct {
-	Key   *string `json:"key,omitempty"`
-	Value *string `json:"value,omitempty"`
+	Default *string `json:"default,omitempty"`
+	Key     *string `json:"key,omitempty"`
+	Value   *string `json:"value,omitempty"`
 }
 
 type ConfigAutoscaler struct {
@@ -978,6 +980,7 @@ type ConfigPostgresSettings struct {
 	MinWalSize                    *string  `json:"minWalSize,omitempty"`
 	RandomPageCost                *float64 `json:"randomPageCost,omitempty"`
 	SharedBuffers                 *string  `json:"sharedBuffers,omitempty"`
+	TrackIoTiming                 *string  `json:"trackIoTiming,omitempty"`
 	WalBuffers                    *string  `json:"walBuffers,omitempty"`
 	WalLevel                      *string  `json:"walLevel,omitempty"`
 	WorkMem                       *string  `json:"workMem,omitempty"`
@@ -1003,6 +1006,7 @@ type ConfigPostgresSettingsUpdateInput struct {
 	MinWalSize                    *string  `json:"minWalSize,omitempty"`
 	RandomPageCost                *float64 `json:"randomPageCost,omitempty"`
 	SharedBuffers                 *string  `json:"sharedBuffers,omitempty"`
+	TrackIoTiming                 *string  `json:"trackIoTiming,omitempty"`
 	WalBuffers                    *string  `json:"walBuffers,omitempty"`
 	WalLevel                      *string  `json:"walLevel,omitempty"`
 	WorkMem                       *string  `json:"workMem,omitempty"`

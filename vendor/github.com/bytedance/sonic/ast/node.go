@@ -509,6 +509,23 @@ func (self *Node) Float64() (float64, error) {
     }
 }
 
+func (self *Node) StrictBool() (bool, error) {
+    if err := self.checkRaw(); err!= nil {
+        return false, err
+    }
+    switch self.t {
+        case types.V_TRUE     : return true, nil
+        case types.V_FALSE    : return false, nil
+        case _V_ANY           :
+            any := self.packAny()
+            switch v := any.(type) {
+                case bool   : return v, nil
+                default      : return false, ErrUnsupportType
+            }
+        default              : return false, ErrUnsupportType
+    }
+}
+
 // Float64 exports underlying float64 value, including V_NUMBER, V_ANY
 func (self *Node) StrictFloat64() (float64, error) {
     if err := self.checkRaw(); err != nil {
@@ -776,7 +793,7 @@ func (self *Node) Pop() error {
 }
 
 // Move moves the child at src index to dst index,
-// meanwhile slides sliblings from src+1 to dst.
+// meanwhile slides siblings from src+1 to dst.
 // 
 // WARN: this will change address of elements, which is a dangerous action.
 func (self *Node) Move(dst, src int) error {
@@ -816,7 +833,7 @@ func (self *Node) Move(dst, src int) error {
     return nil
 }
 
-// SetAny wraps val with V_ANY node, and Add() the node.
+// AddAny wraps val with V_ANY node, and Add() the node.
 func (self *Node) AddAny(val interface{}) error {
     return self.Add(NewAny(val))
 }
@@ -938,7 +955,7 @@ func (self *Node) Map() (map[string]interface{}, error) {
     return self.toGenericObject()
 }
 
-// MapUseNumber loads all keys of an object node, with numeric nodes casted to json.Number
+// MapUseNumber loads all keys of an object node, with numeric nodes cast to json.Number
 func (self *Node) MapUseNumber() (map[string]interface{}, error) {
     if self.isAny() {
         any := self.packAny()
@@ -1083,7 +1100,7 @@ func (self *Node) Array() ([]interface{}, error) {
     return self.toGenericArray()
 }
 
-// ArrayUseNumber loads all indexes of an array node, with numeric nodes casted to json.Number
+// ArrayUseNumber loads all indexes of an array node, with numeric nodes cast to json.Number
 func (self *Node) ArrayUseNumber() ([]interface{}, error) {
     if self.isAny() {
         any := self.packAny()
@@ -1149,7 +1166,7 @@ func (self *Node) unsafeArray() (*linkedNodes, error) {
 
 // Interface loads all children under all paths from this node,
 // and converts itself as generic type.
-// WARN: all numeric nodes are casted to float64
+// WARN: all numeric nodes are cast to float64
 func (self *Node) Interface() (interface{}, error) {
     if err := self.checkRaw(); err != nil {
         return nil, err
@@ -1193,7 +1210,7 @@ func (self *Node) packAny() interface{} {
 }
 
 // InterfaceUseNumber works same with Interface()
-// except numeric nodes are casted to json.Number
+// except numeric nodes are cast to json.Number
 func (self *Node) InterfaceUseNumber() (interface{}, error) {
     if err := self.checkRaw(); err != nil {
         return nil, err

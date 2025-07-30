@@ -23,6 +23,7 @@ import (
 
 	"github.com/bytedance/sonic/internal/native/types"
 	"github.com/bytedance/sonic/internal/rt"
+	"github.com/bytedance/sonic/internal/utils"
 )
 
 const (
@@ -63,7 +64,7 @@ func (self *Parser) delim() types.ParsingError {
         return types.ERR_EOF
     }
 
-    /* check for the delimtier */
+    /* check for the delimiter */
     if self.s[p] != ':' {
         return types.ERR_INVALID_CHAR
     }
@@ -82,7 +83,7 @@ func (self *Parser) object() types.ParsingError {
         return types.ERR_EOF
     }
 
-    /* check for the delimtier */
+    /* check for the delimiter */
     if self.s[p] != '{' {
         return types.ERR_INVALID_CHAR
     }
@@ -101,7 +102,7 @@ func (self *Parser) array() types.ParsingError {
         return types.ERR_EOF
     }
 
-    /* check for the delimtier */
+    /* check for the delimiter */
     if self.s[p] != '[' {
         return types.ERR_INVALID_CHAR
     }
@@ -113,13 +114,13 @@ func (self *Parser) array() types.ParsingError {
 
 func (self *Parser) lspace(sp int) int {
     ns := len(self.s)
-    for ; sp<ns && isSpace(self.s[sp]); sp+=1 {}
+    for ; sp<ns && utils.IsSpace(self.s[sp]); sp+=1 {}
 
     return sp
 }
 
 func (self *Parser) backward() {
-    for ; self.p >= 0 && isSpace(self.s[self.p]); self.p-=1 {}
+    for ; self.p >= 0 && utils.IsSpace(self.s[self.p]); self.p-=1 {}
 }
 
 func (self *Parser) decodeArray(ret *linkedNodes) (Node, types.ParsingError) {
@@ -638,7 +639,7 @@ func Loads(src string) (int, interface{}, error) {
     }
 }
 
-// LoadsUseNumber parse all json into interface{}, with numeric nodes casted to json.Number
+// LoadsUseNumber parse all json into interface{}, with numeric nodes cast to json.Number
 func LoadsUseNumber(src string) (int, interface{}, error) {
     ps := &Parser{s: src}
     np, err := ps.Parse()
@@ -692,7 +693,7 @@ func (self *Parser) ExportError(err types.ParsingError) error {
 }
 
 func backward(src string, i int) int {
-    for ; i>=0 && isSpace(src[i]); i-- {}
+    for ; i>=0 && utils.IsSpace(src[i]); i-- {}
     return i
 }
 

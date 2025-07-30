@@ -19,16 +19,13 @@ const (
 )
 
 const (
-	fromFieldLen  = len(`,"from":""`)
-	valueFieldLen = len(`,"value":`)
-	opBaseLen     = len(`{"op":"","path":""}`)
+	fromFieldLen  = 10 // ,"from":""
+	valueFieldLen = 9  // ,"value":
+	opBaseLen     = 19 // {"op":"","path":""}
 )
 
 // null represents a JSON null value.
 type null struct{}
-
-// Patch represents a series of JSON Patch operations.
-type Patch []Operation
 
 // Operation represents a single JSON Patch (RFC6902) operation.
 type Operation struct {
