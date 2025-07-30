@@ -9,7 +9,7 @@ function useMfaEnabled() {
     fetchPolicy: 'cache-first',
   });
 
-  const isMfaEnabled = isNotEmptyValue(data?.user.activeMfaType);
+  const isMfaEnabled = isNotEmptyValue(data?.user?.activeMfaType);
 
   return { loading, isMfaEnabled, refetch };
 }

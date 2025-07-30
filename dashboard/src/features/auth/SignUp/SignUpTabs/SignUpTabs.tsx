@@ -13,11 +13,13 @@ function SignUpTabs() {
   return (
     <Tabs value={tab} onValueChange={setTab} className="w-full">
       <TabsList className="w-full">
-        <TabsTrigger value="password" className="w-full">
-          Sign Up with a Password
+        <TabsTrigger value="password" className="w-full gap-2">
+          <span className="hidden sm:inline">Sign Up with a Password</span>
+          <span className="sm:hidden">Password</span>
         </TabsTrigger>
-        <TabsTrigger value="security-key" className="w-full">
-          Sign Up with a Security key
+        <TabsTrigger value="security-key" className="w-full gap-2">
+          <span className="hidden sm:inline">Sign Up with a Security Key</span>
+          <span className="sm:hidden">Security Key</span>
         </TabsTrigger>
       </TabsList>
       <div className="pt-7">
