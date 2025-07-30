@@ -89,6 +89,7 @@ Add a permission variable `x-hasura-organization-id`:
 [[auth.session.accessToken.customClaims]]
 key = 'organization-id'
 value = 'profile.organization.id'
+default = '00000000-0000-0000-0000-000000000000'
 ```
 
 <Warning>The claim path should **not** start with `user` when defined in `nhost.toml`.</Warning>
