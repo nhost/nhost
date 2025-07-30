@@ -47,6 +47,7 @@ func (r *mutationResolver) deleteSecret(
 		if errors.As(err, &errNotFound) {
 			return nil, NewVariableRequiredError(errNotFound.Name)
 		}
+
 		return nil, err
 	}
 

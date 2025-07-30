@@ -11,6 +11,7 @@ func CompareVersions(a, b string) int {
 		if strings.Contains(s, ":") {
 			return strings.Split(s, ":")[1]
 		}
+
 		return s
 	}
 
@@ -18,6 +19,7 @@ func CompareVersions(a, b string) int {
 		if !strings.HasPrefix(s, "v") {
 			return "v" + s
 		}
+
 		return s
 	}
 
@@ -30,6 +32,7 @@ func CompareVersions(a, b string) int {
 	if !semver.IsValid(a) {
 		return 1
 	}
+
 	if !semver.IsValid(b) {
 		return -1
 	}

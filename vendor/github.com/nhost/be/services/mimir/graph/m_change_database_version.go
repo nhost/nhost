@@ -17,6 +17,7 @@ func deptr[T any](v *T) T {
 	if v == nil {
 		return *new(T)
 	}
+
 	return *v
 }
 
@@ -36,6 +37,7 @@ func (r *mutationResolver) changeDatabaseVersionValidate(
 	}
 
 	oldMajorVersion := deptr(oldApp.Config.Postgres.Version)[:3]
+
 	newMajorVersion := deptr(newApp.Config.Postgres.Version)[:3]
 	if oldMajorVersion >= newMajorVersion {
 		return ErrDatabaseVersionMustBeGreater
@@ -75,6 +77,7 @@ func (r *mutationResolver) changeDatabaseVersion(
 	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
 		return false, err
 	}
+
 	if _, err := newApp.ResolveSystemConfig(r.schema); err != nil {
 		return false, err
 	}

@@ -45,6 +45,7 @@ func SecretsResolver[T any](
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
+
 	return cfg, nil
 }
 
@@ -52,6 +53,7 @@ func SecretsResolver[T any](
 // in the template using the syntax {{ variable_name }}.
 func interpolateTemplate(template []byte, vars map[string]any) ([]byte, error) {
 	t := fasttemplate.New(unsafeBytes2String(template), "{{", "}}")
+
 	buf := bytes.NewBuffer(make([]byte, 0, len(template)))
 	if _, err := t.ExecuteFunc(buf, templateResolver(vars)); err != nil {
 		return nil, fmt.Errorf("failed to render template: %w", err)
@@ -68,10 +70,12 @@ func templateResolver(vars map[string]any) func(w io.Writer, tag string) (int, e
 		if !ok {
 			return 0, &VariableNotFoundError{Name: tag}
 		}
+
 		n, err := fmt.Fprint(w, v)
 		if err != nil {
 			return 0, fmt.Errorf("failed to write to buffer: %w", err)
 		}
+
 		return n, nil
 	}
 }

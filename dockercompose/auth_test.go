@@ -38,6 +38,7 @@ func expectedAuth() *Service {
 			"AUTH_GRAVATAR_RATING":                      "gravatarRating",
 			"AUTH_HOST":                                 "0.0.0.0",
 			"AUTH_JWT_CUSTOM_CLAIMS":                    `{"customClaimKey":"customClaimValue"}`,
+			"AUTH_JWT_CUSTOM_CLAIMS_DEFAULTS":           `{}`,
 			"AUTH_LOCALE_ALLOWED_LOCALES":               "en,se,ca,es",
 			"AUTH_LOCALE_DEFAULT":                       "en",
 			"AUTH_MFA_ENABLED":                          "true",

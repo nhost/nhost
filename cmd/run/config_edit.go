@@ -53,6 +53,7 @@ func commandConfigEdit(cCtx *cli.Context) error {
 		); err != nil {
 			return fmt.Errorf("failed to edit config: %w", err)
 		}
+
 		return nil
 	}
 

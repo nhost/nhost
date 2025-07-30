@@ -35,15 +35,16 @@ func GinContextToContext(ctx context.Context, ginCtx *gin.Context) context.Conte
 func GinContextFromContext(ctx context.Context) (*gin.Context, error) {
 	ginContext := ctx.Value(ginContextKey)
 	if ginContext == nil {
-		err := errors.New("could not retrieve gin.Context") //nolint: goerr113
+		err := errors.New("could not retrieve gin.Context") //nolint: err113
 		return nil, err
 	}
 
 	gc, ok := ginContext.(*gin.Context)
 	if !ok {
-		err := errors.New("gin.Context has wrong type") //nolint: goerr113
+		err := errors.New("gin.Context has wrong type") //nolint: err113
 		return nil, err
 	}
+
 	return gc, nil
 }
 
@@ -55,6 +56,7 @@ func HTTPHeaderFromGinContext(ctx context.Context) (http.Header, error) {
 		if !ok {
 			return nil, ErrWrongTypeHTTPHeader
 		}
+
 		return headers, nil
 	}
 

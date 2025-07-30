@@ -18,5 +18,6 @@ func (r *queryResolver) appSecrets(
 			return root.Secrets, nil
 		}
 	}
+
 	return nil, nil
 }

@@ -24,8 +24,10 @@ func (r *mutationResolver) deleteRunServiceConfig(
 		if errors.Is(err, ErrAppNotFound) {
 			return nil, nil //nolint: nilnil
 		}
+
 		return nil, err
 	}
+
 	oldApp := r.data[i]
 
 	i, err = oldApp.IndexService(serviceID)
@@ -35,8 +37,10 @@ func (r *mutationResolver) deleteRunServiceConfig(
 		if errors.Is(err, ErrServiceNotFound) {
 			return nil, nil //nolint: nilnil
 		}
+
 		return nil, err
 	}
+
 	oldService := oldApp.Services[i]
 
 	logger := nhcontext.LoggerFromContext(ctx).WithField("service_id", serviceID)

@@ -46,7 +46,8 @@ func (mgr *Manager) GetReleases(ctx context.Context, version string) (Releases, 
 
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf( //nolint:goerr113
+
+		return nil, fmt.Errorf( //nolint:err113
 			"failed to fetch releases with status code (%d): %s", resp.StatusCode, string(b),
 		)
 	}
@@ -82,6 +83,7 @@ func (mgr *Manager) LatestRelease(ctx context.Context, version string) (Release,
 			return Release{}, err
 		}
 	}
+
 	return mgr.cache[0], nil
 }
 
@@ -125,17 +127,18 @@ func extractTarGz(gzipStream io.Reader, dst io.Writer) error {
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			return errors.New( //nolint:goerr113
+			return errors.New( //nolint:err113
 				"expected a file inside tarball, found a directory instead",
 			)
 		case tar.TypeReg:
 			if _, err := io.Copy(dst, tarReader); err != nil { //nolint:gosec
 				return fmt.Errorf("failed to copy file: %w", err)
 			}
+
 			return nil
 
 		default:
-			return fmt.Errorf( //nolint:goerr113
+			return fmt.Errorf( //nolint:err113
 				"unknown type: %b in %s",
 				header.Typeflag,
 				header.Name,
@@ -143,5 +146,5 @@ func extractTarGz(gzipStream io.Reader, dst io.Writer) error {
 		}
 	}
 
-	return errors.New("no file found in tarball") //nolint:goerr113
+	return errors.New("no file found in tarball") //nolint:err113
 }

@@ -30,6 +30,7 @@ func (d *Docker) HasuraWrapper(
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path: %w", err)
 	}
+
 	args := []string{
 		"run",
 		"-v", absPath + ":/app",
@@ -70,5 +71,6 @@ func (d *Docker) HasuraWrapper(
 			return fmt.Errorf("failed to copy pty output: %w", err)
 		}
 	}
+
 	return nil
 }

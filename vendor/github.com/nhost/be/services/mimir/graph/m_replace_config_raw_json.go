@@ -16,6 +16,7 @@ func (r *mutationResolver) replaceConfigRawJSON(
 
 	dec := json.NewDecoder(strings.NewReader(rawJSON))
 	dec.DisallowUnknownFields()
+
 	if err := dec.Decode(&config); err != nil {
 		return "", fmt.Errorf("failed to decode raw JSON: %w", err)
 	}
@@ -24,6 +25,7 @@ func (r *mutationResolver) replaceConfigRawJSON(
 	if err != nil {
 		return "", err
 	}
+
 	if cfg == nil {
 		return "{}", nil
 	}

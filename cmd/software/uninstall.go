@@ -46,6 +46,7 @@ func commandUninstall(cCtx *cli.Context) error {
 
 	if !cCtx.Bool(forceFlag) {
 		ce.PromptMessage("Are you sure you want to uninstall Nhost CLI? [y/N] ")
+
 		resp, err := ce.PromptInput(false)
 		if err != nil {
 			return fmt.Errorf("failed to read user input: %w", err)
@@ -57,6 +58,7 @@ func commandUninstall(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Uninstalling Nhost CLI...")
+
 	if err := os.Remove(path); err != nil {
 		return fmt.Errorf("failed to remove CLI: %w", err)
 	}

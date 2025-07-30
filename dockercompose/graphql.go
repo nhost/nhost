@@ -34,6 +34,7 @@ func graphql( //nolint:funlen
 			v.Value += "," + URL("*", "hasura", httpPort, useTLS)
 			v.Value += "," + URL("*", "dashboard", httpPort, useTLS)
 		}
+
 		env[v.Name] = v.Value
 	}
 
@@ -94,7 +95,7 @@ func console( //nolint:funlen
 	port uint,
 ) (*Service, error) {
 	if semver.Compare(*cfg.GetHasura().GetVersion(), minimumHasuraVerson) < 0 {
-		return nil, fmt.Errorf( //nolint:goerr113
+		return nil, fmt.Errorf( //nolint:err113
 			"hasura version must be at least %s",
 			minimumHasuraVerson,
 		)
@@ -130,6 +131,7 @@ func console( //nolint:funlen
 		if v.Name == "HASURA_GRAPHQL_CORS_DOMAIN" && v.Value != "*" {
 			v.Value += "," + URL("*", "hasura", httpPort, useTLS)
 		}
+
 		env[v.Name] = v.Value
 	}
 

@@ -23,6 +23,7 @@ func commandUpgrade(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
 	mgr := software.NewManager()
+
 	releases, err := mgr.GetReleases(cCtx.Context, cCtx.App.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get releases: %w", err)
@@ -42,7 +43,9 @@ func commandUpgrade(cCtx *cli.Context) error {
 	ce.Infoln("Upgrading to %s...", latest.TagName)
 
 	want := fmt.Sprintf("cli-%s-%s-%s.tar.gz", latest.TagName, runtime.GOOS, runtime.GOARCH)
+
 	var url string
+
 	for _, asset := range latest.Assets {
 		if asset.Name == want {
 			url = asset.BrowserDownloadURL
@@ -50,7 +53,7 @@ func commandUpgrade(cCtx *cli.Context) error {
 	}
 
 	if url == "" {
-		return fmt.Errorf("failed to find asset for %s", want) //nolint:goerr113
+		return fmt.Errorf("failed to find asset for %s", want) //nolint:err113
 	}
 
 	tmpFile, err := os.CreateTemp(os.TempDir(), "nhost-cli-")
@@ -79,11 +82,13 @@ func install(cCtx *cli.Context, ce *clienv.CliEnv, tmpFile string) error {
 	}
 
 	ce.Infoln("Copying to %s...", curBin)
+
 	if err := os.Rename(tmpFile, curBin); err != nil {
 		return fmt.Errorf("failed to rename %s to %s: %w", tmpFile, curBin, err)
 	}
 
 	ce.Infoln("Setting permissions...")
+
 	if err := os.Chmod(curBin, 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to set permissions on %s: %w", curBin, err)
 	}

@@ -59,6 +59,7 @@ func respToSecrets(env []*graphql.GetSecrets_AppSecrets) model.Secrets {
 			Value: s.Value,
 		}
 	}
+
 	return secrets
 }
 
@@ -127,6 +128,7 @@ func Validate(
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
+
 	if !testSecretsOnly {
 		cfg = cfgSecretsResolved
 	}
@@ -143,6 +145,7 @@ func getRemoteSecrets(
 	if err != nil {
 		return nil, "", err
 	}
+
 	secretsResp, err := cl.GetSecrets(
 		ctx,
 		appID,
@@ -155,11 +158,14 @@ func getRemoteSecrets(
 }
 
 func commandConfigValidate(cCtx *cli.Context) error {
-	var overlayName string
-	var serviceID string
+	var (
+		overlayName string
+		serviceID   string
+	)
+
 	switch {
 	case cCtx.String(flagServiceID) != "" && cCtx.String(flagOverlayName) != "":
-		return errors.New("cannot specify both service id and overlay name") //nolint:goerr113
+		return errors.New("cannot specify both service id and overlay name") //nolint:err113
 	case cCtx.String(flagServiceID) != "":
 		serviceID = cCtx.String(flagServiceID)
 		overlayName = serviceID
@@ -170,12 +176,15 @@ func commandConfigValidate(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
 	var secrets model.Secrets
+
 	ce.Infoln("Getting secrets...")
+
 	if serviceID != "" {
 		cl, err := ce.GetNhostClient(cCtx.Context)
 		if err != nil {
 			return fmt.Errorf("failed to get nhost client: %w", err)
 		}
+
 		secrets, _, err = getRemoteSecrets(cCtx.Context, cl, serviceID)
 		if err != nil {
 			return err
@@ -190,6 +199,7 @@ func commandConfigValidate(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Verifying configuration...")
+
 	if _, err := Validate(
 		ce,
 		cCtx.String(flagConfig),
@@ -201,5 +211,6 @@ func commandConfigValidate(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Configuration is valid!")
+
 	return nil
 }

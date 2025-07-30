@@ -19,5 +19,6 @@ func LoggerFromContext(ctx context.Context) *logrus.Entry {
 	if !ok {
 		return logrus.NewEntry(logrus.New())
 	}
+
 	return logger
 }

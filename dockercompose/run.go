@@ -32,6 +32,7 @@ func run(
 			if p.GetType() == "udp" {
 				proto = p.GetType()
 			}
+
 			ports = append(ports, Port{
 				Mode:      "ingress",
 				Target:    uint(p.GetPort()),

@@ -24,6 +24,7 @@ func (e *ConfigNotValidError) Error() string {
 	if e.err == nil {
 		return "config is not valid"
 	}
+
 	return "config is not valid: " + e.err.Error()
 }
 
@@ -37,6 +38,7 @@ type Schema struct {
 
 func New() (*Schema, error) {
 	ctx := cuecontext.New()
+
 	v := ctx.CompileBytes(schemabytes)
 	if v.Err() != nil {
 		return nil, fmt.Errorf("problem compiling cue schema: %w", v.Err())
@@ -60,6 +62,7 @@ func (s *Schema) unify(config any, model string) (*cue.Value, error) {
 	}
 
 	ctx := cuecontext.New()
+
 	v := ctx.BuildExpr(expr)
 	if v.Err() != nil {
 		return nil, fmt.Errorf("problem building cue expression: %w", v.Err())
@@ -71,6 +74,7 @@ func (s *Schema) unify(config any, model string) (*cue.Value, error) {
 	if u.Err() != nil {
 		return nil, NewConfigNotValidError(u.Err())
 	}
+
 	return &u, nil
 }
 

@@ -29,6 +29,7 @@ func commandList(cCtx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
+
 	secrets, err := cl.GetSecrets(
 		cCtx.Context,
 		proj.ID,

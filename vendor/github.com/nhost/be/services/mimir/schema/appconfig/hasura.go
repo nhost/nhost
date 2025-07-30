@@ -18,6 +18,7 @@ func deptr[T any](x *T) T {
 	if x == nil {
 		return *new(T)
 	}
+
 	return *x
 }
 

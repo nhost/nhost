@@ -15,10 +15,12 @@ func (d Data) IndexApp(id string) (int, error) {
 		if app == nil {
 			continue
 		}
+
 		if app.AppID == id {
 			return i, nil
 		}
 	}
+
 	return 0, ErrAppNotFound
 }
 
@@ -33,6 +35,7 @@ func (s Services) Clone() Services {
 			resolvedConfig: v.resolvedConfig.Clone(),
 		}
 	}
+
 	return newServices
 }
 
@@ -76,6 +79,7 @@ func (a *App) IndexSecret(name string) (int, error) {
 			return i, nil
 		}
 	}
+
 	return 0, ErrSecretNotFound
 }
 
@@ -85,6 +89,7 @@ func (a *App) IndexService(id string) (int, error) {
 			return i, nil
 		}
 	}
+
 	return 0, ErrServiceNotFound
 }
 
@@ -111,5 +116,6 @@ func (a *App) ResolveSystemConfig(sch *schema.Schema) (*model.ConfigSystemConfig
 	if err != nil {
 		return nil, fmt.Errorf("failed to fill system config: %w", err)
 	}
+
 	return cfg, nil
 }

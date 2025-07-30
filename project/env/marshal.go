@@ -40,6 +40,7 @@ func Unmarshal(data []byte, v any) error {
 				},
 			)
 		}
+
 		return nil
 	default:
 		return toml.Unmarshal(data, v) //nolint:wrapcheck
@@ -49,6 +50,7 @@ func Unmarshal(data []byte, v any) error {
 // Only supports parsing secrets from a *model.Secrets.
 func Marshal(v any) ([]byte, error) {
 	m := make(map[string]string)
+
 	switch secrets := v.(type) {
 	case *model.Secrets:
 		for _, v := range *secrets {

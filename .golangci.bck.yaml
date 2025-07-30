@@ -1,0 +1,25 @@
+---
+linters:
+    enable-all: true
+    disable:
+      - varnamelen
+      - gomoddirectives
+      - nlreturn
+      - wsl
+      - depguard
+      - tenv # deprecated
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen
+        - ireturn
+
+    - linters:
+        - lll
+      source: "^//go:generate "
+
+    - linters:
+        - gochecknoglobals
+      text: "Version is a global variable"

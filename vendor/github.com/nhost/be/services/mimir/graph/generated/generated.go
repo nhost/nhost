@@ -285,8 +285,9 @@ type ComplexityRoot struct {
 	}
 
 	ConfigAuthsessionaccessTokenCustomClaims struct {
-		Key   func(childComplexity int) int
-		Value func(childComplexity int) int
+		Default func(childComplexity int) int
+		Key     func(childComplexity int) int
+		Value   func(childComplexity int) int
 	}
 
 	ConfigAutoscaler struct {
@@ -544,6 +545,7 @@ type ComplexityRoot struct {
 		MinWalSize                    func(childComplexity int) int
 		RandomPageCost                func(childComplexity int) int
 		SharedBuffers                 func(childComplexity int) int
+		TrackIoTiming                 func(childComplexity int) int
 		WalBuffers                    func(childComplexity int) int
 		WalLevel                      func(childComplexity int) int
 		WorkMem                       func(childComplexity int) int
@@ -1609,6 +1611,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigAuthUserRoles.Default(childComplexity), true
 
+	case "ConfigAuthsessionaccessTokenCustomClaims.default":
+		if e.complexity.ConfigAuthsessionaccessTokenCustomClaims.Default == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthsessionaccessTokenCustomClaims.Default(childComplexity), true
+
 	case "ConfigAuthsessionaccessTokenCustomClaims.key":
 		if e.complexity.ConfigAuthsessionaccessTokenCustomClaims.Key == nil {
 			break
@@ -2644,6 +2653,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigPostgresSettings.SharedBuffers(childComplexity), true
+
+	case "ConfigPostgresSettings.trackIoTiming":
+		if e.complexity.ConfigPostgresSettings.TrackIoTiming == nil {
+			break
+		}
+
+		return e.complexity.ConfigPostgresSettings.TrackIoTiming(childComplexity), true
 
 	case "ConfigPostgresSettings.walBuffers":
 		if e.complexity.ConfigPostgresSettings.WalBuffers == nil {
@@ -5541,16 +5557,22 @@ type ConfigAuthsessionaccessTokenCustomClaims {
 
     """
     value: String!
+    """
+
+    """
+    default: String
 }
 
 input ConfigAuthsessionaccessTokenCustomClaimsUpdateInput {
     key: String
     value: String
+    default: String
 }
 
 input ConfigAuthsessionaccessTokenCustomClaimsInsertInput {
     key: String!
     value: String!
+    default: String
 }
 
 input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
@@ -5559,6 +5581,7 @@ input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
     _or: [ConfigAuthsessionaccessTokenCustomClaimsComparisonExp!]
     key: ConfigStringComparisonExp
     value: ConfigStringComparisonExp
+    default: ConfigStringComparisonExp
 }
 
 """
@@ -7191,6 +7214,10 @@ type ConfigPostgresSettings {
 
     """
     archiveTimeout: ConfigInt32
+    """
+
+    """
+    trackIoTiming: String
 }
 
 input ConfigPostgresSettingsUpdateInput {
@@ -7216,6 +7243,7 @@ input ConfigPostgresSettingsUpdateInput {
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
     archiveTimeout: ConfigInt32
+    trackIoTiming: String
 }
 
 input ConfigPostgresSettingsInsertInput {
@@ -7241,6 +7269,7 @@ input ConfigPostgresSettingsInsertInput {
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
     archiveTimeout: ConfigInt32
+    trackIoTiming: String
 }
 
 input ConfigPostgresSettingsComparisonExp {
@@ -7269,6 +7298,7 @@ input ConfigPostgresSettingsComparisonExp {
     maxWalSenders: ConfigInt32ComparisonExp
     maxReplicationSlots: ConfigInt32ComparisonExp
     archiveTimeout: ConfigInt32ComparisonExp
+    trackIoTiming: ConfigStringComparisonExp
 }
 
 """
@@ -14537,6 +14567,8 @@ func (ec *executionContext) fieldContext_ConfigAuthSessionAccessToken_customClai
 				return ec.fieldContext_ConfigAuthsessionaccessTokenCustomClaims_key(ctx, field)
 			case "value":
 				return ec.fieldContext_ConfigAuthsessionaccessTokenCustomClaims_value(ctx, field)
+			case "default":
+				return ec.fieldContext_ConfigAuthsessionaccessTokenCustomClaims_default(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthsessionaccessTokenCustomClaims", field.Name)
 		},
@@ -15602,6 +15634,47 @@ func (ec *executionContext) _ConfigAuthsessionaccessTokenCustomClaims_value(ctx 
 }
 
 func (ec *executionContext) fieldContext_ConfigAuthsessionaccessTokenCustomClaims_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthsessionaccessTokenCustomClaims",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthsessionaccessTokenCustomClaims_default(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthsessionaccessTokenCustomClaims) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthsessionaccessTokenCustomClaims_default(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Default, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthsessionaccessTokenCustomClaims_default(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigAuthsessionaccessTokenCustomClaims",
 		Field:      field,
@@ -21099,6 +21172,8 @@ func (ec *executionContext) fieldContext_ConfigPostgres_settings(_ context.Conte
 				return ec.fieldContext_ConfigPostgresSettings_maxReplicationSlots(ctx, field)
 			case "archiveTimeout":
 				return ec.fieldContext_ConfigPostgresSettings_archiveTimeout(ctx, field)
+			case "trackIoTiming":
+				return ec.fieldContext_ConfigPostgresSettings_trackIoTiming(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresSettings", field.Name)
 		},
@@ -22310,6 +22385,47 @@ func (ec *executionContext) fieldContext_ConfigPostgresSettings_archiveTimeout(_
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ConfigInt32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgresSettings_trackIoTiming(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigPostgresSettings_trackIoTiming(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TrackIoTiming, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgresSettings_trackIoTiming(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgresSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -33373,7 +33489,7 @@ func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClai
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "key", "value"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "key", "value", "default"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33415,6 +33531,13 @@ func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClai
 				return it, err
 			}
 			it.Value = data
+		case "default":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("default"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Default = data
 		}
 	}
 
@@ -33428,7 +33551,7 @@ func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClai
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"key", "value"}
+	fieldsInOrder := [...]string{"key", "value", "default"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33449,6 +33572,13 @@ func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClai
 				return it, err
 			}
 			it.Value = data
+		case "default":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("default"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Default = data
 		}
 	}
 
@@ -37861,7 +37991,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ct
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "archiveTimeout"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "archiveTimeout", "trackIoTiming"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38043,6 +38173,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ct
 				return it, err
 			}
 			it.ArchiveTimeout = data
+		case "trackIoTiming":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trackIoTiming"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TrackIoTiming = data
 		}
 	}
 
@@ -38056,7 +38193,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "archiveTimeout"}
+	fieldsInOrder := [...]string{"jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "archiveTimeout", "trackIoTiming"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38217,6 +38354,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx 
 				return it, err
 			}
 			it.ArchiveTimeout = data
+		case "trackIoTiming":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trackIoTiming"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TrackIoTiming = data
 		}
 	}
 
@@ -42721,6 +42865,8 @@ func (ec *executionContext) _ConfigAuthsessionaccessTokenCustomClaims(ctx contex
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "default":
+			out.Values[i] = ec._ConfigAuthsessionaccessTokenCustomClaims_default(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -44433,6 +44579,8 @@ func (ec *executionContext) _ConfigPostgresSettings(ctx context.Context, sel ast
 			out.Values[i] = ec._ConfigPostgresSettings_maxReplicationSlots(ctx, field, obj)
 		case "archiveTimeout":
 			out.Values[i] = ec._ConfigPostgresSettings_archiveTimeout(ctx, field, obj)
+		case "trackIoTiming":
+			out.Values[i] = ec._ConfigPostgresSettings_trackIoTiming(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46322,6 +46470,7 @@ func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (
 }
 
 func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalBoolean(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -46772,6 +46921,7 @@ func (ec *executionContext) unmarshalNConfigEmail2string(ctx context.Context, v 
 }
 
 func (ec *executionContext) marshalNConfigEmail2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47071,6 +47221,7 @@ func (ec *executionContext) unmarshalNConfigHasuraAPIs2string(ctx context.Contex
 }
 
 func (ec *executionContext) marshalNConfigHasuraAPIs2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47166,6 +47317,7 @@ func (ec *executionContext) unmarshalNConfigInt162int16(ctx context.Context, v a
 }
 
 func (ec *executionContext) marshalNConfigInt162int16(ctx context.Context, sel ast.SelectionSet, v int16) graphql.Marshaler {
+	_ = sel
 	res := types.MarshalInt16(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47181,6 +47333,7 @@ func (ec *executionContext) unmarshalNConfigInt322int32(ctx context.Context, v a
 }
 
 func (ec *executionContext) marshalNConfigInt322int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalInt32(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47196,6 +47349,7 @@ func (ec *executionContext) unmarshalNConfigInt642int64(ctx context.Context, v a
 }
 
 func (ec *executionContext) marshalNConfigInt642int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalInt64(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47211,6 +47365,7 @@ func (ec *executionContext) unmarshalNConfigInt82int8(ctx context.Context, v any
 }
 
 func (ec *executionContext) marshalNConfigInt82int8(ctx context.Context, sel ast.SelectionSet, v int8) graphql.Marshaler {
+	_ = sel
 	res := types.MarshalInt8(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47252,6 +47407,7 @@ func (ec *executionContext) unmarshalNConfigLocale2string(ctx context.Context, v
 }
 
 func (ec *executionContext) marshalNConfigLocale2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47292,6 +47448,7 @@ func (ec *executionContext) unmarshalNConfigPort2uint16(ctx context.Context, v a
 }
 
 func (ec *executionContext) marshalNConfigPort2uint16(ctx context.Context, sel ast.SelectionSet, v uint16) graphql.Marshaler {
+	_ = sel
 	res := types.MarshalUint16(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47501,6 +47658,7 @@ func (ec *executionContext) unmarshalNConfigRunServiceName2string(ctx context.Co
 }
 
 func (ec *executionContext) marshalNConfigRunServiceName2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47713,6 +47871,7 @@ func (ec *executionContext) unmarshalNConfigUint162uint16(ctx context.Context, v
 }
 
 func (ec *executionContext) marshalNConfigUint162uint16(ctx context.Context, sel ast.SelectionSet, v uint16) graphql.Marshaler {
+	_ = sel
 	res := types.MarshalUint16(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47728,6 +47887,7 @@ func (ec *executionContext) unmarshalNConfigUint2uint(ctx context.Context, v any
 }
 
 func (ec *executionContext) marshalNConfigUint2uint(ctx context.Context, sel ast.SelectionSet, v uint) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalUint(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47743,6 +47903,7 @@ func (ec *executionContext) unmarshalNConfigUint322uint32(ctx context.Context, v
 }
 
 func (ec *executionContext) marshalNConfigUint322uint32(ctx context.Context, sel ast.SelectionSet, v uint32) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalUint32(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47758,6 +47919,7 @@ func (ec *executionContext) unmarshalNConfigUint642uint64(ctx context.Context, v
 }
 
 func (ec *executionContext) marshalNConfigUint642uint64(ctx context.Context, sel ast.SelectionSet, v uint64) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalUint64(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47773,6 +47935,7 @@ func (ec *executionContext) unmarshalNConfigUint82uint8(ctx context.Context, v a
 }
 
 func (ec *executionContext) marshalNConfigUint82uint8(ctx context.Context, sel ast.SelectionSet, v uint8) graphql.Marshaler {
+	_ = sel
 	res := types.MarshalUint8(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47788,6 +47951,7 @@ func (ec *executionContext) unmarshalNConfigUrl2string(ctx context.Context, v an
 }
 
 func (ec *executionContext) marshalNConfigUrl2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47803,6 +47967,7 @@ func (ec *executionContext) unmarshalNConfigUserRole2string(ctx context.Context,
 }
 
 func (ec *executionContext) marshalNConfigUserRole2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47818,6 +47983,7 @@ func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v any) 
 }
 
 func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalFloatContext(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47847,6 +48013,7 @@ func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v any) (int, 
 }
 
 func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47862,6 +48029,7 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) 
 }
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -47955,6 +48123,7 @@ func (ec *executionContext) unmarshalN__DirectiveLocation2string(ctx context.Con
 }
 
 func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -48143,6 +48312,7 @@ func (ec *executionContext) unmarshalN__TypeKind2string(ctx context.Context, v a
 }
 
 func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -48158,6 +48328,7 @@ func (ec *executionContext) unmarshalNuuid2string(ctx context.Context, v any) (s
 }
 
 func (ec *executionContext) marshalNuuid2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	_ = sel
 	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -48173,6 +48344,8 @@ func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (
 }
 
 func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalBoolean(v)
 	return res
 }
@@ -48225,6 +48398,8 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalBoolean(*v)
 	return res
 }
@@ -50438,6 +50613,8 @@ func (ec *executionContext) marshalOConfigEmail2ᚖstring(ctx context.Context, s
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
 }
@@ -51652,6 +51829,8 @@ func (ec *executionContext) marshalOConfigHasuraAPIs2ᚖstring(ctx context.Conte
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
 }
@@ -52156,6 +52335,8 @@ func (ec *executionContext) marshalOConfigInt162ᚖint16(ctx context.Context, se
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := types.MarshalInt16(*v)
 	return res
 }
@@ -52208,6 +52389,8 @@ func (ec *executionContext) marshalOConfigInt322ᚖint32(ctx context.Context, se
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalInt32(*v)
 	return res
 }
@@ -52268,6 +52451,8 @@ func (ec *executionContext) marshalOConfigInt642ᚖint64(ctx context.Context, se
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalInt64(*v)
 	return res
 }
@@ -52320,6 +52505,8 @@ func (ec *executionContext) marshalOConfigInt82ᚖint8(ctx context.Context, sel 
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := types.MarshalInt8(*v)
 	return res
 }
@@ -52489,6 +52676,8 @@ func (ec *executionContext) marshalOConfigLocale2ᚖstring(ctx context.Context, 
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
 }
@@ -52634,6 +52823,8 @@ func (ec *executionContext) marshalOConfigPort2ᚖuint16(ctx context.Context, se
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := types.MarshalUint16(*v)
 	return res
 }
@@ -53167,6 +53358,8 @@ func (ec *executionContext) marshalOConfigRunServiceName2ᚖstring(ctx context.C
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
 }
@@ -54141,6 +54334,8 @@ func (ec *executionContext) marshalOConfigUint162ᚖuint16(ctx context.Context, 
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := types.MarshalUint16(*v)
 	return res
 }
@@ -54193,6 +54388,8 @@ func (ec *executionContext) marshalOConfigUint2ᚖuint(ctx context.Context, sel 
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalUint(*v)
 	return res
 }
@@ -54245,6 +54442,8 @@ func (ec *executionContext) marshalOConfigUint322ᚖuint32(ctx context.Context, 
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalUint32(*v)
 	return res
 }
@@ -54305,6 +54504,8 @@ func (ec *executionContext) marshalOConfigUint642ᚖuint64(ctx context.Context, 
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalUint64(*v)
 	return res
 }
@@ -54357,6 +54558,8 @@ func (ec *executionContext) marshalOConfigUint82ᚖuint8(ctx context.Context, se
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := types.MarshalUint8(*v)
 	return res
 }
@@ -54425,6 +54628,8 @@ func (ec *executionContext) marshalOConfigUrl2ᚖstring(ctx context.Context, sel
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
 }
@@ -54485,6 +54690,8 @@ func (ec *executionContext) marshalOConfigUserRole2ᚖstring(ctx context.Context
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
 }
@@ -54545,6 +54752,7 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
 	res := graphql.MarshalFloatContext(*v)
 	return graphql.WrapContextMarshaler(ctx, res)
 }
@@ -54597,6 +54805,8 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalInt(*v)
 	return res
 }
@@ -54649,6 +54859,8 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	if v == nil {
 		return graphql.Null
 	}
+	_ = sel
+	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
 }

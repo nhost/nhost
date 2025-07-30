@@ -30,18 +30,21 @@ func writeFiles(ps *clienv.PathStructure, root, relPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read dir: %w", err)
 	}
+
 	for _, entry := range dirEntries {
 		if entry.IsDir() {
 			return writeFiles(ps, root, filepath.Join(relPath, entry.Name()))
 		}
 
 		src := filepath.Join(root, relPath, entry.Name())
+
 		fileData, err := fs.ReadFile(embeddedFS, src)
 		if err != nil {
 			return fmt.Errorf("failed to read file %s: %w", src, err)
 		}
 
 		dst := filepath.Join(ps.Root(), relPath, entry.Name())
+
 		f, err := os.OpenFile(
 			filepath.Join(ps.Root(), dst),
 			os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600, //nolint:mnd
@@ -82,7 +85,7 @@ func commandInit(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
-		return errors.New("nhost folder already exists") //nolint:goerr113
+		return errors.New("nhost folder already exists") //nolint:err113
 	}
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
@@ -90,6 +93,7 @@ func commandInit(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Initializing Nhost project")
+
 	if err := config.InitConfigAndSecrets(ce); err != nil {
 		return fmt.Errorf("failed to initialize configuration: %w", err)
 	}
@@ -105,6 +109,7 @@ func commandInit(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Successfully initialized Nhost project, run `nhost up` to start development")
+
 	return nil
 }
 
@@ -181,6 +186,7 @@ func InitRemote(
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
+
 	hasuraAdminSecret, err := cl.GetHasuraAdminSecret(ctx, proj.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get hasura admin secret: %w", err)
@@ -197,6 +203,7 @@ func InitRemote(
 	}
 
 	ce.Infoln("Project initialized successfully!")
+
 	return nil
 }
 
@@ -208,7 +215,9 @@ func deploy(
 	hasuraAdminSecret string,
 ) error {
 	docker := dockercompose.NewDocker()
+
 	ce.Infoln("Creating postgres migration")
+
 	if err := docker.HasuraWrapper(
 		ctx,
 		ce.LocalSubdomain(),
@@ -225,6 +234,7 @@ func deploy(
 	}
 
 	ce.Infoln("Downloading metadata...")
+
 	if err := docker.HasuraWrapper(
 		ctx,
 		ce.LocalSubdomain(),

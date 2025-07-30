@@ -146,6 +146,7 @@ func edit(cCtx *cli.Context) error {
 		if err := EditFile(cCtx.Context, cCtx.String(flagEditor), ce.Path.NhostToml()); err != nil {
 			return fmt.Errorf("failed to edit config: %w", err)
 		}
+
 		return nil
 	}
 

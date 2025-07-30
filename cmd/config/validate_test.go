@@ -270,6 +270,7 @@ func TestValidate(t *testing.T) {
 					err,
 				)
 			}
+
 			cfg, err := config.Validate(ce, "local", secrets)
 			if err != nil {
 				t.Fatal(err)

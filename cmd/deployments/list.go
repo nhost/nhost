@@ -24,32 +24,26 @@ func printDeployments(ce *clienv.CliEnv, deployments []*graphql.ListDeployments_
 		Header: "ID",
 		Rows:   make([]string, 0),
 	}
-
 	date := clienv.Column{
 		Header: "Date",
 		Rows:   make([]string, 0),
 	}
-
 	duration := clienv.Column{
 		Header: "Duration",
 		Rows:   make([]string, 0),
 	}
-
 	status := clienv.Column{
 		Header: "Status",
 		Rows:   make([]string, 0),
 	}
-
 	user := clienv.Column{
 		Header: "User",
 		Rows:   make([]string, 0),
 	}
-
 	ref := clienv.Column{
 		Header: "Ref",
 		Rows:   make([]string, 0),
 	}
-
 	message := clienv.Column{
 		Header: "Message",
 		Rows:   make([]string, 0),
@@ -61,8 +55,11 @@ func printDeployments(ce *clienv.CliEnv, deployments []*graphql.ListDeployments_
 			startedAt = *d.DeploymentStartedAt
 		}
 
-		var endedAt time.Time
-		var deplPuration time.Duration
+		var (
+			endedAt      time.Time
+			deplPuration time.Duration
+		)
+
 		if d.DeploymentEndedAt != nil && !d.DeploymentEndedAt.IsZero() {
 			endedAt = *d.DeploymentEndedAt
 			deplPuration = endedAt.Sub(startedAt)
@@ -92,6 +89,7 @@ func commandList(cCtx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
+
 	deployments, err := cl.ListDeployments(
 		cCtx.Context,
 		proj.ID,

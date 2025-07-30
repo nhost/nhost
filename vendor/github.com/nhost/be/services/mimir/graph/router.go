@@ -59,10 +59,13 @@ func SetupRouter(
 	{
 		apiRoot.POST(graphQLPath, nhmiddleware.GraphqlAccounting, nhhandler.Graphql(srv))
 		apiRoot.GET(graphQLPath, nhhandler.Graphql(srv))
+
 		if enablePlayground {
 			apiRoot.GET("/", nhhandler.Playground(pathPrefix+graphQLPath))
 		}
+
 		apiRoot.GET("/version", nhhandler.Version(version))
 	}
+
 	return r
 }

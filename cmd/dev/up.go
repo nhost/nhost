@@ -26,6 +26,7 @@ func deptr[T any](t *T) T { //nolint:ireturn
 	if t == nil {
 		return *new(T)
 	}
+
 	return *t
 }
 
@@ -147,12 +148,13 @@ func commandUp(cCtx *cli.Context) error {
 	// projname to be root directory
 
 	if !clienv.PathExists(ce.Path.NhostToml()) {
-		return errors.New( //nolint:goerr113
+		return errors.New( //nolint:err113
 			"no nhost project found, please run `nhost init` or `nhost config pull`",
 		)
 	}
+
 	if !clienv.PathExists(ce.Path.Secrets()) {
-		return errors.New( //nolint:goerr113
+		return errors.New( //nolint:err113
 			"no secrets found, please run `nhost init` or `nhost config pull`",
 		)
 	}
@@ -163,6 +165,7 @@ func commandUp(cCtx *cli.Context) error {
 	}
 
 	applySeeds := cCtx.Bool(flagApplySeeds) || !clienv.PathExists(ce.Path.DotNhostFolder())
+
 	return Up(
 		cCtx.Context,
 		ce,
@@ -195,6 +198,7 @@ func migrations(
 ) error {
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "migrations", "default")) {
 		ce.Infoln("Applying migrations...")
+
 		if err := dc.ApplyMigrations(ctx, endpoint); err != nil {
 			return fmt.Errorf("failed to apply migrations: %w", err)
 		}
@@ -204,6 +208,7 @@ func migrations(
 
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "metadata", "version.yaml")) {
 		ce.Infoln("Applying metadata...")
+
 		if err := dc.ApplyMetadata(ctx, endpoint); err != nil {
 			return fmt.Errorf("failed to apply metadata: %w", err)
 		}
@@ -214,6 +219,7 @@ func migrations(
 	if applySeeds {
 		if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "seeds", "default")) {
 			ce.Infoln("Applying seeds...")
+
 			if err := dc.ApplySeeds(ctx, endpoint); err != nil {
 				return fmt.Errorf("failed to apply seeds: %w", err)
 			}
@@ -262,6 +268,7 @@ func reload(
 	dc *dockercompose.DockerCompose,
 ) error {
 	ce.Infoln("Reapplying metadata...")
+
 	if err := dc.ReloadMetadata(ctx); err != nil {
 		return fmt.Errorf("failed to reapply metadata: %w", err)
 	}
@@ -277,7 +284,7 @@ func parseRunServiceConfigFlag(value string) (string, string, error) {
 	case 2: //nolint:mnd
 		return parts[0], parts[1], nil
 	default:
-		return "", "", fmt.Errorf( //nolint:goerr113
+		return "", "", fmt.Errorf( //nolint:err113
 			"invalid run service format, must be /path/to/config.toml:overlay_name, got %s",
 			value,
 		)
@@ -329,6 +336,7 @@ func up( //nolint:funlen,cyclop
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+
 	go func() {
 		<-sigChan
 		cancel()
@@ -349,7 +357,9 @@ func up( //nolint:funlen,cyclop
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:mnd
 	defer cancel()
+
 	ce.Infoln("Checking versions...")
+
 	if err := software.CheckVersions(ctxWithTimeout, ce, cfg, appVersion); err != nil {
 		ce.Warnln("Problem verifying recommended versions: %s", err.Error())
 	}
@@ -360,6 +370,7 @@ func up( //nolint:funlen,cyclop
 	}
 
 	ce.Infoln("Setting up Nhost development environment...")
+
 	composeFile, err := dockercompose.ComposeFileFromConfig(
 		cfg,
 		ce.LocalSubdomain(),
@@ -381,11 +392,13 @@ func up( //nolint:funlen,cyclop
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)
 	}
+
 	if err := dc.WriteComposeFile(composeFile); err != nil {
 		return fmt.Errorf("failed to write docker-compose.yaml: %w", err)
 	}
 
 	ce.Infoln("Starting Nhost development environment...")
+
 	if err = dc.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start Nhost development environment: %w", err)
 	}
@@ -399,7 +412,9 @@ func up( //nolint:funlen,cyclop
 	}
 
 	docker := dockercompose.NewDocker()
+
 	ce.Infoln("Downloading metadata...")
+
 	if err := docker.HasuraWrapper(
 		ctx,
 		ce.LocalSubdomain(),
@@ -420,6 +435,7 @@ func up( //nolint:funlen,cyclop
 
 	ce.Infoln("Nhost development environment started.")
 	printInfo(ce.LocalSubdomain(), httpPort, postgresPort, useTLS, runServicesCfg)
+
 	return nil
 }
 
@@ -493,17 +509,20 @@ func upErr(
 
 	if !downOnError {
 		ce.PromptMessage("Do you want to stop Nhost's development environment? [y/N] ")
+
 		resp, err := ce.PromptInput(false)
 		if err != nil {
 			ce.Warnln("failed to read input: %s", err)
 			return nil
 		}
+
 		if resp != "y" && resp != "Y" {
 			return nil
 		}
 	}
 
 	ce.Infoln("Stopping Nhost development environment...")
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 

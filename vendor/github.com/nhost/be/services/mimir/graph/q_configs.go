@@ -18,6 +18,7 @@ func (r *queryResolver) configs(
 	defer r.mu.RUnlock()
 
 	res := make([]*model.ConfigAppConfig, 0, 10) //nolint:mnd
+
 	for _, app := range r.data {
 		logger = logger.WithField("app", app.AppID)
 
@@ -31,11 +32,13 @@ func (r *queryResolver) configs(
 			if !resolve {
 				cfg = app.Config
 			}
+
 			res = append(res, &model.ConfigAppConfig{
 				AppID:  app.AppID,
 				Config: cfg,
 			})
 		}
 	}
+
 	return res, nil
 }

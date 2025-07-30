@@ -1,25 +1,44 @@
----
+version: "2"
 linters:
-    enable-all: true
-    disable:
-      - varnamelen
-      - gomoddirectives
-      - nlreturn
-      - wsl
-      - depguard
-      - tenv # deprecated
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - funlen
-        - ireturn
-
-    - linters:
-        - lll
-      source: "^//go:generate "
-
-    - linters:
-        - gochecknoglobals
-      text: "Version is a global variable"
+  default: all
+  disable:
+    - depguard
+    - gomoddirectives
+    - nlreturn
+    - varnamelen
+    - wsl
+    - noinlineerr
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - funlen
+          - ireturn
+        path: _test\.go
+      - linters:
+          - lll
+        source: '^//go:generate '
+      - linters:
+          - gochecknoglobals
+        text: Version is a global variable
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

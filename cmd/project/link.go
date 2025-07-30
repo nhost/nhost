@@ -26,5 +26,6 @@ func commandLink(cCtx *cli.Context) error {
 	}
 
 	_, err := ce.Link(cCtx.Context)
+
 	return err //nolint:wrapcheck
 }

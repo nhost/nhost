@@ -42,5 +42,6 @@ func commandLogin(cCtx *cli.Context) error {
 	_, err := ce.Login(
 		cCtx.Context, cCtx.String(flagPAT), cCtx.String(flagEmail), cCtx.String(flagPassword),
 	)
+
 	return err //nolint:wrapcheck
 }

@@ -24,6 +24,7 @@ func (r *queryResolver) config(
 			if err != nil {
 				return nil, err
 			}
+
 			return cfg, nil
 		}
 	}

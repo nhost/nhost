@@ -49,6 +49,7 @@ func commandValidate(cCtx *cli.Context) error {
 			proj.GetSubdomain(),
 			proj.GetID(),
 		)
+
 		return err
 	}
 
@@ -61,10 +62,13 @@ func commandValidate(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Verifying configuration...")
+
 	if _, err := Validate(ce, "local", secrets); err != nil {
 		return err
 	}
+
 	ce.Infoln("Configuration is valid!")
+
 	return nil
 }
 
@@ -118,6 +122,7 @@ func Validate(
 
 	if clienv.PathExists(ce.Path.Overlay(subdomain)) {
 		var err error
+
 		cfg, err = ApplyJSONPatches(*cfg, ce.Path.Overlay(subdomain))
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply json patches: %w", err)
@@ -155,6 +160,7 @@ func ValidateRemote(
 
 	if clienv.PathExists(ce.Path.Overlay(subdomain)) {
 		var err error
+
 		cfg, err = ApplyJSONPatches(*cfg, ce.Path.Overlay(subdomain))
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to apply json patches: %w", err)
@@ -167,10 +173,12 @@ func ValidateRemote(
 	}
 
 	ce.Infoln("Getting secrets...")
+
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
+
 	secretsResp, err := cl.GetSecrets(
 		ctx,
 		appID,

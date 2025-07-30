@@ -113,6 +113,7 @@ func (l *Local) GetApps(
 	if cfg.GetPostgres().GetVersion() != nil {
 		pgMajorVersion = strings.Split(*cfg.GetPostgres().GetVersion(), ".")[0]
 	}
+
 	return []*graph.App{
 		{
 			Config: cfg,
@@ -189,7 +190,7 @@ func (l *Local) UpdateRunServiceConfig(
 ) error {
 	wr, ok := l.runServices[newSvc.ServiceID]
 	if !ok {
-		return fmt.Errorf("run service not found: %s", newSvc.ServiceID) //nolint:goerr113
+		return fmt.Errorf("run service not found: %s", newSvc.ServiceID) //nolint:err113
 	}
 
 	b, err := toml.Marshal(newSvc.Config)

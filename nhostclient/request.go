@@ -30,12 +30,14 @@ func MakeJSONRequest(
 		if err != nil {
 			return fmt.Errorf("failed to marshal request body: %w", err)
 		}
+
 		body := io.NopCloser(bytes.NewReader(b))
 
 		req, err := http.NewRequestWithContext(ctx, method, url, body)
 		if err != nil {
 			return fmt.Errorf("failed to create request: %w", err)
 		}
+
 		req.Header = headers
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Request-Attempt", strconv.Itoa(attempt))
@@ -50,6 +52,7 @@ func MakeJSONRequest(
 				return fmt.Errorf("request validation failed: %w", err)
 			}
 		}
+
 		defer resp.Body.Close()
 
 		b, err = io.ReadAll(resp.Body)

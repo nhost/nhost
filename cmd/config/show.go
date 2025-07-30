@@ -49,5 +49,6 @@ func commandShow(c *cli.Context) error {
 	}
 
 	ce.Println("%s", b)
+
 	return nil
 }

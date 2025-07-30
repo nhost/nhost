@@ -57,6 +57,7 @@ func NewResolver(data Data, nhostc nhost.Querier, plugins []Plugin) (*Resolver, 
 	if err != nil {
 		return nil, fmt.Errorf("problem getting schema: %w", err)
 	}
+
 	return &Resolver{
 		nhost:   nhostc,
 		data:    data,
@@ -78,6 +79,7 @@ func (r *Resolver) Config() []*model.ConfigAppConfig {
 			Config: d.Config,
 		}
 	}
+
 	return configs
 }
 
@@ -89,5 +91,6 @@ func (r *Resolver) AppsSecrets() []model.ConfigAppSecrets {
 			Secrets: d.Secrets,
 		}
 	}
+
 	return values
 }

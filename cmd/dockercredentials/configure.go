@@ -26,6 +26,7 @@ func CommandConfigure() *cli.Command {
 	if err != nil {
 		home = "/root"
 	}
+
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "configure",
 		Aliases: []string{},
@@ -56,6 +57,7 @@ func canSudo(ctx context.Context) bool {
 	if err := exec.CommandContext(ctx, "sudo", "-n", "true").Run(); err != nil {
 		return false
 	}
+
 	return true
 }
 
@@ -68,6 +70,7 @@ func writeScript(ctx context.Context, ce *clienv.CliEnv) error {
 	}
 
 	script := fmt.Sprintf(script, executable)
+
 	tmpfile, err := os.CreateTemp("", "nhost-docker-credentials")
 	if err != nil {
 		return fmt.Errorf("could not create temporary file: %w", err)
@@ -85,6 +88,7 @@ func writeScript(ctx context.Context, ce *clienv.CliEnv) error {
 	if !canSudo(ctx) {
 		ce.Println("I need root privileges to install the file. Please, enter your password.")
 	}
+
 	if err := exec.CommandContext( //nolint:gosec
 		ctx, "sudo", "mv", tmpfile.Name(), credentialsPath,
 	).Run(); err != nil {
@@ -110,6 +114,7 @@ func configureDocker(dockerConfig string) error {
 	if !ok {
 		credHelpers = make(map[string]interface{})
 	}
+
 	credHelpers["registry.ap-south-1.nhost.run"] = credentialsHelper
 	credHelpers["registry.ap-southeast-1.nhost.run"] = credentialsHelper
 	credHelpers["registry.eu-central-1.nhost.run"] = credentialsHelper
@@ -151,10 +156,12 @@ func actionConfigure(c *cli.Context) error {
 		"I am about to configure docker to authenticate with Nhost's registry. This will modify your docker config file on %s. Should I continue? [y/N] ",
 		c.String(flagDockerConfig),
 	)
+
 	v, err := ce.PromptInput(false)
 	if err != nil {
 		return fmt.Errorf("could not read input: %w", err)
 	}
+
 	if v == "y" || v == "Y" {
 		return configureDocker(c.String(flagDockerConfig))
 	}

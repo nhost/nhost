@@ -20,6 +20,7 @@ func Healthz(f func() error) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"healthz": "ok",
 		})

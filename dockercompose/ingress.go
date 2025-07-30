@@ -10,11 +10,13 @@ type Ingresses []Ingress
 func (i Ingresses) Labels() map[string]string {
 	labels := make(map[string]string)
 	labels["traefik.enable"] = "true"
+
 	for _, ingress := range i {
 		for k, v := range ingress.Labels() {
 			labels[k] = v
 		}
 	}
+
 	return labels
 }
 

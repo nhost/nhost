@@ -94,6 +94,7 @@ func dummyMiddleware2(
 
 func runServicesFiles(runServices ...string) map[string]string {
 	m := make(map[string]string)
+
 	for _, path := range runServices {
 		id := uuid.NewString()
 		m[id] = path
@@ -112,10 +113,12 @@ func serve(cCtx *cli.Context) error {
 	runServices := runServicesFiles(cCtx.StringSlice(storageLocalRunServicesPath)...)
 
 	st := NewLocal(configFile, secretsFile, runServices)
+
 	data, err := st.GetApps(configFile, secretsFile, runServices)
 	if err != nil {
 		return fmt.Errorf("failed to get data from plugin: %w", err)
 	}
+
 	plugins := []graph.Plugin{st}
 
 	resolver, err := graph.NewResolver(data, Querier{}, plugins)
@@ -137,5 +140,6 @@ func serve(cCtx *cli.Context) error {
 	if err := r.Run(cCtx.String(bindFlag)); err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)
 	}
+
 	return nil
 }

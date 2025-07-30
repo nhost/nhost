@@ -33,4 +33,3 @@ query:
   - query/*.graphql
 generate:
   clientV2: true
-  omitEmptyTypes: true

@@ -87,6 +87,7 @@ func TestPostgres(t *testing.T) {
 			t.Parallel()
 
 			tmpdir := filepath.Join(os.TempDir(), "data")
+
 			got, err := postgres(tc.cfg(), "dev", 5432, tmpdir, "pgdate_test")
 			if err != nil {
 				t.Errorf("got error: %v", err)

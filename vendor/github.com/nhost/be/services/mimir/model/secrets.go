@@ -7,5 +7,6 @@ func (ce Secrets) Clone() Secrets {
 	for i, v := range ce {
 		clone[i] = v.Clone()
 	}
+
 	return clone
 }

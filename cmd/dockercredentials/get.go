@@ -53,6 +53,7 @@ func getToken(ctx context.Context, authURL, graphqlURL string) (string, error) {
 		"unneeded",
 		"unneeded",
 	)
+
 	session, err := ce.LoadSession(ctx)
 	if err != nil {
 		return "", err //nolint:wrapcheck
@@ -70,10 +71,12 @@ type response struct {
 
 func actionGet(c *cli.Context) error {
 	scanner := bufio.NewScanner(c.App.Reader)
+
 	var input string
 	for scanner.Scan() {
 		input += scanner.Text()
 	}
+
 	token, err := getToken(c.Context, c.String(flagAuthURL), c.String(flagGraphqlURL))
 	if err != nil {
 		return err

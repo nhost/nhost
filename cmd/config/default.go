@@ -29,9 +29,11 @@ func commandDefault(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Initializing Nhost project")
+
 	if err := InitConfigAndSecrets(ce); err != nil {
 		return fmt.Errorf("failed to initialize project: %w", err)
 	}
+
 	ce.Infoln("Successfully generated default configuration and secrets")
 
 	return nil
@@ -42,6 +44,7 @@ func InitConfigAndSecrets(ce *clienv.CliEnv) error {
 	if err != nil {
 		return fmt.Errorf("failed to create default config: %w", err)
 	}
+
 	if err := clienv.MarshalFile(config, ce.Path.NhostToml(), toml.Marshal); err != nil {
 		return fmt.Errorf("failed to save config: %w", err)
 	}

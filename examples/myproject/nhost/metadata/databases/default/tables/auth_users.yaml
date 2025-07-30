@@ -92,6 +92,13 @@ object_relationships:
     using:
       foreign_key_constraint_on: default_role
 array_relationships:
+  - name: animals
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: animals
+          schema: public
   - name: refreshTokens
     using:
       foreign_key_constraint_on:

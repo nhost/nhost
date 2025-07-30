@@ -30,6 +30,7 @@ func checkCLIVersion(
 	curVersion string,
 ) error {
 	mgr := software.NewManager()
+
 	releases, err := mgr.GetReleases(ctx, curVersion)
 	if err != nil {
 		return fmt.Errorf("failed to get releases: %w", err)
@@ -40,6 +41,7 @@ func checkCLIVersion(
 			"✅ Nhost CLI %s for %s-%s is already on the latest version",
 			curVersion, runtime.GOOS, runtime.GOARCH,
 		)
+
 		return nil
 	}
 
@@ -63,6 +65,7 @@ func checkServiceVersion(
 	changelog string,
 ) {
 	recommendedVersions := make([]string, 0, 5) //nolint:mnd
+
 	for _, v := range availableVersions.GetSoftwareVersions() {
 		if *v.GetSoftware() == software && v.GetVersion() == curVersion {
 			ce.Infoln("✅ %s is already on a recommended version: %s", software, curVersion)
@@ -71,10 +74,12 @@ func checkServiceVersion(
 			recommendedVersions = append(recommendedVersions, v.GetVersion())
 		}
 	}
+
 	ce.Warnln(
 		"🟡 %s is not on a recommended version. Recommended: %s",
 		software, strings.Join(recommendedVersions, ", "),
 	)
+
 	if changelog != "" {
 		ce.Println("   More info: %s", changelog)
 	}
@@ -130,8 +135,11 @@ func CheckVersions(
 func commandVersion(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
-	var cfg *model.ConfigConfig
-	var err error
+	var (
+		cfg *model.ConfigConfig
+		err error
+	)
+
 	if clienv.PathExists(ce.Path.NhostToml()) && clienv.PathExists(ce.Path.Secrets()) {
 		var secrets model.Secrets
 		if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {

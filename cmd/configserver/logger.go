@@ -46,7 +46,9 @@ func logFlags(logger logrus.FieldLogger, cCtx *cli.Context) {
 			fields[name] = "******"
 			continue
 		}
+
 		fields[name] = cCtx.Generic(name)
 	}
+
 	logger.WithFields(fields).Info("started with settings")
 }

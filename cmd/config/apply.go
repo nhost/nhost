@@ -42,6 +42,7 @@ func commandApply(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Validating configuration...")
+
 	cfg, _, err := ValidateRemote(
 		cCtx.Context,
 		ce,
@@ -66,12 +67,14 @@ func Apply(
 		ce.PromptMessage(
 			"We are going to overwrite the project's configuration. Do you want to proceed? [y/N] ",
 		)
+
 		resp, err := ce.PromptInput(false)
 		if err != nil {
 			return fmt.Errorf("failed to read input: %w", err)
 		}
+
 		if resp != "y" && resp != "Y" {
-			return errors.New("aborting") //nolint:goerr113
+			return errors.New("aborting") //nolint:err113
 		}
 	}
 

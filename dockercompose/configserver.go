@@ -14,6 +14,7 @@ func configserver( //nolint: funlen
 ) *Service {
 	bindings := make([]Volume, 0, len(runServices))
 	extraArgs := make([]string, len(runServices))
+
 	mountedVolumes := make([]string, 0, len(runServices))
 	for i, runService := range runServices {
 		source := filepath.Dir(runService.Path)
@@ -25,6 +26,7 @@ func configserver( //nolint: funlen
 		if slices.Contains(mountedVolumes, source) {
 			continue
 		}
+
 		mountedVolumes = append(mountedVolumes, source)
 
 		bindings = append(bindings, Volume{

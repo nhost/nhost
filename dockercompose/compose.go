@@ -45,6 +45,7 @@ func ports(host, container uint) []Port {
 	if host == 0 {
 		return nil
 	}
+
 	return []Port{
 		{
 			Mode:      "ingress",
@@ -224,6 +225,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 	if err := trafikFiles(dotnhostfolder); err != nil {
 		return nil, fmt.Errorf("failed to create traefik files: %w", err)
 	}
+
 	dockerURL, err := getDockerHost()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get docker host: %w", err)
@@ -507,6 +509,7 @@ func IsJWTSecretCompatibleWithHasuraAuth( //nolint:cyclop
 			*jwtSecret.Type == "HS512" || *jwtSecret.Type == "RS256" ||
 			*jwtSecret.Type == "RS384" || *jwtSecret.Type == "RS512"
 	}
+
 	return false
 }
 
@@ -537,6 +540,7 @@ func getServices( //nolint: funlen,cyclop
 
 	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	dataFolder := filepath.Join(dotNhostFolder, "data")
+
 	postgres, err := postgres(cfg, subdomain, postgresPort, dataFolder, pgVolumeName)
 	if err != nil {
 		return nil, err
@@ -546,6 +550,7 @@ func getServices( //nolint: funlen,cyclop
 	if err != nil {
 		return nil, err
 	}
+
 	jwtSecret := graphql.Environment["HASURA_GRAPHQL_JWT_SECRET"]
 
 	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Console)
@@ -598,6 +603,7 @@ func getServices( //nolint: funlen,cyclop
 		if err != nil {
 			return nil, err
 		}
+
 		services["auth"] = auth
 
 		if cfg.Ai != nil {

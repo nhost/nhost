@@ -89,6 +89,7 @@ func TestStandardRetry(t *testing.T) {
 
 			start := time.Now()
 			calls := 0
+
 			err := retryer.Retry(tc.funcType(t, &calls))
 			if !errors.Is(err, tc.expectedError) {
 				t.Errorf("expected error %v, got %v", tc.expectedError, err)

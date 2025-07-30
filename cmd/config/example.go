@@ -119,7 +119,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
-				Version: ptr(int(18)),
+				Version: ptr(int(22)),
 			},
 			Resources: &model.ConfigFunctionsResources{
 				Networking: &model.ConfigNetworking{
@@ -209,8 +209,9 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 					ExpiresIn: ptr(uint32(3600)),
 					CustomClaims: []*model.ConfigAuthsessionaccessTokenCustomClaims{
 						{
-							Key:   "key",
-							Value: "value",
+							Key:     "key",
+							Value:   "value",
+							Default: ptr("default-value"),
 						},
 					},
 				},
@@ -419,6 +420,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				MaxWalSenders:                 ptr(int32(10)),
 				MaxReplicationSlots:           ptr(int32(10)),
 				ArchiveTimeout:                ptr(int32(300)),
+				TrackIoTiming:                 ptr("off"),
 			},
 			Pitr: &model.ConfigPostgresPitr{
 				Retention: ptr(uint8(7)),
@@ -535,6 +537,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 	if err != nil {
 		return fmt.Errorf("failed to create schema: %w", err)
 	}
+
 	if err := sch.ValidateConfig(cfg); err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
 	}

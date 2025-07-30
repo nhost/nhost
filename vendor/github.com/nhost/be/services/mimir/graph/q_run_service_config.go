@@ -21,8 +21,10 @@ func (r *queryResolver) runServiceConfig(
 		if errors.Is(err, ErrAppNotFound) {
 			return nil, nil //nolint: nilnil
 		}
+
 		return nil, err
 	}
+
 	app := r.data[i]
 
 	for _, service := range app.Services {
@@ -34,6 +36,7 @@ func (r *queryResolver) runServiceConfig(
 					return nil, err
 				}
 			}
+
 			return cfg, nil
 		}
 	}

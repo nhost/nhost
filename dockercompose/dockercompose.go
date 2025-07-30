@@ -65,6 +65,7 @@ func (dc *DockerCompose) Start(ctx context.Context) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to start docker compose: %w", err)
 	}
+
 	return nil
 }
 
@@ -80,12 +81,14 @@ func (dc *DockerCompose) Stop(ctx context.Context, volumes bool) error {
 	if volumes {
 		cmd.Args = append(cmd.Args, "--volumes")
 	}
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to stop docker compose: %w", err)
 	}
+
 	return nil
 }
 
@@ -110,6 +113,7 @@ func (dc *DockerCompose) Logs(ctx context.Context, extraArgs ...string) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to show logs from docker compose: %w", err)
 	}
+
 	return nil
 }
 
@@ -133,6 +137,7 @@ func (dc *DockerCompose) Wrapper(ctx context.Context, extraArgs ...string) error
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to run docker compose: %w", err)
 	}
+
 	return nil
 }
 
@@ -226,6 +231,7 @@ func (dc *DockerCompose) ApplyMigrations(ctx context.Context, endpoint string) e
 			return fmt.Errorf("failed to copy pty output: %w", err)
 		}
 	}
+
 	return nil
 }
 
@@ -262,5 +268,6 @@ func (dc *DockerCompose) ApplySeeds(ctx context.Context, endpoint string) error 
 			return fmt.Errorf("failed to copy pty output: %w", err)
 		}
 	}
+
 	return nil
 }

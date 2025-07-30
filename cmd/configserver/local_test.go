@@ -130,6 +130,7 @@ func TestLocalGetApps(t *testing.T) {
 				secretsF.Name(),
 				nil,
 			)
+
 			got, err := st.GetApps(configF.Name(), secretsF.Name(), nil)
 			if err != nil {
 				t.Errorf("GetApps() got error: %v", err)

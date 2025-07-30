@@ -59,6 +59,7 @@ func commandPull(cCtx *cli.Context) error {
 	}
 
 	writeSecrets := true
+
 	if !skipConfirmation {
 		if err := verifyFile(ce, ce.Path.Secrets()); err != nil {
 			writeSecrets = false
@@ -71,6 +72,7 @@ func commandPull(cCtx *cli.Context) error {
 	}
 
 	_, err = Pull(cCtx.Context, ce, proj, writeSecrets)
+
 	return err
 }
 
@@ -79,14 +81,17 @@ func verifyFile(ce *clienv.CliEnv, name string) error {
 		ce.PromptMessage("%s",
 			name+" already exists. Do you want to overwrite it? [y/N] ",
 		)
+
 		resp, err := ce.PromptInput(false)
 		if err != nil {
 			return fmt.Errorf("failed to read input: %w", err)
 		}
+
 		if resp != "y" && resp != "Y" {
-			return errors.New("aborting") //nolint:goerr113
+			return errors.New("aborting") //nolint:err113
 		}
 	}
+
 	return nil
 }
 
@@ -105,11 +110,13 @@ func respToSecrets(env []*graphql.GetSecrets_AppSecrets, anonymize bool) model.S
 				s.Value = "FIXME"
 			}
 		}
+
 		secrets[i] = &model.ConfigEnvironmentVariable{
 			Name:  s.Name,
 			Value: s.Value,
 		}
 	}
+
 	return secrets
 }
 
@@ -119,10 +126,12 @@ func pullSecrets(
 	proj *graphql.AppSummaryFragment,
 ) error {
 	ce.Infoln("Getting secrets list from Nhost...")
+
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
+
 	resp, err := cl.GetSecrets(
 		ctx,
 		proj.ID,
@@ -137,6 +146,7 @@ func pullSecrets(
 	}
 
 	ce.Infoln("Adding .secrets to .gitignore...")
+
 	if err := system.AddToGitignore("\n.secrets\n"); err != nil {
 		return fmt.Errorf("failed to add .secrets to .gitignore: %w", err)
 	}
@@ -156,6 +166,7 @@ func Pull(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
+
 	cfg, err := cl.GetConfigRawJSON(
 		ctx,
 		proj.ID,

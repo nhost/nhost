@@ -16,6 +16,7 @@ func GetReleases(ctx context.Context) (Releases, error) {
 	var releases Releases
 
 	client := &http.Client{} //nolint:exhaustruct
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
@@ -34,7 +35,8 @@ func GetReleases(ctx context.Context) (Releases, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf( //nolint:goerr113
+
+		return nil, fmt.Errorf( //nolint:err113
 			"failed to fetch releases with status code (%d): %s", resp.StatusCode, string(b),
 		)
 	}

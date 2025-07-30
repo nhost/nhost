@@ -13,5 +13,6 @@ func URL(host, service string, port uint, useTLS bool) string {
 	if useTLS {
 		protocol = schemeHTTPS
 	}
+
 	return fmt.Sprintf("%s://%s.%s.local.nhost.run:%d", protocol, host, service, port)
 }

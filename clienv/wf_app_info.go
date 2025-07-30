@@ -19,6 +19,7 @@ func getRemoteAppInfo(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
+
 	resp, err := cl.GetOrganizationsAndWorkspacesApps(
 		ctx,
 	)
@@ -42,7 +43,7 @@ func getRemoteAppInfo(
 		}
 	}
 
-	return nil, fmt.Errorf("failed to find app with subdomain: %s", subdomain) //nolint:goerr113
+	return nil, fmt.Errorf("failed to find app with subdomain: %s", subdomain) //nolint:err113
 }
 
 func (ce *CliEnv) GetAppInfo(
@@ -63,6 +64,7 @@ func (ce *CliEnv) GetAppInfo(
 		} else {
 			ce.Warnln("Failed to find linked project: %v", err)
 			ce.Infoln("Please run `nhost link` to link a project first")
+
 			return nil, err
 		}
 	}

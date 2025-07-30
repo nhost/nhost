@@ -21,6 +21,7 @@ func (r *mutationResolver) replaceRunServiceConfig(
 	if err != nil {
 		return nil, err
 	}
+
 	app := r.data[i]
 
 	if err := nameMustBeUnique(app.Services, serviceID, input.Name); err != nil {
@@ -31,6 +32,7 @@ func (r *mutationResolver) replaceRunServiceConfig(
 	if err != nil {
 		return nil, err
 	}
+
 	oldService := app.Services[i]
 
 	newService := &Service{
@@ -56,5 +58,6 @@ func (r *mutationResolver) replaceRunServiceConfig(
 	}
 
 	app.Services[i] = newService
+
 	return newService.Config, nil
 }

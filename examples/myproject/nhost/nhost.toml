@@ -24,7 +24,7 @@ liveQueriesMultiplexedRefetchInterval = 3000
 version = 22
 
 [auth]
-version = '0.40.0'
+version = '0.41.0'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
@@ -54,6 +54,11 @@ rating = 'g'
 [auth.session.accessToken]
 expiresIn = 900
 
+[[auth.session.accessToken.customClaims]]
+key = "spirit-animal"
+value = "animals[0].id"
+default = "00000000-0000-0000-0000-000000000000"
+
 [auth.session.refreshToken]
 expiresIn = 2592000
 
@@ -66,7 +71,7 @@ enabled = false
 
 [auth.method.emailPassword]
 hibpEnabled = false
-emailVerificationRequired = true
+emailVerificationRequired = false
 passwordMinLength = 9
 
 [auth.method.smsPasswordless]
@@ -129,7 +134,7 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.15-20250311-1'
+version = '14.18-20250728-1'
 
 [postgres.resources.storage]
 capacity = 1

@@ -54,6 +54,7 @@ func TestUnmarshal(t *testing.T) {
 			t.Parallel()
 
 			var secrets model.Secrets
+
 			err := env.Unmarshal(tc.data, &secrets)
 			if err != nil {
 				t.Fatalf("got error: %v", err)

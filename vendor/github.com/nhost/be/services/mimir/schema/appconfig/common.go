@@ -12,6 +12,7 @@ func unptr[T any](t *T) T {
 	if t == nil {
 		return *new(T)
 	}
+
 	return *t
 }
 
@@ -26,6 +27,7 @@ func GetFQDN(subdomain, service, region, domain string) string {
 	if region == "" {
 		return fmt.Sprintf("%s.%s.%s", subdomain, service, domain)
 	}
+
 	return fmt.Sprintf("%s.%s.%s.%s", subdomain, service, region, domain)
 }
 
@@ -42,6 +44,7 @@ func GetFQDNURL(subdomain, service, region, domain string, useTLS bool, port uin
 	if useTLS {
 		protocol = "https"
 	}
+
 	return fmt.Sprintf("%s://%s:%d", protocol, FQDN, port)
 }
 
@@ -60,6 +63,7 @@ func GetFQDNOldURL(subdomain, domain string, useTLS bool, port uint) string {
 	if useTLS {
 		protocol = "https"
 	}
+
 	return fmt.Sprintf("%s://%s:%d", protocol, GetFQDNOld(subdomain, domain), port)
 }
 
@@ -90,13 +94,16 @@ func (t *claim) MarshalJSON() ([]byte, error) {
 	if t.Value != nil {
 		return json.Marshal(t.Value) //nolint:wrapcheck
 	}
+
 	s := make(map[string]string)
 	if t.Path != nil {
 		s["path"] = *t.Path
 	}
+
 	if t.Default != nil {
 		s["default"] = *t.Default
 	}
+
 	return json.Marshal(s) //nolint:wrapcheck
 }
 
@@ -129,6 +136,7 @@ func marshalJWT(jwt *model.ConfigJWTSecret) ([]byte, error) {
 			}
 		}
 	}
+
 	return json.Marshal(&jwtSecret{ //nolint:wrapcheck
 		AllowedSkew:         jwt.AllowedSkew,
 		Audience:            jwt.Audience,

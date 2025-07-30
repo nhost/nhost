@@ -254,7 +254,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.17-20250530-1"
+	version: string | *"14.18-20250728-1"
 
 	// Resources for the service
 	resources: {
@@ -291,6 +291,7 @@ import (
 		maxWalSenders:                 int32 | *10
 		maxReplicationSlots:           int32 | *10
 		archiveTimeout:                int32 & >=300 & <=1073741823 | *300
+        trackIoTiming:                 "on" | *"off"
 
 		// if pitr is on we need walLevel to set to replica or logical
 		_validateWalLevelIsLogicalOrReplicaIfPitrIsEnabled: ( pitr == _|_ | walLevel == "replica" | walLevel == "logical") & true @cuegraph(skip)
@@ -382,8 +383,9 @@ import (
 			expiresIn: uint32 | *900
 			// AUTH_JWT_CUSTOM_CLAIMS
 			customClaims: [...{
-				key:   =~"[a-zA-Z_]{1,}[a-zA-Z0-9_]*"
-				value: string
+				key:      =~"[a-zA-Z_]{1,}[a-zA-Z0-9_]*"
+				value:    string
+                default?: string
 			}] | *[]
 		}
 

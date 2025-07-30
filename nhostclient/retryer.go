@@ -24,6 +24,7 @@ func (s BasicRetryer) Retry(f Func) error {
 	}
 
 	var err error
+
 	for i := 2; i <= s.maxAttempts; i++ {
 		time.Sleep(time.Duration(i-1*s.multiplier) * time.Second)
 
@@ -32,5 +33,6 @@ func (s BasicRetryer) Retry(f Func) error {
 			return nil
 		}
 	}
+
 	return err
 }

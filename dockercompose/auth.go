@@ -61,6 +61,7 @@ func auth( //nolint:funlen
 	for _, v := range envars {
 		env[v.Name] = v.Value
 	}
+
 	svc := &Service{
 		Image: "nhost/hasura-auth:" + *cfg.Auth.Version,
 		DependsOn: map[string]DependsOn{

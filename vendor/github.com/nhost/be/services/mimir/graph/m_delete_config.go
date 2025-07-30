@@ -23,6 +23,7 @@ func (r *mutationResolver) deleteConfig(
 		if errors.Is(err, ErrAppNotFound) {
 			return nil, nil //nolint: nilnil
 		}
+
 		return nil, err
 	}
 

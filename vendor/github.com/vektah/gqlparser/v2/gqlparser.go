@@ -5,9 +5,7 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vektah/gqlparser/v2/parser"
 	"github.com/vektah/gqlparser/v2/validator"
-
-	// Blank import is used to load up the validator rules.
-	_ "github.com/vektah/gqlparser/v2/validator/rules"
+	"github.com/vektah/gqlparser/v2/validator/rules"
 )
 
 func LoadSchema(str ...*ast.Source) (*ast.Schema, error) {
@@ -30,6 +28,7 @@ func MustLoadSchema(str ...*ast.Source) *ast.Schema {
 	return s
 }
 
+// Deprecated: use LoadQueryWithRules instead.
 func LoadQuery(schema *ast.Schema, str string) (*ast.QueryDocument, gqlerror.List) {
 	query, err := parser.ParseQuery(&ast.Source{Input: str})
 	if err != nil {
@@ -47,8 +46,34 @@ func LoadQuery(schema *ast.Schema, str string) (*ast.QueryDocument, gqlerror.Lis
 	return query, nil
 }
 
+func LoadQueryWithRules(schema *ast.Schema, str string, rules *rules.Rules) (*ast.QueryDocument, gqlerror.List) {
+	query, err := parser.ParseQuery(&ast.Source{Input: str})
+	if err != nil {
+		gqlErr, ok := err.(*gqlerror.Error)
+		if ok {
+			return nil, gqlerror.List{gqlErr}
+		}
+		return nil, gqlerror.List{gqlerror.Wrap(err)}
+	}
+	errs := validator.ValidateWithRules(schema, query, rules)
+	if len(errs) > 0 {
+		return nil, errs
+	}
+
+	return query, nil
+}
+
+// Deprecated: use MustLoadQueryWithRules instead.
 func MustLoadQuery(schema *ast.Schema, str string) *ast.QueryDocument {
 	q, err := LoadQuery(schema, str)
+	if err != nil {
+		panic(err)
+	}
+	return q
+}
+
+func MustLoadQueryWithRules(schema *ast.Schema, str string, rules *rules.Rules) *ast.QueryDocument {
+	q, err := LoadQueryWithRules(schema, str, rules)
 	if err != nil {
 		panic(err)
 	}

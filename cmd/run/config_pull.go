@@ -38,6 +38,7 @@ func CommandConfigPull() *cli.Command {
 
 func commandConfigPull(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
+
 	cl, err := ce.GetNhostClient(cCtx.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)

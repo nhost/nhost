@@ -13,7 +13,7 @@ import (
 
 func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) error {
 	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
-		return errors.New("no apps found") //nolint:goerr113
+		return errors.New("no apps found") //nolint:err113
 	}
 
 	num := Column{
@@ -65,13 +65,14 @@ func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) erro
 
 func confirmApp(ce *CliEnv, app *graphql.AppSummaryFragment) error {
 	ce.PromptMessage("Enter project subdomain to confirm: ")
+
 	confirm, err := ce.PromptInput(false)
 	if err != nil {
 		return fmt.Errorf("failed to read input: %w", err)
 	}
 
 	if confirm != app.Subdomain {
-		return errors.New("input doesn't match the subdomain") //nolint:goerr113
+		return errors.New("input doesn't match the subdomain") //nolint:err113
 	}
 
 	return nil
@@ -82,15 +83,20 @@ func getApp(
 	idx string,
 ) (*graphql.AppSummaryFragment, error) {
 	x := 1
+
 	var app *graphql.AppSummaryFragment
+
 OUTER:
+
 	for _, orgs := range orgs.GetOrganizations() {
 		for _, a := range orgs.GetApps() {
 			if strconv.Itoa(x) == idx {
 				a := a
 				app = a
+
 				break OUTER
 			}
+
 			x++
 		}
 	}
@@ -105,14 +111,16 @@ OUTER2:
 			if strconv.Itoa(x) == idx {
 				a := a
 				app = a
+
 				break OUTER2
 			}
+
 			x++
 		}
 	}
 
 	if app == nil {
-		return nil, errors.New("invalid input") //nolint:goerr113
+		return nil, errors.New("invalid input") //nolint:err113
 	}
 
 	return app, nil
@@ -123,13 +131,14 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
+
 	orgs, err := cl.GetOrganizationsAndWorkspacesApps(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspaces: %w", err)
 	}
 
 	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
-		return nil, errors.New("no apps found") //nolint:goerr113
+		return nil, errors.New("no apps found") //nolint:err113
 	}
 
 	if err := Printlist(ce, orgs); err != nil {
@@ -137,6 +146,7 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error)
 	}
 
 	ce.PromptMessage("Select the workspace # to link: ")
+
 	idx, err := ce.PromptInput(false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read workspace: %w", err)

@@ -62,5 +62,6 @@ func commandConfigShow(cCtx *cli.Context) error {
 	}
 
 	ce.Println("%s", b)
+
 	return nil
 }

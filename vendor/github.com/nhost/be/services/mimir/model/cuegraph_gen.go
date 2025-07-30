@@ -9620,12 +9620,17 @@ type ConfigAuthsessionaccessTokenCustomClaims struct {
 	Key string `json:"key" toml:"key"`
 
 	Value string `json:"value" toml:"value"`
+
+	Default *string `json:"default" toml:"default"`
 }
 
 func (o *ConfigAuthsessionaccessTokenCustomClaims) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	m["key"] = o.Key
 	m["value"] = o.Value
+	if o.Default != nil {
+		m["default"] = o.Default
+	}
 	return json.Marshal(m)
 }
 
@@ -9643,11 +9648,20 @@ func (o *ConfigAuthsessionaccessTokenCustomClaims) GetValue() string {
 	return o.Value
 }
 
+func (o *ConfigAuthsessionaccessTokenCustomClaims) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthsessionaccessTokenCustomClaims{}
+	}
+	return o.Default
+}
+
 type ConfigAuthsessionaccessTokenCustomClaimsUpdateInput struct {
-	Key        *string `json:"key,omitempty" toml:"key,omitempty"`
-	IsSetKey   bool    `json:"-"`
-	Value      *string `json:"value,omitempty" toml:"value,omitempty"`
-	IsSetValue bool    `json:"-"`
+	Key          *string `json:"key,omitempty" toml:"key,omitempty"`
+	IsSetKey     bool    `json:"-"`
+	Value        *string `json:"value,omitempty" toml:"value,omitempty"`
+	IsSetValue   bool    `json:"-"`
+	Default      *string `json:"default,omitempty" toml:"default,omitempty"`
+	IsSetDefault bool    `json:"-"`
 }
 
 func (o *ConfigAuthsessionaccessTokenCustomClaimsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -9689,6 +9703,23 @@ func (o *ConfigAuthsessionaccessTokenCustomClaimsUpdateInput) UnmarshalGQL(v int
 		}
 		o.IsSetValue = true
 	}
+	if v, ok := m["default"]; ok {
+		if v == nil {
+			o.Default = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Default = &x
+		}
+		o.IsSetDefault = true
+	}
 
 	return nil
 }
@@ -9714,6 +9745,13 @@ func (o *ConfigAuthsessionaccessTokenCustomClaimsUpdateInput) GetValue() *string
 	return o.Value
 }
 
+func (o *ConfigAuthsessionaccessTokenCustomClaimsUpdateInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthsessionaccessTokenCustomClaimsUpdateInput{}
+	}
+	return o.Default
+}
+
 func (s *ConfigAuthsessionaccessTokenCustomClaims) Update(v *ConfigAuthsessionaccessTokenCustomClaimsUpdateInput) {
 	if v == nil {
 		return
@@ -9728,11 +9766,15 @@ func (s *ConfigAuthsessionaccessTokenCustomClaims) Update(v *ConfigAuthsessionac
 			s.Value = *v.Value
 		}
 	}
+	if v.IsSetDefault || v.Default != nil {
+		s.Default = v.Default
+	}
 }
 
 type ConfigAuthsessionaccessTokenCustomClaimsInsertInput struct {
-	Key   string `json:"key,omitempty" toml:"key,omitempty"`
-	Value string `json:"value,omitempty" toml:"value,omitempty"`
+	Key     string  `json:"key,omitempty" toml:"key,omitempty"`
+	Value   string  `json:"value,omitempty" toml:"value,omitempty"`
+	Default *string `json:"default,omitempty" toml:"default,omitempty"`
 }
 
 func (o *ConfigAuthsessionaccessTokenCustomClaimsInsertInput) GetKey() string {
@@ -9749,9 +9791,17 @@ func (o *ConfigAuthsessionaccessTokenCustomClaimsInsertInput) GetValue() string 
 	return o.Value
 }
 
+func (o *ConfigAuthsessionaccessTokenCustomClaimsInsertInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthsessionaccessTokenCustomClaimsInsertInput{}
+	}
+	return o.Default
+}
+
 func (s *ConfigAuthsessionaccessTokenCustomClaims) Insert(v *ConfigAuthsessionaccessTokenCustomClaimsInsertInput) {
 	s.Key = v.Key
 	s.Value = v.Value
+	s.Default = v.Default
 }
 
 func (s *ConfigAuthsessionaccessTokenCustomClaims) Clone() *ConfigAuthsessionaccessTokenCustomClaims {
@@ -9762,15 +9812,17 @@ func (s *ConfigAuthsessionaccessTokenCustomClaims) Clone() *ConfigAuthsessionacc
 	v := &ConfigAuthsessionaccessTokenCustomClaims{}
 	v.Key = s.Key
 	v.Value = s.Value
+	v.Default = s.Default
 	return v
 }
 
 type ConfigAuthsessionaccessTokenCustomClaimsComparisonExp struct {
-	And   []*ConfigAuthsessionaccessTokenCustomClaimsComparisonExp `json:"_and,omitempty"`
-	Not   *ConfigAuthsessionaccessTokenCustomClaimsComparisonExp   `json:"_not,omitempty"`
-	Or    []*ConfigAuthsessionaccessTokenCustomClaimsComparisonExp `json:"_or,omitempty"`
-	Key   *ConfigStringComparisonExp                               `json:"key,omitempty"`
-	Value *ConfigStringComparisonExp                               `json:"value,omitempty"`
+	And     []*ConfigAuthsessionaccessTokenCustomClaimsComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthsessionaccessTokenCustomClaimsComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthsessionaccessTokenCustomClaimsComparisonExp `json:"_or,omitempty"`
+	Key     *ConfigStringComparisonExp                               `json:"key,omitempty"`
+	Value   *ConfigStringComparisonExp                               `json:"value,omitempty"`
+	Default *ConfigStringComparisonExp                               `json:"default,omitempty"`
 }
 
 func (exp *ConfigAuthsessionaccessTokenCustomClaimsComparisonExp) Matches(o *ConfigAuthsessionaccessTokenCustomClaims) bool {
@@ -9785,6 +9837,9 @@ func (exp *ConfigAuthsessionaccessTokenCustomClaimsComparisonExp) Matches(o *Con
 		return false
 	}
 	if !exp.Value.Matches(o.Value) {
+		return false
+	}
+	if o.Default != nil && !exp.Default.Matches(*o.Default) {
 		return false
 	}
 
@@ -20111,6 +20166,8 @@ type ConfigPostgresSettings struct {
 	MaxReplicationSlots *int32 `json:"maxReplicationSlots" toml:"maxReplicationSlots"`
 
 	ArchiveTimeout *int32 `json:"archiveTimeout" toml:"archiveTimeout"`
+
+	TrackIoTiming *string `json:"trackIoTiming" toml:"trackIoTiming"`
 }
 
 func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
@@ -20180,6 +20237,9 @@ func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
 	}
 	if o.ArchiveTimeout != nil {
 		m["archiveTimeout"] = o.ArchiveTimeout
+	}
+	if o.TrackIoTiming != nil {
+		m["trackIoTiming"] = o.TrackIoTiming
 	}
 	return json.Marshal(m)
 }
@@ -20338,6 +20398,13 @@ func (o *ConfigPostgresSettings) GetArchiveTimeout() *int32 {
 	return o.ArchiveTimeout
 }
 
+func (o *ConfigPostgresSettings) GetTrackIoTiming() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.TrackIoTiming
+}
+
 type ConfigPostgresSettingsUpdateInput struct {
 	Jit                                *string  `json:"jit,omitempty" toml:"jit,omitempty"`
 	IsSetJit                           bool     `json:"-"`
@@ -20383,6 +20450,8 @@ type ConfigPostgresSettingsUpdateInput struct {
 	IsSetMaxReplicationSlots           bool     `json:"-"`
 	ArchiveTimeout                     *int32   `json:"archiveTimeout,omitempty" toml:"archiveTimeout,omitempty"`
 	IsSetArchiveTimeout                bool     `json:"-"`
+	TrackIoTiming                      *string  `json:"trackIoTiming,omitempty" toml:"trackIoTiming,omitempty"`
+	IsSetTrackIoTiming                 bool     `json:"-"`
 }
 
 func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -20764,6 +20833,23 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetArchiveTimeout = true
 	}
+	if v, ok := m["trackIoTiming"]; ok {
+		if v == nil {
+			o.TrackIoTiming = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.TrackIoTiming = &x
+		}
+		o.IsSetTrackIoTiming = true
+	}
 
 	return nil
 }
@@ -20929,6 +21015,13 @@ func (o *ConfigPostgresSettingsUpdateInput) GetArchiveTimeout() *int32 {
 	return o.ArchiveTimeout
 }
 
+func (o *ConfigPostgresSettingsUpdateInput) GetTrackIoTiming() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.TrackIoTiming
+}
+
 func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v == nil {
 		return
@@ -20999,6 +21092,9 @@ func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v.IsSetArchiveTimeout || v.ArchiveTimeout != nil {
 		s.ArchiveTimeout = v.ArchiveTimeout
 	}
+	if v.IsSetTrackIoTiming || v.TrackIoTiming != nil {
+		s.TrackIoTiming = v.TrackIoTiming
+	}
 }
 
 type ConfigPostgresSettingsInsertInput struct {
@@ -21024,6 +21120,7 @@ type ConfigPostgresSettingsInsertInput struct {
 	MaxWalSenders                 *int32   `json:"maxWalSenders,omitempty" toml:"maxWalSenders,omitempty"`
 	MaxReplicationSlots           *int32   `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
 	ArchiveTimeout                *int32   `json:"archiveTimeout,omitempty" toml:"archiveTimeout,omitempty"`
+	TrackIoTiming                 *string  `json:"trackIoTiming,omitempty" toml:"trackIoTiming,omitempty"`
 }
 
 func (o *ConfigPostgresSettingsInsertInput) GetJit() *string {
@@ -21180,6 +21277,13 @@ func (o *ConfigPostgresSettingsInsertInput) GetArchiveTimeout() *int32 {
 	return o.ArchiveTimeout
 }
 
+func (o *ConfigPostgresSettingsInsertInput) GetTrackIoTiming() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.TrackIoTiming
+}
+
 func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.Jit = v.Jit
 	s.MaxConnections = v.MaxConnections
@@ -21203,6 +21307,7 @@ func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.MaxWalSenders = v.MaxWalSenders
 	s.MaxReplicationSlots = v.MaxReplicationSlots
 	s.ArchiveTimeout = v.ArchiveTimeout
+	s.TrackIoTiming = v.TrackIoTiming
 }
 
 func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
@@ -21233,6 +21338,7 @@ func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
 	v.MaxWalSenders = s.MaxWalSenders
 	v.MaxReplicationSlots = s.MaxReplicationSlots
 	v.ArchiveTimeout = s.ArchiveTimeout
+	v.TrackIoTiming = s.TrackIoTiming
 	return v
 }
 
@@ -21262,6 +21368,7 @@ type ConfigPostgresSettingsComparisonExp struct {
 	MaxWalSenders                 *ConfigInt32ComparisonExp              `json:"maxWalSenders,omitempty"`
 	MaxReplicationSlots           *ConfigInt32ComparisonExp              `json:"maxReplicationSlots,omitempty"`
 	ArchiveTimeout                *ConfigInt32ComparisonExp              `json:"archiveTimeout,omitempty"`
+	TrackIoTiming                 *ConfigStringComparisonExp             `json:"trackIoTiming,omitempty"`
 }
 
 func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSettings) bool {
@@ -21336,6 +21443,9 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 		return false
 	}
 	if o.ArchiveTimeout != nil && !exp.ArchiveTimeout.Matches(*o.ArchiveTimeout) {
+		return false
+	}
+	if o.TrackIoTiming != nil && !exp.TrackIoTiming.Matches(*o.TrackIoTiming) {
 		return false
 	}
 

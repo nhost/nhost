@@ -11,6 +11,7 @@ func deptr[T any](t *T) T { //nolint:ireturn
 	if t == nil {
 		return *new(T)
 	}
+
 	return *t
 }
 

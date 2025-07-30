@@ -71,6 +71,7 @@ func TestMakeJSONRequest(t *testing.T) {
 						r.Method,
 					)
 				}
+
 				if diff := cmp.Diff(tc.headers, r.Header); diff != "" {
 					t.Errorf("%s", diff)
 				}
@@ -86,6 +87,7 @@ func TestMakeJSONRequest(t *testing.T) {
 
 				w.WriteHeader(http.StatusOK)
 				w.Header().Set("Content-Type", "application/json")
+
 				if err := json.NewEncoder(w).Encode(tc.expectedResponsePayload); err != nil {
 					t.Errorf("failed to encode response body: %v", err)
 				}
@@ -93,6 +95,7 @@ func TestMakeJSONRequest(t *testing.T) {
 			defer ts.Close()
 
 			var responsePayload any
+
 			err := nhostclient.MakeJSONRequest(
 				t.Context(),
 				&http.Client{}, //nolint: exhaustruct

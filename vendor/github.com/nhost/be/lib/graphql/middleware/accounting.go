@@ -21,6 +21,7 @@ func GraphqlAccounting(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"message": "failed to read request body",
 			})
+
 			return
 		}
 

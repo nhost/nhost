@@ -18,5 +18,6 @@ func (r *queryResolver) appsSecrets(_ context.Context) []*model.ConfigAppSecrets
 			Secrets: root.Secrets,
 		}
 	}
+
 	return result
 }

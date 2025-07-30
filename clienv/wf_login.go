@@ -43,13 +43,16 @@ func savePAT(
 func signinHandler(ch chan<- string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ch <- r.URL.Query().Get("refreshToken")
+
 		fmt.Fprintf(w, "You may now close this window.")
 	}
 }
 
-func openBrowser(url string) error {
-	var cmd string
-	var args []string
+func openBrowser(ctx context.Context, url string) error {
+	var (
+		cmd  string
+		args []string
+	)
 
 	switch runtime.GOOS {
 	case "darwin":
@@ -57,8 +60,9 @@ func openBrowser(url string) error {
 	default: // "linux", "freebsd", "openbsd", "netbsd"
 		cmd = "xdg-open"
 	}
+
 	args = append(args, url)
-	if err := exec.Command(cmd, args...).Start(); err != nil {
+	if err := exec.CommandContext(ctx, cmd, args...).Start(); err != nil {
 		return fmt.Errorf("failed to open browser: %w", err)
 	}
 
@@ -76,12 +80,13 @@ func getTLSServer() (*http.Server, error) {
 	// Type assert the private key to crypto.PrivateKey
 	pk, ok := privateKey.(crypto.PrivateKey)
 	if !ok {
-		return nil, errors.New( //nolint:goerr113
+		return nil, errors.New( //nolint:err113
 			"failed to type assert private key to crypto.PrivateKey",
 		)
 	}
 
 	block, _ = pem.Decode(ssl.LocalCertFile)
+
 	certificate, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse certificate: %w", err)
@@ -110,6 +115,7 @@ func (ce *CliEnv) loginPAT(pat string) credentials.Credentials {
 		ID:                  "",
 		PersonalAccessToken: pat,
 	}
+
 	return session
 }
 
@@ -119,9 +125,12 @@ func (ce *CliEnv) loginEmailPassword(
 	password string,
 ) (credentials.Credentials, error) {
 	cl := nhostclient.New(ce.AuthURL(), ce.GraphqlURL())
+
 	var err error
+
 	if email == "" {
 		ce.PromptMessage("email: ")
+
 		email, err = ce.PromptInput(false)
 		if err != nil {
 			return credentials.Credentials{}, fmt.Errorf("failed to read email: %w", err)
@@ -132,12 +141,14 @@ func (ce *CliEnv) loginEmailPassword(
 		ce.PromptMessage("password: ")
 		password, err = ce.PromptInput(true)
 		ce.Println("")
+
 		if err != nil {
 			return credentials.Credentials{}, fmt.Errorf("failed to read password: %w", err)
 		}
 	}
 
 	ce.Infoln("Authenticating")
+
 	loginResp, err := cl.Login(ctx, email, password)
 	if err != nil {
 		return credentials.Credentials{}, fmt.Errorf("failed to login: %w", err)
@@ -147,6 +158,7 @@ func (ce *CliEnv) loginEmailPassword(
 	if err != nil {
 		return credentials.Credentials{}, fmt.Errorf("failed to create PAT: %w", err)
 	}
+
 	ce.Infoln("Successfully logged in")
 
 	return session, nil
@@ -155,6 +167,7 @@ func (ce *CliEnv) loginEmailPassword(
 func (ce *CliEnv) loginGithub(ctx context.Context) (credentials.Credentials, error) {
 	refreshToken := make(chan string)
 	http.HandleFunc("/signin", signinHandler(refreshToken))
+
 	go func() {
 		server, err := getTLSServer()
 		if err != nil {
@@ -168,22 +181,27 @@ func (ce *CliEnv) loginGithub(ctx context.Context) (credentials.Credentials, err
 
 	signinPage := ce.AuthURL() + "/signin/provider/github/?redirectTo=https://local.dashboard.local.nhost.run:8099/signin"
 	ce.Infoln("Opening browser to sign-in")
-	if err := openBrowser(signinPage); err != nil {
+
+	if err := openBrowser(ctx, signinPage); err != nil {
 		return credentials.Credentials{}, err
 	}
+
 	ce.Infoln("Waiting for sign-in to complete")
 
 	refreshTokenValue := <-refreshToken
 
 	cl := nhostclient.New(ce.AuthURL(), ce.GraphqlURL())
+
 	refreshTokenResp, err := cl.RefreshToken(ctx, refreshTokenValue)
 	if err != nil {
 		return credentials.Credentials{}, fmt.Errorf("failed to get access token: %w", err)
 	}
+
 	session, err := cl.CreatePAT(ctx, refreshTokenResp.AccessToken)
 	if err != nil {
 		return credentials.Credentials{}, fmt.Errorf("failed to create PAT: %w", err)
 	}
+
 	ce.Infoln("Successfully logged in")
 
 	return session, nil
@@ -192,6 +210,7 @@ func (ce *CliEnv) loginGithub(ctx context.Context) (credentials.Credentials, err
 func (ce *CliEnv) loginMethod(ctx context.Context) (credentials.Credentials, error) {
 	ce.Infoln("Select authentication method:\n1. PAT\n2. Email/Password\n3. Github")
 	ce.PromptMessage("method: ")
+
 	method, err := ce.PromptInput(false)
 	if err != nil {
 		return credentials.Credentials{}, fmt.Errorf(
@@ -201,13 +220,16 @@ func (ce *CliEnv) loginMethod(ctx context.Context) (credentials.Credentials, err
 	}
 
 	var session credentials.Credentials
+
 	switch method {
 	case "1":
 		ce.PromptMessage("PAT: ")
+
 		pat, err := ce.PromptInput(true)
 		if err != nil {
 			return credentials.Credentials{}, fmt.Errorf("failed to read PAT: %w", err)
 		}
+
 		session = ce.loginPAT(pat)
 	case "2":
 		session, err = ce.loginEmailPassword(ctx, "", "")
@@ -216,6 +238,7 @@ func (ce *CliEnv) loginMethod(ctx context.Context) (credentials.Credentials, err
 	default:
 		return ce.loginMethod(ctx)
 	}
+
 	return session, err
 }
 
@@ -232,6 +255,7 @@ func (ce *CliEnv) verifyEmail(
 
 	ce.Infoln("A verification email has been sent to %s", email)
 	ce.Infoln("Please verify your email address and try again")
+
 	return nil
 }
 
@@ -241,8 +265,11 @@ func (ce *CliEnv) Login(
 	email string,
 	password string,
 ) (credentials.Credentials, error) {
-	var session credentials.Credentials
-	var err error
+	var (
+		session credentials.Credentials
+		err     error
+	)
+
 	switch {
 	case pat != "":
 		session = ce.loginPAT(pat)

@@ -60,6 +60,7 @@ func FromCLI(cCtx *cli.Context) *CliEnv {
 	if err != nil {
 		panic(err)
 	}
+
 	return &CliEnv{
 		stdout: cCtx.App.Writer,
 		stderr: cCtx.App.ErrWriter,
@@ -105,12 +106,14 @@ func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, erro
 		if err != nil {
 			return nil, fmt.Errorf("failed to load session: %w", err)
 		}
+
 		ce.nhclient = nhostclient.New(
 			ce.authURL,
 			ce.graphqlURL,
 			graphql.WithAccessToken(session.Session.AccessToken),
 		)
 	}
+
 	return ce.nhclient, nil
 }
 
@@ -118,5 +121,6 @@ func (ce *CliEnv) GetNhostPublicClient() (*nhostclient.Client, error) {
 	if ce.nhpublicclient == nil {
 		ce.nhpublicclient = nhostclient.New(ce.authURL, ce.graphqlURL)
 	}
+
 	return ce.nhpublicclient, nil
 }

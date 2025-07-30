@@ -67,8 +67,11 @@ func (ce *CliEnv) PromptMessage(msg string, a ...any) {
 
 func (ce *CliEnv) PromptInput(hide bool) (string, error) {
 	reader := bufio.NewReader(os.Stdin)
-	var response string
-	var err error
+
+	var (
+		response string
+		err      error
+	)
 
 	if !hide {
 		response, err = reader.ReadString('\n')
@@ -80,6 +83,7 @@ func (ce *CliEnv) PromptInput(hide bool) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to read input: %w", err)
 		}
+
 		response = string(output)
 	}
 

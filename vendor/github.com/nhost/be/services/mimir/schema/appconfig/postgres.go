@@ -190,6 +190,14 @@ func PostgresEnv( //nolint:funlen
 					*config.GetPostgres().GetSettings().GetArchiveTimeout(),
 				),
 			},
+			{
+				Name: "TRACK_IO_TIMING",
+				Value: Stringify(
+					*config.GetPostgres().GetSettings().GetTrackIoTiming(),
+				),
+				IsSecret:   false,
+				SecretName: "",
+			},
 		}...)
 	}
 

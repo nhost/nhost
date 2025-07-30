@@ -66,6 +66,7 @@ func ParseJWTFunc(jwtSecret JWTSecret) func(tokenString string) (*jwt.Token, err
 		if err != nil {
 			return nil, fmt.Errorf("error parsing token: %w", err)
 		}
+
 		return token, nil
 	}
 }
@@ -76,10 +77,12 @@ func SessionVariablesToCtx(ctx context.Context, session *SessionVariables) conte
 
 func SessionVariablesFromCtx(ctx context.Context) *SessionVariables {
 	s := ctx.Value(sessionVariablesToCtx{})
+
 	session, ok := s.(*SessionVariables)
 	if !ok {
 		return nil
 	}
+
 	return session
 }
 
@@ -105,6 +108,7 @@ func SessionVariablesReader(
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"message": "unauthorized",
 			})
+
 			return
 		}
 
@@ -209,6 +213,7 @@ func getSessionVariablesFromAccessToken( //nolint:cyclop,funlen
 	}
 
 	accessToken := strings.TrimPrefix(headers.Get(headerAuthorization), "Bearer ")
+
 	token, err := jwtParser(accessToken)
 	if err != nil {
 		logger.WithError(err).Error("error parsing jwt")

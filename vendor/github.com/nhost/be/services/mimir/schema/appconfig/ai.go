@@ -84,5 +84,6 @@ func AIEnv( //nolint:funlen
 			Value: e.Value,
 		})
 	}
+
 	return env
 }

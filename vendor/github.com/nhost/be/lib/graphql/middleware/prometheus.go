@@ -10,8 +10,10 @@ import (
 )
 
 func PrometheusGraphqlAroundFieldsInstrumentation() graphql.FieldMiddleware {
-	const success = "success"
-	const failure = "failure"
+	const (
+		success = "success"
+		failure = "failure"
+	)
 
 	requestsStarted := promauto.NewCounterVec(
 		prometheus.CounterOpts{ //nolint: exhaustruct
@@ -48,10 +50,12 @@ func PrometheusGraphqlAroundFieldsInstrumentation() graphql.FieldMiddleware {
 		requestsStarted.WithLabelValues(operationType, rootField).Inc()
 
 		res, err := next(ctx)
+
 		status := success
 		if err != nil {
 			status = failure
 		}
+
 		requestsCompletedCounter.WithLabelValues(operationType, rootField, status).Inc()
 
 		timeToHandleActionHistogram.WithLabelValues(operationType, rootField, status).

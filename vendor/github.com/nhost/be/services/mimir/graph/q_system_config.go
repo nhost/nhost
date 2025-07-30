@@ -18,5 +18,6 @@ func (r *queryResolver) systemConfig(
 			return app.SystemConfig, nil
 		}
 	}
+
 	return nil, nil //nolint: nilnil
 }

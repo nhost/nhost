@@ -76,6 +76,7 @@ func main() {
 		if errors.As(err, &graphqlErr) {
 			log.Fatal(graphqlErr.GqlErrors)
 		}
+
 		log.Fatal(err)
 	}
 }

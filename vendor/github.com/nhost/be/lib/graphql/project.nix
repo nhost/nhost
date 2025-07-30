@@ -3,7 +3,8 @@ let
   name = "graphql";
   submodule = "lib/${name}";
   description = "Common graphql functionality";
-  version = pkgs.lib.fileContents ./VERSION;
+  version = "0.0.0-dev";
+  created = "1970-01-01T00:00:00Z";
 
   # source files needed for the build
   src = nix-filter.lib.filter {

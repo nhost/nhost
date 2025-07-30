@@ -34,10 +34,12 @@ func nameMustBeUnique(svcs Services, serviceID, name string) error {
 			// we skip the service we are updating
 			continue
 		}
+
 		if svc.Config.Name == name {
 			return ErrNameDuplicated
 		}
 	}
+
 	return nil
 }
 
@@ -53,6 +55,7 @@ func (r *mutationResolver) insertRunServiceConfig(
 	if err != nil {
 		return nil, err
 	}
+
 	app := r.data[i]
 
 	serviceID := uuid.NewString()

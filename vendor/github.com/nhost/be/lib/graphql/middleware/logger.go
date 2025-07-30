@@ -15,6 +15,7 @@ func Logger(logger logrus.FieldLogger) gin.HandlerFunc {
 		startTime := time.Now()
 
 		trace, _ := nhtracing.FromContext(ctx.Request.Context())
+
 		traceID := trace.TraceID
 		if traceID == "" {
 			traceID = uuid.New().String()

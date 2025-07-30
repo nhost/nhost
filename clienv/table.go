@@ -23,10 +23,12 @@ func Table(columns ...Column) string {
 	strs := make([]string, len(columns))
 	for i, col := range columns {
 		c := make([]string, len(col.Rows)+1)
+
 		c[0] = listHeader(col.Header)
 		for i, row := range col.Rows {
 			c[i+1] = listItem(row)
 		}
+
 		strs[i] = list.Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,

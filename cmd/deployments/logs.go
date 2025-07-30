@@ -104,7 +104,7 @@ func showLogsFollow(
 func commandLogs(cCtx *cli.Context) error {
 	deploymentID := cCtx.Args().First()
 	if deploymentID == "" {
-		return errors.New("deployment_id is required") //nolint:goerr113
+		return errors.New("deployment_id is required") //nolint:err113
 	}
 
 	ce := clienv.FromCLI(cCtx)

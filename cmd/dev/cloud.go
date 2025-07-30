@@ -94,12 +94,13 @@ func commandCloud(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
 	if !clienv.PathExists(ce.Path.NhostToml()) {
-		return errors.New( //nolint:goerr113
+		return errors.New( //nolint:err113
 			"no nhost project found, please run `nhost init` or `nhost config pull`",
 		)
 	}
+
 	if !clienv.PathExists(ce.Path.Secrets()) {
-		return errors.New( //nolint:goerr113
+		return errors.New( //nolint:err113
 			"no secrets found, please run `nhost init` or `nhost config pull`",
 		)
 	}
@@ -115,6 +116,7 @@ func commandCloud(cCtx *cli.Context) error {
 	}
 
 	applySeeds := cCtx.Bool(flagApplySeeds)
+
 	return Cloud(
 		cCtx.Context,
 		ce,
@@ -157,12 +159,14 @@ func cloud( //nolint:funlen
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+
 	go func() {
 		<-sigChan
 		cancel()
 	}()
 
 	ce.Infoln("Validating configuration...")
+
 	cfg, cfgSecrets, err := config.ValidateRemote(
 		ctx,
 		ce,
@@ -175,12 +179,15 @@ func cloud( //nolint:funlen
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:mnd
 	defer cancel()
+
 	ce.Infoln("Checking versions...")
+
 	if err := software.CheckVersions(ctxWithTimeout, ce, cfgSecrets, appVersion); err != nil {
 		ce.Warnln("Problem verifying recommended versions: %s", err.Error())
 	}
 
 	ce.Infoln("Setting up Nhost development environment...")
+
 	composeFile, err := dockercompose.CloudComposeFileFromConfig(
 		cfgSecrets,
 		ce.LocalSubdomain(),
@@ -202,16 +209,19 @@ func cloud( //nolint:funlen
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)
 	}
+
 	if err := dc.WriteComposeFile(composeFile); err != nil {
 		return fmt.Errorf("failed to write docker-compose.yaml: %w", err)
 	}
 
 	ce.Infoln("Starting Nhost development environment...")
+
 	if err = dc.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start Nhost development environment: %w", err)
 	}
 
 	ce.Infoln("Applying configuration to Nhost Cloud project...")
+
 	if err = config.Apply(ctx, ce, proj.GetID(), cfg, true); err != nil {
 		return fmt.Errorf("failed to apply configuration: %w", err)
 	}
@@ -226,7 +236,9 @@ func cloud( //nolint:funlen
 	}
 
 	docker := dockercompose.NewDocker()
+
 	ce.Infoln("Downloading metadata...")
+
 	if err := docker.HasuraWrapper(
 		ctx,
 		ce.LocalSubdomain(),
@@ -243,6 +255,7 @@ func cloud( //nolint:funlen
 
 	ce.Infoln("Nhost development environment started.")
 	printCloudInfo(ce.LocalSubdomain(), httpPort, useTLS)
+
 	return nil
 }
 

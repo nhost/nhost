@@ -1561,16 +1561,22 @@ type ConfigAuthsessionaccessTokenCustomClaims {
 
     """
     value: String!
+    """
+
+    """
+    default: String
 }
 
 input ConfigAuthsessionaccessTokenCustomClaimsUpdateInput {
     key: String
     value: String
+    default: String
 }
 
 input ConfigAuthsessionaccessTokenCustomClaimsInsertInput {
     key: String!
     value: String!
+    default: String
 }
 
 input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
@@ -1579,6 +1585,7 @@ input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
     _or: [ConfigAuthsessionaccessTokenCustomClaimsComparisonExp!]
     key: ConfigStringComparisonExp
     value: ConfigStringComparisonExp
+    default: ConfigStringComparisonExp
 }
 
 """
@@ -3211,6 +3218,10 @@ type ConfigPostgresSettings {
 
     """
     archiveTimeout: ConfigInt32
+    """
+
+    """
+    trackIoTiming: String
 }
 
 input ConfigPostgresSettingsUpdateInput {
@@ -3236,6 +3247,7 @@ input ConfigPostgresSettingsUpdateInput {
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
     archiveTimeout: ConfigInt32
+    trackIoTiming: String
 }
 
 input ConfigPostgresSettingsInsertInput {
@@ -3261,6 +3273,7 @@ input ConfigPostgresSettingsInsertInput {
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
     archiveTimeout: ConfigInt32
+    trackIoTiming: String
 }
 
 input ConfigPostgresSettingsComparisonExp {
@@ -3289,6 +3302,7 @@ input ConfigPostgresSettingsComparisonExp {
     maxWalSenders: ConfigInt32ComparisonExp
     maxReplicationSlots: ConfigInt32ComparisonExp
     archiveTimeout: ConfigInt32ComparisonExp
+    trackIoTiming: ConfigStringComparisonExp
 }
 
 """

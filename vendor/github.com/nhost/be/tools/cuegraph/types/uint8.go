@@ -1,4 +1,4 @@
-package types //nolint: dupl
+package types //nolint:dupl,revive
 
 import (
 	"encoding/json"
@@ -26,6 +26,7 @@ func UnmarshalUint8(v interface{}) (uint8, error) {
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse string: %w", err)
 		}
+
 		return uint8(iv), nil //nolint:gosec
 	case int:
 		return uint8(v), nil //nolint:gosec
@@ -36,8 +37,9 @@ func UnmarshalUint8(v interface{}) (uint8, error) {
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse json.Number: %w", err)
 		}
+
 		return uint8(iv), nil
 	default:
-		return 0, fmt.Errorf("%T is not an uint", v) //nolint: goerr113
+		return 0, fmt.Errorf("%T is not an uint", v) //nolint: err113
 	}
 }

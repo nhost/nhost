@@ -27,6 +27,7 @@ func UnmarshalUint16(v interface{}) (uint16, error) {
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse string: %w", err)
 		}
+
 		return uint16(iv), nil //nolint:gosec
 	case int:
 		return uint16(v), nil //nolint:gosec
@@ -37,8 +38,9 @@ func UnmarshalUint16(v interface{}) (uint16, error) {
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse json.Number: %w", err)
 		}
+
 		return uint16(iv), nil
 	default:
-		return 0, fmt.Errorf("%T is not an uint", v) //nolint: goerr113
+		return 0, fmt.Errorf("%T is not an uint", v) //nolint: err113
 	}
 }

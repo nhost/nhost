@@ -21,12 +21,14 @@ func (r *mutationResolver) updateRunServiceConfig(
 	if err != nil {
 		return nil, err
 	}
+
 	app := r.data[i]
 
 	i, err = app.IndexService(serviceID)
 	if err != nil {
 		return nil, err
 	}
+
 	oldService := app.Services[i]
 
 	if input.Name != nil {

@@ -100,6 +100,7 @@ func commandNew(cCtx *cli.Context) error {
 
 	if cCtx.Bool(flagFollow) {
 		ce.Println("")
+
 		ctx, cancel := context.WithTimeout(cCtx.Context, cCtx.Duration(flagTimeout))
 		defer cancel()
 
@@ -109,7 +110,7 @@ func commandNew(cCtx *cli.Context) error {
 		}
 
 		if status != "DEPLOYED" {
-			return fmt.Errorf("deployment failed: %s", status) //nolint:goerr113
+			return fmt.Errorf("deployment failed: %s", status) //nolint:err113
 		}
 	}
 

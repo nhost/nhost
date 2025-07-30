@@ -71,6 +71,7 @@ func (r *mutationResolver) insertConfig(
 	if err != nil {
 		return nil, err
 	}
+
 	newApp.Config = config
 	newApp.SystemConfig = systemConfig
 
@@ -86,6 +87,7 @@ func (r *mutationResolver) insertConfig(
 	}
 
 	r.data = append(r.data, newApp)
+
 	return &model.ConfigInsertConfigResponse{
 		Config:       newApp.Config,
 		SystemConfig: newApp.SystemConfig,

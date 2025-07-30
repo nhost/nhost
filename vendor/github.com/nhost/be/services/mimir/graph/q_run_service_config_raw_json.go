@@ -19,6 +19,7 @@ func (r *queryResolver) runServiceConfigRawJSON(
 	if err != nil {
 		return "", err
 	}
+
 	if cfg == nil {
 		return "{}", nil
 	}

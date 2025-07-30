@@ -36,6 +36,7 @@ func IsJWTSecretCompatibleWithHasuraAuth(
 	if typ != nil && *typ != "" && key != nil && *key != "" {
 		return strings.HasPrefix(*typ, "HS") || usesPubKey(typ, signingKey)
 	}
+
 	return false
 }
 
@@ -74,7 +75,7 @@ func getOauthSettings(c oauthsettings, provider string) []EnvVar {
 	}
 }
 
-func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
+func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx,gocyclo,gocognit
 	config *model.ConfigConfig,
 	hasuraGraphqlURL,
 	authServerURL,
@@ -89,13 +90,28 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		map[string]string,
 		len(config.GetAuth().Session.AccessToken.CustomClaims),
 	)
+
+	customClaimsDefaults := make(
+		map[string]string,
+		len(config.GetAuth().Session.AccessToken.CustomClaims),
+	)
+
 	for _, c := range config.GetAuth().Session.AccessToken.CustomClaims {
 		customClaims[c.Key] = c.Value
+
+		if c.Default != nil {
+			customClaimsDefaults[c.Key] = *c.Default
+		}
 	}
 
 	authJwtCustomClaims, err := json.Marshal(customClaims)
 	if err != nil {
 		return nil, fmt.Errorf("problem marshalling auth jwt custom claims: %w", err)
+	}
+
+	authJwtCustomClaimsDefaults, err := json.Marshal(customClaimsDefaults)
+	if err != nil {
+		return nil, fmt.Errorf("problem marshalling auth jwt custom claims defaults: %w", err)
 	}
 
 	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0])
@@ -109,10 +125,12 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 	}
 
 	dbURL := databaseURL
+
 	version := *config.GetAuth().GetVersion()
 	if version != "0.0.0-dev" && CompareVersions(version, "0.30.999999") <= 0 {
 		dbURL = databaseMigrationURL
 	}
+
 	env := []EnvVar{
 		{
 			Name:       "HASURA_GRAPHQL_DATABASE_URL",
@@ -318,6 +336,12 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		{
 			Name:       "AUTH_JWT_CUSTOM_CLAIMS",
 			Value:      string(authJwtCustomClaims),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "AUTH_JWT_CUSTOM_CLAIMS_DEFAULTS",
+			Value:      string(authJwtCustomClaimsDefaults),
 			IsSecret:   false,
 			SecretName: "",
 		},

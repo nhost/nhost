@@ -19,10 +19,12 @@ func (r *queryResolver) runServiceConfigs(
 	defer r.mu.RUnlock()
 
 	services := make([]*model.ConfigRunServiceConfigWithID, 0, 10) //nolint:mnd
+
 	for _, app := range r.data {
 		if appID != nil && app.AppID != *appID {
 			continue
 		}
+
 		for _, svc := range app.Services {
 			logger = logger.WithField("service_id", svc.ServiceID)
 
@@ -36,6 +38,7 @@ func (r *queryResolver) runServiceConfigs(
 				if !resolve {
 					cfg = svc.Config
 				}
+
 				services = append(services, &model.ConfigRunServiceConfigWithID{
 					ServiceID: svc.ServiceID,
 					Config:    cfg,

@@ -17,9 +17,10 @@ const (
 )
 
 type Client struct {
+	*graphql.Client
+
 	baseURL string
 	client  *http.Client
-	*graphql.Client
 	retryer BasicRetryer
 }
 

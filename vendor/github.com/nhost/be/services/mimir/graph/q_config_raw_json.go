@@ -16,8 +16,10 @@ func (r *queryResolver) configRawJSON(
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	var cfg *model.ConfigConfig
-	var err error
+	var (
+		cfg *model.ConfigConfig
+		err error
+	)
 
 	for _, app := range r.data {
 		if app.AppID == appID {
@@ -30,6 +32,7 @@ func (r *queryResolver) configRawJSON(
 			if err != nil {
 				return "{}", err
 			}
+
 			break
 		}
 	}
