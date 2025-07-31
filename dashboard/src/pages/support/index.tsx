@@ -10,7 +10,7 @@ import { Text } from '@/components/ui/v2/Text';
 
 function SupportPage() {
   return (
-    <Box className="h-screen overflow-auto pb-4">
+    <Box className="h-full overflow-auto pb-4">
       <Box className="flex w-full justify-start border-b-1 px-4 py-3">
         <Logo className="w-6 cursor-pointer" />
       </Box>
