@@ -5,7 +5,7 @@ import {
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
 import { faker } from '@faker-js/faker';
-import { type Page, expect } from '@playwright/test';
+import { type Page } from '@playwright/test';
 import { add, format } from 'date-fns-v4';
 
 /**
@@ -226,7 +226,6 @@ export async function gotoAuthURL(page: Page) {
 }
 
 export async function gotoUrl(page: Page, url: string) {
-  await page.url;
   await page.goto(url);
   await page.waitForURL(url, { waitUntil: 'networkidle' });
 }
@@ -268,7 +267,7 @@ export function getProjectSlugFromUrl(url: string) {
 }
 
 export function getOrgSlugFromUrl(url: string) {
-  const orgSlug = url.split('/orgs/')[1].replace('/projects', '');
+  const orgSlug = url.split('/orgs/')[1].split('/projects/')[0];
   return orgSlug;
 }
 
@@ -288,7 +287,7 @@ export function setNewProjectName(name: string) {
 }
 
 function getRandomUserIndex(): number {
-  return Math.floor(Math.random() * 5);
+  return Math.floor(Math.random() * TEST_FREE_USER_EMAILS.length);
 }
 
 export async function loginWithFreeUser(page: Page) {
@@ -306,9 +305,8 @@ export async function loginWithFreeUser(page: Page) {
   await page.getByLabel('Email').fill(freeUserEmail);
   await page.getByLabel('Password').fill(TEST_USER_PASSWORD);
   await page.getByRole('button', { name: /sign in/i }).click();
-  expect(
-    await page.getByRole('button', { name: 'Create project' }),
-  ).not.toBeVisible();
-  await page.waitForSelector('h2:has-text("Welcome to")', { timeout: 20000 });
-  setFreeUserStarterOrgSlug(getOrgSlugFromUrl(await page.url()));
+
+  await page.waitForSelector('h2:has-text("Welcome to Nhost!")', {
+    timeout: 20000,
+  });
 }

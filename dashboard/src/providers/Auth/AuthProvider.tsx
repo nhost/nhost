@@ -24,7 +24,7 @@ function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const removeSessionIdFromQuery = useCallback(() => {
+  const removeRefreshTokenFromQuery = useCallback(() => {
     replace({ pathname, query: remainingQuery }, undefined, {
       shallow: true,
     });
@@ -58,7 +58,7 @@ function AuthProvider({ children }: PropsWithChildren) {
           refreshToken,
         });
         setSession(sessionResponse.body);
-        removeSessionIdFromQuery();
+        removeRefreshTokenFromQuery();
       } else {
         const currentSession = nhost.getUserSession();
         setSession(currentSession);

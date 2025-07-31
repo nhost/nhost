@@ -6,7 +6,9 @@ import {
   useGetOrganizationsQuery,
   type Exact,
   type GetOrganizationsQuery,
+  type Scalars,
 } from '@/utils/__generated__/graphql';
+import type { ApolloQueryResult } from '@apollo/client';
 import { useRouter } from 'next/router';
 
 export type Org = GetOrganizationsQuery['organizations'][0];
@@ -19,10 +21,10 @@ export interface UseOrgsReturnType {
   refetch: (
     variables?: Partial<
       Exact<{
-        [key: string]: never;
+        userId: Scalars['uuid'];
       }>
     >,
-  ) => Promise<any>;
+  ) => Promise<ApolloQueryResult<GetOrganizationsQuery>>;
 }
 
 export default function useOrgs(): UseOrgsReturnType {

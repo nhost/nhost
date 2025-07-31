@@ -71,9 +71,15 @@ interface CreateOrgFormProps {
     plan,
   }: z.infer<typeof createOrgFormSchema>) => Promise<void>;
   onCancel: () => void;
+  isStarterDisabled?: boolean;
 }
 
-function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
+function CreateOrgForm({
+  plans,
+  onSubmit,
+  onCancel,
+  isStarterDisabled,
+}: CreateOrgFormProps) {
   const { orgs } = useOrgs();
   const starterPlan = plans.find(({ name }) => name === 'Starter');
   const proPlan = plans.find(({ name }) => name === 'Pro')!;
@@ -83,7 +89,9 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
   );
 
   const defaultPlan =
-    !hasStarterOrg && starterPlan ? starterPlan.id : proPlan?.id || '';
+    !hasStarterOrg && starterPlan && !isStarterDisabled
+      ? starterPlan.id
+      : proPlan?.id || '';
 
   const form = useForm<z.infer<typeof createOrgFormSchema>>({
     resolver: zodResolver(createOrgFormSchema),
@@ -156,13 +164,14 @@ function CreateOrgForm({ plans, onSubmit, onCancel }: CreateOrgFormProps) {
                   {plans.map((plan) => {
                     const isStarterPlan =
                       plan.name === 'Starter' || plan.isFree;
-                    const isDisabled = isStarterPlan && hasStarterOrg;
+                    const isDisabled =
+                      isStarterPlan && (hasStarterOrg || isStarterDisabled);
 
                     const labelContent = (
                       <FormLabel
                         className={cn(
                           'flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3',
-                          isDisabled && 'cursor-not-allowed opacity-50',
+                          { 'cursor-not-allowed opacity-50': isDisabled },
                         )}
                       >
                         <div className="flex flex-row items-center space-x-3">
@@ -264,6 +273,7 @@ interface CreateOrgDialogProps {
   isOpen?: boolean;
   onOpenStateChange?: (newState: boolean) => void;
   redirectUrl?: string;
+  isStarterDisabled?: boolean;
 }
 
 function isPropSet(prop: any) {
@@ -275,6 +285,7 @@ export default function CreateOrgDialog({
   isOpen,
   onOpenStateChange,
   redirectUrl,
+  isStarterDisabled = false,
 }: CreateOrgDialogProps) {
   const router = useRouter();
   const currentUser = useUserData();
@@ -408,6 +419,7 @@ export default function CreateOrgDialog({
             plans={data?.plans}
             onSubmit={createOrg}
             onCancel={() => handleOpenChange(false)}
+            isStarterDisabled={isStarterDisabled}
           />
         )}
         {!loading && stripeClientSecret && (

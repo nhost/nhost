@@ -19,7 +19,7 @@
     "e2e:tests": "pnpm install-browsers && pnpm playwright test --config=playwright.config.ts -x",
     "e2e": "pnpm e2e:tests --project=main",
     "e2e:local": "pnpm e2e:tests --project=local",
-    "e2e:upgrade-project": "pnpm e2e:tests --project=upgrade-project"
+    "e2e:onboarding": "pnpm e2e:tests --project=onboarding"
   },
   "dependencies": {
     "@apollo/client": "^3.9.9",

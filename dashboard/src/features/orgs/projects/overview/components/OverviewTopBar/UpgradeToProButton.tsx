@@ -2,12 +2,12 @@ import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialog
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useRouter } from 'next/router';
 
-function UpgradeProjectDialog() {
+function UpgradeToProButton() {
   const router = useRouter();
   const { org } = useCurrentOrg();
 
   function handleClick() {
-    router.push(`/orgs/${org?.slug}/billing`);
+    router.push(`/orgs/${org?.slug}/billing?openUpgradeModal=true`);
   }
 
   return (
@@ -18,4 +18,4 @@ function UpgradeProjectDialog() {
   );
 }
 
-export default UpgradeProjectDialog;
+export default UpgradeToProButton;
