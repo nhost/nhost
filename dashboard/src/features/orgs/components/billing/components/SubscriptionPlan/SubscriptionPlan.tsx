@@ -234,30 +234,36 @@ export default function SubscriptionPlan() {
                         className="flex flex-col space-y-1"
                       >
                         {plans.map((plan) => {
-                          const isStarterPlan = plan.name === 'Starter' || plan.isFree;
-                          
-                          return (
-                          <FormItem key={plan.id}>
-                            <FormLabel className={`flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3 ${isStarterPlan ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                              <div className="flex flex-row items-center space-x-3">
-                                <FormControl>
-                                  <RadioGroupItem value={plan.id} disabled={isStarterPlan} />
-                                </FormControl>
-                                <div className="flex flex-col space-y-2">
-                                  <div className="text-md font-semibold">
-                                    {plan.name}
-                                  </div>
-                                  <FormDescription className="w-2/3 text-xs">
-                                    {planDescriptions[plan.name]}
-                                  </FormDescription>
-                                </div>
-                              </div>
+                          const isStarterPlan =
+                            plan.name === 'Starter' || plan.isFree;
 
-                              <div className="mt-0 flex h-full items-center text-xl font-semibold">
-                                {isFreeOrg ? 'Free' : `${plan.price}/mo`}
-                              </div>
-                            </FormLabel>
-                          </FormItem>
+                          return (
+                            <FormItem key={plan.id}>
+                              <FormLabel
+                                className={`flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3 ${isStarterPlan ? 'cursor-not-allowed opacity-50' : ''}`}
+                              >
+                                <div className="flex flex-row items-center space-x-3">
+                                  <FormControl>
+                                    <RadioGroupItem
+                                      value={plan.id}
+                                      disabled={isStarterPlan}
+                                    />
+                                  </FormControl>
+                                  <div className="flex flex-col space-y-2">
+                                    <div className="text-md font-semibold">
+                                      {plan.name}
+                                    </div>
+                                    <FormDescription className="w-2/3 text-xs">
+                                      {planDescriptions[plan.name]}
+                                    </FormDescription>
+                                  </div>
+                                </div>
+
+                                <div className="mt-0 flex h-full items-center text-xl font-semibold">
+                                  {isFreeOrg ? 'Free' : `${plan.price}/mo`}
+                                </div>
+                              </FormLabel>
+                            </FormItem>
                           );
                         })}
 
