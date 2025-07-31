@@ -11,6 +11,9 @@ test('should create a user', async ({ authenticatedNhostPage: page }) => {
   const password = faker.internet.password();
 
   await createUser({ page, email, password });
+  await page.waitForSelector(
+    'div:has-text("User has been created successfully.")',
+  );
 
   await expect(
     page.getByRole('button', { name: `View ${email}`, exact: true }),

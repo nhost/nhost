@@ -61,18 +61,15 @@ vi.mock('@/utils/__generated__/graphql', async () => {
   };
 });
 
-vi.mock(
-  '@/features/orgs/components/common/TransferOrUpgradeProjectDialog',
-  async () => {
-    const actual = await vi.importActual<any>(
-      '@/features/orgs/components/common/TransferOrUpgradeProjectDialog',
-    );
-    return {
-      ...actual,
-      TransferOrUpgradeProjectDialog: () => null,
-    };
-  },
-);
+vi.mock('@/features/orgs/components/common/TransferProjectDialog', async () => {
+  const actual = await vi.importActual<any>(
+    '@/features/orgs/components/common/TransferProjectDialog',
+  );
+  return {
+    ...actual,
+    TransferOrUpgradeProjectDialog: () => null,
+  };
+});
 
 afterEach(() => {
   mocks.useCurrentOrg.mockRestore();

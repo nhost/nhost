@@ -6,18 +6,15 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import TransferProjectDialogContent from './TransferProjectDialogContent';
-import UpgradeProjectDialogContent from './UpgradeProjectDialogContent';
 
 interface TransferProjectDialogProps {
   open: boolean;
   setOpen: (value: boolean) => void;
-  isUpgrade?: boolean;
 }
 
-export default function TransferOrUpgradeProjectDialog({
+export default function TransferProjectDialog({
   open,
   setOpen,
-  isUpgrade,
 }: TransferProjectDialogProps) {
   const { asPath, query, isReady: isRouterReady } = useRouter();
   const { session_id } = query;
@@ -67,7 +64,6 @@ export default function TransferOrUpgradeProjectDialog({
     setShowCreateOrgModal(true);
     setOpen(false);
   };
-  const handleOnCreateOrgError = useCallback(() => setPreventClose(false), []);
 
   if (projectLoading || orgsLoading) {
     return <LoadingScreen />;
@@ -77,22 +73,14 @@ export default function TransferOrUpgradeProjectDialog({
     <>
       <Dialog open={open} onOpenChange={handleTransferProjectDialogOpenChange}>
         <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
-          {isUpgrade ? (
-            <UpgradeProjectDialogContent
-              onCancel={handleCancel}
-              onCreateNewOrg={handleCreateNewOrg}
-              onCreateOrgError={handleOnCreateOrgError}
-            />
-          ) : (
-            <TransferProjectDialogContent
-              onFinishOrgCreationCompleted={handleFinishOrgCreationCompleted}
-              onFinishOrgError={() => setPreventClose(false)}
-              onCreateNewOrg={handleCreateNewOrg}
-              onCancel={handleCancel}
-              selectedOrganizationId={selectedOrgId}
-              onOrganizationChange={setSelectedOrgId}
-            />
-          )}
+          <TransferProjectDialogContent
+            onFinishOrgCreationCompleted={handleFinishOrgCreationCompleted}
+            onFinishOrgError={() => setPreventClose(false)}
+            onCreateNewOrg={handleCreateNewOrg}
+            onCancel={handleCancel}
+            selectedOrganizationId={selectedOrgId}
+            onOrganizationChange={setSelectedOrgId}
+          />
         </DialogContent>
       </Dialog>
       <CreateOrgDialog
@@ -100,6 +88,7 @@ export default function TransferOrUpgradeProjectDialog({
         isOpen={showCreateOrgModal}
         onOpenStateChange={handleCreateDialogOpenStateChange}
         redirectUrl={redirectUrl}
+        isStarterDisabled
       />
     </>
   );

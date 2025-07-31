@@ -14,6 +14,9 @@ test('should be able to delete a user', async ({
   const password = faker.internet.password();
 
   await createUser({ page, email, password });
+  await page.waitForSelector(
+    'div:has-text("User has been created successfully.")',
+  );
 
   await expect(
     page.getByRole('button', { name: `View ${email}`, exact: true }),
@@ -48,6 +51,10 @@ test('should be able to delete a user from the details page', async ({
   const password = faker.internet.password();
 
   await createUser({ page, email, password });
+
+  await page.waitForSelector(
+    'div:has-text("User has been created successfully.")',
+  );
 
   await page
     .getByRole('button', { name: `View ${email}`, exact: true })

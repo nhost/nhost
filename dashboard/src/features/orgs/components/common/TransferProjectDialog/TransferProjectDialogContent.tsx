@@ -3,7 +3,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrgCreation/useFinishOrgCreation';
+import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useRouter } from 'next/router';

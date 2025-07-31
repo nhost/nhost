@@ -8,7 +8,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
-import UpgradeProjectDialog from './UpgradeProjectDialog';
+import UpgradeToProButton from './UpgradeToProButton';
 
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
@@ -91,7 +91,7 @@ export default function OverviewTopBar() {
         </div>
       </div>
       <div className="flex content-center gap-4">
-        {isFreeProject && <UpgradeProjectDialog />}
+        {isFreeProject && <UpgradeToProButton />}
         <Link
           href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
           passHref

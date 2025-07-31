@@ -1,7 +1,7 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { DialogDescription } from '@/components/ui/v3/dialog';
-import { useFinishOrgCreation } from '@/features/orgs/hooks/useFinishOrgCreation';
-import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrgCreation/useFinishOrgCreation';
+import { useFinishOrganizationProcess } from '@/features/orgs/hooks/useFinishOrganizationProcess';
+import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 import { CheckoutStatus } from '@/utils/__generated__/graphql';
 import { memo } from 'react';
 
@@ -24,7 +24,14 @@ function FinishOrgCreationProcess({
   pendingMessage,
   withDialogDescription,
 }: Props) {
-  const [loading, status] = useFinishOrgCreation({ onCompleted, onError });
+  const [loading, status] = useFinishOrganizationProcess({
+    successMessage,
+    loadingMessage,
+    errorMessage,
+    pendingMessage,
+    onCompleted,
+    onError,
+  });
   let message: string | undefined;
 
   switch (status) {
@@ -52,7 +59,7 @@ function FinishOrgCreationProcess({
         {(loading || status === CheckoutStatus.Completed) && (
           <ActivityIndicator circularProgressProps={{ className: 'w-6 h-6' }} />
         )}
-        <Component>{message}</Component>
+        <Component data-testid="message">{message}</Component>
       </div>
     </div>
   );
