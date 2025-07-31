@@ -233,12 +233,15 @@ export default function SubscriptionPlan() {
                         defaultValue={field.value}
                         className="flex flex-col space-y-1"
                       >
-                        {plans.map((plan) => (
+                        {plans.map((plan) => {
+                          const isStarterPlan = plan.name === 'Starter' || plan.isFree;
+                          
+                          return (
                           <FormItem key={plan.id}>
-                            <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                            <FormLabel className={`flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3 ${isStarterPlan ? 'opacity-50 cursor-not-allowed' : ''}`}>
                               <div className="flex flex-row items-center space-x-3">
                                 <FormControl>
-                                  <RadioGroupItem value={plan.id} />
+                                  <RadioGroupItem value={plan.id} disabled={isStarterPlan} />
                                 </FormControl>
                                 <div className="flex flex-col space-y-2">
                                   <div className="text-md font-semibold">
@@ -255,7 +258,8 @@ export default function SubscriptionPlan() {
                               </div>
                             </FormLabel>
                           </FormItem>
-                        ))}
+                          );
+                        })}
 
                         <div>
                           <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
