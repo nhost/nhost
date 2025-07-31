@@ -60,6 +60,9 @@ test('should upgrade the project', async () => {
   const newOrgName = faker.lorem.words(3);
   await page.getByLabel('Organization Name').fill(newOrgName);
 
+  await page.getByText('Select organization type', { exact: true }).click();
+  await page.getByText('Personal Project').nth(1).click();
+
   await page.getByText('Create organization').click();
   await page.waitForSelector('button:has-text("Create organization")', {
     state: 'hidden',
