@@ -14,7 +14,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.9",
+    "@apollo/client": "^3.13.9",
     "@mdi/font": "5.9.55",
     "@nhost/apollo": "workspace:^",
     "@nhost/nhost-js": "workspace:^",
@@ -24,8 +24,8 @@
     "graphql-tag": "^2.12.6",
     "roboto-fontface": "^0.10.0",
     "vite-plugin-vuetify": "^1.0.2",
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1",
     "vue3-dropzone": "^2.2.1",
     "vuetify": "3.0.0-beta.10",
     "webfontloader": "^1.6.28"

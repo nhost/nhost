@@ -65,13 +65,13 @@
     "@nhost/nhost-js": "workspace:*",
     "@xstate/react": "^3.2.2",
     "jwt-decode": "^4.0.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "18.2.0",
     "xstate": "^4.38.3"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@types/react": "^18.2.73",
-    "react": "^18.2.0"
+    "@types/react": "^18.3.23",
+    "react": "18.2.0"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.1.0 || ^19.0.0",
