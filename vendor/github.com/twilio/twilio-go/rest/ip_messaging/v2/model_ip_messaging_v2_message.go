@@ -20,20 +20,20 @@ import (
 
 // IpMessagingV2Message struct for IpMessagingV2Message
 type IpMessagingV2Message struct {
-	Sid           *string                 `json:"sid,omitempty"`
-	AccountSid    *string                 `json:"account_sid,omitempty"`
-	Attributes    *string                 `json:"attributes,omitempty"`
-	ServiceSid    *string                 `json:"service_sid,omitempty"`
-	To            *string                 `json:"to,omitempty"`
-	ChannelSid    *string                 `json:"channel_sid,omitempty"`
-	DateCreated   *time.Time              `json:"date_created,omitempty"`
-	DateUpdated   *time.Time              `json:"date_updated,omitempty"`
-	LastUpdatedBy *string                 `json:"last_updated_by,omitempty"`
-	WasEdited     *bool                   `json:"was_edited,omitempty"`
-	From          *string                 `json:"from,omitempty"`
-	Body          *string                 `json:"body,omitempty"`
-	Index         int                     `json:"index,omitempty"`
-	Type          *string                 `json:"type,omitempty"`
-	Media         *map[string]interface{} `json:"media,omitempty"`
-	Url           *string                 `json:"url,omitempty"`
+	Sid           *string      `json:"sid,omitempty"`
+	AccountSid    *string      `json:"account_sid,omitempty"`
+	Attributes    *string      `json:"attributes,omitempty"`
+	ServiceSid    *string      `json:"service_sid,omitempty"`
+	To            *string      `json:"to,omitempty"`
+	ChannelSid    *string      `json:"channel_sid,omitempty"`
+	DateCreated   *time.Time   `json:"date_created,omitempty"`
+	DateUpdated   *time.Time   `json:"date_updated,omitempty"`
+	LastUpdatedBy *string      `json:"last_updated_by,omitempty"`
+	WasEdited     *bool        `json:"was_edited,omitempty"`
+	From          *string      `json:"from,omitempty"`
+	Body          *string      `json:"body,omitempty"`
+	Index         int          `json:"index,omitempty"`
+	Type          *string      `json:"type,omitempty"`
+	Media         *interface{} `json:"media,omitempty"`
+	Url           *string      `json:"url,omitempty"`
 }

@@ -21,6 +21,7 @@ func (ctrl *Controller) SignOut( //nolint:ireturn
 		if apiErr := ctrl.wf.DeleteUserRefreshTokens(ctx, userID, logger); apiErr != nil {
 			return ctrl.sendError(apiErr), nil
 		}
+
 		return api.SignOut200JSONResponse(api.OK), nil
 	}
 

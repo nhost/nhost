@@ -41,11 +41,11 @@ type TaskrouterV1WorkflowCumulativeStatistics struct {
 	// The total number of Reservations that were rescinded.
 	ReservationsRescinded int `json:"reservations_rescinded,omitempty"`
 	// A list of objects that describe the number of Tasks canceled and reservations accepted above and below the thresholds specified in seconds.
-	SplitByWaitTime *map[string]interface{} `json:"split_by_wait_time,omitempty"`
+	SplitByWaitTime *interface{} `json:"split_by_wait_time,omitempty"`
 	// The wait duration statistics (`avg`, `min`, `max`, `total`) for Tasks that were accepted.
-	WaitDurationUntilAccepted *map[string]interface{} `json:"wait_duration_until_accepted,omitempty"`
+	WaitDurationUntilAccepted *interface{} `json:"wait_duration_until_accepted,omitempty"`
 	// The wait duration statistics (`avg`, `min`, `max`, `total`) for Tasks that were canceled.
-	WaitDurationUntilCanceled *map[string]interface{} `json:"wait_duration_until_canceled,omitempty"`
+	WaitDurationUntilCanceled *interface{} `json:"wait_duration_until_canceled,omitempty"`
 	// The total number of Tasks that were canceled.
 	TasksCanceled int `json:"tasks_canceled,omitempty"`
 	// The total number of Tasks that were completed.

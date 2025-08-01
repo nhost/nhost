@@ -14,6 +14,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 	if err != nil {
 		_ = c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -22,12 +23,14 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 	if err := json.Unmarshal(b, &ctrl.config); err != nil {
 		_ = c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
 	if err := json.Unmarshal(b, &ctrl.wf.config); err != nil {
 		_ = c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -38,6 +41,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 		if err := json.Unmarshal([]byte(ctrl.config.CustomClaims), &rawClaims); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "failed to unmarshal custom claims", "error": err.Error()})
 		}
+
 		var defaults map[string]any
 		if ctrl.config.CustomClaimsDefaults == "" {
 			defaults = nil
@@ -58,8 +62,10 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 			if err != nil {
 				_ = c.Error(err)
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 				return
 			}
+
 			ctrl.wf.jwtGetter.customClaimer = cc
 		} else {
 			ctrl.wf.jwtGetter.customClaimer = nil
@@ -83,8 +89,10 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 		if err != nil {
 			_ = c.Error(err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 			return
 		}
+
 		ctrl.Webauthn = wa
 	}
 

@@ -26,6 +26,7 @@ func LoggerFromContext(ctx context.Context) *slog.Logger { //nolint:contextcheck
 	if !ok {
 		return slog.Default()
 	}
+
 	return logger
 }
 

@@ -49,6 +49,7 @@ func getDefaultScopes(providerName api.SignInProvider) []string {
 func getScopes(provider api.SignInProvider, scopes []string) []string {
 	// clean the scopes in case of empty string
 	var cleanedScopes []string
+
 	for _, scope := range scopes {
 		if scope != "" {
 			cleanedScopes = append(cleanedScopes, scope)
@@ -58,6 +59,7 @@ func getScopes(provider api.SignInProvider, scopes []string) []string {
 	if len(cleanedScopes) > 0 {
 		return cleanedScopes
 	}
+
 	return getDefaultScopes(provider)
 }
 
@@ -204,6 +206,7 @@ func getOauth2Providers(
 			getScopes(api.SignInProviderWindowslive, cCtx.StringSlice(flagWindowsliveScope)),
 		)
 	}
+
 	if cCtx.Bool(flagStravaEnabled) {
 		providersMap["strava"] = providers.NewStravaProvider(
 			cCtx.String(flagStravaClientID),

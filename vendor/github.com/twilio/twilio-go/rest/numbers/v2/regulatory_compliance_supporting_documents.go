@@ -30,7 +30,7 @@ type CreateSupportingDocumentParams struct {
 	// The type of the Supporting Document.
 	Type *string `json:"Type,omitempty"`
 	// The set of parameters that are the attributes of the Supporting Documents resource which are derived Supporting Document Types.
-	Attributes *map[string]interface{} `json:"Attributes,omitempty"`
+	Attributes *interface{} `json:"Attributes,omitempty"`
 }
 
 func (params *CreateSupportingDocumentParams) SetFriendlyName(FriendlyName string) *CreateSupportingDocumentParams {
@@ -41,7 +41,7 @@ func (params *CreateSupportingDocumentParams) SetType(Type string) *CreateSuppor
 	params.Type = &Type
 	return params
 }
-func (params *CreateSupportingDocumentParams) SetAttributes(Attributes map[string]interface{}) *CreateSupportingDocumentParams {
+func (params *CreateSupportingDocumentParams) SetAttributes(Attributes interface{}) *CreateSupportingDocumentParams {
 	params.Attributes = &Attributes
 	return params
 }
@@ -274,14 +274,14 @@ type UpdateSupportingDocumentParams struct {
 	// The string that you assigned to describe the resource.
 	FriendlyName *string `json:"FriendlyName,omitempty"`
 	// The set of parameters that are the attributes of the Supporting Document resource which are derived Supporting Document Types.
-	Attributes *map[string]interface{} `json:"Attributes,omitempty"`
+	Attributes *interface{} `json:"Attributes,omitempty"`
 }
 
 func (params *UpdateSupportingDocumentParams) SetFriendlyName(FriendlyName string) *UpdateSupportingDocumentParams {
 	params.FriendlyName = &FriendlyName
 	return params
 }
-func (params *UpdateSupportingDocumentParams) SetAttributes(Attributes map[string]interface{}) *UpdateSupportingDocumentParams {
+func (params *UpdateSupportingDocumentParams) SetAttributes(Attributes interface{}) *UpdateSupportingDocumentParams {
 	params.Attributes = &Attributes
 	return params
 }

@@ -35,16 +35,25 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
- - [ValidateIdentityRequest](docs/ValidateIdentityRequest.md)
  - [VerifyEmailInitiateResponse](docs/VerifyEmailInitiateResponse.md)
- - [VerifyEmailVerifyResponse](docs/VerifyEmailVerifyResponse.md)
  - [VerifyEmailInitiateRequest](docs/VerifyEmailInitiateRequest.md)
  - [JWTTokenRequest](docs/JWTTokenRequest.md)
- - [Validate2FAResetTokenRequest](docs/Validate2FAResetTokenRequest.md)
+ - [IamV2TwilioServiceErrorResponse](docs/IamV2TwilioServiceErrorResponse.md)
  - [VerifyDeviceRequest](docs/VerifyDeviceRequest.md)
  - [TwilioServiceErrorResponse](docs/TwilioServiceErrorResponse.md)
+ - [IamV2CreateResourceRequest](docs/IamV2CreateResourceRequest.md)
+ - [IamV2CreateRoleRequestPolicy](docs/IamV2CreateRoleRequestPolicy.md)
+ - [IamV2Resources](docs/IamV2Resources.md)
+ - [ValidateIdentityRequest](docs/ValidateIdentityRequest.md)
+ - [VerifyEmailVerifyResponse](docs/VerifyEmailVerifyResponse.md)
+ - [IamV2UpdatePermissionRequest](docs/IamV2UpdatePermissionRequest.md)
+ - [IamV2CreatePermissionRequestGrants](docs/IamV2CreatePermissionRequestGrants.md)
+ - [Validate2FAResetTokenRequest](docs/Validate2FAResetTokenRequest.md)
+ - [IamV2CreatePermissionRequest](docs/IamV2CreatePermissionRequest.md)
  - [VerifyEmailResendRequest](docs/VerifyEmailResendRequest.md)
  - [VerifyEmailVerifyRequest](docs/VerifyEmailVerifyRequest.md)
+ - [IamV2CreateRoleRequest](docs/IamV2CreateRoleRequest.md)
+ - [IamV2UpdateRoleRequest](docs/IamV2UpdateRoleRequest.md)
  - [AddDeviceAndSendChallengeRequest](docs/AddDeviceAndSendChallengeRequest.md)
  - [ValidateMfaResetBillingInfoRequest](docs/ValidateMfaResetBillingInfoRequest.md)
 

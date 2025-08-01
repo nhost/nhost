@@ -42,5 +42,5 @@ type VerifyV2VerificationCheck struct {
 	// The [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date and time in GMT when the Verification Check resource was last updated.
 	DateUpdated *time.Time `json:"date_updated,omitempty"`
 	// List of error codes as a result of attempting a verification using the `sna` channel. The error codes are chronologically ordered, from the first attempt to the latest attempt. This will be an empty list if no errors occured or `null` if the last channel used wasn't `sna`.
-	SnaAttemptsErrorCodes *[]map[string]interface{} `json:"sna_attempts_error_codes,omitempty"`
+	SnaAttemptsErrorCodes *[]interface{} `json:"sna_attempts_error_codes,omitempty"`
 }

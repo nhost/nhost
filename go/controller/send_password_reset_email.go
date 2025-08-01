@@ -17,14 +17,15 @@ func (ctrl *Controller) SendPasswordResetEmail( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
-	options, err := ctrl.wf.ValidateOptionsRedirectTo(request.Body.Options, logger)
+	options, err := ctrl.wf.ValidateOptionsRedirectTo(ctx, request.Body.Options, logger)
 	if err != nil {
 		return ctrl.respondWithError(err), nil
 	}
+
 	request.Body.Options = options
 
 	if !ctrl.wf.ValidateEmail(string(request.Body.Email)) {
-		logger.Warn("email didn't pass access control checks")
+		logger.WarnContext(ctx, "email didn't pass access control checks")
 		return ctrl.sendError(ErrInvalidEmailPassword), nil
 	}
 
@@ -34,6 +35,7 @@ func (ctrl *Controller) SendPasswordResetEmail( //nolint:ireturn
 	}
 
 	ticket := generateTicket(TicketTypePasswordReset)
+
 	expiresAt := time.Now().Add(time.Hour)
 	if apiErr := ctrl.wf.SetTicket(ctx, user.ID, ticket, expiresAt, logger); apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil

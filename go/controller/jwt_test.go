@@ -229,10 +229,12 @@ func TestGetJWTFunc(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
+
 			var customClaimer controller.CustomClaimer
 			if tc.customClaimer != nil {
 				customClaimer = tc.customClaimer(ctrl)
 			}
+
 			jwtGetter, err := controller.NewJWTGetter(tc.key, tc.expiresIn, customClaimer, "", nil)
 			if err != nil {
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)
@@ -250,6 +252,7 @@ func TestGetJWTFunc(t *testing.T) {
 			if err != nil {
 				t.Fatalf("fn() err = %v; want nil", err)
 			}
+
 			t.Logf("token = %v", accessToken)
 
 			decodedToken, err := jwtGetter.Validate(accessToken)
@@ -674,6 +677,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				ginmiddleware.GinContextKey,
 				&gin.Context{},
 			)
+
 			err = jwtGetter.MiddlewareFunc(ctx, tc.request)
 			if !errors.Is(err, tc.expectedErr) {
 				t.Errorf("err = %v; want %v", err, tc.expectedErr)

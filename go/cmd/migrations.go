@@ -14,7 +14,7 @@ import (
 func insertRoles(
 	ctx context.Context, cCtx *cli.Context, db *sql.Queries, logger *slog.Logger,
 ) error {
-	logger.Info("inserting default roles into the database if needed")
+	logger.InfoContext(ctx, "inserting default roles into the database if needed")
 
 	defaultRoles := append(
 		cCtx.StringSlice(flagDefaultAllowedRoles),
@@ -23,6 +23,7 @@ func insertRoles(
 
 	roleSet := make(map[string]bool)
 	uniqueRoles := make([]string, 0)
+
 	for _, role := range defaultRoles {
 		if !roleSet[role] {
 			roleSet[role] = true
@@ -32,12 +33,12 @@ func insertRoles(
 
 	insertedRoles, err := db.UpsertRoles(ctx, uniqueRoles)
 	if err != nil {
-		logger.Error("failed to upsert roles", slog.String("error", err.Error()))
+		logger.ErrorContext(ctx, "failed to upsert roles", slog.String("error", err.Error()))
 		return fmt.Errorf("failed to upsert roles: %w", err)
 	}
 
 	if len(insertedRoles) > 0 {
-		logger.Info("inserted roles",
+		logger.InfoContext(ctx, "inserted roles",
 			slog.Int("affected_rows", len(insertedRoles)),
 			slog.String("roles", strings.Join(insertedRoles, ", ")),
 		)
@@ -54,8 +55,8 @@ func applyMigrations(
 		postgresURL = cCtx.String(flagPostgresConnection)
 	}
 
-	if err := migrations.ApplyPostgresMigration(postgresURL, logger); err != nil {
-		logger.Error("failed to apply migrations", slog.String("error", err.Error()))
+	if err := migrations.ApplyPostgresMigration(ctx, postgresURL, logger); err != nil {
+		logger.ErrorContext(ctx, "failed to apply migrations", slog.String("error", err.Error()))
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
@@ -64,7 +65,9 @@ func applyMigrations(
 		strings.Replace(cCtx.String(flagGraphqlURL), "/v1/graphql", "/v1/metadata", 1),
 		cCtx.String(flagHasuraAdminSecret),
 	); err != nil {
-		logger.Error("failed to apply hasura metadata", slog.String("error", err.Error()))
+		logger.ErrorContext(
+			ctx, "failed to apply hasura metadata", slog.String("error", err.Error()))
+
 		return fmt.Errorf("failed to apply hasura metadata: %w", err)
 	}
 

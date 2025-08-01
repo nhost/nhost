@@ -47,17 +47,22 @@ func mergeMaps(map1, map2 map[string]any) map[string]any {
 }
 
 func smartSplit(path string) []string {
-	var parts []string
-	var current strings.Builder
+	var (
+		parts   []string
+		current strings.Builder
+	)
+
 	bracketDepth := 0
 
 	for _, char := range path {
 		switch char {
 		case '[':
 			bracketDepth++
+
 			current.WriteRune(char)
 		case ']':
 			bracketDepth--
+
 			current.WriteRune(char)
 		case '.':
 			if bracketDepth == 0 {
@@ -94,6 +99,7 @@ func extractFilterFields(filter string) []string { //nolint:cyclop,gocognit
 					if atIndex == -1 {
 						break
 					}
+
 					atIndex += i
 					fieldStart := atIndex + 2 //nolint:mnd
 					fieldEnd := fieldStart
@@ -105,24 +111,30 @@ func extractFilterFields(filter string) []string { //nolint:cyclop,gocognit
 							char == '>' {
 							break
 						}
+
 						fieldEnd++
 					}
+
 					if fieldEnd > fieldStart {
 						field := filterExpr[fieldStart:fieldEnd]
 						// Only add if not already present
 						found := false
+
 						if slices.Contains(fields, field) {
 							break
 						}
+
 						if !found {
 							fields = append(fields, field)
 						}
 					}
+
 					i = fieldEnd
 				}
 			}
 		}
 	}
+
 	return fields
 }
 
@@ -135,6 +147,7 @@ func parseClaims(parts []string) map[string]any {
 				parts[0]: map[string]any{},
 			}
 		}
+
 		return map[string]any{
 			parts[0]: nil,
 		}
@@ -144,6 +157,7 @@ func parseClaims(parts []string) map[string]any {
 				parts[0]: nil,
 			}
 		}
+
 		return map[string]any{
 			parts[0]: parseClaims(parts[1:]),
 		}
@@ -158,6 +172,7 @@ func claimsMapToGraphql(claims map[string]any) string {
 	for k := range claims {
 		keys = append(keys, k)
 	}
+
 	sort.Strings(keys)
 
 	for _, k := range keys {
@@ -171,6 +186,7 @@ func claimsMapToGraphql(claims map[string]any) string {
 			panic(fmt.Sprintf("unexpected type %T", t))
 		}
 	}
+
 	return result + "}"
 }
 
@@ -210,6 +226,7 @@ func NewCustomClaims(
 ) (*CustomClaims, error) {
 	claims := make(map[string]any)
 	jsonPaths := make(map[string]jsonPath)
+
 	for name, val := range rawClaims {
 		parts := smartSplit(val)
 		claims = mergeMaps(claims, parseClaims(parts))
@@ -228,8 +245,10 @@ func NewCustomClaims(
 							// Extract just the field name before the filter
 							basePart := strings.Split(part, "[")[0]
 							baseParts = append(baseParts, basePart)
+
 							break
 						}
+
 						baseParts = append(baseParts, part)
 					}
 
@@ -242,10 +261,12 @@ func NewCustomClaims(
 		}
 
 		j := jsonpath.New(name)
+
 		jpath := fmt.Sprintf("{ .%s }", strings.ReplaceAll(val, "[]", "[*]"))
 		if err := j.Parse(jpath); err != nil {
 			return nil, fmt.Errorf("failed to parse jsonpath for claim '%s': %w", name, err)
 		}
+
 		jsonPaths[name] = jsonPath{
 			path:  val,
 			jpath: j,
@@ -291,6 +312,7 @@ func (c *CustomClaims) getClaimsBackwardsCompatibility(data any, path []string) 
 		for i := range value.Len() {
 			got[i] = c.getClaimsBackwardsCompatibility(value.Index(i).Interface(), path)
 		}
+
 		return got
 	default:
 		// we should not reach here
@@ -305,6 +327,7 @@ func (c *CustomClaims) defaultOrNil(name string) any {
 			return val
 		}
 	}
+
 	return nil
 }
 
@@ -326,6 +349,7 @@ func (c *CustomClaims) ExtractClaims(data any) (map[string]any, error) {
 				for i, r := range v[0] {
 					g[i] = r.Interface()
 				}
+
 				got = g
 			} else {
 				got = v[0][0].Interface()
@@ -338,6 +362,7 @@ func (c *CustomClaims) ExtractClaims(data any) (map[string]any, error) {
 			claims[name] = got
 		}
 	}
+
 	return claims, nil
 }
 
@@ -376,12 +401,14 @@ func (c *CustomClaims) makeRequest(ctx context.Context, userID string) (map[stri
 			return nil, fmt.Errorf("failed to create gzip reader: %w", err)
 		}
 		defer reader.Close()
+
 		resp.Body = reader
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf( //nolint:goerr113
+
+		return nil, fmt.Errorf( //nolint:err113
 			"unexpected status code (%d): %s",
 			resp.StatusCode,
 			body,
@@ -404,12 +431,12 @@ func (c *CustomClaims) GetClaims(ctx context.Context, userID string) (map[string
 
 	data, ok := data["data"].(map[string]any)
 	if !ok {
-		return nil, errors.New("failed to extract data from response") //nolint:goerr113
+		return nil, errors.New("failed to extract data from response") //nolint:err113
 	}
 
 	data, ok = data["user"].(map[string]any)
 	if !ok {
-		return nil, errors.New("failed to extract user data from response") //nolint:goerr113
+		return nil, errors.New("failed to extract user data from response") //nolint:err113
 	}
 
 	return c.ExtractClaims(data)

@@ -25,7 +25,7 @@ type FlexV1InsightsQuestionnairesQuestion struct {
 	// The description for the question.
 	Description *string `json:"description,omitempty"`
 	// The Category for the question.
-	Category *map[string]interface{} `json:"category,omitempty"`
+	Category *interface{} `json:"category,omitempty"`
 	// The answer_set for the question.
 	AnswerSetId *string `json:"answer_set_id,omitempty"`
 	// The flag  to enable for disable NA for answer.
@@ -33,6 +33,6 @@ type FlexV1InsightsQuestionnairesQuestion struct {
 	// Integer value that tells a particular question is used by how many questionnaires
 	Usage int `json:"usage,omitempty"`
 	// Set of answers for the question
-	AnswerSet *map[string]interface{} `json:"answer_set,omitempty"`
-	Url       *string                 `json:"url,omitempty"`
+	AnswerSet *interface{} `json:"answer_set,omitempty"`
+	Url       *string      `json:"url,omitempty"`
 }

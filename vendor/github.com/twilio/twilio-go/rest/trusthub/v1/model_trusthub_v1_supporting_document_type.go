@@ -23,7 +23,7 @@ type TrusthubV1SupportingDocumentType struct {
 	// The machine-readable description of the Supporting Document Type resource.
 	MachineName *string `json:"machine_name,omitempty"`
 	// The required information for creating a Supporting Document. The required fields will change as regulatory needs change and will differ for businesses and individuals.
-	Fields *[]map[string]interface{} `json:"fields,omitempty"`
+	Fields *[]interface{} `json:"fields,omitempty"`
 	// The absolute URL of the Supporting Document Type resource.
 	Url *string `json:"url,omitempty"`
 }

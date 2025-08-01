@@ -47,6 +47,7 @@ func decodeJWTSecretForRSA(jwtSecret JWTSecret) (JWTSecret, []api.JWK, error) {
 	if err != nil {
 		return JWTSecret{}, nil, fmt.Errorf("error parsing rsa private key: %w", err)
 	}
+
 	jwtSecret.SigningKey = privateKey
 
 	publicKeyS, ok := jwtSecret.Key.(string)
@@ -58,6 +59,7 @@ func decodeJWTSecretForRSA(jwtSecret JWTSecret) (JWTSecret, []api.JWK, error) {
 	if err != nil {
 		return JWTSecret{}, nil, fmt.Errorf("error parsing rsa public key: %w", err)
 	}
+
 	jwtSecret.Key = publicKey
 
 	keyID := jwtSecret.KeyID
@@ -107,6 +109,7 @@ func decodeJWTSecret(jwtSecretb []byte) (JWTSecret, []api.JWK, error) {
 
 		jwtSecret.Key = []byte(key)
 		jwtSecret.SigningKey = []byte(key)
+
 		return jwtSecret, nil, nil
 	case "RS256", "RS384", "RS512":
 		return decodeJWTSecretForRSA(jwtSecret)
@@ -173,8 +176,10 @@ func pgEncode(v any) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("error marshalling: %w", err)
 		}
+
 		b[0] = '{'
 		b[len(b)-1] = '}'
+
 		return string(b), nil
 	}
 
@@ -186,6 +191,7 @@ func pgEncode(v any) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("error marshalling: %w", err)
 		}
+
 		return string(b), nil
 	}
 }
@@ -216,6 +222,7 @@ func (j *JWTGetter) addClaimsToMap(
 
 		claims[k] = value
 	}
+
 	return nil
 }
 
@@ -232,12 +239,20 @@ func (j *JWTGetter) GetToken(
 	iat := now.Unix()
 	exp := now.Add(j.accessTokenExpiresIn).Unix()
 
-	var customClaims map[string]any
-	var err error
+	var (
+		customClaims map[string]any
+		err          error
+	)
+
 	if j.customClaimer != nil {
 		customClaims, err = j.customClaimer.GetClaims(ctx, userID.String())
 		if err != nil {
-			logger.Error("error getting custom claims", slog.String("error", err.Error()))
+			logger.ErrorContext(
+				ctx,
+				"error getting custom claims",
+				slog.String("error", err.Error()),
+			)
+
 			customClaims = map[string]any{}
 		}
 	}
@@ -265,10 +280,12 @@ func (j *JWTGetter) GetToken(
 		"exp":             exp,
 		j.claimsNamespace: c,
 	}
+
 	token := jwt.NewWithClaims(j.method, claims)
 	if j.kid != "" {
 		token.Header["kid"] = j.kid
 	}
+
 	ss, err := token.SignedString(j.signingKey)
 	if err != nil {
 		return "", 0, fmt.Errorf("error signing token: %w", err)
@@ -292,6 +309,7 @@ func (j *JWTGetter) SignTokenWithClaims(
 	if j.kid != "" {
 		token.Header["kid"] = j.kid
 	}
+
 	ss, err := token.SignedString(j.signingKey)
 	if err != nil {
 		return "", fmt.Errorf("error signing token: %w", err)
@@ -314,6 +332,7 @@ func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error parsing token: %w", err)
 	}
+
 	return jwtToken, nil
 }
 
@@ -331,9 +350,11 @@ func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
 			if !ok {
 				return nil, false
 			}
+
 			return token, true
 		}
 	}
+
 	return token, ok
 }
 
@@ -356,6 +377,7 @@ func (j *JWTGetter) verifyElevatedClaim(ctx context.Context, token *jwt.Token) (
 		if err != nil {
 			return false, fmt.Errorf("error parsing user id: %w", err)
 		}
+
 		n, err := j.db.CountSecurityKeysUser(ctx, userID)
 		if err != nil {
 			return false, fmt.Errorf("error checking if user has security keys: %w", err)
@@ -375,9 +397,10 @@ func (j *JWTGetter) MiddlewareFunc(
 	ctx context.Context, input *openapi3filter.AuthenticationInput,
 ) error {
 	authHeader := input.RequestValidationInput.Request.Header.Get("Authorization")
+
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return errors.New("invalid authorization header") //nolint:goerr113
+		return errors.New("invalid authorization header") //nolint:err113
 	}
 
 	jwtToken, err := j.Validate(parts[1])
@@ -386,7 +409,7 @@ func (j *JWTGetter) MiddlewareFunc(
 	}
 
 	if !jwtToken.Valid {
-		return errors.New("invalid token") //nolint:goerr113
+		return errors.New("invalid token") //nolint:err113
 	}
 
 	if input.SecuritySchemeName == "BearerAuthElevated" {
@@ -394,6 +417,7 @@ func (j *JWTGetter) MiddlewareFunc(
 		if err != nil {
 			return fmt.Errorf("error verifying elevated claim: %w", err)
 		}
+
 		if !found {
 			return ErrElevatedClaimRequired
 		}
@@ -410,6 +434,7 @@ func (j *JWTGetter) GetCustomClaim(token *jwt.Token, customClaim string) string 
 	if !ok {
 		return ""
 	}
+
 	customClaims, ok := claims[j.claimsNamespace].(map[string]any)
 	if !ok {
 		return ""
@@ -432,5 +457,6 @@ func (j *JWTGetter) GetUserID(token *jwt.Token) (uuid.UUID, error) {
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("error parsing user id: %w", err)
 	}
+
 	return userID, nil
 }

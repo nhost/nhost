@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -73,6 +74,7 @@ type ErrorResponse api.ErrorResponse
 func (response ErrorResponse) visit(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.Status)
+
 	return json.NewEncoder(w).Encode(response) //nolint:wrapcheck
 }
 
@@ -266,6 +268,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.OauthProviderError:
 		return false
 	}
+
 	return false
 }
 
@@ -482,6 +485,7 @@ type ErrorRedirectResponse struct {
 func (response ErrorRedirectResponse) visit(w http.ResponseWriter) error {
 	w.Header().Set("Location", response.Headers.Location)
 	w.WriteHeader(http.StatusFound)
+
 	return nil
 }
 
@@ -531,18 +535,19 @@ func (ctrl *Controller) respondWithError(err *APIError) ErrorResponse {
 	return ctrl.sendError(err)
 }
 
-func sqlErrIsDuplicatedEmail(err error, logger *slog.Logger) *APIError {
+func sqlErrIsDuplicatedEmail(ctx context.Context, err error, logger *slog.Logger) *APIError {
 	if err == nil {
 		return nil
 	}
 
 	if strings.Contains(err.Error(), "SQLSTATE 23505") &&
 		strings.Contains(err.Error(), "\"users_email_key\"") {
-		logger.Error("email already in use", logError(err))
+		logger.ErrorContext(ctx, "email already in use", logError(err))
 		return ErrEmailAlreadyInUse
 	}
 
-	logger.Error("error inserting user", logError(err))
+	logger.ErrorContext(ctx, "error inserting user", logError(err))
+
 	return &APIError{api.InternalServerError}
 }
 
@@ -563,6 +568,7 @@ func generateRedirectURL(
 	for k, v := range opts {
 		q.Set(k, v)
 	}
+
 	redirectTo.RawQuery = q.Encode()
 
 	return redirectTo

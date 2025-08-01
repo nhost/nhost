@@ -36,6 +36,7 @@ func GenerateOTP() (string, string, error) {
 	}
 
 	otp := fmt.Sprintf("%06d", n)
+
 	hash, err := hashPassword(otp)
 	if err != nil {
 		return "", "", err
@@ -69,11 +70,12 @@ func (wf *Workflows) SetTicket(
 		},
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Error("user not found")
+		logger.ErrorContext(ctx, "user not found")
 		return ErrInvalidRequest
 	}
+
 	if err != nil {
-		logger.Error("error updating user ticket", logError(err))
+		logger.ErrorContext(ctx, "error updating user ticket", logError(err))
 		return ErrInternalServerError
 	}
 
@@ -99,6 +101,7 @@ func GenLink(serverURL url.URL, typ LinkType, ticket, redirectTo string) (string
 	if err != nil {
 		return "", fmt.Errorf("problem appending /verify to server url: %w", err)
 	}
+
 	serverURL.Path = path
 
 	query := serverURL.Query()

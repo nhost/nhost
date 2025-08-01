@@ -13,6 +13,7 @@ import (
 func nonce() string {
 	b := make([]byte, 16) //nolint:mnd
 	_, _ = rand.Read(b)
+
 	return base64.StdEncoding.EncodeToString(b)
 }
 
@@ -26,12 +27,14 @@ func createSignature(
 	for k := range params {
 		keys = append(keys, k)
 	}
+
 	sort.Strings(keys)
 
 	paramPairs := make([]string, len(keys))
 	for i, k := range keys {
 		paramPairs[i] = url.QueryEscape(k) + "=" + url.QueryEscape(params[k])
 	}
+
 	paramString := strings.Join(paramPairs, "&")
 
 	// Create signature base string
@@ -50,11 +53,14 @@ func createSignature(
 
 func authHeader(params map[string]string) string {
 	var pairs []string
+
 	for k, v := range params {
 		if strings.HasPrefix(k, "oauth_") {
 			pairs = append(pairs, url.QueryEscape(k)+"=\""+url.QueryEscape(v)+"\"")
 		}
 	}
+
 	sort.Strings(pairs)
+
 	return "OAuth " + strings.Join(pairs, ", ")
 }

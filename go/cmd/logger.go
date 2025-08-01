@@ -12,15 +12,20 @@ import (
 )
 
 func getLogger(debug bool, formatTEXT bool) *slog.Logger {
-	var logLevel slog.Level
-	var addSource bool
+	var (
+		logLevel  slog.Level
+		addSource bool
+	)
+
 	if debug {
 		logLevel = slog.LevelDebug
 		addSource = true
+
 		gin.SetMode(gin.DebugMode)
 	} else {
 		logLevel = slog.LevelInfo
 		addSource = false
+
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -66,6 +71,7 @@ func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 		if isSecret(name) {
 			value = "********"
 		}
+
 		flags = append(flags, slog.Any(name, value))
 
 		processed[name] = struct{}{}
@@ -76,6 +82,7 @@ func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 		if _, ok := processed[name]; ok {
 			continue
 		}
+
 		value := cCtx.Generic(name)
 
 		if isSecret(name) {
@@ -84,5 +91,6 @@ func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 
 		flags = append(flags, slog.Any(name, value))
 	}
+
 	logger.LogAttrs(cCtx.Context, slog.LevelInfo, "starting program", slog.Group("flags", flags...))
 }

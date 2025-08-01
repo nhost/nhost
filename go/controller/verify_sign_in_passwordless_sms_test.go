@@ -22,6 +22,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 	getConfig := func() *controller.Config {
 		config := getConfig()
 		config.SMSPasswordlessEnabled = true
+
 		return config
 	}
 

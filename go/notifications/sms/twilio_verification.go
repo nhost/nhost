@@ -30,6 +30,7 @@ func NewTwilioVerificationService(
 		Username: accountSid,
 		Password: authToken,
 	})
+
 	return &TwilioVerificationService{
 		client:                client,
 		from:                  messageServiceSid,
@@ -39,7 +40,7 @@ func NewTwilioVerificationService(
 }
 
 func (s *TwilioVerificationService) SendVerificationCode(
-	to string, locale string,
+	_ context.Context, to string, locale string,
 ) (string, time.Time, error) {
 	if _, err := s.client.VerifyV2.CreateVerification(
 		s.from,

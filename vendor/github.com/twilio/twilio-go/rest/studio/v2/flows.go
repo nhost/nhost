@@ -30,7 +30,7 @@ type CreateFlowParams struct {
 	//
 	Status *string `json:"Status,omitempty"`
 	// JSON representation of flow definition.
-	Definition *map[string]interface{} `json:"Definition,omitempty"`
+	Definition *interface{} `json:"Definition,omitempty"`
 	// Description of change made in the revision.
 	CommitMessage *string `json:"CommitMessage,omitempty"`
 }
@@ -43,7 +43,7 @@ func (params *CreateFlowParams) SetStatus(Status string) *CreateFlowParams {
 	params.Status = &Status
 	return params
 }
-func (params *CreateFlowParams) SetDefinition(Definition map[string]interface{}) *CreateFlowParams {
+func (params *CreateFlowParams) SetDefinition(Definition interface{}) *CreateFlowParams {
 	params.Definition = &Definition
 	return params
 }
@@ -285,7 +285,7 @@ type UpdateFlowParams struct {
 	// The string that you assigned to describe the Flow.
 	FriendlyName *string `json:"FriendlyName,omitempty"`
 	// JSON representation of flow definition.
-	Definition *map[string]interface{} `json:"Definition,omitempty"`
+	Definition *interface{} `json:"Definition,omitempty"`
 	// Description of change made in the revision.
 	CommitMessage *string `json:"CommitMessage,omitempty"`
 }
@@ -298,7 +298,7 @@ func (params *UpdateFlowParams) SetFriendlyName(FriendlyName string) *UpdateFlow
 	params.FriendlyName = &FriendlyName
 	return params
 }
-func (params *UpdateFlowParams) SetDefinition(Definition map[string]interface{}) *UpdateFlowParams {
+func (params *UpdateFlowParams) SetDefinition(Definition interface{}) *UpdateFlowParams {
 	params.Definition = &Definition
 	return params
 }

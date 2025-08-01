@@ -39,9 +39,9 @@ type VerifyV2Factor struct {
 	Status       *string `json:"status,omitempty"`
 	FactorType   *string `json:"factor_type,omitempty"`
 	// An object that contains configurations specific to a `factor_type`.
-	Config *map[string]interface{} `json:"config,omitempty"`
+	Config *interface{} `json:"config,omitempty"`
 	// Custom metadata associated with the factor. This is added by the Device/SDK directly to allow for the inclusion of device information. It must be a stringified JSON with only strings values eg. `{\"os\": \"Android\"}`. Can be up to 1024 characters in length.
-	Metadata *map[string]interface{} `json:"metadata,omitempty"`
+	Metadata *interface{} `json:"metadata,omitempty"`
 	// The URL of this resource.
 	Url *string `json:"url,omitempty"`
 }

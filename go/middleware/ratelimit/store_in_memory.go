@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"context"
 	"sync"
 	"time"
 )
@@ -34,6 +35,7 @@ func (i *InMemoryStore) get(key string) int {
 	if v, ok := i.data[key]; ok {
 		return v.v
 	}
+
 	return 0
 }
 
@@ -46,7 +48,7 @@ func (i *InMemoryStore) Get(key string) int {
 	return i.get(key)
 }
 
-func (i *InMemoryStore) Increment(key string, expire time.Duration) int {
+func (i *InMemoryStore) Increment(_ context.Context, key string, expire time.Duration) int {
 	i.mx.Lock()
 	defer i.mx.Unlock()
 

@@ -53,7 +53,7 @@ type MessagingV1Service struct {
 	AreaCodeGeomatch *bool `json:"area_code_geomatch,omitempty"`
 	// Reserved.
 	SynchronousValidation *bool `json:"synchronous_validation,omitempty"`
-	// How long, in seconds, messages sent from the Service are valid. Can be an integer from `1` to `14,400`. Default value is `14,400`.
+	// How long, in seconds, messages sent from the Service are valid. Can be an integer from `1` to `36,000`. Default value is `36,000`.
 	ValidityPeriod int `json:"validity_period,omitempty"`
 	// The absolute URL of the Service resource.
 	Url *string `json:"url,omitempty"`

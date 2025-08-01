@@ -73,6 +73,8 @@ type ValidateOpts struct {
 	Digits otp.Digits
 	// Algorithm to use for HMAC. Defaults to SHA1.
 	Algorithm otp.Algorithm
+	// Encoder to use for output code.
+	Encoder otp.Encoder
 }
 
 // GenerateCodeCustom takes a timepoint and produces a passcode using a
@@ -86,6 +88,7 @@ func GenerateCodeCustom(secret string, t time.Time, opts ValidateOpts) (passcode
 	passcode, err = hotp.GenerateCodeCustom(secret, counter, hotp.ValidateOpts{
 		Digits:    opts.Digits,
 		Algorithm: opts.Algorithm,
+		Encoder:   opts.Encoder,
 	})
 	if err != nil {
 		return "", err
@@ -113,8 +116,8 @@ func ValidateCustom(passcode string, secret string, t time.Time, opts ValidateOp
 		rv, err := hotp.ValidateCustom(passcode, counter, secret, hotp.ValidateOpts{
 			Digits:    opts.Digits,
 			Algorithm: opts.Algorithm,
+			Encoder:   opts.Encoder,
 		})
-
 		if err != nil {
 			return false, err
 		}
@@ -184,7 +187,7 @@ func Generate(opts GenerateOpts) (*otp.Key, error) {
 		v.Set("secret", b32NoPadding.EncodeToString(opts.Secret))
 	} else {
 		secret := make([]byte, opts.SecretSize)
-		_, err := opts.Rand.Read(secret)
+		_, err := io.ReadFull(opts.Rand, secret)
 		if err != nil {
 			return nil, err
 		}

@@ -43,12 +43,12 @@ type VerifyV2Challenge struct {
 	Status          *string    `json:"status,omitempty"`
 	RespondedReason *string    `json:"responded_reason,omitempty"`
 	// Details provided to give context about the Challenge. Intended to be shown to the end user.
-	Details *map[string]interface{} `json:"details,omitempty"`
+	Details *interface{} `json:"details,omitempty"`
 	// Details provided to give context about the Challenge. Intended to be hidden from the end user. It must be a stringified JSON with only strings values eg. `{\"ip\": \"172.168.1.234\"}`
-	HiddenDetails *map[string]interface{} `json:"hidden_details,omitempty"`
+	HiddenDetails *interface{} `json:"hidden_details,omitempty"`
 	// Custom metadata associated with the challenge. This is added by the Device/SDK directly to allow for the inclusion of device information. It must be a stringified JSON with only strings values eg. `{\"os\": \"Android\"}`. Can be up to 1024 characters in length.
-	Metadata   *map[string]interface{} `json:"metadata,omitempty"`
-	FactorType *string                 `json:"factor_type,omitempty"`
+	Metadata   *interface{} `json:"metadata,omitempty"`
+	FactorType *string      `json:"factor_type,omitempty"`
 	// The URL of this resource.
 	Url *string `json:"url,omitempty"`
 	// Contains a dictionary of URL links to nested resources of this Challenge.

@@ -38,7 +38,7 @@ type ConversationsV1UserConversation struct {
 	FriendlyName      *string `json:"friendly_name,omitempty"`
 	ConversationState *string `json:"conversation_state,omitempty"`
 	// Timer date values representing state update for this conversation.
-	Timers *map[string]interface{} `json:"timers,omitempty"`
+	Timers *interface{} `json:"timers,omitempty"`
 	// An optional string metadata field you can use to store any data you wish. The string value must contain structurally valid JSON if specified.  **Note** that if the attributes are not set \"{}\" will be returned.
 	Attributes *string `json:"attributes,omitempty"`
 	// The date that this conversation was created, given in ISO 8601 format.

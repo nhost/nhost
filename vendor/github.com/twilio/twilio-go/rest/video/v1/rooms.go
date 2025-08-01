@@ -47,7 +47,7 @@ type CreateRoomParams struct {
 	// The region for the Room's media server.  Can be one of the [available Media Regions](https://www.twilio.com/docs/video/ip-addresses#group-rooms-media-servers).
 	MediaRegion *string `json:"MediaRegion,omitempty"`
 	// A collection of Recording Rules that describe how to include or exclude matching tracks for recording
-	RecordingRules *map[string]interface{} `json:"RecordingRules,omitempty"`
+	RecordingRules *interface{} `json:"RecordingRules,omitempty"`
 	// A collection of properties that describe transcription behaviour. If TranscribeParticipantsOnConnect is set to true and TranscriptionsConfiguration is not provided, default settings will be used.
 	TranscriptionsConfiguration *map[string]interface{} `json:"TranscriptionsConfiguration,omitempty"`
 	// When set to true, indicates that the participants in the room will only publish audio. No video tracks will be allowed.
@@ -102,7 +102,7 @@ func (params *CreateRoomParams) SetMediaRegion(MediaRegion string) *CreateRoomPa
 	params.MediaRegion = &MediaRegion
 	return params
 }
-func (params *CreateRoomParams) SetRecordingRules(RecordingRules map[string]interface{}) *CreateRoomParams {
+func (params *CreateRoomParams) SetRecordingRules(RecordingRules interface{}) *CreateRoomParams {
 	params.RecordingRules = &RecordingRules
 	return params
 }

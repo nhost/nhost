@@ -33,5 +33,6 @@ func ToPointerString(value pgtype.Text) *string {
 	if value.Valid {
 		return &value.String
 	}
+
 	return nil
 }

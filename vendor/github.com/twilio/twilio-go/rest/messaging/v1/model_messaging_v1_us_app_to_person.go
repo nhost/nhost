@@ -75,5 +75,5 @@ type MessagingV1UsAppToPerson struct {
 	// A boolean that specifies whether campaign is a mock or not. Mock campaigns will be automatically created if using a mock brand. Mock campaigns should only be used for testing purposes.
 	Mock *bool `json:"mock,omitempty"`
 	// Details indicating why a campaign registration failed. These errors can indicate one or more fields that were incorrect or did not meet review requirements.
-	Errors *[]map[string]interface{} `json:"errors,omitempty"`
+	Errors *[]interface{} `json:"errors,omitempty"`
 }

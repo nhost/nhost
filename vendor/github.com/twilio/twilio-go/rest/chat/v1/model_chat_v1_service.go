@@ -45,9 +45,9 @@ type ChatV1Service struct {
 	// DEPRECATED. The interval in seconds between consumption reports submission batches from client endpoints.
 	ConsumptionReportInterval int `json:"consumption_report_interval,omitempty"`
 	// An object that describes the limits of the service instance. The `limits` object contains  `channel_members` to describe the members/channel limit and `user_channels` to describe the channels/user limit. `channel_members` can be 1,000 or less, with a default of 250. `user_channels` can be 1,000 or less, with a default value of 100.
-	Limits *map[string]interface{} `json:"limits,omitempty"`
+	Limits *interface{} `json:"limits,omitempty"`
 	// An object that contains information about the webhooks configured for this service.
-	Webhooks *map[string]interface{} `json:"webhooks,omitempty"`
+	Webhooks *interface{} `json:"webhooks,omitempty"`
 	// The URL for pre-event webhooks, which are called by using the `webhook_method`. See [Webhook Events](https://www.twilio.com/docs/api/chat/webhooks) for more details.
 	PreWebhookUrl *string `json:"pre_webhook_url,omitempty"`
 	// The URL for post-event webhooks, which are called by using the `webhook_method`. See [Webhook Events](https://www.twilio.com/docs/api/chat/webhooks) for more details.
@@ -57,7 +57,7 @@ type ChatV1Service struct {
 	// The list of WebHook events that are enabled for this Service instance. See [Webhook Events](https://www.twilio.com/docs/chat/webhook-events) for more details.
 	WebhookFilters *[]string `json:"webhook_filters,omitempty"`
 	// The notification configuration for the Service instance. See [Push Notification Configuration](https://www.twilio.com/docs/chat/push-notification-configuration) for more information.
-	Notifications *map[string]interface{} `json:"notifications,omitempty"`
+	Notifications *interface{} `json:"notifications,omitempty"`
 	// The absolute URL of the Service resource.
 	Url *string `json:"url,omitempty"`
 	// The absolute URLs of the Service's [Channels](https://www.twilio.com/docs/chat/api/channels), [Roles](https://www.twilio.com/docs/chat/api/roles), and [Users](https://www.twilio.com/docs/chat/api/users).

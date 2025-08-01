@@ -24,6 +24,7 @@ func NewTwilioSMS(
 		Username: accountSid,
 		Password: authToken,
 	})
+
 	return NewSMS(
 		&TwilioSMS{
 			client: client,

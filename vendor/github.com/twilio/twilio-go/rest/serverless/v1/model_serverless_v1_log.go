@@ -36,7 +36,8 @@ type ServerlessV1Log struct {
 	FunctionSid *string `json:"function_sid,omitempty"`
 	// The SID of the request associated with the log.
 	RequestSid *string `json:"request_sid,omitempty"`
-	Level      *string `json:"level,omitempty"`
+	// The log level.
+	Level *string `json:"level,omitempty"`
 	// The log message.
 	Message *string `json:"message,omitempty"`
 	// The date and time in GMT when the Log resource was created specified in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.

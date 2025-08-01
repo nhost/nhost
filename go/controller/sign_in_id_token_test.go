@@ -21,6 +21,7 @@ import (
 func getTestIDTokenValidatorProviders() func(t *testing.T) *oidc.IDTokenValidatorProviders {
 	return func(t *testing.T) *oidc.IDTokenValidatorProviders {
 		t.Helper()
+
 		idtokenValidators, err := oidc.NewIDTokenValidatorProviders(
 			t.Context(),
 			"appleid",
@@ -30,6 +31,7 @@ func getTestIDTokenValidatorProviders() func(t *testing.T) *oidc.IDTokenValidato
 		if err != nil {
 			t.Fatal("failed to create id token validator providers")
 		}
+
 		return idtokenValidators
 	}
 }
@@ -40,6 +42,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 	getConfig := func() *controller.Config {
 		config := getConfig()
 		config.EmailPasswordlessEnabled = true
+
 		return config
 	}
 

@@ -12,7 +12,7 @@ Supported Serialization formats are:
   - binc:    http://github.com/ugorji/binc
   - cbor:    http://cbor.io http://tools.ietf.org/html/rfc7049
   - json:    http://json.org http://tools.ietf.org/html/rfc7159
-  - simple:
+  - simple:  (unpublished)
 
 This package will carefully use 'package unsafe' for performance reasons in specific places.
 You can build without unsafe use by passing the safe or appengine tag
@@ -77,6 +77,32 @@ Rich Feature Set includes:
     provide rpc server/client codec to support
     msgpack-rpc protocol defined at:
     https://github.com/msgpack-rpc/msgpack-rpc/blob/master/spec.md
+
+# Supported build tags
+
+We gain performance by code-generating fast-paths for slices and maps of built-in types,
+and monomorphizing generic code explicitly so we gain inlining and de-virtualization benefits.
+
+The results are 20-40% performance improvements.
+
+Building and running is configured using build tags as below.
+
+At runtime:
+
+- codec.safe: run in safe mode (not using unsafe optimizations)
+- codec.notmono: use generics code (bypassing performance-boosting monomorphized code)
+- codec.notfastpath: skip fast path code for slices and maps of built-in types (number, bool, string, bytes)
+
+Each of these "runtime" tags have a convenience synonym i.e. safe, notmono, notfastpath.
+Pls use these mostly during development - use codec.XXX in your go files.
+
+Build only:
+
+- codec.build: used to generate fastpath and monomorphization code
+
+Test only:
+
+- codec.notmammoth: skip the mammoth generated tests
 
 # Extension Support
 
@@ -203,6 +229,10 @@ You can run the tag 'codec.safe' to run tests or build in safe mode. e.g.
 	go test -tags codec.safe -run Json
 	go test -tags "alltests codec.safe" -run Suite
 
+You can run the tag 'codec.notmono' to build bypassing the monomorphized code e.g.
+
+	go test -tags codec.notmono -run Json
+
 Running Benchmarks
 
 	cd bench
@@ -225,3 +255,87 @@ Embedded fields are encoded as if they exist in the top-level struct,
 with some caveats. See Encode documentation.
 */
 package codec
+
+/*
+Generics
+
+Generics are used across to board to reduce boilerplate, and hopefully
+improve performance by
+- reducing need for interface calls (de-virtualization)
+- resultant inlining of those calls
+
+encoder/decoder --> Driver (json/cbor/...) --> input/output (bytes or io abstraction)
+
+There are 2 * 5 * 2 (20) combinations of monomorphized values.
+
+Key rules
+- do not use top-level generic functions.
+  Due to type inference, monomorphizing them proves challenging
+- only use generic methods.
+  Monomorphizing is done at the type once, and method names need not change
+- do not have method calls have a parameter of an encWriter or decReader.
+  All those calls are handled directly by the driver.
+- Include a helper type for each parameterized thing, and add all generic functions to them e.g.
+  helperEncWriter[T encWriter]
+  helperEncReader[T decReader]
+  helperEncDriver[T encDriver]
+  helperDecDriver[T decDriver]
+- Always use T as the generic type name (when needed)
+- No inline types
+- No closures taking parameters of generic types
+
+*/
+/*
+Naming convention:
+
+Currently, as generic and non-generic types/functions/vars are put in the same files,
+we suffer because:
+- build takes longer as non-generic code is built when a build tag wants only monomorphised code
+- files have many lines which are not used at runtime (due to type parameters)
+- code coverage is inaccurate on a single run
+
+To resolve this, we are streamlining our file naming strategy.
+
+Basically, we will have the following nomenclature for filenames:
+- fastpath (tag:notfastpath):        *.notfastpath.*.go vs *.fastpath.*.go
+- typed parameters (tag:notmono):    *.notmono.*.go vs *.mono.*.go
+- safe (tag:safe):                   *.safe.*.go vs *.unsafe.go
+- generated files:                   *.generated.go
+- all others (tags:N/A):             *.go without safe/mono/fastpath/generated in the name
+
+The following files will be affected and split/renamed accordingly
+
+Base files:
+- binc.go
+- cbor.go
+- json.go
+- msgpack.go
+- simple.go
+- decode.go
+- encode.go
+
+For each base file, split into __file__.go (containing type parameters) and __file__.base.go.
+__file__.go will only build with notmono.
+
+Other files:
+- fastpath.generated.go -> base.fastpath.generated.go and base.fastpath.notmono.generated.go
+- fastpath.not.go       -> base.notfastpath.go
+- init.go               -> init.notmono.go
+
+Appropriate build tags will be included in the files, and the right ones only used for
+monomorphization.
+*/
+/*
+Caching Handle options for fast runtime use
+
+If using cached values from Handle options, then
+- re-cache them at each reset() call
+- reset is always called at the start of each (Must)(En|De)code
+  - which calls (en|de)coder.reset([]byte|io.Reader|String)
+  - which calls (en|de)cDriver.reset()
+- at reset, (en|de)c(oder|Driver) can re-cache Handle options before each run
+
+Some examples:
+- json: e.rawext,di,d,ks,is / d.rawext
+- decode: (decoderBase) d.jsms,mtr,str,
+*/

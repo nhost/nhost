@@ -56,16 +56,10 @@ Class | Method | HTTP request | Description
 *ServicesSessionsParticipantsMessageInteractionsApi* | [**CreateMessageInteraction**](docs/ServicesSessionsParticipantsMessageInteractionsApi.md#createmessageinteraction) | **Post** /v1/Services/{ServiceSid}/Sessions/{SessionSid}/Participants/{ParticipantSid}/MessageInteractions | Create a new message Interaction to send directly from your system to one [Participant](https://www.twilio.com/docs/proxy/api/participant).  The &#x60;inbound&#x60; properties for the Interaction will always be empty.
 *ServicesSessionsParticipantsMessageInteractionsApi* | [**FetchMessageInteraction**](docs/ServicesSessionsParticipantsMessageInteractionsApi.md#fetchmessageinteraction) | **Get** /v1/Services/{ServiceSid}/Sessions/{SessionSid}/Participants/{ParticipantSid}/MessageInteractions/{Sid} | 
 *ServicesSessionsParticipantsMessageInteractionsApi* | [**ListMessageInteraction**](docs/ServicesSessionsParticipantsMessageInteractionsApi.md#listmessageinteraction) | **Get** /v1/Services/{ServiceSid}/Sessions/{SessionSid}/Participants/{ParticipantSid}/MessageInteractions | 
-*ServicesShortCodesApi* | [**CreateShortCode**](docs/ServicesShortCodesApi.md#createshortcode) | **Post** /v1/Services/{ServiceSid}/ShortCodes | Add a Short Code to the Proxy Number Pool for the Service.
-*ServicesShortCodesApi* | [**DeleteShortCode**](docs/ServicesShortCodesApi.md#deleteshortcode) | **Delete** /v1/Services/{ServiceSid}/ShortCodes/{Sid} | Delete a specific Short Code from a Service.
-*ServicesShortCodesApi* | [**FetchShortCode**](docs/ServicesShortCodesApi.md#fetchshortcode) | **Get** /v1/Services/{ServiceSid}/ShortCodes/{Sid} | Fetch a specific Short Code.
-*ServicesShortCodesApi* | [**ListShortCode**](docs/ServicesShortCodesApi.md#listshortcode) | **Get** /v1/Services/{ServiceSid}/ShortCodes | Retrieve a list of all Short Codes in the Proxy Number Pool for the Service. A maximum of 100 records will be returned per page.
-*ServicesShortCodesApi* | [**UpdateShortCode**](docs/ServicesShortCodesApi.md#updateshortcode) | **Post** /v1/Services/{ServiceSid}/ShortCodes/{Sid} | Update a specific Short Code.
 
 
 ## Documentation For Models
 
- - [ProxyV1ServiceShortCodeCapabilities](docs/ProxyV1ServiceShortCodeCapabilities.md)
  - [ProxyV1PhoneNumber](docs/ProxyV1PhoneNumber.md)
  - [ListSessionResponse](docs/ListSessionResponse.md)
  - [ProxyV1Session](docs/ProxyV1Session.md)
@@ -73,15 +67,13 @@ Class | Method | HTTP request | Description
  - [ListPhoneNumberResponse](docs/ListPhoneNumberResponse.md)
  - [ListServiceResponse](docs/ListServiceResponse.md)
  - [ProxyV1Interaction](docs/ProxyV1Interaction.md)
- - [ProxyV1ServicePhoneNumberCapabilities](docs/ProxyV1ServicePhoneNumberCapabilities.md)
  - [ProxyV1MessageInteraction](docs/ProxyV1MessageInteraction.md)
+ - [ProxyV1ServicePhoneNumberCapabilities](docs/ProxyV1ServicePhoneNumberCapabilities.md)
  - [ListParticipantResponse](docs/ListParticipantResponse.md)
  - [ListInteractionResponseMeta](docs/ListInteractionResponseMeta.md)
  - [ListMessageInteractionResponse](docs/ListMessageInteractionResponse.md)
  - [ProxyV1Service](docs/ProxyV1Service.md)
  - [ProxyV1Participant](docs/ProxyV1Participant.md)
- - [ListShortCodeResponse](docs/ListShortCodeResponse.md)
- - [ProxyV1ShortCode](docs/ProxyV1ShortCode.md)
 
 
 ## Documentation For Authorization

@@ -79,7 +79,7 @@ components:
         - field
 ```
 
-**Important**: 
+**Important**:
 - Use `additionalProperties: false` for strict validation
 - Add proper descriptions and examples
 - Define all possible response codes
@@ -97,7 +97,7 @@ WHERE condition = $1;
 
 **Query naming conventions**:
 - `:one` - returns single row
-- `:many` - returns multiple rows  
+- `:many` - returns multiple rows
 - `:exec` - no return value (INSERT/UPDATE/DELETE)
 - Use descriptive names like `GetUserByRefreshTokenHash`
 
@@ -110,7 +110,7 @@ package controller
 
 import (
     "context"
-    
+
     "github.com/nhost/hasura-auth/go/api"
     "github.com/nhost/hasura-auth/go/middleware"
 )
@@ -119,24 +119,24 @@ func (ctrl *Controller) PostYourEndpoint( //nolint:ireturn
     ctx context.Context, request api.PostYourEndpointRequestObject,
 ) (api.PostYourEndpointResponseObject, error) {
     logger := middleware.LoggerFromContext(ctx)
-    
+
     // Validate inputs
     if apiErr := ctrl.wf.ValidateInput(request.Body.Field, logger); apiErr != nil {
         return api.PostYourEndpoint401JSONResponse(ctrl.respondWithError(apiErr)), nil
     }
-    
+
     // Get authenticated user if needed
     user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
     if apiErr != nil {
         return api.PostYourEndpoint401JSONResponse(ctrl.sendError(ErrUnauthenticatedUser)), nil
     }
-    
+
     // Business logic
     result, apiErr := ctrl.wf.DoSomething(ctx, user.ID, request.Body.Field, logger)
     if apiErr != nil {
         return api.PostYourEndpoint401JSONResponse(ctrl.respondWithError(apiErr)), nil
     }
-    
+
     return api.PostYourEndpoint200JSONResponse(*result), nil
 }
 ```
@@ -160,24 +160,24 @@ func (wf *Workflows) DoSomething(
 ) (*Result, *APIError) {
     // Validate business rules
     if !wf.ValidateBusinessRule(input) {
-        logger.Warn("business rule validation failed")
+        logger.WarnContext(ctx, "business rule validation failed")
         return nil, ErrInvalidRequest
     }
-    
+
     // Database operations
     result, err := wf.db.YourQuery(ctx, sql.YourQueryParams{
         UserID: userID,
         Input:  pgtype.Text{String: input, Valid: true},
     })
     if errors.Is(err, pgx.ErrNoRows) {
-        logger.Warn("resource not found")
+        logger.WarnContext(ctx, "resource not found")
         return nil, ErrNotFound
     }
     if err != nil {
-        logger.Error("database error", logError(err))
+        logger.ErrorContext(ctx, "database error", logError(err))
         return nil, ErrInternalServerError
     }
-    
+
     return &result, nil
 }
 ```
@@ -226,7 +226,7 @@ package controller_test
 import (
     "context"
     "testing"
-    
+
     "github.com/google/go-cmp/cmp"
     "github.com/google/uuid"
     "github.com/nhost/hasura-auth/go/api"
@@ -237,21 +237,21 @@ import (
 
 func TestPostYourEndpoint(t *testing.T) {
     t.Parallel()
-    
+
     userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
-    
+
     cases := []testRequest[api.PostYourEndpointRequestObject, api.PostYourEndpointResponseObject]{
         {
             name:   "success case",
             config: getConfig,
             db: func(ctrl *gomock.Controller) controller.DBClient {
                 mock := mock.NewMockDBClient(ctrl)
-                
+
                 mock.EXPECT().YourQuery(
                     gomock.Any(),
                     gomock.Any(),
                 ).Return(expectedResult, nil)
-                
+
                 return mock
             },
             request: api.PostYourEndpointRequestObject{
@@ -266,21 +266,21 @@ func TestPostYourEndpoint(t *testing.T) {
         },
         // Add error cases, edge cases, etc.
     }
-    
+
     for _, tc := range cases {
         t.Run(tc.name, func(t *testing.T) {
             t.Parallel()
-            
+
             ctrl := gomock.NewController(t)
             defer ctrl.Finish()
-            
+
             c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
-            
+
             resp, err := c.PostYourEndpoint(context.Background(), tc.request)
             if err != nil {
                 t.Fatalf("unexpected error: %v", err)
             }
-            
+
             if diff := cmp.Diff(tc.expectedResponse, resp); diff != "" {
                 t.Errorf("unexpected response (-want +got):\n%s", diff)
             }
@@ -363,7 +363,7 @@ pgtype.Text{String: hashedToken, Valid: true}
 // Single token
 wf.db.DeleteRefreshToken(ctx, pgtype.Text{String: hashedToken, Valid: true})
 
-// All user tokens  
+// All user tokens
 wf.db.DeleteRefreshTokens(ctx, userID)
 ```
 
@@ -381,7 +381,7 @@ if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
 // For client errors (400-level)
 return api.PostEndpoint401JSONResponse(ctrl.sendError(ErrInvalidRequest)), nil
 
-// For server errors (500-level)  
+// For server errors (500-level)
 return api.PostEndpoint401JSONResponse(ctrl.respondWithError(apiErr)), nil
 ```
 

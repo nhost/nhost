@@ -58,6 +58,7 @@ func ExtractEmail(address string) string {
 			return address[start+1 : start+end]
 		}
 	}
+
 	return address
 }
 
@@ -66,9 +67,11 @@ func (sm *Email) Send(to, subject, contents string, headers map[string]string) e
 	for k, v := range sm.extraHeaders {
 		fmt.Fprintf(buf, "%s: %s\r\n", k, v)
 	}
+
 	for k, v := range headers {
 		fmt.Fprintf(buf, "%s: %s\r\n", k, v)
 	}
+
 	buf.WriteString("From: " + sm.from + "\r\n")
 	buf.WriteString("To: " + sanitize(to) + "\r\n")
 	buf.WriteString("Date: " + time.Now().Format(time.RFC1123Z) + "\r\n")
@@ -92,13 +95,14 @@ func (sm *Email) Send(to, subject, contents string, headers map[string]string) e
 	); err != nil {
 		return fmt.Errorf("error sending email: %w", err)
 	}
+
 	return nil
 }
 
 func (sm *Email) SendEmail(
-	_ context.Context, to string, locale string, templateName TemplateName, data TemplateData,
+	ctx context.Context, to string, locale string, templateName TemplateName, data TemplateData,
 ) error {
-	body, subject, err := sm.templates.Render(locale, templateName, data)
+	body, subject, err := sm.templates.Render(ctx, locale, templateName, data)
 	if err != nil {
 		return fmt.Errorf("error rendering email template: %w", err)
 	}

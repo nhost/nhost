@@ -58,6 +58,7 @@ func testToken(t *testing.T, nonce string) string {
 	}
 
 	p := oidc.FakeProvider{}
+
 	token, err := p.GenerateTestIDToken(claims)
 	if err != nil {
 		t.Fatalf("failed to generate test ID token: %v", err)

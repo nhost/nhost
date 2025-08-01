@@ -59,7 +59,7 @@ type ListVerificationAttemptParams struct {
 	ChannelDataTo *string `json:"ChannelData.To,omitempty"`
 	// Filter used to query Verification Attempts sent to the specified destination country.
 	Country *string `json:"Country,omitempty"`
-	// Filter used to query Verification Attempts by communication channel. Valid values are `SMS` and `CALL`
+	// Filter used to query Verification Attempts by communication channel.
 	Channel *string `json:"Channel,omitempty"`
 	// Filter used to query Verification Attempts by verify service. Only attempts of the provided SID will be returned.
 	VerifyServiceSid *string `json:"VerifyServiceSid,omitempty"`

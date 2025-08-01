@@ -25,6 +25,7 @@ type providerCallbackData struct {
 }
 
 func (ctrl *Controller) signinProviderProviderCallbackValidate(
+	ctx context.Context,
 	req providerCallbackData,
 	logger *slog.Logger,
 ) (*api.SignUpOptions, *string, *url.URL, *APIError) {
@@ -32,18 +33,19 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 	stateToken, err := ctrl.wf.jwtGetter.Validate(req.State)
 	if err != nil {
-		logger.Error("invalid state token", logError(err))
+		logger.ErrorContext(ctx, "invalid state token", logError(err))
 		return nil, nil, redirectTo, ErrInvalidState
 	}
 
 	stateData := &providers.State{} //nolint:exhaustruct
 	if err := stateData.Decode(stateToken.Claims); err != nil {
-		logger.Error("error decoding state token", logError(err))
+		logger.ErrorContext(ctx, "error decoding state token", logError(err))
 		return nil, nil, redirectTo, ErrInvalidState
 	}
 
 	// we just care about the redirect URL for now, the rest is handled by the signin flow
 	options, apiErr := ctrl.wf.ValidateOptionsRedirectTo(
+		ctx,
 		&api.OptionsRedirectTo{
 			RedirectTo: stateData.Options.RedirectTo,
 		},
@@ -65,7 +67,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 	optionsRedirectTo, err := url.Parse(*options.RedirectTo)
 	if err != nil {
-		logger.Error("error parsing redirect URL", logError(err))
+		logger.ErrorContext(ctx, "error parsing redirect URL", logError(err))
 		return nil, nil, redirectTo, ErrInvalidRequest
 	}
 
@@ -79,36 +81,37 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 ) (oidc.Profile, *APIError) {
 	p := ctrl.Providers.Get(req.Provider)
 	if p == nil {
-		logger.Error("provider not enabled")
+		logger.ErrorContext(ctx, "provider not enabled")
 		return oidc.Profile{}, ErrDisabledEndpoint
 	}
 
 	var profile oidc.Profile
+
 	switch {
 	case p.IsOauth1():
 		accessTokenValue, accessTokenSecret, err := p.Oauth1().AccessToken(
 			ctx, deptr(req.OauthToken), deptr(req.OauthVerifier),
 		)
 		if err != nil {
-			logger.Error("failed to request token", logError(err))
+			logger.ErrorContext(ctx, "failed to request token", logError(err))
 			return oidc.Profile{}, ErrOauthProfileFetchFailed
 		}
 
 		profile, err = p.Oauth1().GetProfile(ctx, accessTokenValue, accessTokenSecret)
 		if err != nil {
-			logger.Error("failed to get user info", logError(err))
+			logger.ErrorContext(ctx, "failed to get user info", logError(err))
 			return oidc.Profile{}, ErrOauthProfileFetchFailed
 		}
 	default:
 		token, err := p.Oauth2().Exchange(ctx, deptr(req.Code))
 		if err != nil {
-			logger.Error("failed to exchange token", logError(err))
+			logger.ErrorContext(ctx, "failed to exchange token", logError(err))
 			return oidc.Profile{}, ErrOauthTokenExchangeFailed
 		}
 
 		profile, err = p.Oauth2().GetProfile(ctx, token.AccessToken, req.IDToken, req.Extras)
 		if err != nil {
-			logger.Error("failed to get user info", logError(err))
+			logger.ErrorContext(ctx, "failed to get user info", logError(err))
 			return oidc.Profile{}, ErrOauthProfileFetchFailed
 		}
 	}
@@ -123,6 +126,7 @@ func (ctrl *Controller) signinProviderProviderCallback(
 	logger := middleware.LoggerFromContext(ctx)
 
 	options, connnect, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
+		ctx,
 		req,
 		logger,
 	)
@@ -201,20 +205,20 @@ func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	// Decode JWT token from connect parameter
 	jwtToken, err := ctrl.wf.jwtGetter.Validate(connnect)
 	if err != nil {
-		logger.Error("invalid jwt token", logError(err))
+		logger.ErrorContext(ctx, "invalid jwt token", logError(err))
 		return ErrInvalidRequest
 	}
 
 	// Extract user ID from JWT token
 	userID, err := ctrl.wf.jwtGetter.GetUserID(jwtToken)
 	if err != nil {
-		logger.Error("error getting user id from jwt token", logError(err))
+		logger.ErrorContext(ctx, "error getting user id from jwt token", logError(err))
 		return ErrInvalidRequest
 	}
 
 	// Verify user exists
 	if _, apiError := ctrl.wf.GetUser(ctx, userID, logger); apiError != nil {
-		logger.Error("error getting user", logError(apiError))
+		logger.ErrorContext(ctx, "error getting user", logError(apiError))
 		return apiError
 	}
 

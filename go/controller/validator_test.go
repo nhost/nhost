@@ -345,6 +345,7 @@ func TestValidateEmail(t *testing.T) {
 				tc.allowedDomains,
 				tc.allowedEmails,
 			)
+
 			got := fn(tc.email)
 			if tc.expected != got {
 				t.Errorf(

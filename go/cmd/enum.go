@@ -19,6 +19,7 @@ func (e *EnumValue) Get() string {
 	if e.selected == "" {
 		return e.Default
 	}
+
 	return e.selected
 }
 
@@ -30,7 +31,7 @@ func (e *EnumValue) Set(value string) error {
 		}
 	}
 
-	return fmt.Errorf("allowed values are %s", strings.Join(e.Enum, ", ")) //nolint: goerr113
+	return fmt.Errorf("allowed values are %s", strings.Join(e.Enum, ", ")) //nolint: err113
 }
 
 func (e *EnumValue) String() string {
@@ -42,6 +43,7 @@ func GetEnumValue(c *cli.Context, flagName string) string {
 	if g == nil {
 		return ""
 	}
+
 	return g.Get()
 }
 

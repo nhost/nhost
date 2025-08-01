@@ -11,8 +11,9 @@ import (
 )
 
 type Github struct {
-	profileURL string
 	*oauth2.Config
+
+	profileURL string
 }
 
 func NewGithubProvider(
@@ -78,7 +79,7 @@ func (g *Github) GetProfile(
 	}
 
 	if len(emails) == 0 {
-		return oidc.Profile{}, errors.New("GitHub user has no email addresses") //nolint:goerr113
+		return oidc.Profile{}, errors.New("GitHub user has no email addresses") //nolint:err113
 	}
 
 	return oidc.Profile{

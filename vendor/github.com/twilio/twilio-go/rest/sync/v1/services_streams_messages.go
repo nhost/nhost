@@ -23,10 +23,10 @@ import (
 // Optional parameters for the method 'CreateStreamMessage'
 type CreateStreamMessageParams struct {
 	// A JSON string that represents an arbitrary, schema-less object that makes up the Stream Message body. Can be up to 4 KiB in length.
-	Data *map[string]interface{} `json:"Data,omitempty"`
+	Data *interface{} `json:"Data,omitempty"`
 }
 
-func (params *CreateStreamMessageParams) SetData(Data map[string]interface{}) *CreateStreamMessageParams {
+func (params *CreateStreamMessageParams) SetData(Data interface{}) *CreateStreamMessageParams {
 	params.Data = &Data
 	return params
 }

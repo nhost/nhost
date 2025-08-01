@@ -21,6 +21,7 @@ func sendsEmail(path string, verifyEmailEnabled bool) bool {
 			"/user/deanonymize",
 		}, path)
 	}
+
 	return slices.Contains([]string{
 		"/signin/passwordless/email",
 		"/user/email/change",
@@ -65,8 +66,11 @@ func RateLimit( //nolint:cyclop,funlen
 ) gin.HandlerFunc {
 	perUserRL := NewSlidingWindow("user-global", globalLimit, globalInterval, store)
 
-	var globalEmailRL *SlidingWindow
-	var perUserEmailRL *SlidingWindow
+	var (
+		globalEmailRL  *SlidingWindow
+		perUserEmailRL *SlidingWindow
+	)
+
 	if emailIsGlobal {
 		globalEmailRL = NewSlidingWindow("global-email", emailLimit, emailInterval, store)
 	} else {
@@ -81,7 +85,7 @@ func RateLimit( //nolint:cyclop,funlen
 
 	return func(ctx *gin.Context) {
 		clientIP := ctx.ClientIP()
-		if !perUserRL.Allow(clientIP) {
+		if !perUserRL.Allow(ctx, clientIP) {
 			ctx.AbortWithStatus(http.StatusTooManyRequests)
 			return
 		}
@@ -89,29 +93,29 @@ func RateLimit( //nolint:cyclop,funlen
 		path := strings.TrimPrefix(ctx.Request.URL.Path, ignorePrefix)
 
 		if sendsEmail(path, emailVerifyEnabled) {
-			if globalEmailRL != nil && !globalEmailRL.Allow("global") {
+			if globalEmailRL != nil && !globalEmailRL.Allow(ctx, "global") {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
 			}
 
-			if perUserEmailRL != nil && !perUserEmailRL.Allow(clientIP) {
+			if perUserEmailRL != nil && !perUserEmailRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
 			}
 		}
 
 		if sendsSMS(path) {
-			if !globalSMSRL.Allow(clientIP) {
+			if !globalSMSRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
 			}
 		}
 
 		if bruteForceProtected(path) {
-			if !perUserBruteForceRL.Allow(clientIP) {
+			if !perUserBruteForceRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
 			}
 		}
 
 		if isSignup(path) {
-			if !perUserSignupsRL.Allow(clientIP) {
+			if !perUserSignupsRL.Allow(ctx, clientIP) {
 				ctx.AbortWithStatus(http.StatusTooManyRequests)
 			}
 		}

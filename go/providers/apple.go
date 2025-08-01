@@ -19,6 +19,7 @@ const appleMaxAge = time.Hour * 24 * 180
 
 type Apple struct {
 	*oauth2.Config
+
 	oidc *oidc.IDTokenValidator
 }
 
@@ -65,6 +66,7 @@ func GenerateClientSecret(teamID, keyID, clientID, privateKeyBase64 string) (str
 		if err != nil {
 			return "", fmt.Errorf("failed to decode private key from base64: %w", err)
 		}
+
 		privateKeyPEM = string(decodedBytes)
 	}
 
@@ -134,6 +136,7 @@ func (a *Apple) GetProfile(
 	}
 
 	displayName := email
+
 	userRaw, ok := extra["user"].(string)
 	if ok { //nolint:nestif
 		var user appleUser
@@ -141,6 +144,7 @@ func (a *Apple) GetProfile(
 			if user.Name.FirstName != "" {
 				displayName = user.Name.FirstName
 			}
+
 			if user.Name.LastName != "" {
 				displayName += " " + user.Name.LastName
 			}

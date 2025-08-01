@@ -23,5 +23,6 @@ func (ctrl *Controller) VerifyToken( //nolint:ireturn
 	if _, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger); apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
+
 	return api.VerifyToken200JSONResponse("OK"), nil
 }

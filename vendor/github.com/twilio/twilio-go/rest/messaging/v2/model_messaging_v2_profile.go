@@ -14,7 +14,7 @@
 
 package openapi
 
-// MessagingV2Profile Sender profile specific configurations, e.g., {\"name\": \"xxx\", \"about\": \"xxx\", \"address\": \"xxx\", \"description\": \"xxx\", \"email\": \"xxx@xxx\", \"logo_url\": \"https://xxx\", \"vertical\": \"xxx\", \"websites\": [\"https://xxx\", \"...\"]}
+// MessagingV2Profile Sender profile specific configurations, e.g., {\"name\": \"xxx\", \"about\": \"xxx\", \"address\": \"xxx\", \"description\": \"xxx\", \"emails\": \"xxx@xxx\", \"logo_url\": \"https://xxx\", \"vertical\": \"xxx\", \"websites\": [\"https://xxx\", \"...\"]}
 type MessagingV2Profile struct {
 	// The name of the sender.
 	Name *string `json:"name,omitempty"`

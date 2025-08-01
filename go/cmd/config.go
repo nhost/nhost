@@ -31,18 +31,22 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 
 	defaultRole := cCtx.String(flagDefaultRole)
 	allowedRoles := cCtx.StringSlice(flagDefaultAllowedRoles)
+
 	allowedRoles = slices.DeleteFunc(allowedRoles, func(s string) bool { return s == "" })
 	if !slices.Contains(allowedRoles, defaultRole) {
 		allowedRoles = append(allowedRoles, defaultRole)
 	}
+
 	allowedRoles = slices.DeleteFunc(allowedRoles, func(s string) bool { return s == "" })
 
 	defaultLocale := cCtx.String(flagDefaultLocale)
 	allowedLocales := cCtx.StringSlice(flagAllowedLocales)
+
 	allowedLocales = slices.DeleteFunc(allowedLocales, func(s string) bool { return s == "" })
 	if !slices.Contains(allowedLocales, defaultLocale) {
 		allowedLocales = append(allowedLocales, defaultLocale)
 	}
+
 	allowedLocales = slices.DeleteFunc(allowedLocales, func(s string) bool { return s == "" })
 
 	allowedDomains := cCtx.StringSlice(flagAllowedEmailDomains)
@@ -65,6 +69,7 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 	}
 
 	webauhtnRPOrigins := cCtx.StringSlice(flagWebauthnRPOrigins)
+
 	webauhtnRPOrigins = slices.DeleteFunc(webauhtnRPOrigins, func(s string) bool { return s == "" })
 	if !slices.Contains(webauhtnRPOrigins, cCtx.String(flagClientURL)) {
 		webauhtnRPOrigins = append(webauhtnRPOrigins, cCtx.String(flagClientURL))

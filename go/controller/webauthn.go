@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -103,6 +104,7 @@ func (w *Webauthn) cleanCache() {
 }
 
 func (w *Webauthn) BeginRegistration(
+	ctx context.Context,
 	user WebauthnUser,
 	options *api.SignUpOptions,
 	logger *slog.Logger,
@@ -112,7 +114,7 @@ func (w *Webauthn) BeginRegistration(
 
 	challenge, session, err := w.wa.BeginRegistration(user, opts...)
 	if err != nil {
-		logger.Info("failed to begin webauthn registration", logError(err))
+		logger.InfoContext(ctx, "failed to begin webauthn registration", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -126,18 +128,19 @@ func (w *Webauthn) BeginRegistration(
 }
 
 func (w *Webauthn) FinishRegistration(
+	ctx context.Context,
 	response *protocol.ParsedCredentialCreationData,
 	logger *slog.Logger,
 ) (*webauthn.Credential, WebauthnUser, *APIError) {
 	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
 	if !ok {
-		logger.Info("webauthn challenge not found")
+		logger.InfoContext(ctx, "webauthn challenge not found")
 		return nil, WebauthnUser{}, ErrInvalidRequest
 	}
 
 	cred, err := w.wa.CreateCredential(challenge.User, challenge.Session, response)
 	if err != nil {
-		logger.Info("failed to create webauthn credential", logError(err))
+		logger.InfoContext(ctx, "failed to create webauthn credential", logError(err))
 		return nil, WebauthnUser{}, ErrInvalidRequest
 	}
 
@@ -147,12 +150,14 @@ func (w *Webauthn) FinishRegistration(
 }
 
 func (w *Webauthn) BeginLogin(
+	ctx context.Context,
 	user WebauthnUser,
 	logger *slog.Logger,
 ) (*protocol.CredentialAssertion, *APIError) {
 	w.cleanCache()
 
 	creds := user.WebAuthnCredentials()
+
 	allowList := make([]protocol.CredentialDescriptor, len(creds))
 	for i, cred := range creds {
 		allowList[i] = protocol.CredentialDescriptor{
@@ -168,7 +173,7 @@ func (w *Webauthn) BeginLogin(
 		webauthn.WithAllowedCredentials(allowList),
 	)
 	if err != nil {
-		logger.Info("failed to begin webauthn login", logError(err))
+		logger.InfoContext(ctx, "failed to begin webauthn login", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -182,18 +187,19 @@ func (w *Webauthn) BeginLogin(
 }
 
 func (w *Webauthn) FinishLogin(
+	ctx context.Context,
 	response *protocol.ParsedCredentialAssertionData,
 	userHandler webauthn.DiscoverableUserHandler,
 	logger *slog.Logger,
 ) (*webauthn.Credential, WebauthnUser, *APIError) {
 	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
 	if !ok {
-		logger.Info("webauthn challenge not found")
+		logger.InfoContext(ctx, "webauthn challenge not found")
 		return nil, WebauthnUser{}, ErrInvalidRequest
 	}
 
 	if challenge.User.Discoverable {
-		return w.FinishDiscoverableLogin(response, userHandler, logger)
+		return w.FinishDiscoverableLogin(ctx, response, userHandler, logger)
 	}
 
 	// we don't track the flags so we just copy them
@@ -220,7 +226,7 @@ func (w *Webauthn) FinishLogin(
 
 	cred, err := w.wa.ValidateLogin(challenge.User, challenge.Session, response)
 	if err != nil {
-		logger.Info("failed to validate webauthn login", logError(err))
+		logger.InfoContext(ctx, "failed to validate webauthn login", logError(err))
 		return nil, WebauthnUser{}, ErrInvalidRequest
 	}
 
@@ -230,13 +236,13 @@ func (w *Webauthn) FinishLogin(
 }
 
 func (w *Webauthn) BeginDiscoverableLogin(
-	logger *slog.Logger,
+	ctx context.Context, logger *slog.Logger,
 ) (*protocol.CredentialAssertion, *APIError) {
 	w.cleanCache()
 
 	challenge, sessionData, err := w.wa.BeginDiscoverableLogin()
 	if err != nil {
-		logger.Error("failed to begin discoverable webauthn login", logError(err))
+		logger.ErrorContext(ctx, "failed to begin discoverable webauthn login", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -256,19 +262,20 @@ func (w *Webauthn) BeginDiscoverableLogin(
 }
 
 func (w *Webauthn) FinishDiscoverableLogin(
+	ctx context.Context,
 	response *protocol.ParsedCredentialAssertionData,
 	userHandler webauthn.DiscoverableUserHandler,
 	logger *slog.Logger,
 ) (*webauthn.Credential, WebauthnUser, *APIError) {
 	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
 	if !ok {
-		logger.Info("webauthn challenge not found")
+		logger.InfoContext(ctx, "webauthn challenge not found")
 		return nil, WebauthnUser{}, ErrInvalidRequest
 	}
 
 	cred, err := w.wa.ValidateDiscoverableLogin(userHandler, challenge.Session, response)
 	if err != nil {
-		logger.Info("failed to validate webauthn discoverable login", logError(err))
+		logger.InfoContext(ctx, "failed to validate webauthn discoverable login", logError(err))
 		return nil, WebauthnUser{}, ErrInvalidRequest
 	}
 

@@ -435,6 +435,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			if tc.jwtTokenFn != nil {
 				ctx = jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			}
+
 			assertRequest(
 				ctx, t, c.VerifyChangeUserMfa, tc.request, tc.expectedResponse,
 			)

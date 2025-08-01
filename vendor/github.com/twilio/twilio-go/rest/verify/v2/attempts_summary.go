@@ -31,7 +31,7 @@ type FetchVerificationAttemptsSummaryParams struct {
 	DateCreatedBefore *time.Time `json:"DateCreatedBefore,omitempty"`
 	// Filter used to consider only Verification Attempts sent to the specified destination country on the summary aggregation.
 	Country *string `json:"Country,omitempty"`
-	// Filter Verification Attempts considered on the summary aggregation by communication channel. Valid values are `SMS`, `CALL` and `WHATSAPP`
+	// Filter Verification Attempts considered on the summary aggregation by communication channel.
 	Channel *string `json:"Channel,omitempty"`
 	// Filter the Verification Attempts considered on the summary aggregation by Destination prefix. It is the prefix of a phone number in E.164 format.
 	DestinationPrefix *string `json:"DestinationPrefix,omitempty"`

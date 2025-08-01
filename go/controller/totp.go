@@ -34,6 +34,7 @@ func NewTotp(issuer string, timeGenerator func() time.Time) *Totp {
 
 func (t *Totp) Generate(accountName string) (string, string, error) {
 	secret := make([]byte, totpSecretSize)
+
 	_, err := io.ReadFull(rand.Reader, secret)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read random bytes: %w", err)
@@ -56,15 +57,18 @@ func (t *Totp) Generate(accountName string) (string, string, error) {
 	}
 
 	var buf bytes.Buffer
+
 	img, err := key.Image(totpImageSize, totpImageSize)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate TOTP image: %w", err)
 	}
+
 	if err := png.Encode(&buf, img); err != nil {
 		return "", "", fmt.Errorf("failed to encode TOTP image: %w", err)
 	}
 
 	imgBase64 := base64.StdEncoding.EncodeToString(buf.Bytes())
+
 	return key.Secret(), imgBase64, nil
 }
 
@@ -78,7 +82,9 @@ func (t *Totp) Validate(passcode string, secret string) bool {
 			Skew:      totpSkew,
 			Digits:    otp.DigitsSix,
 			Algorithm: otp.AlgorithmSHA1,
+			Encoder:   otp.EncoderDefault,
 		},
 	)
+
 	return rv
 }

@@ -45,7 +45,7 @@ type ApiV2010CallRecording struct {
 	// The URI of the resource, relative to `https://api.twilio.com`.
 	Uri *string `json:"uri,omitempty"`
 	// How to decrypt the recording if it was encrypted using [Call Recording Encryption](https://www.twilio.com/docs/voice/tutorials/voice-recording-encryption) feature.
-	EncryptionDetails *map[string]interface{} `json:"encryption_details,omitempty"`
+	EncryptionDetails *interface{} `json:"encryption_details,omitempty"`
 	// The currency used in the `price` property. Example: `USD`.
 	PriceUnit *string `json:"price_unit,omitempty"`
 	Status    *string `json:"status,omitempty"`
@@ -60,24 +60,24 @@ type ApiV2010CallRecording struct {
 
 func (response *ApiV2010CallRecording) UnmarshalJSON(bytes []byte) (err error) {
 	raw := struct {
-		AccountSid        *string                 `json:"account_sid"`
-		ApiVersion        *string                 `json:"api_version"`
-		CallSid           *string                 `json:"call_sid"`
-		ConferenceSid     *string                 `json:"conference_sid"`
-		DateCreated       *string                 `json:"date_created"`
-		DateUpdated       *string                 `json:"date_updated"`
-		StartTime         *string                 `json:"start_time"`
-		Duration          *string                 `json:"duration"`
-		Sid               *string                 `json:"sid"`
-		Price             *interface{}            `json:"price"`
-		Uri               *string                 `json:"uri"`
-		EncryptionDetails *map[string]interface{} `json:"encryption_details"`
-		PriceUnit         *string                 `json:"price_unit"`
-		Status            *string                 `json:"status"`
-		Channels          int                     `json:"channels"`
-		Source            *string                 `json:"source"`
-		ErrorCode         *int                    `json:"error_code"`
-		Track             *string                 `json:"track"`
+		AccountSid        *string      `json:"account_sid"`
+		ApiVersion        *string      `json:"api_version"`
+		CallSid           *string      `json:"call_sid"`
+		ConferenceSid     *string      `json:"conference_sid"`
+		DateCreated       *string      `json:"date_created"`
+		DateUpdated       *string      `json:"date_updated"`
+		StartTime         *string      `json:"start_time"`
+		Duration          *string      `json:"duration"`
+		Sid               *string      `json:"sid"`
+		Price             *interface{} `json:"price"`
+		Uri               *string      `json:"uri"`
+		EncryptionDetails *interface{} `json:"encryption_details"`
+		PriceUnit         *string      `json:"price_unit"`
+		Status            *string      `json:"status"`
+		Channels          int          `json:"channels"`
+		Source            *string      `json:"source"`
+		ErrorCode         *int         `json:"error_code"`
+		Track             *string      `json:"track"`
 	}{}
 
 	if err = json.Unmarshal(bytes, &raw); err != nil {

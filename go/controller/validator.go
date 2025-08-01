@@ -40,10 +40,12 @@ func ValidateRedirectTo( //nolint:cyclop
 		// we need to account for default ports
 		if !regexpContainsPort.MatchString(u) {
 			u := regexpAddPort.ReplaceAllString(u, fmt.Sprintf("$1:%s$2", defaultPort))
+
 			m, err := glob.Compile(u, '.', '/')
 			if err != nil {
 				return nil, fmt.Errorf("error compiling glob: %w", err)
 			}
+
 			matches = append(matches, m)
 		}
 
@@ -69,6 +71,7 @@ func ValidateRedirectTo( //nolint:cyclop
 				return true
 			}
 		}
+
 		return false
 	}, nil
 }
@@ -84,6 +87,7 @@ func ValidateEmail(
 		if len(parts) != 2 { //nolint:mnd
 			return false
 		}
+
 		domain := parts[1]
 
 		if slices.Contains(blockedEmails, email) {

@@ -382,7 +382,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 					}),
 				).Return(
 					sql.InsertUserWithRefreshTokenRow{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:goerr113,lll
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:err113,lll
 				)
 
 				return mock
@@ -435,7 +435,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 					}),
 				).Return(
 					sql.InsertUserWithRefreshTokenRow{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:goerr113,lll
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:err113,lll
 				)
 
 				return mock

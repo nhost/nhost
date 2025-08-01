@@ -35,6 +35,7 @@ func (f *FakeProvider) GetProfile(token *jwt.Token) (Profile, error) {
 
 func (f *FakeProvider) GenerateTestIDToken(claims jwt.Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
 	ss, err := token.SignedString([]byte(fakeProviderKey))
 	if err != nil {
 		return "", fmt.Errorf("error signing token: %w", err)

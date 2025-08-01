@@ -30,7 +30,7 @@ type CreateCustomOperatorParams struct {
 	// Operator Type for this Operator. References an existing Operator Type resource.
 	OperatorType *string `json:"OperatorType,omitempty"`
 	// Operator configuration, following the schema defined by the Operator Type.
-	Config *map[string]interface{} `json:"Config,omitempty"`
+	Config *interface{} `json:"Config,omitempty"`
 }
 
 func (params *CreateCustomOperatorParams) SetFriendlyName(FriendlyName string) *CreateCustomOperatorParams {
@@ -41,7 +41,7 @@ func (params *CreateCustomOperatorParams) SetOperatorType(OperatorType string) *
 	params.OperatorType = &OperatorType
 	return params
 }
-func (params *CreateCustomOperatorParams) SetConfig(Config map[string]interface{}) *CreateCustomOperatorParams {
+func (params *CreateCustomOperatorParams) SetConfig(Config interface{}) *CreateCustomOperatorParams {
 	params.Config = &Config
 	return params
 }
@@ -294,7 +294,7 @@ type UpdateCustomOperatorParams struct {
 	// A human-readable name of this resource, up to 64 characters.
 	FriendlyName *string `json:"FriendlyName,omitempty"`
 	// Operator configuration, following the schema defined by the Operator Type.
-	Config *map[string]interface{} `json:"Config,omitempty"`
+	Config *interface{} `json:"Config,omitempty"`
 }
 
 func (params *UpdateCustomOperatorParams) SetIfMatch(IfMatch string) *UpdateCustomOperatorParams {
@@ -305,7 +305,7 @@ func (params *UpdateCustomOperatorParams) SetFriendlyName(FriendlyName string) *
 	params.FriendlyName = &FriendlyName
 	return params
 }
-func (params *UpdateCustomOperatorParams) SetConfig(Config map[string]interface{}) *UpdateCustomOperatorParams {
+func (params *UpdateCustomOperatorParams) SetConfig(Config interface{}) *UpdateCustomOperatorParams {
 	params.Config = &Config
 	return params
 }

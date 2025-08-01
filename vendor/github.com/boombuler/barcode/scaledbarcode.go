@@ -49,11 +49,22 @@ func (bc *intCSscaledBC) CheckSum() int {
 
 // Scale returns a resized barcode with the given width and height.
 func Scale(bc Barcode, width, height int) (Barcode, error) {
+	var fill color.Color
+	if v, ok := bc.(BarcodeColor); ok {
+		fill = v.ColorScheme().Background
+	} else {
+		fill = color.White
+	}
+	return ScaleWithFill(bc, width, height, fill)
+}
+
+// Scale returns a resized barcode with the given width, height and fill color.
+func ScaleWithFill(bc Barcode, width, height int, fill color.Color) (Barcode, error) {
 	switch bc.Metadata().Dimensions {
 	case 1:
-		return scale1DCode(bc, width, height)
+		return scale1DCode(bc, width, height, fill)
 	case 2:
-		return scale2DCode(bc, width, height)
+		return scale2DCode(bc, width, height, fill)
 	}
 
 	return nil, errors.New("unsupported barcode format")
@@ -72,7 +83,7 @@ func newScaledBC(wrapped Barcode, wrapperFunc wrapFunc, rect image.Rectangle) Ba
 	return result
 }
 
-func scale2DCode(bc Barcode, width, height int) (Barcode, error) {
+func scale2DCode(bc Barcode, width, height int, fill color.Color) (Barcode, error) {
 	orgBounds := bc.Bounds()
 	orgWidth := orgBounds.Max.X - orgBounds.Min.X
 	orgHeight := orgBounds.Max.Y - orgBounds.Min.Y
@@ -87,12 +98,12 @@ func scale2DCode(bc Barcode, width, height int) (Barcode, error) {
 
 	wrap := func(x, y int) color.Color {
 		if x < offsetX || y < offsetY {
-			return color.White
+			return fill
 		}
 		x = (x - offsetX) / factor
 		y = (y - offsetY) / factor
 		if x >= orgWidth || y >= orgHeight {
-			return color.White
+			return fill
 		}
 		return bc.At(x, y)
 	}
@@ -104,7 +115,7 @@ func scale2DCode(bc Barcode, width, height int) (Barcode, error) {
 	), nil
 }
 
-func scale1DCode(bc Barcode, width, height int) (Barcode, error) {
+func scale1DCode(bc Barcode, width, height int, fill color.Color) (Barcode, error) {
 	orgBounds := bc.Bounds()
 	orgWidth := orgBounds.Max.X - orgBounds.Min.X
 	factor := int(float64(width) / float64(orgWidth))
@@ -116,12 +127,12 @@ func scale1DCode(bc Barcode, width, height int) (Barcode, error) {
 
 	wrap := func(x, y int) color.Color {
 		if x < offsetX {
-			return color.White
+			return fill
 		}
 		x = (x - offsetX) / factor
 
 		if x >= orgWidth {
-			return color.White
+			return fill
 		}
 		return bc.At(x, 0)
 	}

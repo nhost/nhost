@@ -412,6 +412,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
                   },
                   "Options": null
             }`)
+
 			var sessionData controller.WebauthnChallenge
 			if err := json.Unmarshal(b, &sessionData); err != nil {
 				t.Fatal(err)
@@ -434,6 +435,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
                   },
                   "Options": null
                 }`)
+
 			var sessionDataDiscoverable controller.WebauthnChallenge
 			if err := json.Unmarshal(b, &sessionDataDiscoverable); err != nil {
 				t.Fatal(err)

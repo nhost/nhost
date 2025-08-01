@@ -1,35 +1,55 @@
----
+version: "2"
 linters:
-    enable-all: true
-    disable:
-      - varnamelen
-      - gomoddirectives
-      - nlreturn
-      - wsl
-      - tagliatelle
-      - musttag
-      - depguard
-      - canonicalheader # for some reason it is very unreliable
-      - gci    # we already check the linter did its magic
-      - tenv
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - funlen
-        - ireturn
-
-    - linters:
-        - lll
-      source: "^//go:generate "
-
-    - linters:
-        - gochecknoglobals
-      text: "Version is a global variable"
-
-    - path: schema\.resolvers\.go
-      linters:
-        - ireturn
-        - lll
-        - gofumpt
+  default: all
+  settings:
+    funlen:
+      lines: 65
+  disable:
+    - canonicalheader
+    - depguard
+    - gomoddirectives
+    - musttag
+    - nlreturn
+    - tagliatelle
+    - varnamelen
+    - wsl
+    - noinlineerr
+    - funcorder
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - funlen
+          - ireturn
+        path: _test\.go
+      - linters:
+          - lll
+        source: '^//go:generate '
+      - linters:
+          - gochecknoglobals
+        text: Version is a global variable
+      - linters:
+          - ireturn
+          - lll
+        path: schema\.resolvers\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - schema\.resolvers\.go

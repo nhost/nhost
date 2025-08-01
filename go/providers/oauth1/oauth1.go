@@ -76,6 +76,7 @@ func (c *Config) SignedRequest(
 		for k, v := range opts.ExtraParams {
 			query.Set(k, v)
 		}
+
 		parsedURL.RawQuery = query.Encode()
 		requestURL = parsedURL.String()
 	}
@@ -97,6 +98,7 @@ func (c *Config) SignedRequest(
 
 	// Execute request
 	client := &http.Client{Timeout: opts.Timeout} //nolint:exhaustruct
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request: %w", err)
@@ -122,6 +124,7 @@ func (c *Config) AuthCodeURL(ctx context.Context, state string) (string, error) 
 	if oauthToken == "" {
 		return "", fmt.Errorf("%w: oauth_token not found", ErrInvalidResponse)
 	}
+
 	if callbackConfirmed != "true" {
 		return "", fmt.Errorf("%w: callback not confirmed", ErrInvalidResponse)
 	}
@@ -130,6 +133,7 @@ func (c *Config) AuthCodeURL(ctx context.Context, state string) (string, error) 
 	query := c.AuthorizeURL.Query()
 	query.Set("oauth_token", oauthToken)
 	c.AuthorizeURL.RawQuery = query.Encode()
+
 	return c.AuthorizeURL.String(), nil
 }
 
@@ -154,6 +158,7 @@ func (c *Config) AccessToken(
 	if accessToken == "" {
 		return "", "", fmt.Errorf("%w: access token not found", ErrInvalidResponse)
 	}
+
 	if tokenSecret == "" {
 		return "", "", fmt.Errorf("%w: token secret not found", ErrInvalidResponse)
 	}

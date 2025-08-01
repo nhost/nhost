@@ -39,7 +39,7 @@ type WirelessV1DataSession struct {
 	// The unique ID of the cellular tower that the device was attached to at the moment when the Data Session was last updated.
 	CellId *string `json:"cell_id,omitempty"`
 	// An object that describes the estimated location in latitude and longitude where the device's Data Session took place. The location is derived from the `cell_id` when the Data Session was last updated. See [Cell Location Estimate Object](https://www.twilio.com/docs/iot/wireless/api/datasession-resource#cell-location-estimate-object).
-	CellLocationEstimate *map[string]interface{} `json:"cell_location_estimate,omitempty"`
+	CellLocationEstimate *interface{} `json:"cell_location_estimate,omitempty"`
 	// The number of packets uploaded by the device between the `start` time and when the Data Session was last updated.
 	PacketsUploaded int `json:"packets_uploaded,omitempty"`
 	// The number of packets downloaded by the device between the `start` time and when the Data Session was last updated.

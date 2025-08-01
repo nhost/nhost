@@ -45,27 +45,27 @@ type FlexV1InsightsAssessments struct {
 	// The id of the answer selected by user
 	AnswerId *string `json:"answer_id,omitempty"`
 	// Assessment Details associated with an assessment
-	Assessment *map[string]interface{} `json:"assessment,omitempty"`
-	Timestamp  *float32                `json:"timestamp,omitempty"`
-	Url        *string                 `json:"url,omitempty"`
+	Assessment *interface{} `json:"assessment,omitempty"`
+	Timestamp  *float32     `json:"timestamp,omitempty"`
+	Url        *string      `json:"url,omitempty"`
 }
 
 func (response *FlexV1InsightsAssessments) UnmarshalJSON(bytes []byte) (err error) {
 	raw := struct {
-		AccountSid    *string                 `json:"account_sid"`
-		AssessmentSid *string                 `json:"assessment_sid"`
-		Offset        *interface{}            `json:"offset"`
-		Report        *bool                   `json:"report"`
-		Weight        *interface{}            `json:"weight"`
-		AgentId       *string                 `json:"agent_id"`
-		SegmentId     *string                 `json:"segment_id"`
-		UserName      *string                 `json:"user_name"`
-		UserEmail     *string                 `json:"user_email"`
-		AnswerText    *string                 `json:"answer_text"`
-		AnswerId      *string                 `json:"answer_id"`
-		Assessment    *map[string]interface{} `json:"assessment"`
-		Timestamp     *interface{}            `json:"timestamp"`
-		Url           *string                 `json:"url"`
+		AccountSid    *string      `json:"account_sid"`
+		AssessmentSid *string      `json:"assessment_sid"`
+		Offset        *interface{} `json:"offset"`
+		Report        *bool        `json:"report"`
+		Weight        *interface{} `json:"weight"`
+		AgentId       *string      `json:"agent_id"`
+		SegmentId     *string      `json:"segment_id"`
+		UserName      *string      `json:"user_name"`
+		UserEmail     *string      `json:"user_email"`
+		AnswerText    *string      `json:"answer_text"`
+		AnswerId      *string      `json:"answer_id"`
+		Assessment    *interface{} `json:"assessment"`
+		Timestamp     *interface{} `json:"timestamp"`
+		Url           *string      `json:"url"`
 	}{}
 
 	if err = json.Unmarshal(bytes, &raw); err != nil {

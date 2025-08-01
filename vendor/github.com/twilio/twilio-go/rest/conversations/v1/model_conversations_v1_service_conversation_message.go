@@ -35,7 +35,7 @@ type ConversationsV1ServiceConversationMessage struct {
 	// The content of the message, can be up to 1,600 characters long.
 	Body *string `json:"body,omitempty"`
 	// An array of objects that describe the Message's media, if the message contains media. Each object contains these fields: `content_type` with the MIME type of the media, `filename` with the name of the media, `sid` with the SID of the Media resource, and `size` with the media object's file size in bytes. If the Message has no media, this value is `null`.
-	Media *[]map[string]interface{} `json:"media,omitempty"`
+	Media *[]interface{} `json:"media,omitempty"`
 	// A string metadata field you can use to store any data you wish. The string value must contain structurally valid JSON if specified.  **Note** that if the attributes are not set \"{}\" will be returned.
 	Attributes *string `json:"attributes,omitempty"`
 	// The unique ID of messages's author participant. Null in case of `system` sent message.
@@ -45,7 +45,7 @@ type ConversationsV1ServiceConversationMessage struct {
 	// The date that this resource was last updated. `null` if the message has not been edited.
 	DateUpdated *time.Time `json:"date_updated,omitempty"`
 	// An object that contains the summary of delivery statuses for the message to non-chat participants.
-	Delivery *map[string]interface{} `json:"delivery,omitempty"`
+	Delivery *interface{} `json:"delivery,omitempty"`
 	// An absolute API resource URL for this message.
 	Url *string `json:"url,omitempty"`
 	// Contains an absolute API resource URL to access the delivery & read receipts of this message.

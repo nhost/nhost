@@ -31,4 +31,6 @@ type IamV1MfaInfo struct {
 	IsSSO bool `json:"isSSO,omitempty"`
 	// Whether MFA is disabled for this user.
 	IsMfaDisabled bool `json:"isMfaDisabled,omitempty"`
+	// Whether a recovery code has been generated for the user.
+	IsRecoveryCodeGenerated bool `json:"isRecoveryCodeGenerated,omitempty"`
 }

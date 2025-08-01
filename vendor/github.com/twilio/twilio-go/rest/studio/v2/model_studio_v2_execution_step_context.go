@@ -19,7 +19,7 @@ type StudioV2ExecutionStepContext struct {
 	// The SID of the [Account](https://www.twilio.com/docs/iam/api/account) that created the ExecutionStepContext resource.
 	AccountSid *string `json:"account_sid,omitempty"`
 	// The current state of the Flow's Execution. As a flow executes, we save its state in this context. We save data that your widgets can access as variables in configuration fields or in text areas as variable substitution.
-	Context *map[string]interface{} `json:"context,omitempty"`
+	Context *interface{} `json:"context,omitempty"`
 	// The SID of the context's Execution resource.
 	ExecutionSid *string `json:"execution_sid,omitempty"`
 	// The SID of the Flow.

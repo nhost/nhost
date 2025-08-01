@@ -42,9 +42,9 @@ type CreateVerificationParams struct {
 	// The payee of the associated PSD2 compliant transaction. Requires the PSD2 Service flag enabled.
 	Payee *string `json:"Payee,omitempty"`
 	// The custom key-value pairs of Programmable Rate Limits. Keys correspond to `unique_name` fields defined when [creating your Rate Limit](https://www.twilio.com/docs/verify/api/service-rate-limits). Associated value pairs represent values in the request that you are rate limiting on. You may include multiple Rate Limit values in each request.
-	RateLimits *map[string]interface{} `json:"RateLimits,omitempty"`
+	RateLimits *interface{} `json:"RateLimits,omitempty"`
 	// [`email`](https://www.twilio.com/docs/verify/email) channel configuration in json format. The fields 'from' and 'from_name' are optional but if included the 'from' field must have a valid email address.
-	ChannelConfiguration *map[string]interface{} `json:"ChannelConfiguration,omitempty"`
+	ChannelConfiguration *interface{} `json:"ChannelConfiguration,omitempty"`
 	// Your [App Hash](https://developers.google.com/identity/sms-retriever/verify#computing_your_apps_hash_string) to be appended at the end of your verification SMS body. Applies only to SMS. Example SMS body: `<#> Your AppName verification code is: 1234 He42w354ol9`.
 	AppHash *string `json:"AppHash,omitempty"`
 	// The message [template](https://www.twilio.com/docs/verify/api/templates). If provided, will override the default template for the Service. SMS and Voice channels only.
@@ -97,11 +97,11 @@ func (params *CreateVerificationParams) SetPayee(Payee string) *CreateVerificati
 	params.Payee = &Payee
 	return params
 }
-func (params *CreateVerificationParams) SetRateLimits(RateLimits map[string]interface{}) *CreateVerificationParams {
+func (params *CreateVerificationParams) SetRateLimits(RateLimits interface{}) *CreateVerificationParams {
 	params.RateLimits = &RateLimits
 	return params
 }
-func (params *CreateVerificationParams) SetChannelConfiguration(ChannelConfiguration map[string]interface{}) *CreateVerificationParams {
+func (params *CreateVerificationParams) SetChannelConfiguration(ChannelConfiguration interface{}) *CreateVerificationParams {
 	params.ChannelConfiguration = &ChannelConfiguration
 	return params
 }

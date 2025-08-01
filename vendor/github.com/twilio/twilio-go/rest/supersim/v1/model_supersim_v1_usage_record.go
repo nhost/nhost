@@ -33,7 +33,7 @@ type SupersimV1UsageRecord struct {
 	// Alpha-2 ISO Country Code that the usage occurred in. Value will only be present when either a value for the `IsoCountry` query parameter is provided or when UsageRecords are grouped by `isoCountry`. Otherwise, the value will be `null`.
 	IsoCountry *string `json:"iso_country,omitempty"`
 	// The time period for which the usage is reported. The period is represented as a pair of `start_time` and `end_time` timestamps specified in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.
-	Period *map[string]interface{} `json:"period,omitempty"`
+	Period *interface{} `json:"period,omitempty"`
 	// Total data uploaded in bytes, aggregated by the query parameters.
 	DataUpload *int64 `json:"data_upload,omitempty"`
 	// Total data downloaded in bytes, aggregated by the query parameters.
@@ -48,17 +48,17 @@ type SupersimV1UsageRecord struct {
 
 func (response *SupersimV1UsageRecord) UnmarshalJSON(bytes []byte) (err error) {
 	raw := struct {
-		AccountSid      *string                 `json:"account_sid"`
-		SimSid          *string                 `json:"sim_sid"`
-		NetworkSid      *string                 `json:"network_sid"`
-		FleetSid        *string                 `json:"fleet_sid"`
-		IsoCountry      *string                 `json:"iso_country"`
-		Period          *map[string]interface{} `json:"period"`
-		DataUpload      *int64                  `json:"data_upload"`
-		DataDownload    *int64                  `json:"data_download"`
-		DataTotal       *int64                  `json:"data_total"`
-		DataTotalBilled *interface{}            `json:"data_total_billed"`
-		BilledUnit      *string                 `json:"billed_unit"`
+		AccountSid      *string      `json:"account_sid"`
+		SimSid          *string      `json:"sim_sid"`
+		NetworkSid      *string      `json:"network_sid"`
+		FleetSid        *string      `json:"fleet_sid"`
+		IsoCountry      *string      `json:"iso_country"`
+		Period          *interface{} `json:"period"`
+		DataUpload      *int64       `json:"data_upload"`
+		DataDownload    *int64       `json:"data_download"`
+		DataTotal       *int64       `json:"data_total"`
+		DataTotalBilled *interface{} `json:"data_total_billed"`
+		BilledUnit      *string      `json:"billed_unit"`
 	}{}
 
 	if err = json.Unmarshal(bytes, &raw); err != nil {

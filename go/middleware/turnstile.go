@@ -86,6 +86,7 @@ func Tunrstile(secret string, prefix string) gin.HandlerFunc {
 				http.StatusForbidden,
 				gin.H{"error": "missing x-cf-turnstile-response header"},
 			)
+
 			return
 		}
 
@@ -96,6 +97,7 @@ func Tunrstile(secret string, prefix string) gin.HandlerFunc {
 				http.StatusInternalServerError,
 				gin.H{"error": "internal server error when attempting to pass turnstile"},
 			)
+
 			return
 		}
 
@@ -110,6 +112,7 @@ func Tunrstile(secret string, prefix string) gin.HandlerFunc {
 					),
 				},
 			)
+
 			return
 		}
 

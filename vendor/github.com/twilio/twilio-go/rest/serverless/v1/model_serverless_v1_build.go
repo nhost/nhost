@@ -28,12 +28,12 @@ type ServerlessV1Build struct {
 	ServiceSid *string `json:"service_sid,omitempty"`
 	Status     *string `json:"status,omitempty"`
 	// The list of Asset Version resource SIDs that are included in the Build.
-	AssetVersions *[]map[string]interface{} `json:"asset_versions,omitempty"`
+	AssetVersions *[]interface{} `json:"asset_versions,omitempty"`
 	// The list of Function Version resource SIDs that are included in the Build.
-	FunctionVersions *[]map[string]interface{} `json:"function_versions,omitempty"`
+	FunctionVersions *[]interface{} `json:"function_versions,omitempty"`
 	// A list of objects that describe the Dependencies included in the Build. Each object contains the `name` and `version` of the dependency.
-	Dependencies *[]map[string]interface{} `json:"dependencies,omitempty"`
-	Runtime      *string                   `json:"runtime,omitempty"`
+	Dependencies *[]interface{} `json:"dependencies,omitempty"`
+	Runtime      *string        `json:"runtime,omitempty"`
 	// The date and time in GMT when the Build resource was created specified in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 	DateCreated *time.Time `json:"date_created,omitempty"`
 	// The date and time in GMT when the Build resource was last updated specified in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.

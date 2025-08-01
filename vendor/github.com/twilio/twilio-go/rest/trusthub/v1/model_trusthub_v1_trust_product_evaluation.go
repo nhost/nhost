@@ -30,7 +30,7 @@ type TrusthubV1TrustProductEvaluation struct {
 	TrustProductSid *string `json:"trust_product_sid,omitempty"`
 	Status          *string `json:"status,omitempty"`
 	// The results of the Evaluation which includes the valid and invalid attributes.
-	Results     *[]map[string]interface{} `json:"results,omitempty"`
-	DateCreated *time.Time                `json:"date_created,omitempty"`
-	Url         *string                   `json:"url,omitempty"`
+	Results     *[]interface{} `json:"results,omitempty"`
+	DateCreated *time.Time     `json:"date_created,omitempty"`
+	Url         *string        `json:"url,omitempty"`
 }

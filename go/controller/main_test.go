@@ -28,6 +28,7 @@ func cmpHashedPassword(password string) func(x, y string) bool {
 			if err := bcrypt.CompareHashAndPassword([]byte(x), []byte(password)); err != nil {
 				return false
 			}
+
 			return true
 		}
 
@@ -35,6 +36,7 @@ func cmpHashedPassword(password string) func(x, y string) bool {
 			if err := bcrypt.CompareHashAndPassword([]byte(y), []byte(password)); err != nil {
 				return false
 			}
+
 			return true
 		}
 
@@ -106,6 +108,7 @@ func cmpLink(x, y string) bool { //nolint:cyclop
 		if k == "ticket" {
 			continue
 		}
+
 		if uy.Query().Get(k) != v[0] {
 			return false
 		}
@@ -352,8 +355,11 @@ func assertSession(
 ) {
 	t.Helper()
 
-	var token *jwt.Token
-	var err error
+	var (
+		token *jwt.Token
+		err   error
+	)
+
 	if expectedSession == nil {
 		token = nil
 	} else {
@@ -362,6 +368,7 @@ func assertSession(
 			t.Fatalf("failed to get claims: %v", err)
 		}
 	}
+
 	if diff := cmp.Diff(
 		token,
 		expectedJWT,

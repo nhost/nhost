@@ -472,15 +472,31 @@ func cmpBase64Int(first, second string, strictPadding bool) error {
 	if first == second {
 		return nil
 	}
-	b, err := base64.RawURLEncoding.DecodeString(first)
-	if err != nil {
-		return fmt.Errorf("failed to decode Base64 raw URL decode first string: %w", err)
+	var b []byte
+	var err error
+	if strictPadding {
+		b, err = base64.RawURLEncoding.DecodeString(first)
+		if err != nil {
+			return fmt.Errorf("failed to decode Base64 raw URL decode first string: %w", err)
+		}
+	} else {
+		b, err = base64urlTrailingPadding(first)
+		if err != nil {
+			return fmt.Errorf("failed to decode Base64 URL (remove trailing padding) decode first string: %w", err)
+		}
 	}
 	fLen := len(b)
 	f := new(big.Int).SetBytes(b)
-	b, err = base64.RawURLEncoding.DecodeString(second)
-	if err != nil {
-		return fmt.Errorf("failed to decode Base64 raw URL decode second string: %w", err)
+	if strictPadding {
+		b, err = base64.RawURLEncoding.DecodeString(second)
+		if err != nil {
+			return fmt.Errorf("failed to decode Base64 raw URL decode second string: %w", err)
+		}
+	} else {
+		b, err = base64urlTrailingPadding(second)
+		if err != nil {
+			return fmt.Errorf("failed to decode Base64 URL (remove trailing padding) decode second string: %w", err)
+		}
 	}
 	sLen := len(b)
 	s := new(big.Int).SetBytes(b)

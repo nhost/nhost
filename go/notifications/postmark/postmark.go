@@ -44,6 +44,7 @@ func (p *Postmark) request(
 	if err != nil {
 		return fmt.Errorf("failed to marshal request body: %w", err)
 	}
+
 	body := io.NopCloser(bytes.NewReader(b))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
@@ -67,13 +68,15 @@ func (p *Postmark) request(
 			return fmt.Errorf("failed to create gzip reader: %w", err)
 		}
 		defer reader.Close()
+
 		resp.Body = reader
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf( //nolint:goerr113
+
+		return fmt.Errorf( //nolint:err113
 			"%s: %s", resp.Status, string(b),
 		)
 	}
@@ -89,6 +92,7 @@ func (p *Postmark) SendEmail(
 	data notifications.TemplateData,
 ) error {
 	var templateModel any = data.ToMap(map[string]any{"locale": locale})
+
 	template := fmt.Sprintf("%s.%s", locale, templateName)
 
 	if err := p.request(ctx, SendWithTemplateRequest{
@@ -99,5 +103,6 @@ func (p *Postmark) SendEmail(
 	}); err != nil {
 		return fmt.Errorf("postmark: failed to send email with template `%s`: %w", template, err)
 	}
+
 	return nil
 }

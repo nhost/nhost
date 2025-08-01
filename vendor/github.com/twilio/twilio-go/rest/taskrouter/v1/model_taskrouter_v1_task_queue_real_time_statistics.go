@@ -19,7 +19,7 @@ type TaskrouterV1TaskQueueRealTimeStatistics struct {
 	// The SID of the [Account](https://www.twilio.com/docs/iam/api/account) that created the TaskQueue resource.
 	AccountSid *string `json:"account_sid,omitempty"`
 	// The number of current Workers by Activity.
-	ActivityStatistics *[]map[string]interface{} `json:"activity_statistics,omitempty"`
+	ActivityStatistics *[]interface{} `json:"activity_statistics,omitempty"`
 	// The age of the longest waiting Task.
 	LongestTaskWaitingAge int `json:"longest_task_waiting_age,omitempty"`
 	// The SID of the longest waiting Task.
@@ -31,9 +31,9 @@ type TaskrouterV1TaskQueueRealTimeStatistics struct {
 	// The SID of the TaskQueue from which these statistics were calculated.
 	TaskQueueSid *string `json:"task_queue_sid,omitempty"`
 	// The number of Tasks by priority. For example: `{\"0\": \"10\", \"99\": \"5\"}` shows 10 Tasks at priority 0 and 5 at priority 99.
-	TasksByPriority *map[string]interface{} `json:"tasks_by_priority,omitempty"`
+	TasksByPriority *interface{} `json:"tasks_by_priority,omitempty"`
 	// The number of Tasks by their current status. For example: `{\"pending\": \"1\", \"reserved\": \"3\", \"assigned\": \"2\", \"completed\": \"5\"}`.
-	TasksByStatus *map[string]interface{} `json:"tasks_by_status,omitempty"`
+	TasksByStatus *interface{} `json:"tasks_by_status,omitempty"`
 	// The total number of Workers in the TaskQueue with an `available` status. Workers with an `available` status may already have active interactions or may have none.
 	TotalAvailableWorkers int `json:"total_available_workers,omitempty"`
 	// The total number of Workers eligible for Tasks in the TaskQueue, independent of their Activity state.

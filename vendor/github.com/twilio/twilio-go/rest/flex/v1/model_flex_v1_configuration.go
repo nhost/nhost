@@ -27,8 +27,8 @@ type FlexV1Configuration struct {
 	// The date and time in GMT when the Configuration resource was last updated specified in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 	DateUpdated *time.Time `json:"date_updated,omitempty"`
 	// An object that contains application-specific data.
-	Attributes *map[string]interface{} `json:"attributes,omitempty"`
-	Status     *string                 `json:"status,omitempty"`
+	Attributes *interface{} `json:"attributes,omitempty"`
+	Status     *string      `json:"status,omitempty"`
 	// The SID of the TaskRouter Workspace.
 	TaskrouterWorkspaceSid *string `json:"taskrouter_workspace_sid,omitempty"`
 	// The SID of the TaskRouter target Workflow.
@@ -36,13 +36,13 @@ type FlexV1Configuration struct {
 	// The SID of the TaskRouter Target TaskQueue.
 	TaskrouterTargetTaskqueueSid *string `json:"taskrouter_target_taskqueue_sid,omitempty"`
 	// The list of TaskRouter TaskQueues.
-	TaskrouterTaskqueues *[]map[string]interface{} `json:"taskrouter_taskqueues,omitempty"`
+	TaskrouterTaskqueues *[]interface{} `json:"taskrouter_taskqueues,omitempty"`
 	// The Skill description for TaskRouter workers.
-	TaskrouterSkills *[]map[string]interface{} `json:"taskrouter_skills,omitempty"`
+	TaskrouterSkills *[]interface{} `json:"taskrouter_skills,omitempty"`
 	// The TaskRouter default channel capacities and availability for workers.
-	TaskrouterWorkerChannels *map[string]interface{} `json:"taskrouter_worker_channels,omitempty"`
+	TaskrouterWorkerChannels *interface{} `json:"taskrouter_worker_channels,omitempty"`
 	// The TaskRouter Worker attributes.
-	TaskrouterWorkerAttributes *map[string]interface{} `json:"taskrouter_worker_attributes,omitempty"`
+	TaskrouterWorkerAttributes *interface{} `json:"taskrouter_worker_attributes,omitempty"`
 	// The TaskRouter SID of the offline activity.
 	TaskrouterOfflineActivitySid *string `json:"taskrouter_offline_activity_sid,omitempty"`
 	// The URL where the Flex instance is hosted.
@@ -58,9 +58,9 @@ type FlexV1Configuration struct {
 	// The primary language of the Flex UI.
 	UiLanguage *string `json:"ui_language,omitempty"`
 	// The object that describes Flex UI characteristics and settings.
-	UiAttributes *map[string]interface{} `json:"ui_attributes,omitempty"`
+	UiAttributes *interface{} `json:"ui_attributes,omitempty"`
 	// The object that defines the NPM packages and versions to be used in Hosted Flex.
-	UiDependencies *map[string]interface{} `json:"ui_dependencies,omitempty"`
+	UiDependencies *interface{} `json:"ui_dependencies,omitempty"`
 	// The Pinned UI version.
 	UiVersion *string `json:"ui_version,omitempty"`
 	// The Flex Service version.
@@ -78,43 +78,43 @@ type FlexV1Configuration struct {
 	// The CRM Fallback URL.
 	CrmFallbackUrl *string `json:"crm_fallback_url,omitempty"`
 	// An object that contains the CRM attributes.
-	CrmAttributes *map[string]interface{} `json:"crm_attributes,omitempty"`
+	CrmAttributes *interface{} `json:"crm_attributes,omitempty"`
 	// The list of public attributes, which are visible to unauthenticated clients.
-	PublicAttributes *map[string]interface{} `json:"public_attributes,omitempty"`
+	PublicAttributes *interface{} `json:"public_attributes,omitempty"`
 	// Whether the plugin service enabled.
 	PluginServiceEnabled *bool `json:"plugin_service_enabled,omitempty"`
 	// The plugin service attributes.
-	PluginServiceAttributes *map[string]interface{} `json:"plugin_service_attributes,omitempty"`
+	PluginServiceAttributes *interface{} `json:"plugin_service_attributes,omitempty"`
 	// A list of objects that contain the configurations for the Integrations supported in this configuration.
-	Integrations *[]map[string]interface{} `json:"integrations,omitempty"`
+	Integrations *[]interface{} `json:"integrations,omitempty"`
 	// The list of outbound call flows.
-	OutboundCallFlows *map[string]interface{} `json:"outbound_call_flows,omitempty"`
+	OutboundCallFlows *interface{} `json:"outbound_call_flows,omitempty"`
 	// The list of serverless service SIDs.
 	ServerlessServiceSids *[]string `json:"serverless_service_sids,omitempty"`
 	// Configurable parameters for Queues Statistics.
-	QueueStatsConfiguration *map[string]interface{} `json:"queue_stats_configuration,omitempty"`
+	QueueStatsConfiguration *interface{} `json:"queue_stats_configuration,omitempty"`
 	// Configurable parameters for Notifications.
-	Notifications *map[string]interface{} `json:"notifications,omitempty"`
+	Notifications *interface{} `json:"notifications,omitempty"`
 	// Configurable parameters for Markdown.
-	Markdown *map[string]interface{} `json:"markdown,omitempty"`
+	Markdown *interface{} `json:"markdown,omitempty"`
 	// The absolute URL of the Configuration resource.
 	Url *string `json:"url,omitempty"`
 	// Object with enabled/disabled flag with list of workspaces.
-	FlexInsightsHr *map[string]interface{} `json:"flex_insights_hr,omitempty"`
+	FlexInsightsHr *interface{} `json:"flex_insights_hr,omitempty"`
 	// Setting this to true will redirect Flex UI to the URL set in flex_url
 	FlexInsightsDrilldown *bool `json:"flex_insights_drilldown,omitempty"`
 	// URL to redirect to in case drilldown is enabled.
 	FlexUrl *string `json:"flex_url,omitempty"`
 	// Settings for different limits for Flex Conversations channels attachments.
-	ChannelConfigs *[]map[string]interface{} `json:"channel_configs,omitempty"`
+	ChannelConfigs *[]interface{} `json:"channel_configs,omitempty"`
 	// Configurable parameters for Debugger Integration.
-	DebuggerIntegration *map[string]interface{} `json:"debugger_integration,omitempty"`
+	DebuggerIntegration *interface{} `json:"debugger_integration,omitempty"`
 	// Configurable parameters for Flex UI Status report.
-	FlexUiStatusReport *map[string]interface{} `json:"flex_ui_status_report,omitempty"`
+	FlexUiStatusReport *interface{} `json:"flex_ui_status_report,omitempty"`
 	// Agent conversation end methods.
-	AgentConvEndMethods *map[string]interface{} `json:"agent_conv_end_methods,omitempty"`
+	AgentConvEndMethods *interface{} `json:"agent_conv_end_methods,omitempty"`
 	// Citrix voice vdi configuration and settings.
-	CitrixVoiceVdi *map[string]interface{} `json:"citrix_voice_vdi,omitempty"`
+	CitrixVoiceVdi *interface{} `json:"citrix_voice_vdi,omitempty"`
 	// Presence and presence ttl configuration
-	OfflineConfig *map[string]interface{} `json:"offline_config,omitempty"`
+	OfflineConfig *interface{} `json:"offline_config,omitempty"`
 }

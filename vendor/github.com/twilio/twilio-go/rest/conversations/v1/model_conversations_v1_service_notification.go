@@ -21,11 +21,11 @@ type ConversationsV1ServiceNotification struct {
 	// The SID of the [Conversation Service](https://www.twilio.com/docs/conversations/api/service-resource) the Configuration applies to.
 	ChatServiceSid *string `json:"chat_service_sid,omitempty"`
 	// The Push Notification configuration for New Messages.
-	NewMessage *map[string]interface{} `json:"new_message,omitempty"`
+	NewMessage *interface{} `json:"new_message,omitempty"`
 	// The Push Notification configuration for being added to a Conversation.
-	AddedToConversation *map[string]interface{} `json:"added_to_conversation,omitempty"`
+	AddedToConversation *interface{} `json:"added_to_conversation,omitempty"`
 	// The Push Notification configuration for being removed from a Conversation.
-	RemovedFromConversation *map[string]interface{} `json:"removed_from_conversation,omitempty"`
+	RemovedFromConversation *interface{} `json:"removed_from_conversation,omitempty"`
 	// Weather the notification logging is enabled.
 	LogEnabled *bool `json:"log_enabled,omitempty"`
 	// An absolute API resource URL for this configuration.

@@ -38,6 +38,7 @@ func TestSMTPAuthLogin(t *testing.T) {
 				},
 				nil,
 			)
+
 			headers := map[string]string{
 				"x-another": "qwe",
 			}

@@ -22,6 +22,7 @@ func ImageURLComparer() cmp.Option {
 		if last := p.Last(); last != nil {
 			return last.String() == ".ImageUrl"
 		}
+
 		return false
 	}, cmp.Comparer(func(x, y string) bool {
 		return strings.HasPrefix(x, "data:image/png;base64,") ||
@@ -183,6 +184,7 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 			if tc.jwtTokenFn != nil {
 				ctx = jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			}
+
 			assertRequest(
 				ctx, t, c.ChangeUserMfa, tc.request, tc.expectedResponse,
 				ImageURLComparer(),
@@ -190,6 +192,7 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 					if last := p.Last(); last != nil {
 						return last.String() == ".TotpSecret"
 					}
+
 					return false
 				}, cmp.Ignore()),
 			)

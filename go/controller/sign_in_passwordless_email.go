@@ -23,12 +23,12 @@ func (ctrl *Controller) SignInPasswordlessEmail( //nolint:ireturn
 		With(slog.String("email", string(request.Body.Email)))
 
 	if !ctrl.config.EmailPasswordlessEnabled {
-		logger.Warn("email passwordless signin is disabled")
+		logger.WarnContext(ctx, "email passwordless signin is disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
 	options, apiErr := ctrl.signinEmailValidateRequest(
-		string(request.Body.Email), request.Body.Options, logger)
+		ctx, string(request.Body.Email), request.Body.Options, logger)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}
@@ -53,16 +53,17 @@ func (ctrl *Controller) SignInPasswordlessEmail( //nolint:ireturn
 }
 
 func (ctrl *Controller) signinEmailValidateRequest(
+	ctx context.Context,
 	email string,
 	options *api.SignUpOptions,
 	logger *slog.Logger,
 ) (*api.SignUpOptions, *APIError) {
 	if !ctrl.wf.ValidateEmail(email) {
-		logger.Warn("email didn't pass access control checks")
+		logger.WarnContext(ctx, "email didn't pass access control checks")
 		return nil, ErrInvalidEmailPassword
 	}
 
-	options, apiErr := ctrl.wf.ValidateSignUpOptions(options, email, logger)
+	options, apiErr := ctrl.wf.ValidateSignUpOptions(ctx, options, email, logger)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -84,7 +85,7 @@ func (ctrl *Controller) signinWithTicket(
 
 	switch {
 	case errors.Is(apiErr, ErrUserEmailNotFound):
-		logger.Info("user does not exist, creating user")
+		logger.InfoContext(ctx, "user does not exist, creating user")
 
 		user, apiErr = ctrl.signinWithTicketSignUp(
 			ctx, email, options, ticket, ticketExpiresAt, logger,
@@ -97,7 +98,7 @@ func (ctrl *Controller) signinWithTicket(
 			return apiErr
 		}
 	case apiErr != nil:
-		logger.Error("error getting user by email", logError(apiErr))
+		logger.ErrorContext(ctx, "error getting user by email", logError(apiErr))
 		return apiErr
 	default:
 		if apiErr = ctrl.wf.SetTicket(ctx, user.ID, ticket, ticketExpiresAt, logger); apiErr != nil {

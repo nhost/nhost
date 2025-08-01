@@ -31,7 +31,7 @@ type ConversationsV1ServiceParticipantConversation struct {
 	// A unique string identifier for the conversation participant as [Conversation User](https://www.twilio.com/docs/conversations/api/user-resource). This parameter is non-null if (and only if) the participant is using the Conversations SDK to communicate. Limited to 256 characters.
 	ParticipantIdentity *string `json:"participant_identity,omitempty"`
 	// Information about how this participant exchanges messages with the conversation. A JSON parameter consisting of type and address fields of the participant.
-	ParticipantMessagingBinding *map[string]interface{} `json:"participant_messaging_binding,omitempty"`
+	ParticipantMessagingBinding *interface{} `json:"participant_messaging_binding,omitempty"`
 	// The unique ID of the [Conversation](https://www.twilio.com/docs/conversations/api/conversation-resource) this Participant belongs to.
 	ConversationSid *string `json:"conversation_sid,omitempty"`
 	// An application-defined string that uniquely identifies the Conversation resource.
@@ -48,7 +48,7 @@ type ConversationsV1ServiceParticipantConversation struct {
 	ConversationCreatedBy *string `json:"conversation_created_by,omitempty"`
 	ConversationState     *string `json:"conversation_state,omitempty"`
 	// Timer date values representing state update for this conversation.
-	ConversationTimers *map[string]interface{} `json:"conversation_timers,omitempty"`
+	ConversationTimers *interface{} `json:"conversation_timers,omitempty"`
 	// Contains absolute URLs to access the [participant](https://www.twilio.com/docs/conversations/api/conversation-participant-resource) and [conversation](https://www.twilio.com/docs/conversations/api/conversation-resource) of this conversation.
 	Links *map[string]interface{} `json:"links,omitempty"`
 }

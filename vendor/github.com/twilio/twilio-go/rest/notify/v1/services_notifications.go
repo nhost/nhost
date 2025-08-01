@@ -36,21 +36,21 @@ type CreateNotificationParams struct {
 	// The actions to display for the notification. For APNS, translates to the `aps.category` value. For GCM, translates to the `data.twi_action` value. For SMS, this parameter is not supported and is omitted from deliveries to those channels.
 	Action *string `json:"Action,omitempty"`
 	// The custom key-value pairs of the notification's payload. For FCM and GCM, this value translates to `data` in the FCM and GCM payloads. FCM and GCM [reserve certain keys](https://firebase.google.com/docs/cloud-messaging/http-server-ref) that cannot be used in those channels. For APNS, attributes of `data` are inserted into the APNS payload as custom properties outside of the `aps` dictionary. In all channels, we reserve keys that start with `twi_` for future use. Custom keys that start with `twi_` are not allowed and are rejected as 400 Bad request with no delivery attempted. For SMS, this parameter is not supported and is omitted from deliveries to those channels.
-	Data *map[string]interface{} `json:"Data,omitempty"`
+	Data *interface{} `json:"Data,omitempty"`
 	// The APNS-specific payload that overrides corresponding attributes in the generic payload for APNS Bindings. This property maps to the APNS `Payload` item, therefore the `aps` key must be used to change standard attributes. Adds custom key-value pairs to the root of the dictionary. See the [APNS documentation](https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html) for more details. We reserve keys that start with `twi_` for future use. Custom keys that start with `twi_` are not allowed.
-	Apn *map[string]interface{} `json:"Apn,omitempty"`
+	Apn *interface{} `json:"Apn,omitempty"`
 	// The GCM-specific payload that overrides corresponding attributes in the generic payload for GCM Bindings.  This property maps to the root JSON dictionary. See the [GCM documentation](https://firebase.google.com/docs/cloud-messaging/http-server-ref) for more details. Target parameters `to`, `registration_ids`, and `notification_key` are not allowed. We reserve keys that start with `twi_` for future use. Custom keys that start with `twi_` are not allowed. GCM also [reserves certain keys](https://firebase.google.com/docs/cloud-messaging/http-server-ref).
-	Gcm *map[string]interface{} `json:"Gcm,omitempty"`
+	Gcm *interface{} `json:"Gcm,omitempty"`
 	// The SMS-specific payload that overrides corresponding attributes in the generic payload for SMS Bindings.  Each attribute in this value maps to the corresponding `form` parameter of the Twilio [Message](https://www.twilio.com/docs/sms/quickstart) resource.  These parameters of the Message resource are supported in snake case format: `body`, `media_urls`, `status_callback`, and `max_price`.  The `status_callback` parameter overrides the corresponding parameter in the messaging service, if configured. The `media_urls` property expects a JSON array.
-	Sms *map[string]interface{} `json:"Sms,omitempty"`
+	Sms *interface{} `json:"Sms,omitempty"`
 	// Deprecated.
-	FacebookMessenger *map[string]interface{} `json:"FacebookMessenger,omitempty"`
+	FacebookMessenger *interface{} `json:"FacebookMessenger,omitempty"`
 	// The FCM-specific payload that overrides corresponding attributes in the generic payload for FCM Bindings. This property maps to the root JSON dictionary. See the [FCM documentation](https://firebase.google.com/docs/cloud-messaging/http-server-ref#downstream) for more details. Target parameters `to`, `registration_ids`, `condition`, and `notification_key` are not allowed in this parameter. We reserve keys that start with `twi_` for future use. Custom keys that start with `twi_` are not allowed. FCM also [reserves certain keys](https://firebase.google.com/docs/cloud-messaging/http-server-ref), which cannot be used in that channel.
-	Fcm *map[string]interface{} `json:"Fcm,omitempty"`
+	Fcm *interface{} `json:"Fcm,omitempty"`
 	// The Segment resource is deprecated. Use the `tag` parameter, instead.
 	Segment *[]string `json:"Segment,omitempty"`
 	// Deprecated.
-	Alexa *map[string]interface{} `json:"Alexa,omitempty"`
+	Alexa *interface{} `json:"Alexa,omitempty"`
 	// The destination address specified as a JSON string.  Multiple `to_binding` parameters can be included but the total size of the request entity should not exceed 1MB. This is typically sufficient for 10,000 phone numbers.
 	ToBinding *[]string `json:"ToBinding,omitempty"`
 	// URL to send webhooks.
@@ -85,27 +85,27 @@ func (params *CreateNotificationParams) SetAction(Action string) *CreateNotifica
 	params.Action = &Action
 	return params
 }
-func (params *CreateNotificationParams) SetData(Data map[string]interface{}) *CreateNotificationParams {
+func (params *CreateNotificationParams) SetData(Data interface{}) *CreateNotificationParams {
 	params.Data = &Data
 	return params
 }
-func (params *CreateNotificationParams) SetApn(Apn map[string]interface{}) *CreateNotificationParams {
+func (params *CreateNotificationParams) SetApn(Apn interface{}) *CreateNotificationParams {
 	params.Apn = &Apn
 	return params
 }
-func (params *CreateNotificationParams) SetGcm(Gcm map[string]interface{}) *CreateNotificationParams {
+func (params *CreateNotificationParams) SetGcm(Gcm interface{}) *CreateNotificationParams {
 	params.Gcm = &Gcm
 	return params
 }
-func (params *CreateNotificationParams) SetSms(Sms map[string]interface{}) *CreateNotificationParams {
+func (params *CreateNotificationParams) SetSms(Sms interface{}) *CreateNotificationParams {
 	params.Sms = &Sms
 	return params
 }
-func (params *CreateNotificationParams) SetFacebookMessenger(FacebookMessenger map[string]interface{}) *CreateNotificationParams {
+func (params *CreateNotificationParams) SetFacebookMessenger(FacebookMessenger interface{}) *CreateNotificationParams {
 	params.FacebookMessenger = &FacebookMessenger
 	return params
 }
-func (params *CreateNotificationParams) SetFcm(Fcm map[string]interface{}) *CreateNotificationParams {
+func (params *CreateNotificationParams) SetFcm(Fcm interface{}) *CreateNotificationParams {
 	params.Fcm = &Fcm
 	return params
 }
@@ -113,7 +113,7 @@ func (params *CreateNotificationParams) SetSegment(Segment []string) *CreateNoti
 	params.Segment = &Segment
 	return params
 }
-func (params *CreateNotificationParams) SetAlexa(Alexa map[string]interface{}) *CreateNotificationParams {
+func (params *CreateNotificationParams) SetAlexa(Alexa interface{}) *CreateNotificationParams {
 	params.Alexa = &Alexa
 	return params
 }

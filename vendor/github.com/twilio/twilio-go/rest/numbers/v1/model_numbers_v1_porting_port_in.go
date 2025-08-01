@@ -37,8 +37,8 @@ type NumbersV1PortingPortIn struct {
 	// The status of the port in request. The possible values are: In progress, Completed, Expired, In review, Waiting for Signature, Action Required, and Canceled.
 	PortInRequestStatus *string `json:"port_in_request_status,omitempty"`
 	// Details regarding the customer’s information with the losing carrier. These values will be used to generate the letter of authorization and should match the losing carrier’s data as closely as possible to ensure the port is accepted.
-	LosingCarrierInformation *map[string]interface{}   `json:"losing_carrier_information,omitempty"`
-	PhoneNumbers             *[]map[string]interface{} `json:"phone_numbers,omitempty"`
+	LosingCarrierInformation *map[string]interface{} `json:"losing_carrier_information,omitempty"`
+	PhoneNumbers             *[]interface{}          `json:"phone_numbers,omitempty"`
 	// List of document SIDs for all phone numbers included in the port in request. At least one document SID referring to a document of the type Utility Bill is required.
 	Documents   *[]string  `json:"documents,omitempty"`
 	DateCreated *time.Time `json:"date_created,omitempty"`

@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"context"
 	"math"
 	"strconv"
 	"time"
@@ -8,7 +9,7 @@ import (
 
 type Store interface {
 	Get(key string) int
-	Increment(key string, expire time.Duration) int
+	Increment(ctx context.Context, key string, expire time.Duration) int
 }
 
 type SlidingWindow struct {
@@ -42,7 +43,7 @@ func (r *SlidingWindow) getRate(key string) float64 {
 	return float64(count) / float64(r.window.Milliseconds())
 }
 
-func (r *SlidingWindow) Allow(key string) bool {
+func (r *SlidingWindow) Allow(ctx context.Context, key string) bool {
 	now := time.Now()
 	windowKey := r.windowKey(now, key)
 	remainingTime := float64(r.window.Milliseconds() - now.UnixMilli()%r.window.Milliseconds())
@@ -60,5 +61,5 @@ func (r *SlidingWindow) Allow(key string) bool {
 		return false
 	}
 
-	return r.store.Increment(windowKey, r.window*2) <= r.limit //nolint:mnd
+	return r.store.Increment(ctx, windowKey, r.window*2) <= r.limit //nolint:mnd
 }

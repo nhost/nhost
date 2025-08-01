@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
 //go:build !safe && !codec.safe && !appengine && go1.9 && !gc
-// +build !safe,!codec.safe,!appengine,go1.9,!gc
 
 package codec
 
@@ -13,6 +12,15 @@ import (
 )
 
 var unsafeZeroArr [1024]byte
+
+type mapReqParams struct {
+	ref bool
+}
+
+func getMapReqParams(ti *typeInfo) (r mapReqParams) {
+	r.ref = refBitset.isset(ti.elemkind)
+	return
+}
 
 // runtime.growslice does not work with gccgo, failing with "growslice: cap out of range" error.
 // consequently, we just call newarray followed by typedslicecopy directly.
@@ -31,18 +39,11 @@ func unsafeGrowslice(typ unsafe.Pointer, old unsafeSlice, cap, incr int) (v unsa
 	return
 }
 
-// func unsafeNew(t reflect.Type, typ unsafe.Pointer) unsafe.Pointer {
-// 	rv := reflect.New(t)
-// 	return ((*unsafeReflectValue)(unsafe.Pointer(&rv))).ptr
-// }
-
 // runtime.{mapassign_fastXXX, mapaccess2_fastXXX} are not supported in gollvm,
 // failing with "error: undefined reference" error.
 // so we just use runtime.{mapassign, mapaccess2} directly
 
-func mapStoresElemIndirect(elemsize uintptr) bool { return false }
-
-func mapSet(m, k, v reflect.Value, _ mapKeyFastKind, _, valIsRef bool) {
+func mapSet(m, k, v reflect.Value, p mapReqParams) {
 	var urv = (*unsafeReflectValue)(unsafe.Pointer(&k))
 	var kptr = unsafeMapKVPtr(urv)
 	urv = (*unsafeReflectValue)(unsafe.Pointer(&v))
@@ -56,7 +57,7 @@ func mapSet(m, k, v reflect.Value, _ mapKeyFastKind, _, valIsRef bool) {
 	typedmemmove(vtyp, vvptr, vptr)
 }
 
-func mapGet(m, k, v reflect.Value, _ mapKeyFastKind, _, valIsRef bool) (_ reflect.Value) {
+func mapGet(m, k, v reflect.Value, p mapReqParams) (_ reflect.Value) {
 	var urv = (*unsafeReflectValue)(unsafe.Pointer(&k))
 	var kptr = unsafeMapKVPtr(urv)
 	urv = (*unsafeReflectValue)(unsafe.Pointer(&m))
@@ -70,7 +71,7 @@ func mapGet(m, k, v reflect.Value, _ mapKeyFastKind, _, valIsRef bool) (_ reflec
 
 	urv = (*unsafeReflectValue)(unsafe.Pointer(&v))
 
-	if helperUnsafeDirectAssignMapEntry || valIsRef {
+	if helperUnsafeDirectAssignMapEntry || p.ref {
 		urv.ptr = vvptr
 	} else {
 		typedmemmove(urv.typ, urv.ptr, vvptr)

@@ -22,6 +22,7 @@ func (s *stringlice) UnmarshalJSON(b []byte) error {
 	}
 
 	*s = strings.Split(aux, ",")
+
 	return nil
 }
 
@@ -71,17 +72,20 @@ type Config struct {
 
 func (c *Config) UnmarshalJSON(b []byte) error {
 	type Alias Config
+
 	aux := &struct { //nolint:exhaustruct
+		*Alias
+
 		ClientURL           string `json:"AUTH_CLIENT_URL"`
 		ServerURL           string `json:"AUTH_SERVER_URL"`
 		AllowedRedirectURLs string `json:"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"`
-		*Alias
 	}{
 		Alias: (*Alias)(c),
 	}
 	if err := json.Unmarshal(b, &aux); err != nil {
 		return fmt.Errorf("error unmarshalling config: %w", err)
 	}
+
 	var err error
 
 	if aux.ClientURL != "" {

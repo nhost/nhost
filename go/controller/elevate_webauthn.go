@@ -14,7 +14,7 @@ func (ctrl *Controller) ElevateWebauthn( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx)
 
 	if !ctrl.config.WebauthnEnabled {
-		logger.Error("webauthn is disabled")
+		logger.ErrorContext(ctx, "webauthn is disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
@@ -29,11 +29,11 @@ func (ctrl *Controller) ElevateWebauthn( //nolint:ireturn
 	}
 
 	if len(keys) == 0 {
-		logger.Error("user has no security keys")
+		logger.ErrorContext(ctx, "user has no security keys")
 		return ctrl.sendError(ErrInvalidRequest), nil
 	}
 
-	creds, apiErr := webauthnCredentials(keys, logger)
+	creds, apiErr := webauthnCredentials(ctx, keys, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
@@ -46,7 +46,7 @@ func (ctrl *Controller) ElevateWebauthn( //nolint:ireturn
 		Discoverable: false,
 	}
 
-	creation, apiErr := ctrl.Webauthn.BeginLogin(waUser, logger)
+	creation, apiErr := ctrl.Webauthn.BeginLogin(ctx, waUser, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}

@@ -82,6 +82,7 @@ func (b *Bitbucket) GetProfile(
 	if err != nil {
 		return oidc.Profile{}, fmt.Errorf("Bitbucket email request error: %w", err)
 	}
+
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -96,8 +97,11 @@ func (b *Bitbucket) GetProfile(
 	}
 
 	// Pick the first verified email
-	var primaryEmail string
-	var fallbackEmail string
+	var (
+		primaryEmail  string
+		fallbackEmail string
+	)
+
 	for _, e := range emailResp.Values {
 		if e.IsConfirmed {
 			primaryEmail = e.Email
@@ -111,6 +115,7 @@ func (b *Bitbucket) GetProfile(
 		if fallbackEmail == "" {
 			return oidc.Profile{}, ErrNoConfirmedBitbucketEmail
 		}
+
 		primaryEmail = fallbackEmail
 	}
 

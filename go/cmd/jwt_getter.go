@@ -11,8 +11,10 @@ import (
 )
 
 func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGetter, error) {
-	var rawClaims map[string]string
-	var defaults map[string]any
+	var (
+		rawClaims map[string]string
+		defaults  map[string]any
+	)
 
 	if cCtx.String(flagCustomClaims) != "" {
 		if err := json.Unmarshal([]byte(cCtx.String(flagCustomClaims)), &rawClaims); err != nil {
@@ -26,8 +28,11 @@ func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGet
 		}
 	}
 
-	var customClaimer controller.CustomClaimer
-	var err error
+	var (
+		customClaimer controller.CustomClaimer
+		err           error
+	)
+
 	if len(rawClaims) > 0 {
 		customClaimer, err = controller.NewCustomClaims(
 			rawClaims,

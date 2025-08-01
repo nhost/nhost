@@ -21,12 +21,12 @@ func (ctrl *Controller) SignInPasswordlessSms( //nolint:ireturn
 		With(slog.String("phoneNumber", request.Body.PhoneNumber))
 
 	if !ctrl.config.SMSPasswordlessEnabled {
-		logger.Warn("SMS passwordless signin is disabled")
+		logger.WarnContext(ctx, "SMS passwordless signin is disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
 	options, apiErr := ctrl.signinSmsValidateRequest(
-		request.Body.PhoneNumber, request.Body.Options, logger)
+		ctx, request.Body.PhoneNumber, request.Body.Options, logger)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}
@@ -34,21 +34,23 @@ func (ctrl *Controller) SignInPasswordlessSms( //nolint:ireturn
 	user, apiErr := ctrl.wf.GetUserByPhoneNumber(ctx, request.Body.PhoneNumber, logger)
 	switch {
 	case errors.Is(apiErr, ErrUserPhoneNumberNotFound):
-		logger.Info("user does not exist, creating user")
+		logger.InfoContext(ctx, "user does not exist, creating user")
+
 		if apiErr := ctrl.postSigninPasswordlessSmsSignup(
 			ctx, request.Body.PhoneNumber, options, logger,
 		); apiErr != nil {
-			logger.Error("error signing up user", logError(apiErr))
+			logger.ErrorContext(ctx, "error signing up user", logError(apiErr))
 			return ctrl.respondWithError(apiErr), nil
 		}
+
 		return api.SignInPasswordlessSms200JSONResponse(api.OK), nil
 	case apiErr != nil:
-		logger.Error("error getting user by phone number", logError(apiErr))
+		logger.ErrorContext(ctx, "error getting user by phone number", logError(apiErr))
 		return ctrl.respondWithError(apiErr), nil
 	}
 
 	if apiErr := ctrl.postSigninPasswordlessSmsSignin(ctx, user, logger); apiErr != nil {
-		logger.Error("error signing in user", logError(apiErr))
+		logger.ErrorContext(ctx, "error signing in user", logError(apiErr))
 		return ctrl.respondWithError(apiErr), nil
 	}
 
@@ -56,11 +58,12 @@ func (ctrl *Controller) SignInPasswordlessSms( //nolint:ireturn
 }
 
 func (ctrl *Controller) signinSmsValidateRequest(
+	ctx context.Context,
 	phoneNumber string,
 	options *api.SignUpOptions,
 	logger *slog.Logger,
 ) (*api.SignUpOptions, *APIError) {
-	options, apiErr := ctrl.wf.ValidateSignUpOptions(options, phoneNumber, logger)
+	options, apiErr := ctrl.wf.ValidateSignUpOptions(ctx, options, phoneNumber, logger)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -74,11 +77,12 @@ func (ctrl *Controller) postSigninPasswordlessSmsSignin(
 	logger *slog.Logger,
 ) *APIError {
 	otpHash, expiresAt, err := ctrl.wf.sms.SendVerificationCode(
+		ctx,
 		user.PhoneNumber.String,
 		user.Locale,
 	)
 	if err != nil {
-		logger.Error("error sending SMS verification code", logError(err))
+		logger.ErrorContext(ctx, "error sending SMS verification code", logError(err))
 		return ErrCannotSendSMS
 	}
 
@@ -88,7 +92,7 @@ func (ctrl *Controller) postSigninPasswordlessSmsSignin(
 		OtpHashExpiresAt:  sql.TimestampTz(expiresAt),
 		OtpMethodLastUsed: sql.Text("sms"),
 	}); err != nil {
-		logger.Error("error updating user OTP hash", logError(err))
+		logger.ErrorContext(ctx, "error updating user OTP hash", logError(err))
 		return ErrInternalServerError
 	}
 
@@ -102,11 +106,12 @@ func (ctrl *Controller) postSigninPasswordlessSmsSignup(
 	logger *slog.Logger,
 ) *APIError {
 	ohash, expiresAt, err := ctrl.wf.sms.SendVerificationCode(
+		ctx,
 		phoneNumber,
 		deptr(options.Locale),
 	)
 	if err != nil {
-		logger.Error("error sending SMS verification code", logError(err))
+		logger.ErrorContext(ctx, "error sending SMS verification code", logError(err))
 		return ErrCannotSendSMS
 	}
 

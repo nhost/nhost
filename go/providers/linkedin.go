@@ -62,6 +62,7 @@ func (l *LinkedIn) GetProfile(
 		if name != "" {
 			name += " "
 		}
+
 		name += userProfile.FamilyName
 	}
 

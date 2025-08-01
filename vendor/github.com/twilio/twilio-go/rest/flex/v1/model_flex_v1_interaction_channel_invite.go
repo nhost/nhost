@@ -23,6 +23,6 @@ type FlexV1InteractionChannelInvite struct {
 	// The Channel SID for this Invite.
 	ChannelSid *string `json:"channel_sid,omitempty"`
 	// A JSON object representing the routing rules for the Interaction Channel. See [Outbound SMS Example](https://www.twilio.com/docs/flex/developer/conversations/interactions-api/interactions#agent-initiated-outbound-interactions) for an example Routing object. The Interactions resource uses TaskRouter for all routing functionality.   All attributes in the Routing object on your Interaction request body are added “as is” to the task. For a list of known attributes consumed by the Flex UI and/or Flex Insights, see [Known Task Attributes](https://www.twilio.com/docs/flex/developer/conversations/interactions-api#task-attributes).
-	Routing *map[string]interface{} `json:"routing,omitempty"`
-	Url     *string                 `json:"url,omitempty"`
+	Routing *interface{} `json:"routing,omitempty"`
+	Url     *string      `json:"url,omitempty"`
 }

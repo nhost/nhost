@@ -147,12 +147,14 @@ func TestEmailSendEmailVerify(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.Default()
+
 	templates, err := notifications.NewTemplatesFromFilesystem(
 		"../../email-templates/", "en", logger,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
+
 	mail := notifications.NewEmail(
 		"localhost",
 		1025,

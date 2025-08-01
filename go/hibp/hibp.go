@@ -58,6 +58,7 @@ func (c *Client) getRangeResponse(
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
 		defer resp.Body.Close()
+
 		return nil, fmt.Errorf("error getting response: %w: %s", err, string(b))
 	}
 
@@ -78,6 +79,7 @@ func (c *Client) IsPasswordPwned(ctx context.Context, password string) (bool, er
 
 	for scanner.Scan() {
 		line := scanner.Text()
+
 		parts := strings.Split(line, ":")
 		if parts[0] == hashSuffix {
 			return true, nil

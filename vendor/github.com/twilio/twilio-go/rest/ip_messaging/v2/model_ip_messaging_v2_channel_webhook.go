@@ -20,13 +20,13 @@ import (
 
 // IpMessagingV2ChannelWebhook struct for IpMessagingV2ChannelWebhook
 type IpMessagingV2ChannelWebhook struct {
-	Sid           *string                 `json:"sid,omitempty"`
-	AccountSid    *string                 `json:"account_sid,omitempty"`
-	ServiceSid    *string                 `json:"service_sid,omitempty"`
-	ChannelSid    *string                 `json:"channel_sid,omitempty"`
-	Type          *string                 `json:"type,omitempty"`
-	Url           *string                 `json:"url,omitempty"`
-	Configuration *map[string]interface{} `json:"configuration,omitempty"`
-	DateCreated   *time.Time              `json:"date_created,omitempty"`
-	DateUpdated   *time.Time              `json:"date_updated,omitempty"`
+	Sid           *string      `json:"sid,omitempty"`
+	AccountSid    *string      `json:"account_sid,omitempty"`
+	ServiceSid    *string      `json:"service_sid,omitempty"`
+	ChannelSid    *string      `json:"channel_sid,omitempty"`
+	Type          *string      `json:"type,omitempty"`
+	Url           *string      `json:"url,omitempty"`
+	Configuration *interface{} `json:"configuration,omitempty"`
+	DateCreated   *time.Time   `json:"date_created,omitempty"`
+	DateUpdated   *time.Time   `json:"date_updated,omitempty"`
 }

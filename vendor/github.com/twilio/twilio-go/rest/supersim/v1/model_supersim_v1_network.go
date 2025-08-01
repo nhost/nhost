@@ -25,5 +25,5 @@ type SupersimV1Network struct {
 	// The [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the Network resource.
 	IsoCountry *string `json:"iso_country,omitempty"`
 	// Array of objects identifying the [MCC-MNCs](https://en.wikipedia.org/wiki/Mobile_country_code) that are included in the Network resource.
-	Identifiers *[]map[string]interface{} `json:"identifiers,omitempty"`
+	Identifiers *[]interface{} `json:"identifiers,omitempty"`
 }

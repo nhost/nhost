@@ -43,28 +43,40 @@ Class | Method | HTTP request | Description
 
  - [IamV1AccountSearchRoleResponse](docs/IamV1AccountSearchRoleResponse.md)
  - [IamV1SocialConnection](docs/IamV1SocialConnection.md)
+ - [IamV1ManagedUser](docs/IamV1ManagedUser.md)
  - [IamV1User](docs/IamV1User.md)
- - [IamV1TwilioServiceErrorResponse](docs/IamV1TwilioServiceErrorResponse.md)
  - [IamV1AccountSearchRequest](docs/IamV1AccountSearchRequest.md)
- - [TwilioServiceErrorResponse](docs/TwilioServiceErrorResponse.md)
  - [IamV1NewKey](docs/IamV1NewKey.md)
- - [IamV1AccountSearchListMeta](docs/IamV1AccountSearchListMeta.md)
- - [IamV1EmailChangeInitiateResponse](docs/IamV1EmailChangeInitiateResponse.md)
+ - [IamV1VendoroauthappPolicy](docs/IamV1VendoroauthappPolicy.md)
  - [OauthV1Token](docs/OauthV1Token.md)
- - [IamV1AccountStatsResponse](docs/IamV1AccountStatsResponse.md)
+ - [IamV1ImportableUsersCount](docs/IamV1ImportableUsersCount.md)
  - [IamV1EmailChangeResendRequest](docs/IamV1EmailChangeResendRequest.md)
  - [ListGetKeysResponseMeta](docs/ListGetKeysResponseMeta.md)
- - [IamV1AccountSearchAccount](docs/IamV1AccountSearchAccount.md)
  - [IamV1Key](docs/IamV1Key.md)
  - [IamV1UserPatchRequest](docs/IamV1UserPatchRequest.md)
+ - [IamV1Vendoroauthapp](docs/IamV1Vendoroauthapp.md)
  - [IamV1ChallengeMethod](docs/IamV1ChallengeMethod.md)
- - [IamV1EmailChangeVerifyRequest](docs/IamV1EmailChangeVerifyRequest.md)
- - [IamV1UserPatchResponse](docs/IamV1UserPatchResponse.md)
+ - [IamV1CreateDomainResponse](docs/IamV1CreateDomainResponse.md)
  - [IamV1MfaInfo](docs/IamV1MfaInfo.md)
  - [IamV1EmailChangeInitiateRequest](docs/IamV1EmailChangeInitiateRequest.md)
+ - [IamV1ImportUsersRun](docs/IamV1ImportUsersRun.md)
+ - [IamV1IndependentUser](docs/IamV1IndependentUser.md)
+ - [IamV1Domain](docs/IamV1Domain.md)
+ - [IamV1AccountSearchListMeta](docs/IamV1AccountSearchListMeta.md)
+ - [IamV1EmailChangeInitiateResponse](docs/IamV1EmailChangeInitiateResponse.md)
+ - [IamV1AccountStatsResponse](docs/IamV1AccountStatsResponse.md)
+ - [IamV1Organization](docs/IamV1Organization.md)
+ - [IamV1AccountSearchAccount](docs/IamV1AccountSearchAccount.md)
+ - [IamV1Limit](docs/IamV1Limit.md)
+ - [IamV1InvitedUser](docs/IamV1InvitedUser.md)
+ - [IamV1EmailChangeVerifyRequest](docs/IamV1EmailChangeVerifyRequest.md)
+ - [IamV1InvitedAccount](docs/IamV1InvitedAccount.md)
+ - [IamV1UserPatchResponse](docs/IamV1UserPatchResponse.md)
+ - [IamV1ChangeAccountOwnerResponse](docs/IamV1ChangeAccountOwnerResponse.md)
  - [IamV1GetKeys](docs/IamV1GetKeys.md)
  - [ListGetKeysResponse](docs/ListGetKeysResponse.md)
  - [IamV1OneConsoleProvisioningStatus](docs/IamV1OneConsoleProvisioningStatus.md)
+ - [IamV1ChangeAccountOwnerRequest](docs/IamV1ChangeAccountOwnerRequest.md)
 
 
 ## Documentation For Authorization
@@ -72,6 +84,21 @@ Class | Method | HTTP request | Description
 
 
 ## accountSid_authToken
+
+- **Type**: HTTP basic authentication
+
+Example
+
+```golang
+auth := context.WithValue(context.Background(), sw.ContextBasicAuth, sw.BasicAuth{
+    UserName: "username",
+    Password: "password",
+})
+r, err := client.Service.Operation(auth, args)
+```
+
+
+## access_token_bearer
 
 - **Type**: HTTP basic authentication
 

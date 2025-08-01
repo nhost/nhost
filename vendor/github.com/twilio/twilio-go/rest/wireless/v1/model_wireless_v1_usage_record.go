@@ -21,9 +21,9 @@ type WirelessV1UsageRecord struct {
 	// The SID of the [Account](https://www.twilio.com/docs/iam/api/account) that created the UsageRecord resource.
 	AccountSid *string `json:"account_sid,omitempty"`
 	// The time period for which the usage is reported. Contains `start` and `end` datetime values given as GMT in [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format.
-	Period *map[string]interface{} `json:"period,omitempty"`
+	Period *interface{} `json:"period,omitempty"`
 	// An object that describes the SIM's usage of Commands during the specified period. See [Commands Usage Object](https://www.twilio.com/docs/iot/wireless/api/sim-usagerecord-resource#commands-usage-object).
-	Commands *map[string]interface{} `json:"commands,omitempty"`
+	Commands *interface{} `json:"commands,omitempty"`
 	// An object that describes the SIM's data usage during the specified period. See [Data Usage Object](https://www.twilio.com/docs/iot/wireless/api/sim-usagerecord-resource#data-usage-object).
-	Data *map[string]interface{} `json:"data,omitempty"`
+	Data *interface{} `json:"data,omitempty"`
 }

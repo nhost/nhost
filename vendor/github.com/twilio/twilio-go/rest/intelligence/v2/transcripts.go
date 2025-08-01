@@ -29,7 +29,7 @@ type CreateTranscriptParams struct {
 	// The unique SID identifier of the Service.
 	ServiceSid *string `json:"ServiceSid,omitempty"`
 	// JSON object describing Media Channel including Source and Participants
-	Channel *map[string]interface{} `json:"Channel,omitempty"`
+	Channel *interface{} `json:"Channel,omitempty"`
 	// Used to store client provided metadata. Maximum of 64 double-byte UTF8 characters.
 	CustomerKey *string `json:"CustomerKey,omitempty"`
 	// The date that this Transcript's media was started, given in ISO 8601 format.
@@ -40,7 +40,7 @@ func (params *CreateTranscriptParams) SetServiceSid(ServiceSid string) *CreateTr
 	params.ServiceSid = &ServiceSid
 	return params
 }
-func (params *CreateTranscriptParams) SetChannel(Channel map[string]interface{}) *CreateTranscriptParams {
+func (params *CreateTranscriptParams) SetChannel(Channel interface{}) *CreateTranscriptParams {
 	params.Channel = &Channel
 	return params
 }

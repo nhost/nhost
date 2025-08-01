@@ -13,12 +13,14 @@ func (ctrl *Controller) CreatePAT( //nolint:ireturn
 	ctx context.Context, request api.CreatePATRequestObject,
 ) (api.CreatePATResponseObject, error) {
 	logger := middleware.LoggerFromContext(ctx)
+
 	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}
 
 	pat := uuid.New()
+
 	refreshTokenID, apiErr := ctrl.wf.InsertRefreshtoken(
 		ctx,
 		user.ID,

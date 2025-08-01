@@ -39,7 +39,7 @@ type FlexV1FlexFlow struct {
 	Enabled         *bool   `json:"enabled,omitempty"`
 	IntegrationType *string `json:"integration_type,omitempty"`
 	// An object that contains specific parameters for the integration.
-	Integration *map[string]interface{} `json:"integration,omitempty"`
+	Integration *interface{} `json:"integration,omitempty"`
 	// When enabled, Flex will keep the chat channel active so that it may be used for subsequent interactions with a contact identity. Defaults to `false`.
 	LongLived *bool `json:"long_lived,omitempty"`
 	// When enabled, the Messaging Channel Janitor will remove active Proxy sessions if the associated Task is deleted outside of the Flex UI. Defaults to `false`.

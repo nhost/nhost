@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"strconv"
@@ -36,6 +37,7 @@ func (m *MemcacheStore) Get(key string) int {
 	if err != nil {
 		return 0
 	}
+
 	v, err := strconv.Atoi(string(item.Value))
 	if err != nil {
 		return 0
@@ -44,7 +46,7 @@ func (m *MemcacheStore) Get(key string) int {
 	return v
 }
 
-func (m *MemcacheStore) Increment(key string, expire time.Duration) int {
+func (m *MemcacheStore) Increment(ctx context.Context, key string, expire time.Duration) int {
 	newValue, err := m.client.Increment(m.key(key), uint64(1))
 	switch {
 	case errors.Is(err, memcache.ErrCacheMiss):
@@ -54,13 +56,15 @@ func (m *MemcacheStore) Increment(key string, expire time.Duration) int {
 			Expiration: int32(expire.Seconds()),
 		})
 		if err != nil {
-			m.logger.Error("error setting key", slog.String("error", err.Error()))
+			m.logger.ErrorContext(ctx, "error setting key", slog.String("error", err.Error()))
 			return 0
 		}
+
 		return 1
 	case err != nil:
-		m.logger.Error("error incrementing key", slog.String("error", err.Error()))
+		m.logger.ErrorContext(ctx, "error incrementing key", slog.String("error", err.Error()))
 		return 0
 	}
+
 	return int(newValue) //nolint:gosec
 }

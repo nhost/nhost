@@ -41,15 +41,18 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [ListChannelsSenderResponse](docs/ListChannelsSenderResponse.md)
- - [MessagingV2ChannelsSender](docs/MessagingV2ChannelsSender.md)
  - [MessagingV2Configuration](docs/MessagingV2Configuration.md)
  - [MessagingV2Items](docs/MessagingV2Items.md)
- - [ListChannelsSenderResponseMeta](docs/ListChannelsSenderResponseMeta.md)
  - [MessagingV2Webhook](docs/MessagingV2Webhook.md)
  - [MessagingV2Create](docs/MessagingV2Create.md)
- - [MessagingV2Properties](docs/MessagingV2Properties.md)
+ - [MessagingV2ProfileResponse](docs/MessagingV2ProfileResponse.md)
  - [MessagingV2Update](docs/MessagingV2Update.md)
  - [MessagingV2Profile](docs/MessagingV2Profile.md)
+ - [MessagingV2ChannelsSender](docs/MessagingV2ChannelsSender.md)
+ - [MessagingV2ChannelsSenderProfileResponseWebsites](docs/MessagingV2ChannelsSenderProfileResponseWebsites.md)
+ - [ListChannelsSenderResponseMeta](docs/ListChannelsSenderResponseMeta.md)
+ - [MessagingV2Properties](docs/MessagingV2Properties.md)
+ - [MessagingV2ChannelsSenderProfileResponseEmails](docs/MessagingV2ChannelsSenderProfileResponseEmails.md)
 
 
 ## Documentation For Authorization

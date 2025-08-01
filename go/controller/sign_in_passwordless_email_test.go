@@ -24,6 +24,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 	getConfig := func() *controller.Config {
 		config := getConfig()
 		config.EmailPasswordlessEnabled = true
+
 		return config
 	}
 

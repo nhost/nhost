@@ -26,7 +26,7 @@ import (
 // Optional parameters for the method 'CreateSyncListItem'
 type CreateSyncListItemParams struct {
 	// A JSON string that represents an arbitrary, schema-less object that the List Item stores. Can be up to 16 KiB in length.
-	Data *map[string]interface{} `json:"Data,omitempty"`
+	Data *interface{} `json:"Data,omitempty"`
 	// An alias for `item_ttl`. If both parameters are provided, this value is ignored.
 	Ttl *int `json:"Ttl,omitempty"`
 	// How long, [in seconds](https://www.twilio.com/docs/sync/limits#sync-payload-limits), before the List Item expires (time-to-live) and is deleted.
@@ -35,7 +35,7 @@ type CreateSyncListItemParams struct {
 	CollectionTtl *int `json:"CollectionTtl,omitempty"`
 }
 
-func (params *CreateSyncListItemParams) SetData(Data map[string]interface{}) *CreateSyncListItemParams {
+func (params *CreateSyncListItemParams) SetData(Data interface{}) *CreateSyncListItemParams {
 	params.Data = &Data
 	return params
 }
@@ -333,7 +333,7 @@ type UpdateSyncListItemParams struct {
 	// If provided, applies this mutation if (and only if) the “revision” field of this [map item] matches the provided value. This matches the semantics of (and is implemented with) the HTTP [If-Match header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match).
 	IfMatch *string `json:"If-Match,omitempty"`
 	// A JSON string that represents an arbitrary, schema-less object that the List Item stores. Can be up to 16 KiB in length.
-	Data *map[string]interface{} `json:"Data,omitempty"`
+	Data *interface{} `json:"Data,omitempty"`
 	// An alias for `item_ttl`. If both parameters are provided, this value is ignored.
 	Ttl *int `json:"Ttl,omitempty"`
 	// How long, [in seconds](https://www.twilio.com/docs/sync/limits#sync-payload-limits), before the List Item expires (time-to-live) and is deleted.
@@ -346,7 +346,7 @@ func (params *UpdateSyncListItemParams) SetIfMatch(IfMatch string) *UpdateSyncLi
 	params.IfMatch = &IfMatch
 	return params
 }
-func (params *UpdateSyncListItemParams) SetData(Data map[string]interface{}) *UpdateSyncListItemParams {
+func (params *UpdateSyncListItemParams) SetData(Data interface{}) *UpdateSyncListItemParams {
 	params.Data = &Data
 	return params
 }

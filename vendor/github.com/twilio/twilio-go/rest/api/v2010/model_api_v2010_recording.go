@@ -47,7 +47,7 @@ type ApiV2010Recording struct {
 	// The URI of the resource, relative to `https://api.twilio.com`.
 	Uri *string `json:"uri,omitempty"`
 	// How to decrypt the recording if it was encrypted using [Call Recording Encryption](https://www.twilio.com/docs/voice/tutorials/voice-recording-encryption) feature.
-	EncryptionDetails *map[string]interface{} `json:"encryption_details,omitempty"`
+	EncryptionDetails *interface{} `json:"encryption_details,omitempty"`
 	// A list of related resources identified by their relative URIs.
 	SubresourceUris *map[string]interface{} `json:"subresource_uris,omitempty"`
 	// The URL of the media file associated with this recording resource. When stored externally, this is the full URL location of the media file.

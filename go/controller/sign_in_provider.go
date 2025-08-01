@@ -12,10 +12,12 @@ import (
 )
 
 func (ctrl *Controller) getSigninProviderValidateRequest(
+	ctx context.Context,
 	req api.SignInProviderRequestObject,
 	logger *slog.Logger,
 ) (*url.URL, *APIError) {
 	options, apiErr := ctrl.wf.ValidateOptionsRedirectTo(
+		ctx,
 		&api.OptionsRedirectTo{
 			RedirectTo: req.Params.RedirectTo,
 		},
@@ -27,8 +29,9 @@ func (ctrl *Controller) getSigninProviderValidateRequest(
 
 	redirectTo, err := url.Parse(*options.RedirectTo)
 	if err != nil {
-		logger.Error("error parsing redirect URL",
+		logger.ErrorContext(ctx, "error parsing redirect URL",
 			slog.String("redirectTo", *options.RedirectTo), logError(err))
+
 		return nil, ErrInvalidRequest
 	}
 
@@ -42,14 +45,14 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx).
 		With(slog.String("provider", string(req.Provider)))
 
-	redirectTo, apiErr := ctrl.getSigninProviderValidateRequest(req, logger)
+	redirectTo, apiErr := ctrl.getSigninProviderValidateRequest(ctx, req, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
 	provider := ctrl.Providers.Get(string(req.Provider))
 	if provider == nil {
-		logger.Error("provider not enabled")
+		logger.ErrorContext(ctx, "provider not enabled")
 		return ctrl.sendRedirectError(redirectTo, ErrDisabledEndpoint), nil
 	}
 
@@ -68,16 +71,22 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 		time.Now().Add(time.Minute),
 	)
 	if err != nil {
-		logger.Error("error signing state token", logError(err))
+		logger.ErrorContext(ctx, "error signing state token", logError(err))
 		return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
 	}
 
 	var url string
+
 	switch {
 	case provider.IsOauth1():
 		url, err = provider.Oauth1().AuthCodeURL(ctx, state)
 		if err != nil {
-			logger.Error("error getting auth code URL for Oauth1 provider", logError(err))
+			logger.ErrorContext(
+				ctx,
+				"error getting auth code URL for Oauth1 provider",
+				logError(err),
+			)
+
 			return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
 		}
 	default:

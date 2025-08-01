@@ -25,5 +25,5 @@ type VerifyV2VerificationTemplate struct {
 	// A list of channels that support the Template. Can include: sms, voice.
 	Channels *[]string `json:"channels,omitempty"`
 	// An object that contains the different translations of the template. Every translation is identified by the language short name and contains its respective information as the approval status, text and created/modified date.
-	Translations *map[string]interface{} `json:"translations,omitempty"`
+	Translations *interface{} `json:"translations,omitempty"`
 }

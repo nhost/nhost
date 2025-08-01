@@ -33,7 +33,7 @@ type ConversationsV1ServiceConversationScopedWebhook struct {
 	// An absolute API resource URL for this webhook.
 	Url *string `json:"url,omitempty"`
 	// The configuration of this webhook. Is defined based on target.
-	Configuration *map[string]interface{} `json:"configuration,omitempty"`
+	Configuration *interface{} `json:"configuration,omitempty"`
 	// The date that this resource was created.
 	DateCreated *time.Time `json:"date_created,omitempty"`
 	// The date that this resource was last updated.

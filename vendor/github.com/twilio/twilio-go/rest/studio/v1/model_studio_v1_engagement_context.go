@@ -19,7 +19,7 @@ type StudioV1EngagementContext struct {
 	// The SID of the Account.
 	AccountSid *string `json:"account_sid,omitempty"`
 	// As your flow executes, we save the state in what's called the Flow Context. Any data in the flow context can be accessed by your widgets as variables, either in configuration fields or in text areas as variable substitution.
-	Context *map[string]interface{} `json:"context,omitempty"`
+	Context *interface{} `json:"context,omitempty"`
 	// The SID of the Engagement.
 	EngagementSid *string `json:"engagement_sid,omitempty"`
 	// The SID of the Flow.

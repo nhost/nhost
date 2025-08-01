@@ -1,4 +1,4 @@
-// +build !amd64,!arm64 go1.25 !go1.17 arm64,!go1.20
+// +build !amd64,!arm64 go1.26 !go1.17 arm64,!go1.20
 
 /*
  * Copyright 2021 ByteDance Inc.
@@ -87,7 +87,17 @@ func (cfg frozenConfig) UnmarshalFromString(buf string, val interface{}) error {
     if cfg.DisallowUnknownFields {
         dec.DisallowUnknownFields()
     }
-    return dec.Decode(val)
+    err := dec.Decode(val)
+    if err != nil {
+        return err
+    }
+
+    // check the trailing chars
+    offset := dec.InputOffset()
+    if t, err := dec.Token(); !(t == nil && err == io.EOF) {
+        return &json.SyntaxError{ Offset: offset}
+    }
+    return nil
 }
 
 // Unmarshal is implemented by sonic

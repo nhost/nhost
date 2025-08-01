@@ -14,7 +14,7 @@ func (ctrl *Controller) ChangeUserMfa( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx)
 
 	if !ctrl.config.MfaEnabled {
-		logger.Warn("mfa disabled")
+		logger.WarnContext(ctx, "mfa disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
@@ -27,13 +27,14 @@ func (ctrl *Controller) ChangeUserMfa( //nolint:ireturn
 	if accountName == "" {
 		accountName = user.DisplayName
 	}
+
 	if accountName == "" {
 		accountName = user.ID.String()
 	}
 
 	secret, imgBase64, err := ctrl.totp.Generate(accountName)
 	if err != nil {
-		logger.Error("failed to generate TOTP: %v", logError(err))
+		logger.ErrorContext(ctx, "failed to generate TOTP: %v", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
@@ -43,7 +44,7 @@ func (ctrl *Controller) ChangeUserMfa( //nolint:ireturn
 			TotpSecret: sql.Text(secret),
 		},
 	); err != nil {
-		logger.Error("failed to update TOTP secret: %v", logError(err))
+		logger.ErrorContext(ctx, "failed to update TOTP secret: %v", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 

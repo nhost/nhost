@@ -80,6 +80,32 @@ Rich Feature Set includes:
     rpc server/client codec to support msgpack-rpc protocol defined at:
     https://github.com/msgpack-rpc/msgpack-rpc/blob/master/spec.md
 
+# Supported build tags
+
+We gain performance by code-generating fast-paths for slices and maps of built-in types,
+and monomorphizing generic code explicitly so we gain inlining and de-virtualization benefits.
+
+The results are 20-40% performance improvements.
+
+Building and running is configured using build tags as below.
+
+At runtime:
+
+- codec.safe: run in safe mode (not using unsafe optimizations)
+- codec.notmono: use generics code (bypassing performance-boosting monomorphized code)
+- codec.notfastpath: skip fast path code for slices and maps of built-in types (number, bool, string, bytes)
+
+Each of these "runtime" tags have a convenience synonym i.e. safe, notmono, notfastpath.
+Pls use these mostly during development - use codec.XXX in your go files.
+
+Build only:
+
+- codec.build: used to generate fastpath and monomorphization code
+
+Test only:
+
+- codec.notmammoth: skip the mammoth generated tests
+
 # Extension Support
 
 Users can register a function to handle the encoding or decoding of their custom
@@ -217,6 +243,12 @@ You can run the tag 'codec.safe' to run tests or build in safe mode. e.g.
 ```
     go test -tags codec.safe -run Json
     go test -tags "alltests codec.safe" -run Suite
+```
+
+You can run the tag 'codec.notmono' to build bypassing the monomorphized code e.g.
+
+```
+	go test -tags codec.notmono -run Json
 ```
 
 # Running Benchmarks

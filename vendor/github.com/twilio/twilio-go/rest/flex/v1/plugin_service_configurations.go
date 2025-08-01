@@ -30,7 +30,7 @@ type CreatePluginConfigurationParams struct {
 	// The Flex Plugin Configuration's name.
 	Name *string `json:"Name,omitempty"`
 	// A list of objects that describe the plugin versions included in the configuration. Each object contains the sid of the plugin version.
-	Plugins *[]map[string]interface{} `json:"Plugins,omitempty"`
+	Plugins *[]interface{} `json:"Plugins,omitempty"`
 	// The Flex Plugin Configuration's description.
 	Description *string `json:"Description,omitempty"`
 }
@@ -43,7 +43,7 @@ func (params *CreatePluginConfigurationParams) SetName(Name string) *CreatePlugi
 	params.Name = &Name
 	return params
 }
-func (params *CreatePluginConfigurationParams) SetPlugins(Plugins []map[string]interface{}) *CreatePluginConfigurationParams {
+func (params *CreatePluginConfigurationParams) SetPlugins(Plugins []interface{}) *CreatePluginConfigurationParams {
 	params.Plugins = &Plugins
 	return params
 }

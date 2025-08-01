@@ -13,7 +13,7 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx)
 
 	if !ctrl.config.MfaEnabled {
-		logger.Warn("mfa disabled")
+		logger.WarnContext(ctx, "mfa disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
@@ -23,24 +23,24 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 	}
 
 	if user.ActiveMfaType.String != string(api.Totp) {
-		logger.Warn("user does not have totp mfa enabled")
+		logger.WarnContext(ctx, "user does not have totp mfa enabled")
 		return ctrl.sendError(ErrDisabledMfaTotp), nil
 	}
 
 	if user.TotpSecret.String == "" {
-		logger.Warn("user does not have totp secret")
+		logger.WarnContext(ctx, "user does not have totp secret")
 		return ctrl.sendError(ErrNoTotpSecret), nil
 	}
 
 	valid := ctrl.totp.Validate(req.Body.Otp, user.TotpSecret.String)
 	if !valid {
-		logger.Warn("invalid totp")
+		logger.WarnContext(ctx, "invalid totp")
 		return ctrl.sendError(ErrInvalidTotp), nil
 	}
 
 	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)
 	if err != nil {
-		logger.Error("error getting new session", logError(err))
+		logger.ErrorContext(ctx, "error getting new session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 

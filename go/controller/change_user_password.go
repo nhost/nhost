@@ -15,11 +15,11 @@ func (ctrl *Controller) postUserPasswordAuthenticated( //nolint:ireturn
 	jwtToken *jwt.Token,
 	logger *slog.Logger,
 ) (api.ChangeUserPasswordResponseObject, error) {
-	logger.Debug("authenticated request")
+	logger.DebugContext(ctx, "authenticated request")
 
 	userID, err := ctrl.wf.jwtGetter.GetUserID(jwtToken)
 	if err != nil {
-		logger.Error("error getting user id from jwt token", logError(err))
+		logger.ErrorContext(ctx, "error getting user id from jwt token", logError(err))
 		return ctrl.sendError(ErrInvalidRequest), nil
 	}
 
@@ -39,7 +39,8 @@ func (ctrl *Controller) postUserPasswordUnauthenticated( //nolint:ireturn
 	request api.ChangeUserPasswordRequestObject,
 	logger *slog.Logger,
 ) (api.ChangeUserPasswordResponseObject, error) {
-	logger.Debug("unauthenticated request")
+	logger.DebugContext(ctx, "unauthenticated request")
+
 	if request.Body.Ticket == nil {
 		return ctrl.sendError(ErrInvalidRequest), nil
 	}
@@ -61,6 +62,7 @@ func (ctrl *Controller) ChangeUserPassword( //nolint:ireturn
 	request api.ChangeUserPasswordRequestObject,
 ) (api.ChangeUserPasswordResponseObject, error) {
 	logger := middleware.LoggerFromContext(ctx)
+
 	jwtToken, ok := ctrl.wf.jwtGetter.FromContext(ctx)
 	if ok {
 		return ctrl.postUserPasswordAuthenticated(ctx, request, jwtToken, logger)

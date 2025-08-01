@@ -19,6 +19,7 @@ func validateLine(line string) error {
 	if strings.ContainsAny(line, "\n\r") {
 		return errors.New("smtp: A line must not contain CR or LF") //nolint
 	}
+
 	return nil
 }
 
@@ -34,6 +35,7 @@ func sendMail( //nolint:funlen,cyclop
 	if err := validateLine(from); err != nil {
 		return err
 	}
+
 	for _, recp := range to {
 		if err := validateLine(recp); err != nil {
 			return err
@@ -41,20 +43,24 @@ func sendMail( //nolint:funlen,cyclop
 	}
 
 	addr := fmt.Sprintf("%s:%d", host, port)
-	var conn net.Conn
-	var err error
+
+	var (
+		conn net.Conn
+		err  error
+	)
+
 	if useTLSConnection {
 		tlsconfig := &tls.Config{ //nolint:gosec,exhaustruct
 			InsecureSkipVerify: false,
 			ServerName:         host,
 		}
 
-		conn, err = tls.Dial("tcp", addr, tlsconfig)
+		conn, err = tls.Dial("tcp", addr, tlsconfig) //nolint
 		if err != nil {
 			return err //nolint:wrapcheck
 		}
 	} else {
-		conn, err = net.Dial("tcp", addr)
+		conn, err = net.Dial("tcp", addr) //nolint
 		if err != nil {
 			return err //nolint:wrapcheck
 		}
@@ -69,6 +75,7 @@ func sendMail( //nolint:funlen,cyclop
 	if err = c.Hello("hasura-auth"); err != nil {
 		return err //nolint:wrapcheck
 	}
+
 	if ok, _ := c.Extension("STARTTLS"); ok {
 		config := &tls.Config{ServerName: host} //nolint:gosec,exhaustruct
 		if err = c.StartTLS(config); err != nil {
@@ -83,23 +90,28 @@ func sendMail( //nolint:funlen,cyclop
 	if err = c.Mail(from); err != nil {
 		return err //nolint:wrapcheck
 	}
+
 	for _, addr := range to {
 		if err = c.Rcpt(addr); err != nil {
 			return err //nolint:wrapcheck
 		}
 	}
+
 	w, err := c.Data()
 	if err != nil {
 		return err //nolint:wrapcheck
 	}
+
 	_, err = w.Write(msg)
 	if err != nil {
 		return err //nolint:wrapcheck
 	}
+
 	err = w.Close()
 	if err != nil {
 		return err //nolint:wrapcheck
 	}
+
 	return c.Quit() //nolint:wrapcheck
 }
 
@@ -129,19 +141,23 @@ func (a *plainAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	// That might just be the attacker saying
 	// "it's ok, you can trust me with your password."
 	if !server.TLS && !isLocalhost(server.Name) {
-		return "", nil, errors.New("unencrypted connection") //nolint:goerr113
+		return "", nil, errors.New("unencrypted connection") //nolint:err113
 	}
+
 	if server.Name != a.host {
-		return "", nil, errors.New("wrong host name") //nolint:goerr113
+		return "", nil, errors.New("wrong host name") //nolint:err113
 	}
+
 	resp := []byte(a.identity + "\x00" + a.username + "\x00" + a.password)
+
 	return "PLAIN", resp, nil
 }
 
 func (a *plainAuth) Next(_ []byte, more bool) ([]byte, error) {
 	if more {
 		// We've already sent everything.
-		return nil, errors.New("unexpected server challenge") //nolint:goerr113
+		return nil, errors.New("unexpected server challenge") //nolint:err113
 	}
+
 	return nil, nil
 }

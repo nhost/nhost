@@ -40,10 +40,10 @@ type ConversationsV1Conversation struct {
 	// The date that this resource was last updated.
 	DateUpdated *time.Time `json:"date_updated,omitempty"`
 	// Timer date values representing state update for this conversation.
-	Timers *map[string]interface{} `json:"timers,omitempty"`
+	Timers *interface{} `json:"timers,omitempty"`
 	// An absolute API resource URL for this conversation.
 	Url *string `json:"url,omitempty"`
 	// Contains absolute URLs to access the [participants](https://www.twilio.com/docs/conversations/api/conversation-participant-resource), [messages](https://www.twilio.com/docs/conversations/api/conversation-message-resource) and [webhooks](https://www.twilio.com/docs/conversations/api/conversation-scoped-webhook-resource) of this conversation.
 	Links    *map[string]interface{} `json:"links,omitempty"`
-	Bindings *map[string]interface{} `json:"bindings,omitempty"`
+	Bindings *interface{}            `json:"bindings,omitempty"`
 }

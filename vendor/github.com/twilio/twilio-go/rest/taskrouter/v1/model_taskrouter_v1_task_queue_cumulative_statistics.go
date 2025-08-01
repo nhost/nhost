@@ -41,15 +41,15 @@ type TaskrouterV1TaskQueueCumulativeStatistics struct {
 	// The total number of Reservations rescinded.
 	ReservationsRescinded int `json:"reservations_rescinded,omitempty"`
 	// A list of objects that describe the number of Tasks canceled and reservations accepted above and below the thresholds specified in seconds.
-	SplitByWaitTime *map[string]interface{} `json:"split_by_wait_time,omitempty"`
+	SplitByWaitTime *interface{} `json:"split_by_wait_time,omitempty"`
 	// The SID of the TaskQueue from which these statistics were calculated.
 	TaskQueueSid *string `json:"task_queue_sid,omitempty"`
 	// The wait duration statistics (`avg`, `min`, `max`, `total`) for Tasks accepted while in the TaskQueue. Calculation is based on the time when the Tasks were created. For transfers, the wait duration is counted from the moment ***the Task was created***, and not from when the transfer was initiated.
-	WaitDurationUntilAccepted *map[string]interface{} `json:"wait_duration_until_accepted,omitempty"`
+	WaitDurationUntilAccepted *interface{} `json:"wait_duration_until_accepted,omitempty"`
 	// The wait duration statistics (`avg`, `min`, `max`, `total`) for Tasks canceled while in the TaskQueue.
-	WaitDurationUntilCanceled *map[string]interface{} `json:"wait_duration_until_canceled,omitempty"`
+	WaitDurationUntilCanceled *interface{} `json:"wait_duration_until_canceled,omitempty"`
 	// The relative wait duration statistics (`avg`, `min`, `max`, `total`) for Tasks accepted while in the TaskQueue. Calculation is based on the time when the Tasks entered the TaskQueue.
-	WaitDurationInQueueUntilAccepted *map[string]interface{} `json:"wait_duration_in_queue_until_accepted,omitempty"`
+	WaitDurationInQueueUntilAccepted *interface{} `json:"wait_duration_in_queue_until_accepted,omitempty"`
 	// The total number of Tasks canceled in the TaskQueue.
 	TasksCanceled int `json:"tasks_canceled,omitempty"`
 	// The total number of Tasks completed in the TaskQueue.

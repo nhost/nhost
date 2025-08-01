@@ -28,7 +28,7 @@ type CreateSinkParams struct {
 	// A human readable description for the Sink **This value should not contain PII.**
 	Description *string `json:"Description,omitempty"`
 	// The information required for Twilio to connect to the provided Sink encoded as JSON.
-	SinkConfiguration *map[string]interface{} `json:"SinkConfiguration,omitempty"`
+	SinkConfiguration *interface{} `json:"SinkConfiguration,omitempty"`
 	//
 	SinkType *string `json:"SinkType,omitempty"`
 }
@@ -37,7 +37,7 @@ func (params *CreateSinkParams) SetDescription(Description string) *CreateSinkPa
 	params.Description = &Description
 	return params
 }
-func (params *CreateSinkParams) SetSinkConfiguration(SinkConfiguration map[string]interface{}) *CreateSinkParams {
+func (params *CreateSinkParams) SetSinkConfiguration(SinkConfiguration interface{}) *CreateSinkParams {
 	params.SinkConfiguration = &SinkConfiguration
 	return params
 }

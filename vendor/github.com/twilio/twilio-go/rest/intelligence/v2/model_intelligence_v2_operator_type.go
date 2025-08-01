@@ -38,7 +38,7 @@ type IntelligenceV2OperatorType struct {
 	// Operators can be created from configurable Operator Types.
 	Configurable *bool `json:"configurable,omitempty"`
 	// JSON Schema for configuring an Operator with this Operator Type. Following https://json-schema.org/
-	ConfigSchema *map[string]interface{} `json:"config_schema,omitempty"`
+	ConfigSchema *interface{} `json:"config_schema,omitempty"`
 	// The date that this Operator Type was created, given in ISO 8601 format.
 	DateCreated *time.Time `json:"date_created,omitempty"`
 	// The date that this Operator Type was updated, given in ISO 8601 format.

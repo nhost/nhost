@@ -32,13 +32,13 @@ type IpMessagingV1Service struct {
 	ReachabilityEnabled          *bool                   `json:"reachability_enabled,omitempty"`
 	TypingIndicatorTimeout       int                     `json:"typing_indicator_timeout,omitempty"`
 	ConsumptionReportInterval    int                     `json:"consumption_report_interval,omitempty"`
-	Limits                       *map[string]interface{} `json:"limits,omitempty"`
-	Webhooks                     *map[string]interface{} `json:"webhooks,omitempty"`
+	Limits                       *interface{}            `json:"limits,omitempty"`
+	Webhooks                     *interface{}            `json:"webhooks,omitempty"`
 	PreWebhookUrl                *string                 `json:"pre_webhook_url,omitempty"`
 	PostWebhookUrl               *string                 `json:"post_webhook_url,omitempty"`
 	WebhookMethod                *string                 `json:"webhook_method,omitempty"`
 	WebhookFilters               *[]string               `json:"webhook_filters,omitempty"`
-	Notifications                *map[string]interface{} `json:"notifications,omitempty"`
+	Notifications                *interface{}            `json:"notifications,omitempty"`
 	Url                          *string                 `json:"url,omitempty"`
 	Links                        *map[string]interface{} `json:"links,omitempty"`
 }

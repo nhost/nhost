@@ -13,6 +13,7 @@ func (ctrl *Controller) LinkIdToken( //nolint:ireturn,revive,stylecheck
 	logger := middleware.LoggerFromContext(ctx)
 
 	profile, apiErr := ctrl.wf.GetOIDCProfileFromIDToken(
+		ctx,
 		req.Body.Provider,
 		req.Body.IdToken,
 		req.Body.Nonce,
@@ -24,21 +25,22 @@ func (ctrl *Controller) LinkIdToken( //nolint:ireturn,revive,stylecheck
 
 	jwtToken, ok := ctrl.wf.jwtGetter.FromContext(ctx)
 	if !ok {
-		logger.Error(
+		logger.ErrorContext(ctx,
 			"jwt token not found in context, this should not be possilble due to middleware",
 		)
+
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
 	userID, err := ctrl.wf.jwtGetter.GetUserID(jwtToken)
 	if err != nil {
-		logger.Error("error getting user id from jwt token", logError(err))
+		logger.ErrorContext(ctx, "error getting user id from jwt token", logError(err))
 		return ctrl.sendError(ErrInvalidRequest), nil
 	}
 
 	// we do this to check the user is valid
 	if _, apiError := ctrl.wf.GetUser(ctx, userID, logger); apiError != nil {
-		logger.Error("error getting user", logError(apiError))
+		logger.ErrorContext(ctx, "error getting user", logError(apiError))
 		return ctrl.respondWithError(apiError), nil
 	}
 

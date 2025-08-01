@@ -22,6 +22,7 @@ func hashPassword(password string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error hashing password: %w", err)
 	}
+
 	return string(hash), nil
 }
 

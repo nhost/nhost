@@ -18,26 +18,29 @@ func (ctrl *Controller) postUserDeanonymizeValidateRequest( //nolint:cyclop
 ) (uuid.UUID, string, *api.SignUpOptions, *APIError) {
 	jwtToken, ok := ctrl.wf.jwtGetter.FromContext(ctx)
 	if !ok {
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"jwt token not found in context, this should not be possilble due to middleware",
 		)
+
 		return uuid.UUID{}, "", nil, ErrInternalServerError
 	}
 
 	if !ctrl.wf.jwtGetter.IsAnonymous(jwtToken) {
-		logger.Error("user is not anonymous")
+		logger.ErrorContext(ctx, "user is not anonymous")
 		return uuid.UUID{}, "", nil, ErrUserNotAnonymous
 	}
 
 	userID, err := ctrl.wf.jwtGetter.GetUserID(jwtToken)
 	if err != nil {
-		logger.Error("error getting user id from jwt token", logError(err))
+		logger.ErrorContext(ctx, "error getting user id from jwt token", logError(err))
 		return uuid.UUID{}, "", nil, ErrInvalidRequest
 	}
 
 	var password string
+
 	if request.Body.SignInMethod == api.EmailPassword && request.Body.Password == nil {
-		logger.Error("password is required for email/password sign in method")
+		logger.ErrorContext(ctx, "password is required for email/password sign in method")
 		return uuid.UUID{}, "", nil, ErrInvalidRequest
 	} else if request.Body.SignInMethod == api.EmailPassword {
 		password = *request.Body.Password
@@ -47,14 +50,14 @@ func (ctrl *Controller) postUserDeanonymizeValidateRequest( //nolint:cyclop
 	}
 
 	options, apiErr := ctrl.wf.ValidateSignUpOptions(
-		request.Body.Options, string(request.Body.Email), logger,
+		ctx, request.Body.Options, string(request.Body.Email), logger,
 	)
 	if apiErr != nil {
 		return uuid.UUID{}, "", nil, apiErr
 	}
 
 	if !ctrl.wf.ValidateEmail(string(request.Body.Email)) {
-		logger.Warn("email didn't pass access control checks")
+		logger.WarnContext(ctx, "email didn't pass access control checks")
 		return uuid.UUID{}, "", nil, ErrInvalidEmailPassword
 	}
 
@@ -62,8 +65,9 @@ func (ctrl *Controller) postUserDeanonymizeValidateRequest( //nolint:cyclop
 	if apiErr != nil {
 		return uuid.UUID{}, "", nil, apiErr
 	}
+
 	if exists {
-		logger.Warn("email already exists")
+		logger.WarnContext(ctx, "email already exists")
 		return uuid.UUID{}, "", nil, ErrEmailAlreadyInUse
 	}
 
@@ -83,11 +87,15 @@ func (ctrl *Controller) DeanonymizeUser( //nolint:funlen
 		return ctrl.sendError(apiError), nil
 	}
 
-	var ticket string
-	var ticketExpiresAt time.Time
-	var linkType LinkType
-	var templateName notifications.TemplateName
+	var (
+		ticket          string
+		ticketExpiresAt time.Time
+		linkType        LinkType
+		templateName    notifications.TemplateName
+	)
+
 	deleteRefreshTokens := false
+
 	switch {
 	case request.Body.SignInMethod == api.Passwordless:
 		ticket = generateTicket(TicketTypePasswordLessEmail)
@@ -102,6 +110,7 @@ func (ctrl *Controller) DeanonymizeUser( //nolint:funlen
 		templateName = notifications.TemplateNameEmailVerify
 		deleteRefreshTokens = true
 	}
+
 	if apiError = ctrl.wf.DeanonymizeUser(
 		ctx,
 		userID,

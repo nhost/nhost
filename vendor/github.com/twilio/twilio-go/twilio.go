@@ -36,13 +36,11 @@ import (
 	IntelligenceV2 "github.com/twilio/twilio-go/rest/intelligence/v2"
 	IpMessagingV1 "github.com/twilio/twilio-go/rest/ip_messaging/v1"
 	IpMessagingV2 "github.com/twilio/twilio-go/rest/ip_messaging/v2"
-	KnowledgeV1 "github.com/twilio/twilio-go/rest/knowledge/v1"
 	LookupsV1 "github.com/twilio/twilio-go/rest/lookups/v1"
 	LookupsV2 "github.com/twilio/twilio-go/rest/lookups/v2"
 	MarketplaceV1 "github.com/twilio/twilio-go/rest/marketplace/v1"
 	MessagingV1 "github.com/twilio/twilio-go/rest/messaging/v1"
 	MessagingV2 "github.com/twilio/twilio-go/rest/messaging/v2"
-	MicrovisorV1 "github.com/twilio/twilio-go/rest/microvisor/v1"
 	MonitorV1 "github.com/twilio/twilio-go/rest/monitor/v1"
 	NotifyV1 "github.com/twilio/twilio-go/rest/notify/v1"
 	NumbersV1 "github.com/twilio/twilio-go/rest/numbers/v1"
@@ -94,13 +92,11 @@ type RestClient struct {
 	IntelligenceV2         *IntelligenceV2.ApiService
 	IpMessagingV1          *IpMessagingV1.ApiService
 	IpMessagingV2          *IpMessagingV2.ApiService
-	KnowledgeV1            *KnowledgeV1.ApiService
 	LookupsV1              *LookupsV1.ApiService
 	LookupsV2              *LookupsV2.ApiService
 	MarketplaceV1          *MarketplaceV1.ApiService
 	MessagingV1            *MessagingV1.ApiService
 	MessagingV2            *MessagingV2.ApiService
-	MicrovisorV1           *MicrovisorV1.ApiService
 	MonitorV1              *MonitorV1.ApiService
 	NotifyV1               *NotifyV1.ApiService
 	NumbersV1              *NumbersV1.ApiService
@@ -228,13 +224,11 @@ func NewRestClientWithParams(params ClientParams) *RestClient {
 	c.IntelligenceV2 = IntelligenceV2.NewApiService(c.RequestHandler)
 	c.IpMessagingV1 = IpMessagingV1.NewApiService(c.RequestHandler)
 	c.IpMessagingV2 = IpMessagingV2.NewApiService(c.RequestHandler)
-	c.KnowledgeV1 = KnowledgeV1.NewApiService(c.RequestHandler)
 	c.LookupsV1 = LookupsV1.NewApiService(c.RequestHandler)
 	c.LookupsV2 = LookupsV2.NewApiService(c.RequestHandler)
 	c.MarketplaceV1 = MarketplaceV1.NewApiService(c.RequestHandler)
 	c.MessagingV1 = MessagingV1.NewApiService(c.RequestHandler)
 	c.MessagingV2 = MessagingV2.NewApiService(c.RequestHandler)
-	c.MicrovisorV1 = MicrovisorV1.NewApiService(c.RequestHandler)
 	c.MonitorV1 = MonitorV1.NewApiService(c.RequestHandler)
 	c.NotifyV1 = NotifyV1.NewApiService(c.RequestHandler)
 	c.NumbersV1 = NumbersV1.NewApiService(c.RequestHandler)

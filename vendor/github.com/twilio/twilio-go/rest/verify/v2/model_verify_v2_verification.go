@@ -34,19 +34,19 @@ type VerifyV2Verification struct {
 	// Use \"status\" instead. Legacy property indicating whether the verification was successful.
 	Valid *bool `json:"valid,omitempty"`
 	// Information about the phone number being verified.
-	Lookup *map[string]interface{} `json:"lookup,omitempty"`
+	Lookup *interface{} `json:"lookup,omitempty"`
 	// The amount of the associated PSD2 compliant transaction. Requires the PSD2 Service flag enabled.
 	Amount *string `json:"amount,omitempty"`
 	// The payee of the associated PSD2 compliant transaction. Requires the PSD2 Service flag enabled.
 	Payee *string `json:"payee,omitempty"`
 	// An array of verification attempt objects containing the channel attempted and the channel-specific transaction SID.
-	SendCodeAttempts *[]map[string]interface{} `json:"send_code_attempts,omitempty"`
+	SendCodeAttempts *[]interface{} `json:"send_code_attempts,omitempty"`
 	// The date and time in GMT when the resource was created specified in [RFC 2822](https://www.ietf.org/rfc/rfc2822.txt) format.
 	DateCreated *time.Time `json:"date_created,omitempty"`
 	// The date and time in GMT when the resource was last updated specified in [RFC 2822](https://www.ietf.org/rfc/rfc2822.txt) format.
 	DateUpdated *time.Time `json:"date_updated,omitempty"`
 	// The set of fields used for a silent network auth (`sna`) verification. Contains a single field with the URL to be invoked to verify the phone number.
-	Sna *map[string]interface{} `json:"sna,omitempty"`
+	Sna *interface{} `json:"sna,omitempty"`
 	// The absolute URL of the Verification resource.
 	Url *string `json:"url,omitempty"`
 }

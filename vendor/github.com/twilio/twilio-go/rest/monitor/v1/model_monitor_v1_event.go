@@ -29,7 +29,7 @@ type MonitorV1Event struct {
 	// A description of the event. Can be `null`.
 	Description *string `json:"description,omitempty"`
 	// An object with additional data about the event. The  contents depend on `event_type`. For example, event-types of the form `RESOURCE.updated`, this value contains a `resource_properties` dictionary that describes the previous and updated properties of the resource.
-	EventData *map[string]interface{} `json:"event_data,omitempty"`
+	EventData *interface{} `json:"event_data,omitempty"`
 	// The date and time in GMT when the event was recorded specified in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 	EventDate *time.Time `json:"event_date,omitempty"`
 	// The event's type. Event-types are typically in the form: `RESOURCE_TYPE.ACTION`, where `RESOURCE_TYPE` is the type of resource that was affected and `ACTION` is what happened to it. For example, `phone-number.created`. For a full list of all event-types, see the [Monitor Event Types](https://www.twilio.com/docs/usage/monitor-events#event-types).

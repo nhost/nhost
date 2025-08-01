@@ -27,6 +27,6 @@ type FlexV1InsightsQuestionnaires struct {
 	// The flag to enable or disable questionnaire
 	Active *bool `json:"active,omitempty"`
 	// The list of questions with category for a questionnaire
-	Questions *[]map[string]interface{} `json:"questions,omitempty"`
-	Url       *string                   `json:"url,omitempty"`
+	Questions *[]interface{} `json:"questions,omitempty"`
+	Url       *string        `json:"url,omitempty"`
 }

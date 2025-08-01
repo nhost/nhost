@@ -12,6 +12,7 @@ const workOSAPIBaseURL = "https://api.workos.com"
 
 type oauth2ConfigWrapper struct {
 	*oauth2.Config
+
 	parent *WorkOS
 }
 
@@ -19,14 +20,17 @@ func (w *oauth2ConfigWrapper) AuthCodeURL(state string, opts ...oauth2.AuthCodeO
 	if w.parent.DefaultOrganization != "" {
 		opts = append(opts, oauth2.SetAuthURLParam("organization", w.parent.DefaultOrganization))
 	}
+
 	if w.parent.DefaultConnection != "" {
 		opts = append(opts, oauth2.SetAuthURLParam("connection", w.parent.DefaultConnection))
 	}
+
 	if w.parent.DefaultDomain != "" {
 		opts = append(opts, oauth2.SetAuthURLParam("domain", w.parent.DefaultDomain))
 	}
 
 	finalURL := w.Config.AuthCodeURL(state, opts...)
+
 	return finalURL
 }
 

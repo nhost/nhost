@@ -51,6 +51,7 @@ func NewWorkflows(
 	gravatarURL func(string) string,
 ) (*Workflows, error) {
 	allowedURLs := make([]string, len(cfg.AllowedRedirectURLs)+1)
+
 	allowedURLs[0] = cfg.ClientURL.String()
 	for i, u := range cfg.AllowedRedirectURLs {
 		allowedURLs[i+1] = u
@@ -83,10 +84,10 @@ func NewWorkflows(
 }
 
 func (wf *Workflows) ValidateSignupEmail(
-	email types.Email, logger *slog.Logger,
+	ctx context.Context, email types.Email, logger *slog.Logger,
 ) *APIError {
 	if !wf.ValidateEmail(string(email)) {
-		logger.Warn("email didn't pass access control checks")
+		logger.WarnContext(ctx, "email didn't pass access control checks")
 		return ErrInvalidEmailPassword
 	}
 
@@ -97,16 +98,16 @@ func (wf *Workflows) ValidatePassword(
 	ctx context.Context, password string, logger *slog.Logger,
 ) *APIError {
 	if len(password) < wf.config.PasswordMinLength {
-		logger.Warn("password too short")
+		logger.WarnContext(ctx, "password too short")
 		return ErrPasswordTooShort
 	}
 
 	if wf.config.PasswordHIBPEnabled {
 		if pwned, err := wf.hibp.IsPasswordPwned(ctx, password); err != nil {
-			logger.Error("error checking password with HIBP", logError(err))
+			logger.ErrorContext(ctx, "error checking password with HIBP", logError(err))
 			return ErrInternalServerError
 		} else if pwned {
-			logger.Warn("password is in HIBP database")
+			logger.WarnContext(ctx, "password is in HIBP database")
 			return ErrPasswordInHibpDatabase
 		}
 	}
@@ -115,7 +116,7 @@ func (wf *Workflows) ValidatePassword(
 }
 
 func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
-	options *api.SignUpOptions, defaultName string, logger *slog.Logger,
+	ctx context.Context, options *api.SignUpOptions, defaultName string, logger *slog.Logger,
 ) (*api.SignUpOptions, *APIError) {
 	if options == nil {
 		options = &api.SignUpOptions{} //nolint:exhaustruct
@@ -124,7 +125,7 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 	if options.RedirectTo == nil {
 		options.RedirectTo = ptr(wf.config.ClientURL.String())
 	} else if !wf.redirectURLValidator(deptr(options.RedirectTo)) {
-		logger.Warn("redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
+		logger.WarnContext(ctx, "redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
 		return nil, ErrRedirecToNotAllowed
 	}
 
@@ -137,14 +138,14 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 	} else {
 		for _, role := range deptr(options.AllowedRoles) {
 			if !slices.Contains(wf.config.DefaultAllowedRoles, role) {
-				logger.Warn("role not allowed", slog.String("role", role))
+				logger.WarnContext(ctx, "role not allowed", slog.String("role", role))
 				return options, ErrRoleNotAllowed
 			}
 		}
 	}
 
 	if !slices.Contains(deptr(options.AllowedRoles), deptr(options.DefaultRole)) {
-		logger.Warn("default role not in allowed roles")
+		logger.WarnContext(ctx, "default role not in allowed roles")
 		return options, ErrDefaultRoleMustBeInAllowedRoles
 	}
 
@@ -155,8 +156,10 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 	if options.Locale == nil {
 		options.Locale = ptr(wf.config.DefaultLocale)
 	}
+
 	if !slices.Contains(wf.config.AllowedLocales, deptr(options.Locale)) {
-		logger.Warn(
+		logger.WarnContext(
+			ctx,
 			"locale not allowed, using default",
 			slog.String("locale", deptr(options.Locale)),
 		)
@@ -167,26 +170,27 @@ func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
 }
 
 func (wf *Workflows) ValidateUser(
+	ctx context.Context,
 	user sql.AuthUser,
 	logger *slog.Logger,
 ) *APIError {
 	if !user.IsAnonymous && !wf.ValidateEmail(user.Email.String) {
-		logger.Warn("email didn't pass access control checks")
+		logger.WarnContext(ctx, "email didn't pass access control checks")
 		return ErrInvalidEmailPassword
 	}
 
 	if user.Disabled {
-		logger.Warn("user is disabled")
+		logger.WarnContext(ctx, "user is disabled")
 		return ErrDisabledUser
 	}
 
 	if !user.EmailVerified && wf.config.RequireEmailVerification {
-		logger.Warn("user is unverified")
+		logger.WarnContext(ctx, "user is unverified")
 		return ErrUnverifiedUser
 	}
 
 	if user.IsAnonymous {
-		logger.Warn("user is anonymous")
+		logger.WarnContext(ctx, "user is anonymous")
 		return ErrForbiddenAnonymous
 	}
 
@@ -194,26 +198,27 @@ func (wf *Workflows) ValidateUser(
 }
 
 func (wf *Workflows) ValidateUserEmailOptional(
+	ctx context.Context,
 	user sql.AuthUser,
 	logger *slog.Logger,
 ) *APIError {
 	if user.Email.Valid && !user.IsAnonymous && !wf.ValidateEmail(user.Email.String) {
-		logger.Warn("email didn't pass access control checks")
+		logger.WarnContext(ctx, "email didn't pass access control checks")
 		return ErrInvalidEmailPassword
 	}
 
 	if user.Disabled {
-		logger.Warn("user is disabled")
+		logger.WarnContext(ctx, "user is disabled")
 		return ErrDisabledUser
 	}
 
 	if user.Email.Valid && !user.EmailVerified && wf.config.RequireEmailVerification {
-		logger.Warn("user is unverified")
+		logger.WarnContext(ctx, "user is unverified")
 		return ErrUnverifiedUser
 	}
 
 	if user.IsAnonymous {
-		logger.Warn("user is anonymous")
+		logger.WarnContext(ctx, "user is anonymous")
 		return ErrForbiddenAnonymous
 	}
 
@@ -221,6 +226,7 @@ func (wf *Workflows) ValidateUserEmailOptional(
 }
 
 func (wf *Workflows) ValidateOptionsRedirectTo(
+	ctx context.Context,
 	options *api.OptionsRedirectTo,
 	logger *slog.Logger,
 ) (*api.OptionsRedirectTo, *APIError) {
@@ -231,7 +237,7 @@ func (wf *Workflows) ValidateOptionsRedirectTo(
 	if options.RedirectTo == nil {
 		options.RedirectTo = ptr(wf.config.ClientURL.String())
 	} else if !wf.redirectURLValidator(deptr(options.RedirectTo)) {
-		logger.Warn("redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
+		logger.WarnContext(ctx, "redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
 		return nil, ErrRedirecToNotAllowed
 	}
 
@@ -245,15 +251,16 @@ func (wf *Workflows) GetUser(
 ) (sql.AuthUser, *APIError) {
 	user, err := wf.db.GetUser(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Warn("user not found")
+		logger.WarnContext(ctx, "user not found")
 		return sql.AuthUser{}, ErrInvalidEmailPassword
 	}
+
 	if err != nil {
-		logger.Error("error getting user by email", logError(err))
+		logger.ErrorContext(ctx, "error getting user by email", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
-	if err := wf.ValidateUser(user, logger); err != nil {
+	if err := wf.ValidateUser(ctx, user, logger); err != nil {
 		return sql.AuthUser{}, err
 	}
 
@@ -267,11 +274,12 @@ func (wf *Workflows) UserByEmailExists(
 ) (bool, *APIError) {
 	_, err := wf.db.GetUserByEmail(ctx, sql.Text(email))
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Warn("user not found")
+		logger.WarnContext(ctx, "user not found")
 		return false, nil
 	}
+
 	if err != nil {
-		logger.Error("error getting user by email", logError(err))
+		logger.ErrorContext(ctx, "error getting user by email", logError(err))
 		return false, ErrInternalServerError
 	}
 
@@ -285,15 +293,16 @@ func (wf *Workflows) GetUserByEmail(
 ) (sql.AuthUser, *APIError) {
 	user, err := wf.db.GetUserByEmail(ctx, sql.Text(email))
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Warn("user not found")
+		logger.WarnContext(ctx, "user not found")
 		return sql.AuthUser{}, ErrUserEmailNotFound
 	}
+
 	if err != nil {
-		logger.Error("error getting user by email", logError(err))
+		logger.ErrorContext(ctx, "error getting user by email", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
-	if err := wf.ValidateUser(user, logger); err != nil {
+	if err := wf.ValidateUser(ctx, user, logger); err != nil {
 		return user, err
 	}
 
@@ -314,15 +323,16 @@ func (wf *Workflows) GetUserByProviderUserID(
 		},
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Warn("user provider not found")
+		logger.WarnContext(ctx, "user provider not found")
 		return sql.AuthUser{}, ErrUserProviderNotFound
 	}
+
 	if err != nil {
-		logger.Error("error getting user by provider id", logError(err))
+		logger.ErrorContext(ctx, "error getting user by provider id", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
-	if err := wf.ValidateUserEmailOptional(user, logger); err != nil {
+	if err := wf.ValidateUserEmailOptional(ctx, user, logger); err != nil {
 		return user, err
 	}
 
@@ -343,18 +353,21 @@ func (wf *Workflows) GetUserByRefreshTokenHash(
 		},
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Error("could not find user by refresh token")
+		logger.ErrorContext(ctx, "could not find user by refresh token")
+
 		if refreshTokenType == sql.RefreshTokenTypePAT {
 			return sql.AuthUser{}, ErrInvalidPat
 		}
+
 		return sql.AuthUser{}, ErrInvalidRefreshToken
 	}
+
 	if err != nil {
-		logger.Error("could not get user by refresh token", logError(err))
+		logger.ErrorContext(ctx, "could not get user by refresh token", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
-	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
+	if apiErr := wf.ValidateUser(ctx, user, logger); apiErr != nil {
 		return user, apiErr
 	}
 
@@ -368,15 +381,16 @@ func (wf *Workflows) GetUserByTicket(
 ) (sql.AuthUser, *APIError) {
 	user, err := wf.db.GetUserByTicket(ctx, sql.Text(ticket))
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Warn("user not found")
+		logger.WarnContext(ctx, "user not found")
 		return sql.AuthUser{}, ErrInvalidTicket
 	}
+
 	if err != nil {
-		logger.Error("could not get user by ticket", logError(err))
+		logger.ErrorContext(ctx, "could not get user by ticket", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
-	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
+	if apiErr := wf.ValidateUser(ctx, user, logger); apiErr != nil {
 		return user, apiErr
 	}
 
@@ -397,15 +411,16 @@ func (wf *Workflows) GetUserByEmailAndTicket(
 		},
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Warn("user not found")
+		logger.WarnContext(ctx, "user not found")
 		return sql.AuthUser{}, ErrInvalidTicket
 	}
+
 	if err != nil {
-		logger.Error("could not get user by ticket", logError(err))
+		logger.ErrorContext(ctx, "could not get user by ticket", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
-	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
+	if apiErr := wf.ValidateUser(ctx, user, logger); apiErr != nil {
 		return user, apiErr
 	}
 
@@ -417,6 +432,7 @@ func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
 	if pgemail.Valid {
 		email = ptr(types.Email(pgemail.String))
 	}
+
 	return email
 }
 
@@ -436,11 +452,12 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 		OldRefreshTokenHash: sql.Text(hashRefreshToken([]byte(oldRefreshToken))),
 	})
 	if errors.Is(err, pgx.ErrNoRows) || len(userRoles) == 0 {
-		logger.Warn("invalid refresh token")
+		logger.WarnContext(ctx, "invalid refresh token")
 		return &api.Session{}, ErrInvalidRefreshToken
 	}
+
 	if err != nil {
-		logger.Error("error getting user roles by refresh token", logError(err))
+		logger.ErrorContext(ctx, "error getting user roles by refresh token", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -459,14 +476,14 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 		ctx, user.ID, user.IsAnonymous, allowedRoles, user.DefaultRole, nil, logger,
 	)
 	if err != nil {
-		logger.Error("error getting jwt", logError(err))
+		logger.ErrorContext(ctx, "error getting jwt", logError(err))
 		return nil, ErrInternalServerError
 	}
 
 	var metadata map[string]any
 	if len(user.Metadata) > 0 {
 		if err := json.Unmarshal(user.Metadata, &metadata); err != nil {
-			logger.Error("error unmarshalling user metadata", logError(err))
+			logger.ErrorContext(ctx, "error unmarshalling user metadata", logError(err))
 			return nil, ErrInternalServerError
 		}
 	}
@@ -505,6 +522,7 @@ func (wf *Workflows) NewSession( //nolint:funlen
 	if err != nil {
 		return nil, fmt.Errorf("error getting roles by user id: %w", err)
 	}
+
 	allowedRoles := make([]string, 0, len(userRoles))
 	for _, role := range userRoles {
 		allowedRoles = append(allowedRoles, role.Role)
@@ -516,6 +534,7 @@ func (wf *Workflows) NewSession( //nolint:funlen
 
 	refreshToken := uuid.New()
 	expiresAt := time.Now().Add(time.Duration(wf.config.RefreshTokenExpiresIn) * time.Second)
+
 	refreshTokenID, apiErr := wf.InsertRefreshtoken(
 		ctx, user.ID, refreshToken.String(), expiresAt, sql.RefreshTokenTypeRegular, nil, logger,
 	)
@@ -540,6 +559,7 @@ func (wf *Workflows) NewSession( //nolint:funlen
 			return nil, fmt.Errorf("error unmarshalling user metadata: %w", err)
 		}
 	}
+
 	return &api.Session{
 		AccessToken:          accessToken,
 		AccessTokenExpiresIn: expiresIn,
@@ -570,22 +590,24 @@ func (wf *Workflows) GetJWTInContext(
 ) (uuid.UUID, *APIError) {
 	jwtToken, ok := wf.jwtGetter.FromContext(ctx)
 	if !ok {
-		logger.Error(
+		logger.ErrorContext(ctx,
 			"jwt token not found in context, this should not be possilble due to middleware",
 		)
+
 		return uuid.UUID{}, ErrInvalidRequest
 	}
 
 	sub, err := jwtToken.Claims.GetSubject()
 	if err != nil {
-		logger.Error("error getting user id from jwt token", logError(err))
+		logger.ErrorContext(ctx, "error getting user id from jwt token", logError(err))
 		return uuid.UUID{}, ErrInvalidRequest
 	}
+
 	logger = logger.With(slog.String("user_id", sub))
 
 	userID, err := uuid.Parse(sub)
 	if err != nil {
-		logger.Error("error parsing user id from jwt token's subject", logError(err))
+		logger.ErrorContext(ctx, "error parsing user id from jwt token's subject", logError(err))
 		return uuid.UUID{}, ErrInvalidRequest
 	}
 
@@ -606,7 +628,7 @@ func (wf *Workflows) GetUserFromJWTInContext(
 		return sql.AuthUser{}, apiErr
 	}
 
-	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
+	if apiErr := wf.ValidateUser(ctx, user, logger); apiErr != nil {
 		return sql.AuthUser{}, apiErr
 	}
 
@@ -614,7 +636,7 @@ func (wf *Workflows) GetUserFromJWTInContext(
 }
 
 func (wf *Workflows) VerifyJWTToken(
-	_ context.Context,
+	ctx context.Context,
 	token string,
 	logger *slog.Logger,
 ) *APIError {
@@ -622,12 +644,12 @@ func (wf *Workflows) VerifyJWTToken(
 
 	jwtToken, err := wf.jwtGetter.Validate(token)
 	if err != nil {
-		logger.Warn("invalid JWT token", logError(err))
+		logger.WarnContext(ctx, "invalid JWT token", logError(err))
 		return ErrUnauthenticatedUser
 	}
 
 	if !jwtToken.Valid {
-		logger.Warn("JWT token is not valid")
+		logger.WarnContext(ctx, "JWT token is not valid")
 		return ErrUnauthenticatedUser
 	}
 
@@ -643,12 +665,15 @@ func (wf *Workflows) InsertRefreshtoken(
 	metadata map[string]any,
 	logger *slog.Logger,
 ) (uuid.UUID, *APIError) {
-	var b []byte
-	var err error
+	var (
+		b   []byte
+		err error
+	)
+
 	if metadata != nil {
 		b, err = json.Marshal(metadata)
 		if err != nil {
-			logger.Error("error marshalling metadata", logError(err))
+			logger.ErrorContext(ctx, "error marshalling metadata", logError(err))
 			return uuid.UUID{}, ErrInternalServerError
 		}
 	}
@@ -686,7 +711,7 @@ func (wf *Workflows) ChangeEmail(
 		},
 	)
 	if err != nil {
-		logger.Error("error updating user ticket", logError(err))
+		logger.ErrorContext(ctx, "error updating user ticket", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
@@ -705,7 +730,7 @@ func (wf *Workflows) ChangePassword(
 
 	hashedPassword, err := hashPassword(newPassord)
 	if err != nil {
-		logger.Error("error hashing password", logError(err))
+		logger.ErrorContext(ctx, "error hashing password", logError(err))
 		return ErrInternalServerError
 	}
 
@@ -716,7 +741,7 @@ func (wf *Workflows) ChangePassword(
 			PasswordHash: sql.Text(hashedPassword),
 		},
 	); err != nil {
-		logger.Error("error updating user password", logError(err))
+		logger.ErrorContext(ctx, "error updating user password", logError(err))
 		return ErrInternalServerError
 	}
 
@@ -743,7 +768,7 @@ func (wf *Workflows) SendEmail(
 		redirectTo,
 	)
 	if err != nil {
-		logger.Error("problem generating email verification link", logError(err))
+		logger.ErrorContext(ctx, "problem generating email verification link", logError(err))
 		return ErrInternalServerError
 	}
 
@@ -764,7 +789,7 @@ func (wf *Workflows) SendEmail(
 			ClientURL:   wf.config.ClientURL.String(),
 		},
 	); err != nil {
-		logger.Error("problem sending email", logError(err))
+		logger.ErrorContext(ctx, "problem sending email", logError(err))
 		return ErrInternalServerError
 	}
 
@@ -811,7 +836,7 @@ func (wf *Workflows) SignupUserWithSession( //nolint:funlen
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
 	if wf.config.DisableSignup {
-		logger.Warn("signup disabled")
+		logger.WarnContext(ctx, "signup disabled")
 		return nil, ErrSignupDisabled
 	}
 
@@ -821,7 +846,7 @@ func (wf *Workflows) SignupUserWithSession( //nolint:funlen
 
 	metadata, err := json.Marshal(options.Metadata)
 	if err != nil {
-		logger.Error("error marshaling metadata", logError(err))
+		logger.ErrorContext(ctx, "error marshaling metadata", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -834,11 +859,11 @@ func (wf *Workflows) SignupUserWithSession( //nolint:funlen
 		gravatarURL,
 	)
 	if err != nil {
-		return nil, sqlErrIsDuplicatedEmail(err, logger)
+		return nil, sqlErrIsDuplicatedEmail(ctx, err, logger)
 	}
 
 	if wf.config.DisableNewUsers {
-		logger.Warn("new user disabled")
+		logger.WarnContext(ctx, "new user disabled")
 		return nil, ErrDisabledUser
 	}
 
@@ -846,7 +871,7 @@ func (wf *Workflows) SignupUserWithSession( //nolint:funlen
 		ctx, userID, false, deptr(options.AllowedRoles), *options.DefaultRole, nil, logger,
 	)
 	if err != nil {
-		logger.Error("error getting jwt", logError(err))
+		logger.ErrorContext(ctx, "error getting jwt", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -883,19 +908,20 @@ func (wf *Workflows) SignupUserWithouthSession(
 	logger *slog.Logger,
 ) *APIError {
 	if wf.config.DisableSignup {
-		logger.Warn("signup disabled")
+		logger.WarnContext(ctx, "signup disabled")
 		return ErrSignupDisabled
 	}
 
 	metadata, err := json.Marshal(options.Metadata)
 	if err != nil {
-		logger.Error("error marshaling metadata", logError(err))
+		logger.ErrorContext(ctx, "error marshaling metadata", logError(err))
 		return ErrInternalServerError
 	}
 
 	gravatarURL := wf.gravatarURL(email)
 
 	var ticket pgtype.Text
+
 	ticketExpiresAt := sql.TimestampTz(time.Now())
 	if sendConfirmationEmail {
 		ticket = sql.Text(generateTicket(TicketTypeVerifyEmail))
@@ -903,11 +929,11 @@ func (wf *Workflows) SignupUserWithouthSession(
 	}
 
 	if err := databaseWithoutSession(ticket, ticketExpiresAt, metadata, gravatarURL); err != nil {
-		return sqlErrIsDuplicatedEmail(err, logger)
+		return sqlErrIsDuplicatedEmail(ctx, err, logger)
 	}
 
 	if wf.config.DisableNewUsers {
-		logger.Warn("new user disabled")
+		logger.WarnContext(ctx, "new user disabled")
 		return ErrDisabledUser
 	}
 
@@ -940,7 +966,7 @@ func (wf *Workflows) SignupAnonymousUser( //nolint:funlen
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
 	if wf.config.DisableSignup {
-		logger.Warn("signup disabled")
+		logger.WarnContext(ctx, "signup disabled")
 		return nil, ErrSignupDisabled
 	}
 
@@ -950,7 +976,7 @@ func (wf *Workflows) SignupAnonymousUser( //nolint:funlen
 
 	metadata, err := json.Marshal(reqMetadata)
 	if err != nil {
-		logger.Error("error marshaling metadata", logError(err))
+		logger.ErrorContext(ctx, "error marshaling metadata", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -975,7 +1001,7 @@ func (wf *Workflows) SignupAnonymousUser( //nolint:funlen
 		},
 	)
 	if err != nil {
-		logger.Error("error inserting user", logError(err))
+		logger.ErrorContext(ctx, "error inserting user", logError(err))
 		return nil, &APIError{api.InternalServerError}
 	}
 
@@ -983,7 +1009,7 @@ func (wf *Workflows) SignupAnonymousUser( //nolint:funlen
 		ctx, resp.ID, true, []string{anonymousRole}, anonymousRole, nil, logger,
 	)
 	if err != nil {
-		logger.Error("error getting jwt", logError(err))
+		logger.ErrorContext(ctx, "error getting jwt", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -1023,23 +1049,26 @@ func (wf *Workflows) DeanonymizeUser(
 	logger *slog.Logger,
 ) *APIError {
 	if err := wf.db.DeleteUserRoles(ctx, userID); err != nil {
-		logger.Error("error deleting user roles", logError(err))
+		logger.ErrorContext(ctx, "error deleting user roles", logError(err))
 		return ErrInternalServerError
 	}
 
-	var metadatab []byte
-	var err error
+	var (
+		metadatab []byte
+		err       error
+	)
+
 	if options.Metadata != nil {
 		metadatab, err = json.Marshal(options.Metadata)
 		if err != nil {
-			logger.Error("error marshalling metadata", logError(err))
+			logger.ErrorContext(ctx, "error marshalling metadata", logError(err))
 			return ErrInternalServerError
 		}
 	}
 
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
-		logger.Error("error hashing password", logError(err))
+		logger.ErrorContext(ctx, "error hashing password", logError(err))
 		return ErrInternalServerError
 	}
 
@@ -1058,13 +1087,13 @@ func (wf *Workflows) DeanonymizeUser(
 			ID:              pgtype.UUID{Bytes: userID, Valid: true},
 		},
 	); err != nil {
-		logger.Error("error updating user", logError(err))
+		logger.ErrorContext(ctx, "error updating user", logError(err))
 		return ErrInternalServerError
 	}
 
 	if deleteRefreshTokens {
 		if err := wf.db.DeleteRefreshTokens(ctx, userID); err != nil {
-			logger.Error("error deleting refresh tokens", logError(err))
+			logger.ErrorContext(ctx, "error deleting refresh tokens", logError(err))
 			return ErrInternalServerError
 		}
 	}
@@ -1073,6 +1102,7 @@ func (wf *Workflows) DeanonymizeUser(
 }
 
 func (wf *Workflows) GetOIDCProfileFromIDToken(
+	ctx context.Context,
 	providerID api.IdTokenProvider,
 	idToken string,
 	pnonce *string,
@@ -1080,7 +1110,7 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 ) (oidc.Profile, *APIError) {
 	idTokenValidator, apiError := wf.getIDTokenValidator(providerID)
 	if apiError != nil {
-		logger.Error("error getting id token validator", logError(apiError))
+		logger.ErrorContext(ctx, "error getting id token validator", logError(apiError))
 		return oidc.Profile{}, apiError
 	}
 
@@ -1091,13 +1121,13 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 
 	token, err := idTokenValidator.Validate(idToken, nonce)
 	if err != nil {
-		logger.Error("error validating id token", logError(err))
+		logger.ErrorContext(ctx, "error validating id token", logError(err))
 		return oidc.Profile{}, ErrInvalidRequest
 	}
 
 	profile, err := idTokenValidator.GetProfile(token)
 	if err != nil {
-		logger.Error("error getting profile from token", logError(err))
+		logger.ErrorContext(ctx, "error getting profile from token", logError(err))
 		return oidc.Profile{}, ErrInvalidRequest
 	}
 
@@ -1108,6 +1138,7 @@ func (wf *Workflows) getIDTokenValidator(
 	provider api.IdTokenProvider,
 ) (*oidc.IDTokenValidator, *APIError) {
 	var validator *oidc.IDTokenValidator
+
 	switch provider {
 	case api.IdTokenProviderApple:
 		validator = wf.idTokenValidator.AppleID
@@ -1143,11 +1174,12 @@ func (wf *Workflows) InsertUserProvider(
 	)
 	if err != nil {
 		if sqlIsDuplcateError(err, "user_providers_provider_id_provider_user_id_key") {
-			logger.Error("user provider id already in use", logError(err))
+			logger.ErrorContext(ctx, "user provider id already in use", logError(err))
 			return sql.AuthUserProvider{}, ErrUserProviderAlreadyLinked
 		}
 
-		logger.Error("error inserting user provider", logError(err))
+		logger.ErrorContext(ctx, "error inserting user provider", logError(err))
+
 		return sql.AuthUserProvider{}, ErrInternalServerError
 	}
 
@@ -1165,11 +1197,12 @@ func (wf *Workflows) UpdateUserConfirmChangeEmail(
 	)
 	if err != nil {
 		if sqlIsDuplcateError(err, "users_email_key") {
-			logger.Error("user email id already in use", logError(err))
+			logger.ErrorContext(ctx, "user email id already in use", logError(err))
 			return sql.AuthUser{}, ErrEmailAlreadyInUse
 		}
 
-		logger.Error("error updating user", logError(err))
+		logger.ErrorContext(ctx, "error updating user", logError(err))
+
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
@@ -1186,7 +1219,7 @@ func (wf *Workflows) UpdateUserVerifyEmail(
 		userID,
 	)
 	if err != nil {
-		logger.Error("error updating user", logError(err))
+		logger.ErrorContext(ctx, "error updating user", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
@@ -1200,11 +1233,12 @@ func (wf *Workflows) GetUserSecurityKeys(
 ) ([]sql.AuthUserSecurityKey, *APIError) {
 	keys, err := wf.db.GetSecurityKeys(ctx, userID)
 	if errors.Is(err, pgx.ErrNoRows) || len(keys) == 0 {
-		logger.Warn("security keys not found")
+		logger.WarnContext(ctx, "security keys not found")
 		return nil, ErrSecurityKeyNotFound
 	}
+
 	if err != nil {
-		logger.Error("error getting security keys", logError(err))
+		logger.ErrorContext(ctx, "error getting security keys", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -1218,21 +1252,22 @@ func (wf *Workflows) GetUserByPhoneNumber(
 ) (sql.AuthUser, *APIError) {
 	user, err := wf.db.GetUserByPhoneNumber(ctx, sql.Text(phoneNumber))
 	if errors.Is(err, pgx.ErrNoRows) {
-		logger.Warn("user not found by phone number")
+		logger.WarnContext(ctx, "user not found by phone number")
 		return sql.AuthUser{}, ErrUserPhoneNumberNotFound
 	}
+
 	if err != nil {
-		logger.Error("error getting user by phone number", logError(err))
+		logger.ErrorContext(ctx, "error getting user by phone number", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	if user.Disabled {
-		logger.Warn("user is disabled")
+		logger.WarnContext(ctx, "user is disabled")
 		return sql.AuthUser{}, ErrDisabledUser
 	}
 
 	if user.IsAnonymous {
-		logger.Warn("user is anonymous")
+		logger.WarnContext(ctx, "user is anonymous")
 		return sql.AuthUser{}, ErrForbiddenAnonymous
 	}
 
@@ -1245,7 +1280,7 @@ func (wf *Workflows) DeleteUserRefreshTokens(
 	logger *slog.Logger,
 ) *APIError {
 	if err := wf.db.DeleteRefreshTokens(ctx, userID); err != nil {
-		logger.Error("error deleting user refresh tokens", logError(err))
+		logger.ErrorContext(ctx, "error deleting user refresh tokens", logError(err))
 		return ErrInternalServerError
 	}
 
@@ -1260,7 +1295,7 @@ func (wf *Workflows) DeleteRefreshToken(
 	if err := wf.db.DeleteRefreshToken(
 		ctx, sql.Text(hashRefreshToken([]byte(refreshToken))),
 	); err != nil {
-		logger.Error("error deleting refresh token", logError(err))
+		logger.ErrorContext(ctx, "error deleting refresh token", logError(err))
 		return ErrInternalServerError
 	}
 

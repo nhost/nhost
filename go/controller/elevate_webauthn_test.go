@@ -46,7 +46,8 @@ func TestElevateWebauthn(t *testing.T) {
 		}
 	}
 
-	credentialIDString := "EuKJAraRGDcmHon-EjDoqoU5Yvk" //nolint:gosec
+	credentialIDString := "EuKJAraRGDcmHon-EjDoqoU5Yvk" //nolint:gosec,goconst
+
 	var credentialID protocol.URLEncodedBase64
 	if err := credentialID.UnmarshalJSON([]byte(credentialIDString)); err != nil {
 		t.Fatal(err)
@@ -217,6 +218,7 @@ func TestElevateWebauthn(t *testing.T) {
 
 			// Set JWT context for authenticated endpoints
 			ctx := t.Context()
+
 			if tc.jwtTokenFn != nil {
 				token := tc.jwtTokenFn()
 				ctx = context.WithValue(ctx, controller.JWTContextKey, token) //nolint:staticcheck

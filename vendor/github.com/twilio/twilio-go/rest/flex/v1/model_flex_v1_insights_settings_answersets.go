@@ -19,10 +19,10 @@ type FlexV1InsightsSettingsAnswersets struct {
 	// The SID of the [Account](https://www.twilio.com/docs/iam/api/account) that created the Flex Insights resource and owns this resource.
 	AccountSid *string `json:"account_sid,omitempty"`
 	// The lis of answer sets
-	AnswerSets *map[string]interface{} `json:"answer_sets,omitempty"`
+	AnswerSets *interface{} `json:"answer_sets,omitempty"`
 	// The list of answer set categories
-	AnswerSetCategories *map[string]interface{} `json:"answer_set_categories,omitempty"`
+	AnswerSetCategories *interface{} `json:"answer_set_categories,omitempty"`
 	// The details for not applicable answer set
-	NotApplicable *map[string]interface{} `json:"not_applicable,omitempty"`
-	Url           *string                 `json:"url,omitempty"`
+	NotApplicable *interface{} `json:"not_applicable,omitempty"`
+	Url           *string      `json:"url,omitempty"`
 }

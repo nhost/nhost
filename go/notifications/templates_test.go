@@ -97,10 +97,12 @@ func TestGetRawTemplates(t *testing.T) {
 			t.Parallel()
 
 			logger := slog.Default()
+
 			templates, err := notifications.NewTemplatesFromFilesystem(tc.path, "en", logger)
 			if !errors.Is(err, tc.expectedErr) {
 				t.Fatalf("expected error %s, got %s", tc.expectedErr, err)
 			}
+
 			if err != nil {
 				return
 			}
@@ -223,6 +225,7 @@ func TestRenderEmailVerify(t *testing.T) {
 			t.Parallel()
 
 			logger := slog.Default()
+
 			templates, err := notifications.NewTemplatesFromFilesystem(
 				"../../email-templates/", "en", logger,
 			)
@@ -231,7 +234,7 @@ func TestRenderEmailVerify(t *testing.T) {
 			}
 
 			body, subject, err := templates.Render(
-				tc.locale, notifications.TemplateNameEmailVerify, tc.data,
+				t.Context(), tc.locale, notifications.TemplateNameEmailVerify, tc.data,
 			)
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)

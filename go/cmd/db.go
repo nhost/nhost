@@ -25,15 +25,19 @@ func getDBPool(cCtx *cli.Context) (*pgxpool.Pool, error) {
 	if config.MaxConns < poolMinMaxConns { //
 		config.MaxConns = poolMinMaxConns
 	}
+
 	if config.MinConns < poolMinMinConns {
 		config.MinConns = poolMinMinConns
 	}
+
 	if config.MaxConnLifetime < poolMinMaxConnLifetime {
 		config.MaxConnLifetime = poolMinMaxConnLifetime
 	}
+
 	if config.MaxConnIdleTime < poolMinMaxConnIdleTime {
 		config.MaxConnIdleTime = poolMinMaxConnIdleTime
 	}
+
 	if config.HealthCheckPeriod < poolMinHealthCheckPeriod {
 		config.HealthCheckPeriod = poolMinHealthCheckPeriod
 	}

@@ -59,6 +59,7 @@ func (p *Provider) Oauth1() Oauth1Provider { //nolint:ireturn
 	if p.oauth1 == nil {
 		panic("provider is not an Oauth1 provider")
 	}
+
 	return p.oauth1
 }
 
@@ -66,6 +67,7 @@ func (p *Provider) Oauth2() Oauth2Provider { //nolint:ireturn
 	if p.oauth2 == nil {
 		panic("provider is not an Oauth2 provider")
 	}
+
 	return p.oauth2
 }
 
@@ -75,5 +77,6 @@ func (m Map) Get(name string) *Provider {
 	if provider, ok := m[name]; ok {
 		return provider
 	}
+
 	return nil
 }

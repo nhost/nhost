@@ -154,12 +154,7 @@ func (k *Key) Digits() Digits {
 	q := k.url.Query()
 
 	if u, err := strconv.ParseUint(q.Get("digits"), 10, 64); err == nil {
-		switch u {
-		case 8:
-			return DigitsEight
-		default:
-			return DigitsSix
-		}
+		return Digits(u)
 	}
 
 	// Six is the most common value.
@@ -180,6 +175,19 @@ func (k *Key) Algorithm() Algorithm {
 		return AlgorithmSHA512
 	default:
 		return AlgorithmSHA1
+	}
+}
+
+// Encoder returns the encoder used or the default ("")
+func (k *Key) Encoder() Encoder {
+	q := k.url.Query()
+
+	a := strings.ToLower(q.Get("encoder"))
+	switch a {
+	case "steam":
+		return EncoderSteam
+	default:
+		return EncoderDefault
 	}
 }
 
@@ -253,3 +261,10 @@ func (d Digits) Length() int {
 func (d Digits) String() string {
 	return fmt.Sprintf("%d", d)
 }
+
+type Encoder string
+
+const (
+	EncoderDefault Encoder = ""
+	EncoderSteam   Encoder = "steam"
+)

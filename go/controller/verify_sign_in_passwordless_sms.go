@@ -16,7 +16,7 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 		With(slog.String("phoneNumber", request.Body.PhoneNumber))
 
 	if !ctrl.config.SMSPasswordlessEnabled {
-		logger.Warn("SMS passwordless signin is disabled")
+		logger.WarnContext(ctx, "SMS passwordless signin is disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
@@ -24,17 +24,17 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 		ctx, request.Body.PhoneNumber, request.Body.Otp,
 	)
 	if err != nil {
-		logger.Warn("invalid OTP", slog.String("error", err.Error()))
+		logger.WarnContext(ctx, "invalid OTP", slog.String("error", err.Error()))
 		return ctrl.sendError(ErrInvalidOTP), nil
 	}
 
-	if err := ctrl.wf.ValidateUserEmailOptional(user, logger); err != nil {
+	if err := ctrl.wf.ValidateUserEmailOptional(ctx, user, logger); err != nil {
 		return ctrl.sendError(ErrInternalServerError), nil //nolint:nilerr
 	}
 
 	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)
 	if err != nil {
-		logger.Error("error getting new session", logError(err))
+		logger.ErrorContext(ctx, "error getting new session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 

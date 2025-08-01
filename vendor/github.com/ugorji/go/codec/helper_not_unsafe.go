@@ -2,7 +2,6 @@
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
 //go:build !go1.9 || safe || codec.safe || appengine
-// +build !go1.9 safe codec.safe appengine
 
 package codec
 
@@ -19,8 +18,11 @@ import (
 
 const safeMode = true
 
-const transientSizeMax = 0
-const transientValueHasStringSlice = true
+func isTransientType4Size(size uint32) bool { return true }
+
+type mapReqParams struct{}
+
+func getMapReqParams(ti *typeInfo) (r mapReqParams) { return }
 
 func byteAt(b []byte, index uint) byte {
 	return b[index]
@@ -29,14 +31,6 @@ func byteAt(b []byte, index uint) byte {
 func setByteAt(b []byte, index uint, val byte) {
 	b[index] = val
 }
-
-func byteSliceOf(b []byte, start, end uint) []byte {
-	return b[start:end]
-}
-
-// func byteSliceWithLen(b []byte, length uint) []byte {
-// 	return b[:length]
-// }
 
 func stringView(v []byte) string {
 	return string(v)
@@ -50,32 +44,24 @@ func byteSliceSameData(v1 []byte, v2 []byte) bool {
 	return cap(v1) != 0 && cap(v2) != 0 && &(v1[:1][0]) == &(v2[:1][0])
 }
 
-func okBytes2(b []byte) (v [2]byte) {
-	copy(v[:], b)
-	return
-}
-
-func okBytes3(b []byte) (v [3]byte) {
-	copy(v[:], b)
-	return
-}
-
-func okBytes4(b []byte) (v [4]byte) {
-	copy(v[:], b)
-	return
-}
-
-func okBytes8(b []byte) (v [8]byte) {
-	copy(v[:], b)
-	return
-}
-
-func isNil(v interface{}) (rv reflect.Value, isnil bool) {
+func isNil(v interface{}, checkPtr bool) (rv reflect.Value, b bool) {
+	b = v == nil
+	if b || !checkPtr {
+		return
+	}
 	rv = reflect.ValueOf(v)
-	if isnilBitset.isset(byte(rv.Kind())) {
-		isnil = rv.IsNil()
+	if rv.Kind() == reflect.Ptr {
+		b = rv.IsNil()
 	}
 	return
+}
+
+func ptrToLowLevel(v interface{}) interface{} {
+	return v
+}
+
+func lowLevelToPtr[T any](v interface{}) *T {
+	return v.(*T)
 }
 
 func eq4i(i0, i1 interface{}) bool {
@@ -85,15 +71,19 @@ func eq4i(i0, i1 interface{}) bool {
 func rv4iptr(i interface{}) reflect.Value { return reflect.ValueOf(i) }
 func rv4istr(i interface{}) reflect.Value { return reflect.ValueOf(i) }
 
-// func rv4i(i interface{}) reflect.Value { return reflect.ValueOf(i) }
-// func rv4iK(i interface{}, kind byte, isref bool) reflect.Value { return reflect.ValueOf(i) }
-
 func rv2i(rv reflect.Value) interface{} {
-	return rv.Interface()
+	if rv.IsValid() {
+		return rv.Interface()
+	}
+	return nil
 }
 
 func rvAddr(rv reflect.Value, ptrType reflect.Type) reflect.Value {
 	return rv.Addr()
+}
+
+func rvPtrIsNil(rv reflect.Value) bool {
+	return rv.IsNil()
 }
 
 func rvIsNil(rv reflect.Value) bool {
@@ -130,6 +120,30 @@ func i2rtid(i interface{}) uintptr {
 }
 
 // --------------------------
+
+// is this an empty interface/ptr/struct/map/slice/chan/array
+func isEmptyContainerValue(v reflect.Value, tinfos *TypeInfos, recursive bool) (empty bool) {
+	switch v.Kind() {
+	case reflect.Array:
+		for i, vlen := 0, v.Len(); i < vlen; i++ {
+			if !isEmptyValue(v.Index(i), tinfos, false) {
+				return false
+			}
+		}
+		return true
+	case reflect.Map, reflect.Slice, reflect.Chan:
+		return v.IsNil() || v.Len() == 0
+	case reflect.Interface, reflect.Ptr:
+		empty = v.IsNil()
+		if recursive && !empty {
+			return isEmptyValue(v.Elem(), tinfos, recursive)
+		}
+		return empty
+	case reflect.Struct:
+		return isEmptyStruct(v, tinfos, recursive)
+	}
+	return false
+}
 
 func isEmptyValue(v reflect.Value, tinfos *TypeInfos, recursive bool) bool {
 	switch v.Kind() {
@@ -215,12 +229,16 @@ func isEmptyStruct(v reflect.Value, tinfos *TypeInfos, recursive bool) bool {
 	// We only care about what we can encode/decode,
 	// so that is what we use to check omitEmpty.
 	for _, si := range ti.sfi.source() {
-		sfv := si.path.field(v)
+		sfv := si.fieldNoAlloc(v, true)
 		if sfv.IsValid() && !isEmptyValue(sfv, tinfos, recursive) {
 			return false
 		}
 	}
 	return true
+}
+
+func makeMapReflect(t reflect.Type, size int) reflect.Value {
+	return reflect.MakeMapWithSize(t, size)
 }
 
 // --------------------------
@@ -247,13 +265,9 @@ type perType struct {
 	v []perTypeElem
 }
 
-type decPerType struct {
-	perType
-}
+type decPerType = perType
 
-type encPerType struct {
-	perType
-}
+type encPerType = perType
 
 func (x *perType) elem(t reflect.Type) *perTypeElem {
 	rtid := rt2id(t)
@@ -296,9 +310,43 @@ func (x *perType) AddressableRO(v reflect.Value) (rv reflect.Value) {
 }
 
 // --------------------------
+type mapIter struct {
+	t      *reflect.MapIter
+	m      reflect.Value
+	values bool
+}
+
+func (t *mapIter) Next() (r bool) {
+	return t.t.Next()
+}
+
+func (t *mapIter) Key() reflect.Value {
+	return t.t.Key()
+}
+
+func (t *mapIter) Value() (r reflect.Value) {
+	if t.values {
+		return t.t.Value()
+	}
+	return
+}
+
+func (t *mapIter) Done() {}
+
+func mapRange(t *mapIter, m, k, v reflect.Value, values bool) {
+	*t = mapIter{
+		m:      m,
+		t:      m.MapRange(),
+		values: values,
+	}
+}
+
+// --------------------------
 type structFieldInfos struct {
 	c []*structFieldInfo
 	s []*structFieldInfo
+	t uint8To32TrieNode
+	// byName map[string]*structFieldInfo // find sfi given a name
 }
 
 func (x *structFieldInfos) load(source, sorted []*structFieldInfo) {
@@ -306,55 +354,24 @@ func (x *structFieldInfos) load(source, sorted []*structFieldInfo) {
 	x.s = sorted
 }
 
-func (x *structFieldInfos) sorted() (v []*structFieldInfo) { return x.s }
+// func (x *structFieldInfos) count() int                     { return len(x.c) }
 func (x *structFieldInfos) source() (v []*structFieldInfo) { return x.c }
-
-type atomicClsErr struct {
-	v atomic.Value
-}
-
-func (x *atomicClsErr) load() (e clsErr) {
-	if i := x.v.Load(); i != nil {
-		e = i.(clsErr)
-	}
-	return
-}
-
-func (x *atomicClsErr) store(p clsErr) {
-	x.v.Store(p)
-}
+func (x *structFieldInfos) sorted() (v []*structFieldInfo) { return x.s }
 
 // --------------------------
-type atomicTypeInfoSlice struct {
-	v atomic.Value
+
+type uint8To32TrieNodeNoKids struct {
+	key   uint8
+	valid bool    // the value marks the end of a full stored string
+	_     [2]byte // padding
+	value uint32
 }
 
-func (x *atomicTypeInfoSlice) load() (e []rtid2ti) {
-	if i := x.v.Load(); i != nil {
-		e = i.([]rtid2ti)
-	}
-	return
-}
+type uint8To32TrieNodeKids = []uint8To32TrieNode
 
-func (x *atomicTypeInfoSlice) store(p []rtid2ti) {
-	x.v.Store(p)
-}
-
-// --------------------------
-type atomicRtidFnSlice struct {
-	v atomic.Value
-}
-
-func (x *atomicRtidFnSlice) load() (e []codecRtidFn) {
-	if i := x.v.Load(); i != nil {
-		e = i.([]codecRtidFn)
-	}
-	return
-}
-
-func (x *atomicRtidFnSlice) store(p []codecRtidFn) {
-	x.v.Store(p)
-}
+func (x *uint8To32TrieNode) setKids(kids []uint8To32TrieNode) { x.kids = kids }
+func (x *uint8To32TrieNode) getKids() []uint8To32TrieNode     { return x.kids }
+func (x *uint8To32TrieNode) truncKids()                       { x.kids = x.kids[:0] } // set len to 0
 
 // --------------------------
 func (n *fauxUnion) ru() reflect.Value {
@@ -501,13 +518,13 @@ func rvGrowSlice(rv reflect.Value, ti *typeInfo, cap, incr int) (v reflect.Value
 
 // ----------------
 
-func rvSliceIndex(rv reflect.Value, i int, ti *typeInfo) reflect.Value {
+func rvArrayIndex(rv reflect.Value, i int, _ *typeInfo, _ bool) reflect.Value {
 	return rv.Index(i)
 }
 
-func rvArrayIndex(rv reflect.Value, i int, ti *typeInfo) reflect.Value {
-	return rv.Index(i)
-}
+// func rvArrayIndex(rv reflect.Value, i int, ti *typeInfo) reflect.Value {
+// 	return rv.Index(i)
+// }
 
 func rvSliceZeroCap(t reflect.Type) (v reflect.Value) {
 	return reflect.MakeSlice(t, 0, 0)
@@ -523,7 +540,7 @@ func rvCapSlice(rv reflect.Value) int {
 
 func rvGetArrayBytes(rv reflect.Value, scratch []byte) (bs []byte) {
 	l := rv.Len()
-	if scratch == nil || rv.CanAddr() {
+	if scratch == nil && rv.CanAddr() {
 		return rv.Slice(0, l).Bytes()
 	}
 
@@ -537,7 +554,7 @@ func rvGetArrayBytes(rv reflect.Value, scratch []byte) (bs []byte) {
 }
 
 func rvGetArray4Slice(rv reflect.Value) (v reflect.Value) {
-	v = rvZeroAddrK(reflectArrayOf(rvLenSlice(rv), rv.Type().Elem()), reflect.Array)
+	v = rvZeroAddrK(reflect.ArrayOf(rvLenSlice(rv), rv.Type().Elem()), reflect.Array)
 	reflect.Copy(v, rv)
 	return
 }
@@ -647,31 +664,15 @@ func rvLenMap(rv reflect.Value) int {
 	return rv.Len()
 }
 
-// func copybytes(to, from []byte) int {
-// 	return copy(to, from)
-// }
-
-// func copybytestr(to []byte, from string) int {
-// 	return copy(to, from)
-// }
-
-// func rvLenArray(rv reflect.Value) int {	return rv.Len() }
-
 // ------------ map range and map indexing ----------
 
-func mapStoresElemIndirect(elemsize uintptr) bool { return false }
-
-func mapSet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, _, _ bool) {
+func mapSet(m, k, v reflect.Value, _ mapReqParams) {
 	m.SetMapIndex(k, v)
 }
 
-func mapGet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, _, _ bool) (vv reflect.Value) {
+func mapGet(m, k, v reflect.Value, _ mapReqParams) (vv reflect.Value) {
 	return m.MapIndex(k)
 }
-
-// func mapDelete(m, k reflect.Value) {
-// 	m.SetMapIndex(k, reflect.Value{})
-// }
 
 func mapAddrLoopvarRV(t reflect.Type, k reflect.Kind) (r reflect.Value) {
 	return // reflect.New(t).Elem()
@@ -679,28 +680,27 @@ func mapAddrLoopvarRV(t reflect.Type, k reflect.Kind) (r reflect.Value) {
 
 // ---------- ENCODER optimized ---------------
 
-func (e *Encoder) jsondriver() *jsonEncDriver {
-	return e.e.(*jsonEncDriver)
-}
-
-// ---------- DECODER optimized ---------------
-
-func (d *Decoder) jsondriver() *jsonDecDriver {
-	return d.d.(*jsonDecDriver)
-}
-
-func (d *Decoder) stringZC(v []byte) (s string) {
-	return d.string(v)
-}
-
-func (d *Decoder) mapKeyString(callFnRvk *bool, kstrbs, kstr2bs *[]byte) string {
-	return d.string(*kstr2bs)
+func (d *decoderBase) bytes2Str(in []byte, att dBytesAttachState) (s string, mutable bool) {
+	return d.detach2Str(in, att), false
 }
 
 // ---------- structFieldInfo optimized ---------------
 
-func (n *structFieldInfoPathNode) rvField(v reflect.Value) reflect.Value {
+func (n *structFieldInfoNode) rvField(v reflect.Value) reflect.Value {
 	return v.Field(int(n.index))
 }
 
 // ---------- others ---------------
+
+// --------------------------
+type atomicRtidFnSlice struct {
+	v atomic.Value
+}
+
+func (x *atomicRtidFnSlice) load() interface{} {
+	return x.v.Load()
+}
+
+func (x *atomicRtidFnSlice) store(p interface{}) {
+	x.v.Store(p)
+}

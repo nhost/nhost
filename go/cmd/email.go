@@ -29,7 +29,9 @@ func getSMTPEmailer(
 	host := cCtx.String(flagSMTPHost)
 	user := cCtx.String(flagSMTPUser)
 	password := cCtx.String(flagSMTPPassword)
+
 	var auth smtp.Auth
+
 	switch GetEnumValue(cCtx, flagSMTPAuthMethod) {
 	case "LOGIN":
 		auth = notifications.LoginAuth(user, password, host)
@@ -38,7 +40,7 @@ func getSMTPEmailer(
 	case "CRAM-MD5":
 		auth = smtp.CRAMMD5Auth(user, password)
 	default:
-		return nil, errors.New("unsupported auth method") //nolint:goerr113
+		return nil, errors.New("unsupported auth method") //nolint:err113
 	}
 
 	return notifications.NewEmail(
@@ -64,8 +66,9 @@ func getTemplates(cCtx *cli.Context, logger *slog.Logger) (*notifications.Templa
 			break
 		}
 	}
+
 	if templatesPath == "" {
-		return nil, errors.New("templates path not found") //nolint:goerr113
+		return nil, errors.New("templates path not found") //nolint:err113
 	}
 
 	templates, err := notifications.NewTemplatesFromFilesystem(
@@ -94,6 +97,7 @@ func getEmailer( //nolint:ireturn
 	}
 
 	emailer, err := getSMTPEmailer(cCtx, templates)
+
 	return emailer, templates, err
 }
 
@@ -124,6 +128,7 @@ func getSMS( //nolint:ireturn
 
 	if templates == nil {
 		var err error
+
 		templates, err = getTemplates(cCtx, logger)
 		if err != nil {
 			return nil, fmt.Errorf("problem creating templates: %w", err)

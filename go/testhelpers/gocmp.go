@@ -13,10 +13,12 @@ func FilterPathLast(last []string, opt cmp.Option) cmp.Option {
 				if j < 0 {
 					return false
 				}
+
 				if last[i] != path[j].String() {
 					return false
 				}
 			}
+
 			return true
 		},
 		opt,

@@ -29,9 +29,9 @@ type EventsV1Sink struct {
 	// A 34 character string that uniquely identifies this Sink.
 	Sid *string `json:"sid,omitempty"`
 	// The information required for Twilio to connect to the provided Sink encoded as JSON.
-	SinkConfiguration *map[string]interface{} `json:"sink_configuration,omitempty"`
-	SinkType          *string                 `json:"sink_type,omitempty"`
-	Status            *string                 `json:"status,omitempty"`
+	SinkConfiguration *interface{} `json:"sink_configuration,omitempty"`
+	SinkType          *string      `json:"sink_type,omitempty"`
+	Status            *string      `json:"status,omitempty"`
 	// The URL of this resource.
 	Url *string `json:"url,omitempty"`
 	// Contains a dictionary of URL links to nested resources of this Sink.

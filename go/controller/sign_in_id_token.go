@@ -23,7 +23,7 @@ func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 	switch {
 	case errors.Is(apiError, ErrUserProviderNotFound):
 	case apiError != nil:
-		logger.Error("error getting user by provider user id", logError(apiError))
+		logger.ErrorContext(ctx, "error getting user by provider user id", logError(apiError))
 		return user, false, false, apiError
 	default:
 		return user, true, true, nil
@@ -33,7 +33,7 @@ func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 	switch {
 	case errors.Is(apiError, ErrUserEmailNotFound):
 	case apiError != nil:
-		logger.Error("error getting user by email", logError(apiError))
+		logger.ErrorContext(ctx, "error getting user by email", logError(apiError))
 		return sql.AuthUser{}, false, false, ErrInternalServerError
 	default:
 		return user, true, false, nil
@@ -48,6 +48,7 @@ func (ctrl *Controller) SignInIdToken( //nolint:ireturn,revive,stylecheck
 	logger := middleware.LoggerFromContext(ctx)
 
 	profile, apiError := ctrl.wf.GetOIDCProfileFromIDToken(
+		ctx,
 		req.Body.Provider,
 		req.Body.IdToken,
 		req.Body.Nonce,
@@ -58,7 +59,7 @@ func (ctrl *Controller) SignInIdToken( //nolint:ireturn,revive,stylecheck
 	}
 
 	if !ctrl.wf.ValidateEmail(profile.Email) {
-		logger.Error("invalid email", slog.String("email", profile.Email))
+		logger.ErrorContext(ctx, "invalid email", slog.String("email", profile.Email))
 		return ctrl.respondWithError(ErrInvalidEmailPassword), nil
 	}
 
@@ -98,15 +99,15 @@ func (ctrl *Controller) providerSignInFlow(
 }
 
 func (ctrl *Controller) providerFlowSignUpValidateOptions(
-	options *api.SignUpOptions, profile oidc.Profile, logger *slog.Logger,
+	ctx context.Context, options *api.SignUpOptions, profile oidc.Profile, logger *slog.Logger,
 ) (*api.SignUpOptions, *APIError) {
 	if ctrl.config.DisableSignup {
-		logger.Warn("signup disabled")
+		logger.WarnContext(ctx, "signup disabled")
 		return nil, ErrSignupDisabled
 	}
 
 	if profile.Email != "" {
-		if err := ctrl.wf.ValidateSignupEmail(types.Email(profile.Email), logger); err != nil {
+		if err := ctrl.wf.ValidateSignupEmail(ctx, types.Email(profile.Email), logger); err != nil {
 			return nil, err
 		}
 	}
@@ -120,7 +121,7 @@ func (ctrl *Controller) providerFlowSignUpValidateOptions(
 	}
 
 	options, err := ctrl.wf.ValidateSignUpOptions(
-		options, profile.ProviderUserID, logger,
+		ctx, options, profile.ProviderUserID, logger,
 	)
 	if err != nil {
 		return nil, err
@@ -136,9 +137,9 @@ func (ctrl *Controller) providerFlowSignUp(
 	options *api.SignUpOptions,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
-	logger.Info("user doesn't exist, signing up")
+	logger.InfoContext(ctx, "user doesn't exist, signing up")
 
-	options, apiError := ctrl.providerFlowSignUpValidateOptions(options, profile, logger)
+	options, apiError := ctrl.providerFlowSignUpValidateOptions(ctx, options, profile, logger)
 	if apiError != nil {
 		return nil, apiError
 	}
@@ -256,6 +257,7 @@ func (ctrl *Controller) providerFlowSignupWithoutSession(
 		if err != nil {
 			return fmt.Errorf("error inserting user: %w", err)
 		}
+
 		return nil
 	}
 }
@@ -268,7 +270,7 @@ func (ctrl *Controller) providerFlowSignIn(
 	providerUserID string,
 	logger *slog.Logger,
 ) (*api.Session, *APIError) {
-	logger.Info("user found, signing in")
+	logger.InfoContext(ctx, "user found, signing in")
 
 	if !providerFound {
 		if _, apiErr := ctrl.wf.InsertUserProvider(
@@ -284,7 +286,7 @@ func (ctrl *Controller) providerFlowSignIn(
 
 	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)
 	if err != nil {
-		logger.Error("error getting new session", logError(err))
+		logger.ErrorContext(ctx, "error getting new session", logError(err))
 		return nil, ErrInternalServerError
 	}
 

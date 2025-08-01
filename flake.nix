@@ -96,6 +96,7 @@
 
           buildPhase = ''
             bun install --frozen-lockfile
+            rm -r node_modules/.cache
           '';
 
           installPhase = ''
@@ -126,7 +127,7 @@
           mockgen
           oapi-codegen
           sqlc
-          postgresql_17_4-client
+          postgresql_17_5-client
           vacuum-go
         ];
 
@@ -183,9 +184,8 @@
               cp -r ${node-src}/.* .
               ln -s ${node_modules-builder}/node_modules node_modules
 
-              cp .env.example .env
+              bun test --env-file .env.example
 
-              bun test
               mkdir -p $out
             '';
         };

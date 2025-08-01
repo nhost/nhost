@@ -426,6 +426,7 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 			if tc.jwtTokenFn != nil {
 				ctx = jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			}
+
 			assertRequest(
 				ctx, t, c.ChangeUserPassword, tc.request, tc.expectedResponse,
 			)

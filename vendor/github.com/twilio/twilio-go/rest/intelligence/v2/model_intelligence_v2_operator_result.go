@@ -34,7 +34,7 @@ type IntelligenceV2OperatorResult struct {
 	// Normalized output of extraction stage which matches Label.
 	NormalizedResult *string `json:"normalized_result,omitempty"`
 	// List of mapped utterance object which matches sentences.
-	UtteranceResults *[]map[string]interface{} `json:"utterance_results,omitempty"`
+	UtteranceResults *[]interface{} `json:"utterance_results,omitempty"`
 	// Boolean to tell if Utterance matches results.
 	UtteranceMatch *bool `json:"utterance_match,omitempty"`
 	// The 'matching' class. This might be available on conversation classify model outputs.
@@ -42,12 +42,12 @@ type IntelligenceV2OperatorResult struct {
 	// Percentage of 'matching' class needed to consider a sentence matches.
 	PredictedProbability *float32 `json:"predicted_probability,omitempty"`
 	// The labels probabilities. This might be available on conversation classify model outputs.
-	LabelProbabilities *map[string]interface{} `json:"label_probabilities,omitempty"`
+	LabelProbabilities *interface{} `json:"label_probabilities,omitempty"`
 	// List of text extraction results. This might be available on classify-extract model outputs.
-	ExtractResults *map[string]interface{} `json:"extract_results,omitempty"`
+	ExtractResults *interface{} `json:"extract_results,omitempty"`
 	// Output of a text generation operator for example Conversation Sumamary.
-	TextGenerationResults *map[string]interface{} `json:"text_generation_results,omitempty"`
-	JsonResults           *map[string]interface{} `json:"json_results,omitempty"`
+	TextGenerationResults *interface{} `json:"text_generation_results,omitempty"`
+	JsonResults           *interface{} `json:"json_results,omitempty"`
 	// A 34 character string that uniquely identifies this Transcript.
 	TranscriptSid *string `json:"transcript_sid,omitempty"`
 	// The URL of this resource.
@@ -56,22 +56,22 @@ type IntelligenceV2OperatorResult struct {
 
 func (response *IntelligenceV2OperatorResult) UnmarshalJSON(bytes []byte) (err error) {
 	raw := struct {
-		OperatorType          *string                   `json:"operator_type"`
-		Name                  *string                   `json:"name"`
-		OperatorSid           *string                   `json:"operator_sid"`
-		ExtractMatch          *bool                     `json:"extract_match"`
-		MatchProbability      *interface{}              `json:"match_probability"`
-		NormalizedResult      *string                   `json:"normalized_result"`
-		UtteranceResults      *[]map[string]interface{} `json:"utterance_results"`
-		UtteranceMatch        *bool                     `json:"utterance_match"`
-		PredictedLabel        *string                   `json:"predicted_label"`
-		PredictedProbability  *interface{}              `json:"predicted_probability"`
-		LabelProbabilities    *map[string]interface{}   `json:"label_probabilities"`
-		ExtractResults        *map[string]interface{}   `json:"extract_results"`
-		TextGenerationResults *map[string]interface{}   `json:"text_generation_results"`
-		JsonResults           *map[string]interface{}   `json:"json_results"`
-		TranscriptSid         *string                   `json:"transcript_sid"`
-		Url                   *string                   `json:"url"`
+		OperatorType          *string        `json:"operator_type"`
+		Name                  *string        `json:"name"`
+		OperatorSid           *string        `json:"operator_sid"`
+		ExtractMatch          *bool          `json:"extract_match"`
+		MatchProbability      *interface{}   `json:"match_probability"`
+		NormalizedResult      *string        `json:"normalized_result"`
+		UtteranceResults      *[]interface{} `json:"utterance_results"`
+		UtteranceMatch        *bool          `json:"utterance_match"`
+		PredictedLabel        *string        `json:"predicted_label"`
+		PredictedProbability  *interface{}   `json:"predicted_probability"`
+		LabelProbabilities    *interface{}   `json:"label_probabilities"`
+		ExtractResults        *interface{}   `json:"extract_results"`
+		TextGenerationResults *interface{}   `json:"text_generation_results"`
+		JsonResults           *interface{}   `json:"json_results"`
+		TranscriptSid         *string        `json:"transcript_sid"`
+		Url                   *string        `json:"url"`
 	}{}
 
 	if err = json.Unmarshal(bytes, &raw); err != nil {

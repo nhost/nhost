@@ -19,9 +19,9 @@ type TaskrouterV1WorkflowStatistics struct {
 	// The SID of the [Account](https://www.twilio.com/docs/iam/api/account) that created the Workflow resource.
 	AccountSid *string `json:"account_sid,omitempty"`
 	// An object that contains the cumulative statistics for the Workflow.
-	Cumulative *map[string]interface{} `json:"cumulative,omitempty"`
+	Cumulative *interface{} `json:"cumulative,omitempty"`
 	// An object that contains the real-time statistics for the Workflow.
-	Realtime *map[string]interface{} `json:"realtime,omitempty"`
+	Realtime *interface{} `json:"realtime,omitempty"`
 	// Returns the list of Tasks that are being controlled by the Workflow with the specified SID value.
 	WorkflowSid *string `json:"workflow_sid,omitempty"`
 	// The SID of the Workspace that contains the Workflow.

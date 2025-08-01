@@ -36,19 +36,19 @@ type IntelligenceV2Sentence struct {
 	Sid        *string  `json:"sid,omitempty"`
 	Confidence *float32 `json:"confidence,omitempty"`
 	// Detailed information for each of the words of the given Sentence.
-	Words *[]map[string]interface{} `json:"words,omitempty"`
+	Words *[]interface{} `json:"words,omitempty"`
 }
 
 func (response *IntelligenceV2Sentence) UnmarshalJSON(bytes []byte) (err error) {
 	raw := struct {
-		MediaChannel  int                       `json:"media_channel"`
-		SentenceIndex int                       `json:"sentence_index"`
-		StartTime     *interface{}              `json:"start_time"`
-		EndTime       *interface{}              `json:"end_time"`
-		Transcript    *string                   `json:"transcript"`
-		Sid           *string                   `json:"sid"`
-		Confidence    *interface{}              `json:"confidence"`
-		Words         *[]map[string]interface{} `json:"words"`
+		MediaChannel  int            `json:"media_channel"`
+		SentenceIndex int            `json:"sentence_index"`
+		StartTime     *interface{}   `json:"start_time"`
+		EndTime       *interface{}   `json:"end_time"`
+		Transcript    *string        `json:"transcript"`
+		Sid           *string        `json:"sid"`
+		Confidence    *interface{}   `json:"confidence"`
+		Words         *[]interface{} `json:"words"`
 	}{}
 
 	if err = json.Unmarshal(bytes, &raw); err != nil {

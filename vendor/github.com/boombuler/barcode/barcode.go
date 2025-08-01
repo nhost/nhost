@@ -1,6 +1,8 @@
 package barcode
 
-import "image"
+import (
+	"image"
+)
 
 const (
 	TypeAztec           = "Aztec"
@@ -39,4 +41,8 @@ type Barcode interface {
 type BarcodeIntCS interface {
 	Barcode
 	CheckSum() int
+}
+
+type BarcodeColor interface {
+	ColorScheme() ColorScheme
 }

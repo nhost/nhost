@@ -51,7 +51,7 @@ func (c *ApiService) FetchDay(ResourceType string, Day string) (*BulkexportsV1Da
 
 // Optional parameters for the method 'ListDay'
 type ListDayParams struct {
-	// How many resources to return in each list page. The default is 50, and the maximum is 1000.
+	// How many resources to return in each list page. The default is 50, and the maximum is 400.
 	PageSize *int `json:"PageSize,omitempty"`
 	// Max number of records to return.
 	Limit *int `json:"limit,omitempty"`

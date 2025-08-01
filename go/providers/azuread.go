@@ -10,6 +10,7 @@ import (
 
 type AzureAD struct {
 	*oauth2.Config
+
 	Tenant       string
 	ProfileURL   string
 	CustomParams map[string]string
@@ -68,6 +69,7 @@ func (a *AzureAD) GetProfile(
 	if email == "" {
 		email = userProfile.Prefer
 	}
+
 	if email == "" {
 		email = userProfile.UPN
 	}

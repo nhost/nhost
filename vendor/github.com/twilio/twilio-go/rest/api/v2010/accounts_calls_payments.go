@@ -42,7 +42,7 @@ type CreatePaymentsParams struct {
 	// A positive integer that is used to validate the length of the `PostalCode` inputted by the user. User must enter this many digits.
 	MinPostalCodeLength *int `json:"MinPostalCodeLength,omitempty"`
 	// A single-level JSON object used to pass custom parameters to payment processors. (Required for ACH payments). The information that has to be included here depends on the <Pay> Connector. [Read more](https://www.twilio.com/console/voice/pay-connectors).
-	Parameter *map[string]interface{} `json:"Parameter,omitempty"`
+	Parameter *interface{} `json:"Parameter,omitempty"`
 	// This is the unique name corresponding to the Pay Connector installed in the Twilio Add-ons. Learn more about [<Pay> Connectors](https://www.twilio.com/console/voice/pay-connectors). The default value is `Default`.
 	PaymentConnector *string `json:"PaymentConnector,omitempty"`
 	//
@@ -95,7 +95,7 @@ func (params *CreatePaymentsParams) SetMinPostalCodeLength(MinPostalCodeLength i
 	params.MinPostalCodeLength = &MinPostalCodeLength
 	return params
 }
-func (params *CreatePaymentsParams) SetParameter(Parameter map[string]interface{}) *CreatePaymentsParams {
+func (params *CreatePaymentsParams) SetParameter(Parameter interface{}) *CreatePaymentsParams {
 	params.Parameter = &Parameter
 	return params
 }

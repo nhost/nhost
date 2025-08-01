@@ -13,10 +13,11 @@ func (ctrl *Controller) ChangeUserEmail( //nolint:ireturn
 ) (api.ChangeUserEmailResponseObject, error) {
 	logger := middleware.LoggerFromContext(ctx)
 
-	options, apiErr := ctrl.wf.ValidateOptionsRedirectTo(request.Body.Options, logger)
+	options, apiErr := ctrl.wf.ValidateOptionsRedirectTo(ctx, request.Body.Options, logger)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}
+
 	request.Body.Options = options
 
 	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
@@ -28,8 +29,9 @@ func (ctrl *Controller) ChangeUserEmail( //nolint:ireturn
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}
+
 	if exists {
-		logger.Warn("email already exists")
+		logger.WarnContext(ctx, "email already exists")
 		return ctrl.sendError(ErrEmailAlreadyInUse), nil
 	}
 

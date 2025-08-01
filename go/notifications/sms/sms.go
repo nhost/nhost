@@ -23,6 +23,7 @@ func deptr[T any](v *T) T { //nolint:ireturn
 		var zero T
 		return zero
 	}
+
 	return *v
 }
 
@@ -60,13 +61,15 @@ func NewSMS(
 	}
 }
 
-func (s *SMS) SendVerificationCode(to string, locale string) (string, time.Time, error) {
+func (s *SMS) SendVerificationCode(
+	ctx context.Context, to string, locale string,
+) (string, time.Time, error) {
 	code, hash, err := s.otpGenerator()
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("error generating OTP: %w", err)
 	}
 
-	body, err := s.templates.RenderSMS(locale, notifications.TemplateSMSData{
+	body, err := s.templates.RenderSMS(ctx, locale, notifications.TemplateSMSData{
 		Code: code,
 	})
 	if err != nil {

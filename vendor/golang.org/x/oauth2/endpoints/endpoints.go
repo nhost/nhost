@@ -6,7 +6,7 @@
 package endpoints
 
 import (
-	"strings"
+	"net/url"
 
 	"golang.org/x/oauth2"
 )
@@ -15,6 +15,30 @@ import (
 var Amazon = oauth2.Endpoint{
 	AuthURL:  "https://www.amazon.com/ap/oa",
 	TokenURL: "https://api.amazon.com/auth/o2/token",
+}
+
+// Apple is the endpoint for "Sign in with Apple".
+//
+// Documentation: https://developer.apple.com/documentation/signinwithapplerestapi
+var Apple = oauth2.Endpoint{
+	AuthURL:  "https://appleid.apple.com/auth/authorize",
+	TokenURL: "https://appleid.apple.com/auth/token",
+}
+
+// Asana is the endpoint for Asana.
+//
+// Documentation: https://developers.asana.com/docs/oauth
+var Asana = oauth2.Endpoint{
+	AuthURL:  "https://app.asana.com/-/oauth_authorize",
+	TokenURL: "https://app.asana.com/-/oauth_token",
+}
+
+// Badgr is the endpoint for Canvas Badges.
+//
+// Documentation: https://community.canvaslms.com/t5/Canvas-Badges-Credentials/Developers-Build-an-app-that-integrates-with-the-Canvas-Badges/ta-p/528727
+var Badgr = oauth2.Endpoint{
+	AuthURL:  "https://badgr.com/auth/oauth2/authorize",
+	TokenURL: "https://api.badgr.io/o/token",
 }
 
 // Battlenet is the endpoint for Battlenet.
@@ -35,16 +59,44 @@ var Cern = oauth2.Endpoint{
 	TokenURL: "https://oauth.web.cern.ch/OAuth/Token",
 }
 
+// Coinbase is the endpoint for Coinbase.
+//
+// Documentation: https://docs.cdp.coinbase.com/coinbase-app/docs/coinbase-app-reference
+var Coinbase = oauth2.Endpoint{
+	AuthURL:  "https://login.coinbase.com/oauth2/auth",
+	TokenURL: "https://login.coinbase.com/oauth2/token",
+}
+
 // Discord is the endpoint for Discord.
+//
+// Documentation: https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-urls
 var Discord = oauth2.Endpoint{
 	AuthURL:  "https://discord.com/oauth2/authorize",
 	TokenURL: "https://discord.com/api/oauth2/token",
 }
 
+// Dropbox is the endpoint for Dropbox.
+//
+// Documentation: https://developers.dropbox.com/oauth-guide
+var Dropbox = oauth2.Endpoint{
+	AuthURL:  "https://www.dropbox.com/oauth2/authorize",
+	TokenURL: "https://api.dropboxapi.com/oauth2/token",
+}
+
+// Endpoint is Ebay's OAuth 2.0 endpoint.
+//
+// Documentation: https://developer.ebay.com/api-docs/static/authorization_guide_landing.html
+var Endpoint = oauth2.Endpoint{
+	AuthURL:  "https://auth.ebay.com/oauth2/authorize",
+	TokenURL: "https://api.ebay.com/identity/v1/oauth2/token",
+}
+
 // Facebook is the endpoint for Facebook.
+//
+// Documentation: https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow
 var Facebook = oauth2.Endpoint{
-	AuthURL:  "https://www.facebook.com/v3.2/dialog/oauth",
-	TokenURL: "https://graph.facebook.com/v3.2/oauth/access_token",
+	AuthURL:  "https://www.facebook.com/v22.0/dialog/oauth",
+	TokenURL: "https://graph.facebook.com/v22.0/oauth/access_token",
 }
 
 // Foursquare is the endpoint for Foursquare.
@@ -104,6 +156,14 @@ var KaKao = oauth2.Endpoint{
 	TokenURL: "https://kauth.kakao.com/oauth/token",
 }
 
+// Line is the endpoint for Line.
+//
+// Documentation: https://developers.line.biz/en/docs/line-login/integrate-line-login/
+var Line = oauth2.Endpoint{
+	AuthURL:  "https://access.line.me/oauth2/v2.1/authorize",
+	TokenURL: "https://api.line.me/oauth2/v2.1/token",
+}
+
 // LinkedIn is the endpoint for LinkedIn.
 var LinkedIn = oauth2.Endpoint{
 	AuthURL:  "https://www.linkedin.com/oauth/v2/authorization",
@@ -140,7 +200,17 @@ var Microsoft = oauth2.Endpoint{
 	TokenURL: "https://login.live.com/oauth20_token.srf",
 }
 
+// Naver is the endpoint for Naver.
+//
+// Documentation: https://developers.naver.com/docs/login/devguide/devguide.md
+var Naver = oauth2.Endpoint{
+	AuthURL:  "https://nid.naver.com/oauth2/authorize",
+	TokenURL: "https://nid.naver.com/oauth2/token",
+}
+
 // NokiaHealth is the endpoint for Nokia Health.
+//
+// Deprecated: Nokia Health is now Withings.
 var NokiaHealth = oauth2.Endpoint{
 	AuthURL:  "https://account.health.nokia.com/oauth2_user/authorize2",
 	TokenURL: "https://account.health.nokia.com/oauth2/token",
@@ -150,6 +220,14 @@ var NokiaHealth = oauth2.Endpoint{
 var Odnoklassniki = oauth2.Endpoint{
 	AuthURL:  "https://www.odnoklassniki.ru/oauth/authorize",
 	TokenURL: "https://api.odnoklassniki.ru/oauth/token.do",
+}
+
+// OpenStreetMap is the endpoint for OpenStreetMap.org.
+//
+// Documentation: https://wiki.openstreetmap.org/wiki/OAuth
+var OpenStreetMap = oauth2.Endpoint{
+	AuthURL:  "https://www.openstreetmap.org/oauth2/authorize",
+	TokenURL: "https://www.openstreetmap.org/oauth2/token",
 }
 
 // Patreon is the endpoint for Patreon.
@@ -170,10 +248,52 @@ var PayPalSandbox = oauth2.Endpoint{
 	TokenURL: "https://api.sandbox.paypal.com/v1/identity/openidconnect/tokenservice",
 }
 
+// Pinterest is the endpoint for Pinterest.
+//
+// Documentation: https://developers.pinterest.com/docs/getting-started/set-up-authentication-and-authorization/
+var Pinterest = oauth2.Endpoint{
+	AuthURL:  "https://www.pinterest.com/oauth",
+	TokenURL: "https://api.pinterest.com/v5/oauth/token",
+}
+
+// Pipedrive is the endpoint for Pipedrive.
+//
+// Documentation: https://developers.pipedrive.com/docs/api/v1/Oauth
+var Pipedrive = oauth2.Endpoint{
+	AuthURL:  "https://oauth.pipedrive.com/oauth/authorize",
+	TokenURL: "https://oauth.pipedrive.com/oauth/token",
+}
+
+// QQ is the endpoint for QQ.
+//
+// Documentation: https://wiki.connect.qq.com/%e5%bc%80%e5%8f%91%e6%94%bb%e7%95%a5_server-side
+var QQ = oauth2.Endpoint{
+	AuthURL:  "https://graph.qq.com/oauth2.0/authorize",
+	TokenURL: "https://graph.qq.com/oauth2.0/token",
+}
+
+// Rakuten is the endpoint for Rakuten.
+//
+// Documentation: https://webservice.rakuten.co.jp/documentation
+var Rakuten = oauth2.Endpoint{
+	AuthURL:  "https://app.rakuten.co.jp/services/authorize",
+	TokenURL: "https://app.rakuten.co.jp/services/token",
+}
+
 // Slack is the endpoint for Slack.
+//
+// Documentation: https://api.slack.com/authentication/oauth-v2
 var Slack = oauth2.Endpoint{
-	AuthURL:  "https://slack.com/oauth/authorize",
-	TokenURL: "https://slack.com/api/oauth.access",
+	AuthURL:  "https://slack.com/oauth/v2/authorize",
+	TokenURL: "https://slack.com/api/oauth.v2.access",
+}
+
+// Splitwise is the endpoint for Splitwise.
+//
+// Documentation: https://dev.splitwise.com/
+var Splitwise = oauth2.Endpoint{
+	AuthURL:  "https://www.splitwise.com/oauth/authorize",
+	TokenURL: "https://www.splitwise.com/oauth/token",
 }
 
 // Spotify is the endpoint for Spotify.
@@ -212,6 +332,22 @@ var Vk = oauth2.Endpoint{
 	TokenURL: "https://oauth.vk.com/access_token",
 }
 
+// Withings is the endpoint for Withings.
+//
+// Documentation: https://account.withings.com/oauth2_user/authorize2
+var Withings = oauth2.Endpoint{
+	AuthURL:  "https://account.withings.com/oauth2_user/authorize2",
+	TokenURL: "https://account.withings.com/oauth2/token",
+}
+
+// X is the endpoint for X (Twitter).
+//
+// Documentation: https://docs.x.com/resources/fundamentals/authentication/oauth-2-0/user-access-token
+var X = oauth2.Endpoint{
+	AuthURL:  "https://x.com/i/oauth2/authorize",
+	TokenURL: "https://api.x.com/2/oauth2/token",
+}
+
 // Yahoo is the endpoint for Yahoo.
 var Yahoo = oauth2.Endpoint{
 	AuthURL:  "https://api.login.yahoo.com/oauth2/request_auth",
@@ -230,6 +366,20 @@ var Zoom = oauth2.Endpoint{
 	TokenURL: "https://zoom.us/oauth/token",
 }
 
+// Asgardeo returns a new oauth2.Endpoint for the given tenant.
+//
+// Documentation: https://wso2.com/asgardeo/docs/guides/authentication/oidc/discover-oidc-configs/
+func AsgardeoEndpoint(tenant string) oauth2.Endpoint {
+	u := url.URL{
+		Scheme: "https",
+		Host:   "api.asgardeo.io",
+	}
+	return oauth2.Endpoint{
+		AuthURL:  u.JoinPath("t", tenant, "/oauth2/authorize").String(),
+		TokenURL: u.JoinPath("t", tenant, "/oauth2/token").String(),
+	}
+}
+
 // AzureAD returns a new oauth2.Endpoint for the given tenant at Azure Active Directory.
 // If tenant is empty, it uses the tenant called `common`.
 //
@@ -239,19 +389,29 @@ func AzureAD(tenant string) oauth2.Endpoint {
 	if tenant == "" {
 		tenant = "common"
 	}
+	u := url.URL{
+		Scheme: "https",
+		Host:   "login.microsoftonline.com",
+	}
 	return oauth2.Endpoint{
-		AuthURL:       "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/authorize",
-		TokenURL:      "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/token",
-		DeviceAuthURL: "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/devicecode",
+		AuthURL:       u.JoinPath(tenant, "/oauth2/v2.0/authorize").String(),
+		TokenURL:      u.JoinPath(tenant, "/oauth2/v2.0/token").String(),
+		DeviceAuthURL: u.JoinPath(tenant, "/oauth2/v2.0/devicecode").String(),
 	}
 }
 
-// HipChatServer returns a new oauth2.Endpoint for a HipChat Server instance
-// running on the given domain or host.
-func HipChatServer(host string) oauth2.Endpoint {
+// AzureADB2CEndpoint returns a new oauth2.Endpoint for the given tenant and policy at Azure Active Directory B2C.
+// policy is the Azure B2C User flow name Example: `B2C_1_SignUpSignIn`.
+//
+// Documentation: https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview#endpoints
+func AzureADB2CEndpoint(tenant string, policy string) oauth2.Endpoint {
+	u := url.URL{
+		Scheme: "https",
+		Host:   tenant + ".b2clogin.com",
+	}
 	return oauth2.Endpoint{
-		AuthURL:  "https://" + host + "/users/authorize",
-		TokenURL: "https://" + host + "/v2/oauth/token",
+		AuthURL:  u.JoinPath(tenant+".onmicrosoft.com", policy, "/oauth2/v2.0/authorize").String(),
+		TokenURL: u.JoinPath(tenant+".onmicrosoft.com", policy, "/oauth2/v2.0/token").String(),
 	}
 }
 
@@ -264,9 +424,42 @@ func HipChatServer(host string) oauth2.Endpoint {
 // https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-assign-domain.html
 // https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-userpools-server-contract-reference.html
 func AWSCognito(domain string) oauth2.Endpoint {
-	domain = strings.TrimRight(domain, "/")
+	u, err := url.Parse(domain)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		panic("endpoints: invalid domain" + domain)
+	}
 	return oauth2.Endpoint{
-		AuthURL:  domain + "/oauth2/authorize",
-		TokenURL: domain + "/oauth2/token",
+		AuthURL:  u.JoinPath("/oauth2/authorize").String(),
+		TokenURL: u.JoinPath("/oauth2/token").String(),
+	}
+}
+
+// HipChatServer returns a new oauth2.Endpoint for a HipChat Server instance.
+// host should be a hostname, without any scheme prefix.
+//
+// Documentation: https://developer.atlassian.com/server/hipchat/hipchat-rest-api-access-tokens/
+func HipChatServer(host string) oauth2.Endpoint {
+	u := url.URL{
+		Scheme: "https",
+		Host:   host,
+	}
+	return oauth2.Endpoint{
+		AuthURL:  u.JoinPath("/users/authorize").String(),
+		TokenURL: u.JoinPath("/v2/oauth/token").String(),
+	}
+}
+
+// Shopify returns a new oauth2.Endpoint for the supplied shop domain name.
+// host should be a hostname, without any scheme prefix.
+//
+// Documentation: https://shopify.dev/docs/apps/auth/oauth
+func Shopify(host string) oauth2.Endpoint {
+	u := url.URL{
+		Scheme: "https",
+		Host:   host,
+	}
+	return oauth2.Endpoint{
+		AuthURL:  u.JoinPath("/admin/oauth/authorize").String(),
+		TokenURL: u.JoinPath("/admin/oauth/access_token").String(),
 	}
 }

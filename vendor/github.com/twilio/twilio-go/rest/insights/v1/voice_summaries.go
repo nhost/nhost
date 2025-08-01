@@ -76,6 +76,14 @@ type ListCallSummariesParams struct {
 	VoiceIntegrityEnabled *bool `json:"VoiceIntegrityEnabled,omitempty"`
 	// A unique SID identifier of the Branded Call.
 	BrandedBundleSid *string `json:"BrandedBundleSid,omitempty"`
+	// Indicates whether the branded logo was displayed during the in_brand branded call. Possible values are true (logo was present) or false (logo was not present).
+	BrandedLogo *bool `json:"BrandedLogo,omitempty"`
+	// Indicates whether the Branded Call is in_band vs out_of_band.
+	BrandedType *string `json:"BrandedType,omitempty"`
+	// Specifies the user-defined purpose for the call, as provided during the setup of in_band branded calling.
+	BrandedUseCase *string `json:"BrandedUseCase,omitempty"`
+	// Specifies the user-defined reason for the call, which will be displayed to the end user on their mobile device during an in_band branded call.
+	BrandedCallReason *string `json:"BrandedCallReason,omitempty"`
 	// A unique SID identifier of the Voice Integrity Profile.
 	VoiceIntegrityBundleSid *string `json:"VoiceIntegrityBundleSid,omitempty"`
 	// A Voice Integrity Use Case . Is of type enum. One of 'abandoned_cart', 'appointment_reminders', 'appointment_scheduling', 'asset_management', 'automated_support', 'call_tracking', 'click_to_call', 'contact_tracing', 'contactless_delivery', 'customer_support', 'dating/social', 'delivery_notifications', 'distance_learning', 'emergency_notifications', 'employee_notifications', 'exam_proctoring', 'field_notifications', 'first_responder', 'fraud_alerts', 'group_messaging', 'identify_&_verification', 'intelligent_routing', 'lead_alerts', 'lead_distribution', 'lead_generation', 'lead_management', 'lead_nurturing', 'marketing_events', 'mass_alerts', 'meetings/collaboration', 'order_notifications', 'outbound_dialer', 'pharmacy', 'phone_system', 'purchase_confirmation', 'remote_appointments', 'rewards_program', 'self-service', 'service_alerts', 'shift_management', 'survey/research', 'telehealth', 'telemarketing', 'therapy_(individual+group)'.
@@ -198,6 +206,22 @@ func (params *ListCallSummariesParams) SetBrandedBundleSid(BrandedBundleSid stri
 	params.BrandedBundleSid = &BrandedBundleSid
 	return params
 }
+func (params *ListCallSummariesParams) SetBrandedLogo(BrandedLogo bool) *ListCallSummariesParams {
+	params.BrandedLogo = &BrandedLogo
+	return params
+}
+func (params *ListCallSummariesParams) SetBrandedType(BrandedType string) *ListCallSummariesParams {
+	params.BrandedType = &BrandedType
+	return params
+}
+func (params *ListCallSummariesParams) SetBrandedUseCase(BrandedUseCase string) *ListCallSummariesParams {
+	params.BrandedUseCase = &BrandedUseCase
+	return params
+}
+func (params *ListCallSummariesParams) SetBrandedCallReason(BrandedCallReason string) *ListCallSummariesParams {
+	params.BrandedCallReason = &BrandedCallReason
+	return params
+}
 func (params *ListCallSummariesParams) SetVoiceIntegrityBundleSid(VoiceIntegrityBundleSid string) *ListCallSummariesParams {
 	params.VoiceIntegrityBundleSid = &VoiceIntegrityBundleSid
 	return params
@@ -317,6 +341,18 @@ func (c *ApiService) PageCallSummaries(params *ListCallSummariesParams, pageToke
 	}
 	if params != nil && params.BrandedBundleSid != nil {
 		data.Set("BrandedBundleSid", *params.BrandedBundleSid)
+	}
+	if params != nil && params.BrandedLogo != nil {
+		data.Set("BrandedLogo", fmt.Sprint(*params.BrandedLogo))
+	}
+	if params != nil && params.BrandedType != nil {
+		data.Set("BrandedType", *params.BrandedType)
+	}
+	if params != nil && params.BrandedUseCase != nil {
+		data.Set("BrandedUseCase", *params.BrandedUseCase)
+	}
+	if params != nil && params.BrandedCallReason != nil {
+		data.Set("BrandedCallReason", *params.BrandedCallReason)
 	}
 	if params != nil && params.VoiceIntegrityBundleSid != nil {
 		data.Set("VoiceIntegrityBundleSid", *params.VoiceIntegrityBundleSid)

@@ -542,6 +542,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 					if last := p.Last(); last != nil {
 						return last.String() == ".Location"
 					}
+
 					return false
 				}, RegexpComparer()),
 			)

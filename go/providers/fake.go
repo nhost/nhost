@@ -52,7 +52,7 @@ func (f *FakeProvider) Exchange(
 			TokenType:   "Bearer",
 		}, nil
 	default:
-		return nil, errors.New("invalid code") //nolint:goerr113
+		return nil, errors.New("invalid code") //nolint:err113
 	}
 }
 
@@ -80,6 +80,6 @@ func (f *FakeProvider) GetProfile(
 			Picture:        "https://fake.com/images/profile/user2.jpg",
 		}, nil
 	default:
-		return oidc.Profile{}, errors.New("invalid access token") //nolint:goerr113
+		return oidc.Profile{}, errors.New("invalid access token") //nolint:err113
 	}
 }

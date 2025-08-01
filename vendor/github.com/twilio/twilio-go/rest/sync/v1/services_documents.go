@@ -28,7 +28,7 @@ type CreateDocumentParams struct {
 	// An application-defined string that uniquely identifies the Sync Document
 	UniqueName *string `json:"UniqueName,omitempty"`
 	// A JSON string that represents an arbitrary, schema-less object that the Sync Document stores. Can be up to 16 KiB in length.
-	Data *map[string]interface{} `json:"Data,omitempty"`
+	Data *interface{} `json:"Data,omitempty"`
 	// How long, [in seconds](https://www.twilio.com/docs/sync/limits#sync-payload-limits), before the Sync Document expires and is deleted (the Sync Document's time-to-live).
 	Ttl *int `json:"Ttl,omitempty"`
 }
@@ -37,7 +37,7 @@ func (params *CreateDocumentParams) SetUniqueName(UniqueName string) *CreateDocu
 	params.UniqueName = &UniqueName
 	return params
 }
-func (params *CreateDocumentParams) SetData(Data map[string]interface{}) *CreateDocumentParams {
+func (params *CreateDocumentParams) SetData(Data interface{}) *CreateDocumentParams {
 	params.Data = &Data
 	return params
 }
@@ -279,7 +279,7 @@ type UpdateDocumentParams struct {
 	// The If-Match HTTP request header
 	IfMatch *string `json:"If-Match,omitempty"`
 	// A JSON string that represents an arbitrary, schema-less object that the Sync Document stores. Can be up to 16 KiB in length.
-	Data *map[string]interface{} `json:"Data,omitempty"`
+	Data *interface{} `json:"Data,omitempty"`
 	// How long, [in seconds](https://www.twilio.com/docs/sync/limits#sync-payload-limits), before the Sync Document expires and is deleted (time-to-live).
 	Ttl *int `json:"Ttl,omitempty"`
 }
@@ -288,7 +288,7 @@ func (params *UpdateDocumentParams) SetIfMatch(IfMatch string) *UpdateDocumentPa
 	params.IfMatch = &IfMatch
 	return params
 }
-func (params *UpdateDocumentParams) SetData(Data map[string]interface{}) *UpdateDocumentParams {
+func (params *UpdateDocumentParams) SetData(Data interface{}) *UpdateDocumentParams {
 	params.Data = &Data
 	return params
 }

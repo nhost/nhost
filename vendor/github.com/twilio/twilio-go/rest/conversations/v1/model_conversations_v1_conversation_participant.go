@@ -31,7 +31,7 @@ type ConversationsV1ConversationParticipant struct {
 	// An optional string metadata field you can use to store any data you wish. The string value must contain structurally valid JSON if specified.  **Note** that if the attributes are not set \"{}\" will be returned.
 	Attributes *string `json:"attributes,omitempty"`
 	// Information about how this participant exchanges messages with the conversation. A JSON parameter consisting of type and address fields of the participant.
-	MessagingBinding *map[string]interface{} `json:"messaging_binding,omitempty"`
+	MessagingBinding *interface{} `json:"messaging_binding,omitempty"`
 	// The SID of a conversation-level [Role](https://www.twilio.com/docs/conversations/api/role-resource) to assign to the participant.
 	RoleSid *string `json:"role_sid,omitempty"`
 	// The date that this resource was created.

@@ -18,6 +18,7 @@ import (
 
 type testWebauhtnRequest struct {
 	testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]
+
 	savedChallenge controller.WebauthnChallenge
 }
 

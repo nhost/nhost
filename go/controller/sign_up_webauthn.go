@@ -10,27 +10,28 @@ import (
 )
 
 func (ctrl *Controller) postSignupWebauthnValidateRequest(
+	ctx context.Context,
 	request api.SignUpWebauthnRequestObject,
 	logger *slog.Logger,
 ) (*api.SignUpOptions, *APIError) {
 	if !ctrl.config.WebauthnEnabled {
-		logger.Error("webauthn is disabled")
+		logger.ErrorContext(ctx, "webauthn is disabled")
 		return nil, ErrDisabledEndpoint
 	}
 
 	if ctrl.config.DisableSignup {
-		logger.Error("signup is disabled")
+		logger.ErrorContext(ctx, "signup is disabled")
 		return nil, ErrSignupDisabled
 	}
 
 	options, apiErr := ctrl.wf.ValidateSignUpOptions(
-		request.Body.Options, string(request.Body.Email), logger,
+		ctx, request.Body.Options, string(request.Body.Email), logger,
 	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
-	if apiErr := ctrl.wf.ValidateSignupEmail(request.Body.Email, logger); apiErr != nil {
+	if apiErr := ctrl.wf.ValidateSignupEmail(ctx, request.Body.Email, logger); apiErr != nil {
 		return nil, apiErr
 	}
 
@@ -44,7 +45,7 @@ func (ctrl *Controller) SignUpWebauthn( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
-	options, apiErr := ctrl.postSignupWebauthnValidateRequest(request, logger)
+	options, apiErr := ctrl.postSignupWebauthnValidateRequest(ctx, request, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
@@ -57,7 +58,7 @@ func (ctrl *Controller) SignUpWebauthn( //nolint:ireturn
 		Discoverable: false,
 	}
 
-	creation, apiErr := ctrl.Webauthn.BeginRegistration(user, options, logger)
+	creation, apiErr := ctrl.Webauthn.BeginRegistration(ctx, user, options, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}

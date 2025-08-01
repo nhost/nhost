@@ -66,33 +66,39 @@ Class | Method | HTTP request | Description
 *RoomsRecordingsApi* | [**DeleteRoomRecording**](docs/RoomsRecordingsApi.md#deleteroomrecording) | **Delete** /v1/Rooms/{RoomSid}/Recordings/{Sid} | 
 *RoomsRecordingsApi* | [**FetchRoomRecording**](docs/RoomsRecordingsApi.md#fetchroomrecording) | **Get** /v1/Rooms/{RoomSid}/Recordings/{Sid} | 
 *RoomsRecordingsApi* | [**ListRoomRecording**](docs/RoomsRecordingsApi.md#listroomrecording) | **Get** /v1/Rooms/{RoomSid}/Recordings | 
+*RoomsTranscriptionsApi* | [**CreateRoomTranscriptions**](docs/RoomsTranscriptionsApi.md#createroomtranscriptions) | **Post** /v1/Rooms/{RoomSid}/Transcriptions | 
+*RoomsTranscriptionsApi* | [**FetchRoomTranscriptions**](docs/RoomsTranscriptionsApi.md#fetchroomtranscriptions) | **Get** /v1/Rooms/{RoomSid}/Transcriptions/{Ttid} | 
+*RoomsTranscriptionsApi* | [**ListRoomTranscriptions**](docs/RoomsTranscriptionsApi.md#listroomtranscriptions) | **Get** /v1/Rooms/{RoomSid}/Transcriptions | 
+*RoomsTranscriptionsApi* | [**UpdateRoomTranscriptions**](docs/RoomsTranscriptionsApi.md#updateroomtranscriptions) | **Post** /v1/Rooms/{RoomSid}/Transcriptions/{Ttid} | 
 
 
 ## Documentation For Models
 
- - [ListRoomParticipantResponse](docs/ListRoomParticipantResponse.md)
  - [VideoV1RoomRecording](docs/VideoV1RoomRecording.md)
- - [ListRoomParticipantPublishedTrackResponse](docs/ListRoomParticipantPublishedTrackResponse.md)
- - [VideoV1Composition](docs/VideoV1Composition.md)
- - [ListRoomRecordingResponse](docs/ListRoomRecordingResponse.md)
- - [VideoV1RoomRecordingRule](docs/VideoV1RoomRecordingRule.md)
  - [VideoV1RoomParticipant](docs/VideoV1RoomParticipant.md)
  - [VideoV1RoomParticipantPublishedTrack](docs/VideoV1RoomParticipantPublishedTrack.md)
- - [VideoV1RoomRoomRecordingRuleRules](docs/VideoV1RoomRoomRecordingRuleRules.md)
- - [ListRecordingResponse](docs/ListRecordingResponse.md)
- - [VideoV1Recording](docs/VideoV1Recording.md)
- - [VideoV1RoomParticipantSubscribedTrack](docs/VideoV1RoomParticipantSubscribedTrack.md)
- - [ListRoomResponse](docs/ListRoomResponse.md)
+ - [VideoV1RoomTranscriptions](docs/VideoV1RoomTranscriptions.md)
  - [VideoV1CompositionSettings](docs/VideoV1CompositionSettings.md)
  - [VideoV1RoomParticipantSubscribeRule](docs/VideoV1RoomParticipantSubscribeRule.md)
  - [VideoV1CompositionHook](docs/VideoV1CompositionHook.md)
  - [ListCompositionResponse](docs/ListCompositionResponse.md)
  - [VideoV1Room](docs/VideoV1Room.md)
+ - [ListRoomTranscriptionsResponse](docs/ListRoomTranscriptionsResponse.md)
+ - [ListRoomParticipantSubscribedTrackResponse](docs/ListRoomParticipantSubscribedTrackResponse.md)
+ - [ListRoomParticipantResponse](docs/ListRoomParticipantResponse.md)
+ - [ListRoomParticipantPublishedTrackResponse](docs/ListRoomParticipantPublishedTrackResponse.md)
+ - [VideoV1Composition](docs/VideoV1Composition.md)
+ - [ListRoomRecordingResponse](docs/ListRoomRecordingResponse.md)
+ - [VideoV1RoomRecordingRule](docs/VideoV1RoomRecordingRule.md)
+ - [VideoV1RoomRoomRecordingRuleRules](docs/VideoV1RoomRoomRecordingRuleRules.md)
+ - [ListRecordingResponse](docs/ListRecordingResponse.md)
+ - [VideoV1Recording](docs/VideoV1Recording.md)
+ - [VideoV1RoomParticipantSubscribedTrack](docs/VideoV1RoomParticipantSubscribedTrack.md)
+ - [ListRoomResponse](docs/ListRoomResponse.md)
  - [ListCompositionHookResponse](docs/ListCompositionHookResponse.md)
  - [VideoV1RoomRoomParticipantRoomParticipantSubscribeRuleRules](docs/VideoV1RoomRoomParticipantRoomParticipantSubscribeRuleRules.md)
  - [ListCompositionResponseMeta](docs/ListCompositionResponseMeta.md)
  - [VideoV1RoomParticipantAnonymize](docs/VideoV1RoomParticipantAnonymize.md)
- - [ListRoomParticipantSubscribedTrackResponse](docs/ListRoomParticipantSubscribedTrackResponse.md)
  - [VideoV1RecordingSettings](docs/VideoV1RecordingSettings.md)
 
 

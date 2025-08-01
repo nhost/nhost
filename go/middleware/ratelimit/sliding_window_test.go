@@ -13,7 +13,7 @@ func count(
 	t.Helper()
 
 	count := 0
-	if rl.Allow(key) {
+	if rl.Allow(t.Context(), key) {
 		count++
 	}
 
@@ -37,60 +37,96 @@ func TestSlidingWindow(t *testing.T) {
 	c += count(t, 4, rl, "key", now)
 	c += count(t, 5, rl, "key", now)
 	c += count(t, 6, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 7, rl, "key", now)
 	c += count(t, 7, rl, "key", now)
 	c += count(t, 7, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 8, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 9, rl, "key", now)
 	c += count(t, 9, rl, "key", now)
 	c += count(t, 9, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 10, rl, "key", now)
 	c += count(t, 10, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 11, rl, "key", now)
 	c += count(t, 11, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 12, rl, "key", now)
 	c += count(t, 12, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 13, rl, "key", now)
 	c += count(t, 13, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 14, rl, "key", now)
 	c += count(t, 14, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 15, rl, "key", now)
 	c += count(t, 15, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 16, rl, "key", now)
 	c += count(t, 16, rl, "key", now)
 	c += count(t, 16, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 17, rl, "key", now)
 	c += count(t, 17, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 18, rl, "key", now)
 	c += count(t, 18, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 19, rl, "key", now)
 	c += count(t, 19, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 20, rl, "key", now)
 	c += count(t, 20, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 21, rl, "key", now)
 	c += count(t, 21, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 22, rl, "key", now)
 	c += count(t, 22, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 23, rl, "key", now)
 	c += count(t, 23, rl, "key", now)
+
 	time.Sleep(time.Second / 5)
+
 	c += count(t, 24, rl, "key", now)
 	c += count(t, 24, rl, "key", now)
 

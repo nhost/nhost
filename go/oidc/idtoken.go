@@ -13,6 +13,7 @@ import (
 
 func GetClaim[T any](token *jwt.Token, claim string) (T, error) { //nolint:ireturn
 	var claimValue T
+
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return claimValue, ErrInvalidClaims
@@ -38,8 +39,10 @@ func NewIDTokenValidatorProviders(
 	parserOptions ...jwt.ParserOption,
 ) (*IDTokenValidatorProviders, error) {
 	var appleID *IDTokenValidator
+
 	if appleClientID != "" {
 		var err error
+
 		appleID, err = NewIDTokenValidator(
 			ctx,
 			api.IdTokenProviderApple,
@@ -51,8 +54,10 @@ func NewIDTokenValidatorProviders(
 	}
 
 	var google *IDTokenValidator
+
 	if googleClientID != "" {
 		var err error
+
 		google, err = NewIDTokenValidator(
 			ctx,
 			api.IdTokenProviderGoogle,
@@ -64,8 +69,10 @@ func NewIDTokenValidatorProviders(
 	}
 
 	var fakeProvider *IDTokenValidator
+
 	if fakeProviderAudience != "" {
 		var err error
+
 		fakeProvider, err = NewIDTokenValidator(
 			ctx, api.IdTokenProviderFake, fakeProviderAudience, parserOptions...,
 		)
@@ -101,6 +108,7 @@ func NewIDTokenValidator(
 	options ...jwt.ParserOption,
 ) (*IDTokenValidator, error) {
 	var provider Provider
+
 	switch providerName {
 	case api.IdTokenProviderApple:
 		provider = &Apple{}

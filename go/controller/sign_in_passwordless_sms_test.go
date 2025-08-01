@@ -24,6 +24,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 	getConfig := func() *controller.Config {
 		config := getConfig()
 		config.SMSPasswordlessEnabled = true
+
 		return config
 	}
 
@@ -96,6 +97,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockSMSer(ctrl)
 
 					mock.EXPECT().SendVerificationCode(
+						t.Context(),
 						"+1234567890",
 						"en",
 					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
@@ -235,6 +237,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockSMSer(ctrl)
 
 					mock.EXPECT().SendVerificationCode(
+						t.Context(),
 						"+1234567890",
 						"en",
 					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
@@ -352,6 +355,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockSMSer(ctrl)
 
 					mock.EXPECT().SendVerificationCode(
+						t.Context(),
 						"+1234567890",
 						"fr",
 					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
@@ -396,6 +400,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockSMSer(ctrl)
 
 					mock.EXPECT().SendVerificationCode(
+						t.Context(),
 						"+1234567890",
 						"en",
 					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
@@ -480,6 +485,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockSMSer(ctrl)
 
 					mock.EXPECT().SendVerificationCode(
+						t.Context(),
 						"+1234567890",
 						"en",
 					).Return("hashedOTP", time.Now().Add(time.Minute*5), nil)
@@ -597,6 +603,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockSMSer(ctrl)
 
 					mock.EXPECT().SendVerificationCode(
+						t.Context(),
 						"+1234567890",
 						"en",
 					).Return("", time.Time{}, errors.New("SMS service error")) //nolint:err113

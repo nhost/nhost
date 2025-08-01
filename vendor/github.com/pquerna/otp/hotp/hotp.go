@@ -57,6 +57,8 @@ type ValidateOpts struct {
 	Digits otp.Digits
 	// Algorithm to use for HMAC. Defaults to SHA1.
 	Algorithm otp.Algorithm
+	// Encoder to use for output code.
+	Encoder otp.Encoder
 }
 
 // GenerateCode creates a HOTP passcode given a counter and secret.
@@ -112,15 +114,34 @@ func GenerateCodeCustom(secret string, counter uint64, opts ValidateOpts) (passc
 		(int(sum[offset+3]) & 0xff))
 
 	l := opts.Digits.Length()
-	mod := int32(value % int64(math.Pow10(l)))
+	switch opts.Encoder {
+	case otp.EncoderDefault:
+		mod := int32(value % int64(math.Pow10(l)))
 
-	if debug {
-		fmt.Printf("offset=%v\n", offset)
-		fmt.Printf("value=%v\n", value)
-		fmt.Printf("mod'ed=%v\n", mod)
+		if debug {
+			fmt.Printf("offset=%v\n", offset)
+			fmt.Printf("value=%v\n", value)
+			fmt.Printf("mod'ed=%v\n", mod)
+		}
+		passcode = opts.Digits.Format(mod)
+	case otp.EncoderSteam:
+		// Define the character set used by Steam Guard codes.
+		alphabet := []byte{
+			'2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C',
+			'D', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q',
+			'R', 'T', 'V', 'W', 'X', 'Y',
+		}
+		radix := int64(len(alphabet))
+
+		for i := 0; i < l; i++ {
+			digit := value % radix
+			value /= radix
+			c := alphabet[digit]
+			passcode += string(c)
+		}
 	}
 
-	return opts.Digits.Format(mod), nil
+	return
 }
 
 // ValidateCustom validates an HOTP with customizable options. Most users should
@@ -194,7 +215,7 @@ func Generate(opts GenerateOpts) (*otp.Key, error) {
 		v.Set("secret", b32NoPadding.EncodeToString(opts.Secret))
 	} else {
 		secret := make([]byte, opts.SecretSize)
-		_, err := opts.Rand.Read(secret)
+		_, err := io.ReadFull(opts.Rand, secret)
 		if err != nil {
 			return nil, err
 		}

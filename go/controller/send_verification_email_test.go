@@ -386,7 +386,7 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, errors.New("error")) //nolint:exhaustruct,goerr113
+				).Return(sql.AuthUser{}, errors.New("error")) //nolint:exhaustruct,err113
 
 				return mock
 			},

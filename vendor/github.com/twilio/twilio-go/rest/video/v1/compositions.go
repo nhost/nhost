@@ -29,7 +29,7 @@ type CreateCompositionParams struct {
 	// The SID of the Group Room with the media tracks to be used as composition sources.
 	RoomSid *string `json:"RoomSid,omitempty"`
 	// An object that describes the video layout of the composition in terms of regions. See [Specifying Video Layouts](https://www.twilio.com/docs/video/api/compositions-resource#specifying-video-layouts) for more info. Please, be aware that either video_layout or audio_sources have to be provided to get a valid creation request
-	VideoLayout *map[string]interface{} `json:"VideoLayout,omitempty"`
+	VideoLayout *interface{} `json:"VideoLayout,omitempty"`
 	// An array of track names from the same group room to merge into the new composition. Can include zero or more track names. The new composition includes all audio sources specified in `audio_sources` except for those specified in `audio_sources_excluded`. The track names in this parameter can include an asterisk as a wild card character, which will match zero or more characters in a track name. For example, `student*` includes `student` as well as `studentTeam`. Please, be aware that either video_layout or audio_sources have to be provided to get a valid creation request
 	AudioSources *[]string `json:"AudioSources,omitempty"`
 	// An array of track names to exclude. The new composition includes all audio sources specified in `audio_sources` except for those specified in `audio_sources_excluded`. The track names in this parameter can include an asterisk as a wild card character, which will match zero or more characters in a track name. For example, `student*` excludes `student` as well as `studentTeam`. This parameter can also be empty.
@@ -50,7 +50,7 @@ func (params *CreateCompositionParams) SetRoomSid(RoomSid string) *CreateComposi
 	params.RoomSid = &RoomSid
 	return params
 }
-func (params *CreateCompositionParams) SetVideoLayout(VideoLayout map[string]interface{}) *CreateCompositionParams {
+func (params *CreateCompositionParams) SetVideoLayout(VideoLayout interface{}) *CreateCompositionParams {
 	params.VideoLayout = &VideoLayout
 	return params
 }

@@ -306,6 +306,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
                   },
                   "Options": null
             }`)
+
 			var sessionData controller.WebauthnChallenge
 			if err := json.Unmarshal(b, &sessionData); err != nil {
 				t.Fatal(err)

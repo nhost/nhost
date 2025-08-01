@@ -43,6 +43,7 @@ func testToken(t *testing.T, nonce string) string {
 	}
 
 	provider := oidc.FakeProvider{}
+
 	token, err := provider.GenerateTestIDToken(claims)
 	if err != nil {
 		t.Fatalf("failed to generate test ID token: %v", err)
@@ -82,6 +83,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 	getConfig := func() *controller.Config {
 		config := getConfig()
 		config.EmailPasswordlessEnabled = true
+
 		return config
 	}
 
@@ -314,7 +316,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					},
 				).Return(
 					sql.AuthUserProvider{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "user_providers_provider_id_provider_user_id_key" (SQLSTATE 23505)`), //nolint:goerr113,lll
+					errors.New(`ERROR: duplicate key value violates unique constraint "user_providers_provider_id_provider_user_id_key" (SQLSTATE 23505)`), //nolint:err113,lll
 				)
 
 				return mock

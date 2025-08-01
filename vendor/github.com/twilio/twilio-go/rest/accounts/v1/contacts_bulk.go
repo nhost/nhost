@@ -22,10 +22,10 @@ import (
 // Optional parameters for the method 'CreateBulkContacts'
 type CreateBulkContactsParams struct {
 	// A list of objects where each object represents a contact's details. Each object includes the following fields: `contact_id`, which must be a string representing phone number in [E.164 format](https://www.twilio.com/docs/glossary/what-e164); `correlation_id`, a unique 32-character UUID that maps the response to the original request; `country_iso_code`, a string representing the country using the ISO format (e.g., US for the United States); and `zip_code`, a string representing the postal code.
-	Items *[]map[string]interface{} `json:"Items,omitempty"`
+	Items *[]interface{} `json:"Items,omitempty"`
 }
 
-func (params *CreateBulkContactsParams) SetItems(Items []map[string]interface{}) *CreateBulkContactsParams {
+func (params *CreateBulkContactsParams) SetItems(Items []interface{}) *CreateBulkContactsParams {
 	params.Items = &Items
 	return params
 }

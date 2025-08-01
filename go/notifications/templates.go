@@ -1,6 +1,7 @@
 package notifications
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -80,12 +81,14 @@ func (t *Templates) GetTemplate(
 	*fasttemplate.Template, *fasttemplate.Template, error,
 ) {
 	path := filepath.Join(locale, string(templateName), "body.html")
+
 	template, ok := t.templates[path]
 	if !ok {
 		return nil, nil, ErrTemplateNotFound
 	}
 
 	path = filepath.Join(locale, string(templateName), "subject.txt")
+
 	subject, ok := t.templates[path]
 	if !ok {
 		return nil, nil, ErrTemplateNotFound
@@ -96,10 +99,12 @@ func (t *Templates) GetTemplate(
 
 func (t *Templates) GetTemplateSMS(locale string) (*fasttemplate.Template, error) {
 	path := filepath.Join(locale, "signin-passwordless-sms", "body.txt")
+
 	template, ok := t.templates[path]
 	if !ok {
 		return nil, ErrTemplateNotFound
 	}
+
 	return template, nil
 }
 
@@ -134,18 +139,20 @@ func (data TemplateData) ToMap(extra map[string]any) map[string]any {
 }
 
 func (t *Templates) Render(
+	ctx context.Context,
 	locale string,
 	templateName TemplateName,
 	data TemplateData,
 ) (string, string, error) {
 	bodyTemplate, subjectTemplate, err := t.GetTemplate(templateName, locale)
 	if errors.Is(err, ErrTemplateNotFound) {
-		t.logger.Warn("template not found, falling back to default locale",
+		t.logger.WarnContext(ctx, "template not found, falling back to default locale",
 			slog.String("template", string(templateName)),
 			slog.String("locale", locale))
 		locale = t.defaultLocale
 		bodyTemplate, subjectTemplate, err = t.GetTemplate("email-verify", locale)
 	}
+
 	if err != nil {
 		return "", "", fmt.Errorf("error getting email template: %w", err)
 	}
@@ -153,6 +160,7 @@ func (t *Templates) Render(
 	m := data.ToMap(map[string]any{"locale": locale})
 	body := bodyTemplate.ExecuteString(m)
 	subject := subjectTemplate.ExecuteString(m)
+
 	return body, subject, nil
 }
 
@@ -167,21 +175,25 @@ func (data TemplateSMSData) ToMap() map[string]any {
 }
 
 func (t *Templates) RenderSMS(
+	ctx context.Context,
 	locale string,
 	data TemplateSMSData,
 ) (string, error) {
 	bodyTemplate, err := t.GetTemplateSMS(locale)
 	if errors.Is(err, ErrTemplateNotFound) {
-		t.logger.Warn("signin-passwordless-sms template not found, falling back to default locale",
+		t.logger.WarnContext(ctx,
+			"signin-passwordless-sms template not found, falling back to default locale",
 			slog.String("locale", locale))
 		locale = t.defaultLocale
 		bodyTemplate, err = t.GetTemplateSMS(locale)
 	}
+
 	if err != nil {
 		return "", fmt.Errorf("error getting email template: %w", err)
 	}
 
 	m := data.ToMap()
 	body := bodyTemplate.ExecuteString(m)
+
 	return body, nil
 }

@@ -18,6 +18,7 @@ func WithHeaders(headers map[string]string) RequestInterceptor {
 		for key, value := range headers {
 			req.Header.Set(key, value)
 		}
+
 		return nil
 	}
 }
@@ -47,6 +48,7 @@ func fetchOAuthProfile(
 	client := &http.Client{ //nolint:exhaustruct
 		Timeout: fetchProfileTimeout,
 	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("error making API request: %w", err)
@@ -55,7 +57,8 @@ func fetchOAuthProfile(
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf( //nolint:goerr113
+
+		return fmt.Errorf( //nolint:err113
 			"API error (status %d): %s", resp.StatusCode, string(body))
 	}
 

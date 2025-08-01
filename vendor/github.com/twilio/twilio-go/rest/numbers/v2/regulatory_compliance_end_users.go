@@ -30,7 +30,7 @@ type CreateEndUserParams struct {
 	//
 	Type *string `json:"Type,omitempty"`
 	// The set of parameters that are the attributes of the End User resource which are derived End User Types.
-	Attributes *map[string]interface{} `json:"Attributes,omitempty"`
+	Attributes *interface{} `json:"Attributes,omitempty"`
 }
 
 func (params *CreateEndUserParams) SetFriendlyName(FriendlyName string) *CreateEndUserParams {
@@ -41,7 +41,7 @@ func (params *CreateEndUserParams) SetType(Type string) *CreateEndUserParams {
 	params.Type = &Type
 	return params
 }
-func (params *CreateEndUserParams) SetAttributes(Attributes map[string]interface{}) *CreateEndUserParams {
+func (params *CreateEndUserParams) SetAttributes(Attributes interface{}) *CreateEndUserParams {
 	params.Attributes = &Attributes
 	return params
 }
@@ -274,14 +274,14 @@ type UpdateEndUserParams struct {
 	// The string that you assigned to describe the resource.
 	FriendlyName *string `json:"FriendlyName,omitempty"`
 	// The set of parameters that are the attributes of the End User resource which are derived End User Types.
-	Attributes *map[string]interface{} `json:"Attributes,omitempty"`
+	Attributes *interface{} `json:"Attributes,omitempty"`
 }
 
 func (params *UpdateEndUserParams) SetFriendlyName(FriendlyName string) *UpdateEndUserParams {
 	params.FriendlyName = &FriendlyName
 	return params
 }
-func (params *UpdateEndUserParams) SetAttributes(Attributes map[string]interface{}) *UpdateEndUserParams {
+func (params *UpdateEndUserParams) SetAttributes(Attributes interface{}) *UpdateEndUserParams {
 	params.Attributes = &Attributes
 	return params
 }

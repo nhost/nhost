@@ -28,7 +28,7 @@ type SupersimV1SettingsUpdate struct {
 	SimSid *string `json:"sim_sid,omitempty"`
 	Status *string `json:"status,omitempty"`
 	// Array containing the different Settings Packages that will be applied to the SIM after the update completes. Each object within the array indicates the name and the version of the Settings Package that will be on the SIM if the update is successful.
-	Packages *[]map[string]interface{} `json:"packages,omitempty"`
+	Packages *[]interface{} `json:"packages,omitempty"`
 	// The time, given in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format, when the update successfully completed and the new settings were applied to the SIM.
 	DateCompleted *time.Time `json:"date_completed,omitempty"`
 	// The date that this Settings Update was created, given in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format.

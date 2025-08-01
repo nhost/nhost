@@ -133,6 +133,7 @@ func TestSignInProvider(t *testing.T) {
 					if last := p.Last(); last != nil {
 						return last.String() == ".Location" || last.String() == ".SetCookie"
 					}
+
 					return false
 				}, RegexpComparer()),
 			)

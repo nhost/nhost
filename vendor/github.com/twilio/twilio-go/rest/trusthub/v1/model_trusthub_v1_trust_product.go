@@ -44,5 +44,5 @@ type TrusthubV1TrustProduct struct {
 	// The URLs of the Assigned Items of the Trust Product resource.
 	Links *map[string]interface{} `json:"links,omitempty"`
 	// The error codes associated with the rejection of the Trust Product.
-	Errors *[]map[string]interface{} `json:"errors,omitempty"`
+	Errors *[]interface{} `json:"errors,omitempty"`
 }

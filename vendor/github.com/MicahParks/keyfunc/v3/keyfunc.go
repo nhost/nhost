@@ -6,9 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
+	"time"
 
 	"github.com/MicahParks/jwkset"
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/time/rate"
 )
 
 var (
@@ -29,6 +32,21 @@ type Options struct {
 	Ctx          context.Context
 	Storage      jwkset.Storage
 	UseWhitelist []jwkset.USE
+}
+
+// Override is used to change specific default behaviors.
+type Override struct {
+	// RateLimitWaitMax is from https://pkg.go.dev/github.com/MicahParks/jwkset#HTTPClientOptions
+	RateLimitWaitMax time.Duration
+	// RefreshErrorHandlerFunc is a function that accepts the URL of the remote JWK Set storage and returns the
+	// RefreshErrorHandler from https://pkg.go.dev/github.com/MicahParks/jwkset#HTTPClientStorageOptions
+	RefreshErrorHandlerFunc func(u string) func(ctx context.Context, err error)
+	// RefreshInterval is from https://pkg.go.dev/github.com/MicahParks/jwkset#HTTPClientStorageOptions
+	RefreshInterval time.Duration
+	// RefreshUnknownKID is from https://pkg.go.dev/github.com/MicahParks/jwkset#HTTPClientOptions
+	RefreshUnknownKID *rate.Limiter
+	// ValidationSkipAll is copied to SkipAll in https://pkg.go.dev/github.com/MicahParks/jwkset#JWKValidateOptions
+	ValidationSkipAll bool
 }
 
 type keyfunc struct {
@@ -72,6 +90,69 @@ func NewDefaultCtx(ctx context.Context, urls []string) (Keyfunc, error) {
 	}
 	options := Options{
 		Storage: client,
+	}
+	return New(options)
+}
+
+// NewDefaultOverrideCtx creates a new Keyfunc with a default JWK Set storage and options. The context is used to end
+// the "refresh goroutine". The override parameter is used to change specific default behaviors.
+//
+// This will launch "refresh goroutine" to automatically refresh remote HTTP resources.
+func NewDefaultOverrideCtx(ctx context.Context, urls []string, override Override) (Keyfunc, error) {
+	rateLimitWaitMax := time.Minute
+	if override.RateLimitWaitMax != 0 {
+		rateLimitWaitMax = override.RateLimitWaitMax
+	}
+	refreshErrorHandler := func(u string) func(ctx context.Context, err error) {
+		return func(ctx context.Context, err error) {
+			slog.Default().ErrorContext(ctx, "Failed to refresh HTTP JWK Set from remote HTTP resource.",
+				"error", err,
+				"url", u,
+			)
+		}
+	}
+	if override.RefreshErrorHandlerFunc != nil {
+		refreshErrorHandler = override.RefreshErrorHandlerFunc
+	}
+	refreshInterval := time.Hour
+	if override.RefreshInterval > 0 {
+		refreshInterval = override.RefreshInterval
+	}
+	refreshUnknownKID := rate.NewLimiter(rate.Every(5*time.Minute), 1)
+	if override.RefreshUnknownKID != nil {
+		refreshUnknownKID = override.RefreshUnknownKID
+	}
+
+	clientOptions := jwkset.HTTPClientOptions{
+		HTTPURLs:          make(map[string]jwkset.Storage),
+		RateLimitWaitMax:  rateLimitWaitMax,
+		RefreshUnknownKID: refreshUnknownKID,
+	}
+	for _, u := range urls {
+		errorHandler := refreshErrorHandler(u)
+		options := jwkset.HTTPClientStorageOptions{
+			Ctx:                       ctx,
+			NoErrorReturnFirstHTTPReq: true,
+			RefreshErrorHandler:       errorHandler,
+			RefreshInterval:           refreshInterval,
+			ValidateOptions: jwkset.JWKValidateOptions{
+				SkipAll: override.ValidationSkipAll,
+			},
+		}
+		c, err := jwkset.NewStorageFromHTTP(u, options)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create HTTP client storage for %q: %w", u, errors.Join(err, jwkset.ErrNewClient))
+		}
+		clientOptions.HTTPURLs[u] = c
+	}
+	storage, err := jwkset.NewHTTPClient(clientOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP client storage: %w", errors.Join(err, jwkset.ErrNewClient))
+	}
+	options := Options{
+		Ctx:          ctx,
+		Storage:      storage,
+		UseWhitelist: nil,
 	}
 	return New(options)
 }

@@ -49,7 +49,7 @@ type ChatV2Message struct {
 	// The Message type. Can be: `text` or `media`.
 	Type *string `json:"type,omitempty"`
 	// An object that describes the Message's media, if the message contains media. The object contains these fields: `content_type` with the MIME type of the media, `filename` with the name of the media, `sid` with the SID of the Media resource, and `size` with the media object's file size in bytes. If the Message has no media, this value is `null`.
-	Media *map[string]interface{} `json:"media,omitempty"`
+	Media *interface{} `json:"media,omitempty"`
 	// The absolute URL of the Message resource.
 	Url *string `json:"url,omitempty"`
 }

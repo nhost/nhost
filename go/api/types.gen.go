@@ -598,7 +598,7 @@ type SignInWebauthnVerifyRequest struct {
 	Credential CredentialAssertionResponse `json:"credential"`
 
 	// Email A valid email. Deprecated, no longer used
-	// Deprecated:
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	Email *openapi_types.Email `json:"email,omitempty"`
 }
 
@@ -709,7 +709,7 @@ type User struct {
 // UserDeanonymizeRequest defines model for UserDeanonymizeRequest.
 type UserDeanonymizeRequest struct {
 	// Connection Deprecated, will be ignored
-	// Deprecated:
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	Connection *string `json:"connection,omitempty"`
 
 	// Email A valid email

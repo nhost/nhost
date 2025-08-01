@@ -17,14 +17,13 @@ func (ctrl *Controller) VerifySignInOTPEmail( //nolint:ireturn
 
 	user, apiErr := ctrl.wf.GetUserByEmailAndTicket(
 		ctx, string(request.Body.Email), request.Body.Otp, logger)
-
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}
 
 	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)
 	if err != nil {
-		logger.Error("error getting new session", logError(err))
+		logger.ErrorContext(ctx, "error getting new session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 

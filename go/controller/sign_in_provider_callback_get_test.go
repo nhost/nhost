@@ -964,7 +964,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					},
 				).Return(
 					sql.AuthUserProvider{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "user_providers_provider_id_provider_user_id_key" (SQLSTATE 23505)`), //nolint:lll,goerr113
+					errors.New(`ERROR: duplicate key value violates unique constraint "user_providers_provider_id_provider_user_id_key" (SQLSTATE 23505)`), //nolint:lll,err113
 				)
 
 				return mock
@@ -1209,6 +1209,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					if last := p.Last(); last != nil {
 						return last.String() == ".Location" //nolint:goconst
 					}
+
 					return false
 				}, RegexpComparer()),
 			)

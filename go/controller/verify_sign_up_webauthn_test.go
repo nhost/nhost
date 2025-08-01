@@ -562,7 +562,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 						Nickname: pgtype.Text{}, //nolint:exhaustruct
 					}),
 				).Return(sql.InsertUserWithSecurityKeyAndRefreshTokenRow{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:goerr113,lll
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:err113,lll
 				)
 
 				return mock

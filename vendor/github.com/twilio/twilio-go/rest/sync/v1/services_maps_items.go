@@ -28,7 +28,7 @@ type CreateSyncMapItemParams struct {
 	// The unique, user-defined key for the Map Item. Can be up to 320 characters long.
 	Key *string `json:"Key,omitempty"`
 	// A JSON string that represents an arbitrary, schema-less object that the Map Item stores. Can be up to 16 KiB in length.
-	Data *map[string]interface{} `json:"Data,omitempty"`
+	Data *interface{} `json:"Data,omitempty"`
 	// An alias for `item_ttl`. If both parameters are provided, this value is ignored.
 	Ttl *int `json:"Ttl,omitempty"`
 	// How long, [in seconds](https://www.twilio.com/docs/sync/limits#sync-payload-limits), before the Map Item expires (time-to-live) and is deleted.
@@ -41,7 +41,7 @@ func (params *CreateSyncMapItemParams) SetKey(Key string) *CreateSyncMapItemPara
 	params.Key = &Key
 	return params
 }
-func (params *CreateSyncMapItemParams) SetData(Data map[string]interface{}) *CreateSyncMapItemParams {
+func (params *CreateSyncMapItemParams) SetData(Data interface{}) *CreateSyncMapItemParams {
 	params.Data = &Data
 	return params
 }
@@ -342,7 +342,7 @@ type UpdateSyncMapItemParams struct {
 	// If provided, applies this mutation if (and only if) the “revision” field of this [map item] matches the provided value. This matches the semantics of (and is implemented with) the HTTP [If-Match header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match).
 	IfMatch *string `json:"If-Match,omitempty"`
 	// A JSON string that represents an arbitrary, schema-less object that the Map Item stores. Can be up to 16 KiB in length.
-	Data *map[string]interface{} `json:"Data,omitempty"`
+	Data *interface{} `json:"Data,omitempty"`
 	// An alias for `item_ttl`. If both parameters are provided, this value is ignored.
 	Ttl *int `json:"Ttl,omitempty"`
 	// How long, [in seconds](https://www.twilio.com/docs/sync/limits#sync-payload-limits), before the Map Item expires (time-to-live) and is deleted.
@@ -355,7 +355,7 @@ func (params *UpdateSyncMapItemParams) SetIfMatch(IfMatch string) *UpdateSyncMap
 	params.IfMatch = &IfMatch
 	return params
 }
-func (params *UpdateSyncMapItemParams) SetData(Data map[string]interface{}) *UpdateSyncMapItemParams {
+func (params *UpdateSyncMapItemParams) SetData(Data interface{}) *UpdateSyncMapItemParams {
 	params.Data = &Data
 	return params
 }

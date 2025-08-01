@@ -23,7 +23,7 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 	// Get user roles
 	userRoles, err := ctrl.wf.db.GetUserRoles(ctx, user.ID)
 	if err != nil {
-		logger.Error("error getting user roles", logError(err))
+		logger.ErrorContext(ctx, "error getting user roles", logError(err))
 		return nil, ErrInternalServerError
 	}
 
@@ -36,7 +36,8 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 	// Parse metadata from JSON bytes
 	var metadata map[string]any
 	if err := json.Unmarshal(user.Metadata, &metadata); err != nil {
-		logger.Error("error parsing user metadata", logError(err))
+		logger.ErrorContext(ctx, "error parsing user metadata", logError(err))
+
 		metadata = map[string]any{}
 	}
 
