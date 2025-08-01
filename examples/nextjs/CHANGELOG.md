@@ -1,5 +1,16 @@
 # @nhost-examples/nextjs
 
+## 0.5.0
+
+### Minor Changes
+
+- b8cb491: fix: update dependencies to fix vulnerabilities
+
+### Patch Changes
+
+- Updated dependencies [b8cb491]
+  - @nhost/nextjs@2.3.0
+
 ## 0.4.9
 
 ### Patch Changes
