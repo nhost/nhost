@@ -4,10 +4,20 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Button } from '@/components/ui/v3/button';
 import { SignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey';
 import { SignInWithGithub } from '@/features/auth/SignIn/SignInWithGithub';
+import { useAuth } from '@/providers/Auth';
 import NextLink from 'next/link';
-import type { ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 
 export default function SigninPage() {
+  const { isSigningOut, clearIsSigningOut } = useAuth();
+
+  useEffect(() => {
+    if (isSigningOut) {
+      clearIsSigningOut();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="grid gap-12 font-[Inter]">
       <div className="text-center">
@@ -30,6 +40,7 @@ export default function SigninPage() {
           <Divider className="!my-2" />
         </div>
         <Button
+          asChild
           variant="ghost"
           className="!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10"
         >

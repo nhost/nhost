@@ -9,6 +9,7 @@ export type AuthContextType = {
   signout: () => Promise<void>;
   isSigningOut: boolean;
   updateSession: (newSession: Session | null) => void;
+  clearIsSigningOut: () => void;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -19,4 +20,5 @@ export const AuthContext = createContext<AuthContextType>({
   isSigningOut: false,
   signout: async () => {},
   updateSession: () => {},
+  clearIsSigningOut: () => {},
 });
