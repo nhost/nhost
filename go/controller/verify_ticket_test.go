@@ -526,6 +526,37 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 			jwtTokenFn:        nil,
 			getControllerOpts: nil,
 		},
+
+		{
+			name: "wrong redirect URL",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.RequireEmailVerification = true
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.VerifyTicketRequestObject{
+				Params: api.VerifyTicketParams{
+					Ticket:     "passwordReset:123",
+					RedirectTo: "http://evil.com:3000/redirect",
+					Type:       nil,
+				},
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct {
+					Location string
+				}{
+					Location: `http://localhost:3000?error=redirectTo-not-allowed&errorDescription=The+value+of+%22options.redirectTo%22+is+not+allowed.`, //nolint:lll
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
 	}
 
 	for _, tc := range cases {

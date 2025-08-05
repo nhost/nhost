@@ -109,7 +109,7 @@ func (ctrl *Controller) getVerifyValidateRequest(
 
 	_, apiErr := ctrl.wf.ValidateOptionsRedirectTo(ctx, options, logger)
 	if apiErr != nil {
-		return sql.AuthUser{}, "", redirectTo, apiErr
+		return sql.AuthUser{}, "", ctrl.config.ClientURL, apiErr
 	}
 
 	ticketType, apiErr := getTicketType(ctx, req.Params.Ticket, logger)
