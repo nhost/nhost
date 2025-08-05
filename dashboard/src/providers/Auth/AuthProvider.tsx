@@ -22,6 +22,7 @@ function AuthProvider({ children }: PropsWithChildren) {
   const { refreshToken, ...remainingQuery } = query;
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const removeSessionIdFromQuery = useCallback(() => {
     replace({ pathname, query: remainingQuery }, undefined, {
@@ -51,6 +52,8 @@ function AuthProvider({ children }: PropsWithChildren) {
         return;
       }
       setIsLoading(true);
+      // reset state if we have just signed out
+      setIsSigningOut(false);
       if (refreshToken && typeof refreshToken === 'string') {
         const sessionResponse = await nhost.auth.refreshToken({
           refreshToken,
@@ -74,8 +77,10 @@ function AuthProvider({ children }: PropsWithChildren) {
       session,
       isAuthenticated: !!session,
       isLoading,
+      isSigningOut,
       signout: async () => {
         setSession(null);
+        setIsSigningOut(true);
         nhost.auth.signOut({
           refreshToken: session.refreshToken,
         });

@@ -7,6 +7,7 @@ export type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
   signout: () => Promise<void>;
+  isSigningOut: boolean;
   updateSession: (newSession: Session | null) => void;
 };
 
@@ -15,6 +16,7 @@ export const AuthContext = createContext<AuthContextType>({
   session: null,
   isAuthenticated: false,
   isLoading: true,
+  isSigningOut: false,
   signout: async () => {},
   updateSession: () => {},
 });

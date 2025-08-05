@@ -83,7 +83,7 @@ describe('PointInTimeBackupInfo', () => {
     await waitFor(() =>
       render(<PointInTimeBackupInfo appId={mockApplication.id} />),
     );
-    const earliestBackup = await screen.getByTestId('EarliestBackupDateTime');
+    const earliestBackup = screen.getByTestId('EarliestBackupDateTime');
     expect(earliestBackup).toHaveTextContent(
       '10 Mar 2025, 05:00:05 (UTC+02:00)',
     );
@@ -100,11 +100,9 @@ describe('PointInTimeBackupInfo', () => {
       render(<PointInTimeBackupInfo appId={mockApplication.id} />),
     );
 
-    const earliestBackup = await screen.getByText(
-      'Project has no backups yet.',
-    );
+    const earliestBackup = screen.getByText('Project has no backups yet.');
     expect(earliestBackup).toBeInTheDocument();
-    const startRestoreButton = await screen.getByRole('button', {
+    const startRestoreButton = screen.getByRole('button', {
       name: 'Start restore',
     });
     expect(startRestoreButton).toBeDisabled();
@@ -119,22 +117,20 @@ describe('PointInTimeBackupInfo', () => {
     await waitFor(() => render(<PointInTimeBackupInfo appId="randomId" />));
     const user = new TestUserEvent();
 
-    const earliestBackup = await screen.getByTestId('EarliestBackupDateTime');
+    const earliestBackup = screen.getByTestId('EarliestBackupDateTime');
     expect(earliestBackup).toHaveTextContent(
       '10 Mar 2025, 05:00:05 (UTC+02:00)',
     );
 
-    const changeTimezoneButton = await screen.getByRole('button', {
+    const changeTimezoneButton = screen.getByRole('button', {
       name: 'Change timezone',
     });
     await user.click(changeTimezoneButton);
-    const tzInput = await screen.getByPlaceholderText('Search timezones...');
+    const tzInput = screen.getByPlaceholderText('Search timezones...');
     expect(tzInput).toBeInTheDocument();
     await user.type(tzInput, 'Asia/Amman{ArrowDown}{Enter}');
     await waitFor(() => expect(tzInput).not.toBeInTheDocument());
-    const updatedEarliestBackup = await screen.getByTestId(
-      'EarliestBackupDateTime',
-    );
+    const updatedEarliestBackup = screen.getByTestId('EarliestBackupDateTime');
     expect(updatedEarliestBackup).toHaveTextContent(
       '10 Mar 2025, 06:00:05 (UTC+03:00)',
     );
@@ -151,42 +147,42 @@ describe('PointInTimeBackupInfo', () => {
       render(<PointInTimeBackupInfo appId={mockApplication.id} />),
     );
     const user = new TestUserEvent();
-    const startRestoreButton = await screen.getByRole('button', {
+    const startRestoreButton = screen.getByRole('button', {
       name: 'Start restore',
     });
 
     await user.click(startRestoreButton);
     await waitFor(async () =>
       expect(
-        await screen.getByText('Recover your database from a backup'),
+        screen.getByText('Recover your database from a backup'),
       ).toBeInTheDocument(),
     );
-    const dateTimePickerButton = await screen.getByRole('button', {
+    const dateTimePickerButton = screen.getByRole('button', {
       name: /UTC/i,
     });
     await user.click(dateTimePickerButton);
     await waitFor(async () =>
       expect(
-        await screen.getByRole('button', { name: 'Select' }),
+        screen.getByRole('button', { name: 'Select' }),
       ).toBeInTheDocument(),
     );
 
-    await user.click(await screen.getByText('13'));
+    await user.click(screen.getByText('13'));
 
-    const hoursInput = await screen.getByLabelText('Hours');
+    const hoursInput = screen.getByLabelText('Hours');
     await user.type(hoursInput, '18');
 
-    const updatedDateTimeButton = await screen.getByRole('button', {
+    const updatedDateTimeButton = screen.getByRole('button', {
       name: /UTC/i,
     });
     expect(updatedDateTimeButton).toHaveTextContent(
       '13 Mar 2025, 18:00:05 (UTC+02:00)',
     );
-    await user.click(await screen.getByRole('button', { name: 'Select' }));
+    await user.click(screen.getByRole('button', { name: 'Select' }));
 
     await waitFor(async () =>
       expect(
-        await screen.queryByRole('button', { name: 'Select' }),
+        screen.queryByRole('button', { name: 'Select' }),
       ).not.toBeInTheDocument(),
     );
 
@@ -195,39 +191,37 @@ describe('PointInTimeBackupInfo', () => {
     );
 
     expect(
-      await screen.getByRole('button', { name: 'Restore backup' }),
+      screen.getByRole('button', { name: 'Restore backup' }),
     ).toBeDisabled();
     // check checkboxes
 
     await user.click(
-      await screen.getByLabelText(/I understand that restoring this backup/),
+      screen.getByLabelText(/I understand that restoring this backup/),
     );
 
     expect(
-      await screen.getByLabelText(/I understand that restoring this backup/),
+      screen.getByLabelText(/I understand that restoring this backup/),
     ).toBeChecked();
 
     expect(
-      await screen.getByRole('button', { name: 'Restore backup' }),
+      screen.getByRole('button', { name: 'Restore backup' }),
     ).toBeDisabled();
 
     await user.click(
-      await screen.getByLabelText(/I understand this cannot be undone/),
+      screen.getByLabelText(/I understand this cannot be undone/),
     );
 
     expect(
-      await screen.getByLabelText(/I understand this cannot be undone/),
+      screen.getByLabelText(/I understand this cannot be undone/),
     ).toBeChecked();
 
     await waitFor(async () =>
       expect(
-        await screen.getByRole('button', { name: 'Restore backup' }),
+        screen.getByRole('button', { name: 'Restore backup' }),
       ).not.toBeDisabled(),
     );
 
-    await user.click(
-      await screen.getByRole('button', { name: 'Restore backup' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Restore backup' }));
 
     expect(
       mocks.restoreApplicationDatabase.mock.calls[0][0].fromAppId,
@@ -255,17 +249,17 @@ describe('PointInTimeBackupInfo', () => {
       render(<PointInTimeBackupInfo appId={mockApplication.id} />),
     );
     const user = new TestUserEvent();
-    const startRestoreButton = await screen.getByRole('button', {
+    const startRestoreButton = screen.getByRole('button', {
       name: 'Start restore',
     });
 
     await user.click(startRestoreButton);
     await waitFor(async () =>
       expect(
-        await screen.getByText('Recover your database from a backup'),
+        screen.getByText('Recover your database from a backup'),
       ).toBeInTheDocument(),
     );
-    const dateTimePickerButton = await screen.getByRole('button', {
+    const dateTimePickerButton = screen.getByRole('button', {
       name: /UTC/i,
     });
 
@@ -273,44 +267,42 @@ describe('PointInTimeBackupInfo', () => {
 
     await waitFor(async () =>
       expect(
-        await screen.getByRole('button', { name: 'Select' }),
+        screen.getByRole('button', { name: 'Select' }),
       ).toBeInTheDocument(),
     );
 
-    expect(await screen.getByText('March 2025')).toBeInTheDocument();
+    expect(screen.getByText('March 2025')).toBeInTheDocument();
 
-    expect(await screen.getByText('9')).toBeDisabled();
+    expect(screen.getByText('9')).toBeDisabled();
 
-    expect(await screen.getAllByText('1')[0]).toBeDisabled();
+    expect(screen.getAllByText('1')[0]).toBeDisabled();
 
-    expect(await screen.getAllByText('5')[0]).toBeDisabled();
+    expect(screen.getAllByText('5')[0]).toBeDisabled();
 
-    expect(await screen.getByText('10')).not.toBeDisabled();
+    expect(screen.getByText('10')).not.toBeDisabled();
 
-    expect(await screen.getByText('15')).not.toBeDisabled();
+    expect(screen.getByText('15')).not.toBeDisabled();
 
-    const hoursInput = await screen.getByLabelText('Hours');
+    const hoursInput = screen.getByLabelText('Hours');
     await user.type(hoursInput, '{ArrowDown}');
 
-    expect(await screen.getByLabelText('Hours')).toHaveValue('04');
+    expect(screen.getByLabelText('Hours')).toHaveValue('04');
 
-    const updatedDateTimeButton = await screen.getByRole('button', {
+    const updatedDateTimeButton = screen.getByRole('button', {
       name: /UTC/i,
     });
     expect(updatedDateTimeButton).toHaveTextContent(
       '10 Mar 2025, 04:00:05 (UTC+02:00)',
     );
-    expect(
-      await screen.queryByRole('button', { name: 'Select' }),
-    ).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Select' })).toBeDisabled();
 
     expect(
-      await screen.queryByText(
+      screen.queryByText(
         'Selected date and time is before the earliest available backup',
       ),
     ).toBeInTheDocument();
     expect(
-      await screen.getByRole('button', {
+      screen.getByRole('button', {
         name: /UTC/i,
       }),
     ).toHaveClass('border-destructive');
