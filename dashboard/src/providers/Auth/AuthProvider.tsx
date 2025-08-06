@@ -45,7 +45,6 @@ function AuthProvider({ children }: PropsWithChildren) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   useEffect(() => {
     async function initializeSession() {
       if (!isRouterReady) {
@@ -89,6 +88,9 @@ function AuthProvider({ children }: PropsWithChildren) {
       },
       updateSession(newSession) {
         setSession(newSession);
+      },
+      clearIsSigningOut() {
+        setIsSigningOut(false);
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
