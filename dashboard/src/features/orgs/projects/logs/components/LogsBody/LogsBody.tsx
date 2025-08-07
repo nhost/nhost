@@ -77,7 +77,8 @@ function TextCell({ getValue }: { getValue: () => string }) {
 }
 
 function ServiceCell({ getValue }: { getValue: () => string }) {
-  const serviceLabel = LOGS_SERVICE_TO_LABEL[getValue()] ?? getValue();
+  const service = getValue();
+  const serviceLabel = LOGS_SERVICE_TO_LABEL[service] ?? service;
 
   return <Text className="font-mono text-xs-">{serviceLabel}</Text>;
 }
