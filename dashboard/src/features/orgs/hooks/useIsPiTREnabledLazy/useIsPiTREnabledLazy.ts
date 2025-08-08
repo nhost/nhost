@@ -20,8 +20,8 @@ function useIsPiTREnabledLazy(appId?: string) {
   }, [appId, getPostgresSettings]);
 
   const isPiTREnabled = useMemo(
-    () => isNotEmptyValue(data?.config.postgres.pitr?.retention),
-    [data?.config.postgres.pitr?.retention],
+    () => isNotEmptyValue(data?.config?.postgres.pitr),
+    [data?.config?.postgres.pitr],
   );
 
   return { isPiTREnabled, loading };

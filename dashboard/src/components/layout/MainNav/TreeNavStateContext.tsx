@@ -31,25 +31,19 @@ interface TreeNavProviderProps {
   children: ReactNode;
 }
 
-function useSyncedTreeViewState(
-  useTreeStateFromURL: () => {
-    expandedItems: string[];
-    focusedItem: string | null;
-  },
-) {
-  const { expandedItems, focusedItem } = useTreeStateFromURL();
+function useSyncedTreeViewState() {
+  const { expandedItems, focusedItem } = useNavTreeStateFromURL();
 
-  const [state, setState] = useState<IndividualTreeViewState<never>>({
+  const [state, setState] = useState<IndividualTreeViewState>({
     expandedItems,
     focusedItem,
-    selectedItems: null,
   });
 
   useEffect(() => {
     setState((prevState) => ({
       ...prevState,
       expandedItems: [
-        ...new Set([...prevState.expandedItems, ...expandedItems]),
+        ...new Set([...(prevState.expandedItems ?? []), ...expandedItems]),
       ],
       focusedItem,
     }));
@@ -64,7 +58,7 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
     'pin-nav-tree',
     true,
   );
-  const orgsTreeViewState = useSyncedTreeViewState(useNavTreeStateFromURL);
+  const orgsTreeViewState = useSyncedTreeViewState();
 
   const value = useMemo(
     () => ({

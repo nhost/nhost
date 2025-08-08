@@ -10,15 +10,17 @@ export default function useIsHealthy() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
 
-  const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'hasura',
-  );
-
   const { failureCount, status, isLoading } = useQuery(
     ['/v1/version'],
-    () => fetch(`${appUrl}/v1/version`),
+    () => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
+
+      return fetch(`${appUrl}/v1/version`);
+    },
     {
       enabled: !isPlatform && !!project,
       retry: true,

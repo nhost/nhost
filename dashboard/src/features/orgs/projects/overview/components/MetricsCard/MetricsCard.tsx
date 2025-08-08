@@ -9,15 +9,15 @@ export interface MetricsCardProps extends BoxProps {
   /**
    * Label of the card.
    */
-  label?: string;
+  label?: string | null;
   /**
    * Value of the card.
    */
-  value?: string;
+  value?: string | null;
   /**
    * Tooltip of the card.
    */
-  tooltip?: string;
+  tooltip?: string | null;
 }
 
 export default function MetricsCard({

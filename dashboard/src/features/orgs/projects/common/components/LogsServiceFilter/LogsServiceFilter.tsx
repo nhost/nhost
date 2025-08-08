@@ -33,7 +33,7 @@ const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
           label: LOGS_SERVICE_TO_LABEL[AvailableLogsService.ALL],
           value: AvailableLogsService.ALL,
         },
-        ...data.getServiceLabelValues.map((l) => ({
+        ...data!.getServiceLabelValues.map((l) => ({
           label: LOGS_SERVICE_TO_LABEL[l] ?? l,
           value: l,
         })),
@@ -45,10 +45,10 @@ const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
         </Option>
       ));
     }, [data]);
-
+    const { onChange, ...selectProps } = props;
     return (
       <ControlledSelect
-        {...props}
+        {...selectProps}
         ref={ref}
         className="w-full min-w-fit text-sm font-normal"
         placeholder="All Services"

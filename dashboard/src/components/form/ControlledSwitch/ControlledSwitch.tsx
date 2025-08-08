@@ -31,9 +31,10 @@ function ControlledSwitch(
   ref: ForwardedRef<HTMLSpanElement>,
 ) {
   const { setValue } = useFormContext();
+  const nameAttr = controllerProps?.name || name || '';
   const { field } = useController({
     ...controllerProps,
-    name: controllerProps?.name || name || '',
+    name: nameAttr,
     control: controllerProps?.control || control,
   });
 
@@ -43,7 +44,7 @@ function ControlledSwitch(
       {...field}
       ref={mergeRefs([field.ref, ref])}
       onChange={(event) => {
-        setValue(controllerProps?.name || name, event.target.checked, {
+        setValue(nameAttr, event.target.checked, {
           shouldDirty: true,
         });
 

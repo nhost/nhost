@@ -12,7 +12,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 type RunService = Pick<
-  GetRunServicesRateLimitQuery['app']['runServices'][0],
+  NonNullable<GetRunServicesRateLimitQuery['app']>['runServices'][number],
   'config'
 > & {
   id?: string;
@@ -30,7 +30,7 @@ export interface UseGetRunServiceRateLimitsReturn {
     ports?: {
       type?: string;
       port?: string;
-      publish?: boolean;
+      publish?: boolean | null;
       rateLimit?: {
         limit?: number;
         interval?: number;

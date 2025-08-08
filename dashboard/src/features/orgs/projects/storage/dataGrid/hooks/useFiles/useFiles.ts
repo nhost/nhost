@@ -13,7 +13,7 @@ export type UseFilesOptions = {
   /**
    * Search query to filter files.
    */
-  searchString?: string;
+  searchString: string;
   /**
    * Number of files to fetch.
    */
@@ -98,7 +98,7 @@ export default function useFiles({
                       'x-hasura-admin-secret':
                         process.env.NEXT_PUBLIC_ENV === 'dev'
                           ? getHasuraAdminSecret()
-                          : project?.config?.hasura.adminSecret,
+                          : project!.config!.hasura.adminSecret,
                     },
                     mode: 'cors',
                     ...init,

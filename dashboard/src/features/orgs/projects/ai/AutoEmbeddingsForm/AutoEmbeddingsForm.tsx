@@ -41,6 +41,10 @@ export const validationSchema = Yup.object({
 
 export type AutoEmbeddingsFormValues = Yup.InferType<typeof validationSchema>;
 
+export type AutoEmbeddingsInitialData = AutoEmbeddingsFormValues & {
+  model: string;
+};
+
 export interface AutoEmbeddingsFormProps extends DialogFormProps {
   /**
    * To use in conjunction with initialData to allow for updating the autoEmbeddingsConfiguration
@@ -50,7 +54,7 @@ export interface AutoEmbeddingsFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AutoEmbeddingsFormValues & { model: string };
+  initialData?: AutoEmbeddingsInitialData;
 
   /**
    * Function to be called when the operation is cancelled.

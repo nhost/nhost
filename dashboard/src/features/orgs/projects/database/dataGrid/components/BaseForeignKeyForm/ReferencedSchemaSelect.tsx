@@ -5,7 +5,7 @@ import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/d
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
-import type { BaseForeignKeyFormValues } from './BaseForeignKeyForm';
+import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
 export interface ReferencedSchemaSelectProps
   extends PropsWithoutRef<ControlledSelectProps> {
@@ -19,7 +19,7 @@ function ReferencedSchemaSelect(
   { options, ...props }: ReferencedSchemaSelectProps,
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
-  const { setValue } = useFormContext<BaseForeignKeyFormValues>();
+  const { setValue } = useFormContext<BaseForeignKeySchemaValues>();
   const { errors } = useFormState({ name: 'referencedSchema' });
 
   const availableSchemas = options.map(
@@ -43,8 +43,8 @@ function ReferencedSchemaSelect(
           : ''
       }
       onChange={() => {
-        setValue('referencedTable', null);
-        setValue('referencedColumn', null);
+        setValue('referencedTable', '');
+        setValue('referencedColumn', '');
       }}
     >
       {availableSchemas.map((name) => (

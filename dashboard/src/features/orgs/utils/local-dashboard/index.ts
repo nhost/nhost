@@ -19,16 +19,16 @@ export const localApplication: GetProjectQuery['apps'][0] = {
   subdomain: 'local',
   region: {
     id: null,
-    countryCode: null,
-    city: null,
-    name: null,
-    domain: null,
+    countryCode: '',
+    city: '',
+    name: '',
+    domain: '',
   },
   createdAt: new Date().toISOString(),
   desiredState: ApplicationStatus.Live,
   featureFlags: [],
-  repositoryProductionBranch: null,
-  nhostBaseFolder: null,
+  repositoryProductionBranch: '',
+  nhostBaseFolder: '',
   legacyPlan: null,
   config: {
     observability: {

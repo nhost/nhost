@@ -54,7 +54,7 @@ export interface UsersBodyProps {
    * @example onSuccessfulAction={() => refetch()}
    * @example onSuccessfulAction={() => router.reload()}
    */
-  onSubmit?: () => Promise<any>;
+  onSubmit: () => Promise<any>;
   allAvailableProjectRoles: Role[];
 }
 
@@ -107,7 +107,7 @@ export default function UsersBody({
     });
 
     const newRoles = allAvailableProjectRoles
-      .filter((role, i) => values.roles[i] === true)
+      .filter((role, i) => values.roles?.[i] === true)
       .map((role) => role.name);
 
     const userHasRoles = user.roles.map((role) => role.role);

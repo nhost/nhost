@@ -58,7 +58,9 @@ export default function ServiceAccordion({
           <div className="flex items-center gap-3">
             {iconIsComponent
               ? icon
-              : typeof icon === 'string' && <Image src={icon} alt={alt} />}
+              : typeof icon === 'string' && (
+                  <Image src={icon} alt={alt || ''} />
+                )}
             <Text
               sx={{ color: 'text.primary' }}
               variant="h4"

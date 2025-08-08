@@ -1,7 +1,9 @@
 import useOnSignInWithEmailAndPasswordHandler from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useOnSignInWithEmailAndPasswordHandler';
-import useRequestNewMfaTicket from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useRequestNewMfaTicket';
+import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import MfaSignInOtpForm from './MfaSignInOtpForm';
 import SignInWithEmailAndPasswordForm from './SignInWithEmailAndPasswordForm';
 
@@ -18,18 +20,31 @@ function SignInWithEmailAndPassword() {
 
   const { onSignInWithEmailAndPassword, isLoading, emailAndPasswordRef } =
     useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa });
-  const requestNewMfaTicketFn = useRequestNewMfaTicket();
 
   async function requestNewMfaTicket() {
-    const { email, password } = emailAndPasswordRef.current;
-    mfaTicket.current = await requestNewMfaTicketFn(email, password);
+    if (isNotEmptyValue(emailAndPasswordRef.current)) {
+      try {
+        const { email, password } = emailAndPasswordRef.current;
+        const response = await nhost.auth.signInEmailPassword({
+          email,
+          password,
+        });
+        mfaTicket.current = response.body?.mfa!.ticket;
+      } catch (error) {
+        toast.error(
+          error?.message ||
+            'An error occurred while verifying TOTP. Please try again.',
+          getToastStyleProps(),
+        );
+      }
+    }
   }
 
   async function onHandleSendMfaOtp(otp: string) {
     try {
       setIsMfaLoading(true);
       await nhost.auth.verifySignInMfaTotp({
-        ticket: mfaTicket.current,
+        ticket: mfaTicket.current!,
         otp,
       });
     } finally {

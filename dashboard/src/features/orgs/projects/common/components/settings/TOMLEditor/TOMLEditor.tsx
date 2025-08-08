@@ -78,7 +78,7 @@ export default function TOMLEditor() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    let jsonEditedConfig;
+    let jsonEditedConfig: TOML.JsonMap | null = null;
     try {
       jsonEditedConfig = TOML.parse(tomlCode);
     } catch (error) {
@@ -99,14 +99,14 @@ export default function TOMLEditor() {
 
     await execPromiseWithErrorToast(
       async () => {
-        const {
-          data: { replaceConfigRawJSON: updatedConfig },
-        } = await saveConfigMutation({
+        const response = await saveConfigMutation({
           variables: {
             appID: project?.id,
             rawJSON: rawJSONString,
           },
         });
+
+        const updatedConfig = response?.data?.replaceConfigRawJSON;
 
         if (updatedConfig) {
           const jsonUpdatedConfig = JSON.parse(updatedConfig);

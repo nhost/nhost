@@ -35,7 +35,7 @@ const httpLink = setContext(async (_, { headers }) => ({
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: process.env.NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET,
+    url: process.env.NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET!,
     connectionParams: async () => ({
       headers: await getAuthHeaders(),
     }),

@@ -41,9 +41,10 @@ function ControlledCheckbox(
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const { setValue } = useFormContext();
+  const nameAttr = controllerProps?.name || name || '';
   const { field } = useController({
     ...controllerProps,
-    name: controllerProps?.name || name || '',
+    name: nameAttr,
     control: controllerProps?.control || control,
   });
 
@@ -53,13 +54,16 @@ function ControlledCheckbox(
       name={field.name}
       ref={mergeRefs([field.ref, ref])}
       onChange={(event, checked) => {
-        setValue(controllerProps?.name || name, checked, { shouldDirty: true });
+        setValue(nameAttr, checked, { shouldDirty: true });
 
         if (props.onChange) {
           props.onChange(event, checked);
         }
       }}
-      onBlur={callAll(field.onBlur, props.onBlur)}
+      onBlur={callAll<[React.FocusEvent<HTMLButtonElement>]>(
+        field.onBlur,
+        props.onBlur,
+      )}
       checked={uncheckWhenDisabled && props.disabled ? false : field.value}
     />
   );

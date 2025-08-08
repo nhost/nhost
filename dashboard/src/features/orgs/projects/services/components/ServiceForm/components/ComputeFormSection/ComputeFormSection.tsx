@@ -12,6 +12,7 @@ import {
   MIN_SERVICES_MEM,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import { isNotEmptyValue } from '@/lib/utils';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 interface ComputeFormSectionProps {
@@ -39,27 +40,33 @@ export default function ComputeFormSection({
   };
 
   const incrementCompute = () => {
-    const newMemoryValue = formValues.compute.memory + 128;
-    setValue('compute.memory', newMemoryValue, { shouldDirty: true });
-    setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO), {
-      shouldDirty: true,
-    });
+    const memory = formValues.compute?.memory;
+    if (isNotEmptyValue(memory)) {
+      const newMemoryValue = memory + 128;
+      setValue('compute.memory', newMemoryValue, { shouldDirty: true });
+      setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO), {
+        shouldDirty: true,
+      });
+    }
   };
 
   const decrementCompute = () => {
-    const newMemoryValue = formValues.compute.memory - 128;
-    setValue('compute.memory', newMemoryValue, { shouldDirty: true });
-    setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO), {
-      shouldDirty: true,
-    });
+    const memory = formValues.compute?.memory;
+    if (isNotEmptyValue(memory)) {
+      const newMemoryValue = memory - 128;
+      setValue('compute.memory', newMemoryValue, { shouldDirty: true });
+      setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO), {
+        shouldDirty: true,
+      });
+    }
   };
 
   return (
     <Box className="space-y-4 rounded border-1 p-4">
       <Box className="flex flex-row items-center space-x-2">
         <Text variant="h4" className="font-semibold">
-          vCPUs: {formValues.compute.cpu / 1000} / Memory:{' '}
-          {formValues.compute.memory}
+          vCPUs: {(formValues.compute?.cpu ?? 0) / 1000} / Memory:{' '}
+          {formValues.compute?.memory ?? ''}
         </Text>
 
         {showTooltip && (
@@ -86,7 +93,10 @@ export default function ComputeFormSection({
 
       <Box className="flex flex-row items-center justify-between space-x-4">
         <Button
-          disabled={formValues.compute.memory <= MIN_SERVICES_MEM}
+          disabled={
+            isNotEmptyValue(formValues.compute?.memory) &&
+            formValues.compute.memory <= MIN_SERVICES_MEM
+          }
           variant="outlined"
           onClick={decrementCompute}
         >
@@ -94,7 +104,7 @@ export default function ComputeFormSection({
         </Button>
 
         <Slider
-          value={Number(formValues.compute.memory)}
+          value={Number(formValues.compute?.memory)}
           onChange={(_event, value) => handleSliderUpdate(value.toString())}
           max={MAX_SERVICES_MEM}
           min={MIN_SERVICES_MEM}
@@ -103,7 +113,10 @@ export default function ComputeFormSection({
           marks
         />
         <Button
-          disabled={formValues.compute.memory >= MAX_SERVICES_MEM}
+          disabled={
+            isNotEmptyValue(formValues.compute?.memory) &&
+            formValues.compute.memory >= MAX_SERVICES_MEM
+          }
           variant="outlined"
           onClick={incrementCompute}
         >

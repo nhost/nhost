@@ -2,7 +2,7 @@ import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
-import type { BaseForeignKeyFormValues } from './BaseForeignKeyForm';
+import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
 export interface ReferencedTableSelectProps {
   /**
@@ -14,7 +14,7 @@ export interface ReferencedTableSelectProps {
 export default function ReferencedTableSelect({
   options,
 }: ReferencedTableSelectProps) {
-  const { setValue } = useFormContext<BaseForeignKeyFormValues>();
+  const { setValue } = useFormContext<BaseForeignKeySchemaValues>();
   const { errors } = useFormState({ name: 'referencedTable' });
   const columnName = useWatch({ name: 'columnName' });
   const referencedSchema = useWatch({ name: 'referencedSchema' });
@@ -40,7 +40,7 @@ export default function ReferencedTableSelect({
           : ''
       }
       onChange={() => {
-        setValue('referencedColumn', null);
+        setValue('referencedColumn', '');
       }}
     >
       {availableTablesInSelectedSchema.map((name) => (

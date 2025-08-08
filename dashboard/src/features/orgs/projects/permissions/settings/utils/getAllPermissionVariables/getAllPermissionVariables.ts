@@ -7,7 +7,7 @@ import type { PermissionVariable } from '@/types/application';
  * @returns Stored permission variables with system variables
  */
 export default function getAllPermissionVariables(
-  permissionVariables?: PermissionVariable[],
+  permissionVariables?: PermissionVariable[] | null,
 ): PermissionVariable[] {
   const systemVariables: PermissionVariable[] = [
     { id: 'User-Id', key: 'User-Id', value: 'id', isSystemVariable: true },

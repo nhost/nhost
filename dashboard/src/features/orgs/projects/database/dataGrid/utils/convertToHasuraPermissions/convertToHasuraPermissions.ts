@@ -1,7 +1,9 @@
 import type {
+  HasuraOperator,
   Rule,
   RuleGroup,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isNotEmptyValue } from '@/lib/utils';
 
 function createNestedObjectFromRule({
   column,
@@ -44,8 +46,8 @@ function createNestedObjectFromRule({
  * @returns - A Hasura permission object
  */
 export default function convertToHasuraPermissions(
-  ruleGroup?: Partial<RuleGroup>,
-): Record<string, any> {
+  ruleGroup?: Partial<RuleGroup> | null,
+): Record<HasuraOperator, any> | null {
   if (!ruleGroup) {
     return null;
   }
@@ -54,11 +56,11 @@ export default function convertToHasuraPermissions(
     (!('rules' in ruleGroup) &&
       !('groups' in ruleGroup) &&
       !('unsupported' in ruleGroup)) ||
-    (!ruleGroup.rules.length &&
+    (!ruleGroup.rules?.length &&
       !ruleGroup.groups?.length &&
       !ruleGroup.unsupported?.length)
   ) {
-    return {};
+    return {} as Record<HasuraOperator, any>;
   }
 
   if (
@@ -78,14 +80,19 @@ export default function convertToHasuraPermissions(
   }
 
   const convertedRules = ruleGroup.rules?.map(createNestedObjectFromRule) || [];
-  const subGroupRules = ruleGroup.groups?.map(convertToHasuraPermissions) || [];
+  const subGroupRules =
+    ruleGroup.groups?.map(convertToHasuraPermissions).filter(isNotEmptyValue) ||
+    [];
   const convertedUnsupportedRules = ruleGroup.unsupported || [];
+  const allRules = [
+    ...convertedRules,
+    ...subGroupRules,
+    ...convertedUnsupportedRules,
+  ];
+  const key = ruleGroup.operator as HasuraOperator;
 
-  return {
-    [ruleGroup.operator]: [
-      ...convertedRules,
-      ...subGroupRules,
-      ...convertedUnsupportedRules,
-    ],
-  };
+  const hasuraPermission = {
+    [key]: allRules,
+  } as Record<HasuraOperator, any>;
+  return hasuraPermission;
 }

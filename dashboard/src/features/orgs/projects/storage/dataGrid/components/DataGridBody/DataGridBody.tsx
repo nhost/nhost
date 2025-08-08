@@ -6,6 +6,7 @@ import type { DataBrowserGridColumn } from '@/features/orgs/projects/database/da
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/DataGrid';
 import { DataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
 import { Fragment, useMemo, useRef } from 'react';
 import type { Row } from 'react-table';
@@ -65,7 +66,7 @@ export default function DataGridBody<T extends object>({
 
   const SELECTION_CELL_WIDTH = 32;
   const ADD_COLUMN_CELL_WIDTH = 100;
-  const bodyRef = useRef<HTMLDivElement>();
+  const bodyRef = useRef<HTMLDivElement | null>(null);
 
   const primaryAndUniqueKeys = useMemo(
     () =>
@@ -80,100 +81,103 @@ export default function DataGridBody<T extends object>({
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>, row: Row<T>) {
     const { id: rowId } = row;
-    const cellId = document.activeElement.id;
+    const cellId = document.activeElement!.id;
 
-    const currentRow = bodyRef.current.children.namedItem(rowId);
+    const currentRow = bodyRef.current?.children.namedItem(rowId);
 
-    if (event.key === 'ArrowUp') {
-      event.preventDefault();
-
-      if (!currentRow.previousElementSibling) {
-        return;
-      }
-
-      const cellInPreviousRow =
-        currentRow.previousElementSibling.children.namedItem(cellId);
-
-      if (cellInPreviousRow instanceof HTMLElement) {
-        cellInPreviousRow.scrollIntoView({
-          block: 'nearest',
-        });
-        cellInPreviousRow.focus();
-      }
-    }
-
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-
-      if (!currentRow.nextElementSibling) {
-        return;
-      }
-
-      const cellInNextRow =
-        currentRow.nextElementSibling.children.namedItem(cellId);
-
-      if (cellInNextRow instanceof HTMLElement) {
-        cellInNextRow.scrollIntoView({ block: 'nearest' });
-        cellInNextRow.focus();
-      }
-    }
-
-    if (event.key === 'ArrowLeft' || (event.shiftKey && event.key === 'Tab')) {
-      let previousFocusableCellInRow: HTMLElement;
-      let previousFocusableCellInRowFound = false;
-
-      currentRow.childNodes.forEach((node) => {
-        if (node === currentRow.children.namedItem(cellId)) {
-          previousFocusableCellInRowFound = true;
-        }
-
-        if (
-          node instanceof HTMLElement &&
-          node.tabIndex > -1 &&
-          !previousFocusableCellInRowFound
-        ) {
-          previousFocusableCellInRow = node;
-        }
-      });
-
-      if (previousFocusableCellInRow) {
+    if (isNotEmptyValue(currentRow)) {
+      if (event.key === 'ArrowUp') {
         event.preventDefault();
 
-        previousFocusableCellInRow.scrollIntoView({
-          block: 'nearest',
-          inline: 'center',
-        });
-        previousFocusableCellInRow.focus();
-      }
-    }
-
-    if (
-      event.key === 'ArrowRight' ||
-      (!event.shiftKey && event.key === 'Tab')
-    ) {
-      let nextFocusableCellInRow: HTMLElement;
-      let nextFocusableCellInRowFound = false;
-
-      currentRow.childNodes.forEach((node) => {
-        if (
-          node instanceof HTMLElement &&
-          node.tabIndex > -1 &&
-          parseInt(node.id, 10) > parseInt(cellId, 10) &&
-          !nextFocusableCellInRowFound
-        ) {
-          nextFocusableCellInRowFound = true;
-          nextFocusableCellInRow = node;
+        if (!currentRow!.previousElementSibling) {
+          return;
         }
-      });
 
-      if (nextFocusableCellInRow) {
+        const cellInPreviousRow =
+          currentRow!.previousElementSibling.children.namedItem(cellId);
+
+        if (cellInPreviousRow instanceof HTMLElement) {
+          cellInPreviousRow.scrollIntoView({
+            block: 'nearest',
+          });
+          cellInPreviousRow.focus();
+        }
+      }
+
+      if (event.key === 'ArrowDown') {
         event.preventDefault();
 
-        nextFocusableCellInRow.scrollIntoView({
-          block: 'nearest',
-          inline: 'center',
-        });
-        nextFocusableCellInRow.focus();
+        if (!currentRow.nextElementSibling) {
+          return;
+        }
+
+        const cellInNextRow =
+          currentRow.nextElementSibling.children.namedItem(cellId);
+
+        if (cellInNextRow instanceof HTMLElement) {
+          cellInNextRow.scrollIntoView({ block: 'nearest' });
+          cellInNextRow.focus();
+        }
+      }
+
+      if (
+        event.key === 'ArrowLeft' ||
+        (event.shiftKey && event.key === 'Tab')
+      ) {
+        const previousFocusableCellInRow = Array.from(currentRow.childNodes)
+          .slice(
+            0,
+            Array.from(currentRow.childNodes).indexOf(
+              currentRow.children.namedItem(cellId)!,
+            ),
+          )
+          .reduce<HTMLElement | null>(
+            (lastFocusable, node) =>
+              node instanceof HTMLElement && node.tabIndex > -1
+                ? node
+                : lastFocusable,
+            null,
+          );
+
+        if (previousFocusableCellInRow) {
+          event.preventDefault();
+
+          previousFocusableCellInRow.scrollIntoView({
+            block: 'nearest',
+            inline: 'center',
+          });
+          previousFocusableCellInRow.focus();
+        }
+      }
+
+      if (
+        event.key === 'ArrowRight' ||
+        (!event.shiftKey && event.key === 'Tab')
+      ) {
+        const nextFocusableCellInRow = Array.from(
+          currentRow.childNodes,
+        ).reduce<HTMLElement | null>((result, node) => {
+          if (
+            node instanceof HTMLElement &&
+            node.tabIndex > -1 &&
+            parseInt(node.id, 10) > parseInt(cellId, 10) &&
+            !result
+          ) {
+            return node;
+          }
+
+          return result;
+        }, null);
+
+        if (isNotEmptyValue(nextFocusableCellInRow)) {
+          event.preventDefault();
+
+          nextFocusableCellInRow.scrollIntoView({
+            block: 'nearest',
+            inline: 'center',
+          });
+          nextFocusableCellInRow.focus();
+        }
       }
     }
   }

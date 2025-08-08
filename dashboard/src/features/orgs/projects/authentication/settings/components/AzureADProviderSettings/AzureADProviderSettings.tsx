@@ -50,7 +50,7 @@ const validationSchema = Yup.object({
 export type AzureADProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AzureADProviderSettings() {
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -90,7 +90,7 @@ export default function AzureADProviderSettings() {
     }
   }, [loading, clientId, clientSecret, tenant, enabled, form]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -110,7 +110,7 @@ export default function AzureADProviderSettings() {
   async function handleSubmit(formValues: AzureADProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             method: {
@@ -186,8 +186,8 @@ export default function AzureADProviderSettings() {
             name="redirectUrl"
             id="azuerad-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/azuread/callback`}
             className="col-span-2"
@@ -205,8 +205,8 @@ export default function AzureADProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/azuread/callback`,
                       'Redirect URL',

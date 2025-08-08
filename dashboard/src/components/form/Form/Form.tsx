@@ -8,11 +8,11 @@ export interface FormProps extends BoxProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: (...args: any[]) => any;
+  onSubmit: (...args: any[]) => any;
 }
 
 export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
-  const formRef = useRef<HTMLDivElement>();
+  const formRef = useRef<HTMLDivElement | null>(null);
   const {
     handleSubmit,
     formState: { isSubmitting },
@@ -28,7 +28,7 @@ export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
     }
 
     const submitButton = Array.from(
-      formRef.current.getElementsByTagName('button'),
+      formRef.current!.getElementsByTagName('button'),
     ).find((item) => item.type === 'submit');
 
     // Disabling submit if the submit button is disabled

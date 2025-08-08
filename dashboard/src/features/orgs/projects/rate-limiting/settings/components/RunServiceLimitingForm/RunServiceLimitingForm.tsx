@@ -12,6 +12,7 @@ import { RateLimitField } from '@/features/orgs/projects/rate-limiting/settings/
 import { rateLimitingItemValidationSchema } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 import type { UseGetRunServiceRateLimitsReturn } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits/useGetRunServiceRateLimits';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import { useUpdateRunServiceConfigMutation } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
@@ -56,7 +57,7 @@ export default function RunServiceLimitingForm({
     defaultValues: {
       enabled: enabledDefault,
       ports: [
-        ...ports.map((port) => ({
+        ...(ports ?? []).map((port) => ({
           limit: port?.rateLimit?.limit,
           interval: port?.rateLimit?.interval,
           intervalUnit: port?.rateLimit?.intervalUnit,
@@ -72,7 +73,7 @@ export default function RunServiceLimitingForm({
       form.reset({
         enabled: enabledDefault,
         ports: [
-          ...ports.map((port) => ({
+          ...(ports ?? []).map((port) => ({
             limit: port?.rateLimit?.limit,
             interval: port?.rateLimit?.interval,
             intervalUnit: port?.rateLimit?.intervalUnit,
@@ -107,18 +108,21 @@ export default function RunServiceLimitingForm({
         appID: project?.id,
         serviceID: serviceId,
         config: {
-          ports: ports.map((port, index) => {
-            const rateLimit = formValues.ports[index];
-            return {
-              ...port,
-              rateLimit: enabled
-                ? {
-                    limit: rateLimit.limit,
-                    interval: `${rateLimit.interval}${rateLimit.intervalUnit}`,
-                  }
-                : null,
-            };
-          }),
+          ports:
+            isNotEmptyValue(ports) && isNotEmptyValue(formValues.ports)
+              ? ports.map((port, index) => {
+                  const rateLimit = formValues.ports![index];
+                  return {
+                    ...port,
+                    rateLimit: enabled
+                      ? {
+                          limit: rateLimit.limit,
+                          interval: `${rateLimit.interval}${rateLimit.intervalUnit}`,
+                        }
+                      : null,
+                  };
+                })
+              : [],
         },
       },
     });
@@ -166,13 +170,14 @@ export default function RunServiceLimitingForm({
           className="flex flex-col px-0"
         >
           <Divider />
-          {ports.map((port, index) => {
+          {(ports ?? []).map((port, index) => {
             if (port?.type !== 'http' || !port?.publish) {
               return null;
             }
 
             const fieldTitle = `${port.type} <-> ${port.port}`.toUpperCase();
-            const showDivider = index < ports.length - 1;
+            const showDivider =
+              isNotEmptyValue(ports) && index < ports.length - 1;
             return (
               <div key={`ports.${port.port}`}>
                 <RateLimitField

@@ -113,8 +113,8 @@ export default function MetricsPage() {
           <div className="mt-6 grid grid-flow-row gap-2">
             <Button
               href={generateAppServiceUrl(
-                project.subdomain,
-                project.region,
+                project!.subdomain,
+                project!.region,
                 'grafana',
               )}
               // Both `target` and `rel` are available when `href` is set. This is

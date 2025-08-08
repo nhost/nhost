@@ -1,6 +1,6 @@
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Avatar } from '@/components/ui/v1/Avatar';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
@@ -78,25 +78,25 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     );
   }
 
-  const { githubAppInstallations } = data;
+  const { githubAppInstallations } = data || {};
 
-  const filteredGitHubAppInstallations = data.githubAppInstallations.filter(
+  const filteredGitHubAppInstallations = data?.githubAppInstallations.filter(
     (githubApp) => !!githubApp.accountLogin,
   );
 
-  const filteredGitHubRepositories = data.githubRepositories.filter(
+  const filteredGitHubRepositories = data?.githubRepositories.filter(
     (repo) => !!repo.githubAppInstallation,
   );
 
   const filteredGitHubAppInstallationsNullValues =
-    data.githubAppInstallations.filter((githubApp) => !!githubApp.accountLogin)
+    data?.githubAppInstallations.filter((githubApp) => !!githubApp.accountLogin)
       .length === 0;
 
   const faultyGitHubInstallation =
-    githubAppInstallations.length === 0 ||
+    githubAppInstallations?.length === 0 ||
     filteredGitHubAppInstallationsNullValues;
 
-  const noRepositoriesAdded = data.githubRepositories.length === 0;
+  const noRepositoriesAdded = data?.githubRepositories.length === 0;
 
   if (faultyGitHubInstallation) {
     return (
@@ -130,7 +130,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   }
 
   const githubRepositoriesToDisplay = filter
-    ? filteredGitHubRepositories.filter((repo) =>
+    ? filteredGitHubRepositories?.filter((repo) =>
         repo.fullName.toLowerCase().includes(filter.toLowerCase()),
       )
     : filteredGitHubRepositories;
@@ -155,7 +155,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             </Text>
 
             <List className="my-2 border-y">
-              {filteredGitHubAppInstallations.map((githubApp, index) => (
+              {filteredGitHubAppInstallations?.map((githubApp, index) => (
                 <Fragment key={githubApp.id}>
                   <ListItem.Root
                     key={githubApp.id}
@@ -163,7 +163,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                   >
                     <ListItem.Avatar>
                       <Avatar
-                        avatarUrl={githubApp.accountAvatarUrl as string}
+                        src={githubApp.accountAvatarUrl as string}
                         className="mr-1 h-5 w-5"
                       />
                     </ListItem.Avatar>
@@ -199,7 +199,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                 className="text-center text-xs font-normal"
                 color="secondary"
               >
-                Showing repositories from {data.githubAppInstallations.length}{' '}
+                Showing repositories from {data?.githubAppInstallations.length}{' '}
                 GitHub account(s)
               </Text>
               <div className="mb-2 mt-6 flex w-full">
@@ -212,13 +212,13 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
               </div>
             </div>
             <RetryableErrorBoundary>
-              {githubRepositoriesToDisplay.length === 0 ? (
+              {githubRepositoriesToDisplay?.length === 0 ? (
                 <Box className="h-import py-2">
                   <Text variant="subtitle2">No results found.</Text>
                 </Box>
               ) : (
                 <List className="h-import overflow-y-auto border-y">
-                  {githubRepositoriesToDisplay.map((repo, index) => (
+                  {githubRepositoriesToDisplay?.map((repo, index) => (
                     <Fragment key={repo.id}>
                       <ListItem.Root
                         className="grid grid-flow-col justify-start gap-2 py-2.5"
@@ -234,12 +234,17 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                       >
                         <ListItem.Avatar>
                           <Avatar
-                            name={repo.githubAppInstallation.accountLogin}
-                            avatarUrl={
-                              repo.githubAppInstallation.accountAvatarUrl
+                            alt={
+                              repo.githubAppInstallation.accountLogin as string
                             }
-                            className="h-8 w-8 self-center"
-                          />
+                            src={
+                              repo.githubAppInstallation
+                                .accountAvatarUrl as string
+                            }
+                            className="h-8 w-8"
+                          >
+                            {repo.githubAppInstallation.accountLogin}
+                          </Avatar>
                         </ListItem.Avatar>
                         <ListItem.Text
                           primary={repo.name}

@@ -40,7 +40,7 @@ export default function WebAuthnSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { enabled } = data?.config?.auth?.method?.webauthn || {};
+  const enabled = !!data?.config?.auth?.method?.webauthn?.enabled;
 
   const form = useForm<WebAuthnFormValues>({
     reValidateMode: 'onSubmit',
@@ -75,14 +75,14 @@ export default function WebAuthnSettings() {
   const handleWebAuthnSettingsUpdate = async (values: WebAuthnFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             method: {
               webauthn: {
                 ...values,
                 relyingParty: {
-                  name: project.name,
+                  name: project!.name,
                 },
               },
             },

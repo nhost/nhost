@@ -17,6 +17,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 
 interface RunServicePortProps {
   service: RunService;
@@ -45,7 +46,7 @@ export default function RunServicePortDomain({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const runServicePort = service.config.ports.find((p) => p.port === port);
+  const runServicePort = service.config?.ports?.find((p) => p.port === port);
   const initialValue = runServicePort?.ingresses?.[0]?.fqdn?.[0];
 
   const form = useForm<RunServicePortFormValues>({
@@ -68,7 +69,7 @@ export default function RunServicePortDomain({
       async () => {
         await updateRunServiceConfig({
           variables: {
-            appID: project.id,
+            appID: project?.id,
             serviceID: service.id ?? service.serviceID,
             config: {
               ports: service?.config?.ports?.map((p) => {
@@ -78,10 +79,9 @@ export default function RunServicePortDomain({
                 if (rest.port === port) {
                   return {
                     ...rest,
-                    ingresses:
-                      formValues.runServicePortFQDN.length > 0
-                        ? [{ fqdn: [formValues.runServicePortFQDN] }]
-                        : [],
+                    ingresses: isNotEmptyValue(formValues.runServicePortFQDN)
+                      ? [{ fqdn: [formValues.runServicePortFQDN] }]
+                      : [],
                   };
                 }
 
@@ -135,7 +135,7 @@ export default function RunServicePortDomain({
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <Text className="text-sm font-semibold">{`${runServicePort.type} <--> ${runServicePort.port}`}</Text>
+          <Text className="text-sm font-semibold">{`${runServicePort?.type} <--> ${runServicePort?.port}`}</Text>
           <div className="flex flex-row space-x-4">
             <Input
               {...register('runServicePortFQDN')}
@@ -145,7 +145,7 @@ export default function RunServicePortDomain({
               fullWidth
               className=""
               placeholder={`${service.config?.name ?? 'unset'}-${
-                runServicePort.port
+                runServicePort?.port
               }.mydomain.dev`}
               error={Boolean(formState.errors.runServicePortFQDN?.message)}
               helperText={formState.errors.runServicePortFQDN?.message}
@@ -162,8 +162,8 @@ export default function RunServicePortDomain({
         <div className="col-span-5 row-start-2 mt-4">
           <VerifyDomain
             recordType="CNAME"
-            hostname={runServicePortFQDN}
-            value={`lb.${project.region.name}.${project.region.domain}.`}
+            hostname={runServicePortFQDN!}
+            value={`lb.${project?.region.name}.${project?.region.domain}.`}
             onHostNameVerified={() => setIsVerified(true)}
           />
         </div>

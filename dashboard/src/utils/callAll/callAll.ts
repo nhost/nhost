@@ -1,8 +1,11 @@
 /**
  * Calls all the functions in the array with the given arguments.
  */
-export default function callAll(...fns: ((...args: any[]) => any)[]) {
-  return (...args: any[]) => {
+const callAll =
+  <Args extends readonly unknown[]>(
+    ...fns: readonly (((...args: Args) => void) | undefined)[]
+  ) =>
+  (...args: Args): void =>
     fns.forEach((fn) => fn?.(...args));
-  };
-}
+
+export default callAll;

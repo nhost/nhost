@@ -151,7 +151,7 @@ async function waitForElementToBeRemoved<T>(
 const graphqlRequestHandlerFactory = (
   operationName: string,
   type: 'mutation' | 'query',
-  responsePromise,
+  responsePromise: any,
 ) =>
   nhostGraphQLLink[type](operationName, async (_req, res, ctx) => {
     const data = await responsePromise;
@@ -163,14 +163,14 @@ export const createGraphqlMockResolver = (
   type: 'mutation' | 'query',
   defaultResponse?: any,
 ) => {
-  let resolver;
+  let resolver: (value: unknown) => void;
   const responsePromise = new Promise((resolve) => {
     resolver = resolve;
   });
 
   return {
     handler: graphqlRequestHandlerFactory(operationName, type, responsePromise),
-    resolve: (response = undefined) => resolver(response ?? defaultResponse),
+    resolve: (response: any) => resolver(response ?? defaultResponse),
   };
 };
 
