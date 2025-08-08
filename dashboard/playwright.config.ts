@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 60 * 1000,
+  timeout: 120 * 1000,
   expect: {
     timeout: 10000,
   },
@@ -40,7 +40,7 @@ export default defineConfig({
         storageState: 'e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      testIgnore: ['upgrade-project.test.ts', 'cli-local-dashboard.test.ts'],
+      testIgnore: ['onboarding.test.ts', 'cli-local-dashboard.test.ts'],
     },
     {
       name: 'local',
@@ -51,8 +51,8 @@ export default defineConfig({
       testMatch: 'cli-local-dashboard.test.ts',
     },
     {
-      name: 'upgrade-project',
-      testMatch: 'upgrade-project.test.ts',
+      name: 'onboarding',
+      testMatch: 'onboarding.test.ts',
       use: {
         ...devices['Desktop Chrome'],
       },

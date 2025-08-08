@@ -1,5 +1,5 @@
 import { Progress } from '@/components/ui/v3/progress';
-import { getBillingCycleInfo } from '@/features/orgs/components/billing/utils/getBillingCycle';
+import { getBillingCycleInfo } from '@/features/orgs/components/billing/BillingEstimate/getBillingCycle';
 
 export default function BillingCycle() {
   const { progress, billingCycleStart, billingCycleEnd, daysLeft } =

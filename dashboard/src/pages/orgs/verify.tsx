@@ -2,7 +2,7 @@
 
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
-import { FinishOrgCreationProcess } from '@/features/orgs/components/common/FinishOrgCreationProcess';
+import { FinishOrganizationProcess } from '@/features/orgs/components/common/FinishOrganizationProcess';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useUserData } from '@/hooks/useUserData';
 import { analytics } from '@/lib/segment';
@@ -71,7 +71,7 @@ export default function PostCheckout() {
     <BaseLayout className="flex h-screen flex-col">
       <Header className="flex py-1" />
       <div className="flex h-screen w-full flex-col">
-        <FinishOrgCreationProcess
+        <FinishOrganizationProcess
           onCompleted={onCompleted}
           loadingMessage="Processing new organization request"
           successMessage="Organization created successfully. Redirecting..."

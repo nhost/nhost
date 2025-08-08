@@ -20,29 +20,25 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import { InfoAlert } from '@/features/orgs/components/InfoAlert';
+import { FinishUpgradeOrganizationProcess } from '@/features/orgs/components/billing/FinishUpgradeOrganizationProcess';
+import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import TextLink from '@/features/orgs/projects/common/components/TextLink/TextLink';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { cn } from '@/lib/utils';
 import {
   useBillingChangeOrganizationPlanMutation,
   useBillingOrganizationCustomePortalLazyQuery,
+  useBillingUpgradeFreeOrganizationMutation,
   useGetOrganizationPlansQuery,
 } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Slash } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
-function NewOrgButton() {
-  return (
-    <strong className="inline-flex items-center justify-center gap-2 px-1">
-      <span>+ New Organization</span>
-    </strong>
-  );
-}
 
 const changeOrgPlanForm = z.object({
   plan: z.string(),
@@ -52,12 +48,22 @@ export default function SubscriptionPlan() {
   const { maintenanceActive } = useUI();
   const { org, refetch: refetchOrg } = useCurrentOrg();
   const [open, setOpen] = useState(false);
+  const [stripeClientSecret, setStripeClientSecret] = useState('');
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
+  const [updateFreeOrg] = useBillingUpgradeFreeOrganizationMutation();
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
   const [fetchOrganizationCustomePortalLink, { loading }] =
     useBillingOrganizationCustomePortalLazyQuery();
+  const { asPath, query, isReady, pathname, replace } = useRouter();
+  const { openUpgradeModal, ...remainingQuery } = query;
 
   const isFreeOrg = org?.plan.isFree;
+
+  const removeOpenUpgradeModalFromQuery = useCallback(() => {
+    replace({ pathname, query: remainingQuery }, undefined, {
+      shallow: true,
+    });
+  }, [replace, remainingQuery, pathname]);
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
     resolver: zodResolver(changeOrgPlanForm),
@@ -72,32 +78,55 @@ export default function SubscriptionPlan() {
     }
   }, [form, org]);
 
+  useEffect(() => {
+    if (isReady && openUpgradeModal) {
+      setOpen(true);
+      removeOpenUpgradeModalFromQuery();
+    }
+  }, [openUpgradeModal, isReady, removeOpenUpgradeModalFromQuery]);
+
   const selectedPlan = form.watch('plan');
 
   const onSubmit = async (values: z.infer<typeof changeOrgPlanForm>) => {
     const { plan: planID } = values;
-    const { id: organizationID } = org;
+    const { id: organizationID, plan } = org;
 
-    await execPromiseWithErrorToast(
-      async () => {
-        await changeOrgPlan({
-          variables: {
-            organizationID,
-            planID,
-          },
-        });
+    if (plan.isFree) {
+      const path = asPath.split('?')[0];
+      const redirectURL =
+        typeof window !== 'undefined' ? `${window.location.origin}${path}` : '';
 
-        await refetchOrg();
-        form.reset({ plan: planID });
-        setOpen(false);
-      },
-      {
-        loadingMessage: 'Upgrading organization plan',
-        successMessage: 'Organization plan was upgraded successfully',
-        errorMessage:
-          'An error occurred while upgrading the organization plan! Please try again',
-      },
-    );
+      const result = await updateFreeOrg({
+        variables: {
+          organizationID,
+          planID,
+          redirectURL,
+        },
+      });
+      const clientSecret = result?.data?.billingUpgradeFreeOrganization;
+      setStripeClientSecret(clientSecret);
+    } else {
+      await execPromiseWithErrorToast(
+        async () => {
+          await changeOrgPlan({
+            variables: {
+              organizationID,
+              planID,
+            },
+          });
+
+          await refetchOrg();
+          form.reset({ plan: planID });
+          setOpen(false);
+        },
+        {
+          loadingMessage: 'Upgrading organization plan',
+          successMessage: 'Organization plan was upgraded successfully',
+          errorMessage:
+            'An error occurred while upgrading the organization plan! Please try again',
+        },
+      );
+    }
   };
 
   const handleUpdatePaymentDetails = async () => {
@@ -128,6 +157,35 @@ export default function SubscriptionPlan() {
       },
     );
   };
+
+  const planOptions = useMemo(
+    () =>
+      plans.map((plan) => {
+        const disableOption = plan.isFree || plan.name === 'Starter';
+        return (
+          <FormItem key={plan.id}>
+            <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+              <div className="flex flex-row items-center space-x-3">
+                <FormControl>
+                  <RadioGroupItem value={plan.id} disabled={disableOption} />
+                </FormControl>
+                <div className="flex flex-col space-y-2">
+                  <div className="text-md font-semibold">{plan.name}</div>
+                  <FormDescription className="w-2/3 text-xs">
+                    {planDescriptions[plan.name]}
+                  </FormDescription>
+                </div>
+              </div>
+
+              <div className="mt-0 flex h-full items-center text-xl font-semibold">
+                {isFreeOrg ? 'Free' : `${plan.price}/mo`}
+              </div>
+            </FormLabel>
+          </FormItem>
+        );
+      }),
+    [plans, isFreeOrg],
+  );
 
   return (
     <>
@@ -163,14 +221,6 @@ export default function SubscriptionPlan() {
               </div>
             </div>
           </div>
-          {isFreeOrg && (
-            <div className="flex w-full flex-col justify-between gap-8 p-4 md:flex-row">
-              <InfoAlert title="Personal Organizations can not be upgraded.">
-                You may create a new organization with premium features by
-                clicking on the <NewOrgButton /> button in the left sidebar.
-              </InfoAlert>
-            </div>
-          )}
           <div className="flex w-full flex-col-reverse items-end justify-between gap-2 border-t p-4 md:flex-row md:items-center md:gap-0">
             <div>
               <span>For a complete list of features, visit our </span>
@@ -190,7 +240,7 @@ export default function SubscriptionPlan() {
                 className="h-fit truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
-                disabled={org?.plan?.isFree || maintenanceActive || loading}
+                disabled={maintenanceActive || loading || isFreeOrg}
               >
                 {loading ? (
                   <ActivityIndicator />
@@ -199,7 +249,7 @@ export default function SubscriptionPlan() {
                 )}
               </Button>
               <Button
-                disabled={org?.plan?.isFree || maintenanceActive}
+                disabled={maintenanceActive || loading}
                 className="h-fit"
                 onClick={() => setOpen(true)}
               >
@@ -211,110 +261,92 @@ export default function SubscriptionPlan() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="text-foreground sm:max-w-xl">
+        <DialogContent
+          className={cn(
+            'text-foreground sm:max-w-xl',
+            !loading && stripeClientSecret ? 'bg-white text-black' : '',
+          )}
+        >
           <DialogHeader>
             <DialogTitle>Upgrade Organization {org?.name}</DialogTitle>
             <DialogDescription />
           </DialogHeader>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="plan"
-                render={({ field }) => (
-                  <FormItem className="">
-                    <div>
-                      <FormLabel>Plan</FormLabel>
-                    </div>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-col space-y-1"
-                      >
-                        {plans.map((plan) => {
-                          const isStarterPlan =
-                            plan.name === 'Starter' || plan.isFree;
-
-                          return (
-                            <FormItem key={plan.id}>
-                              <FormLabel
-                                className={`flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3 ${isStarterPlan ? 'cursor-not-allowed opacity-50' : ''}`}
-                              >
-                                <div className="flex flex-row items-center space-x-3">
-                                  <FormControl>
-                                    <RadioGroupItem
-                                      value={plan.id}
-                                      disabled={isStarterPlan}
-                                    />
-                                  </FormControl>
-                                  <div className="flex flex-col space-y-2">
-                                    <div className="text-md font-semibold">
-                                      {plan.name}
-                                    </div>
-                                    <FormDescription className="w-2/3 text-xs">
-                                      {planDescriptions[plan.name]}
-                                    </FormDescription>
+          {!stripeClientSecret && (
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="plan"
+                  render={({ field }) => (
+                    <FormItem className="">
+                      <div>
+                        <FormLabel>Plan</FormLabel>
+                      </div>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          {planOptions}
+                          <div>
+                            <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                              <div className="flex flex-row items-center space-x-3">
+                                <div className="flex flex-col space-y-2">
+                                  <div className="text-md font-semibold">
+                                    Enterprise
+                                  </div>
+                                  <div className="w-2/3 text-xs">
+                                    {planDescriptions.Enterprise}
                                   </div>
                                 </div>
-
-                                <div className="mt-0 flex h-full items-center text-xl font-semibold">
-                                  {isFreeOrg ? 'Free' : `${plan.price}/mo`}
-                                </div>
-                              </FormLabel>
-                            </FormItem>
-                          );
-                        })}
-
-                        <div>
-                          <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
-                            <div className="flex flex-row items-center space-x-3">
-                              <div className="flex flex-col space-y-2">
-                                <div className="text-md font-semibold">
-                                  Enterprise
-                                </div>
-                                <div className="w-2/3 text-xs">
-                                  {planDescriptions.Enterprise}
-                                </div>
                               </div>
-                            </div>
 
-                            <TextLink href="mailto:hello@nhost.io">
-                              Contact us
-                              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-                            </TextLink>
+                              <TextLink href="mailto:hello@nhost.io">
+                                Contact us
+                                <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+                              </TextLink>
+                            </div>
                           </div>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter>
-                <Button
-                  variant="secondary"
-                  type="button"
-                  disabled={form.formState.isSubmitting}
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    selectedPlan === org?.plan?.id ||
-                    form.formState.isSubmitting
-                  }
-                >
-                  {form.formState.isSubmitting ? 'Upgrading...' : 'Upgrade'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    disabled={form.formState.isSubmitting}
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    data-testid="upgradeOrgSubmitButton"
+                    type="submit"
+                    disabled={
+                      selectedPlan === org?.plan?.id ||
+                      form.formState.isSubmitting
+                    }
+                  >
+                    {form.formState.isSubmitting ? 'Upgrading...' : 'Upgrade'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          )}
+          {stripeClientSecret && (
+            <StripeEmbeddedForm clientSecret={stripeClientSecret} />
+          )}
         </DialogContent>
       </Dialog>
+      <FinishUpgradeOrganizationProcess />
     </>
   );
 }

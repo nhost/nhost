@@ -172,10 +172,10 @@ jobs:
       - name: Set Dashboard Preview URL
         if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
         run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
-      - name: Run Upgrade project Dashboard e2e tests
+      - name: Run Onboarding Dashboard e2e tests
         if: matrix.package.path == 'dashboard'
         timeout-minutes: 10
-        run: pnpm --filter="${{ matrix.package.name }}" run e2e:upgrade-project
+        run: pnpm --filter="${{ matrix.package.name }}" run e2e:onboarding
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e tests
         timeout-minutes: 20

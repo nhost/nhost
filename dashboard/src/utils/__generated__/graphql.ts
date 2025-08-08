@@ -1156,6 +1156,7 @@ export type ConfigAuthUserUpdateInput = {
 /** AUTH_JWT_CUSTOM_CLAIMS */
 export type ConfigAuthsessionaccessTokenCustomClaims = {
   __typename?: 'ConfigAuthsessionaccessTokenCustomClaims';
+  default?: Maybe<Scalars['String']>;
   key: Scalars['String'];
   value: Scalars['String'];
 };
@@ -1164,16 +1165,19 @@ export type ConfigAuthsessionaccessTokenCustomClaimsComparisonExp = {
   _and?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>>;
   _not?: InputMaybe<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>;
   _or?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>>;
+  default?: InputMaybe<ConfigStringComparisonExp>;
   key?: InputMaybe<ConfigStringComparisonExp>;
   value?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigAuthsessionaccessTokenCustomClaimsInsertInput = {
+  default?: InputMaybe<Scalars['String']>;
   key: Scalars['String'];
   value: Scalars['String'];
 };
 
 export type ConfigAuthsessionaccessTokenCustomClaimsUpdateInput = {
+  default?: InputMaybe<Scalars['String']>;
   key?: InputMaybe<Scalars['String']>;
   value?: InputMaybe<Scalars['String']>;
 };
@@ -2367,6 +2371,7 @@ export type ConfigPostgresSettings = {
   minWalSize?: Maybe<Scalars['String']>;
   randomPageCost?: Maybe<Scalars['Float']>;
   sharedBuffers?: Maybe<Scalars['String']>;
+  trackIoTiming?: Maybe<Scalars['String']>;
   walBuffers?: Maybe<Scalars['String']>;
   walLevel?: Maybe<Scalars['String']>;
   workMem?: Maybe<Scalars['String']>;
@@ -2395,6 +2400,7 @@ export type ConfigPostgresSettingsComparisonExp = {
   minWalSize?: InputMaybe<ConfigStringComparisonExp>;
   randomPageCost?: InputMaybe<ConfigFloatComparisonExp>;
   sharedBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  trackIoTiming?: InputMaybe<ConfigStringComparisonExp>;
   walBuffers?: InputMaybe<ConfigStringComparisonExp>;
   walLevel?: InputMaybe<ConfigStringComparisonExp>;
   workMem?: InputMaybe<ConfigStringComparisonExp>;
@@ -2420,6 +2426,7 @@ export type ConfigPostgresSettingsInsertInput = {
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
+  trackIoTiming?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
   walLevel?: InputMaybe<Scalars['String']>;
   workMem?: InputMaybe<Scalars['String']>;
@@ -2445,6 +2452,7 @@ export type ConfigPostgresSettingsUpdateInput = {
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
+  trackIoTiming?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
   walLevel?: InputMaybe<Scalars['String']>;
   workMem?: InputMaybe<Scalars['String']>;
@@ -13020,6 +13028,7 @@ export type Mutation_Root = {
   billingUpdatePITR: Scalars['Boolean'];
   billingUpdatePersistentVolume: Scalars['Boolean'];
   billingUpdateReports: Scalars['Boolean'];
+  billingUpgradeFreeOrganization: Scalars['String'];
   billingUploadReports: Scalars['Boolean'];
   changeDatabaseVersion: Scalars['Boolean'];
   /** delete single row from the table: "announcements_read" */
@@ -13904,6 +13913,14 @@ export type Mutation_RootBillingUpdatePersistentVolumeArgs = {
   amount: Scalars['Int'];
   appID: Scalars['uuid'];
   organizationID?: InputMaybe<Scalars['uuid']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingUpgradeFreeOrganizationArgs = {
+  organizationID: Scalars['uuid'];
+  planID: Scalars['uuid'];
+  redirectURL: Scalars['String'];
 };
 
 
@@ -27895,6 +27912,15 @@ export type BillingTransferAppMutationVariables = Exact<{
 
 export type BillingTransferAppMutation = { __typename?: 'mutation_root', billingTransferApp: boolean };
 
+export type BillingUpgradeFreeOrganizationMutationVariables = Exact<{
+  organizationID: Scalars['uuid'];
+  planID: Scalars['uuid'];
+  redirectURL: Scalars['String'];
+}>;
+
+
+export type BillingUpgradeFreeOrganizationMutation = { __typename?: 'mutation_root', billingUpgradeFreeOrganization: string };
+
 export type CreateOrganizationRequestMutationVariables = Exact<{
   organizationName: Scalars['String'];
   planID: Scalars['uuid'];
@@ -31883,6 +31909,43 @@ export function useBillingTransferAppMutation(baseOptions?: Apollo.MutationHookO
 export type BillingTransferAppMutationHookResult = ReturnType<typeof useBillingTransferAppMutation>;
 export type BillingTransferAppMutationResult = Apollo.MutationResult<BillingTransferAppMutation>;
 export type BillingTransferAppMutationOptions = Apollo.BaseMutationOptions<BillingTransferAppMutation, BillingTransferAppMutationVariables>;
+export const BillingUpgradeFreeOrganizationDocument = gql`
+    mutation billingUpgradeFreeOrganization($organizationID: uuid!, $planID: uuid!, $redirectURL: String!) {
+  billingUpgradeFreeOrganization(
+    organizationID: $organizationID
+    planID: $planID
+    redirectURL: $redirectURL
+  )
+}
+    `;
+export type BillingUpgradeFreeOrganizationMutationFn = Apollo.MutationFunction<BillingUpgradeFreeOrganizationMutation, BillingUpgradeFreeOrganizationMutationVariables>;
+
+/**
+ * __useBillingUpgradeFreeOrganizationMutation__
+ *
+ * To run a mutation, you first call `useBillingUpgradeFreeOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBillingUpgradeFreeOrganizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [billingUpgradeFreeOrganizationMutation, { data, loading, error }] = useBillingUpgradeFreeOrganizationMutation({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *      planID: // value for 'planID'
+ *      redirectURL: // value for 'redirectURL'
+ *   },
+ * });
+ */
+export function useBillingUpgradeFreeOrganizationMutation(baseOptions?: Apollo.MutationHookOptions<BillingUpgradeFreeOrganizationMutation, BillingUpgradeFreeOrganizationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<BillingUpgradeFreeOrganizationMutation, BillingUpgradeFreeOrganizationMutationVariables>(BillingUpgradeFreeOrganizationDocument, options);
+      }
+export type BillingUpgradeFreeOrganizationMutationHookResult = ReturnType<typeof useBillingUpgradeFreeOrganizationMutation>;
+export type BillingUpgradeFreeOrganizationMutationResult = Apollo.MutationResult<BillingUpgradeFreeOrganizationMutation>;
+export type BillingUpgradeFreeOrganizationMutationOptions = Apollo.BaseMutationOptions<BillingUpgradeFreeOrganizationMutation, BillingUpgradeFreeOrganizationMutationVariables>;
 export const CreateOrganizationRequestDocument = gql`
     mutation createOrganizationRequest($organizationName: String!, $planID: uuid!, $redirectURL: String!) {
   billingCreateOrganizationRequest(

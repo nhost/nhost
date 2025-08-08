@@ -194,7 +194,7 @@ export default function NotificationsTray() {
           <SheetHeader>
             <SheetTitle className="sr-only">Notifications</SheetTitle>
             <SheetDescription className="sr-only">
-              List of pending invites and create organization requests
+              List of pending invites and organization requests
             </SheetDescription>
           </SheetHeader>
           <div className="flex h-full w-full flex-col">
@@ -216,11 +216,12 @@ export default function NotificationsTray() {
                   <div className="flex flex-col items-end gap-2">
                     <div className="flex w-full items-center justify-between">
                       <Badge className="h-5 px-[6px] text-[10px]">
-                        New Organization pending
+                        Pending Organization request
                       </Badge>
                     </div>
                     <p className="w-full">
-                      You have previously tried to create a new organization
+                      You have previously tried to upgrade or create a new
+                      organization
                     </p>
                   </div>
                   <div className="flex flex-row justify-end gap-2">

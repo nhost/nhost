@@ -13,11 +13,19 @@ export type FinishOrgCreationOnCompletedCb = (
 ) => void;
 
 interface UseFinishOrgCreationProps {
+  successMessage: string;
+  loadingMessage: string;
+  errorMessage: string;
+  pendingMessage: string;
   onCompleted: FinishOrgCreationOnCompletedCb;
   onError?: () => void;
 }
 
 function useFinishOrgCreation({
+  successMessage,
+  loadingMessage,
+  errorMessage,
+  pendingMessage,
   onCompleted,
   onError,
 }: UseFinishOrgCreationProps): [boolean, CheckoutStatus] {
@@ -56,24 +64,25 @@ function useFinishOrgCreation({
 
               case CheckoutStatus.Expired:
                 onError();
-                throw new Error('Request to create organization has expired');
+                throw new Error('Organization request has expired');
 
               case CheckoutStatus.Open:
                 // TODO discuss what to do in this case
                 onError();
-                throw new Error(
-                  'Request to create organization with status "Open"',
-                );
+                throw new Error(pendingMessage);
 
               default:
                 break;
             }
           },
           {
-            loadingMessage: 'Processing new organization request',
+            loadingMessage:
+              loadingMessage || 'Processing new organization request',
             successMessage:
+              successMessage ||
               'The new organization has been created successfully.',
             errorMessage:
+              errorMessage ||
               'An error occurred while creating the new organization.',
             onError,
           },

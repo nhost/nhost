@@ -1,0 +1,11 @@
+mutation billingUpgradeFreeOrganization(
+  $organizationID: uuid!
+  $planID: uuid!
+  $redirectURL: String!
+) {
+  billingUpgradeFreeOrganization(
+    organizationID: $organizationID
+    planID: $planID
+    redirectURL: $redirectURL
+  )
+}
