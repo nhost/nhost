@@ -1,5 +1,11 @@
 # @nhost-examples/react-urql
 
+## 0.8.0
+
+### Minor Changes
+
+- b8cb491: fix: update dependencies to fix vulnerabilities
+
 ## 0.7.2
 
 ### Patch Changes
