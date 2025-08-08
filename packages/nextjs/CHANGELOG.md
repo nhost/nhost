@@ -1,5 +1,11 @@
 # @nhost/nextjs
 
+## 2.3.0
+
+### Minor Changes
+
+- b8cb491: fix: update dependencies to fix vulnerabilities
+
 ## 2.2.9
 
 ### Patch Changes
