@@ -18,7 +18,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import clsx from 'clsx';
 import type { PropsWithoutRef } from 'react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import type { FieldError } from 'react-hook-form';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 
@@ -150,6 +150,13 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
     }),
   );
 
+  const formattedInputValue = useMemo(() => {
+    if (defaultValue?.value === '') {
+      return "''::text";
+    }
+    return isIdentity ? '' : inputValue;
+  }, [isIdentity, defaultValue?.value, inputValue]);
+
   useEffect(() => {
     if (!defaultValue) {
       setInputValue('');
@@ -176,7 +183,7 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
       placeholder="NULL"
       error={Boolean(errors?.columns?.[index]?.defaultValue)}
       helperText={errors?.columns?.[index]?.defaultValue?.message}
-      inputValue={isIdentity ? '' : inputValue}
+      inputValue={formattedInputValue}
       onInputChange={(_event, value) => setInputValue(value)}
       onBlur={(event) => {
         if (event.target instanceof HTMLInputElement && !event.target.value) {
