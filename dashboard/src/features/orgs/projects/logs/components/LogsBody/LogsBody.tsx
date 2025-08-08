@@ -77,11 +77,10 @@ function TextCell({ getValue }: { getValue: () => string }) {
 }
 
 function ServiceCell({ getValue }: { getValue: () => string }) {
-  return (
-    <Text className="font-mono text-xs-">
-      {LOGS_SERVICE_TO_LABEL[getValue()]}
-    </Text>
-  );
+  const service = getValue();
+  const serviceLabel = LOGS_SERVICE_TO_LABEL[service] ?? service;
+
+  return <Text className="font-mono text-xs-">{serviceLabel}</Text>;
 }
 
 const columns = [
