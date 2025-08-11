@@ -6,10 +6,12 @@ import { storage } from './utils/helpers'
 
 describe('test delete file', () => {
   it('should be able to get delete file', async () => {
-    const file = fs.createReadStream('./tests/assets/sample.pdf')
+    const file = new File([fs.readFileSync('./tests/assets/sample.pdf')], 'sample.pdf', {
+      type: 'application/pdf'
+    })
 
     const { fileMetadata } = await storage.upload({
-      file: file as unknown as File
+      file: file,
     })
 
     const { error } = await storage.delete({

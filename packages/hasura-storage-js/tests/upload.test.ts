@@ -1,16 +1,15 @@
-import fetchPonyfill from 'fetch-ponyfill'
-import FormData from 'form-data'
 import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 import { storage } from './utils/helpers'
 
-const { fetch } = fetchPonyfill()
-
 describe('test upload', () => {
   it('should upload a file from the file system', async () => {
+    const file = new File([fs.readFileSync('./tests/assets/sample.pdf')], 'sample.pdf', {
+      type: 'application/pdf'
+    })
     const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    fd.append('file[]', file)
 
     const { error } = await storage.upload({
       formData: fd
@@ -26,7 +25,7 @@ describe('test upload', () => {
 
     // create form data
     const fd = new FormData()
-    fd.append('file', blob.stream(), 'logo.png')
+    fd.append('file[]', blob, 'logo.png')
 
     const { error } = await storage.upload({
       formData: fd
@@ -38,10 +37,11 @@ describe('test upload', () => {
   it('should upload a file with specific id', async () => {
     const RANDOM_UUID = uuidv4()
 
-    const file = fs.createReadStream('./tests/assets/sample.pdf')
+    const fileBuffer = fs.readFileSync('./tests/assets/sample.pdf')
+    const file = new File([fileBuffer], 'sample.pdf', { type: 'application/pdf' })
 
     const { fileMetadata, error } = await storage.upload({
-      file: file as unknown as File,
+      file: file,
       id: RANDOM_UUID
     })
 
@@ -58,7 +58,9 @@ describe('test upload', () => {
   it('should upload a file with specific name', async () => {
     const FILE_NAME = 'special-name.pdf'
 
-    const file = fs.createReadStream('./tests/assets/sample.pdf')
+    const file = new File([fs.readFileSync('./tests/assets/sample.pdf')], 'sample.pdf', {
+        type: 'application/pdf'
+    })
 
     const { fileMetadata, error } = await storage.upload({
       file: file as unknown as File,
@@ -76,10 +78,12 @@ describe('test upload', () => {
   })
 
   it('should upload a file with a non-ISO 8859-1 name', async () => {
-    const file = fs.createReadStream('./tests/assets/sample.pdf')
+    const file = new File([fs.readFileSync('./tests/assets/sample.pdf')], 'sample.pdf', {
+      type: 'application/pdf'
+    })
 
     const { fileMetadata, error } = await storage.upload({
-      file: file as unknown as File,
+      file: file,
       name: '你 好'
     })
 
@@ -97,7 +101,9 @@ describe('test upload', () => {
     const RANDOM_UUID = uuidv4()
     const FILE_NAME = 'special-name.pdf'
 
-    const file = fs.createReadStream('./tests/assets/sample.pdf')
+    const file = new File([fs.readFileSync('./tests/assets/sample.pdf')], 'sample.pdf', {
+      type: 'application/pdf'
+    })
 
     const { fileMetadata, error } = await storage.upload({
       file: file as unknown as File,
@@ -118,7 +124,10 @@ describe('test upload', () => {
 
   it('should upload a file with specific bucket id', async () => {
     const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const file = new File([fs.readFileSync('./tests/assets/sample.pdf')], 'sample.pdf', {
+      type: 'application/pdf'
+    })
+    fd.append('file[]', file)
 
     const { fileMetadata, error } = await storage.upload({
       formData: fd,
@@ -138,7 +147,10 @@ describe('test upload', () => {
 
   it.skip('should upload a file with specific bucket id (test-bucket)', async () => {
     const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const file = new File([fs.readFileSync('./tests/assets/sample.pdf')], 'sample.pdf', {
+      type: 'application/pdf'
+    })
+    fd.append('file[]', file)
 
     const { fileMetadata, error } = await storage.upload({
       formData: fd,

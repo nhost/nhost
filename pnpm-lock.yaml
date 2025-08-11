@@ -1992,12 +1992,6 @@ importers:
 
   packages/hasura-storage-js:
     dependencies:
-      fetch-ponyfill:
-        specifier: ^7.1.0
-        version: 7.1.0(encoding@0.1.13)
-      form-data:
-        specifier: '>=4.0.4'
-        version: 4.0.4
       graphql:
         specifier: 16.8.1
         version: 16.8.1
