@@ -1,5 +1,5 @@
-import { FinishOrgCreationProcess } from '@/features/orgs/components/common/FinishOrgCreationProcess';
-import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrgCreation/useFinishOrgCreation';
+import { FinishOrganizationProcess } from '@/features/orgs/components/common/FinishOrganizationProcess';
+import { type FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 
 interface Props {
   onCompleted: FinishOrgCreationOnCompletedCb;
@@ -8,7 +8,7 @@ interface Props {
 
 function FinishOrgCreation({ onCompleted, onError }: Props) {
   return (
-    <FinishOrgCreationProcess
+    <FinishOrganizationProcess
       onCompleted={onCompleted}
       onError={onError}
       loadingMessage="Creating new organization"

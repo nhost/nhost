@@ -13,6 +13,9 @@ test('should be able to ban and unban a user', async ({
   const password = faker.internet.password();
 
   await createUser({ page, email, password });
+  await page.waitForSelector(
+    'div:has-text("User has been created successfully.")',
+  );
 
   await page
     .getByRole('button', { name: `View ${email}`, exact: true })

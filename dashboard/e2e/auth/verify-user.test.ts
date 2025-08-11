@@ -14,6 +14,10 @@ test('should be able to verify the email of a user', async ({
 
   await createUser({ page, email, password });
 
+  await page.waitForSelector(
+    'div:has-text("User has been created successfully.")',
+  );
+
   await page
     .getByRole('button', { name: `View ${email}`, exact: true })
     .click();

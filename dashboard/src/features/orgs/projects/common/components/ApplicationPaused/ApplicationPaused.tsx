@@ -1,7 +1,7 @@
 import { Container } from '@/components/layout/Container';
 import { Modal } from '@/components/ui/v1/Modal';
 import { Button } from '@/components/ui/v2/Button';
-import { TransferOrUpgradeProjectDialog } from '@/features/orgs/components/common/TransferOrUpgradeProjectDialog';
+import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { ApplicationPausedBanner } from '@/features/orgs/projects/common/components/ApplicationPausedBanner';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
@@ -51,7 +51,7 @@ export default function ApplicationPaused() {
                 Transfer
               </Button>
 
-              <TransferOrUpgradeProjectDialog
+              <TransferProjectDialog
                 open={transferProjectDialogOpen}
                 setOpen={setTransferProjectDialogOpen}
               />
