@@ -36,9 +36,17 @@ export async function uploadFormData() {
     const formData = new FormData()
 
     formData.append('file[]', Buffer.from(arrayBuffer), customValues[0].name)
-    formData.append('metadata[]', JSON.stringify({ id: customValues[0].id }))
+    formData.append(
+      'metadata[]',
+      new Blob([JSON.stringify({ id: customValues[0].id })], { type: 'application/json' }),
+      "",
+    )
     formData.append('file[]', Buffer.from(arrayBuffer), customValues[1].name)
-    formData.append('metadata[]', JSON.stringify({ id: customValues[1].id }))
+    formData.append(
+      'metadata[]',
+      new Blob([JSON.stringify({ id: customValues[1].id })], { type: 'application/json' }),
+      "",
+    )
 
     // Upload files to Nhost Storage
     const { error: uploadError, fileMetadata } = await client.storage.upload({

@@ -77,7 +77,11 @@ export class HasuraStorageApi {
     const formData = typeof window === 'undefined' ? new LegacyFormData() : new FormData()
 
     formData.append('file[]', file)
-    formData.append('metadata[]', JSON.stringify({ id, name }))
+    formData.append(
+      'metadata[]',
+      new Blob([JSON.stringify({ id, name })], { type: 'application/json' }),
+      "",
+    )
 
     const { error, fileMetadata } = await fetchUpload(this.url, formData, {
       accessToken: this.accessToken,

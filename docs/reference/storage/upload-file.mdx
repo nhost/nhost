@@ -35,11 +35,15 @@ form.append("bucket-id", "<string>");
 
 form.append("file[]", <file_object>);
 
-form.append("metadata[]", JSON.stringify({
-  "id": "<string>",
-  "metadata": {},
-  "name": "<string>"
-}));
+form.append(
+  "metadata[]",
+  new Blob([JSON.stringify({
+    "id": "<string>",
+    "metadata": {},
+    "name": "<string>"
+  })], {type: "application/json"}),
+  "",
+);
 
 const options = {
   method: 'POST',
