@@ -2,8 +2,6 @@ import { assign, createMachine } from 'xstate'
 import { FileUploadConfig, StorageErrorPayload } from '../utils'
 import { fetchUpload } from '../utils/upload'
 
-let FormData: any
-
 export type FileUploadContext = {
   progress: number | null
   loaded: number
