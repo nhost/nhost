@@ -268,7 +268,9 @@ export default function SubscriptionPlan() {
           )}
         >
           <DialogHeader>
-            <DialogTitle>Upgrade Organization {org?.name}</DialogTitle>
+            <DialogTitle className="pr-3">
+              Upgrade Organization {org?.name}
+            </DialogTitle>
             <DialogDescription />
           </DialogHeader>
 

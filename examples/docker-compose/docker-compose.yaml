@@ -174,7 +174,7 @@ services:
         working_dir: /app
 
     dashboard:
-        image: nhost/dashboard:2.20.0
+        image: nhost/dashboard:2.34.0
         environment:
             NEXT_PUBLIC_ENV: dev
             NEXT_PUBLIC_NHOST_ADMIN_SECRET: ${GRAPHQL_ADMIN_SECRET}
