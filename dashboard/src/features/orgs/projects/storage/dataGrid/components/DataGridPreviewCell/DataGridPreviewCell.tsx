@@ -226,7 +226,7 @@ export default function DataGridPreviewCell<TData extends object>({
             ? getHasuraAdminSecret()
             : project!.config!.hasura.adminSecret,
       },
-    });
+    );
 
     if (presignedUrl?.url) {
       if (!isPreviewable) {
