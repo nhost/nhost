@@ -5,16 +5,16 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { ToRemoteSchemaDefinitionRemoteField } from './toRemoteSchemaDefinitionRemoteField';
+import type { ToRemoteSchemaRelationshipDefinitionRemoteField } from './toRemoteSchemaRelationshipDefinitionRemoteField';
 
 /**
  * Definition for relationship to another remote schema
  */
-export interface ToRemoteSchemaDefinition {
+export interface ToRemoteSchemaRelationshipDefinition {
   /** Name of the target remote schema */
   remote_schema: string;
   /** Fields from the source type to use in the relationship */
   lhs_fields: string[];
   /** Remote field configuration */
-  remote_field: ToRemoteSchemaDefinitionRemoteField;
+  remote_field: ToRemoteSchemaRelationshipDefinitionRemoteField;
 }

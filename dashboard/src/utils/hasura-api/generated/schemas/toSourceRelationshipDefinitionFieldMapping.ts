@@ -7,8 +7,8 @@
  */
 
 /**
- * Arguments to pass to the remote field
+ * Mapping from remote schema fields to database table columns
  */
-export type ToRemoteSchemaDefinitionRemoteFieldArguments = {
+export type ToSourceRelationshipDefinitionFieldMapping = {
   [key: string]: string;
 };

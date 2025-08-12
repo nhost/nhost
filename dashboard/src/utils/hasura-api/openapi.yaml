@@ -304,13 +304,13 @@ components:
                             - to_remote_schema
                           properties:
                             to_remote_schema:
-                              $ref: '#/components/schemas/ToRemoteSchemaDefinition'
+                              $ref: '#/components/schemas/ToRemoteSchemaRelationshipDefinition'
                         - type: object
                           required:
                             - to_source
                           properties:
                             to_source:
-                              $ref: '#/components/schemas/ToSourceDefinition'
+                              $ref: '#/components/schemas/ToSourceRelationshipDefinition'
         permissions:
           type: array
           description: Permissions for the remote schema
@@ -580,15 +580,15 @@ components:
                 - to_remote_schema
               properties:
                 to_remote_schema:
-                  $ref: '#/components/schemas/ToRemoteSchemaDefinition'
+                  $ref: '#/components/schemas/ToRemoteSchemaRelationshipDefinition'
             - type: object
               required:
                 - to_source
               properties:
                 to_source:
-                  $ref: '#/components/schemas/ToSourceDefinition'
+                  $ref: '#/components/schemas/ToSourceRelationshipDefinition'
 
-    ToRemoteSchemaDefinition:
+    ToRemoteSchemaRelationshipDefinition:
       type: object
       description: Definition for relationship to another remote schema
       required:
@@ -624,7 +624,7 @@ components:
               arguments:
                 id: '$user_id'
 
-    ToSourceDefinition:
+    ToSourceRelationshipDefinition:
       type: object
       description: Definition for relationship to a database source
       required:

@@ -3,13 +3,13 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DialogFormProps } from '@/types/common';
-import { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
+import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
 import { useState } from 'react';
 import { useGetRemoteSchemasQuery } from '../../hooks/useGetRemoteSchemasQuery';
 import { CreateRemoteSchemaRelationshipForm } from '../CreateRemoteSchemaRelationshipForm';
 import { EditRemoteSchemaRelationshipForm } from '../EditRemoteSchemaRelationshipForm';
 import EmptyRemoteSchemaRelationships from './EmptyRemoteSchemaRelationships';
-import RemoteSchemaRelationshipsTable from './sections/RemoteSchemaRelationshipsTable';
+import RemoteSchemaRelationshipsInfoTable from './sections/RemoteSchemaRelationshipsInfoTable';
 
 export interface EditRemoteSchemaRelationshipsProps extends DialogFormProps {
   /**
@@ -89,7 +89,7 @@ export default function EditRemoteSchemaRelationships({
       )
     ) {
       return (
-        <RemoteSchemaRelationshipsTable
+        <RemoteSchemaRelationshipsInfoTable
           sourceRemoteSchema={schema}
           remoteRelationships={remoteRelationships}
           onEditRelationship={handleEditRelationship}

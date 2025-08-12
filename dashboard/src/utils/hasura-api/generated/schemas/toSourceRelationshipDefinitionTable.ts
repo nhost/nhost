@@ -7,6 +7,11 @@
  */
 
 /**
- * Mapping from remote schema fields to database table columns
+ * Target table information
  */
-export type ToSourceDefinitionFieldMapping = { [key: string]: string };
+export type ToSourceRelationshipDefinitionTable = {
+  /** Name of the table */
+  name: string;
+  /** Schema name of the table */
+  schema: string;
+};

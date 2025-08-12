@@ -7,11 +7,8 @@
  */
 
 /**
- * Target table information
+ * Arguments to pass to the remote field
  */
-export type ToSourceDefinitionTable = {
-  /** Name of the table */
-  name: string;
-  /** Schema name of the table */
-  schema: string;
+export type ToRemoteSchemaRelationshipDefinitionRemoteFieldArguments = {
+  [key: string]: string;
 };
