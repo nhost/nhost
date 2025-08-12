@@ -78,8 +78,6 @@ export class HasuraStorageApi {
       accessToken: this.accessToken,
       adminSecret: this.adminSecret,
       bucketId,
-      fileId: id,
-      name,
       headers: {
         ...this.headers, // global nhost storage client headers to be sent with all `uploadFile` calls
         ...extraHeaders // extra headers to be sent with a specific call

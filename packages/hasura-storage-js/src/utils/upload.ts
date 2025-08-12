@@ -44,10 +44,10 @@ export const fetchUpload = async (
     headers['Authorization'] = `Bearer ${accessToken}`
   }
 
-  if (name || fileId) {
+  if ((name || fileId) && !data.has('metadata[]')) {
     const metadata: Record<string, string> = {}
     if (name) {
-      metadata.name = toIso88591(name)
+      metadata.name = name
     }
     if (fileId) {
       metadata.id = fileId
