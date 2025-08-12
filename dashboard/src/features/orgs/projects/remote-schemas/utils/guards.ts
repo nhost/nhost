@@ -7,8 +7,8 @@ import type {
   RemoteSchemaHeaderWithValue,
   RemoteSchemaInfo,
   RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
-  ToRemoteSchemaDefinition,
-  ToSourceDefinition,
+  ToRemoteSchemaRelationshipDefinition,
+  ToSourceRelationshipDefinition,
 } from '@/utils/hasura-api/generated/schemas';
 
 export function isHeaderWithEnvValue(
@@ -90,12 +90,12 @@ export function isRemoteSchemaInfo(obj: unknown): obj is RemoteSchemaInfo {
  */
 export function isToRemoteSchemaDefinition(
   definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
-): definition is { to_remote_schema: ToRemoteSchemaDefinition } {
+): definition is { to_remote_schema: ToRemoteSchemaRelationshipDefinition } {
   return 'to_remote_schema' in definition && !('to_source' in definition);
 }
 
 export function isToSourceDefinition(
   definition: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItemDefinition,
-): definition is { to_source: ToSourceDefinition } {
+): definition is { to_source: ToSourceRelationshipDefinition } {
   return 'to_source' in definition && !('to_remote_schema' in definition);
 }

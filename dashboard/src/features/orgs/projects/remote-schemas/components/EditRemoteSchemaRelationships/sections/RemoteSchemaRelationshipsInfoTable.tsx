@@ -23,8 +23,9 @@ import {
   isToRemoteSchemaDefinition,
   isToSourceDefinition,
 } from '../../../utils/guards';
+import RelationshipTableCell from './RelationshipTableCell';
 
-export interface RemoteSchemaRelationshipsTableProps {
+export interface RemoteSchemaRelationshipsInfoTableProps {
   sourceRemoteSchema: string;
   remoteRelationships: RemoteSchemaInfoRemoteRelationshipsItem[];
   onEditRelationship?: (
@@ -33,13 +34,15 @@ export interface RemoteSchemaRelationshipsTableProps {
   onDeleteRelationship?: () => void;
 }
 
-export default function RemoteSchemaRelationshipsTable({
+export default function RemoteSchemaRelationshipsInfoTable({
   sourceRemoteSchema,
   remoteRelationships,
   onEditRelationship,
   onDeleteRelationship,
-}: RemoteSchemaRelationshipsTableProps) {
+}: RemoteSchemaRelationshipsInfoTableProps) {
   const { openAlertDialog } = useDialog();
+
+  console.log('remoteRelationships:', remoteRelationships);
 
   const getRelationshipType = (
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
@@ -95,7 +98,7 @@ export default function RemoteSchemaRelationshipsTable({
       },
       {
         loadingMessage: 'Deleting relationship...',
-        successMessage: 'Relationship deleted successfully!',
+        successMessage: 'Relationship deleted successfully.',
         errorMessage: 'Failed to delete relationship',
       },
     );
@@ -149,7 +152,9 @@ export default function RemoteSchemaRelationshipsTable({
                 </TableCell>
                 <TableCell>{getRelationshipTarget(relationship)}</TableCell>
                 <TableCell>{getRelationshipType(relationship)}</TableCell>
-                <TableCell>TODO</TableCell>
+                <TableCell>
+                  <RelationshipTableCell relationship={relationship} />
+                </TableCell>
                 <TableCell>
                   <Dropdown.Root id={`relationship-menu-${relationship.name}`}>
                     <Dropdown.Trigger asChild hideChevron>
