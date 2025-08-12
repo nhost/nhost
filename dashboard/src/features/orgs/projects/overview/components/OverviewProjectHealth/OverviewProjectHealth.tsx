@@ -18,7 +18,9 @@ import { ServiceVersionTooltip } from '@/features/orgs/projects/overview/compone
 import {
   baseServices,
   findHighestImportanceState,
+  type ServiceHealthInfo,
 } from '@/features/orgs/projects/overview/health';
+import { isNotEmptyValue } from '@/lib/utils';
 
 export default function OverviewProjectHealth() {
   const { project } = useProject();
@@ -74,7 +76,7 @@ export default function OverviewProjectHealth() {
   }
 
   const openHealthModal = async (
-    defaultExpanded: keyof typeof baseServices | 'run',
+    defaultExpanded?: keyof typeof baseServices | 'run',
   ) => {
     openDialog({
       component: (
@@ -150,11 +152,14 @@ export default function OverviewProjectHealth() {
     />
   );
 
-  const runServices = Object.values(runStatus).filter((service) =>
-    service?.name?.startsWith('run-'),
+  const runServices = Object.values(runStatus).filter(
+    (service): service is ServiceHealthInfo =>
+      isNotEmptyValue(service) && service.name.startsWith('run-'),
   );
 
-  const runServicesStates = runServices.map((service) => service.state);
+  const runServicesStates = runServices
+    .map((service) => service?.state)
+    .filter((service) => isNotEmptyValue(service));
 
   const runServicesState = findHighestImportanceState(runServicesStates);
 

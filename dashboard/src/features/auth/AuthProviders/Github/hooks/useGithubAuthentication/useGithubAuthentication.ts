@@ -37,7 +37,10 @@ function useGithubAuthentication({
     },
     {
       onError: () => {
-        toast.error(errorText, getToastStyleProps());
+        toast.error(
+          errorText || 'Something went wrong. Please try again later.',
+          getToastStyleProps(),
+        );
       },
     },
   );

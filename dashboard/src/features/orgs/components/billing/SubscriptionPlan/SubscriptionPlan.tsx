@@ -103,7 +103,7 @@ export default function SubscriptionPlan() {
           redirectURL,
         },
       });
-      const clientSecret = result?.data?.billingUpgradeFreeOrganization;
+      const clientSecret = result?.data?.billingUpgradeFreeOrganization!;
       setStripeClientSecret(clientSecret);
     } else {
       await execPromiseWithErrorToast(

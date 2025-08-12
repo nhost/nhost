@@ -110,7 +110,7 @@ export default function SMSSettings() {
   const handleSMSSettingsChange = async (values: SMSSettingsFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           provider: {
             sms: {

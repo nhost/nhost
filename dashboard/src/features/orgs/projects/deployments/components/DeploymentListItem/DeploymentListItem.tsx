@@ -1,7 +1,7 @@
 import { NavLink } from '@/components/common/NavLink';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
-import { Avatar } from '@/components/ui/v1/Avatar';
+import { Avatar } from '@/components/ui/v2/Avatar';
 import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
 import { ArrowCounterclockwiseIcon } from '@/components/ui/v2/icons/ArrowCounterclockwiseIcon';
@@ -13,6 +13,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
+import { ifNullconvertToUndefined } from '@/lib/utils';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetOrganizationsDocument,
@@ -105,10 +106,12 @@ export default function DeploymentListItem({
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
           <ListItem.Avatar>
             <Avatar
-              name={deployment.commitUserName}
-              avatarUrl={deployment.commitUserAvatarUrl}
+              alt={ifNullconvertToUndefined(deployment.commitUserName)}
+              src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
               className="h-8 w-8 shrink-0"
-            />
+            >
+              {deployment.commitUserName!}
+            </Avatar>
           </ListItem.Avatar>
 
           <ListItem.Text

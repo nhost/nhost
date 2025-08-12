@@ -1,15 +1,15 @@
 import type { MutableRefObject, PropsWithChildren } from 'react';
 import { createContext, useCallback, useMemo, useReducer, useRef } from 'react';
 
-export interface DataGridCellContextProps<T extends HTMLElement> {
+export interface DataGridCellContextProps<T = HTMLElement> {
   /**
    * This `ref` should be attached to the cell element.
    */
-  cellRef: MutableRefObject<HTMLDivElement>;
+  cellRef: MutableRefObject<HTMLDivElement | null>;
   /**
    * This `ref` should be attached to the input element inside the data grid cell.
    */
-  inputRef: MutableRefObject<T>;
+  inputRef: MutableRefObject<T | null>;
   /**
    * Determines whether or not the cell is currently being edited.
    */
@@ -69,7 +69,7 @@ export interface DataGridCellContextProps<T extends HTMLElement> {
 }
 
 export const DataGridCellContext =
-  createContext<DataGridCellContextProps<any>>(null);
+  createContext<DataGridCellContextProps | null>(null);
 
 interface EditAndSelectState {
   isEditing: boolean;
@@ -103,8 +103,8 @@ function editAndSelectCellReducer(
 export default function DataGridCellProvider<TInput extends HTMLElement>({
   children,
 }: PropsWithChildren<unknown>) {
-  const cellRef = useRef<HTMLDivElement>();
-  const inputRef = useRef<TInput>();
+  const cellRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<TInput>(null);
   const [{ isEditing, isSelected }, dispatch] = useReducer(
     editAndSelectCellReducer,
     {
@@ -129,12 +129,12 @@ export default function DataGridCellProvider<TInput extends HTMLElement>({
 
   const focusPrevCell = useCallback(() => {
     const prevCellAvailable =
-      cellRef.current.previousElementSibling instanceof HTMLElement &&
-      cellRef.current.previousElementSibling.tabIndex > -1;
+      cellRef.current?.previousElementSibling instanceof HTMLElement &&
+      cellRef.current?.previousElementSibling.tabIndex > -1;
 
     requestAnimationFrame(() => {
       if (prevCellAvailable) {
-        (cellRef.current.previousElementSibling as HTMLElement).focus();
+        (cellRef.current?.previousElementSibling as HTMLElement).focus();
         deselectCell();
       }
     });
@@ -144,12 +144,12 @@ export default function DataGridCellProvider<TInput extends HTMLElement>({
 
   const focusNextCell = useCallback(() => {
     const nextCellAvailable =
-      cellRef.current.nextElementSibling instanceof HTMLElement &&
-      cellRef.current.nextElementSibling.tabIndex > -1;
+      cellRef.current?.nextElementSibling instanceof HTMLElement &&
+      cellRef.current?.nextElementSibling.tabIndex > -1;
 
     requestAnimationFrame(() => {
       if (nextCellAvailable) {
-        (cellRef.current.nextElementSibling as HTMLElement).focus();
+        (cellRef.current?.nextElementSibling as HTMLElement).focus();
         deselectCell();
       }
     });
@@ -209,7 +209,7 @@ export default function DataGridCellProvider<TInput extends HTMLElement>({
     dispatch({ type: 'SELECT' });
   }
 
-  const value = useMemo(
+  const value: DataGridCellContextProps<HTMLElement> = useMemo(
     () => ({
       focusCell,
       blurCell,

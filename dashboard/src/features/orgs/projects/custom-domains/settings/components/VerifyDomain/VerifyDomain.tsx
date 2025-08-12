@@ -5,13 +5,14 @@ import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
 import { useState } from 'react';
 
 interface VerifyDomainProps {
   recordType: string;
-  hostname: string;
+  hostname?: string;
   value: string;
   onHostNameVerified?: () => void;
 }
@@ -34,20 +35,22 @@ export default function VerifyDomain({
 
     await execPromiseWithErrorToast(
       async () => {
-        await fireLookupCNAME({
-          variables: {
-            hostname,
-          },
-        }).then(({ data: { dnsLookupCNAME } }) => {
-          if (dnsLookupCNAME !== value) {
-            throw new Error(`Could not verify ${hostname}`);
-          }
-        });
+        if (isNotEmptyValue(hostname)) {
+          await fireLookupCNAME({
+            variables: {
+              hostname,
+            },
+          }).then(({ data }) => {
+            if (data?.dnsLookupCNAME !== value) {
+              throw new Error(`Could not verify ${hostname}`);
+            }
+          });
 
-        setVerificationFailed(false);
-        setVerificationSucceeded(true);
-        setLoading(false);
-        onHostNameVerified?.();
+          setVerificationFailed(false);
+          setVerificationSucceeded(true);
+          setLoading(false);
+          onHostNameVerified?.();
+        }
       },
       {
         loadingMessage: `Verifying ${hostname} ...`,

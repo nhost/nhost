@@ -14,6 +14,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
+import { isNotEmptyValue } from '@/lib/utils';
 
 export interface BaseDirectoryFormValues {
   /**
@@ -38,15 +39,17 @@ export default function BaseDirectorySettings() {
   const { register, formState, reset } = form;
 
   useEffect(() => {
-    reset(() => ({
-      nhostBaseFolder: project?.nhostBaseFolder,
-    }));
+    if (isNotEmptyValue(project?.nhostBaseFolder)) {
+      reset(() => ({
+        nhostBaseFolder: project?.nhostBaseFolder,
+      }));
+    }
   }, [project?.nhostBaseFolder, reset]);
 
   const handleBaseFolderChange = async (values: BaseDirectoryFormValues) => {
     const updateAppMutation = updateApp({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         app: {
           ...values,
         },

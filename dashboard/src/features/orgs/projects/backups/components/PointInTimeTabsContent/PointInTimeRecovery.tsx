@@ -9,7 +9,7 @@ function PointInTimeRecovery() {
     <div className="flex flex-col gap-[1.875rem]">
       <RecoveryRetentionPeriod />
       <RestoreRecommendationNote />
-      <PointInTimeBackupInfo appId={project?.id} showLink />
+      <PointInTimeBackupInfo appId={project!.id} showLink />
     </div>
   );
 }

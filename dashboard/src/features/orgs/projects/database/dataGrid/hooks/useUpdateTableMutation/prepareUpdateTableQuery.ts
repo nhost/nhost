@@ -7,9 +7,13 @@ import type {
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import {
+  getPreparedHasuraQuery,
+  type HasuraOperation,
+} from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
+import { isNotEmptyValue } from '@/lib/utils';
 
 export interface PrepareUpdateTableQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'table' | 'adminSecret'> {
@@ -48,17 +52,17 @@ export default function prepareUpdateTableQuery({
   let args: ReturnType<typeof getPreparedHasuraQuery>[] = [];
 
   const originalColumnMap = originalColumns.reduce(
-    (map, column) => map.set(column.id, column),
+    (map, column) => map.set(column.id as string, column),
     new Map<string, DatabaseColumn>(),
   );
 
   const updatedColumnMap = updatedTable.columns.reduce(
-    (map, column) => map.set(column.id, column),
+    (map, column) => map.set(column.id as string, column),
     new Map<string, DatabaseColumn>(),
   );
 
   const deletableColumns = originalColumns.filter(
-    (column) => !updatedColumnMap.has(column.id),
+    (column) => !updatedColumnMap.has(column.id as string),
   );
 
   if (deletableColumns.length > 0) {
@@ -76,7 +80,7 @@ export default function prepareUpdateTableQuery({
   }
 
   args = args.concat(
-    ...updatedTable.columns.reduce((updatedArgs, column) => {
+    ...updatedTable.columns.reduce<HasuraOperation[]>((updatedArgs, column) => {
       const baseVariables = {
         dataSource,
         schema,
@@ -92,7 +96,7 @@ export default function prepareUpdateTableQuery({
         return [...updatedArgs, ...prepareCreateColumnQuery(baseVariables)];
       }
 
-      const originalColumn = originalColumnMap.get(column.id);
+      const originalColumn = originalColumnMap.get(column.id)!;
 
       return [
         ...updatedArgs,
@@ -132,13 +136,13 @@ export default function prepareUpdateTableQuery({
     updatedTable.foreignKeyRelations || []
   ).reduce(
     (map, foreignKeyRelation) =>
-      map.set(foreignKeyRelation.name, foreignKeyRelation),
+      map.set(foreignKeyRelation.name as string, foreignKeyRelation),
     new Map<string, ForeignKeyRelation>(),
   );
 
   const deletableForeignKeyRelations = originalForeignKeyRelations.filter(
     (foreignKeyRelation) =>
-      !updatedForeignKeyRelationMap.has(foreignKeyRelation.name),
+      !updatedForeignKeyRelationMap.has(foreignKeyRelation.name as string),
   );
 
   if (deletableForeignKeyRelations.length > 0) {
@@ -155,15 +159,15 @@ export default function prepareUpdateTableQuery({
     );
   }
 
-  if (updatedTable?.foreignKeyRelations?.length > 0) {
+  if (isNotEmptyValue(updatedTable?.foreignKeyRelations)) {
     const originalForeignKeyRelationMap = originalForeignKeyRelations.reduce(
       (map, foreignKeyRelation) =>
-        map.set(foreignKeyRelation.name, foreignKeyRelation),
+        map.set(foreignKeyRelation.name as string, foreignKeyRelation),
       new Map<string, ForeignKeyRelation>(),
     );
 
     args = args.concat(
-      ...(updatedTable.foreignKeyRelations || []).reduce(
+      ...(updatedTable.foreignKeyRelations || []).reduce<HasuraOperation[]>(
         (updatedArgs, foreignKeyRelation) => {
           const baseVariables = {
             dataSource,

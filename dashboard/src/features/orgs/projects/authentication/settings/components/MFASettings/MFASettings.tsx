@@ -22,7 +22,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
-  issuer: Yup.string().label('OTP Issuer').nullable().required(),
+  issuer: Yup.string().label('OTP Issuer').required(),
 });
 
 export type MFASettingsFormValues = Yup.InferType<typeof validationSchema>;
@@ -44,7 +44,8 @@ export default function MFASettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { enabled, issuer } = data?.config?.auth?.totp || {};
+  const enabled = !!data?.config?.auth?.totp?.enabled;
+  const issuer = data?.config?.auth?.totp?.issuer || '';
 
   const form = useForm<MFASettingsFormValues>({
     reValidateMode: 'onSubmit',
@@ -84,7 +85,7 @@ export default function MFASettings() {
   const handleMFASettingsChange = async (values: MFASettingsFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             totp: values,

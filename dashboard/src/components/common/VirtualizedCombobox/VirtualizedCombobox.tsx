@@ -24,7 +24,7 @@ type Option = {
 };
 
 interface VirtualizedCommandProps<O extends Option> {
-  height: string;
+  height?: string;
   options: O[];
   placeholder: string;
   selectedOption: string;
@@ -181,7 +181,7 @@ interface VirtualizedComboboxProps<O extends Option> {
   width?: string;
   height?: string;
   button?: React.JSX.Element;
-  onSelectOption?: (option: O) => void;
+  onSelectOption: (option: O) => void;
   selectedOption: string;
   align?: 'start' | 'center' | 'end';
   side?: 'right' | 'top' | 'bottom' | 'left';
@@ -210,7 +210,7 @@ function VirtualizedCombobox<O extends Option>({
       }}
     >
       {selectedOption
-        ? options.find((option) => option.value === selectedOption).value
+        ? options.find((option) => option.value === selectedOption)!.value
         : searchPlaceholder}
       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
     </Button>

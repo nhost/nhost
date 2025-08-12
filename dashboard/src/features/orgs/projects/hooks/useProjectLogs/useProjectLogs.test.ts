@@ -159,7 +159,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
       const { rerender } = renderHook(({ props }) => useProjectLogs(props), {
         initialProps: {
           props: { ...defaultProps, to: null },
-        },
+        } as any,
       });
 
       // Verify subscription was created
@@ -250,7 +250,7 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
       const { rerender } = renderHook(({ props }) => useProjectLogs(props), {
         initialProps: {
           props: { ...defaultProps, to: null },
-        },
+        } as any,
       });
 
       rerender({

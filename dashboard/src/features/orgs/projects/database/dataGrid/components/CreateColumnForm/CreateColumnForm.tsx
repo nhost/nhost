@@ -90,7 +90,7 @@ export default function CreateColumnForm({
 
   return (
     <FormProvider {...form}>
-      {error && error instanceof Error && (
+      {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
@@ -110,7 +110,7 @@ export default function CreateColumnForm({
             </Button>
           </Alert>
         </div>
-      )}
+      ) : null}
 
       <BaseColumnForm
         submitButtonText="Insert"

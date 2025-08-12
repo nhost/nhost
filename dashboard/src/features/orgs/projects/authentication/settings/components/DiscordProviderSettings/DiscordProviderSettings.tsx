@@ -29,7 +29,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
 export default function DiscordProviderSettings() {
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -67,7 +67,7 @@ export default function DiscordProviderSettings() {
     }
   }, [loading, clientId, clientSecret, enabled, form]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -160,8 +160,8 @@ export default function DiscordProviderSettings() {
             hideEmptyHelperText
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/discord/callback`}
             disabled
@@ -175,8 +175,8 @@ export default function DiscordProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/discord/callback`,
                       'Redirect URL',

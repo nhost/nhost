@@ -56,7 +56,7 @@ export default function RuleEditorRow({
         table={table}
         onChange={({ value, columnMetadata, disableReset }) => {
           setSelectedTablePath(
-            `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
+            `${columnMetadata?.table_schema}.${columnMetadata?.table_name}`,
           );
           setSelectedColumnType(columnMetadata?.udt_name);
           setValue(`${rowName}.column`, value, {
@@ -74,7 +74,7 @@ export default function RuleEditorRow({
         }}
         onInitialized={({ value, columnMetadata }) => {
           setSelectedTablePath(
-            `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
+            `${columnMetadata?.table_schema}.${columnMetadata?.table_name}`,
           );
           setSelectedColumnType(columnMetadata?.udt_name);
           setValue(`${rowName}.column`, value, {

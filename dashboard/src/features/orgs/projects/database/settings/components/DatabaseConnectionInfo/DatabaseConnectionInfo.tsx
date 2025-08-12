@@ -37,7 +37,7 @@ export default function DatabaseConnectionInfo() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
 
   const { data, loading, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
@@ -62,7 +62,7 @@ export default function DatabaseConnectionInfo() {
   async function handleSubmit(formValues: DatabasePublicAccessFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           postgres: {
             resources: {
@@ -99,7 +99,7 @@ export default function DatabaseConnectionInfo() {
     );
   }
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -118,8 +118,8 @@ export default function DatabaseConnectionInfo() {
   }
 
   const postgresHost = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
+    project!.subdomain,
+    project!.region,
     'db',
   ).replace('https://', '');
 

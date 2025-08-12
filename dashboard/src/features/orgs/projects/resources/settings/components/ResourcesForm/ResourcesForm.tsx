@@ -36,9 +36,14 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import ResourcesFormFooter from './ResourcesFormFooter';
 
+type ConfigKeys = Exclude<
+  keyof NonNullable<GetResourcesQuery['config']>,
+  '__typename'
+>;
+
 function getInitialServiceResources(
-  data: GetResourcesQuery,
-  service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
+  service: ConfigKeys,
+  data?: GetResourcesQuery,
 ) {
   if (service === 'postgres') {
     const { compute, ...rest } = data?.config?.[service]?.resources || {};
@@ -87,10 +92,10 @@ export default function ResourcesForm() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const initialDatabaseResources = getInitialServiceResources(data, 'postgres');
-  const initialHasuraResources = getInitialServiceResources(data, 'hasura');
-  const initialAuthResources = getInitialServiceResources(data, 'auth');
-  const initialStorageResources = getInitialServiceResources(data, 'storage');
+  const initialDatabaseResources = getInitialServiceResources('postgres', data);
+  const initialHasuraResources = getInitialServiceResources('hasura', data);
+  const initialAuthResources = getInitialServiceResources('auth', data);
+  const initialStorageResources = getInitialServiceResources('storage', data);
 
   const totalInitialVCPU =
     initialDatabaseResources.vcpu +
@@ -363,7 +368,7 @@ export default function ResourcesForm() {
           },
         });
       } else {
-        form.reset(null, { keepValues: true, keepDirty: false });
+        form.reset(undefined, { keepValues: true, keepDirty: false });
       }
     } catch {
       // Note: The error has already been handled by the toast.
@@ -396,6 +401,7 @@ export default function ResourcesForm() {
   }
 
   if (resourcesError || proPlanError) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw resourcesError || proPlanError;
   }
 

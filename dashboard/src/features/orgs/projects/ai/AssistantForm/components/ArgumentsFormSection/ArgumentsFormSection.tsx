@@ -10,10 +10,12 @@ import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { type AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext, type Path } from 'react-hook-form';
+
+type AssistantFormPath = Path<AssistantFormValues>;
 
 interface ArgumentsFormSectionProps {
-  nestedField: string;
+  nestedField: 'graphql' | 'webhooks';
   nestIndex: number;
 }
 
@@ -31,6 +33,11 @@ export default function ArgumentsFormSection({
   const { fields, append, remove } = useFieldArray({
     name: `${nestedField}.${nestIndex}.arguments`,
   });
+
+  function removeOnChangeHandler(name: AssistantFormPath) {
+    const { onChange: defaultOnChange, ...props } = register(name);
+    return props;
+  }
 
   return (
     <Box className="space-y-4">
@@ -60,7 +67,6 @@ export default function ArgumentsFormSection({
                 // We're putting ts-ignore here so we could use the same components for both graphql and webhooks
                 // by passing the nestedField = 'graphql' or nestedField = 'webhooks'
                 {...register(
-                  // @ts-ignore
                   `${nestedField}.${nestIndex}.arguments.${index}.name`,
                 )}
                 id={`${field.id}-name`}
@@ -68,10 +74,10 @@ export default function ArgumentsFormSection({
                 className="w-full"
                 hideEmptyHelperText
                 error={
-                  !!errors?.[nestedField]?.[nestIndex]?.arguments[index].name
+                  !!errors?.[nestedField]?.[nestIndex]?.arguments?.[index]?.name
                 }
                 helperText={
-                  errors?.[nestedField]?.[nestIndex]?.arguments[index]?.name
+                  errors?.[nestedField]?.[nestIndex]?.arguments?.[index]?.name
                     ?.message
                 }
                 fullWidth
@@ -80,7 +86,6 @@ export default function ArgumentsFormSection({
 
               <Input
                 {...register(
-                  // @ts-ignore
                   `${nestedField}.${nestIndex}.arguments.${index}.description`,
                 )}
                 id={`${field.id}-description`}
@@ -88,11 +93,11 @@ export default function ArgumentsFormSection({
                 className="w-full"
                 hideEmptyHelperText
                 error={
-                  !!errors?.[nestedField]?.[nestIndex]?.arguments[index]
-                    .description
+                  !!errors?.[nestedField]?.[nestIndex]?.arguments?.[index]
+                    ?.description
                 }
                 helperText={
-                  errors?.[nestedField]?.[nestIndex]?.arguments[index]
+                  errors?.[nestedField]?.[nestIndex]?.arguments?.[index]
                     ?.description?.message
                 }
                 fullWidth
@@ -107,8 +112,7 @@ export default function ArgumentsFormSection({
                 <Box className="w-full">
                   <ControlledSelect
                     fullWidth
-                    {...register(
-                      // @ts-ignore
+                    {...removeOnChangeHandler(
                       `${nestedField}.${nestIndex}.arguments.${index}.type`,
                     )}
                     id={`${field.id}-type`}

@@ -7,7 +7,7 @@ import type { Role } from '@/types/application';
  * @param roles - Roles in string format
  * @returns An array of roles
  */
-export default function getUserRoles(roles?: string[]): Role[] {
+export default function getUserRoles(roles?: string[] | null): Role[] {
   if (!roles) {
     return [];
   }

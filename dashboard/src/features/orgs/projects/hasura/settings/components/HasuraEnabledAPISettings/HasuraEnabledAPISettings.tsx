@@ -94,7 +94,7 @@ export default function HasuraEnabledAPISettings() {
   async function handleSubmit(formValues: HasuraEnabledAPIFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             settings: {

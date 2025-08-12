@@ -2,9 +2,9 @@ import { useEffect, useRef } from 'react';
 
 export default function useInterval(
   callback: (args?: any) => any,
-  delay: number,
+  delay: number | null,
 ) {
-  const intervalRef = useRef(null);
+  const intervalRef = useRef<number | null>(null);
   const savedCallback = useRef(callback);
 
   useEffect(() => {

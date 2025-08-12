@@ -66,7 +66,7 @@ export default function AutoEmbeddingsPage() {
     }
 
     const autoEmbeddingsCount =
-      data?.graphiteAutoEmbeddingsConfigurationAggregate?.aggregate.count ?? 0;
+      data?.graphiteAutoEmbeddingsConfigurationAggregate?.aggregate?.count ?? 0;
 
     setNrOfPages(Math.ceil(autoEmbeddingsCount / limit.current));
   }, [data, loading]);

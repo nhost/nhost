@@ -1,13 +1,11 @@
 import { useUI } from '@/components/common/UIProvider';
 import { Alert } from '@/components/ui/v2/Alert';
 
-export default function MaintenanceAlert() {
-  const { maintenanceActive, maintenanceEndDate } = useUI();
-
-  if (!maintenanceActive) {
-    return null;
-  }
-
+function MaintenceEndDate({
+  maintenanceEndDate,
+}: {
+  maintenanceEndDate: Date;
+}) {
   const dateTimeFormat = Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
     minute: '2-digit',
@@ -28,6 +26,21 @@ export default function MaintenanceAlert() {
   const timeZone = parts.find((part) => part.type === 'timeZoneName')?.value;
 
   return (
+    <p>
+      Maintenance is expected to be completed at {year}-{month}-{day} {hour}:
+      {minute} {timeZone}.
+    </p>
+  );
+}
+
+export default function MaintenanceAlert() {
+  const { maintenanceActive, maintenanceEndDate } = useUI();
+
+  if (!maintenanceActive) {
+    return null;
+  }
+
+  return (
     <Alert severity="warning" className="mt-4">
       <p>
         We&apos;re currently doing maintenance on our infrastructure. Project
@@ -36,10 +49,7 @@ export default function MaintenanceAlert() {
       </p>
 
       {maintenanceEndDate && (
-        <p>
-          Maintenance is expected to be completed at {year}-{month}-{day} {hour}
-          :{minute} {timeZone}.
-        </p>
+        <MaintenceEndDate maintenanceEndDate={maintenanceEndDate} />
       )}
     </Alert>
   );

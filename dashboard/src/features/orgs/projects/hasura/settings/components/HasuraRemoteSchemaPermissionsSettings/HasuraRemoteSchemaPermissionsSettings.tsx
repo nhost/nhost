@@ -47,7 +47,7 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
   const form = useForm<HasuraRemoteSchemaPermissionsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: enableRemoteSchemaPermissions,
+      enabled: !!enableRemoteSchemaPermissions,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -55,7 +55,7 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
-        enabled: enableRemoteSchemaPermissions,
+        enabled: !!enableRemoteSchemaPermissions,
       });
     }
   }, [loading, enableRemoteSchemaPermissions, form]);
@@ -79,7 +79,7 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
   ) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             settings: {

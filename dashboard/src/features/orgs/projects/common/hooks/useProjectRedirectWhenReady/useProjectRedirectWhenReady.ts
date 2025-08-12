@@ -39,7 +39,7 @@ export default function useProjectRedirectWhenReady(
     async function updateOwnCache() {
       await getOrgs({ variables: { userId: userData?.id } });
     }
-    if (!data) {
+    if (!data?.app) {
       return;
     }
 

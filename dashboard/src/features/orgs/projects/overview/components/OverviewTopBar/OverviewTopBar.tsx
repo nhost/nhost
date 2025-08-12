@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isNotEmptyValue } from '@/lib/utils';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -41,7 +42,7 @@ export default function OverviewTopBar() {
     );
   }
 
-  return (
+  return isNotEmptyValue(project) ? (
     <div className="grid items-center gap-4 pb-5 md:grid-flow-col md:place-content-between md:py-5">
       <div className="grid items-center gap-4 md:grid-flow-col">
         <div className="grid grid-flow-col items-center justify-start gap-2">
@@ -53,7 +54,6 @@ export default function OverviewTopBar() {
               height={56}
             />
           </div>
-
           <div className="grid grid-flow-row">
             <div className="grid grid-flow-row items-center justify-start md:grid-flow-col md:gap-3">
               <Text
@@ -109,5 +109,5 @@ export default function OverviewTopBar() {
         </Link>
       </div>
     </div>
-  );
+  ) : null;
 }

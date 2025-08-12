@@ -41,7 +41,7 @@ const StyledOption = styled(BaseOption)(({ theme }) => ({
   },
 }));
 
-function Option<TValue>(
+function Option<TValue extends {}>(
   { children, ...props }: OptionProps<TValue>,
   ref: ForwardedRef<HTMLLIElement>,
 ) {

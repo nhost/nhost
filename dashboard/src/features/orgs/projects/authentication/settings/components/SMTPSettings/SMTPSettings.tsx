@@ -91,7 +91,7 @@ export default function SMTPSettings() {
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           provider: {
             smtp: newPassword ? values : valuesWithoutPassword,

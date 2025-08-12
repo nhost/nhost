@@ -30,7 +30,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export type Assistant = Omit<
-  GetAssistantsQuery['graphite']['assistants'][0],
+  NonNullable<GetAssistantsQuery['graphite']>['assistants'][number],
   '__typename'
 >;
 
@@ -112,7 +112,7 @@ export default function AssistantsPage() {
   const slug = isPlatform ? org?.slug : 'local';
 
   if (
-    (isPlatform && !org?.plan?.isFree && !project.config?.ai) ||
+    (isPlatform && !org?.plan?.isFree && !project?.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (

@@ -44,14 +44,14 @@ export default function ConcealErrorsSettings() {
   const form = useForm<ToggleConcealErrorsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: data?.config?.auth?.misc?.concealErrors,
+      enabled: !!data?.config?.auth?.misc?.concealErrors,
     },
   });
 
   useEffect(() => {
     if (!loading) {
       form.reset({
-        enabled: data?.config?.auth?.misc?.concealErrors,
+        enabled: data?.config?.auth?.misc?.concealErrors!,
       });
     }
   }, [loading, data, form]);
@@ -77,7 +77,7 @@ export default function ConcealErrorsSettings() {
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           auth: {
             misc: {

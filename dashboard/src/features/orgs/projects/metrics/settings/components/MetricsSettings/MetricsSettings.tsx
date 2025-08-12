@@ -53,8 +53,8 @@ export default function MetricsSettings() {
     skip: !project?.id,
   });
 
-  const { enabled: alertingEnabled } =
-    data?.config?.observability.grafana.alerting || {};
+  const alertingEnabled =
+    !!data?.config?.observability.grafana.alerting?.enabled;
 
   const alertingForm = useForm<MetricsAlertingFormValues>({
     reValidateMode: 'onSubmit',
@@ -92,7 +92,7 @@ export default function MetricsSettings() {
   async function handleSubmit(formValues: MetricsAlertingFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           observability: {
             grafana: {

@@ -15,6 +15,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { type RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { type PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import type { ServiceFormInitialData } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { copy } from '@/utils/copy';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -29,7 +30,7 @@ interface ServicesListProps {
    *
    * @example onDelete={() => refetch()}
    */
-  onCreateOrUpdate?: () => Promise<any>;
+  onCreateOrUpdate: () => Promise<any>;
 
   /**
    * Function to be called after a successful delete action.
@@ -57,29 +58,31 @@ export default function ServicesList({
       component: (
         <ServiceForm
           serviceID={service.id ?? service.serviceID}
-          initialData={{
-            ...service.config,
-            image: service.config?.image?.image,
-            pullCredentials: service.config?.image?.pullCredentials,
-            subdomain: service.subdomain,
-            command: service.config?.command?.map((arg) => ({
-              argument: arg,
-            })),
-            ports: service.config?.ports?.map((item) => ({
-              port: item.port,
-              type: item.type as PortTypes,
-              publish: item.publish,
-              ingresses: item.ingresses,
-              rateLimit: item.rateLimit,
-            })),
-            compute: service.config?.resources?.compute ?? {
-              cpu: 62,
-              memory: 128,
-            },
-            replicas: service.config?.resources?.replicas,
-            autoscaler: service?.config?.resources?.autoscaler,
-            storage: service.config?.resources?.storage,
-          }}
+          initialData={
+            {
+              ...service.config,
+              image: service.config?.image?.image,
+              pullCredentials: service.config?.image?.pullCredentials,
+              subdomain: service.subdomain,
+              command: service.config?.command?.map((arg) => ({
+                argument: arg,
+              })),
+              ports: service.config?.ports?.map((item) => ({
+                port: item.port,
+                type: item.type as PortTypes,
+                publish: item.publish,
+                ingresses: item.ingresses,
+                rateLimit: item.rateLimit,
+              })),
+              compute: service.config?.resources?.compute ?? {
+                cpu: 62,
+                memory: 128,
+              },
+              replicas: service.config?.resources?.replicas,
+              autoscaler: service?.config?.resources?.autoscaler,
+              storage: service.config?.resources?.storage,
+            } as ServiceFormInitialData
+          }
           onSubmit={() => onCreateOrUpdate()}
         />
       ),
@@ -127,7 +130,7 @@ export default function ServicesList({
                   <Tooltip title={service.updatedAt}>
                     <span className="hidden cursor-pointer text-sm text-slate-500 xs+:flex">
                       Deployed{' '}
-                      {formatDistanceToNow(new Date(service.updatedAt))} ago
+                      {formatDistanceToNow(new Date(service.updatedAt!))} ago
                     </span>
                   </Tooltip>
                 ) : null}
@@ -142,7 +145,7 @@ export default function ServicesList({
                 variant="borderless"
                 color="secondary"
                 onClick={(event) => {
-                  copy(service.id ?? service.serviceID, 'Service Id');
+                  copy(service.id ?? service.serviceID!, 'Service Id');
                   event.stopPropagation();
                 }}
                 aria-label="Service Id"

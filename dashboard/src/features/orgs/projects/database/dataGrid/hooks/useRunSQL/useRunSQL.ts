@@ -35,15 +35,15 @@ export default function useRunSQL(
   const { refetch } = useDatabaseQuery([dataSourceSlug as string]);
 
   const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
+    project!.subdomain,
+    project!.region,
     'hasura',
   );
 
   const adminSecret =
     process.env.NEXT_PUBLIC_ENV === 'dev'
       ? getHasuraAdminSecret()
-      : project?.config?.hasura.adminSecret;
+      : project?.config?.hasura.adminSecret!;
 
   const toastStyle = getToastStyleProps();
 

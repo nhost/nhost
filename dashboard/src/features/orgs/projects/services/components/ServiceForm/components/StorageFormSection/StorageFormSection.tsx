@@ -92,8 +92,8 @@ export default function StorageFormSection() {
               placeholder="Name"
               className="w-full"
               hideEmptyHelperText
-              error={!!errors?.storage?.at(index)}
-              helperText={errors?.storage?.at(index)?.message}
+              error={!!errors?.storage?.at?.(index)}
+              helperText={errors?.storage?.at?.(index)?.message}
               fullWidth
               autoComplete="off"
             />
@@ -108,8 +108,8 @@ export default function StorageFormSection() {
               placeholder="Capacity"
               className="w-full"
               hideEmptyHelperText
-              error={!!errors?.storage?.at(index)}
-              helperText={errors?.storage?.at(index)?.message}
+              error={!!errors?.storage?.at?.(index)}
+              helperText={errors?.storage?.at?.(index)?.message}
               fullWidth
               autoComplete="off"
               endAdornment={
@@ -126,8 +126,8 @@ export default function StorageFormSection() {
               placeholder="Path"
               className="w-full"
               hideEmptyHelperText
-              error={!!errors?.storage?.at(index)}
-              helperText={errors?.storage?.at(index)?.message}
+              error={!!errors?.storage?.at?.(index)}
+              helperText={errors?.storage?.at?.(index)?.message}
               fullWidth
               autoComplete="off"
             />

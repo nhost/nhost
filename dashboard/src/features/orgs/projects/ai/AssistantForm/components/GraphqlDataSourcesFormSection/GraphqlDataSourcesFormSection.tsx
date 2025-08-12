@@ -60,8 +60,8 @@ export default function GraphqlDataSourcesFormSection() {
                 placeholder="Name"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.graphql?.at(index)?.name}
-                helperText={errors?.graphql?.at(index)?.message}
+                error={!!errors?.graphql?.at?.(index)?.name}
+                helperText={errors?.graphql?.at?.(index)?.message}
                 fullWidth
                 autoComplete="off"
               />
@@ -73,8 +73,8 @@ export default function GraphqlDataSourcesFormSection() {
                 placeholder="Description"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.graphql?.at(index)?.description}
-                helperText={errors?.graphql?.at(index)?.description?.message}
+                error={!!errors?.graphql?.at?.(index)?.description}
+                helperText={errors?.graphql?.at?.(index)?.description?.message}
                 fullWidth
                 autoComplete="off"
                 multiline
@@ -90,8 +90,8 @@ export default function GraphqlDataSourcesFormSection() {
                 placeholder="Query"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.graphql?.at(index)?.query}
-                helperText={errors?.graphql?.at(index)?.query?.message}
+                error={!!errors?.graphql?.at?.(index)?.query}
+                helperText={errors?.graphql?.at?.(index)?.query?.message}
                 fullWidth
                 autoComplete="off"
                 multiline

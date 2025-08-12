@@ -64,7 +64,7 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
             </p>
             <img alt="qrcode" src={qrCodeDataUrl} className="mx-auto w-64" />
           </div>
-          <CopyMfaTOTPSecret totpSecret={totpSecret} />
+          {totpSecret && <CopyMfaTOTPSecret totpSecret={totpSecret} />}
           <MfaOtpForm loading={isActivating} sendMfaOtp={onSendMfaOtp} />
         </>
       )}

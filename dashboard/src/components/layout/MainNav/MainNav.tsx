@@ -14,7 +14,7 @@ import NavTree from './NavTree';
 import { useTreeNavState } from './TreeNavStateContext';
 
 interface MainNavProps {
-  container: HTMLElement;
+  container: HTMLElement | null;
 }
 
 export default function MainNav({ container }: MainNavProps) {

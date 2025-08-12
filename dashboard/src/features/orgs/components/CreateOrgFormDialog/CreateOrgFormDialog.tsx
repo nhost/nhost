@@ -61,12 +61,12 @@ import { z } from 'zod';
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
   organizationType: z.string().min(1, 'Please select an organization type'),
-  plan: z.optional(z.string()),
+  plan: z.string(),
 });
 
 interface CreateOrgFormProps {
   plans: PrefetchNewAppPlansFragment[];
-  onSubmit?: ({
+  onSubmit: ({
     name,
     plan,
   }: z.infer<typeof createOrgFormSchema>) => Promise<void>;
@@ -276,7 +276,7 @@ interface CreateOrgDialogProps {
   isStarterDisabled?: boolean;
 }
 
-function isPropSet(prop: any) {
+function isPropSet<T>(prop: T): prop is Exclude<T, undefined | null> {
   return prop !== undefined;
 }
 
@@ -315,17 +315,15 @@ export default function CreateOrgDialog({
     organizationType,
     plan,
   }: {
-    name?: string;
-    organizationType?: string;
-    plan?: string;
+    name: string;
+    organizationType: string;
+    plan: string;
   }) => {
     await execPromiseWithErrorToast(
       async () => {
         const defaultRedirectUrl = `${window.location.origin}/orgs/verify`;
 
-        const {
-          data: { billingCreateOrganizationRequest: clientSecret },
-        } = await createOrganizationRequest({
+        const response = await createOrganizationRequest({
           variables: {
             organizationName: name,
             planID: plan,
@@ -333,8 +331,10 @@ export default function CreateOrgDialog({
           },
         });
 
-        if (clientSecret) {
-          setStripeClientSecret(clientSecret);
+        if (response.data?.billingCreateOrganizationRequest) {
+          setStripeClientSecret(
+            response.data?.billingCreateOrganizationRequest,
+          );
         } else {
           const {
             data: { organizations },
@@ -343,10 +343,10 @@ export default function CreateOrgDialog({
           const newOrg = organizations.find((org) => org.plan.isFree);
 
           analytics.track('Organization Created', {
-            organizationId: newOrg.id,
-            organizationSlug: newOrg.slug,
+            organizationId: newOrg?.id,
+            organizationSlug: newOrg?.slug,
             organizationName: name,
-            organizationPlan: newOrg.plan.name,
+            organizationPlan: newOrg?.plan.name,
             organizationOwnerId: currentUser?.id,
             organizationOwnerEmail: currentUser?.email,
             organizationMetadata: {
@@ -355,7 +355,7 @@ export default function CreateOrgDialog({
             isOnboarding: false,
           });
 
-          router.push(`/orgs/${newOrg.slug}/projects`);
+          router.push(`/orgs/${newOrg?.slug}/projects`);
           handleOpenChange(false);
         }
       },
@@ -414,9 +414,9 @@ export default function CreateOrgDialog({
             />
           </div>
         )}
-        {!loading && !stripeClientSecret && (
+        {data && !loading && !stripeClientSecret && (
           <CreateOrgForm
-            plans={data?.plans}
+            plans={data.plans}
             onSubmit={createOrg}
             onCancel={() => handleOpenChange(false)}
             isStarterDisabled={isStarterDisabled}

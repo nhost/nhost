@@ -48,7 +48,7 @@ export default function HasuraAllowListSettings() {
   const form = useForm<HasuraAllowListFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: enableAllowList,
+      enabled: !!enableAllowList,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -56,7 +56,7 @@ export default function HasuraAllowListSettings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
-        enabled: enableAllowList,
+        enabled: !!enableAllowList,
       });
     }
   }, [loading, enableAllowList, form]);
@@ -78,7 +78,7 @@ export default function HasuraAllowListSettings() {
   async function handleSubmit(formValues: HasuraAllowListFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           hasura: {
             settings: {

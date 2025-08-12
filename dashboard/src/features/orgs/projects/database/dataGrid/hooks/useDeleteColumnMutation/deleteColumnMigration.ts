@@ -1,6 +1,7 @@
 import { prepareCreateColumnQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateColumnMutation';
 import type {
   AffectedRowsResult,
+  ColumnType,
   DataBrowserGridColumn,
   MutationOrQueryBaseOptions,
   QueryError,
@@ -35,8 +36,8 @@ export default async function deleteColumnMigration({
       ...column,
       name: column.id,
       type: {
-        value: column.specificType,
-        label: column.specificType,
+        value: column.specificType as ColumnType,
+        label: column.specificType as ColumnType,
       },
       defaultValue: {
         value: column.defaultValue,

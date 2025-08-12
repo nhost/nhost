@@ -18,7 +18,7 @@ export type ForeignKeyMetadataOperation =
       type: 'pg_drop_relationship';
       args: {
         source: string;
-        table: string;
+        table: { name: string; schema: string } | string;
         relationship: string;
         cascade: boolean;
       };
@@ -41,7 +41,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
   foreignKeyRelations,
 }: PrepareTrackForeignKeyRelationsMetadataVariables) {
   const metadata = await fetchMetadata({ dataSource, appUrl, adminSecret });
-  const { tables: tablesInMetadata } = metadata || {};
+  const tablesInMetadata = metadata?.tables;
 
   const foreignKeyRelationsMap = foreignKeyRelations.reduce(
     (map, foreignKeyRelation) => {
@@ -57,7 +57,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
     new Map<string, ForeignKeyRelation>(),
   );
 
-  const existingRelationshipMap = tablesInMetadata
+  const existingRelationshipMap = (tablesInMetadata ?? [])
     .filter(
       ({ table: { name: tableName, schema: tableSchema } }) =>
         (tableName === table && tableSchema === schema) ||
@@ -79,61 +79,100 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
     return [];
   }
 
-  return foreignKeyRelations.reduce((args, foreignKeyRelation) => {
-    const baseRelationshipName = singular(foreignKeyRelation.referencedTable);
+  return foreignKeyRelations.reduce<ForeignKeyMetadataOperation[]>(
+    (args, foreignKeyRelation) => {
+      const baseRelationshipName = singular(foreignKeyRelation.referencedTable);
 
-    let relationships = [].concat(args);
+      let relationships: ForeignKeyMetadataOperation[] = [...args];
 
-    if (existingRelationshipMap.has(baseRelationshipName)) {
-      relationships = relationships.concat({
-        type: 'pg_drop_relationship',
-        args: {
-          source: dataSource,
-          table,
-          relationship: baseRelationshipName,
-          cascade: false,
-        },
-      });
-    }
-
-    relationships = relationships.concat({
-      type: 'pg_create_object_relationship',
-      args: {
-        source: dataSource,
-        name: baseRelationshipName,
-        table: {
-          name: table,
-          schema,
-        },
-        using: {
-          foreign_key_constraint_on: foreignKeyRelation.columnName,
-        },
-      },
-    });
-
-    if (foreignKeyRelation.oneToOne) {
-      const oneToOneRelationshipName = singular(table);
-
-      if (existingRelationshipMap.has(oneToOneRelationshipName)) {
+      if (existingRelationshipMap.has(baseRelationshipName)) {
         relationships = relationships.concat({
           type: 'pg_drop_relationship',
           args: {
             source: dataSource,
-            table: foreignKeyRelation.referencedTable,
-            relationship: oneToOneRelationshipName,
+            table,
+            relationship: baseRelationshipName,
+            cascade: false,
+          },
+        });
+      }
+
+      relationships = relationships.concat({
+        type: 'pg_create_object_relationship',
+        args: {
+          source: dataSource,
+          name: baseRelationshipName,
+          table: {
+            name: table,
+            schema,
+          },
+          using: {
+            foreign_key_constraint_on: foreignKeyRelation.columnName,
+          },
+        },
+      });
+
+      if (foreignKeyRelation.oneToOne) {
+        const oneToOneRelationshipName = singular(table);
+
+        if (existingRelationshipMap.has(oneToOneRelationshipName)) {
+          relationships = relationships.concat({
+            type: 'pg_drop_relationship',
+            args: {
+              source: dataSource,
+              table: foreignKeyRelation.referencedTable,
+              relationship: oneToOneRelationshipName,
+              cascade: false,
+            },
+          });
+        }
+
+        return relationships.concat({
+          type: 'pg_create_object_relationship',
+          args: {
+            source: dataSource,
+            name: oneToOneRelationshipName,
+            table: {
+              name: foreignKeyRelation.referencedTable,
+              schema: foreignKeyRelation.referencedSchema || schema,
+            },
+            using: {
+              foreign_key_constraint_on: {
+                table: { name: table, schema },
+                column: foreignKeyRelation.columnName,
+              },
+            },
+          },
+        });
+      }
+
+      const oneToManyRelationshipName = table;
+
+      if (existingRelationshipMap.has(oneToManyRelationshipName)) {
+        relationships = relationships.concat({
+          type: 'pg_drop_relationship',
+          args: {
+            source: dataSource,
+            table: foreignKeyRelation.referencedSchema
+              ? {
+                  name: foreignKeyRelation.referencedTable,
+                  schema: foreignKeyRelation.referencedSchema,
+                }
+              : foreignKeyRelation.referencedTable,
+            relationship: oneToManyRelationshipName,
             cascade: false,
           },
         });
       }
 
       return relationships.concat({
-        type: 'pg_create_object_relationship',
+        type: 'pg_create_array_relationship',
         args: {
           source: dataSource,
-          name: oneToOneRelationshipName,
+          name: oneToManyRelationshipName,
           table: {
-            name: foreignKeyRelation.referencedTable,
             schema: foreignKeyRelation.referencedSchema || schema,
+            name: foreignKeyRelation.referencedTable,
           },
           using: {
             foreign_key_constraint_on: {
@@ -143,43 +182,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
           },
         },
       });
-    }
-
-    const oneToManyRelationshipName = table;
-
-    if (existingRelationshipMap.has(oneToManyRelationshipName)) {
-      relationships = relationships.concat({
-        type: 'pg_drop_relationship',
-        args: {
-          source: dataSource,
-          table: foreignKeyRelation.referencedSchema
-            ? {
-                name: foreignKeyRelation.referencedTable,
-                schema: foreignKeyRelation.referencedSchema,
-              }
-            : foreignKeyRelation.referencedTable,
-          relationship: oneToManyRelationshipName,
-          cascade: false,
-        },
-      });
-    }
-
-    return relationships.concat({
-      type: 'pg_create_array_relationship',
-      args: {
-        source: dataSource,
-        name: oneToManyRelationshipName,
-        table: {
-          schema: foreignKeyRelation.referencedSchema || schema,
-          name: foreignKeyRelation.referencedTable,
-        },
-        using: {
-          foreign_key_constraint_on: {
-            table: { name: table, schema },
-            column: foreignKeyRelation.columnName,
-          },
-        },
-      },
-    });
-  }, [] as ForeignKeyMetadataOperation[]);
+    },
+    [],
+  );
 }

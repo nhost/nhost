@@ -42,7 +42,7 @@ export default function EditRepositorySettingsModal({
       if (!project?.githubRepository || selectedRepoId) {
         await updateApp({
           variables: {
-            appId: project.id,
+            appId: project?.id,
             app: {
               githubRepositoryId: selectedRepoId,
               repositoryProductionBranch: data.productionBranch,
@@ -53,9 +53,9 @@ export default function EditRepositorySettingsModal({
 
         if (selectedRepoId) {
           analytics.track('Project Connected to GitHub', {
-            projectId: project.id,
-            projectName: project.name,
-            projectSubdomain: project.subdomain,
+            projectId: project?.id,
+            projectName: project?.name,
+            projectSubdomain: project?.subdomain,
             repositoryId: selectedRepoId,
             productionBranch: data.productionBranch,
             baseFolder: data.repoBaseFolder,
@@ -83,7 +83,7 @@ export default function EditRepositorySettingsModal({
       triggerToast('GitHub repository settings successfully updated.');
     } catch (error) {
       await discordAnnounce(
-        `Error while trying to edit repository GitHub integration: ${project.slug}.`,
+        `Error while trying to edit repository GitHub integration: ${project?.slug}.`,
       );
       throw error;
     }

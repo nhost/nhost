@@ -20,7 +20,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
-import { isEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import {
   CheckoutStatus,
   useDeleteOrganizationMemberInviteMutation,
@@ -80,32 +80,23 @@ export default function NotificationsTray() {
             userID: userData?.id,
           },
         });
-      if (organizationNewRequests.length > 0) {
-        const { sessionID } = organizationNewRequests.at(0);
+      const firstOrganizationNewRequests = organizationNewRequests.at(0);
+      if (isNotEmptyValue(firstOrganizationNewRequests)) {
+        const { sessionID } = firstOrganizationNewRequests;
 
-        const {
-          data: { billingPostOrganizationRequest },
-        } = await postOrganizationRequest({
+        const response = await postOrganizationRequest({
           variables: {
             sessionID,
           },
         });
 
-        const { Status } = billingPostOrganizationRequest;
+        if (response.data?.billingPostOrganizationRequest) {
+          const { billingPostOrganizationRequest } = response.data;
+          const { Status } = billingPostOrganizationRequest;
 
-        switch (Status) {
-          case CheckoutStatus.Open:
+          if (Status === CheckoutStatus.Open) {
             setPendingOrgRequest(billingPostOrganizationRequest);
-            break;
-
-          case CheckoutStatus.Completed:
-            break;
-
-          case CheckoutStatus.Expired:
-            break;
-
-          default:
-            break;
+          }
         }
       }
     };
@@ -303,7 +294,9 @@ export default function NotificationsTray() {
           </DialogHeader>
 
           {pendingOrgRequest && (
-            <StripeEmbeddedForm clientSecret={pendingOrgRequest.ClientSecret} />
+            <StripeEmbeddedForm
+              clientSecret={pendingOrgRequest.ClientSecret!}
+            />
           )}
         </DialogContent>
       </Dialog>

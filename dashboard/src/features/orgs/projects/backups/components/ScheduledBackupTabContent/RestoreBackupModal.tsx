@@ -39,7 +39,7 @@ export default function RestoreBackupModal({
       await restoreApplicationDatabase({
         variables: {
           backupId,
-          appId: project.id,
+          appId: project?.id,
         },
       });
     } catch (error) {

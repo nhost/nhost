@@ -1,8 +1,8 @@
 import { Container } from '@/components/layout/Container';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
-import { Avatar } from '@/components/ui/v1/Avatar';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
@@ -10,7 +10,7 @@ import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/co
 import { DeploymentServiceLogs } from '@/features/orgs/projects/deployments/components/DeploymentServiceLogs';
 import { useDeployment } from '@/features/orgs/projects/deployments/hooks/useDeployment';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { isNotEmptyValue } from '@/lib/utils';
+import { ifNullconvertToUndefined, isNotEmptyValue } from '@/lib/utils';
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 
 function DeploymentDetails() {
@@ -18,9 +18,9 @@ function DeploymentDetails() {
 
   const { data, error, loading } = useDeployment();
 
-  const deploymentLogsFrom = data?.deployment.deploymentLogs[0]?.createdAt;
+  const deploymentLogsFrom = data?.deployment?.deploymentLogs[0]?.createdAt;
   const deploymentLogsTo =
-    data?.deployment.deploymentEndedAt &&
+    data?.deployment?.deploymentEndedAt &&
     isNotEmptyValue(data?.deployment.deploymentLogs)
       ? data?.deployment.deploymentLogs.slice(-1)[0]?.createdAt
       : null;
@@ -37,7 +37,7 @@ function DeploymentDetails() {
     throw error;
   }
 
-  const { deployment } = data;
+  const { deployment } = data || {};
 
   if (!deployment) {
     return (
@@ -96,10 +96,12 @@ function DeploymentDetails() {
       <div className="my-8 flex justify-between">
         <div className="grid grid-flow-col items-center gap-4">
           <Avatar
-            name={deployment.commitUserName}
-            avatarUrl={deployment.commitUserAvatarUrl}
-            className="h-8 w-8"
-          />
+            alt={ifNullconvertToUndefined(deployment.commitUserName)}
+            src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
+            className="say what??? h-8 w-8"
+          >
+            {deployment.commitUserName!}
+          </Avatar>
 
           <div>
             <Text>{deployment.commitMessage}</Text>

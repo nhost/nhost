@@ -1,5 +1,6 @@
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Text } from '@/components/ui/v2/Text';
+import { ifNullconvertToUndefined } from '@/lib/utils';
 import type { Deployment } from '@/types/application';
 import { formatDistance } from 'date-fns';
 
@@ -14,7 +15,7 @@ export default function DeploymentStatusMessage({
     'SCHEDULED',
     'PENDING',
     'DEPLOYING',
-  ].includes(deployment?.deploymentStatus);
+  ].includes(deployment?.deploymentStatus as string);
 
   if (
     isDeployingToProduction ||
@@ -24,7 +25,7 @@ export default function DeploymentStatusMessage({
       <span className="flex flex-row justify-start">
         <Avatar
           alt={`Avatar of ${deployment.commitUserName}`}
-          src={deployment.commitUserAvatarUrl}
+          src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
           className="mr-1 h-4 w-4 self-center"
         />
         <Text component="span" className="self-center text-sm">
@@ -41,7 +42,7 @@ export default function DeploymentStatusMessage({
       <div className="relative flex flex-row">
         <Avatar
           alt={`Avatar of ${deployment.commitUserName}`}
-          src={deployment.commitUserAvatarUrl}
+          src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
           className="mr-2 mt-1 h-4 w-4"
         />
         <div className="flex flex-col text-sm text-muted-foreground">

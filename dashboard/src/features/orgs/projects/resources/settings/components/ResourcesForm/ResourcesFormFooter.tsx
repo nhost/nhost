@@ -79,7 +79,7 @@ export default function ResourcesFormFooter() {
       );
     }
 
-    return proPlan.price;
+    return proPlan?.price;
   };
 
   return (
@@ -108,7 +108,7 @@ export default function ResourcesFormFooter() {
               <Text>
                 Approximate cost:{' '}
                 <span className="font-medium">
-                  ${computeUpdatedPrice().toFixed(2)}/mo
+                  ${computeUpdatedPrice()?.toFixed(2)}/mo
                 </span>
               </Text>
 

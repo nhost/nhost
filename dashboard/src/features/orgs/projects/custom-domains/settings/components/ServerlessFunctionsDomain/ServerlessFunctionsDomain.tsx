@@ -20,6 +20,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
   functions_fqdn: Yup.string(),
@@ -47,7 +48,7 @@ export default function ServerlessFunctionsDomain() {
 
   const form = useForm<ServerlessFunctionsDomainFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { functions_fqdn: null },
+    defaultValues: { functions_fqdn: '' },
     resolver: yupResolver(validationSchema),
   });
 
@@ -87,14 +88,15 @@ export default function ServerlessFunctionsDomain() {
   const functions_fqdn = watch('functions_fqdn');
 
   async function handleSubmit(formValues: ServerlessFunctionsDomainFormValues) {
-    const ingresses: ConfigIngressUpdateInput[] =
-      formValues.functions_fqdn.length > 0
-        ? [{ fqdn: [formValues.functions_fqdn] }]
-        : [];
+    const ingresses: ConfigIngressUpdateInput[] = isNotEmptyValue(
+      formValues.functions_fqdn,
+    )
+      ? [{ fqdn: [formValues.functions_fqdn] }]
+      : [];
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project!.id,
         config: {
           functions: {
             resources: {
@@ -173,7 +175,7 @@ export default function ServerlessFunctionsDomain() {
             <VerifyDomain
               recordType="CNAME"
               hostname={functions_fqdn}
-              value={`lb.${project.region.name}.${project.region.domain}.`}
+              value={`lb.${project!.region.name}.${project!.region.domain}.`}
               onHostNameVerified={() => setIsVerified(true)}
             />
           </div>

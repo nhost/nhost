@@ -7,7 +7,7 @@ import { ApplicationStatus } from '@/types/application';
  */
 export default function useAppState(): {
   state: ApplicationStatus;
-  message?: string;
+  message?: string | null;
 } {
   const { project } = useProjectWithState();
   const noApplication = !project;

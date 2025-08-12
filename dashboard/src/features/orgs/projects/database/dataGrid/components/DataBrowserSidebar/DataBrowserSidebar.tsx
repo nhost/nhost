@@ -30,6 +30,7 @@ import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 import { useDeleteTableWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -144,6 +145,7 @@ function DataBrowserSidebarContent({
   }
 
   if (status === 'error') {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw error || new Error('Unknown error occurred. Please try again later.');
   }
 
@@ -152,7 +154,7 @@ function DataBrowserSidebarContent({
   }
 
   const tablesInSelectedSchema = tables
-    .filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
+    ?.filter(({ table_schema: tableSchema }) => tableSchema === selectedSchema)
     .filter(
       ({ table_schema: tableSchema, table_name: tableName }) =>
         `${tableSchema}.${tableName}` !== optimisticlyRemovedTable,
@@ -165,9 +167,12 @@ function DataBrowserSidebarContent({
     setRemovableTable(tablePath);
 
     try {
-      let nextTableIndex = null;
+      let nextTableIndex: number | null = null;
 
-      if (tablesInSelectedSchema.length > 1) {
+      if (
+        isNotEmptyValue(tablesInSelectedSchema) &&
+        tablesInSelectedSchema.length > 1
+      ) {
         // We go to the next table if available or to the previous one if the
         // current one is the last one in the list
         const currentTableIndex = tablesInSelectedSchema.findIndex(
@@ -182,9 +187,11 @@ function DataBrowserSidebarContent({
         }
       }
 
-      const nextTable = nextTableIndex
-        ? tablesInSelectedSchema[nextTableIndex]
-        : null;
+      const nextTable =
+        isNotEmptyValue(nextTableIndex) &&
+        isNotEmptyValue(tablesInSelectedSchema)
+          ? tablesInSelectedSchema[nextTableIndex]
+          : null;
 
       await deleteTable({ schema, table });
       queryClient.removeQueries([`${dataSourceSlug}.${schema}.${table}`]);
@@ -324,22 +331,20 @@ function DataBrowserSidebarContent({
                   <CreateTableForm onSubmit={refetch} schema={selectedSchema} />
                 ),
               });
-              onSidebarItemClick();
+              onSidebarItemClick?.();
             }}
             disabled={isGitHubConnected}
           >
             New Table
           </Button>
         )}
-        {schemas &&
-          schemas.length > 0 &&
-          tablesInSelectedSchema.length === 0 && (
-            <Text className="px-2 py-1.5 text-xs" color="disabled">
-              No tables found.
-            </Text>
-          )}
+        {isNotEmptyValue(schemas) && isEmptyValue(tablesInSelectedSchema) && (
+          <Text className="px-2 py-1.5 text-xs" color="disabled">
+            No tables found.
+          </Text>
+        )}
         <nav aria-label="Database navigation">
-          {tablesInSelectedSchema.length > 0 && (
+          {isNotEmptyValue(tablesInSelectedSchema) && (
             <List className="grid gap-1 pb-6">
               {tablesInSelectedSchema.map((table) => {
                 const tablePath = `${table.table_schema}.${table.table_name}`;

@@ -13,15 +13,16 @@ import {
 import { useRestoreApplicationDatabasePiTR } from '@/features/orgs/hooks/useRestoreApplicationDatabasePiTR';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { TZDate } from '@date-fns/tz';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { format, isBefore, startOfDay } from 'date-fns-v4';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import BackupScheduledInfo from './BackupScheduledInfo';
 import StartRestoreConfirmationCheck from './StartRestoreConfirmationCheck';
 
 interface Props {
-  fromAppId?: string;
+  fromAppId: string;
   title: string;
   earliestBackupDate: string;
   disabled?: boolean;
@@ -29,13 +30,22 @@ interface Props {
   dialogTriggerText?: string;
 }
 
+type RestoreBackupDialogButtonWrapperProps = Omit<
+  Props,
+  'earliestBackupDate'
+> & {
+  earliestBackupDate?: string;
+};
+
+const DEFAULT_TRIGGER_BUTTON_TEXT = 'Start restore';
+
 function RestoreBackupDialogButton({
   title,
   disabled,
   earliestBackupDate,
   fromAppId,
   dialogButtonText = 'Restore backup',
-  dialogTriggerText = 'Start restore',
+  dialogTriggerText = DEFAULT_TRIGGER_BUTTON_TEXT,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [isRestoreScheduled, setIsRestoreScheduled] = useState(false);
@@ -60,19 +70,15 @@ function RestoreBackupDialogButton({
     useRestoreApplicationDatabasePiTR();
 
   async function handleRestore() {
-    const variables = {
-      appId: project?.id,
-      recoveryTarget: restoreTargetTime,
-      fromAppId: fromAppId === project?.id ? null : fromAppId,
-    };
-    restoreApplicationDatabase(variables, () => setIsRestoreScheduled(true));
-  }
-
-  useEffect(() => {
-    if (earliestBackupDate) {
-      setRestoreTargetTime(earliestBackupDate);
+    if (isNotEmptyValue(restoreTargetTime)) {
+      const variables = {
+        appId: project?.id,
+        recoveryTarget: restoreTargetTime,
+        fromAppId: fromAppId === project?.id ? null : fromAppId,
+      };
+      restoreApplicationDatabase(variables, () => setIsRestoreScheduled(true));
     }
-  }, [earliestBackupDate]);
+  }
 
   function formatDateFn(date: Date | TZDate | string) {
     return format(date, 'dd MMM yyyy, HH:mm:ss (OOOO)').replace('GMT', 'UTC');
@@ -147,7 +153,7 @@ function RestoreBackupDialogButton({
   const permanentlyDeleteCurrentDataCheckLabel = (
     <span>
       I understand that restoring this backup will permanently delete all
-      current data for project <b>{project.name}</b>.
+      current data for project <b>{project!.name}</b>.
     </span>
   );
 
@@ -170,7 +176,7 @@ function RestoreBackupDialogButton({
         {isRestoreScheduled && (
           <BackupScheduledInfo
             onClose={handleClose}
-            subdomain={project.subdomain}
+            subdomain={project!.subdomain}
             orgSlug={org?.slug}
           />
         )}
@@ -221,4 +227,20 @@ function RestoreBackupDialogButton({
   );
 }
 
-export default memo(RestoreBackupDialogButton);
+function RestoreBackupDialogButtonWrapper({
+  earliestBackupDate,
+  ...props
+}: RestoreBackupDialogButtonWrapperProps) {
+  if (isEmptyValue(earliestBackupDate)) {
+    return <Button disabled>{DEFAULT_TRIGGER_BUTTON_TEXT}</Button>;
+  }
+
+  return (
+    <RestoreBackupDialogButton
+      earliestBackupDate={earliestBackupDate!}
+      {...props}
+    />
+  );
+}
+
+export default memo(RestoreBackupDialogButtonWrapper);

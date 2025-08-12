@@ -165,7 +165,7 @@ export default function AnnouncementsTray() {
                         <DropdownMenuItem
                           disabled={announcement.read.length === 0}
                           onClick={() =>
-                            handleSetUnread(announcement.read.at(0).id)
+                            handleSetUnread(announcement?.read?.at(0)?.id)
                           }
                         >
                           Mark as unread

@@ -8,7 +8,7 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 const validationSchema = Yup.object({
-  database_fqdn: Yup.string().required(),
+  database_fqdn: Yup.string(),
 });
 
 export type DatabaseDomainFormValues = Yup.InferType<typeof validationSchema>;
@@ -23,8 +23,8 @@ export default function DatabaseDomain() {
   }
 
   const postgresHost = generateAppServiceUrl(
-    project.subdomain,
-    project.region,
+    project!.subdomain,
+    project!.region,
     'db',
   ).replace('https://', '');
 

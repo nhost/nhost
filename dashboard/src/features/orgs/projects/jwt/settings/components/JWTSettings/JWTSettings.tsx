@@ -241,7 +241,7 @@ export default function JWTSettings() {
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: formattedConfig,
       },
     });

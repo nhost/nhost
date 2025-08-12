@@ -22,6 +22,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 
 export interface EditPermissionVariableFormProps
   extends Pick<BasePermissionVariableFormProps, 'onCancel' | 'location'> {
@@ -120,7 +121,7 @@ export default function EditPermissionVariableForm({
           value: permissionVariable.value,
         };
       })
-      .filter(Boolean);
+      .filter(isNotEmptyValue);
 
     const updateConfigPromise = updateConfig({
       variables: {

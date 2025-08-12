@@ -11,7 +11,7 @@ import NoOtherProjectsInRegion from './NoOtherProjectsInRegion';
 
 interface Props {
   onProjectSelect: (project: { label: string; id: string }) => void;
-  projectId: string;
+  projectId?: string;
 }
 
 function SourceProjectSelect({ onProjectSelect, projectId }: Props) {
@@ -22,7 +22,7 @@ function SourceProjectSelect({ onProjectSelect, projectId }: Props) {
   }
 
   function handleChange(value: string) {
-    const selectedProject = filteredProjects.find((fp) => fp.id === value);
+    const selectedProject = filteredProjects.find((fp) => fp.id === value)!;
 
     onProjectSelect(selectedProject);
   }

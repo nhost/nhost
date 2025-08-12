@@ -47,7 +47,7 @@ export default function ApplicationPausedBanner({
   const handleTriggerUnpausing = useCallback(async () => {
     await execPromiseWithErrorToast(
       async () => {
-        await unpauseApplication({ variables: { appId: project.id } });
+        await unpauseApplication({ variables: { appId: project?.id } });
         await new Promise((resolve) => {
           setTimeout(resolve, 1000);
         });

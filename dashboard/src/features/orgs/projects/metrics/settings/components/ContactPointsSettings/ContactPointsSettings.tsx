@@ -26,6 +26,7 @@ import { SlackFormSection } from '@/features/orgs/projects/metrics/settings/comp
 import { WebhookFormSection } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection';
 import type { HttpMethod } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection/WebhookFormSectionTypes';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import { removeTypename } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ContactPointsFormValues } from './ContactPointsSettingsTypes';
@@ -89,21 +90,30 @@ export default function ContactPointsSettings() {
     const newEmails =
       sanitizedValues.emails?.map((email) => email.email) ?? null;
     const newPagerduty =
-      sanitizedValues.pagerduty?.length > 0 ? sanitizedValues.pagerduty : null;
+      isNotEmptyValue(sanitizedValues.pagerduty) &&
+      sanitizedValues.pagerduty.length > 0
+        ? sanitizedValues.pagerduty
+        : null;
     const newDiscord =
-      sanitizedValues.discord?.length > 0 ? sanitizedValues.discord : null;
+      isNotEmptyValue(sanitizedValues.discord) &&
+      sanitizedValues.discord.length > 0
+        ? sanitizedValues.discord
+        : null;
 
     const newSlack =
-      sanitizedValues.slack?.length > 0
+      isNotEmptyValue(sanitizedValues.slack) && sanitizedValues.slack.length > 0
         ? sanitizedValues.slack.map((elem) => ({
             ...elem,
-            mentionUsers: elem.mentionUsers.split(','),
-            mentionGroups: elem.mentionGroups.split(','),
+            mentionUsers: (elem.mentionUsers ?? '').split(','),
+            mentionGroups: (elem.mentionGroups ?? '').split(','),
           }))
         : null;
 
     const newWebhook =
-      sanitizedValues.webhook?.length > 0 ? sanitizedValues.webhook : null;
+      isNotEmptyValue(sanitizedValues.webhook) &&
+      sanitizedValues.webhook.length > 0
+        ? sanitizedValues.webhook
+        : null;
 
     const config: ConfigConfigUpdateInput = {
       observability: {
@@ -135,7 +145,7 @@ export default function ContactPointsSettings() {
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config,
       },
     });

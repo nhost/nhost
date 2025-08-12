@@ -28,6 +28,7 @@ import { planDescriptions } from '@/features/orgs/projects/common/utils/planDesc
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
+import { isNotEmptyValue } from '@/lib/utils';
 import {
   useCreateOrganizationRequestMutation,
   useOrganizationMemberInviteAcceptMutation,
@@ -107,7 +108,7 @@ export default function OnboardingPage() {
   }, [orgs, loadingOrgs, router]);
 
   useEffect(() => {
-    if (plansData?.plans?.length > 0 && !form.getValues('plan')) {
+    if (isNotEmptyValue(plansData?.plans?.length) && !form.getValues('plan')) {
       form.setValue('plan', plansData.plans[0].id);
     }
   }, [plansData, form]);
@@ -119,9 +120,7 @@ export default function OnboardingPage() {
       async () => {
         const redirectUrl = `${window.location.origin}/orgs/verify`;
 
-        const {
-          data: { billingCreateOrganizationRequest: clientSecret },
-        } = await createOrganizationRequest({
+        const response = await createOrganizationRequest({
           variables: {
             organizationName: data.organizationName,
             planID: data.plan,
@@ -129,8 +128,10 @@ export default function OnboardingPage() {
           },
         });
 
-        if (clientSecret) {
-          setStripeClientSecret(clientSecret);
+        if (isNotEmptyValue(response.data?.billingCreateOrganizationRequest)) {
+          setStripeClientSecret(
+            response.data?.billingCreateOrganizationRequest,
+          );
         } else {
           router.push('/onboarding/project');
         }

@@ -13,6 +13,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
+import { isNotEmptyValue } from '@/lib/utils';
 
 export interface DeploymentBranchFormValues {
   /**
@@ -37,9 +38,11 @@ export default function DeploymentBranchSettings() {
   const { register, reset, formState } = form;
 
   useEffect(() => {
-    reset(() => ({
-      repositoryProductionBranch: project?.repositoryProductionBranch,
-    }));
+    if (isNotEmptyValue(project?.repositoryProductionBranch)) {
+      reset(() => ({
+        repositoryProductionBranch: project?.repositoryProductionBranch,
+      }));
+    }
   }, [project?.repositoryProductionBranch, reset]);
 
   const handleDeploymentBranchChange = async (
@@ -47,7 +50,7 @@ export default function DeploymentBranchSettings() {
   ) => {
     const updateAppMutation = updateApp({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         app: {
           ...values,
         },

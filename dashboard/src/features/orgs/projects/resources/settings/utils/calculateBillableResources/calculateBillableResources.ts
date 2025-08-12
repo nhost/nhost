@@ -26,10 +26,10 @@ export default function calculateBillableResources(
           vcpu: total.vcpu + vcpu * replicas,
         };
       }
-
+      // at this point vcpu an memory can not be undefined because of the if check in line 12
       return {
-        vcpu: total.vcpu + vcpu * replicas,
-        memory: total.memory + memory * replicas,
+        vcpu: total.vcpu + vcpu! * replicas,
+        memory: total.memory + memory! * replicas,
       };
     },
     { vcpu: 0, memory: 0 } as { vcpu: number; memory: number },

@@ -58,7 +58,7 @@ export type AppleProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AppleProviderSettings() {
   const theme = useTheme();
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -102,7 +102,7 @@ export default function AppleProviderSettings() {
     }
   }, [loading, teamId, keyId, clientId, privateKey, audience, enabled, form]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -122,7 +122,7 @@ export default function AppleProviderSettings() {
   async function handleSubmit(formValues: AppleProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           auth: {
             method: {
@@ -256,8 +256,8 @@ export default function AppleProviderSettings() {
             name="redirectUrl"
             id="apple-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/apple/callback`}
             className="col-span-2"
@@ -275,8 +275,8 @@ export default function AppleProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/apple/callback`,
                       'Redirect URL',

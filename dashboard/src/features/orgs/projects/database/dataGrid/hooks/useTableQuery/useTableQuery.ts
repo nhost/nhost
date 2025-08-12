@@ -1,5 +1,6 @@
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { isNotEmptyValue } from '@/lib/utils';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
@@ -40,34 +41,33 @@ export default function useTableQuery(
     isReady,
   } = useRouter();
   const { project } = useProject();
-  const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'hasura',
-  );
 
-  return useQuery<FetchTableReturnType>(
+  return useQuery<FetchTableReturnType>({
     queryKey,
-    () =>
-      fetchTable({
+    queryFn: () => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
+      return fetchTable({
         ...options,
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || project?.config?.hasura.adminSecret,
+            : customAdminSecret || project!.config!.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
         table: customTable || (tableSlug as string),
-      }),
-    {
-      retry: false,
-      keepPreviousData: true,
-      ...queryOptions,
-      enabled:
-        project?.config?.hasura.adminSecret && isReady
-          ? queryOptions?.enabled
-          : false,
+      });
     },
-  );
+    retry: false,
+    keepPreviousData: true,
+    ...(queryOptions && { queryOptions }),
+    enabled:
+      isNotEmptyValue(project) && project?.config?.hasura.adminSecret && isReady
+        ? queryOptions?.enabled
+        : false,
+  });
 }

@@ -12,6 +12,7 @@ import {
   MAX_TOTAL_VCPU,
   MIN_TOTAL_VCPU,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { isNotEmptyValue } from '@/lib/utils';
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,
@@ -46,7 +47,7 @@ export default function TotalResourcesFormFragment({
     loading: proPlanLoading,
   } = useProPlan();
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
-  const formValues = useWatch<ResourceSettingsFormValues>();
+  const formValues = useWatch() as ResourceSettingsFormValues;
 
   if (isPlatform && !proPlan && !proPlanLoading) {
     return (
@@ -60,9 +61,12 @@ export default function TotalResourcesFormFragment({
     throw proPlanError;
   }
 
-  const priceForTotalAvailableVCPU =
-    (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) *
-    RESOURCE_VCPU_PRICE;
+  const priceForTotalAvailableVCPU = isNotEmptyValue(
+    formValues?.totalAvailableVCPU,
+  )
+    ? (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) *
+      RESOURCE_VCPU_PRICE
+    : 0;
 
   const updatedPrice = isPlatform
     ? // ? priceForTotalAvailableVCPU + proPlan.price

@@ -32,7 +32,7 @@ export interface UseDataGridBaseOptions {
   /**
    * Reference to the data grid root element.
    */
-  tableRef?: MutableRefObject<HTMLDivElement>;
+  tableRef?: MutableRefObject<HTMLDivElement | null>;
 }
 
 export type UseDataGridOptions<T extends object = {}> = TableOptions<T> &

@@ -23,8 +23,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 export const createPATFormValidationSchema = Yup.object({
-  name: Yup.string().label('Name').nullable().required(),
-  expiresAt: Yup.string().label('Expiration date').nullable().required(),
+  name: Yup.string().label('Name').required(),
+  expiresAt: Yup.string().label('Expiration date').required(),
 });
 
 export type CreatePATFormValues = Yup.InferType<
@@ -70,15 +70,17 @@ export default function CreatePATForm({
   onCancel,
   location,
 }: CreatePATFormProps) {
-  const [personalAccessToken, setPersonalAccessToken] = useState<string>();
+  const [personalAccessToken, setPersonalAccessToken] = useState<
+    string | null
+  >();
   const { onDirtyStateChange } = useDialog();
   const nhostClient = useNhostClient();
   const apolloClient = useApolloClient();
   const form = useForm<CreatePATFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      name: null,
-      expiresAt: null,
+      name: '',
+      expiresAt: '',
     },
     resolver: yupResolver(createPATFormValidationSchema),
   });
@@ -150,7 +152,7 @@ export default function CreatePATForm({
           color="secondary"
           onClick={() => {
             onDirtyStateChange(false, location);
-            onCancel();
+            onCancel?.();
           }}
         >
           Close

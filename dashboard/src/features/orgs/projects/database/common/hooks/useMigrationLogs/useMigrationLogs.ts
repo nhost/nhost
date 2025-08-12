@@ -7,6 +7,7 @@ import {
   type GetSystemLogsQuery,
   type GetSystemLogsQueryVariables,
 } from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import type { ApolloError, QueryHookOptions } from '@apollo/client';
 import { useVisibilityChange } from '@uidotdev/usehooks';
@@ -44,7 +45,7 @@ export default function useMigrationLogs(
 ): {
   logs: Partial<Log>[];
   loading: boolean;
-  error: ApolloError;
+  error?: ApolloError;
 } {
   const { project } = useProject();
 
@@ -66,7 +67,7 @@ export default function useMigrationLogs(
       ...options,
       variables: {
         ...options.variables,
-        appID: project.id,
+        appID: project?.id,
         action: 'change-database-version',
         from,
       },
@@ -88,16 +89,18 @@ export default function useMigrationLogs(
     (a, b) => new Date(a.timestamp).valueOf() - new Date(b.timestamp).valueOf(),
   ); // sort in ascending order
 
-  const logs = sortedLogs.map(({ log }) => {
-    let logObj: Partial<Log> = {};
-    try {
-      logObj = JSON.parse(log);
-      return logObj;
-    } catch (e) {
-      console.error('Failed to parse log', log);
-      return undefined;
-    }
-  });
+  const logs = sortedLogs
+    .map(({ log }) => {
+      let logObj: Partial<Log> = {};
+      try {
+        logObj = JSON.parse(log);
+        return logObj;
+      } catch (e) {
+        console.error('Failed to parse log', log);
+        return undefined;
+      }
+    })
+    .filter(isNotEmptyValue);
 
   return {
     logs,

@@ -11,8 +11,10 @@ import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServi
 import { ServiceAccordion } from '@/features/orgs/projects/overview/components/ServiceAccordion';
 import {
   findHighestImportanceState,
+  type ServiceHealthInfo,
   type baseServices,
 } from '@/features/orgs/projects/overview/health';
+import { isNotEmptyValue } from '@/lib/utils';
 import { removeTypename } from '@/utils/helpers';
 import { twMerge } from 'tailwind-merge';
 
@@ -28,8 +30,9 @@ export default function OverviewProjectHealthModal({
     shouldPoll: false,
   });
 
-  const runServices = Object.values(run).filter((service) =>
-    service.name.startsWith('run-'),
+  const runServices: ServiceHealthInfo[] = Object.values(run).filter(
+    (service): service is ServiceHealthInfo =>
+      isNotEmptyValue(service) && service.name.startsWith('run-'),
   );
 
   const isAuthExpandedByDefault = defaultExpanded === 'hasura-auth';
@@ -39,18 +42,18 @@ export default function OverviewProjectHealthModal({
   const isAIExpandedByDefault = defaultExpanded === 'ai';
   const isRunExpandedByDefault = defaultExpanded === 'run';
 
-  const getServiceInfo = (service) => {
+  const convertServiceIntoJSON = (service: any) => {
     const info = removeTypename(service);
     return JSON.stringify(info, null, 2);
   };
 
   const serviceInfo = {
-    auth: getServiceInfo(auth),
-    storage: getServiceInfo(storage),
-    postgres: getServiceInfo(postgres),
-    hasura: getServiceInfo(hasura),
-    ai: getServiceInfo(ai),
-    run: getServiceInfo(Object.values(runServices)),
+    auth: convertServiceIntoJSON(auth!),
+    storage: convertServiceIntoJSON(storage!),
+    postgres: convertServiceIntoJSON(postgres!),
+    hasura: convertServiceIntoJSON(hasura!),
+    ai: convertServiceIntoJSON(ai!),
+    run: convertServiceIntoJSON(Object.values(runServices)),
   };
 
   const runServicesState = findHighestImportanceState(
@@ -66,55 +69,63 @@ export default function OverviewProjectHealthModal({
         className="grid grid-flow-row"
       >
         <Divider />
-        <ServiceAccordion
-          icon={<UserIcon className="h-4 w-4" />}
-          serviceName="Auth"
-          serviceInfo={serviceInfo.auth}
-          replicaCount={auth?.replicas?.length}
-          serviceState={auth?.state}
-          defaultExpanded={isAuthExpandedByDefault}
-        />
+        {isNotEmptyValue(auth) && isNotEmptyValue(serviceInfo.auth) && (
+          <ServiceAccordion
+            icon={<UserIcon className="h-4 w-4" />}
+            serviceName="Auth"
+            serviceInfo={serviceInfo.auth}
+            replicaCount={auth?.replicas?.length}
+            serviceState={auth?.state}
+            defaultExpanded={isAuthExpandedByDefault}
+          />
+        )}
         <Divider />
-        <ServiceAccordion
-          icon={<DatabaseIcon className="h-4 w-4" />}
-          serviceName="Postgres"
-          serviceInfo={serviceInfo.postgres}
-          replicaCount={postgres?.replicas?.length}
-          serviceState={postgres?.state}
-          defaultExpanded={isPostgresExpandedByDefault}
-        />
+        {isNotEmptyValue(postgres) && isNotEmptyValue(serviceInfo.postgres) && (
+          <ServiceAccordion
+            icon={<DatabaseIcon className="h-4 w-4" />}
+            serviceName="Postgres"
+            serviceInfo={serviceInfo.postgres}
+            replicaCount={postgres?.replicas?.length}
+            serviceState={postgres?.state}
+            defaultExpanded={isPostgresExpandedByDefault}
+          />
+        )}
         <Divider />
-        <ServiceAccordion
-          icon={<StorageIcon className="h-4 w-4" />}
-          serviceName="Storage"
-          serviceInfo={serviceInfo.storage}
-          replicaCount={storage?.replicas?.length}
-          serviceState={storage?.state}
-          defaultExpanded={isStorageExpandedByDefault}
-        />
+        {isNotEmptyValue(storage) && isNotEmptyValue(serviceInfo.storage) && (
+          <ServiceAccordion
+            icon={<StorageIcon className="h-4 w-4" />}
+            serviceName="Storage"
+            serviceInfo={serviceInfo.storage}
+            replicaCount={storage?.replicas?.length}
+            serviceState={storage?.state}
+            defaultExpanded={isStorageExpandedByDefault}
+          />
+        )}
         <Divider />
-        <ServiceAccordion
-          icon={<HasuraIcon className="h-4 w-4" />}
-          serviceName="Hasura"
-          serviceInfo={serviceInfo.hasura}
-          replicaCount={hasura?.replicas?.length}
-          serviceState={hasura?.state}
-          defaultExpanded={isHasuraExpandedByDefault}
-        />
+        {isNotEmptyValue(hasura) && isNotEmptyValue(serviceInfo.hasura) && (
+          <ServiceAccordion
+            icon={<HasuraIcon className="h-4 w-4" />}
+            serviceName="Hasura"
+            serviceInfo={serviceInfo.hasura!}
+            replicaCount={hasura?.replicas?.length}
+            serviceState={hasura?.state}
+            defaultExpanded={isHasuraExpandedByDefault}
+          />
+        )}
         {ai ? (
           <>
             <Divider />
             <ServiceAccordion
               icon={<AIIcon className="h-4 w-4" />}
               serviceName="AI"
-              serviceInfo={serviceInfo.ai}
+              serviceInfo={serviceInfo.ai!}
               replicaCount={ai?.replicas?.length}
               serviceState={ai?.state}
               defaultExpanded={isAIExpandedByDefault}
             />
           </>
         ) : null}
-        {runServices && Object.values(runServices).length > 0 ? (
+        {isNotEmptyValue(runServices) && isNotEmptyValue(serviceInfo.run) ? (
           <>
             <Divider />
             <ServiceAccordion

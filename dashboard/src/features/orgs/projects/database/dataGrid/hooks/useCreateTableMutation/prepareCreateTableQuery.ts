@@ -3,6 +3,7 @@ import type {
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/features/orgs/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { isNotEmptyValue } from '@/lib/utils';
 import { format } from 'node-pg-format';
 
 export interface PrepareCreateTableQueryVariables
@@ -60,7 +61,7 @@ export default function prepareCreateTableQuery({
     );
   }
 
-  if (table.foreignKeyRelations?.length > 0) {
+  if (isNotEmptyValue(table.foreignKeyRelations)) {
     columnsAndConstraints = format(
       `${columnsAndConstraints}, %s`,
       table.foreignKeyRelations

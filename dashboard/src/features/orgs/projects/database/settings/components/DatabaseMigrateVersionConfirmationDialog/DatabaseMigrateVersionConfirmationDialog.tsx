@@ -56,7 +56,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
       async () => {
         await updatePostgresMajor({
           variables: {
-            appId: project.id,
+            appId: project?.id,
             version: postgresVersion,
           },
         });

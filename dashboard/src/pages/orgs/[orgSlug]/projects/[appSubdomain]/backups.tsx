@@ -17,7 +17,7 @@ export default function BackupsPage() {
     return <ActivityIndicator label="Loading project..." delay={1000} />;
   }
 
-  const isPlanFree = org.plan.isFree;
+  const isPlanFree = org!.plan.isFree;
 
   if (isPlanFree) {
     return (

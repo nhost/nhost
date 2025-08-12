@@ -6,11 +6,12 @@ import { Text } from '@/components/ui/v2/Text';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import { type AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface DeleteAutoEmbeddingsModalProps {
@@ -29,24 +30,38 @@ export default function DeleteAutoEmbeddingsModal({
 
   const { project } = useProject();
 
-  const serviceUrl = generateAppServiceUrl(
+  const client = useMemo(() => {
+    if (
+      isNotEmptyValue(project?.subdomain) &&
+      isNotEmptyValue(project?.region) &&
+      isNotEmptyValue(project?.config)
+    ) {
+      const serviceUrl = generateAppServiceUrl(
+        project.subdomain,
+        project.region,
+        'graphql',
+      );
+      return new ApolloClient({
+        cache: new InMemoryCache(),
+        link: new HttpLink({
+          uri: serviceUrl,
+          headers: {
+            'x-hasura-admin-secret':
+              process.env.NEXT_PUBLIC_ENV === 'dev'
+                ? getHasuraAdminSecret()
+                : project.config.hasura.adminSecret,
+          },
+        }),
+      });
+    }
+
+    return new ApolloClient({ cache: new InMemoryCache() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    project?.config?.hasura.adminSecret,
     project?.subdomain,
     project?.region,
-    'graphql',
-  );
-
-  const client = new ApolloClient({
-    cache: new InMemoryCache(),
-    link: new HttpLink({
-      uri: serviceUrl,
-      headers: {
-        'x-hasura-admin-secret':
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret,
-      },
-    }),
-  });
+  ]);
 
   const [deleteAutoEmbeddingsConfiguration] =
     useDeleteGraphiteAutoEmbeddingsConfigurationMutation({

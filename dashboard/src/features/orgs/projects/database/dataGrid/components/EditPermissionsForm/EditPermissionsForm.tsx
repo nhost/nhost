@@ -93,6 +93,7 @@ export default function EditPermissionsForm({
   }
 
   if (tableError) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw tableError;
   }
 
@@ -105,6 +106,7 @@ export default function EditPermissionsForm({
   }
 
   if (metadataError) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw metadataError;
   }
 
@@ -148,7 +150,7 @@ export default function EditPermissionsForm({
   ): DatabaseAccessLevel {
     if (
       !permission ||
-      (!permission?.check && !permission && permission?.columns?.length === 0)
+      (!permission?.check && permission && permission?.columns?.length === 0)
     ) {
       return 'none';
     }
@@ -185,7 +187,7 @@ export default function EditPermissionsForm({
     return (
       <RolePermissionEditorForm
         location={location}
-        resourceVersion={metadata?.resourceVersion}
+        resourceVersion={metadata?.resourceVersion as number}
         disabled={disabled}
         schema={schema}
         table={table}

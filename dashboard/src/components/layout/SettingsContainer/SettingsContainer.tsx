@@ -146,7 +146,7 @@ export default function SettingsContainer({
         {!switchId && showSwitch && (
           <Switch
             checked={enabled}
-            onChange={(e) => onEnabledChange(e.target.checked)}
+            onChange={(e) => onEnabledChange?.(e.target.checked)}
             className="self-center"
             {...switchSlot}
           />

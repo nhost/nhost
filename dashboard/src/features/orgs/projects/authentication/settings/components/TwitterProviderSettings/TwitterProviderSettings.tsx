@@ -44,7 +44,7 @@ const validationSchema = Yup.object({
 export type TwitterProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function TwitterProviderSettings() {
-  const { project } = useProject();
+  const { project, loading: isProjectLoading } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
@@ -82,7 +82,7 @@ export default function TwitterProviderSettings() {
     }
   }, [loading, consumerKey, consumerSecret, enabled, form]);
 
-  if (loading) {
+  if (loading || isProjectLoading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -102,7 +102,7 @@ export default function TwitterProviderSettings() {
   async function handleSubmit(formValues: TwitterProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: project?.id,
         config: {
           auth: {
             method: {
@@ -189,8 +189,8 @@ export default function TwitterProviderSettings() {
             name="redirectUrl"
             id="twitter-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
-              project.subdomain,
-              project.region,
+              project!.subdomain,
+              project!.region,
               'auth',
             )}/signin/provider/twitter/callback`}
             className="col-span-2"
@@ -208,8 +208,8 @@ export default function TwitterProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        project.subdomain,
-                        project.region,
+                        project!.subdomain,
+                        project!.region,
                         'auth',
                       )}/signin/provider/twitter/callback`,
                       'Redirect URL',

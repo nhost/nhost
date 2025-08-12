@@ -6,12 +6,11 @@ import { isEmptyValue } from '@/lib/utils';
 import { guessTimezone } from '@/utils/timezoneUtils';
 import { useState } from 'react';
 
-interface Props {
+interface EarliestBackupDateTimeProps {
   dateTime: string;
-  loading: boolean;
 }
 
-function EarliestBackupDateTime({ dateTime }: Pick<Props, 'dateTime'>) {
+function EarliestBackupDateTime({ dateTime }: EarliestBackupDateTimeProps) {
   const [selectedTimezone, setTimezone] = useState<string>(() =>
     guessTimezone(),
   );
@@ -36,8 +35,11 @@ function EarliestBackupDateTime({ dateTime }: Pick<Props, 'dateTime'>) {
     </p>
   );
 }
-
-function EarliestBackup({ dateTime, loading }: Props) {
+interface EarliestBackupProps {
+  dateTime?: string;
+  loading: boolean;
+}
+function EarliestBackup({ dateTime, loading }: EarliestBackupProps) {
   if (loading) {
     return (
       <div className="flex h-[27px] max-w-fit">
@@ -49,7 +51,7 @@ function EarliestBackup({ dateTime, loading }: Props) {
   if (hasNoPiTRBackups) {
     return <p className="text-[1.125rem]">Project has no backups yet.</p>;
   }
-  return <EarliestBackupDateTime dateTime={dateTime} />;
+  return <EarliestBackupDateTime dateTime={dateTime!} />;
 }
 
 export default EarliestBackup;

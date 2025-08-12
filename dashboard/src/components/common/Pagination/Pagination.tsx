@@ -19,7 +19,7 @@ export type PaginationProps = DetailedHTMLProps<
   /**
    * Number of total elements per page.
    */
-  elementsPerPage?: number;
+  elementsPerPage: number;
   /**
    * Total number of elements.
    */

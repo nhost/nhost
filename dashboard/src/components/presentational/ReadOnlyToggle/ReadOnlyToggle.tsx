@@ -5,8 +5,10 @@ import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface ReadOnlyToggleProps
-  extends DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement> {
+export type ReadOnlyToggleProps = Omit<
+  DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement>,
+  'checked'
+> & {
   /**
    * Determines whether the toggle is checked or not.
    */
@@ -24,7 +26,7 @@ export interface ReadOnlyToggleProps
      */
     label?: TextProps;
   };
-}
+};
 
 function ReadOnlyToggle(
   { checked, className, slotProps = {}, ...props }: ReadOnlyToggleProps,

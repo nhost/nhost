@@ -197,6 +197,10 @@ test('should create table with foreign key constraint', async ({
   await page.getByRole('button', { name: /add/i }).click();
 
   await expect(
+    page.getByTestId('foreignKeyFormSubmitButton'),
+  ).not.toBeVisible();
+
+  await expect(
     page.getByText(`public.${firstTableName}.id`, { exact: true }),
   ).toBeVisible();
 
