@@ -73,7 +73,6 @@ export default function CreateRemoteSchemaForm({
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
-      // TODO: Parse the values to the correct type
       const headers: RemoteSchemaHeaders = values.definition.headers.map(
         (header) => {
           if (header.value_from_env) {
@@ -123,7 +122,11 @@ export default function CreateRemoteSchemaForm({
             className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
-              <strong>Error:</strong> {createRemoteSchemaError.message}
+              <strong>Error:</strong>{' '}
+              {(createRemoteSchemaError as any)?.code ===
+              'invalid-configuration'
+                ? 'cannot continue due to new inconsistent metadata'
+                : createRemoteSchemaError.message}
             </span>
 
             <Button
