@@ -15,7 +15,12 @@ export default function UploadSingleFile({ onUpload }: UploadSingleFileProps) {
     multiple: false,
     onDropAccepted: async (files) => {
       if (files.length > 0) {
-        await upload({ file: files[0] })
+        await upload(
+          {
+            file: files[0],
+            name: `ra-${files[0].name}`,
+          },
+        )
         onUpload?.()
       }
     }

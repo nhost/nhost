@@ -44,6 +44,21 @@ export const fetchUpload = async (
     headers['Authorization'] = `Bearer ${accessToken}`
   }
 
+  if (name || fileId) {
+    const metadata: Record<string, string> = {}
+    if (name) {
+      metadata.name = toIso88591(name)
+    }
+    if (fileId) {
+      metadata.id = fileId
+    }
+    data.append(
+        'metadata[]',
+        new Blob([JSON.stringify(metadata)], { type: 'application/json' }),
+        "",
+    )
+  }
+
   const url = `${backendUrl}/files`
   if (typeof XMLHttpRequest === 'undefined') {
     // * Non-browser environment: XMLHttpRequest is not available
