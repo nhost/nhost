@@ -5,6 +5,7 @@ import { MaintenanceAlert } from '@/components/presentational/MaintenanceAlert';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
+import { useAuth } from '@/providers/Auth';
 import { useRouter } from 'next/router';
 import { useEffect, type ReactElement } from 'react';
 
@@ -12,6 +13,9 @@ export default function IndexPage() {
   const { push } = useRouter();
   const isPlatform = useIsPlatform();
   const { orgs, loading: loadingOrgs } = useOrgs();
+  const { isAuthenticated, isLoading, isSigningOut } = useAuth();
+
+  const isUserLoggedIn = isAuthenticated && !isLoading && !isSigningOut;
 
   const [lastSlug] = useSSRLocalStorage('slug', null);
 
@@ -21,7 +25,7 @@ export default function IndexPage() {
         return;
       }
 
-      if (orgs) {
+      if (isUserLoggedIn && orgs) {
         if (orgs.length === 0) {
           await push('/onboarding');
           return;
@@ -43,7 +47,7 @@ export default function IndexPage() {
     if (isPlatform) {
       navigateToSlug();
     }
-  }, [orgs, lastSlug, push, loadingOrgs, isPlatform]);
+  }, [orgs, lastSlug, push, loadingOrgs, isPlatform, isUserLoggedIn]);
 
   return <LoadingScreen />;
 }

@@ -12,6 +12,7 @@ import { ApplicationUnpausing } from '@/features/orgs/projects/common/components
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProjectWithState } from '@/features/orgs/projects/hooks/useProjectWithState';
+import { useAuth } from '@/providers/Auth';
 import { ApplicationStatus } from '@/types/application';
 import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
 import { NextSeo } from 'next-seo';
@@ -64,6 +65,9 @@ function ProjectLayoutContent({
   const isPlatform = useIsPlatform();
 
   const { project, loading, error, projectNotFound } = useProjectWithState();
+  const { isAuthenticated, isLoading, isSigningOut } = useAuth();
+
+  const isUserLoggedIn = isAuthenticated && !isLoading && !isSigningOut;
 
   const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
 
@@ -160,16 +164,16 @@ function ProjectLayoutContent({
     if (
       isPlatformOnlyPage(route) ||
       isSelfHostedAndGraphitePage(route) ||
-      projectNotFound
+      (isUserLoggedIn && projectNotFound)
     ) {
       push('/404');
     }
-  }, [route, push, projectNotFound]);
+  }, [route, push, projectNotFound, isUserLoggedIn]);
 
   if (
     isPlatformOnlyPage(route) ||
     isSelfHostedAndGraphitePage(route) ||
-    projectNotFound
+    (isUserLoggedIn && projectNotFound)
   ) {
     return null;
   }
