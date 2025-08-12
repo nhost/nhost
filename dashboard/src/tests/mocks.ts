@@ -88,6 +88,16 @@ export const mockSession: Session = {
   accessTokenExpiresIn: 86400,
   refreshToken: faker.datatype.uuid(),
   refreshTokenId: faker.datatype.uuid(),
+  decodedToken: {
+    sub: '1234567890',
+    iat: 1516239022,
+    exp: 1516325422,
+    'https://hasura.io/jwt/claims': {
+      'x-hasura-allowed-roles': ['user', 'me'],
+      'x-hasura-default-role': 'user',
+      'x-hasura-user-id': '1234567890',
+    },
+  },
   user: {
     id: faker.datatype.uuid(),
     email: faker.internet.email(),
