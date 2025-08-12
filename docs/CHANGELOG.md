@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.34.0
+
+### Minor Changes
+
+- 40439b9: chore: updated postgres extension and added new custom claims default option
+
+### Patch Changes
+
+- 906620a: fix: functions: added response payload limit
+
 ## 2.33.0
 
 ### Minor Changes
