@@ -5,8 +5,8 @@
  * API for managing remote schemas in Hasura
  * OpenAPI spec version: 1.0.0
  */
-import type { ToSourceDefinition } from './toSourceDefinition';
+import type { ToSourceRelationshipDefinition } from './toSourceRelationshipDefinition';
 
 export type CreateRemoteSchemaRemoteRelationshipArgsDefinitionOneOfTwo = {
-  to_source: ToSourceDefinition;
+  to_source: ToSourceRelationshipDefinition;
 };

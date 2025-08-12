@@ -135,7 +135,7 @@ function RemoteSchemaBrowserSidebarContent({
       },
       {
         loadingMessage: 'Deleting remote schema...',
-        successMessage: 'Remote schema deleted successfully!',
+        successMessage: 'Remote schema deleted successfully.',
         errorMessage: 'Failed to delete remote schema',
       },
     );
