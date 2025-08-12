@@ -5,7 +5,7 @@ import {
   getStorageServiceUrl,
 } from '@/utils/env';
 import { createClient } from '@nhost/nhost-js-beta';
-import { type Session } from '@nhost/nhost-js-beta/auth';
+import { type Session } from '@nhost/nhost-js-beta/session';
 import { type SessionStorageBackend } from '@nhost/nhost-js-beta/session';
 
 const nhost = createClient({
