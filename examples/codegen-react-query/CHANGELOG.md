@@ -1,5 +1,11 @@
 # @nhost-examples/codegen-react-query
 
+## 0.9.0
+
+### Minor Changes
+
+- b8cb491: fix: update dependencies to fix vulnerabilities
+
 ## 0.8.2
 
 ### Patch Changes

@@ -1,5 +1,32 @@
 # @nhost/dashboard
 
+## 2.34.0
+
+### Minor Changes
+
+- 7eb9539: feat (dashboard): Allow upgrading free organizations
+- 129ec1e: feat: dashboard: new onboarding
+- 59249e5: fix: elevate permissions in password reset
+- 5e9ddb4: fix: show Run service name in logs page
+- 4ffff86: fix (dashboard): Disable settings pages when config server env variable is not set
+- b8cb491: fix: update dependencies to fix vulnerabilities
+- 5565451: fix: support page, can scroll all the way down in Chrome for iOS
+- f7d7080: chore: dashboard: add gtag
+
+### Patch Changes
+
+- 181c0ab: fix (dashboard): Fix upgrade project e2e tests
+- 56c87da: fix (dashboard): Use the correct http method when conneting to new github
+- 00132bd: fix (dashboard): Clear isSigningOut variable on Signin page
+- 66e0cc8: fix (dashboard): Check if user is logged in before redirecting
+- 9c0a118: chore (dashboard): Add RetryLink to ApolloClient
+- df6b85e: fix (dashboard): fix password reset redirect url
+- ec24567: fix (dashboard): Add content-type header
+- 57b2615: chore (dashboard): refactor redirect behaviour
+- cffa161: fix (dashboard): disable settings in the header when self-hosting
+- 85316e8: fix (dashboard): Remove second loading indicator on projects page
+- 47ab341: fix (dashboard): Fix announcement layout when title is too short
+
 ## 2.33.0
 
 ### Minor Changes
