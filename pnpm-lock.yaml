@@ -269,8 +269,8 @@ importers:
         specifier: ^5.0.20
         version: 5.0.20(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@mui/material@5.15.19(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@mui/system@5.15.15(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(react@18.2.0))(@types/react@18.3.4)(date-fns@2.30.0)(dayjs@1.11.11)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@nhost/nhost-js-beta':
-        specifier: npm:@nhost/nhost-js@5.0.0-beta.7
-        version: '@nhost/nhost-js@5.0.0-beta.7'
+        specifier: npm:@nhost/nhost-js@5.0.0-beta.8
+        version: '@nhost/nhost-js@5.0.0-beta.8'
       '@radix-ui/react-accordion':
         specifier: ^1.2.1
         version: 1.2.2(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -1992,12 +1992,6 @@ importers:
 
   packages/hasura-storage-js:
     dependencies:
-      fetch-ponyfill:
-        specifier: ^7.1.0
-        version: 7.1.0(encoding@0.1.13)
-      form-data:
-        specifier: '>=4.0.4'
-        version: 4.0.4
       graphql:
         specifier: 16.8.1
         version: 16.8.1
@@ -4970,8 +4964,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@nhost/nhost-js@5.0.0-beta.7':
-    resolution: {integrity: sha512-usfX+azFr38zKsHXC0b5lqZCKJz32Hdi9QuLUkNO1amPENgkR95t2ZcZbxllJj7qiFXYsrmwfp/nxMz64HIsYg==}
+  '@nhost/nhost-js@5.0.0-beta.8':
+    resolution: {integrity: sha512-741YBbDXcK6oiVJtcpDYWzzUk8/dFOjGHBdpHsGoO+SICk6Jpsf3zgqpxFqVRzN8SYrnfDXIHZxtEo4uCJOVhw==}
     engines: {node: '>=20'}
 
   '@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1':
@@ -22260,7 +22254,7 @@ snapshots:
   '@next/swc-win32-x64-msvc@14.2.30':
     optional: true
 
-  '@nhost/nhost-js@5.0.0-beta.7': {}
+  '@nhost/nhost-js@5.0.0-beta.8': {}
 
   '@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1':
     dependencies:

@@ -44,7 +44,7 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
   const { data, isLoading, refetch, error, isFetched } = useQuery({
     queryKey: ['projectWithState', appSubdomain as string],
     queryFn: async () => {
-      const response = await nhost.graphql.post<{
+      const response = await nhost.graphql.request<{
         apps: ProjectFragment[];
       }>(GetProjectStateDocument, {
         subdomain: (appSubdomain as string) || '',

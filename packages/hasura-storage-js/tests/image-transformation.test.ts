@@ -1,4 +1,3 @@
-import FormData from 'form-data'
 import fs from 'fs'
 import jpeg from 'jpeg-js'
 import pixelmatch from 'pixelmatch'
@@ -11,8 +10,12 @@ const downloadJpeg = async (url: string) =>
 describe('Image transformation', () => {
   let fileId: string
   beforeAll(async () => {
+    const file = new File([fs.readFileSync('./tests/assets/image.jpeg')], 'image.jpeg', {
+      type: 'image/jpeg'
+    })
+
     const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/image.jpeg'))
+    fd.append('file[]', file)
 
     const { fileMetadata } = await storage.upload({
       formData: fd

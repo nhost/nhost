@@ -219,14 +219,17 @@ export default function DataGridPreviewCell<TData extends object>({
       dispatch({ type: 'PREVIEW_LOADING' });
     }
 
-    const { body: presignedUrl } = await appClient.storage.getPresignedURL(id, {
-      headers: {
-        'x-hasura-admin-secret':
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project!.config!.hasura.adminSecret,
+    const { body: presignedUrl } = await appClient.storage.getFilePresignedURL(
+      id,
+      {
+        headers: {
+          'x-hasura-admin-secret':
+            process.env.NEXT_PUBLIC_ENV === 'dev'
+              ? getHasuraAdminSecret()
+              : project!.config!.hasura.adminSecret,
+        },
       },
-    });
+    );
 
     if (presignedUrl?.url) {
       if (!isPreviewable) {

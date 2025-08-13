@@ -1,4 +1,3 @@
-import FormData from 'form-data'
 import fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import { describe, expect, it } from 'vitest'
@@ -7,7 +6,10 @@ import { storage } from './utils/helpers'
 describe('test get presigned url of file', () => {
   it('should be able to get presigned url of file', async () => {
     const formData = new FormData()
-    formData.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const file = new File([fs.readFileSync('./tests/assets/sample.pdf')], 'sample.pdf', {
+      type: 'application/pdf'
+    })
+    formData.append('file[]', file)
 
     const { fileMetadata } = await storage.upload({ formData })
 

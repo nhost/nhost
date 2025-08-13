@@ -62,8 +62,6 @@
     "docgen": "pnpm typedoc && docgen --config ./storage.docgen.json"
   },
   "dependencies": {
-    "fetch-ponyfill": "^7.1.0",
-    "form-data": "^4.0.0",
     "graphql": "16.8.1",
     "xstate": "^4.38.3"
   },

@@ -42,7 +42,7 @@ export default function useProject(): UseProjectReturnType {
   const { data, isLoading, refetch, error } = useQuery(
     ['project', appSubdomain as string],
     async () => {
-      const response = await nhost.graphql.post<{
+      const response = await nhost.graphql.request<{
         apps: ProjectFragment[];
       }>(GetProjectDocument, { subdomain: (appSubdomain as string) || '' });
       return response.body;

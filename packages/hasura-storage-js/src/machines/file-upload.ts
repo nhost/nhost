@@ -2,14 +2,6 @@ import { assign, createMachine } from 'xstate'
 import { FileUploadConfig, StorageErrorPayload } from '../utils'
 import { fetchUpload } from '../utils/upload'
 
-import FallbackFormData from 'form-data'
-
-let FormData: any
-
-if (typeof FormData === 'undefined') {
-  FormData = FallbackFormData
-}
-
 export type FileUploadContext = {
   progress: number | null
   loaded: number

@@ -1,5 +1,3 @@
-import LegacyFormData from 'form-data'
-
 // TODO shared with other packages
 export type StorageErrorPayload = {
   error: string
@@ -39,7 +37,7 @@ export interface StorageUploadFileParams extends StorageHeadersParam {
 
 // works in browser and server
 export interface StorageUploadFormDataParams extends StorageHeadersParam {
-  formData: FormData | LegacyFormData
+  formData: FormData
   bucketId?: string
 }
 
