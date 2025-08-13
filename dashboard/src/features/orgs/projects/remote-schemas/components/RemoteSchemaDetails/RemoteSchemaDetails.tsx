@@ -35,7 +35,7 @@ export default function RemoteSchemaDetails({
       },
       {
         loadingMessage: 'Reloading remote schema...',
-        successMessage: 'Remote schema reloaded successfully!',
+        successMessage: 'Remote schema reloaded successfully.',
         errorMessage: 'Failed to reload remote schema',
       },
     );
