@@ -1,5 +1,5 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
-import type { RemoteSchemaPermissionsStepArgs } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { type RemoteSchemaPermissionsStepArgs } from '@/utils/hasura-api/generated/schemas';
 
 export interface RemoveRemoteSchemaPermissionsOptions {
   appUrl: string;
@@ -7,20 +7,24 @@ export interface RemoveRemoteSchemaPermissionsOptions {
 }
 
 export interface RemoveRemoteSchemaPermissionsVariables {
+  resourceVersion: number;
   args: RemoteSchemaPermissionsStepArgs;
 }
 
 export default async function removeRemoteSchemaPermissions({
   appUrl,
   adminSecret,
+  resourceVersion,
   args,
 }: RemoveRemoteSchemaPermissionsOptions &
   RemoveRemoteSchemaPermissionsVariables) {
   try {
-    const response = await executeMigration(
+    const response = await metadataOperation(
       {
-        name: 'remove_remoteSchema_perm',
-        up: [
+        type: 'bulk',
+        source: 'default', // TODO: Make this dynamic
+        resource_version: resourceVersion,
+        args: [
           {
             type: 'drop_remote_schema_permissions',
             args: {
@@ -29,22 +33,6 @@ export default async function removeRemoteSchemaPermissions({
             },
           },
         ],
-        down: args.definition.schema
-          ? [
-              {
-                type: 'add_remote_schema_permissions',
-                args: {
-                  remote_schema: args.remote_schema,
-                  role: args.role,
-                  definition: {
-                    schema: args.definition.schema,
-                  },
-                },
-              },
-            ]
-          : [],
-        datasource: 'default', // TODO: Make this dynamic
-        skip_execution: false,
       },
       {
         baseUrl: appUrl,

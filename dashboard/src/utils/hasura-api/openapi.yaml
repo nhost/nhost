@@ -26,6 +26,7 @@ paths:
                 - $ref: '#/components/schemas/IntrospectRemoteSchemaOperation'
                 - $ref: '#/components/schemas/RemoteSchemaRemoteRelationshipOperation'
                 - $ref: '#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation'
+                - $ref: '#/components/schemas/RemoteSchemaPermissionsBulkOperation'
       responses:
         '200':
           description: Operation executed successfully
@@ -103,15 +104,7 @@ components:
           description: Name of the role
           example: user
         definition:
-          type: object
-          description: Permission definition
-          required:
-            - schema
-          properties:
-            schema:
-              type: string
-              description: GraphQL schema definition for this role
-              example: 'schema { query: Query } type Query { hello: String }'
+          $ref: '#/components/schemas/RemoteSchemaPermissionsDefinition'
 
     AddRemoteSchemaPermissionsStep:
       type: object
@@ -550,6 +543,45 @@ components:
           description: Type of operation to reload a remote schema
         args:
           $ref: '#/components/schemas/ReloadRemoteSchemaArgs'
+
+    RemoteSchemaPermissionsDefinition:
+      type: object
+      description: Permission definition
+      required:
+        - schema
+      properties:
+        schema:
+          type: string
+          description: GraphQL schema definition for this role
+          example: 'schema { query: Query } type Query { hello: String }'
+
+    RemoteSchemaPermissionsBulkOperation:
+      type: object
+      required:
+        - type
+        - source
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to add or drop remote schema permissions
+        args:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
+              - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
+
+        source:
+          type: string
+          description: Source of the operation
+          example: default
+        resource_version:
+          type: integer
+          description: Resource version of the operation
+          example: 1
 
     CreateRemoteSchemaRemoteRelationshipArgs:
       type: object

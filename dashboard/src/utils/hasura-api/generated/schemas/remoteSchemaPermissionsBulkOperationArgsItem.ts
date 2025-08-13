@@ -8,6 +8,6 @@
 import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermissionsStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 
-export type MigrationStep =
+export type RemoteSchemaPermissionsBulkOperationArgsItem =
   | AddRemoteSchemaPermissionsStep
   | DropRemoteSchemaPermissionsStep;

@@ -81,6 +81,20 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   const [argTree, setArgTree] = useState<ArgTreeType>({}); // Store preset values
   const [schemaDefinition, setSchemaDefinition] = useState('');
 
+  const getArgTypeString = useCallback((arg: any): string => {
+    const t = arg?.type;
+    if (typeof t === 'string') {
+      return t;
+    }
+    if (t?.toString) {
+      return t.toString();
+    }
+    if (t?.inspect) {
+      return t.inspect();
+    }
+    return String(t ?? '');
+  }, []);
+
   // Count visible types
   const countVisible = useCallback(
     (list: RemoteSchemaFields[]) =>
@@ -176,12 +190,19 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     (schemaTypeIndex: number, fieldIndex: number, checked: boolean) => {
       setRemoteSchemaFields((prev) => {
         const newFields = [...prev];
-        const currentField = newFields[schemaTypeIndex].children[fieldIndex];
+        const schemaType = newFields[schemaTypeIndex];
+        if (!schemaType || !schemaType.children) {
+          return prev;
+        }
+        if (fieldIndex < 0 || fieldIndex >= schemaType.children.length) {
+          return prev;
+        }
+        const currentField = schemaType.children[fieldIndex];
 
         // Update the current field
         newFields[schemaTypeIndex] = {
-          ...newFields[schemaTypeIndex],
-          children: newFields[schemaTypeIndex].children.map((child, index) =>
+          ...schemaType,
+          children: (schemaType.children ?? []).map((child, index) =>
             index === fieldIndex ? { ...child, checked } : child,
           ),
         };
@@ -254,22 +275,24 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
             if (depTypeIndex !== -1) {
               // Only check if not already fully checked to preserve order
-              const hasUncheckedFields = newFields[depTypeIndex].children.some(
-                (child) => !child.checked,
-              );
+              const hasUncheckedFields = (
+                newFields[depTypeIndex].children ?? []
+              ).some((child) => !child.checked);
 
               if (hasUncheckedFields) {
                 // Mark all fields in the dependent type as checked
                 newFields[depTypeIndex] = {
                   ...newFields[depTypeIndex],
-                  children: newFields[depTypeIndex].children.map((child) => ({
-                    ...child,
-                    checked: true,
-                  })),
+                  children: newFields[depTypeIndex].children
+                    ? newFields[depTypeIndex].children.map((child) => ({
+                        ...child,
+                        checked: true,
+                      }))
+                    : [],
                 };
 
                 // Recursively check dependencies of each field in this type
-                newFields[depTypeIndex].children.forEach((childField) => {
+                newFields[depTypeIndex].children?.forEach((childField) => {
                   if (childField.return) {
                     const childBaseType = getBaseTypeName(childField.return);
                     if (
@@ -460,7 +483,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
       })
       .map((schemaType) => ({
         ...schemaType,
-        children: schemaType.children.filter(
+        children: (schemaType.children ?? []).filter(
           (field) =>
             field.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             field.return?.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -575,7 +598,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                           </Text>
                           <div className="pl-4">
                             <Accordion type="multiple" className="space-y-1">
-                              {schemaType.children.map((field) => {
+                              {(schemaType.children ?? []).map((field) => {
                                 const fieldKey = `${schemaType.name}.${field.name}`;
                                 const actualSchemaIndex =
                                   remoteSchemaFields.findIndex(
@@ -583,11 +606,18 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                   );
                                 const actualFieldIndex = remoteSchemaFields[
                                   actualSchemaIndex
-                                ]?.children.findIndex(
-                                  (f) => f.name === field.name,
-                                );
+                                ]?.children
+                                  ? remoteSchemaFields[
+                                      actualSchemaIndex
+                                    ].children!.findIndex(
+                                      (f) => f.name === field.name,
+                                    )
+                                  : -1;
 
-                                if (field.args && field.args.length > 0) {
+                                if (
+                                  field.args &&
+                                  Object.values(field.args).length > 0
+                                ) {
                                   return (
                                     <AccordionItem
                                       key={fieldKey}
@@ -614,8 +644,13 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                             : {field.return}
                                           </span>
                                           <span className="text-xs text-gray-400">
-                                            ({field.args.length} arg
-                                            {field.args.length > 1 ? 's' : ''})
+                                            ({Object.values(field.args).length}{' '}
+                                            arg
+                                            {Object.values(field.args).length >
+                                            1
+                                              ? 's'
+                                              : ''}
+                                            )
                                           </span>
                                         </div>
                                       </AccordionTrigger>
@@ -624,36 +659,39 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           <Text className="text-sm font-medium text-gray-700">
                                             Arguments:
                                           </Text>
-                                          {field.args.map((arg) => {
-                                            const presetValue =
-                                              argTree?.[schemaType.name]?.[
-                                                field.name
-                                              ]?.[arg.name] || '';
+                                          {Object.values(field.args).map(
+                                            (arg: any) => {
+                                              const presetValue =
+                                                argTree?.[schemaType.name]?.[
+                                                  field.name
+                                                ]?.[arg.name] || '';
 
-                                            return (
-                                              <div
-                                                key={arg.name}
-                                                className="flex items-center space-x-2"
-                                              >
-                                                <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
-                                                  {arg.name}: {arg.type}
-                                                </span>
-                                                <Input
-                                                  placeholder="@preset value"
-                                                  value={presetValue}
-                                                  onChange={(e) =>
-                                                    handlePresetChange(
-                                                      schemaType.name,
-                                                      field.name,
-                                                      arg.name,
-                                                      e.target.value,
-                                                    )
-                                                  }
-                                                  className="text-xs"
-                                                />
-                                              </div>
-                                            );
-                                          })}
+                                              return (
+                                                <div
+                                                  key={arg.name}
+                                                  className="flex items-center space-x-2"
+                                                >
+                                                  <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
+                                                    {arg.name}:{' '}
+                                                    {getArgTypeString(arg)}
+                                                  </span>
+                                                  <Input
+                                                    placeholder="@preset value"
+                                                    value={presetValue}
+                                                    onChange={(e) =>
+                                                      handlePresetChange(
+                                                        schemaType.name,
+                                                        field.name,
+                                                        arg.name,
+                                                        e.target.value,
+                                                      )
+                                                    }
+                                                    className="text-xs"
+                                                  />
+                                                </div>
+                                              );
+                                            },
+                                          )}
                                         </div>
                                       </AccordionContent>
                                     </AccordionItem>
@@ -716,7 +754,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                             {schemaType.name}
                           </Text>
                           <div className="space-y-1 pl-4">
-                            {schemaType.children.map((field) => {
+                            {(schemaType.children ?? []).map((field) => {
                               const fieldKey = `${schemaType.name}.${field.name}`;
                               const actualSchemaIndex =
                                 remoteSchemaFields.findIndex(
@@ -724,9 +762,13 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                 );
                               const actualFieldIndex = remoteSchemaFields[
                                 actualSchemaIndex
-                              ]?.children.findIndex(
-                                (f) => f.name === field.name,
-                              );
+                              ]?.children
+                                ? remoteSchemaFields[
+                                    actualSchemaIndex
+                                  ].children!.findIndex(
+                                    (f) => f.name === field.name,
+                                  )
+                                : -1;
 
                               return (
                                 <div key={fieldKey} className="space-y-2">
@@ -754,53 +796,63 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           : {field.return}
                                         </span>
                                       )}
-                                      {field.args && field.args.length > 0 && (
-                                        <span className="ml-2 text-xs text-gray-400">
-                                          ({field.args.length} arg
-                                          {field.args.length > 1 ? 's' : ''})
-                                        </span>
-                                      )}
+                                      {field.args &&
+                                        Object.values(field.args).length >
+                                          0 && (
+                                          <span className="ml-2 text-xs text-gray-400">
+                                            ({Object.values(field.args).length}{' '}
+                                            arg
+                                            {Object.values(field.args).length >
+                                            1
+                                              ? 's'
+                                              : ''}
+                                            )
+                                          </span>
+                                        )}
                                     </label>
                                   </div>
 
                                   {/* Arguments section for custom types */}
                                   {field.expanded &&
                                     field.args &&
-                                    field.args.length > 0 && (
+                                    Object.values(field.args).length > 0 && (
                                       <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
                                         <Text className="text-sm font-medium text-gray-700">
                                           Arguments:
                                         </Text>
-                                        {field.args.map((arg) => {
-                                          const presetValue =
-                                            argTree?.[schemaType.name]?.[
-                                              field.name
-                                            ]?.[arg.name] || '';
+                                        {Object.values(field.args).map(
+                                          (arg: any) => {
+                                            const presetValue =
+                                              argTree?.[schemaType.name]?.[
+                                                field.name
+                                              ]?.[arg.name] || '';
 
-                                          return (
-                                            <div
-                                              key={arg.name}
-                                              className="flex items-center space-x-2"
-                                            >
-                                              <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
-                                                {arg.name}: {arg.type}
-                                              </span>
-                                              <Input
-                                                placeholder="@preset value"
-                                                value={presetValue}
-                                                onChange={(e) =>
-                                                  handlePresetChange(
-                                                    schemaType.name,
-                                                    field.name,
-                                                    arg.name,
-                                                    e.target.value,
-                                                  )
-                                                }
-                                                className="text-xs"
-                                              />
-                                            </div>
-                                          );
-                                        })}
+                                            return (
+                                              <div
+                                                key={arg.name}
+                                                className="flex items-center space-x-2"
+                                              >
+                                                <span className="min-w-0 flex-shrink-0 text-sm text-gray-600">
+                                                  {arg.name}:{' '}
+                                                  {getArgTypeString(arg)}
+                                                </span>
+                                                <Input
+                                                  placeholder="@preset value"
+                                                  value={presetValue}
+                                                  onChange={(e) =>
+                                                    handlePresetChange(
+                                                      schemaType.name,
+                                                      field.name,
+                                                      arg.name,
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  className="text-xs"
+                                                />
+                                              </div>
+                                            );
+                                          },
+                                        )}
                                       </div>
                                     )}
                                 </div>

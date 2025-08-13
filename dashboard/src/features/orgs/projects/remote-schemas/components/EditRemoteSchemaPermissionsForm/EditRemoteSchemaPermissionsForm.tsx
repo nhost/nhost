@@ -147,24 +147,28 @@ export default function EditRemoteSchemaPermissionsForm({
         role,
       );
       if (existingPerm) {
-        const remoteFields = getRemoteSchemaFields(
-          graphqlSchema,
-          buildSchemaFromRoleDefinition(existingPerm?.definition.schema),
-        );
-        permissionAccess = 'full';
+        if (!graphqlSchema) {
+          permissionAccess = 'none';
+        } else {
+          const remoteFields = getRemoteSchemaFields(
+            graphqlSchema,
+            buildSchemaFromRoleDefinition(existingPerm?.definition.schema),
+          );
+          permissionAccess = 'full';
 
-        if (
-          remoteFields
-            .filter(
-              (field) =>
-                !field.name.startsWith('enum') &&
-                !field.name.startsWith('scalar'),
-            )
-            .some((field) =>
-              field.children?.some((element) => element.checked === false),
-            )
-        ) {
-          permissionAccess = 'partial';
+          if (
+            remoteFields
+              .filter(
+                (field) =>
+                  !field.name.startsWith('enum') &&
+                  !field.name.startsWith('scalar'),
+              )
+              .some((field) =>
+                field.children?.some((element) => element.checked === false),
+              )
+          ) {
+            permissionAccess = 'partial';
+          }
         }
       } else {
         permissionAccess = 'none';
