@@ -60,8 +60,8 @@
   },
   "dependencies": {
     "@urql/devtools": "^2.0.3",
-    "@urql/exchange-refocus": "^1.0.2",
-    "graphql-ws": "^5.16.0"
+    "@urql/exchange-refocus": "^1.1.1",
+    "graphql-ws": "^5.16.2"
   },
   "peerDependencies": {
     "@nhost/react": "workspace:*",
@@ -72,10 +72,10 @@
   },
   "devDependencies": {
     "@nhost/react": "workspace:*",
-    "@types/react": "^18.2.73",
+    "@types/react": "^18.3.23",
     "graphql": "16.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "urql": "^3.0.3"
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "urql": "^3.0.4"
   }
 }

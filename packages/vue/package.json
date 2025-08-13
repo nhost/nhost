@@ -66,7 +66,7 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
-    "@vueuse/core": "^10.9.0",
+    "@vueuse/core": "^10.11.1",
     "@xstate/vue": "^2.0.0",
     "jwt-decode": "^4.0.0"
   },
@@ -74,9 +74,9 @@
     "@nhost/docgen": "workspace:*",
     "@vitejs/plugin-vue": "^4.6.2",
     "@xstate/inspect": "^0.8.0",
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0",
-    "ws": "^8.16.0",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1",
+    "ws": "8.17.1",
     "xstate": "^4.38.3"
   }
 }
