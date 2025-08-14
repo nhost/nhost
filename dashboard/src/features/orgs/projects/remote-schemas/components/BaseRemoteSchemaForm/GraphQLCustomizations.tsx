@@ -26,7 +26,7 @@ export default function GraphQLCustomizations() {
   if (!isOpen) {
     return (
       <Box className="space-y-2">
-        <Text variant="h3" className="text-sm+ font-semibold">
+        <Text variant="h4" className="text-lg font-semibold">
           GraphQL Customizations
         </Text>
         <Text variant="body2" color="secondary" className="text-sm">
@@ -58,7 +58,7 @@ export default function GraphQLCustomizations() {
   return (
     <Box className="space-y-4">
       <Box className="flex flex-row items-center justify-between">
-        <Text variant="h3" className="text-sm+ font-semibold">
+        <Text variant="h4" className="text-lg font-semibold">
           GraphQL Customizations
         </Text>
         <Button

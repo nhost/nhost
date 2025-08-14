@@ -34,25 +34,30 @@ export default function useIntrospectRemoteSchemaQuery(
 ) {
   const { project, loading } = useProject();
 
-  const appUrl = generateAppServiceUrl(
-    project!.subdomain,
-    project!.region,
-    'hasura',
-  );
-
   const query = useQuery({
     queryKey: ['introspect-remote-schema', remoteSchemaName],
-    queryFn: () =>
-      introspectRemoteSchema({
+    queryFn: () => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
+
+      const adminSecret =
+        process.env.NEXT_PUBLIC_ENV === 'dev'
+          ? getHasuraAdminSecret()
+          : project?.config?.hasura.adminSecret!;
+
+      return introspectRemoteSchema({
         appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret!,
+        adminSecret,
         args: {
           name: remoteSchemaName,
         },
-      }),
+      });
+    },
+    // Avoid endless retries/refetches on deterministic errors like "remote schema not found"
+    retry: false,
     ...queryOptions,
     enabled: !!(
       project?.subdomain &&

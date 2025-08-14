@@ -1,6 +1,6 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import { Button as ButtonV3 } from '@/components/ui/v3/button';
+import { Button } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
   Command,
@@ -40,10 +40,12 @@ import type { RemoteSchemaRelationshipFormValues } from './RemoteSchemaRelations
 
 export interface SchemaToArgumentMapSelectorProps {
   sourceSchema: string;
+  disabled?: boolean;
 }
 
 export default function SchemaToArgumentMapSelector({
   sourceSchema,
+  disabled,
 }: SchemaToArgumentMapSelectorProps) {
   const form = useFormContext<RemoteSchemaRelationshipFormValues>();
 
@@ -208,6 +210,7 @@ export default function SchemaToArgumentMapSelector({
                       onCheckedChange={(checked) =>
                         handleArgumentToggle(argument.value, checked as boolean)
                       }
+                      disabled={disabled}
                     />
                     <label
                       htmlFor={`arg-${argument.value}`}
@@ -236,6 +239,7 @@ export default function SchemaToArgumentMapSelector({
                             <Select
                               onValueChange={typeField.onChange}
                               defaultValue={typeField.value}
+                              disabled={disabled}
                             >
                               <FormControl>
                                 <SelectTrigger className="w-40 rounded-r-none border-r-0">
@@ -269,9 +273,10 @@ export default function SchemaToArgumentMapSelector({
                                 <Popover>
                                   <PopoverTrigger asChild>
                                     <FormControl>
-                                      <ButtonV3
+                                      <Button
                                         variant="outline"
                                         role="combobox"
+                                        disabled={disabled}
                                         className={cn(
                                           'w-full justify-between rounded-l-none',
                                           !valueField.value &&
@@ -286,7 +291,7 @@ export default function SchemaToArgumentMapSelector({
                                             )?.label
                                           : 'Select source field'}
                                         <ChevronsUpDown className="opacity-50" />
-                                      </ButtonV3>
+                                      </Button>
                                     </FormControl>
                                   </PopoverTrigger>
                                   <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
@@ -336,6 +341,7 @@ export default function SchemaToArgumentMapSelector({
                                   {...valueField}
                                   placeholder="Enter static value"
                                   className="rounded-l-none"
+                                  disabled={disabled}
                                 />
                               </>
                             )}
