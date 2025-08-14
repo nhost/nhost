@@ -146,6 +146,7 @@ export default function EditRemoteSchemaForm({
       <BaseRemoteSchemaForm
         submitButtonText="Update"
         onSubmit={handleSubmit}
+        nameInputDisabled
         {...props}
       />
     </FormProvider>

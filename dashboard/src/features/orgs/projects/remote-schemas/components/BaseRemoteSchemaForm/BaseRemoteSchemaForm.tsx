@@ -41,6 +41,10 @@ export interface BaseRemoteSchemaFormProps extends DialogFormProps {
    * @default 'Save'
    */
   submitButtonText?: string;
+  /**
+   * Whether the name input should be disabled.
+   */
+  nameInputDisabled?: boolean;
 }
 
 export const baseRemoteSchemaValidationSchema = Yup.object({
@@ -129,6 +133,7 @@ export default function BaseRemoteSchemaForm({
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
+  nameInputDisabled = false,
 }: BaseRemoteSchemaFormProps) {
   return (
     <Form
@@ -137,7 +142,7 @@ export default function BaseRemoteSchemaForm({
     >
       <div className="flex-auto overflow-y-auto pb-4">
         <Box component="section" className="flex flex-col gap-3 px-6 py-6">
-          <RemoteSchemaNameInput />
+          <RemoteSchemaNameInput disabled={nameInputDisabled} />
           <RemoteSchemaCommentInput />
         </Box>
 

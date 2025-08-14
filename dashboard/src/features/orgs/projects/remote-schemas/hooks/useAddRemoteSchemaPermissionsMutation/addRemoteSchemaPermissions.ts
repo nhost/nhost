@@ -1,4 +1,4 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { RemoteSchemaPermissionsStepArgs } from '@/utils/hasura-api/generated/schemas';
 
 export interface AddRemoteSchemaPermissionsOptions {
@@ -7,43 +7,34 @@ export interface AddRemoteSchemaPermissionsOptions {
 }
 
 export interface AddRemoteSchemaPermissionsVariables {
-  args: RemoteSchemaPermissionsStepArgs;
+  resourceVersion: number;
+  args: Required<RemoteSchemaPermissionsStepArgs>;
 }
 
 export default async function addRemoteSchemaPermissions({
   appUrl,
   adminSecret,
+  resourceVersion,
   args,
 }: AddRemoteSchemaPermissionsOptions & AddRemoteSchemaPermissionsVariables) {
   try {
-    const response = await executeMigration(
+    const response = await metadataOperation(
       {
-        name: 'save_remote_schema_permission',
-        down: [
+        type: 'bulk',
+        source: 'default', // TODO: Make this dynamic
+        resource_version: resourceVersion,
+        args: [
           {
-            type: 'drop_remote_schema_permissions',
+            type: 'add_remote_schema_permissions',
             args: {
               remote_schema: args.remote_schema,
               role: args.role,
+              definition: {
+                schema: args.definition.schema,
+              },
             },
           },
         ],
-        up: args.definition.schema
-          ? [
-              {
-                type: 'add_remote_schema_permissions',
-                args: {
-                  remote_schema: args.remote_schema,
-                  role: args.role,
-                  definition: {
-                    schema: args.definition.schema,
-                  },
-                },
-              },
-            ]
-          : [],
-        datasource: 'default', // TODO: Make this dynamic
-        skip_execution: false,
       },
       {
         baseUrl: appUrl,

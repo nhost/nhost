@@ -26,7 +26,7 @@ export interface UseRemoveRemoteSchemaPermissionsMutationOptions {
 /**
  * This hook is a wrapper around a fetch call that removes a remote schema permission.
  *
- * @param options - Options to use for the mutation.
+ * @param mutationOptions - Options to use for the mutation.
  * @returns The result of the mutation.
  */
 export default function useRemoveRemoteSchemaPermissionsMutation({

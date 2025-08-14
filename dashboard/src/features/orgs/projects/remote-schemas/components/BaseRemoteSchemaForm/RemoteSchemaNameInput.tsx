@@ -5,7 +5,16 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
-export default function RemoteSchemaNameInput() {
+export interface RemoteSchemaNameInputProps {
+  /**
+   * Whether the input should be disabled.
+   */
+  disabled?: boolean;
+}
+
+export default function RemoteSchemaNameInput({
+  disabled,
+}: RemoteSchemaNameInputProps) {
   const { register } = useFormContext<BaseRemoteSchemaFormValues>();
   const { errors } = useFormState({ name: 'name' });
 
@@ -19,6 +28,7 @@ export default function RemoteSchemaNameInput() {
         id="name"
         name="name"
         placeholder="Remote Schema Name"
+        disabled={disabled}
         className=""
         hideEmptyHelperText
         error={Boolean(errors.name)}
