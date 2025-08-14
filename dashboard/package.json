@@ -45,7 +45,7 @@
     "@mui/material": "^5.15.14",
     "@mui/system": "^5.15.14",
     "@mui/x-date-pickers": "^5.0.20",
-    "@nhost/nhost-js-beta": "npm:@nhost/nhost-js@5.0.0-beta.8",
+    "@nhost/nhost-js-beta": "npm:@nhost/nhost-js@5.0.0-beta.9",
     "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.1.2",
