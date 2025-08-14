@@ -244,7 +244,6 @@ function RemoteSchemaBrowserSidebarContent({
         {remoteSchemas.length > 0 && (
           <List className="grid gap-1 pb-6">
             {remoteSchemas.map((remoteSchema) => {
-              console.log('remoteSchema', remoteSchema);
               const isSelected = remoteSchemaSlug === remoteSchema.name;
               const isSidebarMenuOpen =
                 sidebarMenuRemoteSchema === remoteSchema.name;

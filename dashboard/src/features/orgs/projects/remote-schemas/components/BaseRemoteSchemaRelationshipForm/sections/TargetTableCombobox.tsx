@@ -123,49 +123,21 @@ export default function TargetTableCombobox({
                           className={cn(
                             'ml-auto',
                             table.value.name === field.value?.name &&
-                            table.value.schema === field.value?.schema,
-                        )?.label
-                      : 'Select table'}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                <Command>
-                  <CommandInput
-                    placeholder="Search target table..."
-                    className="h-9"
-                  />
-                  <CommandList>
-                    <CommandEmpty>No target table found.</CommandEmpty>
-                    <CommandGroup>
-                      {tables.map((table) => (
-                        <CommandItem
-                          value={table.label}
-                          key={`${table.value.schema}/${table.value.name}`}
-                          onSelect={() => handleSelectTable(table.value)}
-                        >
-                          {table.label}
-                          <Check
-                            className={cn(
-                              'ml-auto',
-                              table.value.name === field.value?.name &&
-                                table.value.schema === field.value?.schema
-                                ? 'opacity-100'
-                                : 'opacity-0',
-                            )}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            <FormMessage />
-          </FormItem>
-        );
-      }}
+                              table.value.schema === field.value?.schema
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
     />
   );
 }

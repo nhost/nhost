@@ -218,11 +218,13 @@ export default function EditRemoteSchemaPermissionsForm({
     );
   }
 
-  const { data: remoteSchemaPermissionsEnabledData } =
-    useGetHasuraRemoteSchemaPermissionsEnabledQuery({
-      variables: { appId: project?.id },
-      ...(!isPlatform ? { client: localMimirClient } : {}),
-    });
+  const {
+    data: remoteSchemaPermissionsEnabledData,
+    loading: remoteSchemaPermissionsEnabledLoading,
+  } = useGetHasuraRemoteSchemaPermissionsEnabledQuery({
+    variables: { appId: project?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
 
   const remoteSchemaPermissionsEnabled = Boolean(
     remoteSchemaPermissionsEnabledData?.config?.hasura?.settings
@@ -238,7 +240,10 @@ export default function EditRemoteSchemaPermissionsForm({
     queryOptions: { enabled: !!schema },
   });
 
-  if (!remoteSchemaPermissionsEnabled) {
+  if (
+    !remoteSchemaPermissionsEnabled &&
+    !remoteSchemaPermissionsEnabledLoading
+  ) {
     return (
       <Box className="p-4">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
