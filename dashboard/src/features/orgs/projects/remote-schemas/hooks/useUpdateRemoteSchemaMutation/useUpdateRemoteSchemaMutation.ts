@@ -1,20 +1,24 @@
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getHasuraAdminSecret } from '@/utils/env';
+import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import type { UpdateRemoteSchemaVariables } from './updateRemoteSchema';
 import updateRemoteSchema from './updateRemoteSchema';
+import type { UpdateRemoteSchemaMigrationVariables } from './updateRemoteSchemaMigration';
+import updateRemoteSchemaMigration from './updateRemoteSchemaMigration';
 
 export interface UseUpdateRemoteSchemaMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    SuccessResponse | MetadataOperation200,
     unknown,
-    UpdateRemoteSchemaVariables
+    UpdateRemoteSchemaVariables | UpdateRemoteSchemaMigrationVariables
   >;
 }
 
@@ -28,21 +32,37 @@ export default function useUpdateRemoteSchemaMutation({
   mutationOptions,
 }: UseUpdateRemoteSchemaMutationOptions = {}) {
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
 
-  const mutation = useMutation((variables) => {
+  const mutation = useMutation<
+    SuccessResponse | MetadataOperation200,
+    unknown,
+    UpdateRemoteSchemaVariables | UpdateRemoteSchemaMigrationVariables
+  >((variables) => {
     const appUrl = generateAppServiceUrl(
       project!.subdomain,
       project!.region,
       'hasura',
     );
 
-    return updateRemoteSchema({
-      ...variables,
+    const base = {
       appUrl,
       adminSecret:
         process.env.NEXT_PUBLIC_ENV === 'dev'
           ? getHasuraAdminSecret()
           : project?.config?.hasura.adminSecret!,
+    } as const;
+
+    if (isPlatform) {
+      return updateRemoteSchema({
+        ...variables,
+        ...base,
+      });
+    }
+
+    return updateRemoteSchemaMigration({
+      ...variables,
+      ...base,
     });
   }, mutationOptions);
 

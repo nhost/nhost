@@ -62,7 +62,7 @@ export const metadataOperation = async (
 
 /**
  * Executes a migration with the provided up and down steps
- * @summary Execute a database migration
+ * @summary Execute a migration
  */
 export type executeMigrationResponse200 = {
   data: SuccessResponse;

@@ -6,8 +6,14 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermissionsStep';
+import type { AddRemoteSchemaStep } from './addRemoteSchemaStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
+import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
+import type { UpdateRemoteSchemaStep } from './updateRemoteSchemaStep';
 
 export type MigrationStep =
   | AddRemoteSchemaPermissionsStep
-  | DropRemoteSchemaPermissionsStep;
+  | DropRemoteSchemaPermissionsStep
+  | UpdateRemoteSchemaStep
+  | RemoveRemoteSchemaStep
+  | AddRemoteSchemaStep;

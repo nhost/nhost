@@ -47,12 +47,17 @@ export interface EditRemoteSchemaPermissionsFormProps extends DialogFormProps {
    * Function to be called when the form is cancelled.
    */
   onCancel?: () => void;
+  /**
+   * Whether the form is disabled.
+   */
+  disabled?: boolean;
 }
 
 export default function EditRemoteSchemaPermissionsForm({
   schema,
   onCancel,
   location,
+  disabled,
 }: EditRemoteSchemaPermissionsFormProps) {
   const [selectedRole, setSelectedRole] = useState<string>();
   const [isEditing, setIsEditing] = useState(false);
@@ -93,7 +98,11 @@ export default function EditRemoteSchemaPermissionsForm({
   const remoteSchemaPermissions = remoteSchema?.permissions || [];
 
   // Get introspection data for permission level comparison
-  const { data: introspectionData } = useIntrospectRemoteSchemaQuery(schema, {
+  const {
+    data: introspectionData,
+    error: introspectionError,
+    isLoading: introspectionLoading,
+  } = useIntrospectRemoteSchemaQuery(schema, {
     queryOptions: { enabled: !!schema },
   });
 
@@ -122,12 +131,19 @@ export default function EditRemoteSchemaPermissionsForm({
     );
   }
 
-  if (rolesLoading || !introspectionData) {
+  console.log('loading', introspectionLoading);
+  console.log('error', introspectionError);
+
+  if (rolesLoading || introspectionLoading) {
     return (
       <div className="p-6">
         <ActivityIndicator label="Loading available roles..." />
       </div>
     );
+  }
+
+  if (introspectionError) {
+    throw introspectionError;
   }
 
   if (rolesError) {
@@ -139,7 +155,9 @@ export default function EditRemoteSchemaPermissionsForm({
     ...(rolesData?.authRoles?.map(({ role: authRole }) => authRole) || []),
   ];
 
-  const graphqlSchema = convertIntrospectionToSchema(introspectionData);
+  const graphqlSchema = introspectionData
+    ? convertIntrospectionToSchema(introspectionData)
+    : undefined;
 
   // Helper function to get permission access level for a role
   const getPermissionAccessLevel = (role: string): RemoteSchemaAccessLevel => {
@@ -195,6 +213,7 @@ export default function EditRemoteSchemaPermissionsForm({
         remoteSchemaName={schema}
         role={selectedRole}
         permission={existingPermission}
+        disabled={disabled}
         onSubmit={async () => {
           // Refresh the remote schemas data to reflect permission changes
           await refetchRemoteSchemas();

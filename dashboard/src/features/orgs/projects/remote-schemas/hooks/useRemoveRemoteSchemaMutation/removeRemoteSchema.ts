@@ -1,22 +1,22 @@
 import type { MetadataOperationOptions } from '@/features/orgs/projects/remote-schemas/types';
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
-import type { RemoveRemoteSchemaArgs } from '@/utils/hasura-api/generated/schemas';
+import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 
 export interface RemoveRemoteSchemaVariables {
-  args: RemoveRemoteSchemaArgs;
+  remoteSchema: RemoteSchemaInfo; // Entire remote schema info is necessary to match the remove migration variables
 }
 
 export default async function removeRemoteSchema({
   appUrl,
   adminSecret,
-  args,
+  remoteSchema,
 }: MetadataOperationOptions & RemoveRemoteSchemaVariables) {
   try {
     const response = await metadataOperation(
       {
         type: 'remove_remote_schema',
         args: {
-          name: args.name,
+          name: remoteSchema.name,
         },
       },
       {

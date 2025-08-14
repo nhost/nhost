@@ -26,6 +26,7 @@ export interface BaseRemoteSchemaRelationshipFormProps {
     values: DatabaseRelationshipFormValues | RemoteSchemaRelationshipFormValues,
   ) => void;
   onCancel?: () => void;
+  disabled?: boolean;
 }
 
 export default function BaseRemoteSchemaRelationshipForm({
@@ -35,6 +36,7 @@ export default function BaseRemoteSchemaRelationshipForm({
   onCancel,
   defaultType,
   defaultValues,
+  disabled,
 }: BaseRemoteSchemaRelationshipFormProps) {
   const [type, setType] = useState<RemoteSchemaRelationshipType>(
     defaultType ?? 'remote-schema',
@@ -43,7 +45,7 @@ export default function BaseRemoteSchemaRelationshipForm({
   return (
     <div className="flex flex-1 flex-col space-y-6 pb-4">
       <RelationshipTypeSection
-        disabled={!!defaultType}
+        disabled={!!defaultType || disabled}
         onChange={setType}
         value={type}
       />
@@ -60,6 +62,7 @@ export default function BaseRemoteSchemaRelationshipForm({
           onCancel={onCancel}
           onSubmit={(values) => onSubmit?.(values)}
           submitButtonText={submitButtonText}
+          disabled={disabled}
         />
       )}
       {type === 'database' && (
@@ -73,6 +76,7 @@ export default function BaseRemoteSchemaRelationshipForm({
           onCancel={onCancel}
           onSubmit={(values) => onSubmit?.(values)}
           submitButtonText={submitButtonText}
+          disabled={disabled}
         />
       )}
     </div>

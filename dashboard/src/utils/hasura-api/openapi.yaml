@@ -55,7 +55,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /apis/migrate:
     post:
-      summary: Execute a database migration
+      summary: Execute a migration
       description: Executes a migration with the provided up and down steps
       operationId: executeMigration
       requestBody:
@@ -131,10 +131,49 @@ components:
         args:
           $ref: '#/components/schemas/RemoteSchemaPermissionsStepArgs'
 
+    AddRemoteSchemaStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [add_remote_schema]
+        args:
+          $ref: '#/components/schemas/AddRemoteSchemaArgs'
+
+    UpdateRemoteSchemaStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [update_remote_schema]
+        args:
+          $ref: '#/components/schemas/UpdateRemoteSchemaArgs'
+
+    RemoveRemoteSchemaStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [remove_remote_schema]
+        args:
+          $ref: '#/components/schemas/RemoveRemoteSchemaArgs'
+
     MigrationStep:
       oneOf:
         - $ref: '#/components/schemas/AddRemoteSchemaPermissionsStep'
         - $ref: '#/components/schemas/DropRemoteSchemaPermissionsStep'
+        - $ref: '#/components/schemas/UpdateRemoteSchemaStep'
+        - $ref: '#/components/schemas/RemoveRemoteSchemaStep'
+        - $ref: '#/components/schemas/AddRemoteSchemaStep'
 
     MigrationRequest:
       type: object
@@ -185,6 +224,9 @@ components:
           type: string
           description: Object error message
           example: "Inconsistent object: environment variable 'asdf' not set"
+        message:
+          type: string
+          description: The error message for the client
         internal:
           type: array
           description: Internal error details

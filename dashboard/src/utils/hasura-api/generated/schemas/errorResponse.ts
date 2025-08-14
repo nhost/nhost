@@ -12,6 +12,8 @@ export interface ErrorResponse {
   code?: string;
   /** Object error message */
   error?: string;
+  /** The error message for the client */
+  message?: string;
   /** Internal error details */
   internal?: ErrorResponseInternalItem[];
   /** JSON path where the error occurred */

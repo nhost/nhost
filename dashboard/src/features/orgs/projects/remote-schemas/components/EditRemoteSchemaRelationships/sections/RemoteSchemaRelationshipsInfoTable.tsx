@@ -13,22 +13,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
+import { useDeleteRemoteSchemaRelationshipMutation } from '@/features/orgs/projects/remote-schemas/hooks/useDeleteRemoteSchemaRelationshipMutation';
+import {
+  isToRemoteSchemaDefinition,
+  isToSourceDefinition,
+} from '@/features/orgs/projects/remote-schemas/utils/guards';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   RemoteSchemaInfoRemoteRelationshipsItem,
   RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
-import { useDeleteRemoteSchemaRelationshipMutation } from '../../../hooks/useDeleteRemoteSchemaRelationshipMutation';
-import {
-  isToRemoteSchemaDefinition,
-  isToSourceDefinition,
-} from '../../../utils/guards';
 import RelationshipTableCell from './RelationshipTableCell';
 
 export interface RemoteSchemaRelationshipsInfoTableProps {
   sourceRemoteSchema: string;
   remoteRelationships: RemoteSchemaInfoRemoteRelationshipsItem[];
-  onEditRelationship?: (
+  onSelectRelationship?: (
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
   ) => void;
   onDeleteRelationship?: () => void;
@@ -37,12 +37,10 @@ export interface RemoteSchemaRelationshipsInfoTableProps {
 export default function RemoteSchemaRelationshipsInfoTable({
   sourceRemoteSchema,
   remoteRelationships,
-  onEditRelationship,
+  onSelectRelationship,
   onDeleteRelationship,
 }: RemoteSchemaRelationshipsInfoTableProps) {
   const { openAlertDialog } = useDialog();
-
-  console.log('remoteRelationships:', remoteRelationships);
 
   const getRelationshipType = (
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
@@ -72,11 +70,6 @@ export default function RemoteSchemaRelationshipsInfoTable({
 
     return 'Unknown';
   };
-  // const {
-  //   mutateAsync: createRemoteSchema,
-  //   error: createRemoteSchemaError,
-  //   reset: resetCreateRemoteSchemaError,
-  // } = useCreateRemoteSchemaMutation();
 
   const { mutateAsync: deleteRemoteSchemaRelationship } =
     useDeleteRemoteSchemaRelationshipMutation();
@@ -128,7 +121,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
   const handleEditRelationshipClick = (
     relationship: RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem,
   ) => {
-    onEditRelationship?.(relationship);
+    onSelectRelationship?.(relationship);
   };
 
   return (

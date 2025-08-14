@@ -45,6 +45,10 @@ export interface BaseRemoteSchemaFormProps extends DialogFormProps {
    * Whether the name input should be disabled.
    */
   nameInputDisabled?: boolean;
+  /**
+   * Optional slot to override the default GraphQL customizations section.
+   */
+  graphQLCustomizationsSlot?: React.ReactNode;
 }
 
 export const baseRemoteSchemaValidationSchema = Yup.object({
@@ -118,7 +122,7 @@ function FormFooter({
 
       <Button
         loading={isSubmitting}
-        disabled={isSubmitting}
+        disabled={isSubmitting || !isDirty}
         type="submit"
         className="justify-self-end"
       >
@@ -134,6 +138,7 @@ export default function BaseRemoteSchemaForm({
   onCancel,
   submitButtonText = 'Save',
   nameInputDisabled = false,
+  graphQLCustomizationsSlot,
 }: BaseRemoteSchemaFormProps) {
   return (
     <Form
@@ -158,12 +163,12 @@ export default function BaseRemoteSchemaForm({
           component="section"
           className="flex flex-col gap-3 border-t-1 px-6 py-6"
         >
-          <Text variant="h2" className="text-sm+ font-bold">
+          <Text variant="h4" className="text-lg font-semibold">
             Headers for remote GraphQL server
           </Text>
           <ForwardClientHeadersToggle />
           <AdditionalHeadersEditor />
-          <GraphQLCustomizations />
+          {graphQLCustomizationsSlot ?? <GraphQLCustomizations />}
         </Box>
       </div>
 

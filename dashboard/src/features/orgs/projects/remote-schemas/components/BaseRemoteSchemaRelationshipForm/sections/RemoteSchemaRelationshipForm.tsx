@@ -42,6 +42,7 @@ export interface RemoteSchemaRelationshipFormProps {
   onCancel?: () => void;
   submitButtonText?: string;
   defaultValues?: RemoteSchemaRelationshipFormValues;
+  disabled?: boolean;
 }
 
 export type RemoteSchemaRelationshipFormValues = z.infer<typeof formSchema>;
@@ -72,6 +73,7 @@ export default function RemoteSchemaRelationshipForm({
   submitButtonText,
   onCancel,
   defaultValues,
+  disabled,
 }: RemoteSchemaRelationshipFormProps) {
   const { project } = useProject();
   const form = useForm<RemoteSchemaRelationshipFormValues>({
@@ -194,7 +196,11 @@ export default function RemoteSchemaRelationshipForm({
                   </Tooltip>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Relationship name" {...field} />
+                  <Input
+                    placeholder="Relationship name"
+                    {...field}
+                    disabled={disabled}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -224,41 +230,6 @@ export default function RemoteSchemaRelationshipForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    {/* <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                    <Command>
-                      <CommandInput
-                        placeholder="Search remote schema..."
-                        className="h-9"
-                      />
-                      <CommandList>
-                        <CommandEmpty>No remote schema found.</CommandEmpty>
-                        <CommandGroup>
-                          {remoteSchemas.map((schema) => (
-                            <CommandItem
-                              value={schema.name}
-                              key={schema.name}
-                              onSelect={() => {
-                                form.setValue(
-                                  'sourceRemoteSchema',
-                                  schema.name,
-                                );
-                              }}
-                            >
-                              {schema.name}
-                              <Check
-                                className={cn(
-                                  'ml-auto',
-                                  schema.name === field.value
-                                    ? 'opacity-100'
-                                    : 'opacity-0',
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent> */}
                   </Popover>
                   <FormMessage />
                 </FormItem>
@@ -275,6 +246,7 @@ export default function RemoteSchemaRelationshipForm({
                       <FormControl>
                         <Button
                           variant="outline"
+                          disabled={disabled}
                           role="combobox"
                           className={cn(
                             'w-full justify-between',
@@ -345,6 +317,7 @@ export default function RemoteSchemaRelationshipForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          disabled={disabled}
                           variant="outline"
                           role="combobox"
                           className={cn(
@@ -412,6 +385,7 @@ export default function RemoteSchemaRelationshipForm({
                       <FormControl>
                         <Button
                           variant="outline"
+                          disabled={disabled}
                           role="combobox"
                           className={cn(
                             'w-full justify-between',
@@ -476,7 +450,10 @@ export default function RemoteSchemaRelationshipForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting || disabled}
+          >
             {submitButtonText}
           </Button>
         </div>

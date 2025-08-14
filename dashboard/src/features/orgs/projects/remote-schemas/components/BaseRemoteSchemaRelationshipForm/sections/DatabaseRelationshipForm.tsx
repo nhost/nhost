@@ -47,6 +47,7 @@ export interface DatabaseRelationshipFormProps {
   submitButtonText?: string;
   onCancel?: () => void;
   defaultValues?: DatabaseRelationshipFormValues;
+  disabled?: boolean;
 }
 
 export type DatabaseRelationshipFormValues = z.infer<typeof formSchema>;
@@ -78,6 +79,7 @@ export default function DatabaseRelationshipForm({
   submitButtonText,
   onCancel,
   defaultValues,
+  disabled,
 }: DatabaseRelationshipFormProps) {
   const form = useForm<DatabaseRelationshipFormValues>({
     resolver: zodResolver(formSchema),
@@ -95,14 +97,6 @@ export default function DatabaseRelationshipForm({
       ],
     },
   });
-
-  // Note: remoteSchemas not needed since sourceSchema is passed as prop
-  // const { data: remoteSchemas = [] } = useGetRemoteSchemasQuery(
-  //   ['remote-schemas'],
-  //   {
-  //     queryOptions: { enabled: true },
-  //   },
-  // );
 
   // Use the sourceSchema prop instead of watching form field
   // Introspect the source remote schema to get its types
@@ -193,41 +187,6 @@ export default function DatabaseRelationshipForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    {/* <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                    <Command>
-                      <CommandInput
-                        placeholder="Search remote schema..."
-                        className="h-9"
-                      />
-                      <CommandList>
-                        <CommandEmpty>No remote schema found.</CommandEmpty>
-                        <CommandGroup>
-                          {remoteSchemas.map((schema) => (
-                            <CommandItem
-                              value={schema.name}
-                              key={schema.name}
-                              onSelect={() => {
-                                form.setValue(
-                                  'sourceRemoteSchema',
-                                  schema.name,
-                                );
-                              }}
-                            >
-                              {schema.name}
-                              <Check
-                                className={cn(
-                                  'ml-auto',
-                                  schema.name === field.value
-                                    ? 'opacity-100'
-                                    : 'opacity-0',
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent> */}
                   </Popover>
                   <FormMessage />
                 </FormItem>
@@ -303,7 +262,7 @@ export default function DatabaseRelationshipForm({
           <h4 className="text-xl font-medium tracking-tight">Type Mapped To</h4>
         </div>
         <div className="flex flex-col gap-4 px-6">
-          <TargetTableCombobox />
+          <TargetTableCombobox disabled={disabled} />
           <FormField
             control={form.control}
             name="relationshipType"
@@ -313,6 +272,7 @@ export default function DatabaseRelationshipForm({
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={disabled}
                 >
                   <FormControl>
                     <SelectTrigger className="w-[200px]">
@@ -329,7 +289,10 @@ export default function DatabaseRelationshipForm({
             )}
           />
         </div>
-        <FieldToColumnMapSelector sourceSchema={sourceSchema} />
+        <FieldToColumnMapSelector
+          sourceSchema={sourceSchema}
+          disabled={disabled}
+        />
 
         <div className="mt-auto flex justify-between gap-2 border-t-1 border-foreground/20 px-6 pt-4">
           <Button
@@ -340,7 +303,10 @@ export default function DatabaseRelationshipForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting || disabled}
+          >
             {submitButtonText}
           </Button>
         </div>

@@ -23,14 +23,14 @@ import { useAddRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import { useRemoveRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaPermissionsMutation';
 import { useUpdateRemoteSchemaPermissionsMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaPermissionsMutation';
+import type { RemoteSchemaFields } from '@/features/orgs/projects/remote-schemas/types';
+import { buildSchemaFromRoleDefinition } from '@/features/orgs/projects/remote-schemas/utils/buildSchemaFromRoleDefinition';
+import generateSDL from '@/features/orgs/projects/remote-schemas/utils/generateSDL';
+import getArgTreeFromPermissionSDL from '@/features/orgs/projects/remote-schemas/utils/getArgTreeFromPermissionSDL';
+import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
+import { getRemoteSchemaFields } from '@/features/orgs/projects/remote-schemas/utils/getRemoteSchemaFields';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
-import type { RemoteSchemaFields } from '../../types';
-import { buildSchemaFromRoleDefinition } from '../../utils/buildSchemaFromRoleDefinition';
-import generateSDL from '../../utils/generateSDL';
-import getArgTreeFromPermissionSDL from '../../utils/getArgTreeFromPermissionSDL';
-import getBaseTypeName from '../../utils/getBaseTypeName';
-import { getRemoteSchemaFields } from '../../utils/getRemoteSchemaFields';
 
 // Argument tree type for storing preset values
 type ArgTreeType = Record<string, any>;
@@ -65,12 +65,17 @@ export interface RemoteSchemaRolePermissionsEditorFormProps
    * Function to be called when the operation is cancelled.
    */
   onCancel: () => void;
+  /**
+   * Whether the form is disabled.
+   */
+  disabled?: boolean;
 }
 
 export default function RemoteSchemaRolePermissionsEditorForm({
   remoteSchemaName,
   role,
   permission,
+  disabled,
   onSubmit,
   onCancel,
 }: RemoteSchemaRolePermissionsEditorFormProps) {
@@ -408,7 +413,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
     }
   };
 
-  // Remove permission
   const handleRemovePermission = async () => {
     if (!permission) {
       return;
@@ -636,6 +640,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                               )
                                             }
                                             onClick={(e) => e.stopPropagation()}
+                                            disabled={disabled}
                                           />
                                           <span className="font-medium">
                                             {field.name}
@@ -686,6 +691,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                         e.target.value,
                                                       )
                                                     }
+                                                    disabled={disabled}
                                                     className="text-xs"
                                                   />
                                                 </div>
@@ -712,6 +718,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           checked as boolean,
                                         )
                                       }
+                                      disabled={disabled}
                                     />
                                     <label
                                       htmlFor={fieldKey}
@@ -783,6 +790,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           checked as boolean,
                                         )
                                       }
+                                      disabled={disabled}
                                     />
                                     <label
                                       htmlFor={fieldKey}
@@ -847,6 +855,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                       e.target.value,
                                                     )
                                                   }
+                                                  disabled={disabled}
                                                   className="text-xs"
                                                 />
                                               </div>
@@ -885,26 +894,6 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                   </div>
                 )}
               </Box>
-
-              {/* Schema Definition Preview */}
-              {/* {schemaDefinition && (
-                <Box className="space-y-4 rounded border-1 p-4">
-                  <Text className="text-lg font-semibold">
-                    Generated Schema Definition
-                  </Text>
-                  <pre
-                    className="max-h-40 overflow-auto whitespace-pre-wrap rounded p-4 text-sm"
-                    style={{
-                      backgroundColor:
-                        theme.palette.mode === 'dark' ? '#2d3748' : '#f7fafc',
-                      color:
-                        theme.palette.mode === 'dark' ? '#e2e8f0' : '#2d3748',
-                    }}
-                  >
-                    {schemaDefinition}
-                  </pre>
-                </Box>
-              )} */}
             </div>
           </Box>
         </div>
@@ -915,31 +904,35 @@ export default function RemoteSchemaRolePermissionsEditorForm({
             Cancel
           </Button>
 
-          <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
-            {permission && (
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleDeleteClick}
-                disabled={isRemovingPermission}
-                loading={isRemovingPermission}
-              >
-                Delete Permissions
-              </Button>
-            )}
+          {!disabled && (
+            <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
+              {permission && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={handleDeleteClick}
+                  disabled={isRemovingPermission}
+                  loading={isRemovingPermission}
+                >
+                  Delete Permissions
+                </Button>
+              )}
 
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSavePermission}
-              disabled={
-                !schemaDefinition || isAddingPermission || isUpdatingPermission
-              }
-              loading={isAddingPermission || isUpdatingPermission}
-            >
-              Save Permissions
-            </Button>
-          </Box>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSavePermission}
+                disabled={
+                  !schemaDefinition ||
+                  isAddingPermission ||
+                  isUpdatingPermission
+                }
+                loading={isAddingPermission || isUpdatingPermission}
+              >
+                Save Permissions
+              </Button>
+            </Box>
+          )}
         </Box>
       </Box>
     </Form>

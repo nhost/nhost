@@ -18,6 +18,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
+import EditGraphQLCustomizations from './components/EditGraphQLCustomizations';
 
 export interface EditRemoteSchemaFormProps
   extends Pick<BaseRemoteSchemaFormProps, 'onCancel' | 'location'> {
@@ -102,7 +103,10 @@ export default function EditRemoteSchemaForm({
         },
       };
 
-      await updateRemoteSchema({ args: remoteSchema });
+      await updateRemoteSchema({
+        originalRemoteSchema: originalSchema,
+        updatedRemoteSchema: remoteSchema,
+      });
 
       if (onSubmit) {
         await onSubmit();
@@ -146,9 +150,12 @@ export default function EditRemoteSchemaForm({
         )}
 
       <BaseRemoteSchemaForm
-        submitButtonText="Update"
+        submitButtonText="Save"
         onSubmit={handleSubmit}
         nameInputDisabled
+        graphQLCustomizationsSlot={
+          <EditGraphQLCustomizations remoteSchemaName={originalSchema.name} />
+        }
         {...props}
       />
     </FormProvider>
