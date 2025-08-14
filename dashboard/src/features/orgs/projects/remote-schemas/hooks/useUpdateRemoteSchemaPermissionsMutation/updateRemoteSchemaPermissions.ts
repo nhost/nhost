@@ -1,4 +1,4 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 
 export interface UpdateRemoteSchemaPermissionsOptions {
   appUrl: string;
@@ -7,68 +7,45 @@ export interface UpdateRemoteSchemaPermissionsOptions {
 
 export interface UpdateRemoteSchemaPermissionsVariables {
   role: string;
-  originalPermissionSchema: string;
   newPermissionSchema: string;
   remoteSchema: string;
+  resourceVersion: number;
 }
 
 export default async function updateRemoteSchemaPermissions({
   appUrl,
   adminSecret,
   role,
-  originalPermissionSchema,
   newPermissionSchema,
+  resourceVersion,
   remoteSchema,
 }: UpdateRemoteSchemaPermissionsOptions &
   UpdateRemoteSchemaPermissionsVariables) {
   try {
-    const response = await executeMigration(
+    const response = await metadataOperation(
       {
-        name: 'save_remote_schema_permission',
-        down: originalPermissionSchema
-          ? [
-              {
-                type: 'add_remote_schema_permissions',
-                args: {
-                  remote_schema: remoteSchema,
-                  role,
-                  definition: {
-                    schema: originalPermissionSchema,
-                  },
-                },
+        type: 'bulk',
+        source: 'default', // TODO: Make this dynamic
+        resource_version: resourceVersion,
+        args: [
+          {
+            type: 'drop_remote_schema_permissions',
+            args: {
+              remote_schema: remoteSchema,
+              role,
+            },
+          },
+          {
+            type: 'add_remote_schema_permissions',
+            args: {
+              remote_schema: remoteSchema,
+              role,
+              definition: {
+                schema: newPermissionSchema,
               },
-              {
-                type: 'drop_remote_schema_permissions',
-                args: {
-                  remote_schema: remoteSchema,
-                  role,
-                },
-              },
-            ]
-          : [],
-        up: newPermissionSchema
-          ? [
-              {
-                type: 'drop_remote_schema_permissions',
-                args: {
-                  remote_schema: remoteSchema,
-                  role,
-                },
-              },
-              {
-                type: 'add_remote_schema_permissions',
-                args: {
-                  remote_schema: remoteSchema,
-                  role,
-                  definition: {
-                    schema: newPermissionSchema,
-                  },
-                },
-              },
-            ]
-          : [],
-        datasource: 'default', // TODO: Make this dynamic
-        skip_execution: false,
+            },
+          },
+        ],
       },
       {
         baseUrl: appUrl,
