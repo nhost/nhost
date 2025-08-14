@@ -18,10 +18,8 @@ export const getTree = (
       ? introspectionSchema!.getQueryType()?.getFields()
       : introspectionSchema!.getMutationType()?.getFields();
 
-  let permissionsSchemaFields:
-    | GraphQLFieldMap<any, any, Record<string, any>>
-    | null
-    | undefined = null;
+  let permissionsSchemaFields: GraphQLFieldMap<any, any> | null | undefined =
+    null;
   if (permissionsSchema !== null) {
     permissionsSchemaFields =
       typeS === 'QUERY'

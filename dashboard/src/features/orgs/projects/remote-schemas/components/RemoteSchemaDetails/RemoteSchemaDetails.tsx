@@ -121,9 +121,12 @@ export default function RemoteSchemaDetails() {
             </Button>
           </div>
         </Box>
-        {remoteSchema.definition.headers?.length > 0 && (
-          <RemoteSchemaHeadersTable headers={remoteSchema.definition.headers} />
-        )}
+        {remoteSchema.definition.headers &&
+          remoteSchema.definition.headers.length > 0 && (
+            <RemoteSchemaHeadersTable
+              headers={remoteSchema.definition.headers}
+            />
+          )}
         <div className="flex flex-row items-center space-x-2">
           <Text>Forward all headers from client:</Text>
           <Text color="secondary" className="font-semibold">

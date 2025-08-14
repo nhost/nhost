@@ -1,9 +1,10 @@
 import { Input } from '@/components/ui/v2/Input';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
+import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { Search, X } from 'lucide-react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import useIntrospectRemoteSchemaQuery from '../../hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
-import convertIntrospectionToSchema from '../../utils/convertIntrospectionToSchema';
+import type { RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { RemoteSchemaTree } from './RemoteSchemaTree';
 import type { RelationshipFields } from './types';
 
@@ -11,7 +12,9 @@ export interface RemoteSchemaPreviewProps {
   name: string;
 }
 
-export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
+export default function RemoteSchemaPreview({
+  name,
+}: RemoteSchemaPreviewProps) {
   const {
     data: introspectionData,
     isLoading,
@@ -33,7 +36,6 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchMessage, setSearchMessage] = useState('');
 
   const schema = useMemo(() => {
     if (introspectionData) {
@@ -46,10 +48,11 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
     async (e?: React.FormEvent) => {
       e?.preventDefault();
 
-      if (!searchTerm.trim() || !treeRef.current) return;
+      if (!searchTerm.trim() || !treeRef.current) {
+        return;
+      }
 
       setIsSearching(true);
-      setSearchMessage('');
 
       try {
         const path = await treeRef.current.findItemPath(searchTerm);
@@ -62,20 +65,9 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
           const foundItemId = path[path.length - 1];
           treeRef.current.selectItems([foundItemId]);
           treeRef.current.focusItem(foundItemId);
-
-          setSearchMessage(`Found and highlighted: ${searchTerm}`);
-
-          // Clear the success message after 3 seconds
-          setTimeout(() => setSearchMessage(''), 3000);
-        } else {
-          setSearchMessage(`No results found for: ${searchTerm}`);
-          // Clear the error message after 5 seconds
-          setTimeout(() => setSearchMessage(''), 5000);
         }
-      } catch (error) {
-        console.error('Search error:', error);
-        setSearchMessage('Search failed. Please try again.');
-        setTimeout(() => setSearchMessage(''), 5000);
+      } catch (searchError) {
+        console.error('Search error:', searchError);
       } finally {
         setIsSearching(false);
       }
@@ -85,7 +77,6 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
 
   const handleClearSearch = useCallback(() => {
     setSearchTerm('');
-    setSearchMessage('');
     treeRef.current?.focusTree();
   }, []);
 
@@ -159,6 +150,7 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
                 type="button"
                 onClick={handleClearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 transform text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -200,4 +192,4 @@ export const RemoteSchemaPreview = ({ name }: RemoteSchemaPreviewProps) => {
       </div>
     </div>
   );
-};
+}

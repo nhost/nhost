@@ -24,8 +24,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { useTableQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
-import { convertIntrospectionToSchema } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview/utils';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
+import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { cn } from '@/lib/utils';
 import { isObjectType } from 'graphql';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -62,6 +62,11 @@ export default function FieldToColumnMapSelector({
     introspectionData && selectedSourceType
       ? (() => {
           const graphqlSchema = convertIntrospectionToSchema(introspectionData);
+
+          if (!graphqlSchema) {
+            return [];
+          }
+
           const type = graphqlSchema.getType(selectedSourceType);
 
           if (isObjectType(type)) {
