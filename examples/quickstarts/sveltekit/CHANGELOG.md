@@ -1,5 +1,10 @@
 ---
 
+## 0.8.3
+### Patch Changes
+
+  - @nhost/nhost-js@3.3.1
+
 ## 0.8.2
 ### Patch Changes
 

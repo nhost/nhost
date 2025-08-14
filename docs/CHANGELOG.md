@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.35.0
+
+### Minor Changes
+
+- 2f5bc04: fix (hasura-storage-js/docs): use correct way of specifying metadata[] in formData
+
+### Patch Changes
+
+- 06b47e0: fix: fixes to changes in mintlify breaking our docs
+
 ## 2.34.0
 
 ### Minor Changes

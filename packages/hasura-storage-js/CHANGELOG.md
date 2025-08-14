@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.9.0
+
+### Minor Changes
+
+- 2f5bc04: fix (hasura-storage-js/docs): use correct way of specifying metadata[] in formData
+
 ## 2.8.0
 
 ### Minor Changes

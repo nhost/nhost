@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-apollo",
-  "version": "18.0.1",
+  "version": "18.0.2",
   "description": "Nhost React Apollo client",
   "license": "MIT",
   "keywords": [
