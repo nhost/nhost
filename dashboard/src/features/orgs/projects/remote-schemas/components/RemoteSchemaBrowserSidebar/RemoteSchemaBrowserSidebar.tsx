@@ -193,7 +193,7 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditRelationshipsClick(schema: string) {
+  function handleEditRelationshipsClick(schema: string, disabled?: boolean) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
@@ -201,7 +201,9 @@ function RemoteSchemaBrowserSidebarContent({
           <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
-      component: <EditRemoteSchemaRelationships schema={schema} />,
+      component: (
+        <EditRemoteSchemaRelationships schema={schema} disabled={disabled} />
+      ),
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',

@@ -997,6 +997,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                               )
                                             }
                                             onClick={(e) => e.stopPropagation()}
+                                            disabled={disabled}
                                           />
                                           <span className="font-medium">
                                             {field.name}
@@ -1047,6 +1048,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                         e.target.value,
                                                       )
                                                     }
+                                                    disabled={disabled}
                                                     className="text-xs"
                                                   />
                                                 </div>
@@ -1073,6 +1075,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           checked as boolean,
                                         )
                                       }
+                                      disabled={disabled}
                                     />
                                     <label
                                       htmlFor={fieldKey}
@@ -1144,6 +1147,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                           checked as boolean,
                                         )
                                       }
+                                      disabled={disabled}
                                     />
                                     <label
                                       htmlFor={fieldKey}
@@ -1208,6 +1212,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                                       e.target.value,
                                                     )
                                                   }
+                                                  disabled={disabled}
                                                   className="text-xs"
                                                 />
                                               </div>
