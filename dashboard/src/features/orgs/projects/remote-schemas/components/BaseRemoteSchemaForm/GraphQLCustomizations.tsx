@@ -6,16 +6,22 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { useState } from 'react';
-import { useFormContext, useFormState } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function GraphQLCustomizations() {
   const [isOpen, setIsOpen] = useState(false);
-  const { register } = useFormContext<BaseRemoteSchemaFormValues>();
-  const { errors } = useFormState();
+  const { register, getFieldState, formState } =
+    useFormContext<BaseRemoteSchemaFormValues>();
 
-  const queryRootError = errors?.definition?.customization?.query_root;
-  const mutationRootError = errors?.definition?.customization?.mutation_root;
+  const queryRootError = getFieldState(
+    'definition.customization.query_root',
+    formState,
+  ).error;
+  const mutationRootError = getFieldState(
+    'definition.customization.mutation_root',
+    formState,
+  ).error;
 
   if (!isOpen) {
     return (
@@ -78,7 +84,7 @@ export default function GraphQLCustomizations() {
         about Type and Field naming conventions in the official GraphQL spec.
       </Text>
 
-      <Box className="space-y-4 rounded border border-gray-300 bg-white p-4">
+      <Box className="space-y-4 rounded border border-gray-300 bg-white p-4 dark:bg-gray-800">
         {/* Root Field Namespace */}
         <Box className="space-y-2">
           <Box className="flex flex-row items-center space-x-2">
