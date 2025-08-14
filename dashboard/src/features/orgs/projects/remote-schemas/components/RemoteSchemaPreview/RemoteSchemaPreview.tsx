@@ -103,7 +103,7 @@ export default function RemoteSchemaPreview({
     return (
       <div className="flex items-center justify-center p-4">
         <div className="text-sm text-red-600">
-          Error introspecting remote schema:{' '}
+          Error introspecting:{' '}
           {error instanceof Error ? error.message : 'Unknown error'}
         </div>
       </div>

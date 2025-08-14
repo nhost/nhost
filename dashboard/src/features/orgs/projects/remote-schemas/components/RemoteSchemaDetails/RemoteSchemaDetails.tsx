@@ -148,19 +148,7 @@ export default function RemoteSchemaDetails() {
           </Tooltip>
         </div>
       </Box>
-
-      {/* Schema Preview Section */}
       <RemoteSchemaPreview name={remoteSchema.name} />
-
-      {/* Debug JSON - can be removed later */}
-      <Box className="rounded-lg border-1 px-4 py-4">
-        <Text variant="h3" className="pb-2">
-          Debug: Remote Schema Data
-        </Text>
-        <pre className="overflow-auto rounded bg-muted p-2 text-xs">
-          {JSON.stringify(remoteSchema, null, 2)}
-        </pre>
-      </Box>
     </div>
   );
 }

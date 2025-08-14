@@ -1,15 +1,15 @@
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
-import { useUpdateRemoteSchemaRelationshipMutation } from '../../hooks/useUpdateRemoteSchemaRelationshipMutation';
+import BaseRemoteSchemaRelationshipForm from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/BaseRemoteSchemaRelationshipForm';
+import type { DatabaseRelationshipFormValues } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/sections/DatabaseRelationshipForm';
+import type { RemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/sections/RemoteSchemaRelationshipForm';
+import { useUpdateRemoteSchemaRelationshipMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaRelationshipMutation';
 import {
   getDatabaseRelationshipPayload,
   getRelationshipFormDefaultValues,
   getRelationshipType,
   getRemoteSchemaRelationshipPayload,
-} from '../../utils/forms';
-import BaseRemoteSchemaRelationshipForm from '../BaseRemoteSchemaRelationshipForm/BaseRemoteSchemaRelationshipForm';
-import { DatabaseRelationshipFormValues } from '../BaseRemoteSchemaRelationshipForm/sections/DatabaseRelationshipForm';
-import { RemoteSchemaRelationshipFormValues } from '../BaseRemoteSchemaRelationshipForm/sections/RemoteSchemaRelationshipForm';
+} from '@/features/orgs/projects/remote-schemas/utils/forms';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
 
 export interface EditRemoteSchemaRelationshipFormProps {
   /**
@@ -26,6 +26,7 @@ export interface EditRemoteSchemaRelationshipFormProps {
   typeName: string;
   onSubmit?: () => void;
   onCancel?: () => void;
+  disabled?: boolean;
 }
 
 export default function EditRemoteSchemaRelationshipForm({
@@ -34,6 +35,7 @@ export default function EditRemoteSchemaRelationshipForm({
   typeName,
   onSubmit,
   onCancel,
+  disabled,
 }: EditRemoteSchemaRelationshipFormProps) {
   const { mutateAsync: updateRemoteSchemaRelationship } =
     useUpdateRemoteSchemaRelationshipMutation();
@@ -86,11 +88,6 @@ export default function EditRemoteSchemaRelationshipForm({
     }
   };
 
-  console.log(
-    'getRelationshipFormDefaultValues',
-    getRelationshipFormDefaultValues(relationship, schema, typeName),
-  );
-
   return (
     <BaseRemoteSchemaRelationshipForm
       schema={schema}
@@ -103,6 +100,7 @@ export default function EditRemoteSchemaRelationshipForm({
       onSubmit={handleSubmit}
       submitButtonText="Save"
       onCancel={onCancel}
+      disabled={disabled}
     />
   );
 }

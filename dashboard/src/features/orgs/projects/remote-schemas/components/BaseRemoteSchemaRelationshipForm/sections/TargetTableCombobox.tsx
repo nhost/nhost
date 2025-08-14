@@ -25,10 +25,16 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 
-export default function TargetTableCombobox() {
+export interface TargetTableComboboxProps {
+  disabled?: boolean;
+}
+
+export default function TargetTableCombobox({
+  disabled,
+}: TargetTableComboboxProps) {
   const form = useFormContext<DatabaseRelationshipFormValues>();
 
-  // TODO: Should we be using different data sources?
+  // TODO: Support multiple data sources
   const { data } = useDatabaseQuery(['default'], {
     dataSource: 'default',
   });
@@ -80,6 +86,7 @@ export default function TargetTableCombobox() {
                     (!field.value?.name || !field.value?.schema) &&
                       'text-muted-foreground',
                   )}
+                  disabled={disabled}
                 >
                   {field.value?.name && field.value?.schema
                     ? tables.find(

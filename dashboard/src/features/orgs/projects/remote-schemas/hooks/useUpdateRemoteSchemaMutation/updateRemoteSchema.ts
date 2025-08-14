@@ -1,5 +1,8 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
-import type { UpdateRemoteSchemaArgs } from '@/utils/hasura-api/generated/schemas';
+import type {
+  RemoteSchemaInfo,
+  UpdateRemoteSchemaArgs,
+} from '@/utils/hasura-api/generated/schemas';
 
 export interface UpdateRemoteSchemaOptions {
   appUrl: string;
@@ -7,23 +10,20 @@ export interface UpdateRemoteSchemaOptions {
 }
 
 export interface UpdateRemoteSchemaVariables {
-  args: UpdateRemoteSchemaArgs;
+  originalRemoteSchema: RemoteSchemaInfo; // Original remote schema info is necessary to match the update migration variables type
+  updatedRemoteSchema: UpdateRemoteSchemaArgs;
 }
 
 export default async function updateRemoteSchema({
   appUrl,
   adminSecret,
-  args,
+  updatedRemoteSchema,
 }: UpdateRemoteSchemaOptions & UpdateRemoteSchemaVariables) {
   try {
     const response = await metadataOperation(
       {
         type: 'update_remote_schema',
-        args: {
-          name: args.name,
-          definition: args.definition,
-          comment: args.comment,
-        },
+        args: updatedRemoteSchema,
       },
       {
         baseUrl: appUrl,

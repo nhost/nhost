@@ -26,22 +26,22 @@ export default function useGetRemoteSchemasQuery(
 ) {
   const { project, loading } = useProject();
 
-  const appUrl = generateAppServiceUrl(
-    project!.subdomain,
-    project!.region,
-    'hasura',
-  );
-
   const query = useQuery<RemoteSchemaInfo[]>(
     queryKey,
-    () =>
-      getRemoteSchemas({
-        appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret!,
-      }),
+    () => {
+      const appUrl = generateAppServiceUrl(
+        project!.subdomain,
+        project!.region,
+        'hasura',
+      );
+
+      const adminSecret =
+        process.env.NEXT_PUBLIC_ENV === 'dev'
+          ? getHasuraAdminSecret()
+          : project?.config?.hasura.adminSecret!;
+
+      return getRemoteSchemas({ appUrl, adminSecret });
+    },
     {
       ...queryOptions,
       enabled: !!(

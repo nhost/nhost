@@ -26,6 +26,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
 import { useRemoveRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useRemoveRemoteSchemaMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -126,13 +127,11 @@ function RemoteSchemaBrowserSidebarContent({
       : new Error('Unknown error occurred. Please try again later.');
   }
 
-  const handleDeleteRemoteSchema = async (schema: string) => {
+  const handleDeleteRemoteSchema = async (schema: RemoteSchemaInfo) => {
     await execPromiseWithErrorToast(
       async () => {
         await deleteRemoteSchema({
-          args: {
-            name: schema,
-          },
+          remoteSchema: schema,
         });
         refetch();
       },
@@ -144,13 +143,13 @@ function RemoteSchemaBrowserSidebarContent({
     );
   };
 
-  function handleDeleteRemoteSchemaClick(schema: string) {
+  function handleDeleteRemoteSchemaClick(schema: RemoteSchemaInfo) {
     openAlertDialog({
       title: 'Delete Remote Schema',
       payload: (
         <span>
           Are you sure you want to delete the{' '}
-          <strong className="break-all">{schema}</strong> remote schema?
+          <strong className="break-all">{schema.name}</strong> remote schema?
         </span>
       ),
       props: {
@@ -161,7 +160,7 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditPermissionClick(schema: string) {
+  function handleEditPermissionClick(schema: string, disabled?: boolean) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
@@ -169,7 +168,9 @@ function RemoteSchemaBrowserSidebarContent({
           <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
-      component: <EditRemoteSchemaPermissionsForm schema={schema} />,
+      component: (
+        <EditRemoteSchemaPermissionsForm schema={schema} disabled={disabled} />
+      ),
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
@@ -178,7 +179,7 @@ function RemoteSchemaBrowserSidebarContent({
     });
   }
 
-  function handleEditRelationshipsClick(schema: string) {
+  function handleEditRelationshipsClick(schema: string, disabled?: boolean) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
@@ -186,7 +187,9 @@ function RemoteSchemaBrowserSidebarContent({
           <InlineCode className="!text-sm+ font-normal">{schema}</InlineCode>
         </span>
       ),
-      component: <EditRemoteSchemaRelationships schema={schema} />,
+      component: (
+        <EditRemoteSchemaRelationships schema={schema} disabled={disabled} />
+      ),
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
@@ -258,18 +261,43 @@ function RemoteSchemaBrowserSidebarContent({
                       </Dropdown.Trigger>
                       <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
                         {isGitHubConnected ? (
-                          <Dropdown.Item
-                            className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                            onClick={() =>
-                              handleEditPermissionClick(remoteSchema.name)
-                            }
-                          >
-                            <UsersIcon
-                              className="h-4 w-4"
-                              sx={{ color: 'text.secondary' }}
+                          <>
+                            <Dropdown.Item
+                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                              onClick={() =>
+                                handleEditPermissionClick(
+                                  remoteSchema.name,
+                                  true,
+                                )
+                              }
+                            >
+                              <UsersIcon
+                                className="h-4 w-4"
+                                sx={{ color: 'text.secondary' }}
+                              />
+                              <span>View Permissions</span>
+                            </Dropdown.Item>
+                            <Divider
+                              key="edit-permissions-separator"
+                              component="li"
                             />
-                            <span>View Permissions</span>
-                          </Dropdown.Item>
+                            <Dropdown.Item
+                              key="edit-relationships"
+                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                              onClick={() =>
+                                handleEditRelationshipsClick(
+                                  remoteSchema.name,
+                                  true,
+                                )
+                              }
+                            >
+                              <LinkIcon
+                                className="h-4 w-4"
+                                sx={{ color: 'text.secondary' }}
+                              />
+                              <span>View Relationships</span>
+                            </Dropdown.Item>
+                          </>
                         ) : (
                           <>
                             <Dropdown.Item
@@ -342,7 +370,7 @@ function RemoteSchemaBrowserSidebarContent({
                               className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                               sx={{ color: 'error.main' }}
                               onClick={() =>
-                                handleDeleteRemoteSchemaClick(remoteSchema.name)
+                                handleDeleteRemoteSchemaClick(remoteSchema)
                               }
                             >
                               <TrashIcon
