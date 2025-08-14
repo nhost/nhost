@@ -10,6 +10,7 @@ import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/
 import type {
   AddRemoteSchemaArgs,
   RemoteSchemaHeaders,
+  RemoteSchemaHeadersItem,
 } from '@/utils/hasura-api/generated/schemas';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -73,20 +74,21 @@ export default function CreateRemoteSchemaForm({
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
-      const headers: RemoteSchemaHeaders = values.definition.headers.map(
-        (header) => {
-          if (header.value_from_env) {
-            return {
-              name: header.name,
-              value_from_env: header.value_from_env,
-            };
-          }
+      const headers: RemoteSchemaHeaders = (
+        values.definition.headers ?? []
+      ).map<RemoteSchemaHeadersItem>((header) => {
+        if (header.value_from_env) {
           return {
             name: header.name,
-            value: header.value,
+            value_from_env: header.value_from_env,
           };
-        },
-      );
+        }
+
+        return {
+          name: header.name,
+          value: header.value || '', // value is defined if value_from_env is not defined
+        };
+      });
 
       const remoteSchema: AddRemoteSchemaArgs = {
         name: values.name,
@@ -115,33 +117,34 @@ export default function CreateRemoteSchemaForm({
 
   return (
     <FormProvider {...form}>
-      {createRemoteSchemaError && createRemoteSchemaError instanceof Error && (
-        <div className="-mt-3 mb-4 px-6">
-          <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
-          >
-            <span className="text-left">
-              <strong>Error:</strong>{' '}
-              {(createRemoteSchemaError as any)?.code ===
-              'invalid-configuration'
-                ? 'cannot continue due to new inconsistent metadata'
-                : createRemoteSchemaError.message}
-            </span>
-
-            <Button
-              variant="borderless"
-              color="secondary"
-              className="p-1"
-              onClick={() => {
-                resetCreateRemoteSchemaError();
-              }}
+      {!!createRemoteSchemaError &&
+        createRemoteSchemaError instanceof Error && (
+          <div className="-mt-3 mb-4 px-6">
+            <Alert
+              severity="error"
+              className="grid grid-flow-col items-center justify-between px-4 py-3"
             >
-              Clear
-            </Button>
-          </Alert>
-        </div>
-      )}
+              <span className="text-left">
+                <strong>Error:</strong>{' '}
+                {(createRemoteSchemaError as any)?.code ===
+                'invalid-configuration'
+                  ? 'cannot continue due to new inconsistent metadata'
+                  : createRemoteSchemaError.message}
+              </span>
+
+              <Button
+                variant="borderless"
+                color="secondary"
+                className="p-1"
+                onClick={() => {
+                  resetCreateRemoteSchemaError();
+                }}
+              >
+                Clear
+              </Button>
+            </Alert>
+          </div>
+        )}
 
       <BaseRemoteSchemaForm
         submitButtonText="Create"

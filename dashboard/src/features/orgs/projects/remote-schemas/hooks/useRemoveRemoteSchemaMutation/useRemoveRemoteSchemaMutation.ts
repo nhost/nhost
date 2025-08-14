@@ -29,25 +29,22 @@ export default function useRemoveRemoteSchemaMutation({
 }: UseRemoveRemoteSchemaMutationOptions = {}) {
   const { project } = useProject();
 
-  const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'hasura',
-  );
-  const mutationFn = removeRemoteSchema;
+  const mutation = useMutation((variables) => {
+    const appUrl = generateAppServiceUrl(
+      project!.subdomain,
+      project!.region,
+      'hasura',
+    );
 
-  const mutation = useMutation(
-    (variables) =>
-      mutationFn({
-        ...variables,
-        appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret,
-      }),
-    mutationOptions,
-  );
+    return removeRemoteSchema({
+      ...variables,
+      appUrl,
+      adminSecret:
+        process.env.NEXT_PUBLIC_ENV === 'dev'
+          ? getHasuraAdminSecret()
+          : project?.config?.hasura.adminSecret!,
+    });
+  }, mutationOptions);
 
   return mutation;
 }

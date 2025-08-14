@@ -24,11 +24,11 @@ export default function useGetRemoteSchemasQuery(
   queryKey: QueryKey,
   { queryOptions }: UseGetRemoteSchemasQueryOptions = {},
 ) {
-  const { project } = useProject();
+  const { project, loading } = useProject();
 
   const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
+    project!.subdomain,
+    project!.region,
     'hasura',
   );
 
@@ -40,13 +40,17 @@ export default function useGetRemoteSchemasQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret,
+            : project?.config?.hasura.adminSecret!,
       }),
     {
       ...queryOptions,
-      enabled: project?.config?.hasura.adminSecret
-        ? queryOptions?.enabled
-        : false,
+      enabled: !!(
+        project?.subdomain &&
+        project?.region &&
+        project?.config?.hasura.adminSecret &&
+        queryOptions?.enabled !== false &&
+        !loading
+      ),
     },
   );
 

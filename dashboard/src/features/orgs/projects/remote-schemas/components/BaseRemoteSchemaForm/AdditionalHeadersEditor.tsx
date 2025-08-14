@@ -107,10 +107,10 @@ export default function AdditionalHeadersEditor() {
 
       <Box className="flex flex-col space-y-4">
         {fields.length > 0 && (
-          <Box className="grid grid-cols-8 gap-4">
+          <Box className="grid grid-cols-9 gap-4">
             <Text className="col-span-3">Key</Text>
             <div className="col-span-1" />
-            <Text className="col-span-3">Value</Text>
+            <Text className="col-span-4">Value</Text>
             <div className="col-span-1" />
           </Box>
         )}
@@ -119,22 +119,22 @@ export default function AdditionalHeadersEditor() {
           const currentValueType = getHeaderValueType(field.id);
 
           return (
-            <Box key={field.id} className="grid grid-cols-8 items-center gap-4">
+            <Box key={field.id} className="grid grid-cols-9 items-center gap-4">
               <Input
                 {...register(`definition.headers.${index}.name`)}
                 id={`${field.id}-name`}
                 placeholder="Header name"
                 className="col-span-3"
                 hideEmptyHelperText
-                error={!!errors?.definition?.headers?.at(index)}
-                helperText={errors?.definition?.headers?.at(index)?.message}
+                error={!!errors?.definition?.headers?.at?.(index)}
+                helperText={errors?.definition?.headers?.at?.(index)?.message}
                 fullWidth
                 autoComplete="off"
               />
 
               <Text className="col-span-1 text-center">:</Text>
 
-              <Box className="col-span-3 flex flex-col gap-1 md:flex-row md:gap-0">
+              <Box className="col-span-4 flex flex-col gap-1 md:flex-row md:gap-0">
                 <Select
                   className="md:w-40"
                   value={currentValueType}
@@ -181,7 +181,7 @@ export default function AdditionalHeadersEditor() {
                       : 'Env var name'
                   }
                   hideEmptyHelperText
-                  error={!!errors?.definition?.headers?.at(index)}
+                  error={!!errors?.definition?.headers?.at?.(index)}
                   fullWidth
                   autoComplete="off"
                 />

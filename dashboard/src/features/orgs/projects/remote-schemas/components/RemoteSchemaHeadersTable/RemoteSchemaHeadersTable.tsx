@@ -25,8 +25,8 @@ export default function RemoteSchemaHeadersTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Name</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead className="w-[300px]">Name</TableHead>
+            <TableHead className="w-[150px]">Type</TableHead>
             <TableHead>Value</TableHead>
           </TableRow>
         </TableHeader>

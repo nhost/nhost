@@ -32,11 +32,11 @@ export default function useIntrospectRemoteSchemaQuery(
   remoteSchemaName: string,
   { queryOptions }: UseIntrospectRemoteSchemaQueryOptions = {},
 ) {
-  const { project } = useProject();
+  const { project, loading } = useProject();
 
   const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
+    project!.subdomain,
+    project!.region,
     'hasura',
   );
 
@@ -48,16 +48,19 @@ export default function useIntrospectRemoteSchemaQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret,
+            : project?.config?.hasura.adminSecret!,
         args: {
           name: remoteSchemaName,
         },
       }),
     ...queryOptions,
     enabled: !!(
+      project?.subdomain &&
+      project?.region &&
       project?.config?.hasura.adminSecret &&
       remoteSchemaName &&
-      queryOptions?.enabled !== false
+      queryOptions?.enabled !== false &&
+      !loading
     ),
   });
 

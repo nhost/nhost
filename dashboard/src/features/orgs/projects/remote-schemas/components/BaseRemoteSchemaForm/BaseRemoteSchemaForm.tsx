@@ -63,8 +63,8 @@ export const baseRemoteSchemaValidationSchema = Yup.object({
         'Either value or value from environment variable must be provided',
         (obj) => {
           const { value, value_from_env } = obj || {};
-          const hasValue = value && value.trim() !== '';
-          const hasEnvValue = value_from_env && value_from_env.trim() !== '';
+          const hasValue = value?.trim() !== '';
+          const hasEnvValue = value_from_env?.trim() !== '';
           return hasValue || hasEnvValue;
         },
       ),
