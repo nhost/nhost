@@ -1,28 +1,58 @@
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { Box } from '@/components/ui/v2/Box';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { RemoteSchemaHeadersTable } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaHeadersTable';
 import { RemoteSchemaPreview } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview';
+import useGetRemoteSchemasQuery from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery/useGetRemoteSchemasQuery';
 import { useReloadRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useReloadRemoteSchemaMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 import { RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/router';
 
-export interface RemoteSchemaDetailsProps {
-  remoteSchema: RemoteSchemaInfo;
-}
-
-export default function RemoteSchemaDetails({
-  remoteSchema,
-}: RemoteSchemaDetailsProps) {
-  const showComment = isNotEmptyValue(remoteSchema?.comment);
+export default function RemoteSchemaDetails() {
+  const { project } = useProject();
 
   const { mutateAsync: reloadRemoteSchema, isLoading: isReloading } =
     useReloadRemoteSchemaMutation();
+
+  const router = useRouter();
+
+  const { remoteSchemaSlug } = router.query;
+
+  const { data: remoteSchemas, status } = useGetRemoteSchemasQuery([
+    `remote_schemas`,
+    project?.subdomain,
+  ]);
+
+  const remoteSchema = remoteSchemas?.find(
+    (schema) => schema.name === remoteSchemaSlug,
+  );
+
+  if (status === 'loading' || !remoteSchema) {
+    return (
+      <RemoteSchemaEmptyState
+        title="Remote schema not found"
+        description={
+          <span>
+            Remote schema{' '}
+            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
+              {remoteSchemaSlug}
+            </InlineCode>{' '}
+            does not exist.
+          </span>
+        }
+      />
+    );
+  }
+
+  const showComment = isNotEmptyValue(remoteSchema?.comment);
 
   const handleSchemaReload = async () => {
     await execPromiseWithErrorToast(
