@@ -8,9 +8,6 @@ import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function ForwardClientHeadersToggle() {
   const { register } = useFormContext<BaseRemoteSchemaFormValues>();
-  //   const { errors } = useFormState({
-  //     name: 'definition.forward_client_headers',
-  //   });
 
   return (
     <Box className="flex flex-row justify-between gap-2">

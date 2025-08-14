@@ -1,6 +1,4 @@
-import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DialogFormProps } from '@/types/common';
 import type { RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem } from '@/utils/hasura-api/generated/schemas/remoteSchemaInfoRemoteRelationshipsItemRelationshipsItem';
@@ -26,9 +24,7 @@ export default function EditRemoteSchemaRelationships({
   schema,
   onCancel,
 }: EditRemoteSchemaRelationshipsProps) {
-  const { closeDrawerWithDirtyGuard } = useDialog();
   const { project } = useProject();
-  const { org } = useCurrentOrg();
 
   // Tracks the current view shown in the form. If you click on the "Add Relationship" button, the view will be set to "add".
   const [view, setView] = useState<'list' | 'add' | 'edit'>('list');
@@ -37,8 +33,6 @@ export default function EditRemoteSchemaRelationships({
     useState<RemoteSchemaInfoRemoteRelationshipsItemRelationshipsItem | null>(
       null,
     );
-
-  console.log('selectedEditRelationship', selectedEditRelationship);
 
   const {
     data: remoteSchemas,
@@ -52,8 +46,8 @@ export default function EditRemoteSchemaRelationships({
       ?.remote_relationships || [];
 
   const typeName =
-    remoteRelationships.find((relationship) =>
-      relationship.relationships.some(
+    remoteRelationships.find((remoteRelationship) =>
+      remoteRelationship.relationships.some(
         (relationship) => relationship.name === selectedEditRelationship?.name,
       ),
     )?.type_name || '';
@@ -78,7 +72,9 @@ export default function EditRemoteSchemaRelationships({
   }
 
   if (status === 'error') {
-    throw error || new Error('Unknown error occurred. Please try again later.');
+    throw error instanceof Error
+      ? error
+      : new Error('Unknown error occurred. Please try again later.');
   }
 
   if (view === 'list') {
@@ -121,7 +117,7 @@ export default function EditRemoteSchemaRelationships({
     );
   }
 
-  if (view === 'edit') {
+  if (view === 'edit' && selectedEditRelationship) {
     return (
       <EditRemoteSchemaRelationshipForm
         schema={schema}
@@ -129,10 +125,12 @@ export default function EditRemoteSchemaRelationships({
         typeName={typeName}
         onCancel={() => {
           setView('list');
+          onCancel?.();
         }}
         onSubmit={() => {
           setView('list');
           refetch();
+          onCancel?.();
         }}
       />
     );

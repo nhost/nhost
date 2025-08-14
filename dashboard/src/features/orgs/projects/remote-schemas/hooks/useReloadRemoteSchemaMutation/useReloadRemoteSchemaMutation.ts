@@ -29,25 +29,22 @@ export default function useReloadRemoteSchemaMutation({
 }: UseReloadRemoteSchemaMutationOptions = {}) {
   const { project } = useProject();
 
-  const appUrl = generateAppServiceUrl(
-    project?.subdomain,
-    project?.region,
-    'hasura',
-  );
-  const mutationFn = reloadRemoteSchema;
+  const mutation = useMutation((variables) => {
+    const appUrl = generateAppServiceUrl(
+      project!.subdomain,
+      project!.region,
+      'hasura',
+    );
 
-  const mutation = useMutation(
-    (variables) =>
-      mutationFn({
-        ...variables,
-        appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project?.config?.hasura.adminSecret,
-      }),
-    mutationOptions,
-  );
+    return reloadRemoteSchema({
+      ...variables,
+      appUrl,
+      adminSecret:
+        process.env.NEXT_PUBLIC_ENV === 'dev'
+          ? getHasuraAdminSecret()
+          : project?.config?.hasura.adminSecret!,
+    });
+  }, mutationOptions);
 
   return mutation;
 }

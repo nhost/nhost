@@ -1,3 +1,4 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
@@ -24,9 +25,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { convertIntrospectionToSchema } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview/utils';
 import { useGetRemoteSchemasQuery } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemasQuery';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
+import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isObjectType } from 'graphql';
@@ -86,10 +87,8 @@ export default function RemoteSchemaRelationshipForm({
   });
 
   // Fetch all remote schemas for the target schema dropdown
-  const { data: remoteSchemas } = useGetRemoteSchemasQuery([
-    'remote_schemas',
-    project?.subdomain,
-  ]);
+  const { data: remoteSchemas, status: remoteSchemasQueryStatus } =
+    useGetRemoteSchemasQuery(['remote_schemas', project?.subdomain]);
 
   // Introspect the source remote schema to get its types
   const { data: sourceIntrospectionData } = useIntrospectRemoteSchemaQuery(
@@ -118,6 +117,9 @@ export default function RemoteSchemaRelationshipForm({
   const sourceTypes = sourceIntrospectionData
     ? (() => {
         const schema = convertIntrospectionToSchema(sourceIntrospectionData);
+        if (!schema) {
+          return [];
+        }
         const typeMap = schema.getTypeMap();
 
         return Object.values(typeMap)
@@ -134,10 +136,16 @@ export default function RemoteSchemaRelationshipForm({
   const targetFields = targetIntrospectionData
     ? (() => {
         const schema = convertIntrospectionToSchema(targetIntrospectionData);
-        const typeMap = schema.getTypeMap();
+        if (!schema) {
+          return [];
+        }
+
+        // const typeMap = schema.getTypeMap();
         const queryType = schema.getQueryType();
 
-        if (!queryType) return [];
+        if (!queryType) {
+          return [];
+        }
 
         const fields = queryType.getFields();
 
@@ -149,10 +157,19 @@ export default function RemoteSchemaRelationshipForm({
     : [];
 
   function handleSubmit(values: z.infer<typeof formSchema>) {
-    console.log('blablablablublulbu');
-    console.log(values);
     onSubmit(values);
   }
+
+  if (remoteSchemasQueryStatus === 'loading' || !remoteSchemas) {
+    return (
+      <ActivityIndicator
+        delay={1000}
+        label="Loading remote schemas..."
+        className="justify-center"
+      />
+    );
+  }
+
   return (
     <Form {...form}>
       <form

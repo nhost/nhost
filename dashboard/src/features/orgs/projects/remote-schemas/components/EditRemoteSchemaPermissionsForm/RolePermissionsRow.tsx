@@ -53,7 +53,7 @@ function AccessLevelIcon({ level }: { level: RemoteSchemaAccessLevel }) {
 export default function RolePermissions({
   name,
   disabled,
-  accessLevel,
+  accessLevel = 'none',
   onActionSelect,
   slotProps,
   className,

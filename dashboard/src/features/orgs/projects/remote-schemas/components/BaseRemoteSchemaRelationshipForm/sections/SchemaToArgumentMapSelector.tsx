@@ -30,8 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { convertIntrospectionToSchema } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview/utils';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
+import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { cn } from '@/lib/utils';
 import { isObjectType } from 'graphql';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -79,6 +79,11 @@ export default function SchemaToArgumentMapSelector({
           const graphqlSchema = convertIntrospectionToSchema(
             sourceIntrospectionData,
           );
+
+          if (!graphqlSchema) {
+            return [];
+          }
+
           const type = graphqlSchema.getType(selectedSourceType);
 
           if (isObjectType(type)) {
@@ -101,6 +106,11 @@ export default function SchemaToArgumentMapSelector({
           const graphqlSchema = convertIntrospectionToSchema(
             targetIntrospectionData,
           );
+
+          if (!graphqlSchema) {
+            return [];
+          }
+
           const queryType = graphqlSchema.getQueryType();
 
           if (!queryType) {
@@ -154,8 +164,6 @@ export default function SchemaToArgumentMapSelector({
       }
     }
   };
-
-  console.log(targetArguments.length);
 
   if (!selectedTargetField) {
     return (

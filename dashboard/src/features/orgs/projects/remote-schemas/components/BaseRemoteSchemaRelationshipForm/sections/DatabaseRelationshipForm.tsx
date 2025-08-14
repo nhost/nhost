@@ -30,8 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { convertIntrospectionToSchema } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview/utils';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
+import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isObjectType } from 'graphql';
@@ -119,6 +119,10 @@ export default function DatabaseRelationshipForm({
   const sourceTypes = introspectionData
     ? (() => {
         const schema = convertIntrospectionToSchema(introspectionData);
+        if (!schema) {
+          return [];
+        }
+
         const typeMap = schema.getTypeMap();
 
         return Object.values(typeMap)
@@ -132,9 +136,9 @@ export default function DatabaseRelationshipForm({
     : [];
 
   function handleSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
     onSubmit(values);
   }
+
   return (
     <Form {...form}>
       <form

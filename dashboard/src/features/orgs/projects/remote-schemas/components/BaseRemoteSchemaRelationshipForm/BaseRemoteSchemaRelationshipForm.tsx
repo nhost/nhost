@@ -1,12 +1,10 @@
+import type { RemoteSchemaRelationshipType } from '@/features/orgs/projects/remote-schemas/types/remoteSchemas';
 import { useState } from 'react';
-import type { RemoteSchemaRelationshipType } from '../../types/remoteSchemas';
-import DatabaseRelationshipForm, {
-  DatabaseRelationshipFormValues,
-} from './sections/DatabaseRelationshipForm';
+import type { DatabaseRelationshipFormValues } from './sections/DatabaseRelationshipForm';
+import DatabaseRelationshipForm from './sections/DatabaseRelationshipForm';
 import RelationshipTypeSection from './sections/RelationshipTypeSection';
-import RemoteSchemaRelationshipForm, {
-  RemoteSchemaRelationshipFormValues,
-} from './sections/RemoteSchemaRelationshipForm';
+import type { RemoteSchemaRelationshipFormValues } from './sections/RemoteSchemaRelationshipForm';
+import RemoteSchemaRelationshipForm from './sections/RemoteSchemaRelationshipForm';
 
 export interface BaseRemoteSchemaRelationshipFormProps {
   /**
@@ -52,18 +50,28 @@ export default function BaseRemoteSchemaRelationshipForm({
       {type === 'remote-schema' && (
         <RemoteSchemaRelationshipForm
           sourceSchema={schema}
-          defaultValues={defaultValues}
+          defaultValues={
+            defaultType === 'remote-schema'
+              ? (defaultValues as
+                  | RemoteSchemaRelationshipFormValues
+                  | undefined)
+              : undefined
+          }
           onCancel={onCancel}
-          onSubmit={onSubmit}
+          onSubmit={(values) => onSubmit?.(values)}
           submitButtonText={submitButtonText}
         />
       )}
       {type === 'database' && (
         <DatabaseRelationshipForm
           sourceSchema={schema}
-          defaultValues={defaultValues}
+          defaultValues={
+            defaultType === 'database'
+              ? (defaultValues as DatabaseRelationshipFormValues | undefined)
+              : undefined
+          }
           onCancel={onCancel}
-          onSubmit={onSubmit}
+          onSubmit={(values) => onSubmit?.(values)}
           submitButtonText={submitButtonText}
         />
       )}

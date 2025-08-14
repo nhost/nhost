@@ -16,8 +16,8 @@ export async function customFetch<T>(
     ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
-      'x-hasura-admin-secret': adminSecret,
-      ...fetchOptions.headers,
+      ...(adminSecret ? { 'x-hasura-admin-secret': adminSecret } : {}),
+      ...(fetchOptions.headers || {}),
     },
   });
 

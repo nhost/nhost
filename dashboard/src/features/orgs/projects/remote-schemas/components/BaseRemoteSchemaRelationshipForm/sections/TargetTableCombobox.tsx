@@ -42,95 +42,91 @@ export default function TargetTableCombobox() {
         'fieldMapping',
         form.getValues('fieldMapping').map((field) => ({
           ...field,
-          referenceColumn: null,
+          referenceColumn: '',
         })),
       );
     }
   };
 
-  const tables =
-    data?.tables
-      .map((table) => {
-        if (table.table_name && table.table_schema) {
-          return {
+  const tables = (data?.tables ?? []).flatMap((table) =>
+    table.table_name && table.table_schema
+      ? [
+          {
             label: `default / ${table.table_schema} / ${table.table_name}`,
             value: {
               name: table.table_name,
               schema: table.table_schema,
             },
-          };
-        }
-        return null;
-      })
-      .filter(Boolean) ?? []; // Filter out null values
+          },
+        ]
+      : [],
+  );
 
   return (
     <FormField
       control={form.control}
       name="table"
-      render={({ field }) => {
-        return (
-          <FormItem className="flex flex-1 flex-col">
-            <FormLabel>Target Table</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      'w-full justify-between',
-                      (!field.value?.name || !field.value?.schema) &&
-                        'text-muted-foreground',
-                    )}
-                  >
-                    {field.value?.name && field.value?.schema
-                      ? tables.find(
-                          (table) =>
+      render={({ field }) => (
+        <FormItem className="flex flex-1 flex-col">
+          <FormLabel>Target Table</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className={cn(
+                    'w-full justify-between',
+                    (!field.value?.name || !field.value?.schema) &&
+                      'text-muted-foreground',
+                  )}
+                >
+                  {field.value?.name && field.value?.schema
+                    ? tables.find(
+                        (table) =>
+                          table.value.name === field.value?.name &&
+                          table.value.schema === field.value?.schema,
+                      )?.label
+                    : 'Select table'}
+                  <ChevronsUpDown className="opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
+              <Command>
+                <CommandInput
+                  placeholder="Search target table..."
+                  className="h-9"
+                />
+                <CommandList>
+                  <CommandEmpty>No target table found.</CommandEmpty>
+                  <CommandGroup>
+                    {tables.map((table) => (
+                      <CommandItem
+                        value={table.label}
+                        key={`${table.value.schema}/${table.value.name}`}
+                        onSelect={() => handleSelectTable(table.value)}
+                      >
+                        {table.label}
+                        <Check
+                          className={cn(
+                            'ml-auto',
                             table.value.name === field.value?.name &&
-                            table.value.schema === field.value?.schema,
-                        )?.label
-                      : 'Select table'}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-                <Command>
-                  <CommandInput
-                    placeholder="Search target table..."
-                    className="h-9"
-                  />
-                  <CommandList>
-                    <CommandEmpty>No target table found.</CommandEmpty>
-                    <CommandGroup>
-                      {tables.map((table) => (
-                        <CommandItem
-                          value={table.label}
-                          key={`${table.value.schema}/${table.value.name}`}
-                          onSelect={() => handleSelectTable(table.value)}
-                        >
-                          {table.label}
-                          <Check
-                            className={cn(
-                              'ml-auto',
-                              table.value.name === field.value?.name &&
-                                table.value.schema === field.value?.schema
-                                ? 'opacity-100'
-                                : 'opacity-0',
-                            )}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            <FormMessage />
-          </FormItem>
-        );
-      }}
+                              table.value.schema === field.value?.schema
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
     />
   );
 }

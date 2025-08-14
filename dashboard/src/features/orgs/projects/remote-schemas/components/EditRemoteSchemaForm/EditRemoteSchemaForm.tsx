@@ -5,6 +5,9 @@ import BaseRemoteSchemaForm, {
   type BaseRemoteSchemaFormValues,
   baseRemoteSchemaValidationSchema,
 } from '@/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaForm/BaseRemoteSchemaForm';
+import { useUpdateRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useUpdateRemoteSchemaMutation';
+import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
+import { isRemoteSchemaFromUrlDefinition } from '@/features/orgs/projects/remote-schemas/utils/guards';
 import type {
   RemoteSchemaHeaders,
   RemoteSchemaInfo,
@@ -15,9 +18,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
-import { useUpdateRemoteSchemaMutation } from '../../hooks/useUpdateRemoteSchemaMutation';
-import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '../../utils/constants';
-import { isRemoteSchemaFromUrlDefinition } from '../../utils/guards';
 
 export interface EditRemoteSchemaFormProps
   extends Pick<BaseRemoteSchemaFormProps, 'onCancel' | 'location'> {
@@ -73,24 +73,25 @@ export default function EditRemoteSchemaForm({
     resolver: yupResolver(baseRemoteSchemaValidationSchema),
   });
 
-  console.log(updateRemoteSchemaError);
-
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
     try {
-      const headers: RemoteSchemaHeaders = values.definition.headers.map(
-        (header) => {
+      const headers: RemoteSchemaHeaders = values.definition.headers
+        ?.map((header) => {
           if (header.value_from_env) {
             return {
               name: header.name,
               value_from_env: header.value_from_env,
             };
           }
-          return {
-            name: header.name,
-            value: header.value,
-          };
-        },
-      );
+          if (header.value) {
+            return {
+              name: header.name,
+              value: header.value,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean) as RemoteSchemaHeaders;
 
       const remoteSchema: UpdateRemoteSchemaArgs = {
         name: values.name,
@@ -119,29 +120,30 @@ export default function EditRemoteSchemaForm({
 
   return (
     <FormProvider {...form}>
-      {updateRemoteSchemaError && updateRemoteSchemaError instanceof Error && (
-        <div className="-mt-3 mb-4 px-6">
-          <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
-          >
-            <span className="text-left">
-              <strong>Error:</strong> {updateRemoteSchemaError.message}
-            </span>
-
-            <Button
-              variant="borderless"
-              color="secondary"
-              className="p-1"
-              onClick={() => {
-                resetUpdateRemoteSchemaError();
-              }}
+      {!!updateRemoteSchemaError &&
+        updateRemoteSchemaError instanceof Error && (
+          <div className="-mt-3 mb-4 px-6">
+            <Alert
+              severity="error"
+              className="grid grid-flow-col items-center justify-between px-4 py-3"
             >
-              Clear
-            </Button>
-          </Alert>
-        </div>
-      )}
+              <span className="text-left">
+                <strong>Error:</strong> {updateRemoteSchemaError.message}
+              </span>
+
+              <Button
+                variant="borderless"
+                color="secondary"
+                className="p-1"
+                onClick={() => {
+                  resetUpdateRemoteSchemaError();
+                }}
+              >
+                Clear
+              </Button>
+            </Alert>
+          </div>
+        )}
 
       <BaseRemoteSchemaForm
         submitButtonText="Update"
