@@ -12,6 +12,7 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
@@ -194,6 +195,14 @@ function RemoteSchemaBrowserSidebarContent({
 
   return (
     <Box className="flex h-full flex-col px-2">
+      {isGitHubConnected && (
+        <Box className="mt-1.5 flex items-center gap-1 px-2">
+          <InfoIcon className="h-4 w-4" sx={{ color: 'text.secondary' }} />
+          <Text className="text-xs" color="secondary">
+            GitHub connected - use the CLI for remote schema changes
+          </Text>
+        </Box>
+      )}
       <Button
         variant="borderless"
         endIcon={<PlusIcon />}
