@@ -15,7 +15,7 @@ test('should prepare a simple query', () => {
         type: { value: 'text', label: 'Text' },
       },
     ],
-    primaryKey: 'id',
+    primaryKey: ['id'],
   };
 
   const transaction = prepareCreateTableQuery({
@@ -58,7 +58,7 @@ test('should prepare a query with foreign keys', () => {
         deleteAction: 'RESTRICT',
       },
     ],
-    primaryKey: 'id',
+    primaryKey: ['id'],
   };
 
   const transaction = prepareCreateTableQuery({
@@ -87,7 +87,7 @@ test('should prepare a query with unique keys', () => {
         isUnique: true,
       },
     ],
-    primaryKey: 'id',
+    primaryKey: ['id'],
   };
 
   const transaction = prepareCreateTableQuery({
@@ -121,7 +121,7 @@ test('should prepare a query with nullable columns', () => {
         isNullable: true,
       },
     ],
-    primaryKey: 'id',
+    primaryKey: ['id'],
   };
 
   const transaction = prepareCreateTableQuery({
@@ -162,7 +162,7 @@ test('should prepare a query with default values', () => {
         defaultValue: { value: 'true', label: 'true', custom: true },
       },
     ],
-    primaryKey: 'id',
+    primaryKey: ['id'],
   };
 
   const transaction = prepareCreateTableQuery({
@@ -197,7 +197,7 @@ test('should prepare a query with an identity column', () => {
         defaultValue: { value: 'true', label: 'true' },
       },
     ],
-    primaryKey: 'id',
+    primaryKey: ['id'],
     identityColumn: 'id',
   };
 

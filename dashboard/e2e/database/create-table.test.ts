@@ -21,7 +21,7 @@ test('should create a simple table', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
@@ -51,7 +51,7 @@ test('should create a table with unique constraints', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text', unique: true },
@@ -82,7 +82,7 @@ test('should create a table with nullable columns', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text', nullable: true },
@@ -113,7 +113,7 @@ test('should create a table with an identity column', async ({
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'int4' },
       { name: 'title', type: 'text', nullable: true },
@@ -148,7 +148,7 @@ test('should create table with foreign key constraint', async ({
   await prepareTable({
     page,
     name: firstTableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'name', type: 'text' },
@@ -170,7 +170,7 @@ test('should create table with foreign key constraint', async ({
   await prepareTable({
     page,
     name: secondTableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
@@ -227,7 +227,7 @@ test('should not be able to create a table with a name that already exists', asy
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'name', type: 'text' },
@@ -247,7 +247,7 @@ test('should not be able to create a table with a name that already exists', asy
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
@@ -260,5 +260,35 @@ test('should not be able to create a table with a name that already exists', asy
 
   await expect(
     page.getByText(/error: a table with this name already exists/i),
+  ).toBeVisible();
+});
+
+test('should be able to create a table with a composite key', async ({
+  authenticatedNhostPage: page,
+}) => {
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  const tableName = snakeCase(faker.lorem.words(3));
+
+  await prepareTable({
+    page,
+    name: tableName,
+    primaryKeys: ['id', 'second_id'],
+    columns: [
+      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
+      { name: 'second_id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
+      { name: 'name', type: 'text' },
+    ],
+  });
+
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/${tableName}`,
+  );
+
+  await expect(
+    page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
 });

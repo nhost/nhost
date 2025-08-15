@@ -423,7 +423,7 @@ export interface DatabaseTable {
   /**
    * Primary key of the table.
    */
-  primaryKey: string;
+  primaryKey: string[];
   /**
    * Identity column of the table.
    */

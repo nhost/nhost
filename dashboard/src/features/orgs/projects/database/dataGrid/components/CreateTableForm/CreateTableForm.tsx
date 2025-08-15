@@ -70,7 +70,7 @@ export default function CreateTableForm({
         },
       ],
       foreignKeyRelations: [],
-      primaryKeyIndex: null,
+      primaryKeyIndices: [],
       identityColumnIndex: null,
     },
     shouldUnregister: true,
@@ -79,10 +79,17 @@ export default function CreateTableForm({
   });
 
   async function handleSubmit(values: BaseTableFormValues) {
+    const primaryKey = values.primaryKeyIndices.reduce<string[]>(
+      (primaryKeys, primaryKeyIndex) => [
+        ...primaryKeys,
+        values.columns[primaryKeyIndex].name,
+      ],
+      [],
+    );
     try {
       const table: DatabaseTable = {
         ...values,
-        primaryKey: values.columns[values.primaryKeyIndex!]?.name,
+        primaryKey,
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'

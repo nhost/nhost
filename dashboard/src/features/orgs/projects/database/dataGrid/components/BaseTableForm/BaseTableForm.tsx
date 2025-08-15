@@ -21,9 +21,9 @@ import PrimaryKeySelect from './PrimaryKeySelect';
 export interface BaseTableFormValues
   extends Omit<DatabaseTable, 'primaryKey' | 'identityColumn'> {
   /**
-   * The index of the primary key column.
+   * The indices of the primary key columns.
    */
-  primaryKeyIndex: number | null;
+  primaryKeyIndices: string[];
   /**
    * The index of the identity column.
    */
@@ -73,10 +73,7 @@ export const baseTableValidationSchema = Yup.object({
       test: (columns) =>
         new Set(columns?.map(({ name }) => name)).size === columns?.length,
     }),
-  primaryKeyIndex: Yup.number()
-    .nullable()
-    .defined('This field is required.')
-    .default(null),
+  primaryKeyIndices: Yup.array().of(Yup.string()),
   identityColumnIndex: Yup.number().nullable(),
 });
 
@@ -145,13 +142,13 @@ function FormFooter({
 
 export default function BaseTableForm({
   location,
-  onSubmit: handleExternalSubmit,
+  onSubmit,
   onCancel,
   submitButtonText = 'Save',
 }: BaseTableFormProps) {
   return (
     <Form
-      onSubmit={handleExternalSubmit}
+      onSubmit={onSubmit}
       className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto pb-4">

@@ -41,7 +41,7 @@ const originalColumns: DatabaseColumn[] = [
 test('should prepare a query for renaming the table', () => {
   const updatedTable: DatabaseTable = {
     name: 'test_table_renamed',
-    primaryKey: 'id',
+    primaryKey: ['id'],
     columns: [
       {
         id: 'id',
@@ -79,7 +79,7 @@ test('should prepare a query for renaming the table', () => {
 test('should prepare a query for adding a column', () => {
   const updatedTable: DatabaseTable = {
     name: 'test_table',
-    primaryKey: 'id',
+    primaryKey: ['id'],
     columns: [
       {
         id: 'id',
@@ -118,7 +118,7 @@ test('should prepare a query for adding a column', () => {
 test('should prepare a query for removing a column', () => {
   const updatedTable: DatabaseTable = {
     name: 'test_table',
-    primaryKey: 'id',
+    primaryKey: ['id'],
     columns: [
       {
         id: 'id',
@@ -151,7 +151,7 @@ test('should prepare a query for removing a column', () => {
 test('should prepare a query for updating a column', () => {
   const updatedTable: DatabaseTable = {
     name: 'test_table',
-    primaryKey: 'id',
+    primaryKey: ['id'],
     columns: [
       {
         id: 'id',
@@ -195,7 +195,7 @@ test('should prepare a query for updating a column', () => {
 test('should prepare a query for adding a foreign key', () => {
   const updatedTable: DatabaseTable = {
     name: 'test_table',
-    primaryKey: 'id',
+    primaryKey: ['id'],
     columns: [
       {
         id: 'id',
@@ -242,7 +242,7 @@ test('should prepare a query for adding a foreign key', () => {
 test('should prepare a query for removing a foreign key', () => {
   const updatedTable: DatabaseTable = {
     name: 'test_table',
-    primaryKey: 'id',
+    primaryKey: ['id'],
     columns: [
       {
         id: 'id',
@@ -290,7 +290,7 @@ test('should prepare a query for removing a foreign key', () => {
 test('should prepare a query for updating a foreign key', () => {
   const updatedTable: DatabaseTable = {
     name: 'test_table',
-    primaryKey: 'id',
+    primaryKey: ['id'],
     columns: [
       {
         id: 'id',

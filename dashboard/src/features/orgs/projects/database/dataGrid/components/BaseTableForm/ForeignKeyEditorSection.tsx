@@ -63,7 +63,7 @@ export default function ForeignKeyEditorSection() {
 
   return (
     <section className="grid grid-flow-row gap-2 px-6">
-      <InputLabel as="h3" className="mb-2">
+      <InputLabel as="h3" className="mb-2 text-[0.9375rem] font-bold leading-5">
         Foreign Keys
       </InputLabel>
 
