@@ -1,10 +1,7 @@
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import type { ButtonProps } from '@/components/ui/v2/Button';
 import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { OptionBase } from '@/components/ui/v2/Option';
 import type {
@@ -21,6 +18,7 @@ import type { PropsWithoutRef } from 'react';
 import { memo, useEffect, useState } from 'react';
 import type { FieldError } from 'react-hook-form';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
+import { RemoveButton } from './RemoveButton';
 
 export interface FieldArrayInputProps {
   /**
@@ -196,6 +194,7 @@ function Checkbox({
 }: FieldArrayInputProps & PropsWithoutRef<CheckboxProps>) {
   const primaryKeyIndex = useWatch({ name: 'primaryKeyIndex' });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
+
   const isPrimary = primaryKeyIndex === index;
   const isIdentity = identityColumnIndex === index;
 
@@ -206,57 +205,6 @@ function Checkbox({
       uncheckWhenDisabled
       {...props}
     />
-  );
-}
-
-function RemoveButton({ index, onClick }: FieldArrayInputProps & ButtonProps) {
-  const { setValue } = useFormContext();
-  const foreignKeyRelations: ForeignKeyRelation[] = useWatch({
-    name: 'foreignKeyRelations',
-  });
-  const columns = useWatch({ name: 'columns' });
-  const primaryKeyIndex = useWatch({ name: 'primaryKeyIndex' });
-  const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
-
-  return (
-    <IconButton
-      variant="outlined"
-      color="secondary"
-      size="small"
-      className="h-9 w-9"
-      disabled={columns?.length === 1}
-      aria-label="Remove column"
-      onClick={(event) => {
-        if (onClick) {
-          onClick(event);
-        }
-
-        if (
-          foreignKeyRelations.find(
-            (foreignKeyRelation) =>
-              foreignKeyRelation.columnName === columns[index].name,
-          )
-        ) {
-          setValue(
-            'foreignKeyRelations',
-            foreignKeyRelations.filter(
-              (foreignKeyRelation) =>
-                foreignKeyRelation.columnName !== columns[index].name,
-            ),
-          );
-        }
-
-        if (primaryKeyIndex === index) {
-          setValue('primaryKeyIndex', null);
-        }
-
-        if (identityColumnIndex === index) {
-          setValue('identityColumnIndex', null);
-        }
-      }}
-    >
-      <XIcon className="h-4 w-4" />
-    </IconButton>
   );
 }
 

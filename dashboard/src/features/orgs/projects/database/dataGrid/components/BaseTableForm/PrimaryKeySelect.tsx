@@ -1,49 +1,79 @@
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Option } from '@/components/ui/v2/Option';
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from '@/components/ui/v3/multi-select';
 import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { useMemo } from 'react';
-import { useFormState, useWatch } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
+
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
 
 export default function PrimaryKeySelect() {
-  const { errors } = useFormState({ name: 'primaryKeyIndex' });
   const columns: DatabaseColumn[] = useWatch({ name: 'columns' });
+
+  const { control } = useFormContext();
 
   // List of columns that can be used as an identity column
   const columnsWithNames = useMemo(
     () =>
       (columns || [])
-        .map((column, index) => ({
+        .map((column, ind) => ({
           label: column.name,
-          value: column.name,
-          id: index,
+          value: `${ind}`,
         }))
         .filter(({ label }) => Boolean(label)),
     [columns],
   );
 
   return (
-    <ControlledSelect
-      id="primaryKeyIndex"
-      name="primaryKeyIndex"
-      label="Primary Key"
-      fullWidth
-      className="col-span-8 py-3"
-      variant="inline"
-      placeholder="Select a column"
-      hideEmptyHelperText
-      error={Boolean(errors.primaryKeyIndex)}
-      helperText={
-        typeof errors.primaryKeyIndex?.message === 'string'
-          ? errors.primaryKeyIndex?.message
-          : ''
-      }
-      disabled={columnsWithNames.length === 0}
-    >
-      {columnsWithNames.map(({ label, id }) => (
-        <Option value={id} key={id}>
-          {label}
-        </Option>
-      ))}
-    </ControlledSelect>
+    <div role="row" className="pb- col-span-8 py-3 font-[Inter]">
+      <FormField
+        control={control}
+        name="primaryKeyIndices"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="pb-2 text-[0.9375rem] font-bold leading-5">
+              Primary Key
+            </FormLabel>
+            <MultiSelect onValuesChange={field.onChange} values={field.value}>
+              <FormControl>
+                <MultiSelectTrigger className="!mt-3 h-10 w-full rounded-sm hover:bg-[#ebf3ff] dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
+                  <MultiSelectValue
+                    placeholder="Add Primary Key"
+                    placeHolderClassName="text-[#9ca7b7]"
+                  />
+                </MultiSelectTrigger>
+              </FormControl>
+              <MultiSelectContent className="!rounded-sm">
+                <MultiSelectGroup>
+                  {columnsWithNames.map((col) => (
+                    <MultiSelectItem
+                      key={col.value}
+                      value={col.value}
+                      className="data-[selected='true']:bg-[#ebf3ff] data-[selected='true']:dark:bg-[#1b2534]"
+                    >
+                      {col.label}
+                    </MultiSelectItem>
+                  ))}
+                </MultiSelectGroup>
+              </MultiSelectContent>
+            </MultiSelect>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   );
 }
+// #1e293b
+// #1b2534
