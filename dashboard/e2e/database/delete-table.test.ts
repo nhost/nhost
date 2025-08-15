@@ -19,7 +19,7 @@ test('should delete a table', async ({ authenticatedNhostPage: page }) => {
   await prepareTable({
     page,
     name: tableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },
@@ -59,7 +59,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await prepareTable({
     page,
     name: firstTableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'name', type: 'text' },
@@ -81,7 +81,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await prepareTable({
     page,
     name: secondTableName,
-    primaryKey: 'id',
+    primaryKeys: ['id'],
     columns: [
       { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
       { name: 'title', type: 'text' },

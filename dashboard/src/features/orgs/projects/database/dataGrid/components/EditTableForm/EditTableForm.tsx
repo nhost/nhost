@@ -91,7 +91,7 @@ export default function EditTableForm({
     defaultValues: {
       name: originalTable.table_name,
       columns: [],
-      primaryKeyIndex: null,
+      primaryKeyIndices: [],
       identityColumnIndex: null,
       foreignKeyRelations: [],
     },
@@ -107,9 +107,17 @@ export default function EditTableForm({
       dataGridColumns.length > 0 &&
       !formInitialized
     ) {
-      const primaryColumnIndex = dataGridColumns.findIndex(
-        (column) => column.isPrimary,
+      const primaryKeyIndices = dataGridColumns.reduce<string[]>(
+        (result, col, index) => {
+          if (col.isPrimary) {
+            return [...result, `${index}`];
+          }
+
+          return result;
+        },
+        [],
       );
+
       const identityColumnIndex = dataGridColumns.findIndex(
         (column) => column.isIdentity,
       );
@@ -126,7 +134,7 @@ export default function EditTableForm({
           isNullable: column.isNullable,
           isUnique: column.isUnique,
         })),
-        primaryKeyIndex: primaryColumnIndex > -1 ? primaryColumnIndex : null,
+        primaryKeyIndices,
         identityColumnIndex:
           identityColumnIndex > -1 ? identityColumnIndex : null,
         foreignKeyRelations,
@@ -144,10 +152,13 @@ export default function EditTableForm({
   ]);
 
   async function handleSubmit(values: BaseTableFormValues) {
+    const primaryKey = values.primaryKeyIndices.map<string>(
+      (primaryKeys, primaryKeyIndex) => values.columns[primaryKeyIndex].name,
+    );
     try {
       const updatedTable: DatabaseTable = {
         ...values,
-        primaryKey: values.columns[values.primaryKeyIndex!]?.name,
+        primaryKey,
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'
@@ -190,6 +201,14 @@ export default function EditTableForm({
     return (
       <div className="px-6">
         <ActivityIndicator label="Loading columns..." delay={1000} />
+      </div>
+    );
+  }
+
+  if (!formInitialized) {
+    return (
+      <div className="px-6">
+        <ActivityIndicator label="Loading..." delay={1000} />
       </div>
     );
   }
