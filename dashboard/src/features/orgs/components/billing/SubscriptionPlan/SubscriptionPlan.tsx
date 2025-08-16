@@ -178,7 +178,7 @@ export default function SubscriptionPlan() {
               </div>
 
               <div className="mt-0 flex h-full items-center text-xl font-semibold">
-                {isFreeOrg ? 'Free' : `${plan.price}/mo`}
+                {plan.isFree ? 'Free' : `${plan.price}/mo`}
               </div>
             </FormLabel>
           </FormItem>
