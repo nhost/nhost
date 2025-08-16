@@ -184,7 +184,7 @@ export default function SubscriptionPlan() {
           </FormItem>
         );
       }),
-    [plans, isFreeOrg],
+    [plans],
   );
 
   return (
