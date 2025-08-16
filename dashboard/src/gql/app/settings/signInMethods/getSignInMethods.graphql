@@ -10,6 +10,9 @@ query GetSignInMethods($appId: uuid!) {
         authToken
         messagingServiceId
         provider
+        # TODO: Add when backend schema supports Modica fields
+        # modicaUsername
+        # modicaPassword
       }
     }
     auth {
