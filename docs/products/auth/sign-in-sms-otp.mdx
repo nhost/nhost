@@ -7,19 +7,32 @@ icon: message-sms
 
 An SMS OTP (one-time password) is a secure authorization method where a numeric or alphanumeric code is sent to a mobile phone number.
 
-Nhost supports OTP via SMS with Twilio.
+Nhost supports OTP via SMS with multiple providers: **Twilio** and **Modica Group**.
 
 ## Configuration
 
-You need a [Twilio account](https://www.twilio.com/try-twilio) to use this feature because all SMS' are sent through Twilio.
+### SMS Provider Selection
 
-Enable the Phone Number (SMS) sign-in method in the Nhost Dashboard under **Settings -> Sign-In Methods -> Phone Number (SMS)**.
+Choose your preferred SMS provider in the Nhost Dashboard under **Settings -> Sign-In Methods -> Phone Number (SMS)**.
 
-You need to configure the following:
+### Twilio Configuration
+
+You need a [Twilio account](https://www.twilio.com/try-twilio) to use Twilio as your SMS provider.
+
+Configure the following:
 
 - Account SID
-- Auth Token
+- Auth Token  
 - Messaging Service SID (or a Twilio phone number)
+
+### Modica Group Configuration
+
+You need a Modica Group account to use Modica as your SMS provider.
+
+Configure the following:
+
+- Username
+- Password
 
 ## Sign In
 
@@ -77,6 +90,6 @@ await nhost.auth.signIn(
 
 <Info>Phone numbers should start with `+` (not `00`) to follow the [E.164 formatting standard](https://en.wikipedia.org/wiki/E.164)</Info>
 
-## Other SMS Providers
+## Additional SMS Providers
 
-We only support Twilio for now. If you want support for another SMS provider, please create an issue on [GitHub](https://github.com/nhost/nhost).
+We currently support **Twilio** and **Modica Group**. If you want support for another SMS provider, please create an issue on [GitHub](https://github.com/nhost/nhost).
