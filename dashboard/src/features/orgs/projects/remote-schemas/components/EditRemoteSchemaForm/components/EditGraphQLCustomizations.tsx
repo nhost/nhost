@@ -317,7 +317,7 @@ export default function EditGraphQLCustomizations({
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          'w-full justify-between overflow-hidden text-left',
+                          'mt-1 w-full justify-between overflow-hidden text-left',
                           !fromType && 'text-muted-foreground',
                         )}
                       >
@@ -404,7 +404,7 @@ export default function EditGraphQLCustomizations({
                     variant="outline"
                     role="combobox"
                     className={cn(
-                      'w-full justify-between overflow-hidden text-left',
+                      'mt-1 w-full justify-between overflow-hidden text-left',
                       !(newTypeRemap.type ?? '') && 'text-muted-foreground',
                     )}
                   >
@@ -514,7 +514,7 @@ export default function EditGraphQLCustomizations({
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            'w-full justify-between overflow-hidden text-left',
+                            'mt-1 w-full justify-between overflow-hidden text-left',
                             !(item.parent_type ?? '') &&
                               'text-muted-foreground',
                           )}
@@ -651,7 +651,7 @@ export default function EditGraphQLCustomizations({
                     variant="outline"
                     role="combobox"
                     className={cn(
-                      'w-full justify-between overflow-hidden text-left',
+                      'mt-1 w-full justify-between overflow-hidden text-left',
                       !(newFieldMapping.parent_type ?? '') &&
                         'text-muted-foreground',
                     )}
