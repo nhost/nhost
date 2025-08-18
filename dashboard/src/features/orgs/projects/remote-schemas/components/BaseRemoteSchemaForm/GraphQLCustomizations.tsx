@@ -39,7 +39,7 @@ export default function GraphQLCustomizations() {
           >
             Read more
           </a>{' '}
-          about Type and Field naming conventions in the official GraphQL spec.
+          in the official GraphQL spec.
         </Text>
         <Button
           variant="outlined"
@@ -84,7 +84,7 @@ export default function GraphQLCustomizations() {
         about Type and Field naming conventions in the official GraphQL spec.
       </Text>
 
-      <Box className="space-y-4 rounded border border-gray-300 bg-white p-4 dark:bg-gray-800">
+      <Box className="space-y-4 rounded border p-4">
         {/* Root Field Namespace */}
         <Box className="space-y-2">
           <Box className="flex flex-row items-center space-x-2">
@@ -158,9 +158,8 @@ export default function GraphQLCustomizations() {
             </Tooltip>
           </Box>
 
-          {/* Query Root */}
           <Box className="space-y-3">
-            <Text variant="h5" className="font-semibold text-gray-600">
+            <Text variant="h4" className="font-semibold">
               Query root
             </Text>
             {queryRootError?.message && (
@@ -215,9 +214,8 @@ export default function GraphQLCustomizations() {
             </Box>
           </Box>
 
-          {/* Mutation Root */}
           <Box className="space-y-3">
-            <Text variant="h5" className="font-semibold text-gray-600">
+            <Text variant="h4" className="font-semibold">
               Mutation root
             </Text>
             {mutationRootError?.message && (
