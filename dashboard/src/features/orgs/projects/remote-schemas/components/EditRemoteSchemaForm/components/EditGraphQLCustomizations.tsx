@@ -105,18 +105,25 @@ export default function EditGraphQLCustomizations({
     upsertFieldNames(next);
   }
 
-  // Watch field_names to keep UI reactive when items are added/removed/edited
-  const watchedTypeNamesMapping = (useWatch({
+  // Watch field_names/type_names to keep UI reactive and sanitize shapes
+  const rawTypeNamesMapping = useWatch({
     name: 'definition.customization.type_names.mapping',
-  }) ?? {}) as Record<string, string>;
-  const watchedFieldNames = (useWatch({
+  });
+  const rawFieldNames = useWatch({
     name: 'definition.customization.field_names',
-  }) ?? []) as RemoteSchemaCustomizationFieldNamesItem[];
+  });
+
   const existingFieldNames: RemoteSchemaCustomizationFieldNamesItem[] =
-    watchedFieldNames ?? [];
+    Array.isArray(rawFieldNames)
+      ? (rawFieldNames as RemoteSchemaCustomizationFieldNamesItem[])
+      : [];
 
   const typeNamesMapping: Record<string, string> =
-    watchedTypeNamesMapping ?? {};
+    rawTypeNamesMapping &&
+    typeof rawTypeNamesMapping === 'object' &&
+    !Array.isArray(rawTypeNamesMapping)
+      ? (rawTypeNamesMapping as Record<string, string>)
+      : {};
 
   function setTypeNamesMapping(next: Record<string, string>) {
     setValue('definition.customization.type_names.mapping', next, {
@@ -490,7 +497,7 @@ export default function EditGraphQLCustomizations({
 
         {/* Existing items */}
         <Box className="space-y-3">
-          {existingFieldNames.map((item, index) => {
+          {existingFieldNames?.map((item, index) => {
             const fields = getParentTypeFields(item.parent_type);
             return (
               // eslint-disable-next-line react/no-array-index-key
