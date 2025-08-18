@@ -33,6 +33,8 @@ export default function PinnedMainNav() {
       observer.observe(scrollContainerRef.current, {
         childList: true,
         subtree: true,
+        // run scrollToElement when the class changes because of focus
+        attributeFilter: ['class'],
       });
     }
 

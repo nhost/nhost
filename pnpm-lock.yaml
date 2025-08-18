@@ -431,8 +431,8 @@ importers:
         specifier: ^2.10.0
         version: 2.10.0(react@18.2.0)
       react-complex-tree:
-        specifier: ^2.4.5
-        version: 2.4.6(react@18.2.0)
+        specifier: ^2.6.0
+        version: 2.6.0(react@18.2.0)
       react-day-picker:
         specifier: 9.6.3
         version: 9.6.3(react@18.2.0)
@@ -14147,8 +14147,8 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0
 
-  react-complex-tree@2.4.6:
-    resolution: {integrity: sha512-Akt55R8sI2r66ngxwU7lSgh0YxoBsQHjaVnLzRVCL3Xe+7vbrYfkRpdCK9i/Awga2vYkkdAh9z8etnO3PF/lAg==}
+  react-complex-tree@2.6.0:
+    resolution: {integrity: sha512-kDDuWih5VUz9cXgTKGnDBnMMoM4lvbn3/yCPs2D0jI9Z724BNeraeA5yBqyKqbIRhESQOlCyAyYW9WUqljFP1Q==}
     peerDependencies:
       react: 18.2.0
 
@@ -34964,7 +34964,7 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  react-complex-tree@2.4.6(react@18.2.0):
+  react-complex-tree@2.6.0(react@18.2.0):
     dependencies:
       react: 18.2.0
 

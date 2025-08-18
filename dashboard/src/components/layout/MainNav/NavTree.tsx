@@ -442,8 +442,10 @@ export default function NavTree() {
               }}
               className={cn(
                 'flex h-8 w-full flex-row justify-start gap-1 bg-background px-1 text-foreground hover:bg-accent dark:hover:bg-muted',
-                context.isFocused &&
-                  'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted',
+                {
+                  'bg-[#ebf3ff] hover:bg-[#ebf3ff] dark:bg-muted':
+                    context.isFocused,
+                },
                 item.data.disabled && 'pointer-events-none opacity-50',
               )}
             >
